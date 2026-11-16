@@ -304,90 +304,118 @@ Public reference documentation (consulted as help pages, not source code):
 
 ## 9. Expanded estimators and meta-regression
 
-The approved scope contains the following eleven values of `method`: `EE`, `FE`, `DL`, `HE`, `HS`, `HSk`, `SJ`, `ML`, `REML`, `EB`, and `PM`. The aliases `CO` and `VC` for HE are not additional approved values. `EE` is equal-effects synthesis; `FE` is fixed-effects synthesis. Both use inverse-sampling-variance weights by default and have `tau2=0`. The remaining methods estimate a non-negative between-study (or residual) variance.
+The approved scope contains eleven values of method: "EE", "FE", "DL", "HE", "HS", "HSk", "SJ", "ML", "REML", "EB", and "PM". The aliases "CO" and "VC" for HE are not additional approved values. EE is equal-effects synthesis; FE is fixed-effects synthesis. Both use inverse-sampling-variance weights by default and have \(\widehat{\tau}^2=0\). The remaining methods estimate a non-negative between-study (or residual) variance.
 
-For any candidate (	au^2), define (w_i(	au^2)=1/(v_i+	au^2)). The pooled estimate for an intercept-only model is
-[
-widehatmu(	au^2)=rac{sum_i w_i(	au^2)y_i}{sum_i w_i(	au^2)}.
-]
-The DL estimate is the method-of-moments expression in Section 4. HE, HS, HSk, and SJ are alternative moment/variance-component estimators: HE is the Hedges/Cochran estimator, HS is the generalized Hunter-Schmidt estimator, HSk applies its small-sample correction, and SJ uses its own iterative updating scheme from an initial value. They are not interchangeable; use their published definitions and verify outputs independently rather than inferring one from another. ML maximizes the ordinary likelihood, REML the restricted likelihood in Section 4, and EB is the empirical-Bayes estimator. In the reference package EB and PM are documented as identical; PM is the Paule-Mandel estimator, defined by solving the generalized Cochran equation (Q(	au^2)=k-1) for an intercept-only model, with the non-negative solution and boundary at zero when the equation does not cross zero above zero. This equality is a reference-package statement to verify numerically in fixtures, not a reason to alias distinct user-facing method names.
+For any candidate \(\tau^2\), define \(w_i(\tau^2)=1/(v_i+\tau^2)\). The pooled estimate for an intercept-only model is
+\[
+\widehat\mu(\tau^2)=\frac{\sum_i w_i(\tau^2)y_i}{\sum_i w_i(\tau^2)}.
+\]
+The DL estimate is the method-of-moments expression in Section 4. For the intercept-only case, let \(\bar y=k^{-1}\sum_i y_i\). The Hedges/Cochran estimator is
+\[
+\widehat\tau^2_{HE}=\max\left(0,\frac{1}{k-1}\sum_i(y_i-\bar y)^2-\frac{1}{k}\sum_i v_i\right).
+\]
+The generalized Hunter-Schmidt estimator is
+\[
+\widehat\tau^2_{HS}=\max\left(0,\frac{Q-k}{\sum_i 1/v_i}\right),
+\]
+where \(Q\) is Cochran's inverse-variance weighted statistic. HSk is the Hunter-Schmidt estimator with the small-sample-size correction of Brannick et al. (2019); it is a distinct estimator and must not be silently replaced by HS. Its exact correction must be checked against the paper before implementation, rather than guessed from the label.
+
+For Sidik-Jonkman, start with
+\[
+\widehat\tau_0^2=\frac1k\sum_i(y_i-\bar y)^2,\qquad
+a_i=\frac{\widehat\tau_0^2}{v_i+\widehat\tau_0^2},\qquad
+\widehat\mu_{SJ}=\frac{\sum_i a_i y_i}{\sum_i a_i},
+\]
+and then
+\[
+\widehat\tau^2_{SJ}=\frac1{k-1}\sum_i a_i(y_i-\widehat\mu_{SJ})^2.
+\]
+The ML estimate maximizes
+\[
+\ell_{ML}(\mu,\tau^2)=-\frac12\sum_i\left[\log(v_i+\tau^2)+\frac{(y_i-\mu)^2}{v_i+\tau^2}\right]
+\]
+over \(\mu\in\mathbb R\) and \(\tau^2\ge0\). REML maximizes the restricted likelihood in Section 4. EB is the empirical-Bayes estimator; in the reference package EB and PM are documented as identical. PM is the Paule-Mandel estimator, defined by solving the generalized Cochran equation \(Q(\tau^2)=k-1\) for an intercept-only model, with the non-negative solution and boundary at zero when the equation does not cross zero above zero. This equality is a reference-package statement to verify numerically in fixtures, not a reason to alias distinct user-facing method names.
 
 The reference documents the following numerical controls:
-- ML, REML, and EB use Fisher-scoring iterations; default initial (	au^2) is the HE estimate, convergence threshold is (10^{-5}), and maximum iterations is 100. `tau2.init`, `threshold`, `maxiter`, and `stepadj` can change the run.
-- PM uses a scalar root search; default tolerance is (epsilon_{double}^{1/4}), maximum iterations 100, and upper search bound (max(100,10,MAD(y)^2)). Controls include `tol`, `maxiter`, and `tau2.max`.
+- ML, REML, and EB use Fisher-scoring iterations; the default initial \(\tau^2\) is the HE estimate, convergence threshold is \(10^{-5}\), and maximum iterations is 100. tau2.init, threshold, maxiter, and stepadj can change the run.
+- PM uses a scalar root search; default tolerance is \(\epsilon_{double}^{1/4}\), maximum iterations 100, and upper search bound \(\max(100,10\,MAD(y)^2)\). Controls include tol, maxiter, and tau2.max.
 - Negative variance estimates are outside the parameter space. HE, HS, HSk, and DL truncate them to zero; ML/REML/EB keep the estimate non-negative during iteration. PM searches from zero by default.
 - Non-positive sampling variances are problematic. A zero variance gives infinite inverse-variance weight for EE/FE; several random-effects estimators are undefined at zero variance. Negative variances must not silently be accepted as ordinary positive variances.
 
 ### Meta-regression
 
-For study (i), let (x_i) be the row of the model matrix (including an intercept unless disabled), and let (p) be the number of coefficients. The mixed-effects meta-regression model is
-[
-y_i=x_i^mathsf{T}eta+u_i+arepsilon_i,qquad
-u_isim N(0,	au^2),quad arepsilon_isim N(0,v_i).
-]
-For fixed (	au^2), with (W=operatorname{diag}{1/(v_i+	au^2)}),
-[
-widehateta=(X^mathsf{T}WX)^{-1}X^mathsf{T}Wy,qquad
-operatorname{Var}(widehateta)=(X^mathsf{T}WX)^{-1}.
-]
-The heterogeneity estimate is the residual (	au^2) after accounting for the moderators. The residual heterogeneity statistic is
-[
-Q_E=(y-Xwidehateta)^mathsf{T}W(y-Xwidehateta),qquad df=k-p.
-]
-The omnibus moderator test (Q_M) tests that the selected (m) moderator coefficients are jointly zero. Under the default z inference it is asymptotically chi-squared with (m) degrees of freedom; for `test="t"` or `"knha"`, the omnibus test is F-based with numerator df (m) and denominator df (k-p). By default the intercept is excluded from this omnibus test. The returned public fields include `QM`, `QMp`, `QE`, `QEp`, `p`, and `m).
+For study \(i\), let \(x_i\) be the row of the model matrix (including an intercept unless disabled), and let \(p\) be the number of coefficients. The mixed-effects meta-regression model is
+\[
+y_i=x_i^\mathsf{T}\beta+u_i+\varepsilon_i,\qquad
+u_i\sim N(0,\tau^2),\quad \varepsilon_i\sim N(0,v_i).
+\]
+For fixed \(\tau^2\), with \(W=\operatorname{diag}\{1/(v_i+\tau^2)\}\),
+\[
+\widehat\beta=(X^\mathsf{T}WX)^{-1}X^\mathsf{T}Wy,\qquad
+\operatorname{Var}(\widehat\beta)=(X^\mathsf{T}WX)^{-1}.
+\]
+The heterogeneity estimate is the residual \(\tau^2\) after accounting for the moderators. The residual heterogeneity statistic is
+\[
+Q_E=(y-X\widehat\beta)^\mathsf{T}W(y-X\widehat\beta),\qquad df=k-p.
+\]
+The omnibus moderator test \(Q_M\) tests that the selected \(m\) moderator coefficients are jointly zero. Under the default z inference it is asymptotically chi-squared with \(m\) degrees of freedom; for test="t" or "knha", the omnibus test is F-based with numerator df \(m\) and denominator df \(k-p\). By default the intercept is excluded from this omnibus test. The returned public fields include QM, QMp, QE, QEp, p, and m.
 
-The pseudo-(R^2) for a mixed-effects model with an intercept is the proportion of total heterogeneity removed by the moderators:
-[
-R^2=100%maxleft(0,rac{widehat	au^2_{RE}-widehat	au^2_{ME}}{widehat	au^2_{RE}}ight),
-]
-with (R^2=0) when the total heterogeneity estimate is zero. It is estimator-dependent and may be unstable for small (k). In a fixed-effects meta-regression, the reference instead reports adjusted weighted-least-squares (R^2); do not conflate the two. The residual (I^2) and (H^2) are computed from the residual heterogeneity and the model's residual degrees of freedom, not from the intercept-only (Q).
+The pseudo-\(R^2\) for a mixed-effects model with an intercept is the proportion of total heterogeneity removed by the moderators:
+\[
+R^2=100\%\max\left(0,\frac{\widehat\tau^2_{RE}-\widehat\tau^2_{ME}}{\widehat\tau^2_{RE}}\right),
+\]
+with \(R^2=0\) when the total heterogeneity estimate is zero. It is estimator-dependent and may be unstable for small \(k\). In a fixed-effects meta-regression, the reference instead reports adjusted weighted-least-squares \(R^2\); do not conflate the two. Residual \(I^2\) and \(H^2\) are computed from residual heterogeneity and the model's residual degrees of freedom, not from the intercept-only \(Q\).
 
-The approved input forms are a numeric moderator vector or a numeric (k\times q) model matrix. The reference also accepts a one-sided formula; categorical variables and interactions are expanded into a model matrix. Stage 2 must state whether the existing formula machinery can represent the required subset. Redundant columns can be removed when the matrix is rank-deficient; if full rank cannot be obtained, fitting fails. With (k\le p), residual degrees of freedom are zero or negative and inferential quantities may be undefined.
+The approved input forms are a numeric moderator vector or a numeric \(k\times q\) model matrix. The reference also accepts a one-sided formula; categorical variables and interactions are expanded into a model matrix. Stage 2 must state whether the existing formula machinery can represent the required subset. Redundant columns can be removed when the model matrix is rank-deficient; if full rank cannot be obtained, fitting fails. With \(k\le p\), residual degrees of freedom are zero or negative and inferential quantities may be undefined.
 
 ### Inference: z, t, and Knapp-Hartung
 
-For `test="z"`, each coefficient uses (z_j=widehateta_j/SE(widehateta_j)), a two-sided standard-normal p-value, and a Wald interval (widehateta_j\pm z_{1-\alpha/2}SE(widehateta_j)). The default level is 95%.
+For test="z", each coefficient uses \(z_j=\widehat\beta_j/SE(\widehat\beta_j)\), a two-sided standard-normal p-value, and a Wald interval \(\widehat\beta_j\pm z_{1-\alpha/2}SE(\widehat\beta_j)\). The default level is 95%.
 
-For `test="t"`, coefficient statistics use a t distribution with (k-p) degrees of freedom, and intervals use the corresponding t critical value. For `test="knha"`, the Knapp-Hartung adjustment scales the coefficient covariance matrix by the residual weighted sum of squares divided by (k-p), and uses t inference with (k-p) degrees of freedom. In meta-regression the omnibus test is correspondingly F-based. With very small residual degrees of freedom, these statistics can be undefined; when the estimated adjustment factor is small, Knapp-Hartung can yield standard errors smaller than z-based standard errors (the separate ad-hoc floor is not in scope).
+For test="t", coefficient statistics use a t distribution with \(k-p\) degrees of freedom, and intervals use the corresponding t critical value. For test="knha", let \(q_{KH}=Q_E/(k-p)\). The Knapp-Hartung adjustment uses
+\[
+\widehat{\operatorname{Var}}_{KH}(\widehat\beta)=q_{KH}(X^\mathsf{T}WX)^{-1},
+\]
+and uses t inference with \(k-p\) degrees of freedom. In meta-regression the omnibus test is correspondingly F-based. With very small residual degrees of freedom, these statistics can be undefined; when the estimated adjustment factor is small, Knapp-Hartung can yield standard errors smaller than z-based standard errors (the separate ad-hoc floor is not in scope).
 
 ### Effect-size measures: RD and ZCOR
 
-For a (2\times2) table, the risk difference is
-[
-RD_i=p_{1i}-p_{2i}=rac{a_i}{a_i+b_i}-rac{c_i}{c_i+d_i}.
-]
+For a \(2\times2\) table, the risk difference is
+\[
+RD_i=p_{1i}-p_{2i}=\frac{a_i}{a_i+b_i}-\frac{c_i}{c_i+d_i}.
+\]
 With no zero-cell correction, its usual large-sample sampling variance is
-[
-v_i=rac{p_{1i}(1-p_{1i})}{a_i+b_i}+
-rac{p_{2i}(1-p_{2i})}{c_i+d_i}.
-]
-The zero-cell policy remains explicit even where RD's point estimate is finite: `add` is the non-negative correction, `to` is `"only0"` (default), `"all"`, `"if0all"`, or `"none"`, and `drop00` defaults to false. With `drop00=true`, studies with (a_i=c_i=0) or (b_i=d_i=0) are marked missing rather than contributing information. If no correction is applied and a measure is undefined, the result is missing rather than an invented finite value.
+\[
+v_i=\frac{p_{1i}(1-p_{1i})}{a_i+b_i}+
+\frac{p_{2i}(1-p_{2i})}{c_i+d_i}.
+\]
+The zero-cell policy remains explicit even where RD's point estimate is finite: add is the non-negative correction, to is "only0" (default), "all", "if0all", or "none", and drop00 defaults to false. With drop00=true, studies with \(a_i=c_i=0\) or \(b_i=d_i=0\) are marked missing rather than contributing information. If no correction is applied and a measure is undefined, the result is missing rather than an invented finite value.
 
-For a correlation (r_i) from sample size (n_i), Fisher's transformation is
-[
-z_i=\operatorname{atanh}(r_i)=\frac12\log\frac{1+r_i}{1-r_i},qquad
+For a correlation \(r_i\) from sample size \(n_i\), Fisher's transformation is
+\[
+z_i=\operatorname{atanh}(r_i)=\frac12\log\frac{1+r_i}{1-r_i},\qquad
 v_i=\frac{1}{n_i-3}.
-]
-The input must satisfy (|r_i|<1) and (n_i>3) for finite values. Values at or beyond the endpoints, or sample sizes too small for a positive variance, produce non-finite or invalid results and must be probed rather than silently clipped. For SMD, the approved behaviour remains the Hedges-corrected measure with the documented default large-sample variance approximation; other `vtype` variants are outside the approved scope.
+\]
+The input must satisfy \(|r_i|<1\) and \(n_i>3\) for finite values. Values at or beyond the endpoints, or sample sizes too small for a positive variance, produce non-finite or invalid results and must be probed rather than silently clipped. For SMD, the approved behaviour remains the Hedges-corrected measure with the documented default large-sample variance approximation; other vtype variants are outside the approved scope.
 
-### Heterogeneity intervals: `confint` type
+### Heterogeneity intervals: confint type
 
-For univariate models the supported choices are `type="QP"` (Q-profile) and `type="PL"` (profile likelihood). Q-profile inverts the noncentral chi-squared distribution for the Q statistic; PL inverts the likelihood-ratio criterion based on the ML/REML likelihood. Both produce intervals for (	au^2), and monotone transformations give intervals for (	au=sqrt{	au^2}), (I^2), and (H^2). The default type is Q-profile except for methods for which the reference specifies another method; the oracle must record the actual default by estimator. The lower endpoint is constrained by (	au^2\ge0). Endpoint searches can fail or hit the configured upper bound; an interval can be empty or contain missing bounds. PL is especially aligned with ML/REML fits but is not an exact interval in the Q-profile sense.
+For univariate models the supported choices are type="QP" (Q-profile) and type="PL" (profile likelihood). Q-profile inverts the noncentral chi-squared distribution for the Q statistic; PL inverts the likelihood-ratio criterion based on the ML/REML likelihood. Both produce intervals for \(\tau^2\), and monotone transformations give intervals for \(\tau=\sqrt{\tau^2}\), \(I^2\), and \(H^2\). The default type is Q-profile except for methods for which the reference specifies another method; the oracle must record the actual default by estimator. The lower endpoint is constrained by \(\tau^2\ge0\). Endpoint searches can fail or hit the configured upper bound; an interval can be empty or contain missing bounds. PL is especially aligned with ML/REML fits but is not an exact interval in the Q-profile sense.
 
 ### Prediction at new moderator values
 
-For new moderator rows (X_{new}), the predicted mean effects are
-[
-widehat y_{new}=X_{new}widehateta,qquad
-SE(widehat y_{new})=sqrt{x_{new}^{\mathsf T}\widehat V(\widehat\beta)x_{new}}.
-]
-When the fitted model includes an intercept, it is automatically added to moderator values unless the supplied matrix already includes the intercept or the caller disables it. A vector of values represents multiple predictions for a single moderator; for multiple moderators, supply a matrix with one row per requested prediction and one column per moderator. The prediction interval also includes the estimated residual heterogeneity; with `newmods`, the reference requires `newscale` to calculate prediction intervals for a location-scale model, which is outside scope. The default prediction interval follows the fitted test distribution; `predtype="riley"` uses the Riley (k-2) convention. New moderator values and returned prediction vectors/matrices must preserve row labels and all rows.
+For new moderator rows \(X_{new}\), the predicted mean effects are
+\[
+\widehat y_{new}=X_{new}\widehat\beta,\qquad
+SE(\widehat y_{new})=\sqrt{x_{new}^\mathsf{T}\widehat V(\widehat\beta)x_{new}}.
+\]
+When the fitted model includes an intercept, it is automatically added to moderator values unless the supplied matrix already includes the intercept or the caller disables it. A vector of values represents multiple predictions for a single moderator; for multiple moderators, supply a matrix with one row per requested prediction and one column per moderator. The prediction interval also includes the estimated residual heterogeneity; with newmods, the reference requires newscale to calculate prediction intervals for a location-scale model, which is outside scope. The default prediction interval follows the fitted test distribution; predtype="riley" uses the Riley \(k-2\) convention. New moderator values and returned prediction vectors/matrices must preserve row labels and all rows.
 
 ### Expanded oracle cases, errors, and resource limits
 
-The oracle must cover each of the eleven approved estimators on the same non-degenerate BCG input, and at least one boundary input where (widehat	au^2=0). It must record z/t/knha inference for a random-effects fit and a moderator fit; a numeric moderator matrix (and formula form if supported by the harness); (Q_M), (Q_E), (R^2), coefficient arrays, and new-value predictions; RD with default and alternate zero-cell options; ZCOR including its endpoint boundary; and both QP and PL intervals.
+The oracle must cover each of the eleven approved estimators on the same non-degenerate BCG input, and at least one boundary input where \(\widehat\tau^2=0\). It must record z/t/knha inference for a random-effects fit and a moderator fit; a numeric moderator matrix (and formula form if supported by the harness); \(Q_M\), \(Q_E\), \(R^2\), coefficient arrays, and new-value predictions; RD with default and alternate zero-cell options; ZCOR including its endpoint boundary; and both QP and PL intervals.
 
-The oracle must also capture errors/warnings for singular moderator matrices, too few studies relative to (p), non-positive variances, zero-cell tables with all-zero groups, (r=\pm1), (n\le3), and non-convergent iteration controls. It must not include inputs that exhaust the reference runner's memory or time budget. In particular, the REML fit with all three sampling variances equal to (10^{300}) was killed at both 1 GB and 2 GB and is excluded from the executable oracle; record it as an unverified resource-exhaustion boundary only. Any similarly pathological ML/REML/EB input that approaches the 120-second/2-GB runner limit must be documented, not executed as a fixture case.
+The oracle must also capture errors/warnings for singular moderator matrices, too few studies relative to \(p\), non-positive variances, zero-cell tables with all-zero groups, \(r=\pm1\), \(n\le3\), and non-convergent iteration controls. It must not include inputs that exhaust the reference runner's memory or time budget. In particular, the REML fit with all three sampling variances equal to \(10^{300}\) was killed at both 1 GB and 2 GB and is excluded from the executable oracle; record it as an unverified resource-exhaustion boundary only. Any similarly pathological ML/REML/EB input that approaches the 120-second/2-GB runner limit must be documented, not executed as a fixture case.
 
 ## rStats.js's choices
 
