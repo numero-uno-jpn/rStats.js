@@ -33,8 +33,6 @@ cat("\nPREDICTION RILEY\n")
 print(predict(fit, predtype="riley"), digits=17)
 cat("\nEGGER CLASSICAL LM\n")
 print(regtest(es$yi, vi=es$vi, model="lm", predictor="sei"), digits=17)
-cat("\nEGGER RANDOM META-REGRESSION\n")
-print(regtest(fit, model="rma", predictor="sei"), digits=17)
 
 cat("\nZERO-CELL RR\n")
 print(escalc(measure="RR", ai=c(0,5), bi=c(20,15), ci=c(2,4), di=c(18,16)), digits=17)
