@@ -10,11 +10,11 @@ const fixture = (name: string): Fixture => JSON.parse(readFileSync(fileURLToPath
 const n = (v: any): any => typeof v === "string" ? ({NA:NaN, NaN, Inf:Infinity, "-Inf":-Infinity} as Record<string,number>)[v] ?? Number(v) : Array.isArray(v) ? v.map(n) : v;
 const matrix = (v: any): number[][] | undefined => v == null ? undefined : Array.isArray(v) ? v.map((r:any)=>Array.isArray(r)?r.map(Number):[Number(r)]) : v.rows.map((r:any[])=>r.map(Number));
 const argsRma = (a:any) => ({
-  method: a.method as MetaMethod | undefined,
-  test: a.test as MetaTest | undefined,
-  mods: matrix(a.mods),
-  intercept: a.intercept,
-  control: a.control,
+  ...(a.method===undefined?{}:{method:a.method as MetaMethod}),
+  ...(a.test===undefined?{}:{test:a.test as MetaTest}),
+  ...(a.mods===undefined?{}:{mods:matrix(a.mods)}),
+  ...(a.intercept===undefined?{}:{intercept:a.intercept}),
+  ...(a.control===undefined?{}:{control:a.control}),
 });
 function close(actual:any, expected:any, path:string, mismatches:string[], tol=1e-12): void {
   if (expected === null) { if(actual!==null)mismatches.push(`${path}: expected null, got ${String(actual)}`); return; }
@@ -49,7 +49,7 @@ function compareRma(result:any, expected:any, index:number,mismatches:string[]):
 }
 function fitFromObject(o:any) {
   const a=o.rma;
-  return rma(a.yi.map(n),a.vi.map(n),{...argsRma(a),intercept:a.intercept});
+  return rma(a.yi.map(n),a.vi.map(n),{...argsRma(a),...(a.intercept===undefined?{}:{intercept:a.intercept})});
 }
 function expectError(call:()=>unknown,expected:string,path:string,mismatches:string[]):void {
   try { call(); mismatches.push(`${path}: expected error '${expected}', no error was thrown`); }
@@ -100,7 +100,7 @@ describe("meta-analysis intervals and prediction",()=>{
           const got=confintRma(fit,{type:c.args.type});
           close(got.random.rows,c.expected.value!.random.rows,`case ${i} intervals`,mismatches);
         }else{
-          const got=predictRma(fit,{newmods:c.args.newmods?.map(n),predtype:c.args.predtype});
+          const got=predictRma(fit,{...(c.args.newmods===undefined?{}:{newmods:c.args.newmods.map(n)}),...(c.args.predtype===undefined?{}:{predtype:c.args.predtype})});
           for(const key of ["pred","se","ci.lb","ci.ub","pi.lb","pi.ub"])close(got[key as keyof typeof got],n(c.expected.value![key]),`case ${i} ${key}`,mismatches);
         }
       }catch(e){mismatches.push(`case ${i}: ${e instanceof Error?e.message:String(e)}`);}
