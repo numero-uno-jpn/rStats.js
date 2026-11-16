@@ -106,11 +106,9 @@ function check(file) {
     for (const m of code.matchAll(/([A-Za-z][A-Za-z0-9.]*)\s*::(?!:)/g)) {
       if (!ALLOWED_PACKAGES.has(m[1])) problems.push(`${at}: package '${m[1]}' is not allowed`);
     }
-    const attached = new Set();
     for (const m of line.matchAll(/\b(library|require)\s*\(\s*([^),\s]*)/g)) {
       const pkg = m[2].replace(/^["'`]|["'`]$/g, "");
       if (!ALLOWED_PACKAGES.has(pkg)) problems.push(`${at}: ${m[1]}(${m[2]}) is not allowed`);
-      else attached.add(pkg);
     }
     // A package named like one of its functions (exact2x2): its name in library(), require() and pkg:: is not a
     // reference to the function
@@ -128,7 +126,9 @@ function check(file) {
     }
     for (const s of strings) {
       const t = s.trim();
-      if (attached.has(t)) continue;
+      // An allowed package's name (library("epiR"), packageVersion("exact2x2")): reaching a function from a string
+      // needs get, match.fun or eval, which are not allowed
+      if (ALLOWED_PACKAGES.has(t)) continue;
       if (REFERENCE_FUNCTIONS.includes(t) || FORBIDDEN_NAMES.includes(t) || t.includes("::")) {
         problems.push(`${at}: the string "${t}" names a function; call functions directly`);
       }
