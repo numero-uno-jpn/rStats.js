@@ -1,5 +1,5 @@
 # issue: 525
-# Full-formula verification against fixture cases 17-22 and 32, plus the public demo dataset.
+# Full-formula verification: tied-time correction uses full a = d + (1-q) rest, not d alone.
 # Uses only public cmprsk::cuminc() Tests statistics. No cmprsk source or internal routines are read.
 variance_stat <- function(ftime,fstatus,group,cause,rho) {
   groups<-sort(unique(group)); K<-length(groups)
@@ -36,7 +36,7 @@ variance_stat <- function(ftime,fstatus,group,cause,rho) {
     }
     if(cur$d1>1 && sum(cur$Y)>1 && cur$H>0) {
       W<-matrix(0,K-1,K)
-      for(r in 1:K) if(cur$L*cur$h[r]>0) W[,r]<-cur$D[,r]/(cur$L*cur$h[r])
+      for(r in 1:K) if(cur$L*cur$h[r]>0) W[,r]<-aa[,r]/(cur$L*cur$h[r])
       qsub<-ifelse(cur$Y>0,cur$h/cur$Y,0)
       Bweights<-ifelse(cur$H>qsub,cur$Y*qsub^2/(cur$H-qsub),0)
       Aown<-W%*%diag(cur$p)%*%t(W)
@@ -69,4 +69,4 @@ run_case("case32",c(0.5,0.6,1,2,3,4,5,6,7,8,9,10),c(0,0,1,2,1,0,1,2,1,1,0,1),c("
 # Demo data from demo/examples.R: competing-incidence-gray
 run_case("demo",c(1,2,3,4,5,6,2,3,4,5,6.5,7),
  c(1,0,2,1,0,1,0,1,2,0,1,0),
- rep(c("A","B"),each=6),0,c(1,2),c(NA_real_,NA_real_))
+ rep(c("A","B"),each=6),0,c(1,2),c(0.7292720972825765,0.012310108268851854))
