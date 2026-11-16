@@ -190,8 +190,8 @@ This package exposes two different model families in the requested scope. They s
 ### Freedman clinical-trial approximation
 
 Public functions:
-- \`ssizeCT.default(power, k, pE, pC, RR, alpha=0.05)\`
-- \`powerCT.default(nE, nC, pE, pC, RR, alpha=0.05)\`
+- `ssizeCT.default(power, k, pE, pC, RR, alpha=0.05)`
+- `powerCT.default(nE, nC, pE, pC, RR, alpha=0.05)`
 
 Here $k=n_E/n_C$, $p_E,p_C$ are the probabilities of failure over the maximum follow-up period, and $RR$ is the postulated experimental/control hazard ratio. The test is two-sided.
 
@@ -226,9 +226,9 @@ Observed default-method values:
 ### Schoenfeld / Latouche epidemiological Cox model
 
 Public functions:
-- \`ssizeEpi.default(power, theta, p, psi, rho2, alpha=0.05)\`
-- \`powerEpi.default(n, theta, p, psi, rho2, alpha=0.05)\`
-- \`numDEpi.default(power, theta, p, rho2, alpha=0.05)\`
+- `ssizeEpi.default(power, theta, p, psi, rho2, alpha=0.05)`
+- `powerEpi.default(n, theta, p, psi, rho2, alpha=0.05)`
+- `numDEpi.default(power, theta, p, rho2, alpha=0.05)`
 
 Here `theta` is the hazard ratio, `p` is the prevalence of the binary covariate of interest, `psi` is the proportion of subjects experiencing the event of interest, and `rho2` is the **squared** correlation between the covariate of interest and another covariate.
 
