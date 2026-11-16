@@ -221,5 +221,15 @@ describe("sample size and power",()=>{
         expect(typeII<=n(a.ep2)+1e-12,`Simon type-II constraint at n=${row.n}`).toBe(true);
       }
     }
+    // Keep the nmax=1000 performance/boundary fixture: it records the full row count and endpoints.
+    const largeCase=f.cases[3]!, la=largeCase.args;
+    const large=ph2simon(n(la.pu),n(la.pa),n(la.ep1),n(la.ep2),{nmax:n(la.nmax)});
+    const lv=largeCase.expected.value as {rows:string;first:Record<string,string>;last:Record<string,string>};
+    expect(large.out.length).toBe(n(lv.rows));
+    for(const [actual,expected] of [[large.out[0]!,lv.first],[large.out[large.out.length-1]!,lv.last]] as const){
+      expect([actual.r1,actual.n1,actual.r,actual.n]).toEqual([n(expected.r1),n(expected.n1),n(expected.r),n(expected.n)]);
+      expect(close(actual.enP0,n(expected["EN(p0)"]))).toBe(true);
+      expect(close(actual.petP0,n(expected["PET(p0)"]))).toBe(true);
+    }
   });
-});
+}
