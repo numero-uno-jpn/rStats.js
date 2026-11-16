@@ -26,7 +26,6 @@ function callEpi(c:Case):Record<string,unknown> {
   const a=c.args, opt={
     n:a.n==="NA"?null:a.n===undefined?undefined:n(a.n),
     power:a.power==="NA"?null:a.power===undefined?undefined:n(a.power),
-    delta:a.delta==="NA"?undefined:a.delta===undefined?undefined:n(a.delta),
     r:a.r===undefined?undefined:n(a.r),
     type:a.type as "equivalence"|"equality"|undefined,
     nfractional:a.nfractional as boolean|undefined,
