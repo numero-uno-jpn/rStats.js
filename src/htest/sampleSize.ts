@@ -192,8 +192,8 @@ function epi(
  * ```
  * @category Effect sizes and power
  */
-export function epiSsequb(treat: number, control: number, delta: number | null, options: EpiOptions = {
-  checkOptions(options, EPI_SSEQUB_KEYS, "epiSsequb"); // generated: option-keys.mjs}): EpiResult {
+export function epiSsequb(treat: number, control: number, delta: number | null, options: EpiOptions = {}): EpiResult {
+  checkOptions(options, EPI_SSEQUB_KEYS, "epiSsequb"); // generated: option-keys.mjs
   return reported("epiSsequb", epi("equivalence", "binary", treat, control, undefined, delta ?? undefined, options));
 }
 /** Equivalence/equality sample size or power for two means. Equivalent to `epiR::epi.ssequc()` in R.
@@ -209,8 +209,8 @@ export function epiSsequb(treat: number, control: number, delta: number | null, 
  * ```
  * @category Effect sizes and power
  */
-export function epiSsequc(treat: number, control: number, sigma: number, delta: number | null, options: EpiOptions = {
-  checkOptions(options, EPI_SSEQUC_KEYS, "epiSsequc"); // generated: option-keys.mjs}): EpiResult {
+export function epiSsequc(treat: number, control: number, sigma: number, delta: number | null, options: EpiOptions = {}): EpiResult {
+  checkOptions(options, EPI_SSEQUC_KEYS, "epiSsequc"); // generated: option-keys.mjs
   const out = epi("equivalence", "continuous", treat, control, sigma, delta ?? undefined, options);
   return reported("epiSsequc", out);
 }
@@ -226,8 +226,8 @@ export function epiSsequc(treat: number, control: number, sigma: number, delta: 
  * ```
  * @category Effect sizes and power
  */
-export function epiSsninfb(treat: number, control: number, delta: number, options: EpiOptions = {
-  checkOptions(options, EPI_SSNINFB_KEYS, "epiSsninfb"); // generated: option-keys.mjs}): EpiResult {
+export function epiSsninfb(treat: number, control: number, delta: number, options: EpiOptions = {}): EpiResult {
+  checkOptions(options, EPI_SSNINFB_KEYS, "epiSsninfb"); // generated: option-keys.mjs
   return reported("epiSsninfb", epi("noninferiority", "binary", treat, control, undefined, delta, options));
 }
 /** Non-inferiority sample size or power for two means. Equivalent to `epiR::epi.ssninfc()` in R.
@@ -243,8 +243,8 @@ export function epiSsninfb(treat: number, control: number, delta: number, option
  * ```
  * @category Effect sizes and power
  */
-export function epiSsninfc(treat: number, control: number, sigma: number, delta: number, options: EpiOptions = {
-  checkOptions(options, EPI_SSNINFC_KEYS, "epiSsninfc"); // generated: option-keys.mjs}): EpiResult {
+export function epiSsninfc(treat: number, control: number, sigma: number, delta: number, options: EpiOptions = {}): EpiResult {
+  checkOptions(options, EPI_SSNINFC_KEYS, "epiSsninfc"); // generated: option-keys.mjs
   return reported("epiSsninfc", epi("noninferiority", "continuous", treat, control, sigma, delta, options));
 }
 /** Superiority sample size or power for two proportions. Equivalent to `epiR::epi.sssupb()` in R.
@@ -259,8 +259,8 @@ export function epiSsninfc(treat: number, control: number, sigma: number, delta:
  * ```
  * @category Effect sizes and power
  */
-export function epiSssupb(treat: number, control: number, delta: number, options: EpiOptions = {
-  checkOptions(options, EPI_SSSUPB_KEYS, "epiSssupb"); // generated: option-keys.mjs}): EpiResult {
+export function epiSssupb(treat: number, control: number, delta: number, options: EpiOptions = {}): EpiResult {
+  checkOptions(options, EPI_SSSUPB_KEYS, "epiSssupb"); // generated: option-keys.mjs
   return reported("epiSssupb", epi("superiority", "binary", treat, control, undefined, delta, options));
 }
 /** Superiority sample size or power for two means. Equivalent to `epiR::epi.sssupc()` in R.
@@ -276,8 +276,8 @@ export function epiSssupb(treat: number, control: number, delta: number, options
  * ```
  * @category Effect sizes and power
  */
-export function epiSssupc(treat: number, control: number, sigma: number, delta: number, options: EpiOptions = {
-  checkOptions(options, EPI_SSSUPC_KEYS, "epiSssupc"); // generated: option-keys.mjs}): EpiResult {
+export function epiSssupc(treat: number, control: number, sigma: number, delta: number, options: EpiOptions = {}): EpiResult {
+  checkOptions(options, EPI_SSSUPC_KEYS, "epiSssupc"); // generated: option-keys.mjs
   return reported("epiSssupc", epi("superiority", "continuous", treat, control, sigma, delta, options));
 }
 
