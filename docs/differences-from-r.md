@@ -1683,10 +1683,17 @@ The references are epiR 3.0.0, exact2x2 1.7.0, powerSurvEpi 0.1.5 and clinfun 1.
   `sqrt(2 * (k-p)) / sum(w_i^2 * (y_i - X_i beta)^2)`, evaluated at the converged root.
   The Colditz fixture gives `0.17691603426976156`. R's public-API fixture gives
   `0.17366305545243807` (EB) and `0.17367414982800913` (PM), about 1.9% smaller.
-  The R help documents the `se.tau2` field but does not specify its EB/PM formula, and the
-  available fixture does not distinguish the candidate variance approximations. This is a
-  formula difference, not a convergence tolerance; the test checks the rStats.js formula
-  strictly rather than widening its tolerance to R.
+  The R help documents the `se.tau2` field but does not specify its EB/PM formula. Three
+  candidate approximations were checked on the Colditz fixture: the Q-profile delta method above
+  (`0.17691603426976156`), the ML Fisher-information approximation
+  `sqrt(2 / sum(w_i^2))` (`0.16065820987037540`), and the REML Fisher-information approximation
+  `sqrt(2 / (sum(w_i^2) - 2*sum(w_i^3)/sum(w_i) + (sum(w_i^2)/sum(w_i))^2))`
+  (`0.16857655354986841`). None reproduces R's values. The Sidik–Jonkman 2019 paper discusses
+  M-estimation variance estimators for EB/PM, but the available help and single fixture do not
+  identify which approximation produced metafor's result. This remains a labelled known
+  difference, not a convergence tolerance; the test checks the rStats.js formula strictly
+  rather than widening its tolerance to R. An R public-API experiment comparing these
+  candidates on additional datasets is in `experiments/meta-eb-pm-se-tau2.R` on `work/meta`.
 - **Q-profile and profile-likelihood interval endpoints:** rStats.js solves the defining
   equations to near double precision. R's interval root search stops at the default
   `uniroot` absolute tolerance `eps^0.25` (about `1.22e-4`), which can be material for a
