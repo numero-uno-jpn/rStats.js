@@ -134,8 +134,18 @@ function epi(
       nControlUnrounded = ((critical + zPower) ** 2 * (vt / r + vc)) / (E * E);
       nTreatUnrounded = r * nControlUnrounded;
     }
-    nTreat = nfractional ? nTreatUnrounded : Math.ceil(nTreatUnrounded);
-    nControl = nfractional ? nControlUnrounded : Math.ceil(nControlUnrounded);
+    if (nfractional) {
+      nTreat = nTreatUnrounded;
+      nControl = nControlUnrounded;
+    } else {
+      nControl = Math.ceil(nControlUnrounded);
+      // The continuous equivalence and superiority sample-size methods allocate
+      // the rounded control count first, then round the treatment count at ratio r.
+      // This reproduces the public epiR integer outputs; the other four methods
+      // round the two unrounded arm counts independently.
+      const ratioFromRoundedControl = (kind === "equivalence" && measure === "continuous") || kind === "superiority";
+      nTreat = ratioFromRoundedControl ? Math.ceil(r * nControl) : Math.ceil(nTreatUnrounded);
+    }
     actualPower = power!;
   } else {
     [nTreatUnrounded, nControlUnrounded] = splitN(n, r);
