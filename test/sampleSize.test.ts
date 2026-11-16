@@ -112,14 +112,14 @@ describe("sample size and power",()=>{
     const f=read("samplesizeMcNemar");
     f.cases.forEach((c,i)=>{
       if(c.expected.error){ expect(()=>powerPaired2x2(n(c.args.pb),n(c.args.pc),n(c.args.npairs))).toThrow(); return; }
-      const a=c.args, opts={
+      const a=c.args, opts=Object.fromEntries(Object.entries({
         sigLevel:a["sig.level"]===undefined?undefined:n(a["sig.level"]),
         alternative:a.alternative as "two.sided"|"one.sided"|undefined,
         strict:a.strict as boolean|undefined,
         nullOddsRatio:a.nullOddsRatio===undefined?undefined:n(a.nullOddsRatio),
         errbound:a.errbound===undefined?undefined:n(a.errbound),
         tsmethod:a.tsmethod as "central"|"minlike"|"blaker"|undefined,
-      };
+      }).filter(([,v])=>v!==undefined)) as PowerPaired2x2Options;
       const actual=powerPaired2x2(n(a.pb),n(a.pc),n(a.npairs),opts);
       if(a.errbound!==undefined && n(a.errbound)>0){
         const exact=powerPaired2x2(n(a.pb),n(a.pc),n(a.npairs),{...opts,errbound:0});
