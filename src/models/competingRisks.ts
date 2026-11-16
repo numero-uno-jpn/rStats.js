@@ -339,16 +339,14 @@ function grayTests(rows: readonly CompetingRow[], groups: readonly GroupLabel[],
     }
     const df = K - 1;
     let statistic = NaN, pValue = NaN;
-    if (z.every((x) => x === 0)) { statistic = 0; pValue = 1; }
-    else {
-      const sub = V.slice(0, df).map((row) => row.slice(0, df));
-      try {
-        const b = solve(sub, z.slice(0, df), { tol: 1e-12 });
-        statistic = z.slice(0, df).reduce((s, x, i) => s + x * b[i]!, 0);
-        pValue = pchisq(statistic, df, { lowerTail: false });
-      } catch {
-        statistic = NaN; pValue = NaN;
-      }
+    const sub = V.slice(0, df).map((row) => row.slice(0, df));
+    try {
+      // Check covariance invertibility even when the score is zero; a singular quadratic form is undefined.
+      const b = solve(sub, z.slice(0, df), { tol: 1e-12 });
+      statistic = z.slice(0, df).reduce((s, x, i) => s + x * b[i]!, 0);
+      pValue = pchisq(statistic, df, { lowerTail: false });
+    } catch {
+      statistic = NaN; pValue = NaN;
     }
     out.push({ cause: levelText(cause), stat: statistic, df, pValue });
   }

@@ -268,7 +268,7 @@ describe("competing risks", () => {
     expect(nearZero.tests?.find((x) => x.cause === "2")?.stat).toBeCloseTo(0.20020025031288666, 10);
 
     // Here H = q_r exactly (one remaining subject in the only nonempty risk set).
-    // R returns its singular sentinel -1; rStats.js deliberately represents this as NaN.
+    // R returns its singular sentinel -1; the documented rStats.js choice is NaN for singular covariance, even when z = 0.
     const singular = cuminc([10, 1, 2, 3], [1, 2, 2, 2], { group: ["A", "B", "B", "B"] });
     expect(singular.tests?.find((x) => x.cause === "1")?.stat).toBeNaN();
     expect(singular.tests?.find((x) => x.cause === "1")?.pValue).toBeNaN();
