@@ -169,7 +169,7 @@ function buildX(k:number,mods:RmaOptions["mods"],intercept:boolean,data?:DataFra
 }
 
 /**
- * Compute study-level effect sizes and sampling variances.
+ * Compute study-level effect sizes and sampling variances. Equivalent to R's `metafor::escalc()`.
  *
  * @param measure One of RR, OR, RD, MD, SMD or ZCOR.
  * @param options Study-level counts, means, standard deviations, sample sizes or correlations.
@@ -228,7 +228,7 @@ export function escalc(measure:EscalcMeasure, options:EscalcOptions):EscalcResul
 }
 
 /**
- * Fit an equal-effects or random-effects meta-analysis, including meta-regression.
+ * Fit an equal-effects or random-effects meta-analysis, including meta-regression. Equivalent to R's `metafor::rma.uni()`.
  *
  * @param yi Study effect estimates, or the result of {@link escalc}.
  * @param vi Sampling variances (omitted when yi is an escalc result).
@@ -286,7 +286,7 @@ export function rma(yi:readonly number[]|EscalcResult,viOrOptions?:readonly numb
     QM:qm,QMp:qmp,R2,p,m,I2,H2,k,yi:y,vi:v,mods:X,intercept,method,test,level,warnings:[],covariance,tau2Null});
 }
 
-/** Q-profile or profile-likelihood confidence intervals for a fitted meta-analysis. */
+/** Compute heterogeneity confidence intervals. Equivalent to R's `metafor::confint.rma()`.\n * @category Meta-analysis\n */
 export function confintRma(object:RmaResult,options:ConfintRmaOptions={}):{random:{dim:number[];rowNames:string[];colNames:string[];rows:{estimate:number;ci.lb:number;ci.ub:number}[]};digits:Record<string,string>; "ci.null":boolean;"lb.sign":string;"ub.sign":string;"tau2.min":string} {
   checkOptions(options,CONFINT_RMA_KEYS,"confintRma");
   const type=options.type??"QP",level=options.level??object.level,alpha=1-level;
@@ -318,7 +318,7 @@ export function confintRma(object:RmaResult,options:ConfintRmaOptions={}):{rando
     "ci.null":false,"lb.sign":"","ub.sign":"","tau2.min":"0"};
 }
 
-/** Predict the mean effect and its prediction interval at optional moderator values. */
+/** Predict the mean effect and its prediction interval at moderator values. Equivalent to R's `metafor::predict.rma()`.\n * @category Meta-analysis\n */
 export function predictRma(object:RmaResult,options:PredictRmaOptions={}):{pred:number|number[];se:number|number[];"ci.lb":number|number[];"ci.ub":number|number[];"pi.lb":number|number[];"pi.ub":number|number[]} {
   checkOptions(options,PREDICT_RMA_KEYS,"predictRma");
   const level=options.level??object.level,alpha=1-level,p=object.mods[0]!.length;
@@ -342,7 +342,7 @@ export function predictRma(object:RmaResult,options:PredictRmaOptions={}):{pred:
     "pi.ub":scalar(pred.map((z,i)=>z+piCrit*piScale[i]!))};
 }
 
-/** Egger regression test for funnel-plot asymmetry. */
+/** Test for funnel-plot asymmetry using a regression model. Equivalent to R's `metafor::regtest()`.\n * @category Meta-analysis\n */
 export function regtest(x:readonly number[]|RmaResult,viOrOptions?:readonly number[]|RegtestOptions,maybeOptions:RegtestOptions={}):{model:string;predictor:string;zval:number;pval:number;dfs:number;est:number;"ci.lb":number;"ci.ub":number;fit?:RmaResult} {
   const isFit=typeof x==="object"&&"beta" in x;
   const options=(isFit?viOrOptions:maybeOptions) as RegtestOptions|undefined ?? {};
