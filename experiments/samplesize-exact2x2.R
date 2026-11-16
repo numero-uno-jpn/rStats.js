@@ -1,6 +1,6 @@
 # issue: 527
 # Public exact2x2 1.7.0 calls only; no package source inspection.
-suppressPackageStartupMessages(library(exact2x2))
+library(exact2x2)
 suppressPackageStartupMessages(library(jsonlite))
 probe <- function(id, f) {
   w <- character()
