@@ -60,16 +60,20 @@ SciPy (`scipy.stats`、`scipy.special`、`scipy.linalg`) は移植元のコー�
 指標とその信頼区間を出せることを重視します。この一覧は、医学・心理学の研究向けの統計ウェブアプリの手法と
 照らし合わせて作りました (2026-11-06)。優先度の高い順です。括弧内は、各項目の照合先の R の関数またはパッケージです。
 
-1. **試験デザインのサンプルサイズと検出力:** 平均と比率の同等性・非劣性・優越性、McNemar 検定、生存時間
-   (Schoenfeld、Freedman)、Simon の 2 段階デザイン [clinfun `ph2simon`]。照合先は項目に着手するときに決める。
-2. **メタアナリシス:** 固定効果とランダム効果 (DerSimonian-Laird、REML)、Q と I²、Egger の検定 [metafor]。
-3. **混合モデルの続き:** `lmer` と `glmer` の当てはめの `confint` (プロファイル尤度) と `simulate` [lme4]。
+1. **メタアナリシス:** 固定効果とランダム効果 (DerSimonian-Laird、REML)、Q と I²、Egger の検定 [metafor]。
+2. **混合モデルの続き:** `lmer` と `glmer` の当てはめの `confint` (プロファイル尤度) と `simulate` [lme4]。
    `mixed` の分野はパッケージのルートと全部入りの `dist/rstats.js` には含めない (2026-11-05 に決定)。後で含めても
    互換性は崩れない。
-4. **その後 (順不同):** 順序ロジスティック回帰 [MASS `polr`]、非線形回帰 [`nls` と自己開始モデル]、ロバスト回帰と
+3. **その後 (順不同):** 順序ロジスティック回帰 [MASS `polr`]、非線形回帰 [`nls` と自己開始モデル]、ロバスト回帰と
    分位点回帰 [MASS `rlm`、quantreg]、GEE [geepack]。MANOVA [`manova`]、判別分析 [MASS `lda`]、正準相関
    [`cancor`]。クラスタ分析 [`hclust`、`kmeans`]。多次元尺度法と対応分析 [`cmdscale`、MASS `isoMDS`、ca]。
    Tamhane の T2 と Page の検定 [PMCMRplus]、Grubbs の検定 [outliers]。正則化回帰 [glmnet]。時系列 [`acf`、`arima`]。
+
+試験デザインのサンプルサイズと検出力 (以前の項目 1) は 1.5.0 に向けて済ませました: epiR の並行群のデザイン、
+exact2x2 の `powerPaired2x2`、powerSurvEpi の要約の値を受け取る版、clinfun の `ph2simon`。
+[oracle/samplesize-behaviour.md](oracle/samplesize-behaviour.md) の「rStats.js's choices」で決めたとおり、epiR の
+ほかの標本サイズの関数、McNemar 検定の標本サイズの探索、powerSurvEpi の試験前のデータ・交互作用・層別の版、
+`ph2single`、群逐次デザイン、2 段階デザインの後の推測は入れていません。
 
 生存時間解析 (以前の項目 1) は 1.4.0 で完了しました。動作の文書の「rStats.js's choices」で決めたとおり、当面は
 `survfit` の `scale` オプションと `crr` の `cengroup` を含めていません。

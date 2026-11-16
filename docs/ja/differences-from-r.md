@@ -1531,3 +1531,28 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
 - **`survreg` の score の座標系:** rStats.js は `oracle/survreg-behaviour.md` §3 の定義どおり、元の設計行列の座標 `(β, log(scale))` における対数尤度の解析的勾配を返します。R の fixture にある `score` は、未収束の一部の当てはめでこの座標系の勾配と一致しません。rStats.js では R の値を転記せず、自身の対数尤度を有限差分して score を検証します。
 - **`survregPredict` の newdata offset:** rStats.js は仕様どおり、新しい線形予測子に `newOffset` を `η = Xβ + offset` として加えます。offset 付きモデルの newdata 予測では R の fixture と異なるため、テストでは `lp`/`uquantile` への加算と、対数時間の response/quantile に対する `exp(newOffset)` の倍率を独立に検証します。
 - **1 件のイベントしかない分離状態の `survreg` 当てはめ:** 反復を続けると情報行列が特異に近づき、個々の係数は反復経路に依存します。そのため該当 fixture では、R の係数との単純な一致ではなく、対数尤度と解析的 score を検証します。
+
+## 試験デザインのサンプルサイズと検出力
+
+照合先は epiR 3.0.0、exact2x2 1.7.0、powerSurvEpi 0.1.5、clinfun 1.1.6 です。詳細は
+[oracle/samplesize-behaviour.md](../../oracle/samplesize-behaviour.md) の「rStats.js's choices」にあります。
+
+- **同等性の検出力 (`epiSsequb`・`epiSsequc`):** epiR の検出力は負になることがあり (`epi.ssequc(0.3, 0.3, sigma = 0.25,
+  delta = 0.05, n = 40)` で -0.666 など、小さい標本の多く)、比率の版は平均の版の式にも従いません。rStats.js は、2 つの片側検定が
+  どちらも棄却する確率を正規近似で求め、0 未満にはしません。標本サイズは epiR の式 ($z_{1-(1-power)/2}$ を使うもの。
+  R と一致) のままなので、両者は厳密には逆算の関係になりません。
+- **割付が不均等な場合の比率の equality の標本サイズ (`epiSsequb`、`type: "equality"`):** epiR は処置群の大きさを
+  均等割付の値のままにし、対照群を `r` で割ります。rStats.js は、ほかのデザインと同じく割付比を分散に入れます。
+- **平均の equality の検出力 (`epiSsequc`、`type: "equality"`):** epiR は内部のエラー (`object 'n.treat' not found`)
+  で止まります。rStats.js は両側の検出力を返します。
+- **割付が不均等な場合の比率の優越性の検出力 (`epiSssupb`):** epiR の値は、出力から見つけたどの式にも従いません。
+  rStats.js は、2 群の二項分布の分散を使う正規近似の式を使います (epiR の平均の版、および `r = 1` の比率の版と同じ式)。
+- **`power` が 0 か 1 のときの epiR の内部のエラー** (`object 'rval' not found`) は、rStats.js では独自の文言の
+  `RangeError` です。
+- **`errbound = 0` の `powerPaired2x2`:** exact2x2 の値は正確な検出力ではありません (`pb = 0.5`、`pc = 0.3`、
+  `npairs = 40` で 0.2266969。有理数の計算で確かめた正確な値 0.2266975378 より 6.4e-7 小さい)。rStats.js は正確に
+  計算します。正の `errbound` では exact2x2 と同じく不一致の対の数の両端を省き、rStats.js の値は R の値と `errbound`
+  以内で一致します。
+- **`sigLevel = 1` の `powerPaired2x2`:** 条件付きの裾の確率がちょうど 1/2 になる所で、exact2x2 の値は、境界を含める
+  規則にも含めない規則にも一致しません。rStats.js は裾の確率が `sigLevel / 2` 以下のとき棄却します (上の例で
+  0.9115873521。R は 0.8826434)。
