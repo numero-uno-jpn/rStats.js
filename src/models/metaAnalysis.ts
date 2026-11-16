@@ -351,7 +351,7 @@ export function confintRma(object:RmaResult,options:ConfintRmaOptions={}):{rando
   let lo=0,hi=NaN;
   if(type==="QP"){
     const base=weightedFit(object.yi,object.vi,object.mods,0);
-    const w=base.w,sum=w.reduce((s,z)=>s+z,0),C=sum-w.reduce((s,z)=>s+z*z,0)/sum;
+    const C=base.traceP2;
     const target=(prob:number)=>root(ncp=>pchisq(base.qe,df,{ncp})-prob,0,Math.max(1,base.qe),1e-10);
     const l=target(1-alpha/2),u=root(ncp=>pchisq(base.qe,df,{ncp})-alpha/2,0,Math.max(1,base.qe*8),1e-10);
     lo=Math.max(0,l/C);hi=u/C;
