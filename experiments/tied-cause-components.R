@@ -33,11 +33,10 @@ one_case <- function(label,dat,rho) {
   V0<-0; corrA<-0; corrB<-0; cross<-0; future<-0
   for(j in length(rec):1) {
     x<-rec[[j]]
-    aa<-x$D+(1-x$q[1])*future
-    bb<--x$q[1]*future
-    if(x$h[1]>0) V0<-V0+(aa^2*x$dF0+bb^2*x$dF2[1])/x$h[1]
-    if(x$h[2]>0) V0<-V0+(x$D[2]+(1-x$q[2])*future)^2*x$dF0/x$h[2]+
-      (x$q[2]*future)^2*x$dF2[2]/x$h[2]
+    aa<-x$D+(1-x$q)*future
+    bb<--x$q*future
+    ok<-x$h>0
+    V0<-V0+sum((aa^2*x$dF0+bb^2*x$dF2)[ok]/x$h[ok])
     # Bilinear finite-population kernel B(u,v), expressed using group-specific q=1/S.
     H<-x$H; Ytot<-sum(x$Y); qsub<-ifelse(x$Y>0,x$h/x$Y,0)
     kern<-function(u,v) {
