@@ -374,9 +374,9 @@ export function rma(yi:readonly number[]|EscalcResult,viOrOptions?:readonly numb
   if(y.length===0||v.length!==y.length) throw new RangeError("yi and vi must have the same positive length");
   if(y.some(z=>!Number.isFinite(z))) throw new Error("NA/NaN/Inf in foreign function call (arg 1)");
   if(v.some(z=>!Number.isFinite(z))) throw new Error("NA/NaN/Inf in foreign function call (arg 1)");
+  if(opts.method==="DL"&&v.some(z=>z<=0)) throw new Error("DL estimator cannot be used when there are non-positive sampling variances in the data.");
   if(v.some(z=>z<0)) throw new RangeError("sampling variances must be non-negative");
   if(v.some(z=>z===0) && !["EE","FE"].includes(opts.method??"REML")) {
-    if((opts.method??"REML")==="DL") throw new Error("DL estimator cannot be used when there are non-positive sampling variances in the data.");
     throw new RangeError("random-effects estimators require positive sampling variances");
   }
   const method=opts.method??"REML", test=opts.test??"z", level=opts.level??95, intercept=opts.intercept??true;
