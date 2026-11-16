@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import {
   epiSsequb, epiSsequc, epiSsninfb, epiSsninfc, epiSssupb, epiSssupc,
   powerPaired2x2, powerCT, ssizeCT, powerEpi, ssizeEpi, numDEpi, ph2simon,
+  type EpiOptions, type PowerPaired2x2Options,
 } from "../src/index.js";
 import { pnorm, qnorm } from "../src/index.js";
 
@@ -23,7 +24,7 @@ const reason = {
 };
 
 function callEpi(c:Case):Record<string,unknown> {
-  const a=c.args, opt={
+  const a=c.args, opt=Object.fromEntries(Object.entries({
     n:a.n==="NA"?null:a.n===undefined?undefined:n(a.n),
     power:a.power==="NA"?null:a.power===undefined?undefined:n(a.power),
     r:a.r===undefined?undefined:n(a.r),
@@ -31,7 +32,7 @@ function callEpi(c:Case):Record<string,unknown> {
     nfractional:a.nfractional as boolean|undefined,
     alpha:a.alpha===undefined?undefined:n(a.alpha),
     sidedTest:a["sided.test"]===undefined?undefined:n(a["sided.test"]) as 1|2,
-  };
+  }).filter(([,v])=>v!==undefined)) as EpiOptions;
   const fn:Record<string,(...x:never[])=>object>={
     "epi.ssequb":epiSsequb,"epi.ssequc":epiSsequc,"epi.ssninfb":epiSsninfb,
     "epi.ssninfc":epiSsninfc,"epi.sssupb":epiSssupb,"epi.sssupc":epiSssupc,
