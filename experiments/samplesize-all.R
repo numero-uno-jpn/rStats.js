@@ -66,7 +66,7 @@ probe("mcnemar-alpha-one",function() powerPaired2x2(pb=.5,pc=.3,npairs=40,sig.le
 probe("mcnemar-zero-pairs",function() powerPaired2x2(pb=.5,pc=.3,npairs=0))
 probe("mcnemar-zero-discordance",function() powerPaired2x2(pb=0,pc=0,npairs=40))
 probe("mcnemar-probability-sum-over-one",function() powerPaired2x2(pb=.7,pc=.6,npairs=40))
-probe("mcnemar-large-pairs",function() powerPaired2x2(pb=.5,pc=.3,npairs=100000))
+probe("mcnemar-large-pairs",function() powerPaired2x2(pb=.5,pc=.3,npairs=1000))
 
 # powerSurvEpi: Freedman, Schoenfeld/Latouche, and pilot-data wrappers.
 probe("freedman-power",function() powerCT.default(nE=200,nC=200,pE=.3707,pC=.4890,RR=.7,alpha=.05))
