@@ -100,42 +100,42 @@ interval_fields <- function(value) value
 
 dat <- dat.colditz1994
 escalc_cases <- list(
-  make_case("effectSize", escalc, list(measure="RR", ai=dat$tpos, bi=dat$tneg, ci=dat$cpos, di=dat$cneg), function(x) x[, c("yi","vi")]),
-  make_case("escalc", escalc, list(measure="OR", ai=dat$tpos, bi=dat$tneg, ci=dat$cpos, di=dat$cneg), function(x) x[, c("yi","vi")]),
-  make_case("escalc", escalc, list(measure="RR", ai=c(0,5), bi=c(20,15), ci=c(2,4), di=c(18,16)), function(x) x[, c("yi","vi")]),
-  make_case("escalc", escalc, list(measure="MD", m1i=c(5.1,4.8,6.0), sd1i=c(1.2,1.0,1.4), n1i=c(30,28,32), m2i=c(4.7,4.4,5.2), sd2i=c(1.1,1.3,1.2), n2i=c(29,30,31)), function(x) x[, c("yi","vi")]),
-  make_case("escalc", escalc, list(measure="SMD", m1i=c(5.1,4.8,6.0), sd1i=c(1.2,1.0,1.4), n1i=c(30,28,32), m2i=c(4.7,4.4,5.2), sd2i=c(1.1,1.3,1.2), n2i=c(29,30,31)), function(x) x[, c("yi","vi")])
+  make_case("effectSize", list(measure="RR", ai=dat$tpos, bi=dat$tneg, ci=dat$cpos, di=dat$cneg), function(x) x[, c("yi","vi")]),
+  make_case("effectSize", list(measure="OR", ai=dat$tpos, bi=dat$tneg, ci=dat$cpos, di=dat$cneg), function(x) x[, c("yi","vi")]),
+  make_case("effectSize", list(measure="RR", ai=c(0,5), bi=c(20,15), ci=c(2,4), di=c(18,16)), function(x) x[, c("yi","vi")]),
+  make_case("effectSize", list(measure="MD", m1i=c(5.1,4.8,6.0), sd1i=c(1.2,1.0,1.4), n1i=c(30,28,32), m2i=c(4.7,4.4,5.2), sd2i=c(1.1,1.3,1.2), n2i=c(29,30,31)), function(x) x[, c("yi","vi")]),
+  make_case("effectSize", list(measure="SMD", m1i=c(5.1,4.8,6.0), sd1i=c(1.2,1.0,1.4), n1i=c(30,28,32), m2i=c(4.7,4.4,5.2), sd2i=c(1.1,1.3,1.2), n2i=c(29,30,31)), function(x) x[, c("yi","vi")])
 )
 run_cases("metaEscalc", escalc_cases)
 
 rr <- escalc(measure="RR", ai=dat$tpos, bi=dat$tneg, ci=dat$cpos, di=dat$cneg)
 fit_cases <- list(
-  make_case("metaFit", rma, list(yi=rr$yi, vi=rr$vi, method="EE"), fit_fields),
-  make_case("rma", rma, list(yi=rr$yi, vi=rr$vi, method="FE"), fit_fields),
-  make_case("rma", rma, list(yi=rr$yi, vi=rr$vi, method="DL"), fit_fields),
-  make_case("rma", rma, list(yi=rr$yi, vi=rr$vi, method="REML"), fit_fields),
-  make_case("rma", rma, list(yi=c(0.1,0.2,0.0,-0.1), vi=c(0.04,0.05,0.03,0.06), method="DL"), fit_fields),
-  make_case("rma", rma, list(yi=c(0.1,0.2,0.0,-0.1), vi=c(0.04,0.05,0.03,0.06), method="REML"), fit_fields),
-  make_case("rma", rma, list(yi=c(0.1,0.1,0.1,0.1), vi=c(0.04,0.05,0.03,0.06), method="DL"), fit_fields),
-  make_case("rma", rma, list(yi=c(0.1), vi=c(0.04), method="REML"), fit_fields),
-  make_case("rma", rma, list(yi=c(0.1,0.2), vi=c(0.04,0.05), method="REML"), fit_fields),
-  make_case("rma", rma, list(yi=c(0.1,0.2,0.3), vi=c(0,-0.1,0.2), method="DL"), fit_fields),
-  make_case("rma", rma, list(yi=c(1e150,-1e150,1e150), vi=c(1e-300,1e-300,1e-300), method="DL"), fit_fields),
-  make_case("rma", rma, list(yi=c(0.1,0.2,0.3), vi=c(1e-300,1e-300,1e-300), method="REML"), fit_fields),
-  make_case("rma", rma, list(yi=c(0.1,0.2,0.3), vi=c(1e300,1e300,1e300), method="REML"), fit_fields),
-  make_case("rma", rma, list(yi=c(0.1,0.2,0.3), vi=c(0.04,0.05,0.06), method="REML", control=list(maxiter=1, threshold=1e-15)), fit_fields)
+  make_case("metaFit", list(yi=rr$yi, vi=rr$vi, method="EE"), fit_fields),
+  make_case("metaFit", list(yi=rr$yi, vi=rr$vi, method="FE"), fit_fields),
+  make_case("metaFit", list(yi=rr$yi, vi=rr$vi, method="DL"), fit_fields),
+  make_case("metaFit", list(yi=rr$yi, vi=rr$vi, method="REML"), fit_fields),
+  make_case("metaFit", list(yi=c(0.1,0.2,0.0,-0.1), vi=c(0.04,0.05,0.03,0.06), method="DL"), fit_fields),
+  make_case("metaFit", list(yi=c(0.1,0.2,0.0,-0.1), vi=c(0.04,0.05,0.03,0.06), method="REML"), fit_fields),
+  make_case("metaFit", list(yi=c(0.1,0.1,0.1,0.1), vi=c(0.04,0.05,0.03,0.06), method="DL"), fit_fields),
+  make_case("metaFit", list(yi=c(0.1), vi=c(0.04), method="REML"), fit_fields),
+  make_case("metaFit", list(yi=c(0.1,0.2), vi=c(0.04,0.05), method="REML"), fit_fields),
+  make_case("metaFit", list(yi=c(0.1,0.2,0.3), vi=c(0,-0.1,0.2), method="DL"), fit_fields),
+  make_case("metaFit", list(yi=c(1e150,-1e150,1e150), vi=c(1e-300,1e-300,1e-300), method="DL"), fit_fields),
+  make_case("metaFit", list(yi=c(0.1,0.2,0.3), vi=c(1e-300,1e-300,1e-300), method="REML"), fit_fields),
+  make_case("metaFit", list(yi=c(0.1,0.2,0.3), vi=c(1e300,1e300,1e300), method="REML"), fit_fields),
+  make_case("metaFit", list(yi=c(0.1,0.2,0.3), vi=c(0.04,0.05,0.06), method="REML", control=list(maxiter=1, threshold=1e-15)), fit_fields)
 )
 run_cases("metaRma", fit_cases)
 
 fit <- rma(yi, vi, data=rr, method="REML")
 run_cases("metaIntervals", list(
-  make_case("interval", confint, list(object=fit), interval_fields),
-  make_case("confint", confint, list(object=fit, type="PL"), interval_fields),
-  make_case("prediction", predict, list(object=fit), pred_fields),
-  make_case("predict", predict, list(object=fit, predtype="riley"), pred_fields)
+  make_case("interval", list(object=fit), interval_fields),
+  make_case("interval", list(object=fit, type="PL"), interval_fields),
+  make_case("prediction", list(object=fit), pred_fields),
+  make_case("prediction", list(object=fit, predtype="riley"), pred_fields)
 ))
 run_cases("metaEgger", list(
-  make_case("egger", regtest, list(x=rr$yi, vi=rr$vi, model="lm", predictor="sei"), function(x) x[c("model","predictor","zval","pval","dfs","est","ci.lb","ci.ub")]),
-  make_case("regtest", regtest, list(x=fit, model="rma", predictor="sei"), function(x) x[c("model","predictor","zval","pval","dfs","est","ci.lb","ci.ub")]),
-  make_case("regtest", regtest, list(x=c(0.1,0.2), vi=c(0.04,0.05), model="lm", predictor="sei"), function(x) x[c("model","predictor","zval","pval","dfs","est","ci.lb","ci.ub")])
+  make_case("egger", list(x=rr$yi, vi=rr$vi, model="lm", predictor="sei"), function(x) x[c("model","predictor","zval","pval","dfs","est","ci.lb","ci.ub")]),
+  make_case("egger", list(x=fit, model="rma", predictor="sei"), function(x) x[c("model","predictor","zval","pval","dfs","est","ci.lb","ci.ub")]),
+  make_case("egger", list(x=c(0.1,0.2), vi=c(0.04,0.05), model="lm", predictor="sei"), function(x) x[c("model","predictor","zval","pval","dfs","est","ci.lb","ci.ub")])
 ))
