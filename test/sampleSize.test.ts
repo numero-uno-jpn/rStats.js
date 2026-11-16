@@ -185,6 +185,9 @@ describe("sample size and power",()=>{
         expect(Math.abs(actual.power-rPower)).toBeLessThanOrEqual(bound+1e-12);
       }
     });
+    const exact=exactMcNemarHalfBoundary(40,0.5,0.3);
+    const full=powerPaired2x2(0.5,0.3,40,{sigLevel:1,errbound:0});
+    expect(close(full.power,exact,1e-14),"errbound=0 must retain the full exact outer sum").toBe(true);
   });
 
   it("powerSurvEpi summary-parameter fixtures",()=>{
