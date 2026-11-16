@@ -166,6 +166,31 @@ function determinantSmall(a:number[][]):number {
     for(let i=j+1;i<n;i++){const z=m[i]![j]!/q;for(let c=j+1;c<n;c++)m[i]![c]!-=z*m[j]![c]!;}
   } return d;
 }
+function tracePVPV(P:number[][],V:number[]):number {
+  return P.reduce((s,row,i)=>s+row.reduce((a,z,j)=>a+z*V[j]!*P[j]![i]!*V[i]!,0),0);
+}
+function tau2StandardError(y:number[],v:number[],X:number[][],method:MetaMethod,tau2:number,fit:ReturnType<typeof weightedFit>,base:ReturnType<typeof weightedFit>):number {
+  const k=y.length,df=k-X[0]!.length,V=v.map(z=>z+tau2);
+  if(method==="REML") return fit.traceP2>0?Math.sqrt(2/fit.traceP2):NaN;
+  if(method==="ML"){const s=fit.w.reduce((a,z)=>a+z*z,0);return s>0?Math.sqrt(2/s):NaN;}
+  if(method==="DL"||method==="HS"||method==="HSk"){
+    const numerator=Math.sqrt(2*tracePVPV(base.P,V));
+    const denominator=method==="DL"?base.traceP:method==="HS"?v.reduce((s,z)=>s+1/z,0):((k/(k-1))*0+v.reduce((s,z)=>s+1/z,0)*(k-1)/k);
+    return denominator>0?numerator/denominator:NaN;
+  }
+  if(method==="HE"){
+    const unweighted=weightedFit(y,Array(k).fill(1),X,0);
+    return df>0?Math.sqrt(2*tracePVPV(unweighted.P,V))/df:NaN;
+  }
+  if(method==="SJ"){
+    const unweighted=weightedFit(y,Array(k).fill(1),X,0),initial=unweighted.residuals.reduce((s,z)=>s+z*z,0)/k;
+    if(!(initial>0)||df<=0)return NaN;
+    const initialFit=weightedFit(y,v,X,initial);
+    return initial/df*Math.sqrt(2*tracePVPV(initialFit.P,V));
+  }
+  const denominator=fit.residuals.reduce((s,z,i)=>s+fit.w[i]!*fit.w[i]!*z*z,0);
+  return denominator>0&&df>0?Math.sqrt(2*df)/denominator:NaN;
+}
 function tauEstimate(y:number[],v:number[],X:number[][],method:MetaMethod,control:RmaControl) {
   const k=y.length,p=X[0]!.length,df=k-p;
   const base=weightedFit(y,v,X,0),q0=base.qe;
@@ -385,7 +410,7 @@ export function rma(yi:readonly number[]|EscalcResult,viOrOptions?:readonly numb
   const vtilde=df>0?(df/wMax)*sumW/(sumW*sumW-sumW2):0;
   const I2=tau2===0?0:100*tau2/(tau2+vtilde),H2=tau2===0?1:(tau2+vtilde)/vtilde;
   const R2=opts.mods===undefined?null:(tau2Null>0?100*Math.max(0,(tau2Null-tau2)/tau2Null):0);
-  const info=fit.traceP2>0?Math.sqrt(2/fit.traceP2):NaN;
+  const info=tau2StandardError(y,v,X,method,tau2,fit,baseFit);
   return reported("rma",{beta:{dim:[p,1],rowNames:p===1?(built.names[0]??"intrcpt"):built.names,colNames:null,rows:fit.beta.map(z=>[z])},se:scalar(se),zval:scalar(stat),pval:scalar(pv),
     "ci.lb":scalar(lower),"ci.ub":scalar(upper),tau2,"se.tau2":info,QE:baseFit.qe,QEp:df===0?1:pchisq(baseFit.qe,df,{lowerTail:false}),
     QM:qm,QMp:qmp,R2,p,m,I2,H2,k,yi:y,vi:v,mods:X,intercept,method,test,level,warnings:[],covariance,tau2Null});
