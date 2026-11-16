@@ -359,3 +359,41 @@ Recommended defaults are in **bold**.
 8. **Names:** accept the candidate JS names above, or prefer domain-oriented names (e.g. `sampleSizeEquivalenceBinary`)?
 
 ## rStats.js's choices
+
+Decided by the user on 2026-11-16 (the Decisions above; binding for stage 2).
+
+1. **Scope.** The six epiR functions, `powerPaired2x2`, the five summary-parameter powerSurvEpi functions
+   (`ssizeCT.default`, `powerCT.default`, `ssizeEpi.default`, `powerEpi.default`, `numDEpi.default`) and `ph2simon`.
+   Deferred: the other epiR sample-size families, a paired (McNemar) sample-size search, the pilot-data forms of
+   powerSurvEpi (formula and data-frame inputs), its interaction, stratified and non-binary-covariate functions,
+   `ph2single`, group-sequential designs and inference after a two-stage design.
+2. **Where epiR is wrong, rStats.js uses the correct formula** and records the difference in
+   `docs/differences-from-r.md`:
+   - equivalence power (binary and continuous): the probability that both one-sided tests reject, in the normal
+     approximation, $\Phi\left(\frac{\delta-D}{SE}-z_{1-\alpha}\right)+\Phi\left(\frac{\delta+D}{SE}-z_{1-\alpha}\right)-1$,
+     floored at 0. The sample size keeps epiR's formula (with $z_{1-(1-power)/2}$, which matches R), so the two are not
+     exact inverses; say so in the TSDoc;
+   - `type = "equality"`, binary: the allocation ratio enters the variance like in the other designs,
+     $n_c=(z_{1-\alpha/2}+z_{power})^2(V_t/r+V_c)/D^2$;
+   - `type = "equality"`, continuous, power: computed (R stops with an internal error), as the two-sided power
+     $\Phi\left(\frac{|D|}{SE}-z_{1-\alpha/2}\right)+\Phi\left(-\frac{|D|}{SE}-z_{1-\alpha/2}\right)$;
+   - superiority power, binary, $r\neq1$: the same formula as the continuous case with the binary variances (the formula
+     R uses there is unknown);
+   - R's internal errors at `power = 0` or `1` (`object 'rval' not found`): a `RangeError` with a message of our own.
+   Cases where R is right are compared with the fixtures; the others are checked against the formulas above
+   computed independently in the test, and listed as known differences (labelled, not silently skipped).
+3. **Integers.** `nfractional` as in R (default `false`: each group rounded up separately, the total their sum). The
+   result also has the unrounded sizes in extra fields, whatever `nfractional` is.
+4. **API.** R's names in camelCase: `epiSsequb`, `epiSsequc`, `epiSsninfb`, `epiSsninfc`, `epiSssupb`, `epiSssupc`,
+   `powerPaired2x2`, `ssizeCT`, `powerCT`, `ssizeEpi`, `powerEpi`, `numDEpi` (the `.default` methods under the generic's
+   name; a pilot-data form, if added later, is a separate overload discriminated by its data argument) and `ph2simon`.
+   R's required arguments are positional and the optional ones go in an options object, as elsewhere. For epiR, `n` and
+   `power` go in the options and exactly one of them is given (R's `NA` is `null` or omitted; `checkExactlyOne`).
+   Result fields are R's names in camelCase (`nTotal`, `nTreat`, `nControl`, ...).
+5. **McNemar.** `powerPaired2x2` with all of R's options: `sigLevel`, `alternative`, `strict`, `nullOddsRatio`,
+   `errbound`, `tsmethod`. Where a positive `errbound` makes R's value differ from the exact one (section 2), match R if
+   the rule can be found from its outputs; otherwise compare with the `errbound = 0` value within `errbound` and record
+   the difference.
+6. **Simon.** `ph2simon` returns the candidate table (one row per total $n$, R's six columns) and the minimax, optimal
+   and admissible designs as structured fields (what R's `print` shows), not formatted text. R's "Optimal sample size
+   too close to nmax" goes in `warnings`; "No feasible solution found" and `nmax > 1000` throw, as in R.
