@@ -235,19 +235,19 @@ function buildDesign(k:number,mods:RmaOptions["mods"],intercept:boolean,data?:Da
   else if(Array.isArray(mods)){
     if(mods.length===0) rows=Array.from({length:k},()=>[]);
     else if(typeof mods[0]==="number"){
-      const v=Array.from(mods as readonly number[]);
+      const v=Array.from(mods as readonly number[],Number);
       if(v.length!==k) throw new RangeError("variable lengths differ (found for 'mods')");
       rows=v.map(z=>[z]);rawModeratorCount=1;
     }else{
       const matrix=mods as MatrixInput;
-      if(matrix.length===k){rows=Array.from(matrix,r=>Array.from(r));rawModeratorCount=rows[0]?.length??0;}
-      else if(matrix.every(col=>col.length===k)){rawModeratorCount=matrix.length;rows=Array.from({length:k},(_,i)=>matrix.map(col=>col[i]!));}
+      if(matrix.length===k){rows=Array.from(matrix,r=>Array.from(r,Number));rawModeratorCount=rows[0]?.length??0;}
+      else if(matrix.every(col=>col.length===k)){rawModeratorCount=matrix.length;rows=Array.from({length:k},(_,i)=>matrix.map(col=>Number(col[i])));}
       else throw new RangeError("variable lengths differ (found for 'mods')");
     }
   }else{
     const m=mods as ModeratorMatrix;
-    if(m.rows!==undefined){rows=m.rows.map(r=>Array.from(r));rawModeratorCount=rows[0]?.length??0;}
-    else if(m.columns!==undefined){rawModeratorCount=m.columns.length;rows=Array.from({length:k},(_,i)=>m.columns!.map(col=>col[i]!));}
+    if(m.rows!==undefined){rows=m.rows.map(r=>Array.from(r,Number));rawModeratorCount=rows[0]?.length??0;}
+    else if(m.columns!==undefined){rawModeratorCount=m.columns.length;rows=Array.from({length:k},(_,i)=>m.columns!.map(col=>Number(col[i])));}
     else throw new TypeError("mods matrix must have rows or columns");
     if(rows.length!==k) throw new RangeError("variable lengths differ (found for 'mods')");
     if(m.colNames!==undefined&&m.colNames!==null){
