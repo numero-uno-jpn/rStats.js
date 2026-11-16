@@ -123,3 +123,18 @@ describe("Egger regression test",()=>{
     expect(mismatches).toEqual([]);
   });
 });
+
+describe("meta-regression formula design",()=>{
+  it("uses the existing formula and model-matrix machinery for factors and interactions",()=>{
+    const y=[0.2,0.4,0.1,0.5,0.3,0.7,0.2,0.6];
+    const vi=[0.04,0.05,0.03,0.06,0.05,0.04,0.07,0.06];
+    const data={x:[1,2,3,4,5,6,7,8],group:["a","b","a","b","a","b","a","b"]};
+    const {modelMatrix}=requireModelMatrix();
+    const matrixDesign=modelMatrix("~ x * group",data);
+    const formulaFit=rma(y,vi,{mods:"~ x * group",data});
+    const matrixFit=rma(y,vi,{mods:matrixDesign.x,intercept:false});
+    expect(formulaFit.beta).toEqual(matrixFit.beta);
+    expect(formulaFit.tau2).toBeCloseTo(matrixFit.tau2,12);
+    expect(formulaFit.QM).toBeCloseTo(matrixFit.QM,12);
+  });
+});
