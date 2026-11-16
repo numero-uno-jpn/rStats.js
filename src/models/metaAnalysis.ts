@@ -224,6 +224,7 @@ function tauEstimate(y:number[],v:number[],X:number[][],method:MetaMethod,contro
   }
   let tau2=Math.max(0,control.tau2Init??he);
   const maxiter=control.maxiter??100,threshold=control.threshold??1e-5,stepadj=control.stepadj??1;
+  if(maxiter<=1) return tau2;
   for(let i=0;i<maxiter;i++){
     const fit=weightedFit(y,v,X,tau2);
     const score=method==="REML"?fit.score:fit.mlScore;
