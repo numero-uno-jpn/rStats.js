@@ -229,6 +229,7 @@ function buildDesign(k:number,mods:RmaOptions["mods"],intercept:boolean,data?:Da
     const d=design(parseFormula(f),data,{intercept});
     rows=d.x;names=d.colNames.map(n=>n==="(Intercept)"?"intrcpt":n);
     if(d.frame.rows.length!==k) throw new RangeError("variable lengths differ between yi and mods");
+    if(rows[0]!.length>k) throw new Error("Number of parameters to be estimated is larger than the number of observations.");
     const keep=independentColumnIndices(rows);
     return {x:rows.map(r=>keep.map(j=>r[j]!)),names:keep.map(j=>names[j]??"")};
   }else if(mods===undefined){rows=Array.from({length:k},()=>[]);}
@@ -258,6 +259,7 @@ function buildDesign(k:number,mods:RmaOptions["mods"],intercept:boolean,data?:Da
   if(rows.some(r=>r.length!==rows[0]!.length)) throw new TypeError("all rows of the moderator matrix must have the same length");
   if(!explicitNames) names=Array.from({length:rawModeratorCount},(_,j)=>rawModeratorCount>1?`.${j+1}`:"");
   if(intercept){rows=rows.map(r=>[1,...r]);names=["intrcpt",...names];}
+  if(rows[0]!.length>k) throw new Error("Number of parameters to be estimated is larger than the number of observations.");
   const keep=independentColumnIndices(rows),dropped=keep.length<rows[0]!.length;
   if(dropped&&!explicitNames&&rawModeratorCount>0){
     for(let j=0;j<keep.length;j++)if(keep[j]!==0||!intercept){names[keep[j]]="";break;}
