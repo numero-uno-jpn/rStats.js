@@ -342,14 +342,19 @@ export interface SimonRow { r1:number; n1:number; r:number; n:number; enP0:numbe
 export interface SimonDesign extends SimonRow { qLo:number; qHi:number; }
 /** Candidate designs and selected minimax, optimal and admissible Simon designs.\n * @category Effect sizes and power\n */
 export interface SimonDesignResult { out: SimonRow[]; minimax: SimonDesign; optimal: SimonDesign; admissible: SimonDesign[]; pu:number; pa:number; alpha:number; beta:number; nmax:number; warnings:string[]; }
-function cdfBinom(k:number,n:number,p:number):number { return pbinom1(k,n,p,true,false); }
-function pmfBinom(k:number,n:number,p:number):number { return dbinom1(k,n,p,false); }
-function designProb(n1:number,n2:number,r1:number,r:number,p:number):[number,number] {
+function cumulative(mass:readonly number[]):number[] {
+  const out=new Array<number>(mass.length); let sum=0;
+  for(let i=0;i<mass.length;i++){sum+=mass[i]!;out[i]=sum;}
+  return out;
+}
+function designProb(r1:number,r:number,p0Stage1:readonly number[],p1Stage1:readonly number[],p0Stage2Cdf:readonly number[],p1Stage2Cdf:readonly number[]):[number,number] {
   let alpha=0,beta=0;
-  for(let x=r1+1;x<=Math.min(n1,r);x++){
-    const px=pmfBinom(x,n1,p);
-    alpha += px*(1-cdfBinom(r-x,n2,p));
-    beta += px*cdfBinom(r-x,n2,p);
+  for(let x=r1+1;x<p0Stage1.length;x++){
+    const j=r-x;
+    const c0=j<0?0:p0Stage2Cdf[Math.min(j,p0Stage2Cdf.length-1)]!;
+    const c1=j<0?0:p1Stage2Cdf[Math.min(j,p1Stage2Cdf.length-1)]!;
+    alpha += p0Stage1[x]!*(1-c0);
+    beta += p1Stage1[x]!*c1;
   }
   return [alpha,beta];
 }
@@ -364,14 +369,17 @@ export function ph2simon(pu:number,pa:number,ep1:number,ep2:number,options: {nma
     let best:SimonRow|undefined;
     for(let n1=1;n1<n;n1++){
       const n2=n-n1;
+      const p0Stage1=binomialMasses(n1,pu), p1Stage1=binomialMasses(n1,pa);
+      const p0Stage2Cdf=cumulative(binomialMasses(n2,pu)), p1Stage2Cdf=cumulative(binomialMasses(n2,pa));
+      const p0Stage1Cdf=cumulative(p0Stage1);
       for(let r1=0;r1<n1;r1++){
-        const pet=cdfBinom(r1,n1,pu);
+        const pet=p0Stage1Cdf[r1]!;
         const en=n1+n2*(1-pet);
         let rFound=-1;
         for(let r=r1+1;r<n;r++){
-          const [a,b]=designProb(n1,n2,r1,r,pu);
+          const [a]=designProb(r1,r,p0Stage1,p1Stage1,p0Stage2Cdf,p1Stage2Cdf);
           if(a<=ep1){
-            const [,bAlt]=designProb(n1,n2,r1,r,pa);
+            const [,bAlt]=designProb(r1,r,p0Stage1,p1Stage1,p0Stage2Cdf,p1Stage2Cdf);
             if(bAlt<=ep2){rFound=r;break;}
           }
         }
