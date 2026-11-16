@@ -28,9 +28,9 @@ run_case <- function(label,n,pre,cens,alloc) {
   cat("inverse_covariance=",paste(sprintf("%.17g",coef),collapse=","),
       " det=",sprintf("%.17g",det(M))," max_residual=",sprintf("%.17g",max(abs(residual))),"\n",sep="")
 }
-a1 <- rbind(c(2,1,1),c(1,2,1),c(1,1,2),c(1,1,1))
-a2 <- rbind(c(2,1,1),c(1,1,2),c(1,2,1),c(1,1,1))
-a3 <- rbind(c(3,1,0),c(0,3,1),c(1,0,3),c(1,1,1))
+a1 <- rbind(c(2,1,0),c(0,2,1),c(1,0,2),c(1,1,1))
+a2 <- rbind(c(2,0,1),c(1,2,0),c(0,1,2),c(1,1,1))
+a3 <- rbind(c(3,0,0),c(0,3,0),c(0,0,3),c(1,1,1))
 run_case("unequal_risk_1",c(12,10,9),c(2,1,3),c(1,2,0),a1)
 run_case("unequal_risk_2",c(11,12,10),c(1,3,2),c(2,1,1),a2)
 run_case("unequal_risk_3",c(12,11,10),c(3,2,1),c(0,2,3),a1)
