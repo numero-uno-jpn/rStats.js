@@ -193,7 +193,7 @@ describe("sample size and power",()=>{
     const f=read("samplesizeSimon");
     for(const i of [0,1,5,8,9]){
       const c=f.cases[i]!, a=c.args;
-      const r=ph2simon(n(a.pu),n(a.pa),n(a.ep1),n(a.ep2),{nmax:n(a.nmax)});
+      const r=ph2simon(n(a.pu),n(a.pa),n(a.ep1),n(a.ep2),a.nmax===undefined?{}:{nmax:n(a.nmax)});
       const v=c.expected.value as Record<string,unknown>;
       const mat=v.out as {dim:number[];rows:Record<string,string>[]};
       expect(r.out.length).toBe(mat.dim[0]);
@@ -232,4 +232,4 @@ describe("sample size and power",()=>{
       expect(close(actual.petP0,n(expected["PET(p0)"]))).toBe(true);
     }
   });
-}
+});
