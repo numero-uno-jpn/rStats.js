@@ -55,7 +55,7 @@ run_case <- function(label,ftime,fstatus,group,rho,causes,expected) {
     cc<-variance_stat(ftime,fstatus,as.character(group),cause,rho)
     resid<-if(is.finite(cc$pred)&&actual>=0)actual-cc$pred else NA_real_
     cat(label," cause=",cause," rho=",rho," Rstat=",sprintf("%.17g",actual),
-        " pred=",sprintf("%.17g",cc$pred)," expected=",sprintf("%.17g",expected[i]),
+        " pred=",sprintf("%.17g",cc$pred)," expected=",sprintf("%.17g",as.numeric(expected[i])),
         " resid=",sprintf("%.17g",resid)," det=",sprintf("%.17g",cc$det),"\n",sep="")
   }
 }
