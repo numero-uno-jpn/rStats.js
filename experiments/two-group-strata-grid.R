@@ -21,7 +21,7 @@ score_stat <- function(dat, rho) {
   }
   fit <- cmprsk::cuminc(dat$time, dat$status, dat$group, strata = dat$strata, rho = rho)
   stat <- unname(fit$Tests["1", "stat"])
-  c(z = z[1], stat = stat, V = z[1]^2 / stat)
+  c(z = unname(z[1]), stat = stat, V = unname(z[1])^2 / stat)
 }
 mk <- function(st, nA, nB, p2A, p2B, tieA, tieB, otherA = 0, otherB = 0) {
   time <- c(rep(1, p2A), rep(2, tieA + otherA), rep(4, nA - p2A - tieA - otherA),
