@@ -64,9 +64,9 @@ export interface EpiResult {
   nTotal: number;
   nTreat: number;
   nControl: number;
-  nTotalExact: number;
-  nTreatExact: number;
-  nControlExact: number;
+  nTotalUnrounded: number;
+  nTreatUnrounded: number;
+  nControlUnrounded: number;
   power: number;
   delta?: number;
   warnings: string[];
@@ -159,9 +159,9 @@ function epi(
     nTotal: nTreat + nControl,
     nTreat,
     nControl,
-    nTotalExact: nTreatExact + nControlExact,
-    nTreatExact,
-    nControlExact,
+    nTotalUnrounded: nTreatExact + nControlExact,
+    nTreatUnrounded: nTreatExact,
+    nControlUnrounded: nControlExact,
     power: actualPower,
     ...(margin === undefined ? {} : { delta: margin }),
     warnings: [],
@@ -174,7 +174,7 @@ function epi(
  * @param control Expected control-group proportion.
  * @param delta Equivalence margin; pass null for equality.
  * @param options Sample-size, power and allocation options.
- * @returns The fractional and requested group sizes, and power.
+ * @returns The fractional and requested group sizes, and power. The sample-size formula follows epiR's expression and is not an exact inverse of the TOST power calculation.
  * @example
  * ```ts
  * epiSsequb(0.5, 0.45, 0.1, { n: 120 }).power;
@@ -190,7 +190,7 @@ export function epiSsequb(treat: number, control: number, delta: number | null, 
  * @param sigma Common standard deviation.
  * @param delta Equivalence margin; pass null for equality.
  * @param options Sample-size, power and allocation options.
- * @returns The fractional and requested group sizes, and power.
+ * @returns The fractional and requested group sizes, and power. The sample-size formula follows epiR's expression and is not an exact inverse of the TOST power calculation.
  * @example
  * ```ts
  * epiSsequc(20, 21, 10, 5, { n: 120 }).power;
