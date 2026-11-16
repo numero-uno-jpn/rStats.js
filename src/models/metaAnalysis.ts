@@ -323,8 +323,8 @@ export function rma(yi:readonly number[]|EscalcResult,viOrOptions?:readonly numb
     try{qm=dot(b,solve(c,b));}catch{qm=NaN;}
     qmp=test==="z"?pchisq(qm,m,{lowerTail:false}):pf(qm/m,m,df,{lowerTail:false});
   }
-  const sumW=fit.w.reduce((s,z)=>s+z,0), sumW2=fit.w.reduce((s,z)=>s+z*z,0);
-  const vtilde=df*sumW/(sumW*sumW-sumW2);
+  const wMax=Math.max(...fit.w),wNorm=fit.w.map(z=>z/wMax),sumW=wNorm.reduce((s,z)=>s+z,0),sumW2=wNorm.reduce((s,z)=>s+z*z,0);
+  const vtilde=(df/wMax)*sumW/(sumW*sumW-sumW2);
   const I2=100*tau2/(tau2+vtilde),H2=(tau2+vtilde)/vtilde;
   const R2=opts.mods===undefined?null:(tau2Null>0?100*Math.max(0,(tau2Null-tau2)/tau2Null):0);
   const info=fit.traceP2>0?Math.sqrt(2/fit.traceP2):NaN;
@@ -355,7 +355,8 @@ export function confintRma(object:RmaResult,options:ConfintRmaOptions={}):{rando
     hi=upperRoot(t=>-target(t),Math.max(object.tau2*2,1e-8));
     if(object.tau2>0) lo=root(target,0,object.tau2);
   }
-  const wMax=Math.max(...fit.w),wNorm=fit.w.map(z=>z/wMax),wSum=wNorm.reduce((s,z)=>s+z,0),wSum2=wNorm.reduce((s,z)=>s+z*z,0);\n  const vtilde=(df/wMax)*wSum/(wSum*wSum-wSum2);
+  const wMax=Math.max(...fit.w),wNorm=fit.w.map(z=>z/wMax),wSum=wNorm.reduce((s,z)=>s+z,0),wSum2=wNorm.reduce((s,z)=>s+z*z,0);
+  const vtilde=(df/wMax)*wSum/(wSum*wSum-wSum2);
   const transform=(t:number)=>[
     t,Math.sqrt(t),100*t/(t+vtilde),(t+vtilde)/vtilde
   ];
