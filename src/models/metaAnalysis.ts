@@ -380,7 +380,7 @@ export function rma(yi:readonly number[]|EscalcResult,viOrOptions?:readonly numb
   }
   const method=opts.method??"REML", test=opts.test??"z", level=opts.level??95, intercept=opts.intercept??true;
   const built=buildDesign(y.length,opts.mods,intercept,opts.data),X=built.x;
-  const p=X[0]!.length,k=y.length,df=k-p;
+  const p=X[0]!.length,k=y.length,df=k-p,hasIntercept=built.names[0]==="intrcpt"||(!intercept&&X.every(r=>r[0]===1));
   if(p===0) throw new RangeError("the model must contain at least one coefficient");
   if(k<p) throw new Error("Number of parameters to be estimated is larger than the number of observations.");
   if(!(level>0&&level<100)) throw new RangeError("level must be between 0 and 100");
@@ -459,7 +459,10 @@ export function predictRma(object:RmaResult,options:PredictRmaOptions={}):{pred:
   checkOptions(options, PREDICT_RMA_KEYS, "predictRma"); // generated: option-keys.mjs
   const level=options.level??object.level,alpha=1-level/100,p=object.mods[0]!.length;
   let rows:number[][];
-  if(options.newmods===undefined) rows=[object.intercept?[1]:[]];
+  if(options.newmods===undefined) {
+    const moderators=p-(object.intercept?1:0);
+    rows=moderators===0?[object.intercept?[1]:[]]:object.mods.map(r=>object.intercept?r.slice(1):r.slice());
+  }
   else {
     const n=options.newmods;
     if(n.length>0&&typeof n[0]==="number") rows=Array.from(n as readonly number[],z=>object.intercept?[1,z]:[z]);
