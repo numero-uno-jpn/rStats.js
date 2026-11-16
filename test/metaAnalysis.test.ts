@@ -7,6 +7,7 @@ import { escalc, rma, confintRma, predictRma, regtest, type EscalcMeasure, type 
 interface Case { fn: string; args: Record<string, any>; expected: { value?: Record<string, any>; error?: string; warnings?: string[] }; }
 interface Fixture { r_version: string; cases: Case[]; }
 const fixture = (name: string): Fixture => JSON.parse(readFileSync(fileURLToPath(new URL(`./fixtures/${name}.json`, import.meta.url)), "utf8")) as Fixture;
+const vec = (v:any):number[] => Array.isArray(v)?v.map(n):[n(v)];
 const n = (v: any): any => typeof v === "string" ? ({NA:NaN, NaN, Inf:Infinity, "-Inf":-Infinity} as Record<string,number>)[v] ?? Number(v) : Array.isArray(v) ? v.map(n) : v;
 const argsRma = (a:any) => ({
   ...(a.method===undefined?{}:{method:a.method as MetaMethod}),
@@ -52,7 +53,7 @@ function compareRma(result:any, expected:any, index:number,mismatches:string[]):
 }
 function fitFromObject(o:any) {
   const a=o.rma;
-  return rma(a.yi.map(n),a.vi.map(n),{...argsRma(a),...(a.intercept===undefined?{}:{intercept:a.intercept})});
+  return rma(vec(a.yi),vec(a.vi),{...argsRma(a),...(a.intercept===undefined?{}:{intercept:a.intercept})});
 }
 function expectError(call:()=>unknown,expected:string,path:string,mismatches:string[]):void {
   try { call(); mismatches.push(`${path}: expected error '${expected}', no error was thrown`); }
