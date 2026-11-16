@@ -29,7 +29,7 @@ estimators <- c("EE","FE","DL","HE","HS","HSk","SJ","ML","REML","EB","PM")
 for (m in estimators) {
   show_case(paste("method", m), {
     fit <- rma(yi, vi, data=rr, method=m)
-    fit[c("beta","se","zval","pval","ci.lb","ci.ub","tau2","se.tau2","QE","QEp","I2","H2","k")]
+    fit
   })
 }
 
