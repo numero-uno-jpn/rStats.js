@@ -302,6 +302,17 @@ function buildDesign(k:number,mods:RmaOptions["mods"],intercept:boolean,data?:Da
  * @returns The estimates yi and sampling variances vi.
  * @category Effect sizes and power
  */
+/** Natural logarithm of the gamma function (Lanczos approximation). */
+function logGamma(x:number):number {
+  const coefficients=[676.5203681218851,-1259.1392167224028,771.32342877765313,-176.61502916214059,12.507343278686905,-0.13857109526572012,9.9843695780195716e-6,1.5056327351493116e-7];
+  if(x<0.5) return Math.log(Math.PI)-Math.log(Math.sin(Math.PI*x))-logGamma(1-x);
+  const z=x-1;
+  let a=0.99999999999980993;
+  for(let i=0;i<coefficients.length;i++) a+=coefficients[i]!/(z+i+1);
+  const t=z+7.5;
+  return 0.9189385332046727+(z+0.5)*Math.log(t)-t+Math.log(a);
+}
+
 export function escalc(measure:EscalcMeasure, options:EscalcOptions):EscalcResult {
   checkOptions(options, ESCALC_KEYS, "escalc"); // generated: option-keys.mjs
   const warnings:string[]=[];
@@ -320,7 +331,7 @@ export function escalc(measure:EscalcMeasure, options:EscalcOptions):EscalcResul
     if(measure==="ZCOR"){
       const r=data[0]![i]!, size=data[1]![i]!;
       if(Math.abs(r)>1) throw new RangeError("One or more correlations are > 1 or < -1.");
-      if(!(size>3)){warnings.push("Cannot estimate the sampling variance when ni <= 3.");y=Math.atanh(r);v=NaN;}
+      if(!(size>3)){y=Math.atanh(r);v=NaN;}
       else {y=Math.atanh(r);v=1/(size-3);}
     } else if(measure==="MD"||measure==="SMD"){
       const [m1,sd1,n1,m2,sd2,n2]=data.map(x=>x![i]!);
@@ -328,8 +339,9 @@ export function escalc(measure:EscalcMeasure, options:EscalcOptions):EscalcResul
       if(measure==="MD"){y=m1-m2;v=sd1*sd1/n1+sd2*sd2/n2;}
       else {
         const df=n1+n2-2, sp2=((n1-1)*sd1*sd1+(n2-1)*sd2*sd2)/df;
-        const d=(m1-m2)/Math.sqrt(sp2), J=1-3/(4*df-1);
-        y=J*d;v=(n1+n2)/(n1*n2)+y*y/(2*df);
+        const d=(m1-m2)/Math.sqrt(sp2);
+        const J=Math.exp(logGamma(df/2)-Math.log(Math.sqrt(df/2))-logGamma((df-1)/2));
+        y=J*d;v=(n1+n2)/(n1*n2)+y*y/(2*(n1+n2));
       }
     } else {
       const a0=data[0]![i]!,b0=data[1]![i]!,c0=data[2]![i]!,d0=data[3]![i]!;
@@ -338,7 +350,7 @@ export function escalc(measure:EscalcMeasure, options:EscalcOptions):EscalcResul
       const zero=[a,b,c,d].some(z=>z===0);
       const apply=to==="all"||(to==="only0"&&zero)||(to==="if0all"&&zero);
       if(measure!=="RD"&&apply){a+=correction;b+=correction;c+=correction;d+=correction;}
-      if(measure==="RD"&&to!=="none"&&to!=="only0"&&apply){a+=correction;b+=correction;c+=correction;d+=correction;}
+      if(measure==="RD"&&apply){a+=correction;b+=correction;c+=correction;d+=correction;}
       if(options.drop00&&(a0===0&&c0===0||b0===0&&d0===0)){yi.push(NaN);vi.push(NaN);continue;}
       if(measure==="RR"){
         const p1=a/(a+b),p2=c/(c+d);y=Math.log(p1/p2);v=1/a-1/(a+b)+1/c-1/(c+d);
