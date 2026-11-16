@@ -98,7 +98,7 @@ function weightedFit(y:number[], v:number[], X:number[][], tau2:number) {
   const qe=residuals.reduce((s,z,i)=>s+w[i]!*z*z,0);
   const P=Array.from({length:k},(_,i)=>Array.from({length:k},(_,j)=>(i===j?w[i]!:0)-w[i]!*dot(X[i]!,matVec(cov,X[j]!).map((z)=>z*w[j]!))));
   const traceP=P.reduce((s,row,i)=>s+row[i]!,0);
-  const traceP2=P.reduce((s,row)=>s+row.reduce((t,z,j)=>t+z*P[j]![row.indexOf(z)]!,0),0);
+  const traceP2=P.reduce((s,row,i)=>s+row.reduce((t,z,j)=>t+z*P[j]![i]!,0),0);
   const py=P.map(row=>dot(row,y));
   const score=0.5*(dot(py,py)-traceP);
   const logdet=xtwx.length===1?Math.log(xtwx[0]![0]!):Math.log(Math.abs(determinantSmall(xtwx)));
@@ -153,6 +153,7 @@ function buildX(k:number,mods:RmaOptions["mods"],intercept:boolean,data?:DataFra
     const d=design(parseFormula(f),data,{intercept});
     rows=d.x;
     if(d.frame.rows.length!==k) throw new RangeError("variable lengths differ between yi and mods");
+    return rows;
   } else if(mods===undefined) rows=Array.from({length:k},()=>[]);
   else if(mods.length===0) rows=Array.from({length:k},()=>[]);
   else if(typeof mods[0]==="number") {
@@ -274,7 +275,7 @@ export function rma(yi:readonly number[]|EscalcResult,viOrOptions?:readonly numb
   if(m>0){
     const b=fit.beta.slice(start), c=covariance.slice(start).map(row=>row.slice(start));
     try{qm=dot(b,solve(c,b));}catch{qm=NaN;}
-    qmp=test==="z"?pchisq(qm,m,{lowerTail:false}):pf(qm/m,m,df,false,false);
+    qmp=test==="z"?pchisq(qm,m,{lowerTail:false}):pf(qm/m,m,df,{lowerTail:false});
   }else if(p===1){qm=stat[0]!*stat[0]!;qmp=test==="z"?pchisq(qm,1,{lowerTail:false}):pf(qm,1,df,false,false);}
   const sumW=fit.w.reduce((s,z)=>s+z,0), sumW2=fit.w.reduce((s,z)=>s+z*z,0);
   const vtilde=df*sumW/(sumW*sumW-sumW2);
@@ -297,7 +298,7 @@ export function confintRma(object:RmaResult,options:ConfintRmaOptions={}):{rando
     const base=weightedFit(object.yi,object.vi,object.mods,0);
     const w=base.w,sum=w.reduce((s,z)=>s+z,0),C=sum-w.reduce((s,z)=>s+z*z,0)/sum;
     const target=(prob:number)=>root(ncp=>pchisq(base.qe,df,{ncp})-prob,0,Math.max(1,base.qe),1e-10);
-    const l=target(1-alpha/2),u=target(alpha/2);
+    const l=target(1-alpha/2),u=root(ncp=>pchisq(base.qe,df,{ncp})-alpha/2,0,Math.max(1,base.qe*8),1e-10);
     lo=Math.max(0,l/C);hi=u/C;
   } else {
     const cutoff=qchisq(level,1);
@@ -355,7 +356,7 @@ export function regtest(x:readonly number[]|RmaResult,viOrOptions?:readonly numb
   const z= predictor==="sei"?sei:predictor==="vi"?v:v.map((_,i)=>1/(i+1));
   let est:number,se:number,stat:number,df:number,pv:number;
   if(model==="lm"){
-    const xx=z.map((a,i)=>[1/a]),yy=y.map((a,i)=>a/a===0?NaN:a/sei[i]!);
+    const xx=z.map((a,i)=>[1,1/a]),yy=y.map((a,i)=>a/sei[i]!);
     const fit=linearRegression(xx,yy);
     est=fit.beta[0]!;se=Math.sqrt(fit.cov[0]![0]! * fit.sigma2);stat=est/se;df=y.length-2;
     pv=2*pt(-Math.abs(stat),df);
