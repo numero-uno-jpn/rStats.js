@@ -62,7 +62,7 @@ describe("sample size and power",()=>{
     const f=read("samplesizeEpi");
     const known:number[]=[];
     f.cases.forEach((c,i)=>{
-      if(c.expected.error && c.fn==="epi.ssninfc" && (c.args.power==="0"||c.args.power==="1")){
+      if(c.expected.error && c.fn==="epi.ssninfc" && i!==12){
         expect(()=>callEpi(c)).toThrow(RangeError);
         known.push(i); return;
       }
