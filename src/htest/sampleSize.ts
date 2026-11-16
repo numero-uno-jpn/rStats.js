@@ -336,7 +336,7 @@ export function powerPaired2x2(pb: number, pc: number, npairs: number, options: 
   const alternative = matchChoice(options.alternative, ["two.sided", "one.sided"] as const);
   const strict = options.strict ?? false;
   const nullOddsRatio = options.nullOddsRatio ?? 1;
-  const errbound = options.errbound ?? 1e-6; // Metadata only: exact enumeration is used because R's observed truncation is inaccurate.
+  const errbound = options.errbound ?? 1e-6;
   const tsmethod = matchChoice(options.tsmethod, ["central", "minlike", "blaker"] as const);
   checkNumber(pb, "pb", prob, "'pb' must be in [0, 1]");
   checkNumber(pc, "pc", prob, "'pc' must be in [0, 1]");
@@ -350,22 +350,31 @@ export function powerPaired2x2(pb: number, pc: number, npairs: number, options: 
   const q = pb + pc;
   const pAlt = q === 0 ? 0.5 : pb / q;
   const pNull = nullOddsRatio / (1 + nullOddsRatio);
-  const direction = pAlt >= pNull ? 1 : -1;
+  const direction = pb >= pc ? 1 : -1;
   const useBoth = alternative === "two.sided" && strict && tsmethod !== "blaker";
   const useOne = alternative === "one.sided";
   const massM = binomialMasses(npairs, q);
+  let firstM = 0, lastM = npairs;
+  if (errbound > 0) {
+    let tail = 0;
+    while (firstM <= npairs && (tail += massM[firstM]!) <= errbound / 2) firstM++;
+    tail = 0;
+    while (lastM >= 0 && (tail += massM[lastM]!) <= errbound / 2) lastM--;
+  }
   let power = 0;
-  for (let m = 0; m <= npairs; m++) {
+  for (let m = firstM; m <= lastM; m++) {
     const wm = massM[m]!;
     if (wm === 0) continue;
     const alt = binomialMasses(m, pAlt);
     const nul = binomialMasses(m, pNull);
-    let lower = 0;
+    let lower = 0, upper = 0;
     const lowerTail = new Array<number>(m + 1);
+    const upperTail = new Array<number>(m + 1);
     for (let x = 0; x <= m; x++) { lower += nul[x]!; lowerTail[x] = lower; }
+    for (let x = m; x >= 0; x--) { upper += nul[x]!; upperTail[x] = upper; }
     for (let x = 0; x <= m; x++) {
       const lo = lowerTail[x]!;
-      const hi = 1 - (x === 0 ? 0 : lowerTail[x - 1]!);
+      const hi = upperTail[x]!;
       let reject: boolean;
       if (useOne) reject = direction > 0 ? hi <= sigLevel : lo <= sigLevel;
       else if (useBoth) reject = (lo <= sigLevel / 2 || hi <= sigLevel / 2);
