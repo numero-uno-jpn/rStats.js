@@ -195,7 +195,6 @@ function tau2StandardError(y:number[],v:number[],X:number[][],method:MetaMethod,
 function tauEstimate(y:number[],v:number[],X:number[][],method:MetaMethod,control:RmaControl) {
   const k=y.length,p=X[0]!.length,df=k-p;
   const base=weightedFit(y,v,X,0),q0=base.qe;
-  const c=base.traceP2;
   const sumInv=v.reduce((s,z)=>s+1/z,0);
   if(method==="EE"||method==="FE") return 0;
   if(method==="DL") return Math.max(0,(q0-df)/base.traceP);
