@@ -54,7 +54,7 @@ For all six functions:
 - `r = n.treat / n.control`.
 - Supply `n = NA` and a target `power` to solve for sample size; supply `power = NA` and `n` to solve for power.
 - `alpha` defaults to 0.05.
-- `nfractional` defaults to `FALSE`; `TRUE` retains fractional group sizes. When `FALSE`, each group size is rounded up separately and `n.total` is their sum.
+- `nfractional` defaults to `FALSE`; `TRUE` retains fractional group sizes. Integer results must be checked per public function: the six-method probe is recorded below. A blanket “ceil both fractional arms” rule does not reproduce every observed integer result.
 - The result is a list containing `n.total`, `n.treat`, `n.control`, and `power`; `delta` is also present for the margin-based designs.
 - `epi.ssequb/c` use `type = "equivalence"` by default. `type = "equality"` ignores `delta`.
 - `epi.sssupb/c` require `sided.test` (1 or 2). Non-inferiority is one-sided.
@@ -64,6 +64,19 @@ Let $D = \mu_t - \mu_c$, with $\mu$ denoting a proportion for binary outcomes or
 $$
 SE = \sqrt{V_t/n_t + V_c/n_c}.
 $$
+
+The `nfractional=FALSE` probe on R 4.6.2 / epiR 3.0.0 (x86_64) returned these integer group sizes for the same allocation ratio `r=1.5`:
+
+| Public function | `n.treat` | `n.control` | `n.total` |
+|---|---:|---:|---:|
+| `epi.ssequb` | 2129 | 1419 | 3548 |
+| `epi.ssequc` | 135 | 90 | 225 |
+| `epi.ssninfb` | 33 | 22 | 55 |
+| `epi.ssninfc` | 32 | 22 | 54 |
+| `epi.sssupb` | 165 | 110 | 275 |
+| `epi.sssupc` | 80 | 53 | 133 |
+
+These are observed package outputs, not a single universal rounding rule. In particular, `epi.ssequc`, `epi.sssupb` and `epi.sssupc` do not equal the componentwise ceilings of the fractional arm sizes in this probe; `epi.ssninfc` does. A separate arm64 fixture for the continuous-equivalence integer case records values just below 135, 90 and 225 rather than the x86_64 integers, so the near-integer boundary is platform-sensitive. Do not round a floating-point value that is already within machine error of an integer without a deliberate tolerance rule.
 
 The sample-size expressions documented in the supplied brief can be written as
 
@@ -204,7 +217,7 @@ Additional boundaries: `sig.level=0` and `npairs=0` returned power 0; `pb=pc=0` 
 
 For this parameter set, `tsmethod="central"`, `"minlike"`, and `"blaker"` all produced the same power (0.226862069302937) with `strict=TRUE`; the method name was reflected in the returned `method` string. The same three methods also produced the default power (0.226697528108813) with `strict=FALSE`.
 
-**Unresolved numerical issue:** the `errbound=1e-8` result is about $6.37\times10^{-7}$ *above* the `errbound=0` result. The default `1e-6` result is also above it by about $6.27\times10^{-7}$. This does not match the documented direction (“may underestimate”) and the smaller bound does not bound this observed difference. The `errbound=0.01` result is below the exact result. The reason has not been established; do not promise the documented one-sided error guarantee without further experiments. The 100,000-pair probe reached its output only at the 120-second experiment limit, so large exact calculations are also a performance concern.
+**Known numerical error in R:** an independent exact-rational calculation gives power **0.226697537841312** for this parameter set. rStats.js agrees with that value within $2\\times10^{-15}$. R's `errbound=0` result, 0.226696901160739, is low by about $6.37\\times10^{-7}$; its default `errbound=1e-6` result, 0.226697528108813, is low by about $9.7\\times10^{-9}$. Thus `errbound=0` is not an exact baseline in R, despite the help's description. The `errbound=1e-8` and `0.01` observations also do not establish a reliable truncation rule from outputs alone. rStats.js therefore returns the exact sum for every `errbound` value and deliberately does not imitate the observed R truncation; tests compare against the exact value and label the R values as known numerical differences.
 
 **Recommendation:** include the exact power function as a power calculation. Do not claim a paired sample-size solver exists. Decide separately whether rStats.js should add an integer search for the minimum pair count; that would be a new rStats.js contract, not a direct wrapper of exact2x2.
 
