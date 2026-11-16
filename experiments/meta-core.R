@@ -1,5 +1,5 @@
 # issue: 529
-# Public-API experiments only: no package or R source inspection.
+# Public-API experiments only: no package or R source inspection; every call uses documented arguments.
 suppressPackageStartupMessages(library(metafor))
 suppressPackageStartupMessages(library(metadat))
 
