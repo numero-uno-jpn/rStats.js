@@ -507,7 +507,7 @@ export function predictRma(object:RmaResult,options:PredictRmaOptions={}):{pred:
   const pred=rows.map(r=>dot(r,beta));
   const se=rows.map(r=>Math.sqrt(Math.max(0,dot(r,matVec(object.covariance,r)))));
   const crit=object.test==="z"?qnorm(1-alpha/2):qt(1-alpha/2,object.k-p);
-  const piCrit=options.predtype==="riley"?qt(1-alpha/2,object.k-2*p):crit;
+  const piCrit=options.predtype==="riley"?qt(1-alpha/2,object.k-p-1):crit;
   const piScale=rows.map((_,i)=>Math.sqrt(se[i]!**2+object.tau2));
   return {pred:scalar(pred),se:scalar(se),"ci.lb":scalar(pred.map((z,i)=>z-crit*se[i]!)),
     "ci.ub":scalar(pred.map((z,i)=>z+crit*se[i]!)),"pi.lb":scalar(pred.map((z,i)=>z-piCrit*piScale[i]!)),
