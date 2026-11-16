@@ -43,9 +43,11 @@ function close(actual:any, expected:any, path:string, mismatches:string[], tol=1
   }
 }
 function compareRma(result:any, expected:any, index:number,mismatches:string[]):void {
+  const tol=result.method==="PM"?1e-5:result.method==="EB"?1e-6:1e-12;
   const fields=["se","zval","pval","ci.lb","ci.ub","tau2","se.tau2","QE","QEp","QM","QMp","R2","p","m","I2","H2","k"];
-  for(const field of fields) if(Object.hasOwn(expected,field)) close(result[field],n(expected[field]),`case ${index} ${field}`,mismatches);
-  if(expected.beta) close(result.beta,expected.beta.rows.map((r:any[])=>r.map(n)),`case ${index} beta`,mismatches);
+  for(const field of fields) if(Object.hasOwn(expected,field)) close(result[field],n(expected[field]),`case ${index} ${field}`,mismatches,tol);
+  if(expected.beta) close(result.beta,expected.beta.rows.map((r:any[])=>r.map(n)),`case ${index} beta`,mismatches,tol);
+  if(JSON.stringify(result.warnings)!==JSON.stringify(expected.warnings??[]))mismatches.push(`case ${index} warnings differ`);
 }
 function fitFromObject(o:any) {
   const a=o.rma;
@@ -98,7 +100,8 @@ describe("meta-analysis intervals and prediction",()=>{
         const fit=fitFromObject(c.args.object);
         if(c.fn==="interval"){
           const got=confintRma(fit,{type:c.args.type});
-          close(got.random.rows,c.expected.value!.random.rows,`case ${i} intervals`,mismatches);
+          close(got.random,c.expected.value!.random,`case ${i} intervals`,mismatches);
+          for(const key of ["digits","ci.null","lb.sign","ub.sign","tau2.min"])close(got[key as keyof typeof got],c.expected.value![key],`case ${i} ${key}`,mismatches);
         }else{
           const got=predictRma(fit,{...(c.args.newmods===undefined?{}:{newmods:c.args.newmods.map(n)}),...(c.args.predtype===undefined?{}:{predtype:c.args.predtype})});
           for(const key of ["pred","se","ci.lb","ci.ub","pi.lb","pi.ub"])close(got[key as keyof typeof got],n(c.expected.value![key]),`case ${i} ${key}`,mismatches);
