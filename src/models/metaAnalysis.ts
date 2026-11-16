@@ -369,7 +369,7 @@ export function rma(yi:readonly number[]|EscalcResult,viOrOptions?:readonly numb
   const covariance=fit.cov.map(row=>row.map(z=>z*kh));
   const se=fit.cov.map((row,i)=>Math.sqrt(Math.max(0,row[i]!)*kh));
   const stat=fit.beta.map((b,i)=>b/se[i]!);
-  const crit=test==="z"?qnorm(1-(1-level/100)/2):qt(1-(1-level)/2,df);
+  const crit=test==="z"?qnorm(1-(1-level/100)/2):qt(1-(1-level/100)/2,df);
   const pv=stat.map(z=>2*(test==="z"?pnorm(-Math.abs(z)):pt(-Math.abs(z),df)));
   const lower=fit.beta.map((b,i)=>b-crit*se[i]!);
   const upper=fit.beta.map((b,i)=>b+crit*se[i]!);
@@ -476,7 +476,7 @@ export function regtest(x:readonly number[]|RmaResult,viOrOptions?:readonly numb
     const fit=rma(y,v,{method:"REML",mods:z,intercept:true,test:"z"});
     est=fit.beta.rows[0]![0];se=Array.isArray(fit.se)?fit.se[0]!:fit.se;stat=est/se;df=NaN;pv=2*pnorm(-Math.abs(stat));
   }
-  const crit=model==="lm"?qt(1-(1-level)/2,df):qnorm(1-(1-level/100)/2);
+  const crit=model==="lm"?qt(1-(1-level/100)/2,df):qnorm(1-(1-level/100)/2);
   const out={model,predictor,zval:stat,pval:pv,dfs:df,est,"ci.lb":est-crit*se,"ci.ub":est+crit*se};
   return reported("regtest",options.retFit?{...out,fit}:out);
 }
