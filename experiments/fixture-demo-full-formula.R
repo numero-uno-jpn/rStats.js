@@ -42,9 +42,9 @@ variance_stat <- function(ftime,fstatus,group,cause,rho) {
       Aown<-W%*%diag(cur$p)%*%t(W)
       Bown<-(sum(cur$Y)-1)/cur$H*(W%*%diag(Bweights)%*%t(W))
       Sigma<-Sigma-cur$L^2*cur$d1*(cur$d1-1)/(sum(cur$Y)-1)*Bown
+    }
     for(r in 1:K) if(cur$N2[r]>1 && cur$Y[r]>1 && cur$h[r]>0) {
       Sigma<-Sigma-tcrossprod(bb[,r])*cur$dF2[r]/cur$h[r]*(cur$N2[r]-1)/(cur$Y[r]-1)
-    }
     }
     future<-future+cur$D*cur$dGamma
   }
