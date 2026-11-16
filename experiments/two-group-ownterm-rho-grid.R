@@ -3,6 +3,8 @@
 # For each, fit V=z^2/stat as a quadratic in x=G0(t_tie-)^rho and isolate the tied-time
 # own coefficient c11. z is independently calculated from oracle section 1.5.
 run_one <- function(label,nA,nB,priorA,tieA,tieB) {
+  nA <- as.integer(nA); nB <- as.integer(nB); priorA <- as.integer(priorA)
+  tieA <- as.integer(tieA); tieB <- as.integer(tieB)
   tTie <- priorA+1
   timeA <- c(seq_len(priorA),rep(tTie,tieA),rep(tTie+1,nA-priorA-tieA))
   statusA <- c(rep(1,priorA+tieA),rep(0,nA-priorA-tieA))
