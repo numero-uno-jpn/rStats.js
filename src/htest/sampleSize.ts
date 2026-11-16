@@ -372,17 +372,33 @@ export function ph2simon(pu:number,pa:number,ep1:number,ep2:number,options: {nma
           }
         }
         if(rFound>=0 && (best===undefined || en<best.expectedN-1e-12)){
-          best={r1,n1,r:rFound,n,expectedN:en,pet,qLo:0,qHi:1};
+          best={r1,n1,r:rFound,n,enP0:en,petP0:pet};
         }
       }
     }
     if(best) out.push(best);
   }
   if(out.length===0) throw new Error(`  No feasible solution found. \n\tIncrease maximum sample size.  Current nmax value = ${nmax}.`);
-  const minimax=out[0]!;
-  const optimal=out.reduce((a,b)=>b.expectedN<a.expectedN?b:a);
-  const admissible=out.filter((r,i)=>!out.some((s,j)=>j!==i&&s.n<=r.n&&s.expectedN<=r.expectedN&&(s.n<r.n||s.expectedN<r.expectedN)));
+  const frontier=out.filter((row,i)=>!out.some((other,j)=>j!==i&&other.n<=row.n&&other.enP0<=row.enP0&&(other.n<row.n||other.enP0<row.enP0)));
+  const hull:SimonRow[]=[];
+  const crossing=(a:SimonRow,b:SimonRow)=> (a.enP0-b.enP0)/((b.n-a.n)+(a.enP0-b.enP0));
+  for(const row of frontier){
+    hull.push(row);
+    while(hull.length>=3){
+      const a=hull[hull.length-3]!,b=hull[hull.length-2]!,c=hull[hull.length-1]!;
+      if(crossing(a,b)>crossing(b,c)) break;
+      hull.splice(hull.length-2,1);
+    }
+  }
+  const selected:SimonDesign[]=hull.map((row,i)=>{
+    const qLo=i===hull.length-1?0:crossing(row,hull[i+1]!);
+    const qHi=i===0?1:crossing(hull[i-1]!,row);
+    return {...row,qLo,qHi};
+  });
+  const minimax=selected[0]!;
+  const optimal=selected.reduce((a,b)=>b.enP0<a.enP0?b:a);
+  const admissible=selected;
   const warnings:string[]=[];
-  if(optimal.n>=nmax-1) warnings.push(`Optimal sample size too close to nmax. Try increasing nmax (current value = ${nmax})`);
+  if(optimal.n>=nmax-1) warnings.push(`  Optimal sample size too close to nmax. \\n  Try increasing nmax (current value = ${nmax})\\n`);
   return reported("ph2simon",{out,minimax,optimal,admissible,pu,pa,alpha:ep1,beta:ep2,nmax,warnings});
 }
