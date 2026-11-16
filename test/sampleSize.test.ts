@@ -26,7 +26,11 @@ function exactMcNemarHalfBoundary(npairs:number,pb:number,pc:number):number {
   let power=0;
   for(let m=0;m<=npairs;m++){
     const alt=binomialMass(m,pAlt);
-    for(let x=Math.ceil(m/2)+1;x<=m;x++) power+=massM[m]!*alt[x]!;
+    if(pb>=pc){
+      for(let x=Math.ceil(m/2)+1;x<=m;x++) power+=massM[m]!*alt[x]!;
+    }else{
+      for(let x=0;x<Math.ceil(m/2);x++) power+=massM[m]!*alt[x]!;
+    }
   }
   return power;
 }
@@ -188,6 +192,8 @@ describe("sample size and power",()=>{
     const exact=exactMcNemarHalfBoundary(40,0.5,0.3);
     const full=powerPaired2x2(0.5,0.3,40,{sigLevel:1,errbound:0});
     expect(close(full.power,exact,1e-14),"errbound=0 must retain the full exact outer sum").toBe(true);
+    const reverse=powerPaired2x2(0.3,0.5,40,{sigLevel:1,errbound:0});
+    expect(close(reverse.power,exactMcNemarHalfBoundary(40,0.3,0.5),1e-14),"the lower-tail half-boundary must be exact too").toBe(true);
   });
 
   it("powerSurvEpi summary-parameter fixtures",()=>{
