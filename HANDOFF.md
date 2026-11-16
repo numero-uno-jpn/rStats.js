@@ -1,10 +1,44 @@
 # 引継ぎ: rStats.js (外部レビュー対応 2026-10-30〜11-04、1.0.0 への準備 11-04〜)
 
-最終更新: 2026-11-09 (セッション 19、1.3.0 を公開: 頑健な標準誤差と、診断の正確度・測定の一致)
+最終更新: 2026-11-16 (セッション 20、Windows の PC: 1.4.0 の実装を ChatGPT に外注して main に取り込み、リリースの準備の途中。以後は Mac mini で)
 
 ## まず読むこと (セッション 16 から)
 
-## 次のセッションで最初にやること (2026-11-09 に作成、セッション 19)
+## 次のセッションで最初にやること (2026-11-16 に作成、セッション 20、Windows の PC)
+
+このセッションは Windows の PC で行い、ここで終了した。以後は **Mac mini だけで作業する** (2 台で同時に作業すると混乱するため、ユーザーの指示)。Windows の側のメモリ (`~/.claude/projects/.../memory/`) は Mac にないので、必要な内容はこの節に書いた。
+
+- **状態:** origin/main = `7365d729` (1.4.0 の実装と数値の点検はすべて main に入っている。未公開。npm latest は 1.3.0 のまま)。リリースの準備のブランチ `work/release-1.4-docs` (head `420f6e3b`、PR #524、Issue #523) が残っている。
+
+- **すぐにやること (順に):**
+  1. **PR #524 の `demo/r-results.json`:** Mac で `git checkout work/release-1.4-docs && git checkout -- demo/r-results.json && git pull && npm run demo:r`。前回の実行で R がエラーになった 2 例 (survfit-extended・coxph-counting-zph: `rmean` を survfit() に渡していた) は `420f6e3b` で直した。手元の R 4.5.2 で、2 例とも JS の値と 7 桁で一致することを確かめてある。結果をコミットして push し、PR の CI (Node 22・24・browser) が通ることを確かめる
+  2. **equivalence-tost:** 前回の `npm run demo:r` で、既存の例のうち equivalence-tost だけ R の結果が変わった (Mac の報告)。差分を見て、Docker のイメージのパッケージ (TOSTER) の版が変わったのかなどを確かめる
+  3. **PR #524 の点検と取り込み:** R1 (README・ROADMAP・llms.txt・api-reference の en・ja)、R2 (デモの 6 例、`NOT_IN_DEMO_YET` は空に)、R3 (`docs/ja/api/survival-analysis.json` の訳 149 件と stale 22 件) の中身を読む。ChatGPT が Issue #523 に書いた新しい訳語を `docs/ja/api-glossary.md` に足す。main に squash で取り込み、Issue #523 と PR #524 を閉じる
+  4. **区切りの時刻の行 (要確認):** `oracle/coxph2-behaviour.md` の Part C は「`id` があるとき、同じ人の次の行に続く区切りの時刻は打ち切りでも行でもない」とするが、R 4.5.2 (survival 3.8.3) の `summary(survfit(Surv(start, stop, status) ~ g, id = id), censored = TRUE)` は、その時刻を n.event 0・n.censor 0 の行として残した (例: デモの coxph-counting-zph のデータ。各群の先頭に時刻 2・3 の行)。rStats.js はその行を出さない。仕様書が survfit の結果そのものについての記述で summary だけの違いなのか、R との差として `docs/differences-from-r.md` (en・ja) に書くべきかを確かめる。デモは R の側で `n.event > 0 | n.censor > 0` の行だけを比べる形にしてある
+  5. **survreg の極端な尺度:** 数値の点検 (`7b995cbd`) で、survreg は説明変数の単位を 2^±1000 倍しても Wald z が変わらないようにした。R がその尺度でどうなるか (溢れる、列を落とす、など) を確かめ、R と違う値を返す場面を differences-from-r (en・ja) に書く
+  6. **リリース:** `npm run size` でサイズを測って `docs/performance.md` (en・ja) と README のサイズを直す。版の番号 1.4.0 (package.json・package-lock.json・demo/app.js・README の Status と CDN URL・api-reference の CDN URL)、CHANGELOG の Unreleased を `1.4.0 - <日付>` に。公開の手順は 1.3.0 と同じ (タグはユーザーが push、npm の staged はユーザーが approve)。リリースの前に `node scripts/api-ja-extract.mjs` で stale がないことを確かめる
+  7. **後片付け:** GitHub に残っているブランチ (`work/survival-1.4-a-65df102e`・`-b`・`-c`・`-d`・`-audit-ac`・`-audit-bd`、取り込んだ後の `work/release-1.4-docs`) は、ユーザーに確認してから消す
+
+- **1.4.0 の中身 (main に取り込み済み):** ROADMAP の Remaining の 1 (生存時間解析の続き)。
+  - 作業 A `cfab03f4`: survfit の拡張 (weights・ctype・stype・robust・rmean・confType の logit・arcsin・none、cumhaz・stdChaz) と `rmst2`
+  - 作業 C `46c85938`: `cuminc`・`timepoints`・`crr`・`predictCrr`
+  - A と C の数値の点検 `f98feb8c`
+  - 作業 B `dca40233`: coxph の (start, stop] データ (start・id)、survfit の start・id、`coxZph`
+  - 作業 D `21066390`: `survreg`・`survregPredict`・`survregResiduals`
+  - B と D の数値の点検 `7b995cbd` (survreg だけ変更。B は問題なし)
+
+- **進め方 (このセッションで始めたもの、ユーザーの指示):** token を節約するため、実装は ChatGPT に外注した。
+  - 指示書は `briefs/survival-1.4.ja.md` (1 節 クリーンルーム、3 節 検証済みの関数を使う、7 節 数値の点検、8 節 何度も直しが入った点) と `briefs/release-1.4.ja.md`。作業ごとに 1 つの Issue と 1 つのブランチ (`work/survival-1.4-<x>`)。ChatGPT はブランチに直接 push でき、PR を作れば CI の結果も自分で読める。テストは実行できない
+  - こちらの役目: ブランチを別の worktree に取り出し (node_modules は本体へのジャンクション)、`node scripts/option-keys.mjs --write`・`npx tsc --noEmit -p tsconfig.json`・`npx vitest run`。結果を Issue のコメントに書く (**投稿はユーザーの承認を毎回得る**)。小さな残りは自分で直し、main に squash で取り込み (コミットのメッセージに「Written by ChatGPT ... (issue #, branch)」)、R の関数の索引 (`node scripts/r-index.mjs > docs/r-functions.md`、`--ja`、新しい関数の日本語の説明は `docs/ja/r-functions.json`) を生成し、push (ユーザーの承認) して Issue を閉じる
+  - ChatGPT が繰り返した誤り: fixture・oracle・仕様書・`test/helpers/` の書き換え (各 case に `reference` を足す、ファイルの書式の変更)、生成ブロックの手書き、`@category` や R の関数名の文の抜け、収束した点の勾配や丸めの残りを相対誤差で比べるテスト、既存の関数 (作業 A の survfit) を壊す変更、静的な照合だけで「誤りなし」と報告すること
+  - こちらで直した典型: 差の形の値 (区間の限界、対数尤度の差) は |a| + |b| の尺度で測る。反復の値が R とずれたら、反復を続けた値 (真の根) と比べる。crr #17、survreg #23、rmst2 #39 は rStats.js の方が真の根に近く、R が根から 1e-12〜1e-11 ずれていた
+  - **ChatGPT の仕様の質問に答える前に、関係する `oracle/*-behaviour.md` の「Decisions for the user」と「rStats.js's choices」を読む。** このセッションでは、同時刻の統合について読まずに「尺度不変性を優先」と答えてしまい、判断 12 (a) (R の絶対の許容幅のまま) に反する変更を後で戻した
+
+- **survival パッケージの誤り (ユーザーが報告済み):** https://github.com/therneau/survival/issues/353 (2026-11-15)。coxph の全体の Wald 検定 (と robust の Wald 検定・robust スコア検定) は、単位の大きな共変量 (係数の分散が別の係数の約 1e-12 倍。例: `lung` の `age * 1e5` と `sex`) の列を黙って落とし、自由度は k のまま、警告もない。13.47 が 9.39 に、robust の Wald は 13.59 が 10.27、robscore は 13.24 が 3.82 になる。尤度比検定は正しい。survival 3.8-3 と 3.8-12 で再現。rStats.js の coxph は尺度に依らない値を返す (differences-from-r に記載済み)。返事が来たら、内容によって differences-from-r を直す
+
+- **環境のメモ (Windows の PC):** `scripts/api-ja-extract.mjs` は Windows では `npx` を shell なしで起動できずに失敗する (`spawnSync` に `shell: true` が要る)。全体のテストの実行では、時間の上限のテスト (signrank・tukey・wilcox46) が負荷で落ちることがある (単独では通る)。Windows の R は 10 進の最後の桁を誤るので、fixture は作らない (このセッションでは使っていない)
+
+## 前回 (セッション 19) の「次のセッションで最初にやること」 (2026-11-09 に作成)
 
 - **状態:** 1.3.0 を公開済み (2026-11-09、npm latest = 1.3.0。staged をユーザーが `npm stage approve fcb628a8-...` で承認。1 回目は通っておらず `npm stage view <id>` で status: staged と分かり、やり直して通った)。tag `v1.3.0` = `3d3fb65` (release が dist 入りに移した)、main = `4382006` を push 済みで CI・Pages 通過、デモ v1.3.0、jsDelivr の dist/rstats.js・dist/mixed.js を確認 (rstats.js は承認後しばらく 404)、/api/ と /ja/api/ に新しい関数のページ。
 - **1.3.0 の中身:** ROADMAP の旧 1 (頑健な標準誤差: `vcovHC`・`vcovCL`・`coeftest`・`coefci`、coxph の `robust`・`cluster`・非整数の重み) と旧 2 (`roc`・`auc`・`ciAuc`・`rocTest`・`coords`・`diagnosticTests`・`blandAltman`・`mcreg`・`ICC`・`tTOST`・`tsumTOST`) をまとめて 1 つの版に (ユーザーの判断)。仕様は `oracle/robust-behaviour.md`・`oracle/roc-behaviour.md`・`oracle/methodcomparison-behaviour.md` (どれも末尾の「rStats.js's choices」にユーザーの判断)。計画は `~/.claude/plans/cheerful-bouncing-flute.md`。
