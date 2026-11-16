@@ -377,21 +377,18 @@ export function powerPaired2x2(pb: number, pc: number, npairs: number, options: 
       const lo = lowerTail[x]!;
       const hi = upperTail[x]!;
       let reject: boolean;
-      // At the exact half-tail boundary, avoid a floating-point CDF deciding whether a rational
-      // probability of 1/2 is just above or below the cutoff. A p-value equal to alpha is not rejected.
+      // At the exact half-tail boundary, compare the rational binomial tail combinatorially
+      // rather than letting floating-point summation decide whether it is just above or below 1/2.
       const exactHalfBoundary = pNull === 0.5 && sigLevel === 1;
       if (useOne) {
-        reject = direction > 0
-          ? (exactHalfBoundary ? x > 0 : hi < sigLevel)
-          : (exactHalfBoundary ? x < m : lo < sigLevel);
+        reject = exactHalfBoundary || (direction > 0 ? hi <= sigLevel : lo <= sigLevel);
       } else if (useBoth) {
-        reject = exactHalfBoundary
-          ? x !== Math.ceil(m / 2)
-          : (lo < sigLevel / 2 || hi < sigLevel / 2);
+        // The central two-sided p-value is capped at 1, so at alpha=1 every outcome is rejected.
+        reject = exactHalfBoundary || lo <= sigLevel / 2 || hi <= sigLevel / 2;
       } else {
         reject = direction > 0
-          ? (exactHalfBoundary ? x > Math.ceil(m / 2) : hi < sigLevel / 2)
-          : (exactHalfBoundary ? x < Math.ceil(m / 2) : lo < sigLevel / 2);
+          ? (exactHalfBoundary ? x > Math.floor(m / 2) : hi <= sigLevel / 2)
+          : (exactHalfBoundary ? x < Math.ceil(m / 2) : lo <= sigLevel / 2);
       }
       if (reject) power += wm * alt[x]!;
     }
