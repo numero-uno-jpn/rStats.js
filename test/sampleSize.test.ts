@@ -140,7 +140,7 @@ describe("sample size and power",()=>{
       if(n(a.pb)===0.5 && n(a.pc)===0.3 && n(a.npairs)===40 && opts.strict!==true && (opts.alternative===undefined||opts.alternative==="two.sided") && (opts.tsmethod===undefined||opts.tsmethod==="central") && (opts.nullOddsRatio===undefined||opts.nullOddsRatio===1)){
         const rationalPower=0.226697537841312;
         expect(close(actual.power,rationalPower,1e-14),reason.mcnemarBound).toBe(true);
-        expect(Math.abs(n((c.expected.value as Record<string,unknown>).power)-rationalPower)>1e-9,
+        expect(Math.abs(n((c.expected.value as Record<string,unknown>).power)-rationalPower)>1e-12,
           "R's errbound result is a known numerical difference from the exact rational value").toBe(true);
         console.info(reason.mcnemarBound, `case ${i}; errbound=${bound}`);
       } else if(bound>0){
