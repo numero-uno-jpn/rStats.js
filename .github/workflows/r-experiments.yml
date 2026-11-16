@@ -117,6 +117,7 @@ jobs:
             set -e
             if [ "$status" -ne 0 ]; then failed=1; fi
             if [ "$status" -eq 124 ]; then echo "(stopped after 120 seconds)" >> out.txt; fi
+            echo "== $f (exit status $status)"; head -c 60000 out.txt; echo
             size=$(wc -c < out.txt)
             issue=$(head -n 5 "$f" | sed -nE 's/^#[[:space:]]*issue:[[:space:]]*([0-9]+).*/\1/p' | head -n 1)
             {
