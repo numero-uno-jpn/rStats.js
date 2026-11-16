@@ -25,7 +25,7 @@ json_value <- function(x) {
   }
   if (is.logical(x) || is.character(x)) {
     if (length(x) == 1) return(unname(x))
-    if (!is.null(names(x))) { names(x) <- names(x); return(as.list(x)) }
+    if (!is.null(names(x))) return(as.list(x))
     return(I(x))
   }
   if (is.list(x)) {
