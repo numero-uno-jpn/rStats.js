@@ -114,7 +114,7 @@ describe("meta-analysis intervals and prediction",()=>{
           resultWarnings=(got as {warnings?:string[]}).warnings??[];
           // R's profile-interval root search uses a finite stopping tolerance; keep fitted estimates strict
           // while allowing its numerical root-search spread in the confidence limits.
-          const expectedRows=c.expected.value!.random.rows;
+          const expectedRows:{estimate:any;"ci.lb":any;"ci.ub":any}[]=c.expected.value!.random.rows;
           close(got.random.dim,c.expected.value!.random.dim,`case ${i} interval dimensions`,mismatches);
           close(got.random.rowNames,c.expected.value!.random.rowNames,`case ${i} interval row names`,mismatches);
           close(got.random.colNames,c.expected.value!.random.colNames,`case ${i} interval column names`,mismatches);
