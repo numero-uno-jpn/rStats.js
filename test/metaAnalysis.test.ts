@@ -137,7 +137,7 @@ describe("meta-regression formula design",()=>{
     const data={x:[1,2,3,4,5,6,7,8],group:["a","b","a","b","a","b","a","b"]};
     const matrixDesign=modelMatrix("~ x * group",data);
     const formulaFit=rma(y,vi,{mods:"~ x * group",data});
-    const matrixFit=rma(y,vi,{mods:matrixDesign.x,intercept:false});
+    const matrixFit=rma(y,vi,{mods:{rows:matrixDesign.x,colNames:matrixDesign.colNames},intercept:false});
     expect(formulaFit.beta).toEqual(matrixFit.beta);
     expect(formulaFit.tau2).toBeCloseTo(matrixFit.tau2,12);
     expect(formulaFit.QM).toBeCloseTo(matrixFit.QM,12);
