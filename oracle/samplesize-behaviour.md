@@ -136,8 +136,26 @@ Important anomalies / boundaries:
 4a. **Follow-up experiments for the two unresolved power paths (2026-11-16).** The added public-call-only script `experiments/samplesize-epi-followup.R` compared the observed values with several explicit candidate formulae.
 
    - For `epi.sssupb`, with $n=101$, $p_t=0.50$, $p_c=0.30$, $\delta=0.05$, $\alpha=0.05$, and `sided.test=1`, the observed powers at $r=0.5,1,1.5,2,3$ were respectively 0.3023367546, 0.4714739977, 0.5154523308, 0.5094082903, and 0.4612337518.
-   - Candidate calculations compared: the supplied unequal-allocation variance $V_t/n_t+V_c/n_c$; equal-allocation variance; the allocation ratio reversed; and a pooled-proportion variance. Their corresponding powers did not reproduce the observed sequence. At $r=1$, the equal-allocation candidate coincided with R (0.4714739977); at all four unequal ratios, none of the four candidates matched. Thus the original discrepancy is reproducible but its cause remains unidentified. Do not infer an implementation formula from this grid.
+   - Candidate calculations compared: the supplied unequal-allocation variance $V_t/n_t+V_c/n_c$; equal-allocation variance; the allocation ratio reversed; and a pooled-proportion variance. The resulting powers were:
+
+     | $r$ | R observed | Correct variance | Equal allocation | Reversed ratio | Pooled variance |
+     |---:|---:|---:|---:|---:|---:|
+     | 0.5 | 0.3023367546 | 0.4279171678 | 0.4714739977 | 0.4447051695 | 0.4333371988 |
+     | 1 | 0.4714739977 | 0.4714739977 | 0.4714739977 | 0.4714739977 | 0.4584050839 |
+     | 1.5 | 0.5154523308 | 0.4642857039 | 0.4714739977 | 0.4537254684 | 0.4417946881 |
+     | 2 | 0.5094082903 | 0.4447051695 | 0.4714739977 | 0.4279171678 | 0.4175673899 |
+     | 3 | 0.4612337518 | 0.4012658735 | 0.4714739977 | 0.3788163179 | 0.3712114071 |
+
+     Only the equal-allocation case matches. At every unequal ratio, none of the candidates matches. Thus the original discrepancy is reproducible but its cause remains unidentified. Do not infer an implementation formula from this grid.
    - For `epi.ssequb`, with fixed $p_t=0.50$, $p_c=0.45$, $\delta=0.10$, and $n=120$, changing $r$ among 0.5, 1, and 2 left the reported power exactly unchanged at -0.4111365298. The experiment compared the conventional TOST intersection expression, the symmetric expression recorded in the supplied brief, and the TOST expression with the allocation variance reversed. None reproduced the R result (the values at $r=1$ were -0.3624349540, -0.6985757393, and -0.3624349540, respectively). Three additional parameter sets also failed to identify a general formula. One of those cases happened to make the brief's symmetric expression equal the R result (-0.8), but this isolated equality is not evidence of a general rule.
+   - For the three additional binary-equivalence cases, the observed R power and candidate values (TOST intersection, brief symmetric expression, reversed-variance TOST) were:
+
+     | Case | R observed | TOST intersection | Brief symmetric | Reversed-variance TOST |
+     |---:|---:|---:|---:|---:|
+     | 4 | -0.3425089636 | -0.3634096359 | -0.6988274778 | -0.3529834312 |
+     | 5 | -0.4877013313 | -0.1039558564 | -0.7224953173 | -0.0676095226 |
+     | 6 | -0.8000000000 | -0.6122365992 | -0.8000000000 | -0.6111083702 |
+
    - Conclusion: the two behaviours remain **unresolved**. The tested hypotheses and numeric counterexamples are recorded here rather than choosing an unsupported approximation. The binary equivalence power path also appears insensitive to $r$ in the fixed-parameter probe; this is an observed package behaviour, not a recommended statistical definition.
 
 5. **Unreachable / boundary inputs.** A non-inferiority case with the assumed effect on the wrong side of the margin errors with “Target power is not reachable”. Continuous non-inferiority power at `power=0` or `power=1` errors with `object 'rval' not found`. Binary non-inferiority with both proportions zero returns a zero sample size. Continuous superiority with zero effect margin $E=0$ returns `Inf`.
