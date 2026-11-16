@@ -129,9 +129,11 @@ function weightedFit(y:number[], v:number[], X:number[][], tau2:number) {
   const traceP2=P.reduce((s,row,i)=>s+row.reduce((t,z,j)=>t+z*P[j]![i]!,0),0);
   const py=P.map(row=>dot(row,y));
   const score=0.5*(dot(py,py)-traceP);
+  const mlScore=0.5*(residuals.reduce((s,z,i)=>s+z*z*w[i]!*w[i]!,0)-w.reduce((s,z)=>s+z,0));
+  const mlInfo=0.5*w.reduce((s,z)=>s+z*z,0);
   const logdet=xtwx.length===1?Math.log(xtwx[0]![0]!):Math.log(Math.abs(determinantSmall(xtwx)));
   const logLik=-0.5*(v.reduce((s,z)=>s+Math.log(z+tau2),0)+logdet+qe);
-  return {beta,cov,fitted,residuals,qe,w,P,traceP,traceP2,score,logLik};
+  return {beta,cov,fitted,residuals,qe,w,P,traceP,traceP2,score,mlScore,mlInfo,logLik};
 }
 function determinantSmall(a:number[][]):number {
   const n=a.length, m=a.map(r=>r.slice()); let d=1;
@@ -142,44 +144,48 @@ function determinantSmall(a:number[][]):number {
 }
 function tauEstimate(y:number[],v:number[],X:number[][],method:MetaMethod,control:RmaControl) {
   const k=y.length,p=X[0]!.length,df=k-p;
-  const base=weightedFit(y,v,X,0), q0=base.qe;
-  const wMax=Math.max(...base.w), wn=base.w.map(z=>z/wMax), wSum=wn.reduce((s,z)=>s+z,0);
+  const base=weightedFit(y,v,X,0),q0=base.qe;
+  const wMax=Math.max(...base.w),wn=base.w.map(z=>z/wMax),wSum=wn.reduce((s,z)=>s+z,0);
   const c=wMax*(wSum-wn.reduce((s,z)=>s+z*z,0)/wSum);
-  const invv=v.map(z=>1/z), sumInv=invv.reduce((s,z)=>s+z,0);
+  const sumInv=v.reduce((s,z)=>s+1/z,0);
   if(method==="EE"||method==="FE") return 0;
   if(method==="DL") return Math.max(0,(q0-df)/c);
   if(method==="HS") return Math.max(0,(q0-k)/sumInv);
   if(method==="HSk") return Math.max(0,((k/(k-1))*q0-k)/sumInv);
-  if(method==="HE") {
-    const mean=y.reduce((s,z)=>s+z,0)/k;
-    const raw=y.reduce((s,z)=>s+(z-mean)**2,0);
-    return Math.max(0,(raw-v.reduce((s,z)=>s+z,0)*(df/k))/Math.max(1,df));
-  }
+  const mean=y.reduce((s,z)=>s+z,0)/k;
+  const raw=y.reduce((s,z)=>s+(z-mean)**2,0);
+  const he=Math.max(0,(raw-v.reduce((s,z)=>s+z,0)*(df/k))/Math.max(1,df));
+  if(method==="HE") return he;
   if(method==="SJ") {
-    const mean=y.reduce((s,z)=>s+z,0)/k;
     const initial=y.reduce((s,z)=>s+(z-mean)**2,0)/k;
     const a=v.map(z=>initial/(z+initial));
     const mu=y.reduce((s,z,i)=>s+a[i]!*z,0)/a.reduce((s,z)=>s+z,0);
     return Math.max(0,a.reduce((s,z,i)=>s+z*(y[i]!-mu)**2,0)/Math.max(1,df));
   }
+  const qFunction=(t:number)=>weightedFit(y,v,X,t).qe-df;
   if(method==="EB") {
-    let t=Math.max(0,(q0-df)/c);
-    for(let i=0;i<100;i++){const w=v.map(z=>1/(z+t));const mu=y.reduce((s,z,j)=>s+w[j]!*z,0)/w.reduce((s,z)=>s+z,0);const ww=w.map(z=>z*z);const next=Math.max(0,y.reduce((s,z,j)=>s+ww[j]!*((z-mu)**2-v[j]!),0)/ww.reduce((s,z)=>s+z,0));if(Math.abs(next-t)<1e-12*Math.max(1,t)){t=next;break;}t=next;}
-    return t;
+    const hi=control.tau2Max??Math.max(100,10*raw/k);
+    return Math.max(0,root(qFunction,0,hi,1e-12));
   }
-  if(method==="PM") return upperRoot(t=>weightedFit(y,v,X,t).qe-df,Math.max(1,Math.max(...y.map(z=>z*z))));
-  const score=(t:number):number=>{
-    const fit=weightedFit(y,v,X,t);
-    if(method==="REML") return fit.score;
-    return 0.5*(fit.residuals.reduce((s,z,i)=>s+z*z/((v[i]!+t)**2),0)-fit.w.reduce((s,z)=>s+z,0));
-  };
-  const guess=(q0-df)/c;
-  const init=Math.max(0,control.tau2Init??(Number.isFinite(guess)?guess:1e-8));
-  if(Number(control.maxiter??1000)<=1) return init;
-  const at0=score(0);
-  if(!(at0>0)) return 0;
-  const hi=upperRoot(score,Math.max(init,1e-8));
-  return Number.isFinite(hi)?hi:Math.max(0,init);
+  if(method==="PM") {
+    let hi=control.tau2Max??Math.max(100,10*raw/k);
+    while(qFunction(hi)>0&&hi<Number.MAX_VALUE/4) hi*=2;
+    const tol=control.tol??Math.pow(Number.EPSILON,0.25);
+    return Math.max(0,root(qFunction,0,hi,tol));
+  }
+  let tau2=Math.max(0,control.tau2Init??he);
+  const maxiter=control.maxiter??100,threshold=control.threshold??1e-5,stepadj=control.stepadj??1;
+  for(let i=0;i<maxiter;i++){
+    const fit=weightedFit(y,v,X,tau2);
+    const score=method==="REML"?fit.score:fit.mlScore;
+    const information=method==="REML"?0.5*fit.traceP2:fit.mlInfo;
+    if(!(information>0)||!Number.isFinite(information)) return tau2;
+    const next=Math.max(0,tau2+stepadj*score/information);
+    if(!Number.isFinite(next)) return tau2;
+    if(Math.abs(next-tau2)<threshold) return next;
+    tau2=next;
+  }
+  return tau2;
 }
 function buildX(k:number,mods:RmaOptions["mods"],intercept:boolean,data?:DataFrame):number[][] {
   let rows:number[][];
