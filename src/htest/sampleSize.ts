@@ -367,7 +367,7 @@ export function ph2simon(pu:number,pa:number,ep1:number,ep2:number,options: {nma
   const out:SimonRow[]=[];
   for(let n=2;n<=nmax;n++){
     let best:SimonRow|undefined;
-    for(let n1=1;n1<n;n1++){
+    for(let n1=1;n1<n && (best===undefined || n1<best.enP0);n1++){
       const n2=n-n1;
       const p0Stage1=binomialMasses(n1,pu), p1Stage1=binomialMasses(n1,pa);
       const p0Stage2Cdf=cumulative(binomialMasses(n2,pu)), p1Stage2Cdf=cumulative(binomialMasses(n2,pa));
@@ -375,13 +375,15 @@ export function ph2simon(pu:number,pa:number,ep1:number,ep2:number,options: {nma
       for(let r1=0;r1<n1;r1++){
         const pet=p0Stage1Cdf[r1]!;
         const en=n1+n2*(1-pet);
-        let rFound=-1;
-        for(let r=r1+1;r<n;r++){
-          const [a]=designProb(r1,r,p0Stage1,p1Stage1,p0Stage2Cdf,p1Stage2Cdf);
-          if(a<=ep1){
-            const [,bAlt]=designProb(r1,r,p0Stage1,p1Stage1,p0Stage2Cdf,p1Stage2Cdf);
-            if(bAlt<=ep2){rFound=r;break;}
-          }
+        let low=r1+1,high=n-1,rFound=-1;
+        while(low<=high){
+          const mid=Math.floor((low+high)/2);
+          const [a]=designProb(r1,mid,p0Stage1,p1Stage1,p0Stage2Cdf,p1Stage2Cdf);
+          if(a<=ep1){rFound=mid;high=mid-1;} else low=mid+1;
+        }
+        if(rFound>=0){
+          const [,bAlt]=designProb(r1,rFound,p0Stage1,p1Stage1,p0Stage2Cdf,p1Stage2Cdf);
+          if(bAlt>ep2) rFound=-1;
         }
         if(rFound>=0 && (best===undefined || en<best.enP0-1e-12)){
           best={r1,n1,r:rFound,n,enP0:en,petP0:pet};
