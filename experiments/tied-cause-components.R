@@ -41,12 +41,12 @@ one_case <- function(label,dat,rho) {
     # Bilinear finite-population kernel B(u,v), expressed using group-specific q=1/S.
     H<-x$H; Ytot<-sum(x$Y); qsub<-ifelse(x$Y>0,x$h/x$Y,0)
     kern<-function(u,v) {
-      wu<-c(u/(x$L*x$h[1]),0)
-      wv<-c(v/(x$L*x$h[1]),0)
+      wu<-ifelse(x$h>0,u/(x$L*x$h),0)
+      wv<-ifelse(x$h>0,v/(x$L*x$h),0)
       (Ytot-1)/H*sum(x$Y*qsub^2*wu*wv/(H-qsub))
     }
     # Current two-group score influence is one-dimensional; group 2 component is negative.
-    u<-aa[1]; v<-bb[1]
+    u<-aa; v<-bb
     if(x$d1>1&&Ytot>1) corrA<-corrA+x$d1*(x$d1-1)/(Ytot-1)*kern(u,u)
     if(x$d2>1&&Ytot>1) corrB<-corrB+x$d2*(x$d2-1)/(Ytot-1)*kern(v,v)
     if(x$d1>0&&x$d2>0&&Ytot>1) cross<-cross+2*x$d1*x$d2/(Ytot-1)*kern(u,v)
