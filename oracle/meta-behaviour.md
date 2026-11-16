@@ -243,6 +243,8 @@ The oracle must include:
 - Egger regression with too few studies, constant standard errors, or a singular design.
 - confidence-interval endpoint searches near the boundary and at extreme heterogeneity.
 
+Additional observed R 4.6.2 boundary results: for \(k=2\) with \(y=(0.1,0.2)\) and \(v=(0.04,0.05)\), REML returned \(\widehat\\tau^2=0\), \(Q=0.1111111\), \(df=1\), and \(Q_p=0.7388827\). DL returned \(\widehat\\tau^2=0\) for identical study estimates and for a case with \(Q<df\). With non-positive sampling variances, metafor warned that outcomes had non-positive variances, warned that negative variances were constrained to zero, and then refused the DL estimator. These are reference observations, not recommendations to copy every degenerate behaviour.
+
 The reference help and papers establish the model and algorithms, but they do not settle every error message, warning, or degenerate result for every boundary. Those are empirical observations to be recorded in the fixtures. If R's result appears mathematically suspect, compute an independent high-precision or exact reference before calling it a defect.
 
 ### Result fields to record
