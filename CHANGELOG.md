@@ -7,6 +7,22 @@ While the version is 0.x, a minor release (0.y.0) may contain breaking changes;
 they are listed under **Breaking** for each release. From 1.0.0 the project follows
 [Semantic Versioning](https://semver.org/).
 
+## Unreleased
+
+### Fixed
+
+- **Gray's test at tied failure times** (`cuminc`): the variance now matches cmprsk where failures are tied. Two
+  finite-sample corrections are applied, one for tied failures of the cause tested (across the groups) and one for
+  tied failures of a competing cause (within each group); 1.4.0 used an approximation that was exact only when the
+  groups' Kaplan-Meier estimates before the tie were equal, and the statistic could differ from R by 1 to 50%. The
+  formula was determined from cmprsk's output (oracle/competing-behaviour.md, section 1.6).
+
+### Changed
+
+- A zero Gray score with a singular covariance gives a NaN statistic and p-value, as every singular covariance does
+  (it gave 0 and 1).
+- `cuminc` builds its rows in linear time (it was quadratic in the number of observations).
+
 ## 1.4.0 - 2026-11-16
 
 Survival analysis continued (item 1 of the roadmap): Nelson-Aalen and Fleming-Harrington cumulative hazards, case

@@ -990,9 +990,9 @@
     "ja": "群と原因の組み合わせごとの階段関数の曲線、必要に応じて Gray 検定の結果、および警告を返します。"
   },
   "cuminc#summary": {
-    "hash": "49ce7aaa7be5",
-    "en": "Cumulative incidence functions and Gray's tests for competing risks. Equivalent to `cmprsk::cuminc()` in R.\nUses the Aalen-Johansen cumulative-incidence estimator and Gray's weighted test; tied-time\nvariance uses the documented hypergeometric correction.",
-    "ja": "競合リスクの累積発生率関数と Gray の検定です。R の `cmprsk::cuminc()` と同等です。\nAalen-Johansen の累積発生率推定量と Gray の重み付き検定を使います。同時刻にイベントがある場合の分散には、文書化された超幾何補正を使います。"
+    "hash": "53d6e67e2c19",
+    "en": "Cumulative incidence functions and Gray's tests for competing risks. Equivalent to `cmprsk::cuminc()` in R.\nUses the Aalen-Johansen cumulative-incidence estimator and Gray's weighted test; tied-time\nvariance applies the target-cause and competing-cause finite-sample corrections.",
+    "ja": "競合リスクの累積発生率関数と Gray の検定です。R の `cmprsk::cuminc()` と同等です。\nAalen-Johansen の累積発生率推定量と Gray の重み付き検定を使います。同時刻にイベントがある場合の分散には、\n検定する原因の同時刻と競合する原因の同時刻のそれぞれについて、有限標本の補正を加えます。"
   },
   "predictCrr#@example": {
     "hash": "f2167be5edf2",

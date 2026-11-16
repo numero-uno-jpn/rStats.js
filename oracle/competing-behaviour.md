@@ -22,8 +22,9 @@ cmprsk on random data (hundreds of data sets for the curves, tens for the tests 
 incidence to 2e-15, its variance to 3e-13 (relative; R uses a different order of operations), Gray's statistic on
 data **without tied event times** to 1e-14 for 2 and 3 groups, strata, ρ ∈ {−1, 0.5, 1, 2} and up to 3 causes, and
 `crr`'s log pseudo-likelihood, score, information, sandwich variance, `bfitj`, `res`, `predict` and the iterations to
-1e-14 (also with ties and with `cov2`). Two parts are **not** fully determined: Gray's variance at tied event times
-(section 2.4) and `crr`'s variance with `cengroup` (section 3.6).
+1e-14 (also with ties and with `cov2`). One part is **not** fully determined: `crr`'s variance with `cengroup`
+(section 3.6). Gray's variance at tied event times (section 1.6) was determined later, by the same kind of experiment
+(Issue #525, 2026-11-16).
 
 ## Easy to get wrong
 
@@ -157,25 +158,29 @@ first event, whether it is the last group or not), `stat = −1`, `pv = 1`, `df 
 the matrix singular was not determined (only exactly singular cases were seen). Identical groups: `stat = 0`, `pv = 1`.
 A group without events of cause c, or with all its subjects censored, still counts in K (df stays K − 1).
 
-### 1.6 Gray's variance at tied event times (not fully determined)
+### 1.6 Gray's variance at tied event times
 
-At a time with d1 ≥ 2 events of cause c, R's variance is smaller than the formula above. What the experiments show
-(fixture cases with integer times; the quadratic-form fits of section 1.5):
+Determined on 2026-11-16 from the public output of `cuminc()` alone (clean room: `$Tests`' `stat`, with the score
+computed from section 1.5 and the variance solved from `stat = z' V⁻¹ z` as quadratic forms in `L(t) = G⁰(t−)^ρ`;
+Issue #525, PR #526). It reproduces R to about 1e-15 on 2 and 3 groups, unequal `S_r(t−)`, ties of the cause tested
+and of competing causes at the same time, several causes, ρ from −2 to 3, strata, and the fixture's tied cases 17 to
+22.
 
-- The score z is unchanged (the formula above, also with ties).
-- At a tied time, the own term `Σ_r d_kr²/h_r dF⁰` (the part of σ quadratic in `L(t)` from that time alone) is
-  multiplied by `(Y. − d1)/(Y. − 1)` (Y. the pooled number at risk) **when all groups have the same `S_r(t−)`** (for
-  example before any event, or with censoring only): the hypergeometric correction.
-- When the `S_r(t−)` differ it is not: in the two-group form `own = d1 [A − (d1 − 1)/(Y. − 1) B]` with `A = Σ_r p_r
-  w_r²` (`p_r = h_r/h.`, `w_r = d_kr/h_r`), the factor B does not depend on d1 and equals A when the `S_r` are equal,
-  but otherwise B/A = 27/28 (`Y = (2, 2)`, `h = (3, 2)`), 32/35 (`Y = (3, 2)`, `h = (4, 2)`), 16/15 (`Y = (2, 3)`,
-  `h = (3, 3)`), 5/6 (`Y = (2, 2)`, `h = (5, 2)`), 108/91 (`Y = (2, 5)`, `h = (3, 5)`); none of the candidate forms
-  tried (hypergeometric with weights p or Y_r/Y., per-group corrections, splitting the tie) reproduces these.
-- The cross terms with earlier times (`b` parts) of a tied time also differ; whether the correction applies to them
-  was not settled.
-
-The fixture records R's statistics for tied data; until the user decides (decision 5) they can only be matched
-without ties. The untied formula on tied data differs from R by 1 to 50% in the statistic.
+- The score z is unchanged by ties (the formula of section 1.5).
+- At each event time t, with `h_r = Y_r/S_r(t−)`, `H = Σ_r h_r`, `d1` the events of the cause tested at t (all
+  groups) and `N2_r` the events of the other causes at t in group r, take from section 1.5 `d_kr`, the remaining
+  integral `R_kr = Σ_{u>t} d_kr(u) dΓ⁰(u)`, `a_kr = d_kr + (1 − q_r) R_kr` and `b_kr = −q_r R_kr` with
+  `q_r = G⁰(t)/S_r(t)` (both **after** the jumps at t; `S_r` is group r's Kaplan-Meier estimate of all causes),
+  `dF⁰ = d1/H` and `dF²_r = S_r(t−) N2_r/Y_r`. The untied contribution of t is
+  `Σ_r (a_kr a_k'r dF⁰ + b_kr b_k'r dF²_r)/h_r`.
+- **Ties of the cause tested** (`d1 ≥ 2`), across the groups: subtract
+  `d1 (d1 − 1)/H · Σ_r [Y_r p_r² / (H − p_r)] a_kr a_k'r / h_r²` with `p_r = 1/S_r(t−)` (**before** the jumps; the sum
+  over the groups with `Y_r > 0` and `H > p_r`). Equivalently, group r's term `a_kr a_k'r dF⁰/h_r` is multiplied by
+  `1 − (d1 − 1)/(H S_r(t−) − 1)`; when all `S_r(t−)` are equal this is the hypergeometric `(Y. − d1)/(Y. − 1)`.
+- **Ties of a competing cause** (`N2_r ≥ 2`), within group r: subtract `(N2_r − 1)/(Y_r − 1) · dF²_r/h_r · b_kr b_k'r`
+  (for `Y_r > 1`), i.e. group r's `b` term is multiplied by `1 − (N2_r − 1)/(Y_r − 1)`.
+- No further term joins the two corrections (ties of both kinds at one time: the sum of the two, to 7e-15).
+- Strata: z and V are summed over the strata as before. A singular V gives NaN (decision 4 (b)), also when z = 0.
 
 ## 2. `crr(ftime, fstatus, cov1, cov2, tf, cengroup, failcode = 1, cencode = 0, subset, na.action = na.omit, gtol = 1e-6, maxiter = 10, init, variance = TRUE)`
 
@@ -338,7 +343,8 @@ The formulas here come from the papers and the SAS documentation.
 ## rStats.js's choices
 
 Decided by the user on 2026-11-09. Binding. Every numbered decision above is taken as recommended in this document, with these answers:
-- Gray's test with tied event times: use the hypergeometric factor (Y - d)/(Y - 1) on the term of each tied time
+- (Superseded on 2026-11-16 by section 1.6, which matches cmprsk; Issue #525, PR #526.) Gray's test with tied event
+  times: use the hypergeometric factor (Y - d)/(Y - 1) on the term of each tied time
   (derived from the paper; equal to cmprsk when the groups' KM S_r(t-) are equal). Where cmprsk differs, this is a
   documented difference in docs/differences-from-r.md; tests against the fixture's tied cases use a tolerance stated
   and justified per case, or record the difference.
