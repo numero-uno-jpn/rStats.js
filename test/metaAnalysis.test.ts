@@ -78,8 +78,10 @@ describe("meta-analysis effect sizes",()=>{
       if(c.expected.error){expectError(()=>escalc(a.measure as EscalcMeasure,options),c.expected.error,`case ${i}`,mismatches);return;}
       try{
         const got=escalc(a.measure as EscalcMeasure,options);
-        close(got.yi,n(c.expected.value!.yi),`case ${i} yi`,mismatches);
-        close(got.vi,n(c.expected.value!.vi),`case ${i} vi`,mismatches);
+        const expectedYi=Array.isArray(c.expected.value!.yi)?c.expected.value!.yi:[c.expected.value!.yi];
+        const expectedVi=Array.isArray(c.expected.value!.vi)?c.expected.value!.vi:[c.expected.value!.vi];
+        close(got.yi,n(expectedYi),`case ${i} yi`,mismatches);
+        close(got.vi,n(expectedVi),`case ${i} vi`,mismatches);
         if(JSON.stringify(got.warnings)!==JSON.stringify(c.expected.warnings??[]))mismatches.push(`case ${i} warnings differ`);
       }catch(e){mismatches.push(`case ${i}: ${e instanceof Error?e.message:String(e)}`);}
     });
