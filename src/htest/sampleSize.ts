@@ -192,7 +192,8 @@ function epi(
  * ```
  * @category Effect sizes and power
  */
-export function epiSsequb(treat: number, control: number, delta: number | null, options: EpiOptions = {}): EpiResult {
+export function epiSsequb(treat: number, control: number, delta: number | null, options: EpiOptions = {
+  checkOptions(options, EPI_SSEQUB_KEYS, "epiSsequb"); // generated: option-keys.mjs}): EpiResult {
   return reported("epiSsequb", epi("equivalence", "binary", treat, control, undefined, delta ?? undefined, options));
 }
 /** Equivalence/equality sample size or power for two means. Equivalent to `epiR::epi.ssequc()` in R.
@@ -208,7 +209,8 @@ export function epiSsequb(treat: number, control: number, delta: number | null, 
  * ```
  * @category Effect sizes and power
  */
-export function epiSsequc(treat: number, control: number, sigma: number, delta: number | null, options: EpiOptions = {}): EpiResult {
+export function epiSsequc(treat: number, control: number, sigma: number, delta: number | null, options: EpiOptions = {
+  checkOptions(options, EPI_SSEQUC_KEYS, "epiSsequc"); // generated: option-keys.mjs}): EpiResult {
   const out = epi("equivalence", "continuous", treat, control, sigma, delta ?? undefined, options);
   return reported("epiSsequc", out);
 }
@@ -224,7 +226,8 @@ export function epiSsequc(treat: number, control: number, sigma: number, delta: 
  * ```
  * @category Effect sizes and power
  */
-export function epiSsninfb(treat: number, control: number, delta: number, options: EpiOptions = {}): EpiResult {
+export function epiSsninfb(treat: number, control: number, delta: number, options: EpiOptions = {
+  checkOptions(options, EPI_SSNINFB_KEYS, "epiSsninfb"); // generated: option-keys.mjs}): EpiResult {
   return reported("epiSsninfb", epi("noninferiority", "binary", treat, control, undefined, delta, options));
 }
 /** Non-inferiority sample size or power for two means. Equivalent to `epiR::epi.ssninfc()` in R.
@@ -240,7 +243,8 @@ export function epiSsninfb(treat: number, control: number, delta: number, option
  * ```
  * @category Effect sizes and power
  */
-export function epiSsninfc(treat: number, control: number, sigma: number, delta: number, options: EpiOptions = {}): EpiResult {
+export function epiSsninfc(treat: number, control: number, sigma: number, delta: number, options: EpiOptions = {
+  checkOptions(options, EPI_SSNINFC_KEYS, "epiSsninfc"); // generated: option-keys.mjs}): EpiResult {
   return reported("epiSsninfc", epi("noninferiority", "continuous", treat, control, sigma, delta, options));
 }
 /** Superiority sample size or power for two proportions. Equivalent to `epiR::epi.sssupb()` in R.
@@ -255,7 +259,8 @@ export function epiSsninfc(treat: number, control: number, sigma: number, delta:
  * ```
  * @category Effect sizes and power
  */
-export function epiSssupb(treat: number, control: number, delta: number, options: EpiOptions = {}): EpiResult {
+export function epiSssupb(treat: number, control: number, delta: number, options: EpiOptions = {
+  checkOptions(options, EPI_SSSUPB_KEYS, "epiSssupb"); // generated: option-keys.mjs}): EpiResult {
   return reported("epiSssupb", epi("superiority", "binary", treat, control, undefined, delta, options));
 }
 /** Superiority sample size or power for two means. Equivalent to `epiR::epi.sssupc()` in R.
@@ -271,7 +276,8 @@ export function epiSssupb(treat: number, control: number, delta: number, options
  * ```
  * @category Effect sizes and power
  */
-export function epiSssupc(treat: number, control: number, sigma: number, delta: number, options: EpiOptions = {}): EpiResult {
+export function epiSssupc(treat: number, control: number, sigma: number, delta: number, options: EpiOptions = {
+  checkOptions(options, EPI_SSSUPC_KEYS, "epiSssupc"); // generated: option-keys.mjs}): EpiResult {
   return reported("epiSssupc", epi("superiority", "continuous", treat, control, sigma, delta, options));
 }
 
@@ -566,15 +572,16 @@ export function ph2simon(pu:number,pa:number,ep1:number,ep2:number,options: {nma
       for(let r1=0;r1<n1;r1++){
         const pet=p0Stage1Cdf[r1]!;
         const en=n1+n2*(1-pet);
-        let low=r1+1,high=n-1,rFound=-1;
+        // Choose the largest final cutoff satisfying both error constraints.
+        let low=r1,high=n-1,rFound=-1;
         while(low<=high){
           const mid=Math.floor((low+high)/2);
-          const [a]=designProb(r1,mid,p0Stage1,p1Stage1,p0Stage2Cdf,p1Stage2Cdf);
-          if(a<=ep1){rFound=mid;high=mid-1;} else low=mid+1;
+          const [,bAlt]=designProb(r1,mid,p0Stage1,p1Stage1,p0Stage2Cdf,p1Stage2Cdf);
+          if(bAlt<=ep2){rFound=mid;low=mid+1;} else high=mid-1;
         }
         if(rFound>=0){
-          const [,bAlt]=designProb(r1,rFound,p0Stage1,p1Stage1,p0Stage2Cdf,p1Stage2Cdf);
-          if(bAlt>ep2) rFound=-1;
+          const [a]=designProb(r1,rFound,p0Stage1,p1Stage1,p0Stage2Cdf,p1Stage2Cdf);
+          if(a>ep1) rFound=-1;
         }
         if(rFound>=0 && (best===undefined || en<best.enP0-1e-12)){
           best={r1,n1,r:rFound,n,enP0:en,petP0:pet};
