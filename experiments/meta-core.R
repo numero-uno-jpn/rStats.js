@@ -16,7 +16,7 @@ for (mth in c("EE","FE","DL","REML")) {
   fit <- rma(yi, vi, data=es, method=mth)
   print(fit, digits=17)
   cat("FIELDS\n")
-  print(list(beta=fit$beta, se=fit$se, zval=fit$zval, pval=fit$pval,
+  print(list(beta=fit$beta, stdError=fit$se, zval=fit$zval, pval=fit$pval,
              ci.lb=fit$ci.lb, ci.ub=fit$ci.ub, tau2=fit$tau2,
              se.tau2=fit$se.tau2, QE=fit$QE, QEp=fit$QEp,
              I2=fit$I2, H2=fit$H2, k=fit$k), digits=17)
