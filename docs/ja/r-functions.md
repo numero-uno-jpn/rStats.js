@@ -195,6 +195,12 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `PMCMRplus::dscfAllPairsTest()` | `dscfAllPairsTest` | 対ごとの Mann-Whitney 統計量による Dwass-Steel-Critchlow-Fligner の全対比較検定 |
 | `dunn.test::dunn.test()` | `dunnTest` | 平均順位のすべての対についての Dunn の検定 |
 | `PMCMRplus::dunnettTest()` | `dunnettTest` | プールした分散による、対照群に対する平均の Dunnett の多対一検定 |
+| `epiR::epi.ssequb()` | `epiSsequb` | 2 つの比率の同等性 (または差がないこと) の試験の標本サイズまたは検出力 |
+| `epiR::epi.ssequc()` | `epiSsequc` | 2 つの平均の同等性 (または差がないこと) の試験の標本サイズまたは検出力 |
+| `epiR::epi.ssninfb()` | `epiSsninfb` | 2 つの比率の非劣性試験の標本サイズまたは検出力 |
+| `epiR::epi.ssninfc()` | `epiSsninfc` | 2 つの平均の非劣性試験の標本サイズまたは検出力 |
+| `epiR::epi.sssupb()` | `epiSssupb` | 2 つの比率の優越性試験の標本サイズまたは検出力 |
+| `epiR::epi.sssupc()` | `epiSssupc` | 2 つの平均の優越性試験の標本サイズまたは検出力 |
 | `epiR::epi.tests()` | `diagnosticTests` | 2 値の検査の 2 × 2 表からの感度、特異度、予測値、尤度比、正診率、診断オッズ比、真の有病率と見かけの有病率 (それぞれ信頼区間つき) |
 | `effectsize::epsilon_squared()` | `epsilonSquared` | 分散分析表の各項のイプシロン二乗 (反復測定計画にも対応) |
 | `pwr::ES.h()` | `esH` | 2 つの比率の効果量 h |
@@ -233,6 +239,7 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `mcr::mcreg()` | `mcreg` | 測定法の比較の回帰 (Deming、重みつき Deming、Passing-Bablok) と、係数の信頼区間 |
 | `model.matrix()` | `modelMatrix` | データフレームに対する式のモデル行列 (R の `terms()` の属性つき) |
 | `mood.test()` | `moodTest` | 尺度についての Mood の 2 標本検定 |
+| `powerSurvEpi::numDEpi()` | `numDEpi` | Schoenfeld・Latouche の方法で必要なイベント数 |
 | `epitools::oddsratio()` | `oddsRatio` | 2 x 2 表のオッズ比とその信頼区間、独立性の 3 つの p 値 |
 | `effectsize::omega_squared()` | `omegaSquared` | 分散分析表の各項のオメガ二乗 (反復測定計画にも対応) |
 | `psych::omega()` | `omega` | 斜交 minres 因子解の Schmid-Leiman 変換による McDonald の ω |
@@ -243,12 +250,16 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `pairwise.wilcox.test()` | `pairwiseWilcoxTest` | 群間の対ごとの Wilcoxon 順位和検定 (調整済み p 値つき) |
 | `psych::partial.r()` | `partialR` | `x` のほかのすべての列を与えたときの列 `i` と `j` の偏相関 |
 | `nortest::pearson.test()` | `pearsonTest` | Pearson のカイ二乗正規性検定 (当てはめた正規分布のもとで等確率の階級による) |
+| `clinfun::ph2simon()` | `ph2simon` | Simon の 2 段階第 II 相試験デザインの一覧 |
 | `poisson.test()` | `poissonTest` | ポアソン率の正確検定、または 2 つのポアソン率の比較 |
 | `polycor::polychor()` | `polychor` | 2 つの順序変数のポリコリック相関 |
 | `polycor::polyserial()` | `polyserial` | 数値変数と順序変数のポリシリアル相関 |
 | `power.anova.test()` | `powerAnovaTest` | 釣り合い型一元配置分散分析の F 検定の検出力、または与えた検出力に対するほかの量のいずれか |
 | `power.prop.test()` | `powerPropTest` | 2 つの比率の検定の検出力、または与えた検出力に対する標本サイズ、確率の一方、有意水準のいずれか |
 | `power.t.test()` | `powerTTest` | 1 標本または 2 標本 t 検定の検出力、または与えた検出力に対する標本サイズ、差、標準偏差、有意水準のいずれか |
+| `powerSurvEpi::powerCT()` | `powerCT` | Freedman の方法による臨床試験の検出力 |
+| `powerSurvEpi::powerEpi()` | `powerEpi` | Schoenfeld・Latouche の方法による Cox モデルの検出力 |
+| `exact2x2::powerPaired2x2()` | `powerPaired2x2` | 対応のある 2 値データの McNemar 検定の正確な検出力 |
 | `cmprsk::predict.crr()` | `predictCrr` | Fine-Gray の当てはめからの累積発生関数の予測 |
 | `predict.survreg()` | `survregPredict` | パラメトリック生存時間回帰モデルの予測値と標準誤差 |
 | `predict()` | `glmPredict` | `glm` で当てはめた一般化線形モデルの予測値とその標準誤差 |
@@ -274,6 +285,8 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `rstandard()` | `glmRstandard` | `glm` の当てはめの標準化 Pearson 残差 (既定) または標準化逸脱度残差 (事前重みが 0 でない行について) |
 | `nortest::sf.test()` | `sfTest` | Shapiro-Francia の正規性検定 |
 | `shapiro.test()` | `shapiroTest` | Shapiro-Wilk の正規性検定 |
+| `powerSurvEpi::ssizeCT()` | `ssizeCT` | Freedman の方法による臨床試験の標本サイズ |
+| `powerSurvEpi::ssizeEpi()` | `ssizeEpi` | Schoenfeld・Latouche の方法による全体の標本サイズ |
 | `DescTools::StuartMaxwellTest()` | `stuartMaxwellTest` | 正方の表の周辺の一様性についての Stuart-Maxwell 検定 |
 | `summary()` | `aovSummary` | `aov` で当てはめた分散分析の表 |
 | `summary()` | `glmSummary` | `glm` で当てはめた一般化線形モデルの要約: 分散パラメータ、係数の表、推定値の共分散 |
