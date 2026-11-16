@@ -301,7 +301,7 @@ function buildDesign(k:number,mods:RmaOptions["mods"],intercept:boolean,data?:Da
 }
 
 /**
- * Compute study-level effect sizes and sampling variances. Equivalent to R's `metafor::escalc()`.
+ * Compute study-level effect sizes and sampling variances. Equivalent to `metafor::escalc()` in R.
  *
  * @param measure One of RR, OR, RD, MD, SMD or ZCOR.
  * @param options Study-level counts, means, standard deviations, sample sizes or correlations.
@@ -372,7 +372,7 @@ export function escalc(measure:EscalcMeasure, options:EscalcOptions):EscalcResul
 }
 
 /**
- * Fit an equal-effects or random-effects meta-analysis, including meta-regression. Equivalent to R's `metafor::rma.uni()`.
+ * Fit an equal-effects or random-effects meta-analysis, including meta-regression. Equivalent to `metafor::rma.uni()` in R.
  *
  * @param yi Study effect estimates, or the result of {@link escalc}.
  * @param vi Sampling variances (omitted when yi is an escalc result).
@@ -441,7 +441,7 @@ export function rma(yi:readonly number[]|EscalcResult,viOrOptions?:readonly numb
     QM:qm,QMp:qmp,R2,p,m,I2,H2,k,yi:y,vi:v,mods:X,intercept:hasIntercept,method,test,level,warnings:built.warnings,covariance,tau2Null});
 }
 
-/** Compute heterogeneity confidence intervals. Equivalent to R's `metafor::confint.rma()`.
+/** Compute heterogeneity confidence intervals. Equivalent to `metafor::confint.rma()` in R.
  * @category Effect sizes and power
  */
 export function confintRma(object:RmaResult,options:ConfintRmaOptions={}):{random:{dim:number[];rowNames:string[];colNames:string[];rows:{estimate:number;"ci.lb":number;"ci.ub":number}[]};digits:Record<string,string>; "ci.null":boolean;"lb.sign":string;"ub.sign":string;"tau2.min":string} {
@@ -477,7 +477,7 @@ export function confintRma(object:RmaResult,options:ConfintRmaOptions={}):{rando
     "ci.null":false,"lb.sign":"","ub.sign":"","tau2.min":"0"};
 }
 
-/** Predict the mean effect and its prediction interval at moderator values. Equivalent to R's `metafor::predict.rma()`.
+/** Predict the mean effect and its prediction interval at moderator values. Equivalent to `metafor::predict.rma()` in R.
  * @category Effect sizes and power
  */
 export function predictRma(object:RmaResult,options:PredictRmaOptions={}):{pred:number|number[];se:number|number[];"ci.lb":number|number[];"ci.ub":number|number[];"pi.lb":number|number[];"pi.ub":number|number[]} {
@@ -506,7 +506,7 @@ export function predictRma(object:RmaResult,options:PredictRmaOptions={}):{pred:
     "pi.ub":scalar(pred.map((z,i)=>z+piCrit*piScale[i]!))};
 }
 
-/** Test for funnel-plot asymmetry using a regression model. Equivalent to R's `metafor::regtest()`.
+/** Test for funnel-plot asymmetry using a regression model. Equivalent to `metafor::regtest()` in R.
  * @category Effect sizes and power
  */
 export function regtest(x:readonly number[]|RmaResult,viOrOptions?:readonly number[]|RegtestOptions,maybeOptions:RegtestOptions={}):{model:string;predictor:string;zval:number;pval:number;dfs:number;est:number;"ci.lb":number;"ci.ub":number;warnings:string[];fit?:RmaResult} {
