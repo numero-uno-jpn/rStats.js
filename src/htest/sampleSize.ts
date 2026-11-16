@@ -141,7 +141,7 @@ function epi(
     } else if (equality) {
       actualPower = phi(Math.abs(D) / se - z(1 - alpha / 2)) + phi(-Math.abs(D) / se - z(1 - alpha / 2));
     } else if (kind === "noninferiority") {
-      actualPower = normalPower(D + delta!, se, z(1 - alpha));
+      actualPower = phi((D + delta!) / se - z(1 - alpha));
     } else {
       const e = Math.abs(D - delta!) / se;
       actualPower = phi(e - critical) + phi(-e - critical);
@@ -583,6 +583,6 @@ export function ph2simon(pu:number,pa:number,ep1:number,ep2:number,options: {nma
   const optimal=selected.reduce((a,b)=>b.enP0<a.enP0?b:a);
   const admissible=selected;
   const warnings:string[]=[];
-  if(optimal.n>=nmax-1) warnings.push(`  Optimal sample size too close to nmax. \\n  Try increasing nmax (current value = ${nmax})\n`);
+  if(optimal.n>=nmax-1) warnings.push(`  Optimal sample size too close to nmax. \n  Try increasing nmax (current value = ${nmax})\n`);
   return reported("ph2simon",{out,minimax,optimal,admissible,pu,pa,alpha:ep1,beta:ep2,nmax,warnings});
 }
