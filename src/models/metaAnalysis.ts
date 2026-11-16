@@ -119,7 +119,7 @@ function tauEstimate(y:number[],v:number[],X:number[][],method:MetaMethod,contro
   const invv=v.map(z=>1/z), sumInv=invv.reduce((s,z)=>s+z,0);
   if(method==="EE"||method==="FE") return 0;
   if(method==="DL") return Math.max(0,(q0-df)/c);
-  if(method==="HS") return Math.max(0,(q0-df)/sumInv);
+  if(method==="HS") return Math.max(0,(q0-k)/sumInv);
   if(method==="HSk") return Math.max(0,((k/(k-1))*q0-k)/sumInv);
   if(method==="HE") {
     const mean=y.reduce((s,z)=>s+z,0)/k;
@@ -133,7 +133,7 @@ function tauEstimate(y:number[],v:number[],X:number[][],method:MetaMethod,contro
     const mu=y.reduce((s,z,i)=>s+a[i]!*z,0)/a.reduce((s,z)=>s+z,0);
     return Math.max(0,a.reduce((s,z,i)=>s+z*(y[i]!-mu)**2,0)/Math.max(1,df));
   }
-  if(method==="PM"||method==="EB") return upperRoot(t=>weightedFit(y,v,X,t).qe-df,Math.max(1,Math.max(...y.map(z=>z*z))));
+  if(method==="EB") {\n    let t=Math.max(0,(q0-df)/c);\n    for(let i=0;i<100;i++){const w=v.map(z=>1/(z+t));const mu=y.reduce((s,z,j)=>s+w[j]!*z,0)/w.reduce((s,z)=>s+z,0);const ww=w.map(z=>z*z);const next=Math.max(0,y.reduce((s,z,j)=>s+ww[j]!*((z-mu)**2-v[j]!),0)/ww.reduce((s,z)=>s+z,0));if(Math.abs(next-t)<1e-12*Math.max(1,t)){t=next;break;}t=next;}\n    return t;\n  }\n  if(method==="PM") return upperRoot(t=>weightedFit(y,v,X,t).qe-df,Math.max(1,Math.max(...y.map(z=>z*z))));
   const score=(t:number):number=>{
     const fit=weightedFit(y,v,X,t);
     if(method==="REML") return fit.score;
