@@ -34,7 +34,8 @@ const names = Object.keys(scope);
  */
 const NOT_IN_DEMO_YET: string[] = [
   "epiSsequb", "epiSsequc", "epiSsninfb", "epiSsninfc", "epiSssupb", "epiSssupc",
-  "powerPaired2x2", "ssizeCT", "powerCT", "ssizeEpi", "powerEpi", "numDEpi", "ph2simon",\n  "escalc", "rma", "confintRma", "predictRma", "regtest",
+  "powerPaired2x2", "ssizeCT", "powerCT", "ssizeEpi", "powerEpi", "numDEpi", "ph2simon",
+  "escalc", "rma", "confintRma", "predictRma", "regtest",
 ];
 
 /**
@@ -68,7 +69,8 @@ describe("demo examples", () => {
     // modules of src/entries/ except mixed.ts
     const source = readdirSync(path("src/entries"))
       .map((f) => readFileSync(path(`src/entries/${f}`), "utf8"))
-      .join("\n");
+      .join("
+");
     const exported = [...source.matchAll(/^export \{([^}]*)\}/gm)]
       .flatMap((m) => m[1]!.split(","))
       .map((s) => s.trim())
