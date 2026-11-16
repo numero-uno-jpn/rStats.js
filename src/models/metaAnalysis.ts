@@ -421,7 +421,7 @@ export function rma(yi:readonly number[]|EscalcResult,viOrOptions?:readonly numb
 /** Compute heterogeneity confidence intervals. Equivalent to R's `metafor::confint.rma()`.
  * @category Meta-analysis
  */
-export function confintRma(object:RmaResult,options:ConfintRmaOptions={}):{random:{dim:number[];rowNames:string[];colNames:string[];rows:{estimate:number;ci.lb:number;ci.ub:number}[]};digits:Record<string,string>; "ci.null":boolean;"lb.sign":string;"ub.sign":string;"tau2.min":string} {
+export function confintRma(object:RmaResult,options:ConfintRmaOptions={}):{random:{dim:number[];rowNames:string[];colNames:string[];rows:{estimate:number;"ci.lb":number;"ci.ub":number}[]};digits:Record<string,string>; "ci.null":boolean;"lb.sign":string;"ub.sign":string;"tau2.min":string} {
   checkOptions(options, CONFINT_RMA_KEYS, "confintRma"); // generated: option-keys.mjs
   const type=options.type??"QP",level=options.level??object.level,alpha=1-level/100;
   if(type!=="QP"&&type!=="PL") throw new RangeError("type must be 'QP' or 'PL'");
@@ -448,7 +448,7 @@ export function confintRma(object:RmaResult,options:ConfintRmaOptions={}):{rando
   const est=transform(object.tau2),low=transform(lo),up=transform(hi);
   const labels=["tau^2","tau","I^2(%)","H^2"];
   return {random:{dim:[4,3],rowNames:labels,colNames:["estimate","ci.lb","ci.ub"],
-    rows:labels.map((_,i)=>({estimate:est[i]!,ci.lb:low[i]!,ci.ub:up[i]!}))},
+    rows:labels.map((_,i)=>({estimate:est[i]!,"ci.lb":low[i]!,"ci.ub":up[i]!}))},
     digits:{est:"4",se:"4",test:"4",pval:"4",ci:"4",var:"4",sevar:"4",fit:"4",het:"4"},
     "ci.null":false,"lb.sign":"","ub.sign":"","tau2.min":"0"};
 }
