@@ -35,3 +35,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends libgdal38 libge
                    got <- sapply(names(want), function(p) as.character(packageVersion(p))); \
                    cat(sprintf("%s %s\n", names(got), got), sep = ""); \
                    if (!identical(unname(got), unname(want))) quit(status = 1)'
+
+# Meta-analysis: metafor and metadat (its example data), in a layer of their own, at the versions of the fixtures
+RUN install2.r --error --skipinstalled metafor \
+    && Rscript -e 'want <- c(metafor = "5.2.1", metadat = "1.6.0"); \
+                   got <- sapply(names(want), function(p) as.character(packageVersion(p))); \
+                   cat(sprintf("%s %s\n", names(got), got), sep = ""); \
+                   if (!identical(unname(got), unname(want))) quit(status = 1)'

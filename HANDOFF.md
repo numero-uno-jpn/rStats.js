@@ -4,19 +4,24 @@
 
 ## まず読むこと (セッション 16 から)
 
-## ROADMAP の 1 番: PR #528 (2026-11-17、セッション 22、Mac mini)
+## 次のセッションで最初にやること (2026-11-17、セッション 22、Mac mini)
 
-- **状態:** ChatGPT が段階 1 (仕様書 `oracle/samplesize-behaviour.md`・`oracle/samplesize.R`) と段階 2 (実装
-  `src/htest/sampleSize.ts`、テスト `test/sampleSize.test.ts`) を済ませた。PR #528 (`work/samplesize-pr`、実験の
-  スクリプトを除いたもの。実験は `work/samplesize` に残る)。fixture 4 本は私が作った。CI 通過。私が R との違い
-  (en・ja)、CHANGELOG の Added、ROADMAP (en・ja) を書いた。choices はユーザーの答えで私が書いた
-- **私が独立に確かめたこと:** McNemar の正確な検出力を有理数で計算し、rStats.js の `errbound = 0` の値と一致
-  (exact2x2 の `errbound = 0` の値のほうが 6.4e-7 ずれている)。`sig.level = 1` は境界を含める規則で 0.9115873521
-- **クリーンルームの注意:** ChatGPT は段階 2 の続きで、ウェブ検索の結果一覧にソースの短い抜粋が出てしまったと
-  報告した (開いていない、使っていないとのこと)。McNemar の `sig.level = 1` の件。式は私の有理数の計算と一致する
-- 残り: PR #528 の取り込み (ユーザーの確認)、Issue #527 を閉じる、`work/samplesize`・`work/samplesize-pr` の
-  削除 (ユーザーの確認)、1.5.0 (1.4.1 の Unreleased と一緒に出すかはユーザーの判断)、デモに入れるか
-  (`NOT_IN_DEMO_YET`)
+- **1.5.0 に向けて作業中 (未公開):** 試験デザインのサンプルサイズと検出力を PR #528 で main に取り込んだ
+  (`6a624fa7`、Issue #527 は閉じた)。ユーザーの指示で、ROADMAP の次の項目 (メタアナリシス) も 1.5.0 に入れてから
+  公開する。CHANGELOG の Unreleased には 1.4.1 の分 (Gray の検定) とサンプルサイズの分がある
+- **トークン節約のため、外注できることはなるべく ChatGPT に外注する** (ユーザーの指示)。私は外注の仕組み、fixture の
+  生成 (`npm run oracle`)、手元でのテスト、独立の検算、文書 (R との違い・CHANGELOG・ROADMAP・索引の訳)、取り込みをする
+- **メタアナリシス:** 照合先は metafor 5.2.1 (metadat 1.6.0)、GPL。指示書は `briefs/meta-analysis.ja.md`
+  (4 節に、サンプルサイズの作業で直しが入った点)。oracle と実験のイメージ、検査の許可リストに metafor を足した。
+  次: ChatGPT に段階 1 を依頼 (ブランチ `work/meta`) → oracle スクリプトが来たら fixture を作って push →
+  Decisions をユーザーに聞いて choices を書く
+- **サンプルサイズの作業で分かったこと:** ChatGPT はテストを実行できないので、各段階の後に私が手元で全テストを流して
+  返すと早い。exact2x2 の `errbound = 0` の値は不正確 (有理数の計算で確かめた)。ChatGPT はウェブ検索の結果一覧で
+  exact2x2 のソースの抜粋を目にした (使っていない。ユーザーはそのまま取り込むと判断)
+- **消してよいか未確認のブランチ:** `work/samplesize` (実験のスクリプト入り)、`work/samplesize-pr` (取り込み済み)。
+  消す前にユーザーに確認する
+- **CI の時間の上限:** `test/distributionProperties.test.ts` の `dsignrank(302775, 1100)` が遅い機械で 1 秒を超えて
+  落ちることがある (2026-11-17 に 1058 ms。再実行で通った)
 
 ## 次のセッションで最初にやること (2026-11-16 に作成、セッション 21、Mac mini)
 

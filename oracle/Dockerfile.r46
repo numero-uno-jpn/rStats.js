@@ -103,3 +103,10 @@ RUN install2.r --error --skipinstalled powerSurvEpi \
     && Rscript -e 'pk <- c("powerSurvEpi", "epiR", "exact2x2", "clinfun"); \
                    for (p in pk) suppressPackageStartupMessages(library(p, character.only = TRUE)); \
                    cat(sprintf("%s %s\n", pk, sapply(pk, function(p) as.character(packageVersion(p)))), sep = "")'
+
+# Meta-analysis (roadmap item 1 after 1.5.0's sample sizes), in a layer of its own: metafor (rma, regtest, escalc) and
+# metadat (its example data).
+RUN install2.r --error --skipinstalled metafor \
+    && Rscript -e 'pk <- c("metafor", "metadat"); \
+                   for (p in pk) suppressPackageStartupMessages(library(p, character.only = TRUE)); \
+                   cat(sprintf("%s %s\n", pk, sapply(pk, function(p) as.character(packageVersion(p)))), sep = "")'

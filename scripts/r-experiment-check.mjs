@@ -18,7 +18,8 @@
 import { readFileSync } from "node:fs";
 
 const ALLOWED_PACKAGES = new Set([
-  "cmprsk", "survival", "epiR", "exact2x2", "clinfun", "powerSurvEpi", "jsonlite", "stats", "utils", "base",
+  "cmprsk", "survival", "epiR", "exact2x2", "clinfun", "powerSurvEpi", "metafor", "metadat", "jsonlite", "stats",
+  "utils", "base",
 ]);
 
 /** Functions of the reference packages: they may only be called. */
@@ -55,6 +56,50 @@ const REFERENCE_FUNCTIONS = [
   "ssizeCT.default", "ssizeEpi", "ssizeEpi.default", "ssizeEpiCont", "ssizeEpiCont.default", "ssizeEpiInt",
   "ssizeEpiInt.default0", "ssizeEpiInt.default1", "ssizeEpiInt2", "ssizeWelchT", "toxbdry", "twostage.admissible",
   "twostage.inference", "ucControl", "uncondExact2x2", "uncondExact2x2Pvals", "uncondPower2x2", "unirootGrid",
+  // metafor (meta-analysis): its exported functions (S3 methods with other characters left out)
+  "addpoly", "addpoly.default", "addpoly.predict.rma", "addpoly.rma", "aggregate.escalc", "AIC.matreg", "AIC.rma",
+  "anova.rma", "as.data.frame.anova.rma", "as.data.frame.confint.rma", "as.data.frame.list.anova.rma",
+  "as.data.frame.list.confint.rma", "as.data.frame.list.rma", "as.data.frame.vif.rma", "as.matrix.list.rma", "baujat",
+  "baujat.rma", "BIC.matreg", "BIC.rma", "bldiag", "blsplit", "blup", "blup.rma.uni", "cbind.escalc", "cmicalc",
+  "coef.deltamethod", "coef.matreg", "coef.permutest.rma.uni", "coef.rma", "coef.summary.rma", "confint.matreg",
+  "confint.rma.glmm", "confint.rma.ls", "confint.rma.mh", "confint.rma.mv", "confint.rma.peto", "confint.rma.uni",
+  "confint.rma.uni.selmodel", "contrmat", "conv.2x2", "conv.delta", "conv.fivenum", "conv.wald",
+  "cooks.distance.rma.mv", "cooks.distance.rma.uni", "cumul", "cumul.rma.mh", "cumul.rma.peto", "cumul.rma.uni",
+  "deltamethod", "deviance.rma", "df.residual.rma", "dfbetas.rma.mv", "dfbetas.rma.uni", "dfround", "emmprep",
+  "escalc", "fitstats", "fitstats.rma", "fitted.rma", "fmtp", "fmtp2", "fmtt", "fmtx", "forest", "forest.cumul.rma",
+  "forest.default", "forest.rma", "formula.rma", "fsn", "funnel", "funnel.default", "funnel.rma", "getmfopt", "gosh",
+  "gosh.rma", "hatvalues.rma.mv", "hatvalues.rma.uni", "hc", "hc.rma.uni", "head.list.rma", "hettest",
+  "influence.rma.uni", "labbe", "labbe.rma", "leave1out", "leave1out.rma.mh", "leave1out.rma.peto",
+  "leave1out.rma.uni", "llplot", "logLik.matreg", "logLik.rma", "matreg", "metafor.news", "model.matrix.rma",
+  "nobs.rma", "pairmat", "permutest", "permutest.rma.ls", "permutest.rma.uni", "plot.cumul.rma", "plot.gosh.rma",
+  "plot.infl.rma.uni", "plot.permutest.rma.uni", "plot.profile.rma", "plot.rma.glmm", "plot.rma.mh", "plot.rma.mv",
+  "plot.rma.peto", "plot.rma.uni", "plot.rma.uni.selmodel", "plot.vif.rma", "points.regplot", "predict.matreg",
+  "predict.rma", "predict.rma.ls", "print.anova.rma", "print.confint.matreg", "print.confint.rma",
+  "print.deltamethod", "print.escalc", "print.fsn", "print.gosh.rma", "print.hc.rma.uni", "print.hettest",
+  "print.infl.rma.uni", "print.list.anova.rma", "print.list.confint.rma", "print.list.rma", "print.matreg",
+  "print.permutest.rma.uni", "print.profile.rma", "print.ranktest", "print.regtest", "print.rma.glmm", "print.rma.mh",
+  "print.rma.mv", "print.rma.peto", "print.rma.uni", "print.summary.matreg", "print.summary.rma", "print.tes",
+  "print.vcovmat", "print.vif.rma", "profile.rma.ls", "profile.rma.mv", "profile.rma.uni", "profile.rma.uni.selmodel",
+  "qqnorm.rma.glmm", "qqnorm.rma.mh", "qqnorm.rma.mv", "qqnorm.rma.peto", "qqnorm.rma.uni", "radial", "radial.rma",
+  "ranef", "ranef.rma.mv", "ranef.rma.uni", "ranktest", "rbind.escalc", "rcalc", "regplot", "regplot.rma", "regtest",
+  "replmiss", "reporter", "reporter.rma.uni", "residuals.rma", "rma", "rma.glmm", "rma.mh", "rma.mv", "rma.peto",
+  "rma.uni", "robust", "robust.rma.mv", "robust.rma.uni", "rstandard.rma.mh", "rstandard.rma.mv",
+  "rstandard.rma.peto", "rstandard.rma.uni", "rstudent.rma.mh", "rstudent.rma.mv", "rstudent.rma.peto",
+  "rstudent.rma.uni", "se", "se.default", "se.rma", "selmodel", "selmodel.rma.uni", "setmfopt", "sigma.matreg",
+  "simulate.rma", "summary.escalc", "summary.matreg", "summary.rma", "tail.list.rma", "tes", "to.long", "to.table",
+  "to.wide", "transf.abt", "transf.ahw", "transf.arcsin", "transf.clestod", "transf.dtobesd", "transf.dtocles",
+  "transf.dtocles.int", "transf.dtocliffd", "transf.dtolnor.logis", "transf.dtolnor.norm", "transf.dtomd",
+  "transf.dtoovl", "transf.dtorbis", "transf.dtorpb", "transf.dtou1", "transf.dtou2", "transf.dtou3",
+  "transf.exp.int", "transf.exp.mode", "transf.iabt", "transf.iabt.int", "transf.iabt.mode", "transf.iahw",
+  "transf.iahw.int", "transf.iahw.mode", "transf.iarcsin", "transf.iarcsin.int", "transf.iarcsin.mode",
+  "transf.iirft", "transf.ilogit", "transf.ilogit.int", "transf.ilogit.mode", "transf.ipft", "transf.ipft.hm",
+  "transf.iprobit", "transf.iprobit.int", "transf.iprobit.mode", "transf.irft", "transf.isqrt",
+  "transf.lnortod.logis", "transf.lnortod.norm", "transf.lnortord", "transf.lnortorr", "transf.lnortortet.digby",
+  "transf.lnortortet.pearson", "transf.logit", "transf.pft", "transf.probit", "transf.r2toz", "transf.rpbtod",
+  "transf.rpbtorbis", "transf.rtod", "transf.rtorpb", "transf.rtoz", "transf.ztor", "transf.ztor.int",
+  "transf.ztor.mode", "transf.ztor2", "trimfill", "trimfill.rma.uni", "update.rma", "vcalc", "vcov.deltamethod",
+  "vcov.matreg", "vcov.rma", "vec2mat", "vif", "vif.rma", "weights.rma.glmm", "weights.rma.mh", "weights.rma.mv",
+  "weights.rma.peto", "weights.rma.uni",
 ];
 
 /** Names that reach code, namespaces, compiled routines, other programs or files: not allowed at all. */
