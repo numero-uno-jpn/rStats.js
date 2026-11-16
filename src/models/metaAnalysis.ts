@@ -380,12 +380,12 @@ export function rma(yi:readonly number[]|EscalcResult,viOrOptions?:readonly numb
     qmp=test==="z"?pchisq(qm,m,{lowerTail:false}):pf(qm/m,m,df,{lowerTail:false});
   }
   const wMax=Math.max(...fit.w),wNorm=fit.w.map(z=>z/wMax),sumW=wNorm.reduce((s,z)=>s+z,0),sumW2=wNorm.reduce((s,z)=>s+z*z,0);
-  const vtilde=(df/wMax)*sumW/(sumW*sumW-sumW2);
-  const I2=100*tau2/(tau2+vtilde),H2=(tau2+vtilde)/vtilde;
+  const vtilde=df>0?(df/wMax)*sumW/(sumW*sumW-sumW2):0;
+  const I2=tau2===0?0:100*tau2/(tau2+vtilde),H2=tau2===0?1:(tau2+vtilde)/vtilde;
   const R2=opts.mods===undefined?null:(tau2Null>0?100*Math.max(0,(tau2Null-tau2)/tau2Null):0);
   const info=fit.traceP2>0?Math.sqrt(2/fit.traceP2):NaN;
   return reported("rma",{beta:{dim:[p,1],rowNames:p===1?(built.names[0]??"intrcpt"):built.names,colNames:null,rows:fit.beta.map(z=>[z])},se:scalar(se),zval:scalar(stat),pval:scalar(pv),
-    "ci.lb":scalar(lower),"ci.ub":scalar(upper),tau2,"se.tau2":info,QE:baseFit.qe,QEp:pchisq(baseFit.qe,df,{lowerTail:false}),
+    "ci.lb":scalar(lower),"ci.ub":scalar(upper),tau2,"se.tau2":info,QE:baseFit.qe,QEp:df===0?1:pchisq(baseFit.qe,df,{lowerTail:false}),
     QM:qm,QMp:qmp,R2,p,m,I2,H2,k,yi:y,vi:v,mods:X,intercept,method,test,level,warnings:[],covariance,tau2Null});
 }
 
