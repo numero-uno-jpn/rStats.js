@@ -111,7 +111,7 @@ run_one("k07_two_strata_asymmetric",rbind(d3,d4),TRUE)  m<-length(saved); future
       qsub<-ifelse(cur$Y>0,cur$h/cur$Y,0)
       Bweights<-ifelse(cur$H>qsub,cur$Y*qsub^2/(cur$H-qsub),0)
       Bown<-(Ytot-1)/cur$H*(W%*%diag(Bweights)%*%t(W))
-      Sigma<-Sigma-d*(d-1)/(Ytot-1)*Bown
+      Sigma<-Sigma-cur$L^2*d*(d-1)/(Ytot-1)*Bown
     }
     future<-future+cur$D*cur$dGamma
   }
