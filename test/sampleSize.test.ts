@@ -27,7 +27,7 @@ function exactMcNemarHalfBoundary(npairs:number,pb:number,pc:number):number {
   for(let m=0;m<=npairs;m++){
     const alt=binomialMass(m,pAlt);
     if(pb>=pc){
-      for(let x=Math.ceil(m/2)+1;x<=m;x++) power+=massM[m]!*alt[x]!;
+      for(let x=Math.floor(m/2)+1;x<=m;x++) power+=massM[m]!*alt[x]!;
     }else{
       for(let x=0;x<Math.ceil(m/2);x++) power+=massM[m]!*alt[x]!;
     }
@@ -47,7 +47,7 @@ const reason = {
   eqContinuousEquality:"KNOWN DIFFERENCE: epiR errors for continuous equality power; rStats.js evaluates the two-sided normal power formula (choices 2).",
   supBinary:"KNOWN DIFFERENCE: epiR's binary superiority power at unequal allocation is not reproduced; rStats.js uses the stated binary-variance normal formula (choices 2).",
   mcnemarBound:"KNOWN R DIFFERENCE: exact2x2 errbound=0 is numerically inaccurate for the recorded case; rStats.js returns the exact power.",
-  mcnemarBoundary:"KNOWN R DIFFERENCE: exact2x2 does not implement the exact strict p-value boundary consistently at sig.level=1; rStats.js uses the exact rational central-tail rule, rejecting only when the directional tail is strictly below alpha/2."
+  mcnemarBoundary:"KNOWN R DIFFERENCE: exact2x2 has a numerical boundary inconsistency at sig.level=1; rStats.js uses the standard inclusive exact-test rule and rejects when the directional tail is at most alpha/2."
 };
 
 function callEpi(c:Case):Record<string,unknown> {
