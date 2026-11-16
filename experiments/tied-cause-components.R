@@ -60,11 +60,10 @@ one_case <- function(label,dat,rho) {
   cat(paste(names(vals),sprintf("%.17g",vals),collapse=" "), "\n")
 }
 cases<-list(
- list("cause1_tie_only",make_data(7,7,2,0,1, 1,0,1)),
- list("cause2_tie_only",make_data(7,7,1,2,1, 1,1,1)),
- list("both_causes_same_time",make_data(7,7,2,1,1, 1,1,1)),
- list("two_cause1_ties",make_data(8,7,2,0,2, 1,0,1)),
- list("two_competing_ties",make_data(8,7,1,2,1, 1,1,1)),
- list("all_three_times_tied",make_data(9,8,2,2,2, 1,2,1))
+ list("cause1_single_tie",make_data(7,7,2,1,0,0,0,0)),
+ list("cause2_only_tie",make_data(7,7,1,0,2,2,0,1)),
+ list("two_cause1_ties",make_data(8,7,2,1,0,0,2,1)),
+ list("cause2_tie_with_two_single_cause1",make_data(8,8,1,0,2,2,0,1)),
+ list("cause1_and_cause2_ties_separate",make_data(9,8,2,1,2,2,2,1))
 )
 for(x in cases) for(rho in c(-1,0,1)) one_case(x[[1]],x[[2]],rho)
