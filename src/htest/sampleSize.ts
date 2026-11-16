@@ -539,14 +539,17 @@ export function ph2simon(pu:number,pa:number,ep1:number,ep2:number,options: {nma
   const nmax=options.nmax??100;
   for(const [v,name] of [[pu,"pu"],[pa,"pa"],[ep1,"ep1"],[ep2,"ep2"]] as const) checkNumber(v,name,prob,`'${name}' must be in [0, 1]`);
   checkNumber(nmax,"nmax",(v)=>Number.isInteger(v)&&v>=1&&v<=1000,"nmax cannot exceed 1000");
+  const masses0=Array.from({length:nmax+1},(_,size)=>binomialMasses(size,pu));
+  const masses1=Array.from({length:nmax+1},(_,size)=>binomialMasses(size,pa));
+  const cdfs0=masses0.map(cumulative), cdfs1=masses1.map(cumulative);
   const out:SimonRow[]=[];
   for(let n=2;n<=nmax;n++){
     let best:SimonRow|undefined;
     for(let n1=1;n1<n && (best===undefined || n1<best.enP0);n1++){
       const n2=n-n1;
-      const p0Stage1=binomialMasses(n1,pu), p1Stage1=binomialMasses(n1,pa);
-      const p0Stage2Cdf=cumulative(binomialMasses(n2,pu)), p1Stage2Cdf=cumulative(binomialMasses(n2,pa));
-      const p0Stage1Cdf=cumulative(p0Stage1);
+      const p0Stage1=masses0[n1]!, p1Stage1=masses1[n1]!;
+      const p0Stage2Cdf=cdfs0[n2]!, p1Stage2Cdf=cdfs1[n2]!;
+      const p0Stage1Cdf=cdfs0[n1]!;
       for(let r1=0;r1<n1;r1++){
         const pet=p0Stage1Cdf[r1]!;
         const en=n1+n2*(1-pet);
