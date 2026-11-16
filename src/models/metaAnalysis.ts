@@ -90,7 +90,6 @@ export interface RegtestOptions { model?: "rma" | "lm"; predictor?: "sei" | "vi"
 
 const scalar = (x: number[]): number | number[] => x.length === 1 ? x[0]! : x;
 const dot = (a: readonly number[], b: readonly number[]): number => a.reduce((s, x, i) => s + x * b[i]!, 0);
-const transpose = (x: number[][]): number[][] => x.length === 0 ? [] : x[0]!.map((_, j) => x.map(r => r[j]!));
 const matVec = (a: number[][], x: readonly number[]): number[] => a.map(r => dot(r, x));
 const identity = (n: number): number[][] => Array.from({length:n},(_,i)=>Array.from({length:n},(_,j)=>i===j?1:0));
 const finiteVector = (x: readonly number[], name: string): void => {
@@ -187,7 +186,7 @@ function buildX(k:number,mods:RmaOptions["mods"],intercept:boolean,data?:DataFra
     const d=design(parseFormula(f),data,{intercept});
     rows=d.x;
     if(d.frame.rows.length!==k) throw new RangeError("variable lengths differ between yi and mods");
-    return rows;
+    return independentColumns(rows);
   } else if(mods===undefined) rows=Array.from({length:k},()=>[]);
   else if(mods.length===0) rows=Array.from({length:k},()=>[]);
   else if(typeof mods[0]==="number") {
@@ -199,8 +198,19 @@ function buildX(k:number,mods:RmaOptions["mods"],intercept:boolean,data?:DataFra
     if(rows.length!==k) throw new RangeError("variable lengths differ (found for 'mods')");
     if(rows.some(r=>r.length!==rows[0]!.length)) throw new TypeError("all rows of the moderator matrix must have the same length");
   }
-  if(intercept) return rows.map(r=>[1,...r]);
-  return rows;
+  if(intercept) rows=rows.map(r=>[1,...r]);
+  return independentColumns(rows);
+}
+function independentColumns(rows:number[][]):number[][] {
+  if(rows.length===0||rows[0]!.length===0) return rows;
+  const keep:number[]=[],basis:number[][]=[];
+  for(let j=0;j<rows[0]!.length;j++){
+    const v=rows.map(r=>r[j]!);const original=Math.sqrt(dot(v,v));let residual=v.slice();
+    for(const q of basis){const a=dot(residual,q);residual=residual.map((z,i)=>z-a*q[i]!);}
+    const norm=Math.sqrt(dot(residual,residual));
+    if(norm>1e-10*Math.max(original,1)){keep.push(j);basis.push(residual.map(z=>z/norm));}
+  }
+  return rows.map(r=>keep.map(j=>r[j]!));
 }
 
 /**
@@ -279,7 +289,8 @@ export function rma(yi:readonly number[]|EscalcResult,viOrOptions?:readonly numb
   const v=Array.from(isEscalc?(yi as EscalcResult).vi:viOrOptions as readonly number[]|undefined ?? []);
   checkOptions(opts.control,RMA_CONTROL_KEYS,"rma","control");
   if(y.length===0||v.length!==y.length) throw new RangeError("yi and vi must have the same positive length");
-  finiteVector(y,"yi");finiteVector(v,"vi");
+  if(y.some(z=>!Number.isFinite(z))) throw new Error("NA/NaN/Inf in foreign function call (arg 1)");
+  if(v.some(z=>!Number.isFinite(z))) throw new Error("NA/NaN/Inf in foreign function call (arg 1)");
   if(v.some(z=>z<0)) throw new RangeError("sampling variances must be non-negative");
   if(v.some(z=>z===0) && !["EE","FE"].includes(opts.method??"REML")) {
     if((opts.method??"REML")==="DL") throw new Error("DL estimator cannot be used when there are non-positive sampling variances in the data.");
