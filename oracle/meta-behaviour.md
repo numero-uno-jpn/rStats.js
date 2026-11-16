@@ -362,7 +362,7 @@ The omnibus moderator test \(Q_M\) tests that the selected \(m\) moderator coeff
 
 The pseudo-\(R^2\) for a mixed-effects model with an intercept is the proportion of total heterogeneity removed by the moderators:
 \[
-R^2=100\%\max\left(0,\frac{\widehat\tau^2_{RE}-\widehat\tau^2_{ME}}{\widehat\tau^2_{RE}}\right),
+R^2=100\times\max\left(0,\frac{\widehat\tau^2_{RE}-\widehat\tau^2_{ME}}{\widehat\tau^2_{RE}}\right)\%,
 \]
 with \(R^2=0\) when the total heterogeneity estimate is zero. It is estimator-dependent and may be unstable for small \(k\). In a fixed-effects meta-regression, the reference instead reports adjusted weighted-least-squares \(R^2\); do not conflate the two. Residual \(I^2\) and \(H^2\) are computed from residual heterogeneity and the model's residual degrees of freedom, not from the intercept-only \(Q\).
 
