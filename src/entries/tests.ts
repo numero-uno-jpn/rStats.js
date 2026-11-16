@@ -384,5 +384,6 @@ export {
   type SurvivalOptions,
   type SSizeCTResult,
   type SimonRow,
+  type SimonDesign,
   type SimonDesignResult,
 } from "../htest/sampleSize.js";
