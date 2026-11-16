@@ -554,7 +554,7 @@ function designProb(r1:number,r:number,p0Stage1:readonly number[],p1Stage1:reado
  * @category Effect sizes and power
  */
 export function ph2simon(pu:number,pa:number,ep1:number,ep2:number,options: {nmax?:number} = {}):SimonDesignResult {
-  checkOptions(options,PH2SIMON_KEYS,"ph2simon"); // generated: option-keys.mjs
+  checkOptions(options, PH2SIMON_KEYS, "ph2simon"); // generated: option-keys.mjs
   const nmax=options.nmax??100;
   for(const [v,name] of [[pu,"pu"],[pa,"pa"],[ep1,"ep1"],[ep2,"ep2"]] as const) checkNumber(v,name,prob,`'${name}' must be in [0, 1]`);
   checkNumber(nmax,"nmax",(v)=>Number.isInteger(v)&&v>=1&&v<=1000,"nmax cannot exceed 1000");
