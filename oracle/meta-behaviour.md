@@ -232,7 +232,7 @@ The initial ROADMAP request says Egger's test; the exact model variant and retur
 ### Input and boundary cases to probe
 
 The oracle must include:
-- (k=1): no heterogeneity degrees of freedom; Q, I-squared, H-squared, and variance estimation may be undefined or degenerate.
+- (k=1): no heterogeneity degrees of freedom. In the public R 4.6.2 probe, REML returned tau2=0, Q(df=0)=0, and Qp=1, with a finite pooled estimate and standard error. Preserve this as an observed reference result, but do not interpret a zero-df Q test as informative evidence of homogeneity.
 - (k=2): very limited heterogeneity information and unstable small-sample inference.
 - identical study estimates: Q at or near zero and (widehat\tau^2=0).
 - (Q\le k-1): DL estimate at zero; REML may also attain the boundary.
