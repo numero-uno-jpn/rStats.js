@@ -239,7 +239,7 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `mcr::mcreg()` | `mcreg` | Method comparison regression of y on x. |
 | `model.matrix()` | `modelMatrix` | The model matrix of a formula on a data frame, with the attributes of R's `terms()`. |
 | `mood.test()` | `moodTest` | Mood's two-sample test of scale. |
-| `powerSurvEpi::numDEpi()` | `numDEpi` | Schoenfeld/Latouche required event count. |
+| `powerSurvEpi::numDEpi.default()` | `numDEpi` | Schoenfeld/Latouche required event count. |
 | `epitools::oddsratio()` | `oddsRatio` | Odds ratio of a 2 x 2 table with its confidence interval and three p-values of independence. |
 | `effectsize::omega_squared()` | `omegaSquared` | Omega squared of the terms of an analysis-of-variance table, also of repeated-measures designs. |
 | `psych::omega()` | `omega` | McDonald's omega from a Schmid-Leiman transformation of an oblique minres factor solution. |
@@ -257,8 +257,8 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `power.anova.test()` | `powerAnovaTest` | Power of the F test of a balanced one-way analysis of variance, or one of the other quantities for a given power. |
 | `power.prop.test()` | `powerPropTest` | Power of the test of two proportions, or the sample size, a probability or the significance level for a given power. |
 | `power.t.test()` | `powerTTest` | Power of a one- or two-sample t test, or the sample size, difference, standard deviation or significance level for a given power. |
-| `powerSurvEpi::powerCT()` | `powerCT` | Freedman clinical-trial power. |
-| `powerSurvEpi::powerEpi()` | `powerEpi` | Schoenfeld/Latouche Cox-model power. |
+| `powerSurvEpi::powerCT.default()` | `powerCT` | Freedman clinical-trial power. |
+| `powerSurvEpi::powerEpi.default()` | `powerEpi` | Schoenfeld/Latouche Cox-model power. |
 | `exact2x2::powerPaired2x2()` | `powerPaired2x2` | Exact power of McNemar's test for paired binary outcomes. |
 | `cmprsk::predict.crr()` | `predictCrr` | Predict cumulative incidence from a Fine-Gray fit. |
 | `predict.survreg()` | `survregPredict` | Predictions from a parametric survival regression fit. |
@@ -285,8 +285,8 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `rstandard()` | `glmRstandard` | Standardized Pearson or deviance residuals, for the rows of non-zero prior weight, for a `glm` fit. |
 | `nortest::sf.test()` | `sfTest` | Shapiro-Francia test for normality. |
 | `shapiro.test()` | `shapiroTest` | Shapiro-Wilk test of normality. |
-| `powerSurvEpi::ssizeCT()` | `ssizeCT` | Freedman clinical-trial sample size. |
-| `powerSurvEpi::ssizeEpi()` | `ssizeEpi` | Schoenfeld/Latouche total sample size. |
+| `powerSurvEpi::ssizeCT.default()` | `ssizeCT` | Freedman clinical-trial sample size. |
+| `powerSurvEpi::ssizeEpi.default()` | `ssizeEpi` | Schoenfeld/Latouche total sample size. |
 | `DescTools::StuartMaxwellTest()` | `stuartMaxwellTest` | Stuart-Maxwell test of marginal homogeneity of a square table. |
 | `summary()` | `aovSummary` | The table of an analysis of variance fitted by `aov`. |
 | `summary()` | `glmSummary` | Summary of a generalized linear model: the dispersion, the coefficient table and the covariance of the estimates, for a `glm` fit. |
