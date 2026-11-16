@@ -147,7 +147,7 @@ function weightedFit(y:number[], v:number[], X:number[][], tau2:number) {
   const beta=matVec(cov,xtwy);
   const fitted=matVec(X,beta);
   const residuals=y.map((z,i)=>z-fitted[i]!);
-  const qe=residuals.reduce((s,z,i)=>s+w[i]!*z*z,0);
+  const qe=y.every(z=>z===y[0])?0:residuals.reduce((s,z,i)=>s+w[i]!*z*z,0);
   const P=Array.from({length:k},(_,i)=>Array.from({length:k},(_,j)=>(i===j?w[i]!:0)-w[i]!*dot(X[i]!,matVec(cov,X[j]!).map((z)=>z*w[j]!))));
   const traceP=P.reduce((s,row,i)=>s+row[i]!,0);
   const traceP2=P.reduce((s,row,i)=>s+row.reduce((t,z,j)=>t+z*P[j]![i]!,0),0);
@@ -198,7 +198,7 @@ function tauEstimate(y:number[],v:number[],X:number[][],method:MetaMethod,contro
   const c=base.traceP2;
   const sumInv=v.reduce((s,z)=>s+1/z,0);
   if(method==="EE"||method==="FE") return 0;
-  if(method==="DL") return Math.max(0,(q0-df)/c);
+  if(method==="DL") return Math.max(0,(q0-df)/base.traceP);
   if(method==="HS") return Math.max(0,(q0-k)/sumInv);
   if(method==="HSk") return Math.max(0,((k/(k-1))*q0-k)/sumInv);
   const unweighted=weightedFit(y,Array(k).fill(1),X,0);
@@ -435,7 +435,7 @@ export function rma(yi:readonly number[]|EscalcResult,viOrOptions?:readonly numb
   const H2=method==="EE"||method==="FE"
     ?(df>0?Math.max(1,baseFit.qe/df):1)
     :(tau2===0?1:(tau2+vtilde)/vtilde);
-  const R2=opts.mods===undefined?null:(tau2Null>0?100*Math.max(0,(tau2Null-tau2)/tau2Null):0);
+  const R2=opts.mods===undefined||p===1?null:(tau2Null>0?100*Math.max(0,(tau2Null-tau2)/tau2Null):0);
   const info=tau2StandardError(y,v,X,method,tau2,fit,baseFit);
   return reported("rma",{beta:{dim:[p,1],rowNames:p===1?(built.names[0]??"intrcpt"):built.names,colNames:null,rows:fit.beta.map(z=>[z])},se:scalar(se),zval:scalar(stat),pval:scalar(pv),
     "ci.lb":scalar(lower),"ci.ub":scalar(upper),tau2,"se.tau2":info,QE:baseFit.qe,QEp:df===0?1:pchisq(baseFit.qe,df,{lowerTail:false}),
