@@ -15,7 +15,7 @@
   2. **済み:** equivalence-tost の R の結果は変わっていなかった (21 個の値が文字列で一致。差分は行末のカンマだけ)。イメージの TOSTER は 0.8.6
   3. **済み:** PR #524 を点検して main に squash で取り込んだ (`5361ca0`)。Issue #523 と PR #524 は閉じた。直したもの: 訳 4 件の段落の空行、ROADMAP (ja の段落、en の折り返し)、infinitesimal jackknife を「無限小ジャックナイフ」に、API リファレンスで `predictCrr` をモデル名の接頭辞の例外と明記、用語集に 7 語
   4. **済み:** 区切りの時刻の空の行は survival 3.8.3 のバグで、3.8-12 で直った (NEWS に記載)。R 4.6.2 (survival 3.8.12) は survfit にも summary にもその行を出さず、仕様書と rStats.js はそれに合っている。`oracle/coxph2-behaviour.md` の Part C と differences-from-r (en・ja) に版の違いを書いた
-  5. **survreg の極端な尺度:** 数値の点検 (`7b995cbd`) で、survreg は説明変数の単位を 2^±1000 倍しても Wald z が変わらないようにした。R がその尺度でどうなるか (溢れる、列を落とす、など) を確かめ、R と違う値を返す場面を differences-from-r (en・ja) に書く
+  5. **済み:** survreg の極端な尺度。R は `ovarian` の `age * 2^k` で 2^508 まで同じ値、2^509 から列を黙って落とし、2^-541 から収束せずエラー。rStats.js は 2^-1000〜2^1010 で同じ値、非正規化数 (2^-1050) で NaN と警告。differences-from-r (en・ja) に記載
   6. **リリース:** `npm run size` でサイズを測って `docs/performance.md` (en・ja) と README のサイズを直す。版の番号 1.4.0 (package.json・package-lock.json・demo/app.js・README の Status と CDN URL・api-reference の CDN URL)、CHANGELOG の Unreleased を `1.4.0 - <日付>` に。公開の手順は 1.3.0 と同じ (タグはユーザーが push、npm の staged はユーザーが approve)。リリースの前に `node scripts/api-ja-extract.mjs` で stale がないことを確かめる
   7. **後片付け:** `work/release-1.4-docs`・`work/survival-1.4-b`・`-c`・`-d`・`-audit-ac`・`-audit-bd` はユーザーの許可を得て消した (2026-11-16)。`work/survival-1.4-a-65df102e` はまだ残っている (消すかユーザーに確認)
 

@@ -1528,6 +1528,7 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
 - **`survregResiduals` の区間打ち切り:** 区間打ち切りの導関数と extreme-value の区間中心は、R の既知の誤りではなく数学的に正しい導関数と sigma を含む中心を使います。
 
 - **`survreg` の control と退化データ:** `control.maxiter` が負の場合は拒否します。また、exact event も有限区間イベントもないデータ、または scale を推定できないデータは初期化エラーにします。R がこのような入力で有用でない初期当てはめを返す場合でも、rStats.js は選択した API 方針に従って拒否します。
+- **極端な単位の説明変数での `survreg`:** rStats.js は、重み付き最小二乗と Newton 法の前に計画行列の列の尺度をそろえます。そのため、説明変数の値が正規化数である限り、係数 (元の単位に戻した値)、Wald の z、対数尤度、尺度は説明変数の単位によりません。R (survival 3.8.12) が同じ値を返すのは、列の 2 乗が有限の正規化数に収まる間だけです。`ovarian` の `age * 2^k` (weibull と gaussian) では `2^508` までです。`2^509` 以上では警告なしにその列を落とし (係数は NA、ほかの推定値はその列を除いたモデルの値)、`2^-541` 以下では収束せず `'names' attribute [4] must be the same length as the vector [2]` のエラーになります。rStats.js は `2^-1000` から `2^1010` まで尺度を変えない場合と同じ当てはめを返します。説明変数の値が非正規化数のとき (`2^-1050`) は、推定値が NaN、対数尤度が -Infinity になり、R と同じ警告 `Ran out of iterations and did not converge` を返します。
 - **`survreg` の score の座標系:** rStats.js は `oracle/survreg-behaviour.md` §3 の定義どおり、元の設計行列の座標 `(β, log(scale))` における対数尤度の解析的勾配を返します。R の fixture にある `score` は、未収束の一部の当てはめでこの座標系の勾配と一致しません。rStats.js では R の値を転記せず、自身の対数尤度を有限差分して score を検証します。
 - **`survregPredict` の newdata offset:** rStats.js は仕様どおり、新しい線形予測子に `newOffset` を `η = Xβ + offset` として加えます。offset 付きモデルの newdata 予測では R の fixture と異なるため、テストでは `lp`/`uquantile` への加算と、対数時間の response/quantile に対する `exp(newOffset)` の倍率を独立に検証します。
 - **1 件のイベントしかない分離状態の `survreg` 当てはめ:** 反復を続けると情報行列が特異に近づき、個々の係数は反復経路に依存します。そのため該当 fixture では、R の係数との単純な一致ではなく、対数尤度と解析的 score を検証します。
