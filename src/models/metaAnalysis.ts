@@ -420,9 +420,14 @@ export function rma(yi:readonly number[]|EscalcResult,viOrOptions?:readonly numb
     try{qm=dot(b,solve(c,b));}catch{qm=NaN;}
     qmp=test==="z"?pchisq(qm,m,{lowerTail:false}):pf(qm/m,m,df,{lowerTail:false});
   }
-  const wMax=Math.max(...fit.w),wNorm=fit.w.map(z=>z/wMax),sumW=wNorm.reduce((s,z)=>s+z,0),sumW2=wNorm.reduce((s,z)=>s+z*z,0);
-  const vtilde=df>0?(df/wMax)*sumW/(sumW*sumW-sumW2):0;
-  const I2=tau2===0?0:100*tau2/(tau2+vtilde),H2=tau2===0?1:(tau2+vtilde)/vtilde;
+  const residualPrecision=baseFit.P.reduce((sum,row,i)=>sum+row[i]!,0);
+  const vtilde=df>0?df/residualPrecision:0;
+  const I2=method==="EE"||method==="FE"
+    ?(baseFit.qe>0?100*Math.max(0,(baseFit.qe-df)/baseFit.qe):0)
+    :(tau2===0?0:100*tau2/(tau2+vtilde));
+  const H2=method==="EE"||method==="FE"
+    ?(df>0?Math.max(1,baseFit.qe/df):1)
+    :(tau2===0?1:(tau2+vtilde)/vtilde);
   const R2=opts.mods===undefined?null:(tau2Null>0?100*Math.max(0,(tau2Null-tau2)/tau2Null):0);
   const info=tau2StandardError(y,v,X,method,tau2,fit,baseFit);
   return reported("rma",{beta:{dim:[p,1],rowNames:p===1?(built.names[0]??"intrcpt"):built.names,colNames:null,rows:fit.beta.map(z=>[z])},se:scalar(se),zval:scalar(stat),pval:scalar(pv),
@@ -452,8 +457,9 @@ export function confintRma(object:RmaResult,options:ConfintRmaOptions={}):{rando
     hi=upperRoot(t=>-target(t),Math.max(object.tau2*2,1e-8));
     if(object.tau2>0) lo=root(target,0,object.tau2);
   }
-  const wMax=Math.max(...fit.w),wNorm=fit.w.map(z=>z/wMax),wSum=wNorm.reduce((s,z)=>s+z,0),wSum2=wNorm.reduce((s,z)=>s+z*z,0);
-  const vtilde=(df/wMax)*wSum/(wSum*wSum-wSum2);
+  const base=weightedFit(object.yi,object.vi,object.mods,0);
+  const residualPrecision=base.P.reduce((sum,row,i)=>sum+row[i]!,0);
+  const vtilde=df>0?df/residualPrecision:0;
   const transform=(t:number)=>[
     t,Math.sqrt(t),100*t/(t+vtilde),(t+vtilde)/vtilde
   ];
