@@ -12,7 +12,7 @@ const n = (v: any): any => typeof v === "string" ? ({NA:NaN, NaN, Inf:Infinity, 
 const argsRma = (a:any) => ({
   ...(a.method===undefined?{}:{method:a.method as MetaMethod}),
   ...(a.test===undefined?{}:{test:a.test as MetaTest}),
-  ...(a.mods===undefined?{}:{mods:a.mods}),
+  ...(a.mods==null?{}:{mods:a.mods}),
   ...(a.intercept===undefined?{}:{intercept:a.intercept}),
   ...(a.level===undefined?{}:{level:a.level}),
   ...(a.data===undefined?{}:{data:a.data}),

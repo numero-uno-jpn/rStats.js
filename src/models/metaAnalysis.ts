@@ -274,7 +274,14 @@ function buildDesign(k:number,mods:RmaOptions["mods"],intercept:boolean,data?:Da
     }
   }else{
     const m=mods as ModeratorMatrix;
-    if(m.rows!==undefined){rows=m.rows.map(r=>Array.from(r,Number));rawModeratorCount=rows[0]?.length??0;}
+    if(m.rows!==undefined){
+      const first=m.rows[0] as unknown;
+      if(first!==undefined&&typeof first==="object"&&!Array.isArray(first)){
+        const keys=typeof m.colNames==="string"?[m.colNames]:m.colNames===undefined||m.colNames===null?Object.keys(first):Array.from(m.colNames);
+        rows=m.rows.map(r=>keys.map(name=>Number((r as unknown as Record<string,unknown>)[name])));
+        names=keys.map(n=>n==="(Intercept)"?"intrcpt":n);explicitNames=true;rawModeratorCount=keys.length;
+      }else{rows=m.rows.map(r=>Array.from(r,Number));rawModeratorCount=rows[0]?.length??0;}
+    }
     else if(m.columns!==undefined){rawModeratorCount=m.columns.length;rows=Array.from({length:k},(_,i)=>m.columns!.map(col=>Number(col[i])));}
     else throw new TypeError("mods matrix must have rows or columns");
     if(rows.length!==k) throw new RangeError("variable lengths differ (found for 'mods')");
@@ -518,14 +525,18 @@ export function regtest(x:readonly number[]|RmaResult,viOrOptions?:readonly numb
   if(model==="lm"){
     const xx=z.map((a,i)=>[1,1/a]),yy=y.map((a,i)=>a/sei[i]!);
     const fit=linearRegression(xx,yy);
-    est=fit.beta[0]!;se=Math.sqrt(fit.cov[0]![0]! * fit.sigma2);stat=est/se;df=y.length-2;
+    est=fit.beta[1]!;
+    const seTest=Math.sqrt(fit.cov[0]![0]!*fit.sigma2),seLimit=Math.sqrt(fit.cov[1]![1]!*fit.sigma2);
+    stat=fit.beta[0]!/seTest;se=seLimit;df=y.length-2;
     pv=2*pt(-Math.abs(stat),df);
   } else {
     const fit=rma(y,v,{method:"REML",mods:z,intercept:true,test:"z"});
     est=fit.beta.rows[0]![0];se=Array.isArray(fit.se)?fit.se[0]!:fit.se;stat=est/se;df=NaN;pv=2*pnorm(-Math.abs(stat));
   }
   const crit=model==="lm"?qt(1-(1-level/100)/2,df):qnorm(1-(1-level/100)/2);
-  const out={model,predictor,zval:stat,pval:pv,dfs:df,est,"ci.lb":est-crit*se,"ci.ub":est+crit*se};
+  const warnings:string[]=[];
+  if(model==="lm"&&(!Number.isFinite(stat)||!Number.isFinite(pv)||!Number.isFinite(se)))warnings.push("NaNs produced");
+  const out={model,predictor,zval:stat,pval:pv,dfs:df,est,"ci.lb":est-crit*se,"ci.ub":est+crit*se,warnings};
   return reported("regtest",options.retFit?{...out,fit}:out);
 }
 function linearRegression(X:number[][],y:number[]) {
