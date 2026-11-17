@@ -1,8 +1,9 @@
 # rStats.js
 
 > R-compatible statistics for JavaScript and TypeScript: distributions, random numbers that match
-> R's `set.seed()`, descriptive statistics, hypothesis tests, `lm`, `glm` and lme4's `lmer` and `glmer`, special functions,
-> numerical methods and linear algebra, with R's function names, defaults and numerical results.
+> R's `set.seed()`, descriptive statistics, hypothesis tests, `lm`, `glm`, lme4's `lmer` and `glmer`, trial-design sample-size
+> and power calculations, meta-analysis and meta-regression, special functions, numerical methods and linear algebra,
+> with R's function names, defaults and numerical results.
 > Every function is tested against R 4.6.2. ESM only, no dependencies, runs in browsers, Node.js,
 > Deno and Bun.
 
@@ -62,6 +63,8 @@ a CDN without a bundler, see the README section "Using it in the browser".
   `anova(fit, type = "II")` → `lmerAnova(fit, { type: "II" })` (`{ terms, sumSq, meanSq, numDF, denDF, F, pValue }`,
   Type III by default); lme4's `anova(m1, m2)` → `lmerAnova([m1, m2], { names })` (likelihood-ratio tests; REML fits
   are refitted by ML). Pass the object `lmer` returned (not a copy). Kenward-Roger is not available.
+- Trial-design sample size and power: epiR's parallel-trial `epi.ss*` functions → `epiSsequb`, `epiSsequc`, `epiSsninfb`, `epiSsninfc`, `epiSssupb` and `epiSssupc`; exact paired McNemar power → `powerPaired2x2`; survival sample size and power → `ssizeCT`, `powerCT`, `ssizeEpi`, `powerEpi` and `numDEpi`; Simon's two-stage design → `ph2simon`.
+- Meta-analysis: `metafor::escalc` → `escalc`, `rma.uni` → `rma`, `confint.rma` → `confintRma`, `predict.rma` → `predictRma`, and `regtest` → `regtest`. `rma` accepts effect sizes and sampling variances or an `escalc` result; moderators may be supplied as a numeric matrix.
 - Generalized linear mixed models: lme4's `glmer(y ~ x + (1 | g), data = d, family = poisson, nAGQ = 1)` →
   `glmer("y ~ x + (1 | g)", d, { family: "poisson", nAGQ: 1 })` (families binomial, poisson, Gamma, inverse.gaussian,
   gaussian with a link other than identity; `nAGQ` 2 to 100 for one scalar term, binomial and poisson only; a binomial
