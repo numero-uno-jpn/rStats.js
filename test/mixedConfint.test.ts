@@ -111,7 +111,7 @@ function applyReferenceFit(
       const row = term.columns.indexOf(var1[i]!);
       const column = term.columns.indexOf(var2[i]!);
       if (row >= 0 && column >= 0) {
-        const value = num(vc.sdcor![i] as string);
+        const value = num(sdcor[i]!);
         corr[row]![column] = value;
         corr[column]![row] = value;
       }
