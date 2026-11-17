@@ -13,9 +13,9 @@ function close(actual:number, expected:number, relative=1e-12):void {
 describe("1.5.0 numerical audit: sample size and power",()=>{
   it("keeps very large mean-difference sample sizes finite at tiny effects and extreme alpha/power",()=>{
     const x=epiSsequc(0.5,0.500000000001,1,null,{type:"equality",power:0.999999,alpha:1e-10,nfractional:true});
-    // mpmath 100 d.p. using the exact binary64 inputs (0.500000000001 - 0.5),
-    // qnorm(1e-10/2, upper tail) and qnorm(1e-6, upper tail).
-    const arm=2.5180478864406392e26;
+    // mpmath 100 d.p. using the exact binary64 inputs, including power=0.999999
+    // (whose exact complement is 1.0000000000287556645...e-6), and upper-tail qnorms.
+    const arm=2.5180478864380309e26;
     close(x.nControlUnrounded,arm,3e-14);
     close(x.nTreatUnrounded,arm,3e-14);
     close(x.nTotalUnrounded,2*arm,3e-14);
