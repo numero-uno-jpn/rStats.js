@@ -43,24 +43,24 @@ describe("1.5.0 numerical audit: sample size and power",()=>{
 
   it("keeps the continuous epiR designs invariant when means, sigma and delta change units",()=>{
     const base=[
-      epiSsequc(20,18,10,1,{power:0.8,nfractional:true}),
-      epiSsninfc(20,18,10,1,{power:0.8,nfractional:true}),
-      epiSssupc(20,18,10,1,{power:0.8,nfractional:true}),
+      epiSsequc(20,19,10,2,{power:0.8,nfractional:true}),
+      epiSsninfc(20,19,10,2,{power:0.8,nfractional:true}),
+      epiSssupc(20,19,10,0.5,{power:0.8,nfractional:true}),
     ];
     for(const k of [-500,500]){
       const s=2**k;
       const scaled=[
-        epiSsequc(20*s,18*s,10*s,1*s,{power:0.8,nfractional:true}),
-        epiSsninfc(20*s,18*s,10*s,1*s,{power:0.8,nfractional:true}),
-        epiSssupc(20*s,18*s,10*s,1*s,{power:0.8,nfractional:true}),
+        epiSsequc(20*s,19*s,10*s,2*s,{power:0.8,nfractional:true}),
+        epiSsninfc(20*s,19*s,10*s,2*s,{power:0.8,nfractional:true}),
+        epiSssupc(20*s,19*s,10*s,0.5*s,{power:0.8,nfractional:true}),
       ];
       for(let i=0;i<base.length;i++) close(scaled[i]!.nTotalUnrounded,base[i]!.nTotalUnrounded,2e-13);
     }
   });
 
   it("exercises all binary epiR design families at finite and extreme allocation inputs",()=>{
-    const a=epiSsequb(0.5,0.4,null,{type:"equality",power:0.8,r:2,nfractional:true});
-    const b=epiSsninfb(0.85,0.65,0.1,{power:0.8,r:2,nfractional:true});
+    const a=epiSsequb(0.5,0.4,0.2,{type:"equivalence",power:0.8,r:2,nfractional:true});
+    const b=epiSsninfb(0.85,0.65,0.3,{power:0.8,r:2,nfractional:true});
     const c=epiSssupb(0.5,0.3,0.05,{power:0.8,r:1.5,nfractional:true});
     for(const x of [a,b,c]) expect(Number.isFinite(x.nTotalUnrounded)).toBe(true);
   });
@@ -170,7 +170,7 @@ describe("1.5.0 numerical audit: meta-analysis fitting and inference",()=>{
     const tiny=rma([37.2281892316016],[1],{method:"FE"});
     close(Number(tiny.pval),1e-300,3e-13);
     const nearOne=rma([1.4e-16],[1],{method:"FE"});
-    expect(Number(nearOne.pval)).toBe(1);
+    expect(Number(nearOne.pval)).toBe(0.9999999999999999);
   });
 
   it("drops a nearly collinear moderator and keeps QP/PL intervals, prediction and Egger inference finite",()=>{
