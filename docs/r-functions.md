@@ -437,9 +437,9 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | --- | --- | --- |
 | `lme4::anova()` | `glmerAnova` | The ANOVA table of the fixed-effects terms of a generalized linear mixed model fitted by `glmer`, or, given an array of fits, the likelihood-ratio comparison of the models. |
 | `lmerTest::anova()` | `lmerAnova` | The ANOVA table of a linear mixed model fitted by `lmer`, with Satterthwaite's denominator degrees of freedom (lmerTest's `anova()`), or, given an array of fits, the likelihood-ratio comparison of the models (lme4's `anova()` of several fits). |
-| `lmerTest::contest()` | `lmerContest` | Tests of contrasts L β = rhs of the fixed effects of a linear mixed model fitted by `lmer`, with Satterthwaite's degrees of freedom. |
 | `lme4::confint.merMod()` | `confintGlmer` | Confidence intervals for a generalized linear mixed-model fit. |
 | `lme4::confint.merMod()` | `confintLmer` | Confidence intervals for a linear mixed-model fit. |
+| `lmerTest::contest()` | `lmerContest` | Tests of contrasts L β = rhs of the fixed effects of a linear mixed model fitted by `lmer`, with Satterthwaite's degrees of freedom. |
 | `lme4::glmer()` | `glmer` | Fit a generalized linear mixed model by the Laplace approximation, by adaptive Gauss-Hermite quadrature or with the fixed effects from the penalised IRLS. |
 | `lme4::lmer()` | `lmer` | Fit a linear mixed model by REML or maximum likelihood. |
 | `lme4::predict()` | `glmerPredict` | Predictions of a generalized linear mixed model fitted by `glmer`, at the rows of the fit or at new data, with all, some or none of the random-effects terms, on the link or the response scale, optionally with their standard errors. |

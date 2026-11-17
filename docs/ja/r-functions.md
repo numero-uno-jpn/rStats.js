@@ -437,9 +437,9 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | --- | --- | --- |
 | `lme4::anova()` | `glmerAnova` | glmer の当てはめの固定効果の項の分散分析表 (逐次 Wald 統計量)、または glmer, lmer, glm の当てはめの尤度比検定による比較 |
 | `lmerTest::anova()` | `lmerAnova` | lmer の当てはめの Type III, II, I の分散分析表 (Satterthwaite の自由度による F 検定)、または複数の当てはめの尤度比検定による比較 |
-| `lmerTest::contest()` | `lmerContest` | lmer の当てはめの固定効果の対比 L β = rhs の検定 (Satterthwaite の自由度による F 検定または t 検定) |
 | `lme4::confint.merMod()` | `confintGlmer` | 一般化線形混合モデルの当てはめの信頼区間 |
 | `lme4::confint.merMod()` | `confintLmer` | 線形混合モデルの当てはめの信頼区間 |
+| `lmerTest::contest()` | `lmerContest` | lmer の当てはめの固定効果の対比 L β = rhs の検定 (Satterthwaite の自由度による F 検定または t 検定) |
 | `lme4::glmer()` | `glmer` | Laplace 近似 (nAGQ = 1)、適応的 Gauss-Hermite 求積 (nAGQ = 2〜100) または罰則付き IRLS の固定効果 (nAGQ = 0) による一般化線形混合モデルの当てはめ |
 | `lme4::lmer()` | `lmer` | REML または最尤法による線形混合モデルの当てはめ |
 | `lme4::predict()` | `glmerPredict` | glmer の当てはめの予測 (当てはめの行または新しいデータ、選んだ変量効果の項、リンクまたは応答の尺度、標準誤差つきも可) |

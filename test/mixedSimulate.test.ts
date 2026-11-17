@@ -29,7 +29,7 @@ function mixedData(raw: unknown, formula: string): DataFrame {
   const frame = raw as { columns: Record<string, (string | null)[]> };
   const groups = new Set([...formula.matchAll(/\|\s*([A-Za-z_][\w.]*)/g)].map((m) => m[1]!));
   const lhs = formula.split("~", 1)[0]!;
-  const response = new Set(lhs.match(/[A-Za-z_][\${ch}.]*/g) ?? []);
+  const response = new Set(lhs.match(/[A-Za-z_][\w.]*/g) ?? []);
   const out: DataFrame = {};
   for (const [name, values] of Object.entries(frame.columns)) {
     const numeric = values.every((v) => v === null || (typeof v === "string" && v.trim() !== "" && Number.isFinite(Number(v))));
@@ -44,12 +44,11 @@ function makeFit(c: SimCase): { fit: ReturnType<typeof lmer> | ReturnType<typeof
   let formula = c.fit.formula as string;
   const data = mixedData(c.fit.data, formula);
   // rStats.js currently accepts two cbind column names; express R's size - successes as an equivalent column.
-  const cbind = formula.match(/cbind\\(\\s*([A-Za-z_][\\w.]*)\\s*,\\s*([A-Za-z_][\\w.]*)\\s*-\\s*\\1\\s*\\)/);
-  if (cbind !== null) {
-    const successes = data[cbind[1]!] as Array<number | string | null>;
-    const totals = data[cbind[2]!] as Array<number | string | null>;
+  if (formula.includes("cbind(incidence, size - incidence)")) {
+    const successes = data.incidence as Array<number | string | null>;
+    const totals = data.size as Array<number | string | null>;
     data.failures = totals.map((total, i) => total === null || successes[i] === null ? null : Number(total) - Number(successes[i]));
-    formula = formula.replace(cbind[0], `cbind(${cbind[1]}, failures)`);
+    formula = formula.replace("cbind(incidence, size - incidence)", "cbind(incidence, failures)");
   }
   if (c.kind === "lmer") {
     return { kind: "lmer", fit: lmer(formula, data, { REML: c.fit.REML as boolean }) };
