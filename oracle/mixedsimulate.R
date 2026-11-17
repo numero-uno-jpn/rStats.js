@@ -40,6 +40,20 @@ fit_record <- function(a) {
   json_value(out)
 }
 
+# Public fitted quantities let the JS simulation test isolate the RNG and response generator from
+# the small, intentional numerical differences between the independent lmer/glmer optimisers.
+fit_public_record <- function(fit, kind) {
+  out <- list(
+    fixef=lme4::fixef(fit),
+    sigma=stats::sigma(fit),
+    varCorr=as.data.frame(lme4::VarCorr(fit)),
+    ranef=lme4::ranef(fit),
+    fitted=stats::fitted(fit)
+  )
+  if (kind == "glmer") out$eta <- stats::predict(fit, re.form=NULL, type="link")
+  json_value(out)
+}
+
 capture <- function(f) {
   warnings <- character(0); messages <- character(0)
   value <- tryCatch(withCallingHandlers(f(),
@@ -141,6 +155,7 @@ rows <- lapply(cases, function(case) {
          rngBefore=json_value(before), result=result, rngAfter=json_value(after))
   })
   list(id=case$id, kind=case$kind, fit=fit_record(case$fit),
+       fitPublic=fit_public_record(fit, case$kind),
        fitWarnings=fit_result$warnings, fitMessages=fit_result$messages, calls=calls)
 })
 
