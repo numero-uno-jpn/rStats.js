@@ -217,17 +217,20 @@ function profileAt(
     evaluate: (x) => {
       const f = valueAt(x);
       const g = x.map((v, j) => {
-        const h = (kind === "glmer" ? 1e-4 : 2e-5) * Math.max(1, Math.abs(v));
-        const plus = x.slice();
-        const minus = x.slice();
-        plus[j] = v + h;
-        minus[j] = v - h;
-        const fp = valueAt(plus);
-        const fm = valueAt(minus);
-        if (Number.isFinite(fp) && Number.isFinite(fm)) return (fp - fm) / (2 * h);
-        if (Number.isFinite(fp) && Number.isFinite(f)) return (fp - f) / h;
-        if (Number.isFinite(fm) && Number.isFinite(f)) return (f - fm) / h;
-        return 0;
+        let h = (kind === "glmer" ? 1e-4 : 2e-5) * Math.max(1, Math.abs(v));
+        for (let attempt = 0; attempt < 8; attempt++, h *= 0.5) {
+          const plus = x.slice();
+          const minus = x.slice();
+          plus[j] = v + h;
+          minus[j] = v - h;
+          const fp = valueAt(plus);
+          const fm = valueAt(minus);
+          if (Number.isFinite(fp) && Number.isFinite(fm)) return (fp - fm) / (2 * h);
+          if (Number.isFinite(fp) && Number.isFinite(f)) return (fp - f) / h;
+          if (Number.isFinite(fm) && Number.isFinite(f)) return (f - fm) / h;
+        }
+        // No finite difference is not a zero gradient: report the failure to the robust minimiser.
+        return NaN;
       });
       return { f, g };
     },
