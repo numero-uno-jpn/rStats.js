@@ -19,8 +19,8 @@ interface ConfCase {
   kind: "lmer" | "glmer";
   fit: Record<string, unknown>;
   fitPublic?: {
-    fixef: Record<string, string>;
-    stdError: Record<string, string>;
+    fixef: Record<string, string> | string;
+    stdError: Record<string, string> | string;
     sigma?: string;
     varCorr: { columns: Record<string, (string | null)[]> };
   };
@@ -68,6 +68,14 @@ function makeFit(c: ConfCase): { fit: ReturnType<typeof lmer> | ReturnType<typeo
   return { kind: "glmer", fit: glmer(formula, data, options) };
 }
 
+function namedValues(raw: Record<string, string> | string, names: string[]): number[] {
+  if (typeof raw === "string") {
+    if (names.length !== 1) throw new Error("R fixture has a scalar fixed-effect vector with multiple names");
+    return [num(raw)];
+  }
+  return names.map((name) => num(raw[name]!));
+}
+
 function asArray<T>(value: unknown): T[] {
   if (value === null || value === undefined) return [];
   return (Array.isArray(value) ? value : [value]) as T[];
@@ -93,8 +101,8 @@ function applyReferenceFit(
   const var1 = asArray<string>(vc.var1);
   const var2 = asArray<string | null>(vc.var2);
   const sdcor = asArray<string>(vc.sdcor);
-  fit.fixef = fit.fixefNames.map((name) => num(reference.fixef[name]!));
-  fit.coefTable.stdError = fit.fixefNames.map((name) => num(reference.stdError[name]!));
+  fit.fixef = namedValues(reference.fixef, fit.fixefNames);
+  fit.coefTable.stdError = namedValues(reference.stdError, fit.fixefNames);
   if (kind === "lmer") fit.sigma = num(reference.sigma!);
   fit.varCorr = structure.terms.map((term) => {
     const group = structure.groups[term.group]!.name;
