@@ -1668,7 +1668,9 @@ The references are epiR 3.0.0, exact2x2 1.7.0, powerSurvEpi 0.1.5 and clinfun 1.
 - **`powerPaired2x2` with `sigLevel = 1`:** where the conditional tail probability is exactly 1/2, exact2x2's value
   matches neither the inclusive nor the exclusive rejection rule; rStats.js rejects when the tail is at most
   `sigLevel / 2` (0.9115873521 for the example above, where R gives 0.8826434).
-
+- **`powerPaired2x2` with rare discordant pairs:** for `pb = pc = 1e-10` and `npairs = 1000`, exact2x2 returns
+  2.39e-68; the exact power (a rational computation of the conditional binomial test) is 1.3681730464267324e-45,
+  which rStats.js returns.
 
 ## Meta-analysis
 
@@ -1701,3 +1703,10 @@ The reference is metafor 5.2.1; the details are in [oracle/meta-behaviour.md](..
   small lower endpoint. For example, the high-precision PL lower endpoint for the BCG
   meta-regression fixture is `0.005806634710718457`, while R reports
   `0.005819022051320988`; the absolute difference is within that stopping tolerance.
+- **`escalc` log ratios near 0 (`"RR"`, `"OR"`):** where the two groups' proportions differ by about 1e-12 or less,
+  R's log risk or odds ratio rounds to 0 (for example 0 where the exact log odds ratio is about -1e-12). rStats.js
+  keeps the difference of the cross products exactly (in double-double arithmetic, with a power-of-two scaling) and
+  returns the nonzero value.
+- **`escalc` with `"SMD"` in large samples:** R's Hedges correction loses digits from the difference of the two
+  log-gamma values (relative errors of about 1e-9 at 1e6 per group and 4e-6 at 1e9); rStats.js uses the asymptotic
+  expansion of the gamma ratio for large degrees of freedom.

@@ -119,8 +119,14 @@ function epi(
   const margin = equality ? undefined : delta;
   const E = kind === "noninferiority" ? D + margin! : kind === "superiority" ? D - margin! : equality ? D : margin! - Math.abs(D);
   if (kind === "noninferiority" && E <= 0) throw new RangeError("Target power is not reachable under the specified hypotheses");
-  const critical = kind === "superiority" ? z(1 - alpha / sides) : equality ? z(1 - alpha / 2) : z(1 - alpha);
-  const zPower = equality || kind !== "equivalence" ? z(power ?? 0.8) : z(1 - (1 - (power ?? 0.8)) / 2);
+  // Pass the upper-tail probability directly. Forming 1 - tail loses relative precision
+  // when alpha is much smaller than machine epsilon near 1.
+  const critical = kind === "superiority" ? qnorm(alpha / sides, { lowerTail: false }) as number :
+    equality ? qnorm(alpha / 2, { lowerTail: false }) as number : qnorm(alpha, { lowerTail: false }) as number;
+  const targetPower = power ?? 0.8;
+  const zPower = equality || kind !== "equivalence"
+    ? qnorm(1 - targetPower, { lowerTail: false }) as number
+    : qnorm((1 - targetPower) / 2, { lowerTail: false }) as number;
   let nTreat: number;
   let nControl: number;
   let nTreatUnrounded: number;
@@ -312,6 +318,9 @@ function binomialMasses(n: number, p: number): number[] {
   const out = new Array<number>(n + 1).fill(0);
   if (p === 0) { out[0] = 1; return out; }
   if (p === 1) { out[n] = 1; return out; }
+  // Reflect probabilities above one half. The mode mass is then formed from
+  // log(p) and log1p(-p) without subtracting two O(n log n) terms.
+  if (p > 0.5) return binomialMasses(n, 1 - p).reverse();
   const mode = Math.floor((n + 1) * p);
   out[mode] = Math.exp((n * Math.log1p(-p)) + mode * Math.log(p / (1 - p)) +
     Array.from({ length: mode }, (_, i) => Math.log(n - i) - Math.log(i + 1)).reduce((a, b) => a + b, 0));
@@ -544,19 +553,31 @@ export interface SimonDesign extends SimonRow { qLo:number; qHi:number; }
  */
 export interface SimonDesignResult { out: SimonRow[]; minimax: SimonDesign; optimal: SimonDesign; admissible: SimonDesign[]; pu:number; pa:number; alpha:number; beta:number; nmax:number; warnings:string[]; }
 function cumulative(mass:readonly number[]):number[] {
-  const out=new Array<number>(mass.length); let sum=0;
-  for(let i=0;i<mass.length;i++){sum+=mass[i]!;out[i]=sum;}
+  const out=new Array<number>(mass.length); let sum=0,correction=0;
+  for(let i=0;i<mass.length;i++){
+    const y=mass[i]!-correction,t=sum+y;
+    correction=(t-sum)-y;sum=t;out[i]=sum;
+  }
   return out;
 }
-function designProb(r1:number,r:number,p0Stage1:readonly number[],p1Stage1:readonly number[],p0Stage2Cdf:readonly number[],p1Stage2Cdf:readonly number[]):[number,number] {
+function survival(mass:readonly number[]):number[] {
+  const out=new Array<number>(mass.length); let sum=0,correction=0;
+  for(let i=mass.length-1;i>=0;i--){
+    const y=mass[i]!-correction,t=sum+y;
+    correction=(t-sum)-y;sum=t;out[i]=sum;
+  }
+  return out;
+}
+function designProb(r1:number,r:number,p0Stage1:readonly number[],p1Stage1:readonly number[],p0Stage2Survival:readonly number[],p1Stage2Cdf:readonly number[]):[number,number] {
   let alpha=0,beta=0;
   // A trial that stops for futility after stage 1 is a type-II error under pa.
   beta = p1Stage1.slice(0, r1 + 1).reduce((sum, value) => sum + value, 0);
   for(let x=r1+1;x<p0Stage1.length;x++){
     const j=r-x;
-    const c0=j<0?0:p0Stage2Cdf[Math.min(j,p0Stage2Cdf.length-1)]!;
+    const c0=j<0?1:j+1>=p0Stage2Survival.length?0:p0Stage2Survival[j+1]!;
     const c1=j<0?0:p1Stage2Cdf[Math.min(j,p1Stage2Cdf.length-1)]!;
-    alpha += p0Stage1[x]!*(1-c0);
+    // Sum the upper tail directly: 1 - CDF(j) erases probabilities near machine epsilon.
+    alpha += p0Stage1[x]!*c0;
     beta += p1Stage1[x]!*c1;
   }
   return [alpha,beta];
@@ -581,14 +602,14 @@ export function ph2simon(pu:number,pa:number,ep1:number,ep2:number,options: {nma
   checkNumber(nmax,"nmax",(v)=>Number.isInteger(v)&&v>=1&&v<=1000,"nmax cannot exceed 1000");
   const masses0=Array.from({length:nmax+1},(_,size)=>binomialMasses(size,pu));
   const masses1=Array.from({length:nmax+1},(_,size)=>binomialMasses(size,pa));
-  const cdfs0=masses0.map(cumulative), cdfs1=masses1.map(cumulative);
+  const cdfs0=masses0.map(cumulative), cdfs1=masses1.map(cumulative),survivals0=masses0.map(survival);
   const out:SimonRow[]=[];
   for(let n=2;n<=nmax;n++){
     let best:SimonRow|undefined;
     for(let n1=1;n1<n && (best===undefined || n1<best.enP0);n1++){
       const n2=n-n1;
       const p0Stage1=masses0[n1]!, p1Stage1=masses1[n1]!;
-      const p0Stage2Cdf=cdfs0[n2]!, p1Stage2Cdf=cdfs1[n2]!;
+      const p1Stage2Cdf=cdfs1[n2]!;
       const p0Stage1Cdf=cdfs0[n1]!;
       for(let r1=0;r1<n1;r1++){
         const pet=p0Stage1Cdf[r1]!;
@@ -597,11 +618,11 @@ export function ph2simon(pu:number,pa:number,ep1:number,ep2:number,options: {nma
         let low=r1,high=n-1,rFound=-1;
         while(low<=high){
           const mid=Math.floor((low+high)/2);
-          const [,bAlt]=designProb(r1,mid,p0Stage1,p1Stage1,p0Stage2Cdf,p1Stage2Cdf);
+          const [,bAlt]=designProb(r1,mid,p0Stage1,p1Stage1,survivals0[n2]!,p1Stage2Cdf);
           if(bAlt<=ep2){rFound=mid;low=mid+1;} else high=mid-1;
         }
         if(rFound>=0){
-          const [a]=designProb(r1,rFound,p0Stage1,p1Stage1,p0Stage2Cdf,p1Stage2Cdf);
+          const [a]=designProb(r1,rFound,p0Stage1,p1Stage1,survivals0[n2]!,p1Stage2Cdf);
           if(a>ep1) rFound=-1;
         }
         if(rFound>=0 && (best===undefined || en<best.enP0)){
