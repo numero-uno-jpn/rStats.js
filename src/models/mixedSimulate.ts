@@ -186,14 +186,16 @@ export function simulateGlmer(fit: GlmerResult, options: MixedSimulateOptions = 
     const eta = conditionedAll ? fixedEta : addRandomEffects(fixedEta, s.z, effects[j]!);
     const mu = eta.map((v) => s.family.linkinv(v));
     if (s.family.family === "binomial") {
-      const size = s.size ?? s.weights;
-      if (s.size !== undefined) {
+      if (s.response?.length === 2) {
+        // A two-column cbind(successes, failures) response is returned as a pair of counts.
+        const size = s.size!;
         sims.push(mu.map((p, i) => {
           const success = rbinom1(size[i]!, p);
           return [success, size[i]! - success] as [number, number];
         }));
       } else {
-        sims.push(mu.map((p, i) => rbinom1(size[i]!, p) / size[i]!));
+        // A vector response (0/1 or proportions with prior trial weights) is returned as a proportion.
+        sims.push(mu.map((p, i) => rbinom1(s.weights[i]!, p) / s.weights[i]!));
       }
     } else if (s.family.family === "poisson") {
       sims.push(mu.map((m) => rpois1(m)));
