@@ -217,7 +217,7 @@ function profileAt(
     evaluate: (x) => {
       const f = valueAt(x);
       const g = x.map((v, j) => {
-        const h = 2e-5 * Math.max(1, Math.abs(v));
+        const h = (kind === "glmer" ? 1e-4 : 2e-5) * Math.max(1, Math.abs(v));
         const plus = x.slice();
         const minus = x.slice();
         plus[j] = v + h;
