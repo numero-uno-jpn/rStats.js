@@ -181,7 +181,8 @@ export function simulateGlmer(fit: GlmerResult, options: MixedSimulateOptions = 
   for (let j = 0; j < n; j++) effects.push(newEffects(s.terms, internals.theta, s.groups, selected, internals.b, 1));
   // R draws all random effects before discovering that inverse-Gaussian response simulation needs statmod.
   if (s.family.family === "inverse.gaussian") throw new Error("simulateGlmer: inverse.gaussian is not supported (R requires statmod)");
-  const sims: MixedSimulations = [];
+  const sims = [] as unknown as MixedSimulations;
+  sims.names = [];
   for (let j = 0; j < n; j++) {
     const eta = conditionedAll ? fixedEta : addRandomEffects(fixedEta, s.z, effects[j]!);
     const mu = eta.map((v) => s.family.linkinv(v));
