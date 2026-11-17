@@ -451,7 +451,8 @@ function confintLmerImpl(fit: LmerResult, options: MixedConfintOptions): MixedCo
     if (theta === undefined) return Infinity;
     const targetParameter = set.parameters[target]!;
     let structure: MixedModelStructure = s;
-    let reml = internals.reml;
+    // Public lme4 profile output for a REML fit is centred at the ML estimates for variance parameters as well.
+    const reml = false;
     if (targetParameter.kind === "beta") {
       const j = targetParameter.beta!;
       const delta = targetValue - internals.beta0[j]!;
@@ -462,8 +463,6 @@ function confintLmerImpl(fit: LmerResult, options: MixedConfintOptions): MixedCo
         xColNames: s.xColNames.filter((_, k) => k !== j),
         xAssign: s.xAssign.filter((_, k) => k !== j),
       };
-      // A fixed-effect profile uses the ML criterion, including for a fit originally estimated by REML.
-      reml = false;
     }
     const r = profiledDeviance(structure, theta, reml);
     const n = structure.y.length;
