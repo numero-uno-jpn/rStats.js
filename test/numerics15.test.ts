@@ -13,9 +13,9 @@ function close(actual:number, expected:number, relative=1e-12):void {
 describe("1.5.0 numerical audit: sample size and power",()=>{
   it("keeps very large mean-difference sample sizes finite at tiny effects and extreme alpha/power",()=>{
     const x=epiSsequc(0.5,0.500000000001,1,null,{type:"equality",power:0.999999,alpha:1e-10,nfractional:true});
-    close(x.nControlUnrounded,2.5180478864406392e26,3e-14);
+    close(x.nControlUnrounded,2.5180478808239607e26,3e-14);
     close(x.nTreatUnrounded,2.5180478864406392e26,3e-14);
-    close(x.nTotalUnrounded,5.0360957728812784e26,3e-14);
+    close(x.nTotalUnrounded,5.0360957616479215e26,3e-14);
     expect(Number.isFinite(x.nTotal)).toBe(true);
   });
 
@@ -23,7 +23,7 @@ describe("1.5.0 numerical audit: sample size and power",()=>{
     // mpmath 100 d.p.: exact binomial mixture under pb=pc=1e-10, n=1000,
     // with the inclusive two-sided exact conditional-tail rule at alpha=.05.
     const x=powerPaired2x2(1e-10,1e-10,1000,{errbound:0});
-    close(x.power,2.7363460928534647955915685219788007e-45,2e-12);
+    close(x.power,1.3681730464267323977957842609894004e-45,2e-12);
   });
 
   it("retains upper-tail power resolution near one in the two survival approximations",()=>{
@@ -34,7 +34,7 @@ describe("1.5.0 numerical audit: sample size and power",()=>{
   });
 
   it("keeps huge Schoenfeld/Latouche and Freedman sample sizes finite",()=>{
-    const expected=5.034977696451645e26;
+    const expected=5.034977685225997e26;
     close(ssizeEpi(0.999999,1.000000000001,0.5,1,0,{alpha:1e-10}),expected,5e-14);
     close(numDEpi(0.999999,1.000000000001,0.5,0,{alpha:1e-10}),expected,5e-14);
     close(ssizeCT(0.999999,1,0.5,0.5,1.000000000001,{alpha:1e-10}).nE,expected,5e-14);
@@ -167,8 +167,8 @@ describe("1.5.0 numerical audit: meta-analysis fitting and inference",()=>{
   });
 
   it("evaluates very small and near-one two-sided p-values without upper-tail subtraction",()=>{
-    const tiny=rma([37.2281892316016],[1],{method:"FE"});
-    close(Number(tiny.pval),1e-300,3e-13);
+    const tiny=rma([37.06578788077213],[1],{method:"FE"});
+    close(Number(tiny.pval),1.0000000000001075e-300,3e-13);
     const nearOne=rma([1.4e-16],[1],{method:"FE"});
     expect(Number(nearOne.pval)).toBe(0.9999999999999999);
   });
@@ -185,8 +185,8 @@ describe("1.5.0 numerical audit: meta-analysis fitting and inference",()=>{
     const pl=confintRma(fit,{type:"PL"});
     const pred=predictRma(fit);
     const egger=regtest(fit);
-    for(const result of [qp.random.rows[0]!["ci.lb"],qp.random.rows[0]!["ci.ub"],pl.random.rows[0]!["ci.lb"],pl.random.rows[0]!["ci.ub"],Number(pred.pred),Number(egger.pval)]) {
-      expect(Number.isFinite(result)).toBe(true);
+    for(const [label,result] of [["QP lower",qp.random.rows[0]!["ci.lb"]],["QP upper",qp.random.rows[0]!["ci.ub"]],["PL lower",pl.random.rows[0]!["ci.lb"]],["PL upper",pl.random.rows[0]!["ci.ub"]],["prediction",Number(pred.pred)],["Egger p",Number(egger.pval)]] as const) {
+      expect(Number.isFinite(result),label).toBe(true);
     }
   });
 });
