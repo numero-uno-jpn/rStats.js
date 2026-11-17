@@ -172,47 +172,47 @@
   "EpiOptions#summary": {
     "hash": "9b5cf86bb06c",
     "en": "Options shared by the epiR parallel-trial sample-size and power functions.",
-    "ja": ""
+    "ja": "epiR の並行群間試験のサンプルサイズと検出力の関数で共通に使うオプションです。"
   },
   "EpiOptions.alpha#summary": {
     "hash": "64bedbcd2cca",
     "en": "Significance level. Default 0.05.",
-    "ja": ""
+    "ja": "有意水準です。既定値は 0.05 です。"
   },
   "EpiOptions.n#summary": {
     "hash": "852a63f99e80",
     "en": "Total sample size; null/omitted when solving for sample size.",
-    "ja": ""
+    "ja": "総標本サイズです。標本サイズを求める場合は null または省略します。"
   },
   "EpiOptions.nfractional#summary": {
     "hash": "e4315dfef87f",
     "en": "Round each group size up separately. Default false.",
-    "ja": ""
+    "ja": "各群の標本サイズを個別に切り上げます。既定値は false です。"
   },
   "EpiOptions.power#summary": {
     "hash": "2f82ba5528b6",
     "en": "Target power; null/omitted when solving for power.",
-    "ja": ""
+    "ja": "目標検出力です。検出力を求める場合は null または省略します。"
   },
   "EpiOptions.r#summary": {
     "hash": "f08e2c965988",
     "en": "Treatment/control allocation ratio. Default 1.",
-    "ja": ""
+    "ja": "処置群/対照群の割付比です。既定値は 1 です。"
   },
   "EpiOptions.sidedTest#summary": {
     "hash": "eb2c3c4e6b29",
     "en": "Number of tails for superiority: 1 or 2. Default 1.",
-    "ja": ""
+    "ja": "優越性検定の片側・両側の別です。1 または 2 を指定します。既定値は 1 です。"
   },
   "EpiOptions.type#summary": {
     "hash": "825bd397b3a7",
     "en": "Equivalence or equality. Default \"equivalence\".",
-    "ja": ""
+    "ja": "同等性または等値性です。既定値は \"equivalence\" です。"
   },
   "EpiResult#summary": {
     "hash": "3aa116136c50",
     "en": "Sample-size and power result for an epiR parallel-trial design.",
-    "ja": ""
+    "ja": "epiR の並行群間試験デザインにおけるサンプルサイズと検出力の結果です。"
   },
   "EtaSquaredOptions#summary": {
     "hash": "dc3534b8cbee",
@@ -312,17 +312,17 @@
   "PowerPaired2x2Options#summary": {
     "hash": "617763c858d6",
     "en": "Options for the exact paired McNemar power calculation.",
-    "ja": ""
+    "ja": "対応のある 2 × 2 表の正確な McNemar 検定の検出力計算に使うオプションです。"
   },
   "PowerPaired2x2Options.errbound#summary": {
     "hash": "eb8a5aeedfa6",
     "en": "Probability budget omitted from the extreme tails of the discordant-pair count. Default 1e-6; zero uses all counts.",
-    "ja": ""
+    "ja": "不一致の組の数の極端な裾で省略する確率の上限です。既定値は 1e-6 です。0 の場合はすべての数を計算します。"
   },
   "PowerPaired2x2Result#summary": {
     "hash": "c05c06766e8d",
     "en": "Result of the exact paired McNemar power calculation.",
-    "ja": ""
+    "ja": "対応のある 2 × 2 表の正確な McNemar 検定の検出力計算の結果です。"
   },
   "PowerPropTestOptions#summary": {
     "hash": "f51b85eea165",
@@ -1202,27 +1202,27 @@
   "SSizeCTResult#summary": {
     "hash": "d2573e751fd2",
     "en": "Result of a Freedman clinical-trial sample-size calculation.",
-    "ja": ""
+    "ja": "Freedman 法による臨床試験のサンプルサイズ計算の結果です。"
   },
   "SimonDesign#summary": {
     "hash": "80f3c30bc481",
     "en": "A selected Simon design and its interval of q values.",
-    "ja": ""
+    "ja": "選択された Simon のデザインと q の区間です。"
   },
   "SimonDesignResult#summary": {
     "hash": "3a328cc5ef2b",
     "en": "Candidate designs and selected minimax, optimal and admissible Simon designs.",
-    "ja": ""
+    "ja": "候補デザインと、選択されたミニマックス、最適、許容可能な Simon のデザインです。"
   },
   "SimonRow#summary": {
     "hash": "f1682dff4852",
     "en": "A feasible two-stage Simon candidate.",
-    "ja": ""
+    "ja": "実行可能な Simon の 2 段階デザインの候補です。"
   },
   "SurvivalOptions#summary": {
     "hash": "97356d331fc1",
     "en": "Significance-level options for survival sample-size calculations.",
-    "ja": ""
+    "ja": "生存時間のサンプルサイズ計算で使う有意水準のオプションです。"
   },
   "cohenES(0)#@example": {
     "hash": "f2167be5edf2",
@@ -1257,227 +1257,227 @@
   "epiSsequb#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "epiSsequb#@param control": {
     "hash": "d2e09586709d",
     "en": "Expected control-group proportion.",
-    "ja": ""
+    "ja": "対照群で期待される比率です。"
   },
   "epiSsequb#@param delta": {
     "hash": "2d0f05db3a36",
     "en": "Equivalence margin; pass null for equality.",
-    "ja": ""
+    "ja": "同等性マージンです。等値性を指定する場合は null を渡します。"
   },
   "epiSsequb#@param options": {
     "hash": "f6854bb0dffd",
     "en": "Sample-size, power and allocation options.",
-    "ja": ""
+    "ja": "サンプルサイズ、検出力、割付に関するオプションです。"
   },
   "epiSsequb#@param treat": {
     "hash": "40a47f4348bf",
     "en": "Expected treatment-group proportion.",
-    "ja": ""
+    "ja": "処置群で期待される比率です。"
   },
   "epiSsequb#@returns": {
     "hash": "8f2ef2146c89",
     "en": "The fractional and requested group sizes, and power. The sample-size formula follows epiR's expression and is not an exact inverse of the TOST power calculation.",
-    "ja": ""
+    "ja": "小数の群サイズ、指定された群サイズ、検出力を返します。サンプルサイズの式は epiR の式に従い、TOST の検出力計算を厳密に逆算したものではありません。"
   },
   "epiSsequb#summary": {
     "hash": "4ea88d11b3a9",
     "en": "Equivalence/equality sample size or power for two proportions. Equivalent to `epiR::epi.ssequb()` in R.",
-    "ja": ""
+    "ja": "2 つの比率の同等性・等値性のサンプルサイズまたは検出力を計算します。R の `epiR::epi.ssequb()` と同等です。"
   },
   "epiSsequc#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "epiSsequc#@param control": {
     "hash": "839cf3f9e5d0",
     "en": "Expected control-group mean.",
-    "ja": ""
+    "ja": "対照群で期待される平均です。"
   },
   "epiSsequc#@param delta": {
     "hash": "2d0f05db3a36",
     "en": "Equivalence margin; pass null for equality.",
-    "ja": ""
+    "ja": "同等性マージンです。等値性を指定する場合は null を渡します。"
   },
   "epiSsequc#@param options": {
     "hash": "f6854bb0dffd",
     "en": "Sample-size, power and allocation options.",
-    "ja": ""
+    "ja": "サンプルサイズ、検出力、割付に関するオプションです。"
   },
   "epiSsequc#@param sigma": {
     "hash": "edc7907be505",
     "en": "Common standard deviation.",
-    "ja": ""
+    "ja": "共通の標準偏差です。"
   },
   "epiSsequc#@param treat": {
     "hash": "6ae7f8c682a5",
     "en": "Expected treatment-group mean.",
-    "ja": ""
+    "ja": "処置群で期待される平均です。"
   },
   "epiSsequc#@returns": {
     "hash": "8f2ef2146c89",
     "en": "The fractional and requested group sizes, and power. The sample-size formula follows epiR's expression and is not an exact inverse of the TOST power calculation.",
-    "ja": ""
+    "ja": "小数の群サイズ、指定された群サイズ、検出力を返します。サンプルサイズの式は epiR の式に従い、TOST の検出力計算を厳密に逆算したものではありません。"
   },
   "epiSsequc#summary": {
     "hash": "e03f3b608354",
     "en": "Equivalence/equality sample size or power for two means. Equivalent to `epiR::epi.ssequc()` in R.",
-    "ja": ""
+    "ja": "2 つの平均の同等性・等値性のサンプルサイズまたは検出力を計算します。R の `epiR::epi.ssequc()` と同等です。"
   },
   "epiSsninfb#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "epiSsninfb#@param control": {
     "hash": "d2e09586709d",
     "en": "Expected control-group proportion.",
-    "ja": ""
+    "ja": "対照群で期待される比率です。"
   },
   "epiSsninfb#@param delta": {
     "hash": "01f109337584",
     "en": "Non-inferiority margin.",
-    "ja": ""
+    "ja": "非劣性マージンです。"
   },
   "epiSsninfb#@param options": {
     "hash": "f6854bb0dffd",
     "en": "Sample-size, power and allocation options.",
-    "ja": ""
+    "ja": "サンプルサイズ、検出力、割付に関するオプションです。"
   },
   "epiSsninfb#@param treat": {
     "hash": "40a47f4348bf",
     "en": "Expected treatment-group proportion.",
-    "ja": ""
+    "ja": "処置群で期待される比率です。"
   },
   "epiSsninfb#@returns": {
     "hash": "a4803f6b44e4",
     "en": "The fractional and requested group sizes, and power.",
-    "ja": ""
+    "ja": "小数の群サイズ、指定された群サイズ、検出力を返します。"
   },
   "epiSsninfb#summary": {
     "hash": "073c70cad02b",
     "en": "Non-inferiority sample size or power for two proportions. Equivalent to `epiR::epi.ssninfb()` in R.",
-    "ja": ""
+    "ja": "2 つの比率の非劣性のサンプルサイズまたは検出力を計算します。R の `epiR::epi.ssninfb()` と同等です。"
   },
   "epiSsninfc#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "epiSsninfc#@param control": {
     "hash": "839cf3f9e5d0",
     "en": "Expected control-group mean.",
-    "ja": ""
+    "ja": "対照群で期待される平均です。"
   },
   "epiSsninfc#@param delta": {
     "hash": "01f109337584",
     "en": "Non-inferiority margin.",
-    "ja": ""
+    "ja": "非劣性マージンです。"
   },
   "epiSsninfc#@param options": {
     "hash": "f6854bb0dffd",
     "en": "Sample-size, power and allocation options.",
-    "ja": ""
+    "ja": "サンプルサイズ、検出力、割付に関するオプションです。"
   },
   "epiSsninfc#@param sigma": {
     "hash": "edc7907be505",
     "en": "Common standard deviation.",
-    "ja": ""
+    "ja": "共通の標準偏差です。"
   },
   "epiSsninfc#@param treat": {
     "hash": "6ae7f8c682a5",
     "en": "Expected treatment-group mean.",
-    "ja": ""
+    "ja": "処置群で期待される平均です。"
   },
   "epiSsninfc#@returns": {
     "hash": "a4803f6b44e4",
     "en": "The fractional and requested group sizes, and power.",
-    "ja": ""
+    "ja": "小数の群サイズ、指定された群サイズ、検出力を返します。"
   },
   "epiSsninfc#summary": {
     "hash": "1fdf86db2ead",
     "en": "Non-inferiority sample size or power for two means. Equivalent to `epiR::epi.ssninfc()` in R.",
-    "ja": ""
+    "ja": "2 つの平均の非劣性のサンプルサイズまたは検出力を計算します。R の `epiR::epi.ssninfc()` と同等です。"
   },
   "epiSssupb#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "epiSssupb#@param control": {
     "hash": "d2e09586709d",
     "en": "Expected control-group proportion.",
-    "ja": ""
+    "ja": "対照群で期待される比率です。"
   },
   "epiSssupb#@param delta": {
     "hash": "458435912dfc",
     "en": "Superiority margin.",
-    "ja": ""
+    "ja": "優越性マージンです。"
   },
   "epiSssupb#@param options": {
     "hash": "f6854bb0dffd",
     "en": "Sample-size, power and allocation options.",
-    "ja": ""
+    "ja": "サンプルサイズ、検出力、割付に関するオプションです。"
   },
   "epiSssupb#@param treat": {
     "hash": "40a47f4348bf",
     "en": "Expected treatment-group proportion.",
-    "ja": ""
+    "ja": "処置群で期待される比率です。"
   },
   "epiSssupb#@returns": {
     "hash": "a4803f6b44e4",
     "en": "The fractional and requested group sizes, and power.",
-    "ja": ""
+    "ja": "小数の群サイズ、指定された群サイズ、検出力を返します。"
   },
   "epiSssupb#summary": {
     "hash": "4e76cf11061f",
     "en": "Superiority sample size or power for two proportions. Equivalent to `epiR::epi.sssupb()` in R.",
-    "ja": ""
+    "ja": "2 つの比率の優越性のサンプルサイズまたは検出力を計算します。R の `epiR::epi.sssupb()` と同等です。"
   },
   "epiSssupc#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "epiSssupc#@param control": {
     "hash": "839cf3f9e5d0",
     "en": "Expected control-group mean.",
-    "ja": ""
+    "ja": "対照群で期待される平均です。"
   },
   "epiSssupc#@param delta": {
     "hash": "458435912dfc",
     "en": "Superiority margin.",
-    "ja": ""
+    "ja": "優越性マージンです。"
   },
   "epiSssupc#@param options": {
     "hash": "f6854bb0dffd",
     "en": "Sample-size, power and allocation options.",
-    "ja": ""
+    "ja": "サンプルサイズ、検出力、割付に関するオプションです。"
   },
   "epiSssupc#@param sigma": {
     "hash": "edc7907be505",
     "en": "Common standard deviation.",
-    "ja": ""
+    "ja": "共通の標準偏差です。"
   },
   "epiSssupc#@param treat": {
     "hash": "6ae7f8c682a5",
     "en": "Expected treatment-group mean.",
-    "ja": ""
+    "ja": "処置群で期待される平均です。"
   },
   "epiSssupc#@returns": {
     "hash": "a4803f6b44e4",
     "en": "The fractional and requested group sizes, and power.",
-    "ja": ""
+    "ja": "小数の群サイズ、指定された群サイズ、検出力を返します。"
   },
   "epiSssupc#summary": {
     "hash": "79fc7e414249",
     "en": "Superiority sample size or power for two means. Equivalent to `epiR::epi.sssupc()` in R.",
-    "ja": ""
+    "ja": "2 つの平均の優越性のサンプルサイズまたは検出力を計算します。R の `epiR::epi.sssupc()` と同等です。"
   },
   "epsilonSquared#@example": {
     "hash": "f2167be5edf2",
@@ -1542,42 +1542,42 @@
   "numDEpi#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "numDEpi#@param options": {
     "hash": "185f7c201574",
     "en": "Significance level.",
-    "ja": ""
+    "ja": "有意水準のオプションです。"
   },
   "numDEpi#@param p": {
     "hash": "27dadd604774",
     "en": "Prevalence of the binary covariate.",
-    "ja": ""
+    "ja": "2 値共変量の有病率です。"
   },
   "numDEpi#@param power": {
     "hash": "d57491aecb7f",
     "en": "Target power.",
-    "ja": ""
+    "ja": "目標検出力です。"
   },
   "numDEpi#@param rho2": {
     "hash": "407375f49e51",
     "en": "Squared correlation with another covariate.",
-    "ja": ""
+    "ja": "別の共変量との相関係数の二乗です。"
   },
   "numDEpi#@param theta": {
     "hash": "09ee495d9d39",
     "en": "Hazard ratio.",
-    "ja": ""
+    "ja": "ハザード比です。"
   },
   "numDEpi#@returns": {
     "hash": "3503510ee091",
     "en": "The integer number of events required.",
-    "ja": ""
+    "ja": "必要な事象数 (整数) を返します。"
   },
   "numDEpi#summary": {
     "hash": "1ddecd0f21ba",
     "en": "Schoenfeld/Latouche required event count. Equivalent to `powerSurvEpi::numDEpi.default()` in R.",
-    "ja": ""
+    "ja": "Schoenfeld・Latouche 法による必要事象数を計算します。R の `powerSurvEpi::numDEpi.default()` と同等です。"
   },
   "omegaSquared#@example": {
     "hash": "f2167be5edf2",
@@ -1592,42 +1592,42 @@
   "ph2simon#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "ph2simon#@param ep1": {
     "hash": "b62533084abe",
     "en": "Maximum type-I error at pu.",
-    "ja": ""
+    "ja": "pu における第 I 種の過誤率の上限です。"
   },
   "ph2simon#@param ep2": {
     "hash": "ff24f0bf3098",
     "en": "Maximum type-II error at pa.",
-    "ja": ""
+    "ja": "pa における第 II 種の過誤率の上限です。"
   },
   "ph2simon#@param options": {
     "hash": "7f9f62361648",
     "en": "Maximum total sample size, at most 1000.",
-    "ja": ""
+    "ja": "総標本サイズの上限を指定します。最大 1000 です。"
   },
   "ph2simon#@param pa": {
     "hash": "93a0630d515b",
     "en": "Desirable response rate.",
-    "ja": ""
+    "ja": "望ましい奏効率です。"
   },
   "ph2simon#@param pu": {
     "hash": "abe3f2474213",
     "en": "Unacceptable response rate.",
-    "ja": ""
+    "ja": "許容できない奏効率です。"
   },
   "ph2simon#@returns": {
     "hash": "6cc5575047f0",
     "en": "Candidate rows and structured minimax, optimal and admissible designs.",
-    "ja": ""
+    "ja": "候補行と、選択されたミニマックス、最適、許容可能なデザインを構造化データで返します。"
   },
   "ph2simon#summary": {
     "hash": "242331dc4934",
     "en": "Enumerates Simon's two-stage Phase II designs. Equivalent to `clinfun::ph2simon()` in R.",
-    "ja": ""
+    "ja": "Simon の第 II 相 2 段階デザインを列挙します。R の `clinfun::ph2simon()` と同等です。"
   },
   "powerAnovaTest#@example": {
     "hash": "f2167be5edf2",
@@ -1642,127 +1642,127 @@
   "powerCT#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "powerCT#@param RR": {
     "hash": "42093f45e415",
     "en": "Experimental/control hazard ratio.",
-    "ja": ""
+    "ja": "実験群/対照群のハザード比です。"
   },
   "powerCT#@param nC": {
     "hash": "dd5e54b5d13f",
     "en": "Control-group sample size.",
-    "ja": ""
+    "ja": "対照群の標本サイズです。"
   },
   "powerCT#@param nE": {
     "hash": "b117f74f4a9a",
     "en": "Experimental-group sample size.",
-    "ja": ""
+    "ja": "実験群の標本サイズです。"
   },
   "powerCT#@param options": {
     "hash": "185f7c201574",
     "en": "Significance level.",
-    "ja": ""
+    "ja": "有意水準のオプションです。"
   },
   "powerCT#@param pC": {
     "hash": "014055d4a5cd",
     "en": "Control-group event probability.",
-    "ja": ""
+    "ja": "対照群の事象確率です。"
   },
   "powerCT#@param pE": {
     "hash": "44a63f53d52d",
     "en": "Experimental-group event probability.",
-    "ja": ""
+    "ja": "実験群の事象確率です。"
   },
   "powerCT#@returns": {
     "hash": "cd222dab3750",
     "en": "The normal-approximation power.",
-    "ja": ""
+    "ja": "正規近似による検出力を返します。"
   },
   "powerCT#summary": {
     "hash": "baf772aa1502",
     "en": "Freedman clinical-trial power. Equivalent to `powerSurvEpi::powerCT.default()` in R.",
-    "ja": ""
+    "ja": "Freedman 法による臨床試験の検出力を計算します。R の `powerSurvEpi::powerCT.default()` と同等です。"
   },
   "powerEpi#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "powerEpi#@param n": {
     "hash": "78f4fe8c1871",
     "en": "Total sample size.",
-    "ja": ""
+    "ja": "総標本サイズです。"
   },
   "powerEpi#@param options": {
     "hash": "185f7c201574",
     "en": "Significance level.",
-    "ja": ""
+    "ja": "有意水準のオプションです。"
   },
   "powerEpi#@param p": {
     "hash": "27dadd604774",
     "en": "Prevalence of the binary covariate.",
-    "ja": ""
+    "ja": "2 値共変量の有病率です。"
   },
   "powerEpi#@param psi": {
     "hash": "29d8e67b2221",
     "en": "Event proportion.",
-    "ja": ""
+    "ja": "事象割合です。"
   },
   "powerEpi#@param rho2": {
     "hash": "407375f49e51",
     "en": "Squared correlation with another covariate.",
-    "ja": ""
+    "ja": "別の共変量との相関係数の二乗です。"
   },
   "powerEpi#@param theta": {
     "hash": "09ee495d9d39",
     "en": "Hazard ratio.",
-    "ja": ""
+    "ja": "ハザード比です。"
   },
   "powerEpi#@returns": {
     "hash": "cd222dab3750",
     "en": "The normal-approximation power.",
-    "ja": ""
+    "ja": "正規近似による検出力を返します。"
   },
   "powerEpi#summary": {
     "hash": "46b19a71d608",
     "en": "Schoenfeld/Latouche Cox-model power. Equivalent to `powerSurvEpi::powerEpi.default()` in R.",
-    "ja": ""
+    "ja": "Schoenfeld・Latouche 法による Cox モデルの検出力を計算します。R の `powerSurvEpi::powerEpi.default()` と同等です。"
   },
   "powerPaired2x2#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "powerPaired2x2#@param npairs": {
     "hash": "e92d6e2e0f5a",
     "en": "Number of pairs.",
-    "ja": ""
+    "ja": "組の数です。"
   },
   "powerPaired2x2#@param options": {
     "hash": "77442dc4a198",
     "en": "Test options. `errbound=0` evaluates the full sum; a positive value may omit extreme discordant-pair-count tails with total omitted probability no greater than `errbound`.",
-    "ja": ""
+    "ja": "検定のオプションです。`errbound=0` ではすべての和を計算します。正の値では、不一致の組の数の極端な裾を省略する場合があり、省略する確率の合計は `errbound` 以下です。"
   },
   "powerPaired2x2#@param pb": {
     "hash": "161b8748e5be",
     "en": "Probability of a discordant pair with control 0 and treatment 1.",
-    "ja": ""
+    "ja": "対照群が 0、処置群が 1 である不一致の組の確率です。"
   },
   "powerPaired2x2#@param pc": {
     "hash": "90cee4b86266",
     "en": "Probability of a discordant pair with control 1 and treatment 0.",
-    "ja": ""
+    "ja": "対照群が 1、処置群が 0 である不一致の組の確率です。"
   },
   "powerPaired2x2#@returns": {
     "hash": "3a34cff2e328",
     "en": "The power and test settings.",
-    "ja": ""
+    "ja": "検出力と検定の設定を返します。"
   },
   "powerPaired2x2#summary": {
     "hash": "1515cef0649b",
     "en": "Exact power of McNemar's test for paired binary outcomes. Equivalent to `exact2x2::powerPaired2x2()` in R.",
-    "ja": ""
+    "ja": "対応のある 2 値アウトカムに対する McNemar 検定の正確な検出力を計算します。R の `exact2x2::powerPaired2x2()` と同等です。"
   },
   "powerPropTest#@example": {
     "hash": "f2167be5edf2",
@@ -1887,91 +1887,91 @@
   "ssizeCT#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "ssizeCT#@param RR": {
     "hash": "42093f45e415",
     "en": "Experimental/control hazard ratio.",
-    "ja": ""
+    "ja": "実験群/対照群のハザード比です。"
   },
   "ssizeCT#@param k": {
     "hash": "257ca3a46e20",
     "en": "Experimental/control allocation ratio.",
-    "ja": ""
+    "ja": "実験群/対照群の割付比です。"
   },
   "ssizeCT#@param options": {
     "hash": "185f7c201574",
     "en": "Significance level.",
-    "ja": ""
+    "ja": "有意水準のオプションです。"
   },
   "ssizeCT#@param pC": {
     "hash": "014055d4a5cd",
     "en": "Control-group event probability.",
-    "ja": ""
+    "ja": "対照群の事象確率です。"
   },
   "ssizeCT#@param pE": {
     "hash": "44a63f53d52d",
     "en": "Experimental-group event probability.",
-    "ja": ""
+    "ja": "実験群の事象確率です。"
   },
   "ssizeCT#@param power": {
     "hash": "d57491aecb7f",
     "en": "Target power.",
-    "ja": ""
+    "ja": "目標検出力です。"
   },
   "ssizeCT#@returns": {
     "hash": "7d26ba8d5597",
     "en": "The integer sample sizes in the two groups.",
-    "ja": ""
+    "ja": "2 群の整数の標本サイズを返します。"
   },
   "ssizeCT#summary": {
     "hash": "c4e8c5ada32a",
     "en": "Freedman clinical-trial sample size. Equivalent to `powerSurvEpi::ssizeCT.default()` in R.",
-    "ja": ""
+    "ja": "Freedman 法による臨床試験のサンプルサイズを計算します。R の `powerSurvEpi::ssizeCT.default()` と同等です。"
   },
   "ssizeEpi#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "ssizeEpi#@param options": {
     "hash": "185f7c201574",
     "en": "Significance level.",
-    "ja": ""
+    "ja": "有意水準のオプションです。"
   },
   "ssizeEpi#@param p": {
     "hash": "27dadd604774",
     "en": "Prevalence of the binary covariate.",
-    "ja": ""
+    "ja": "2 値共変量の有病率です。"
   },
   "ssizeEpi#@param power": {
     "hash": "d57491aecb7f",
     "en": "Target power.",
-    "ja": ""
+    "ja": "目標検出力です。"
   },
   "ssizeEpi#@param psi": {
     "hash": "29d8e67b2221",
     "en": "Event proportion.",
-    "ja": ""
+    "ja": "事象割合です。"
   },
   "ssizeEpi#@param rho2": {
     "hash": "407375f49e51",
     "en": "Squared correlation with another covariate.",
-    "ja": ""
+    "ja": "別の共変量との相関係数の二乗です。"
   },
   "ssizeEpi#@param theta": {
     "hash": "09ee495d9d39",
     "en": "Hazard ratio.",
-    "ja": ""
+    "ja": "ハザード比です。"
   },
   "ssizeEpi#@returns": {
     "hash": "615cb9e9c98e",
     "en": "The integer total sample size.",
-    "ja": ""
+    "ja": "総標本サイズ (整数) を返します。"
   },
   "ssizeEpi#summary": {
     "hash": "775fa47f4c50",
     "en": "Schoenfeld/Latouche total sample size. Equivalent to `powerSurvEpi::ssizeEpi.default()` in R.",
-    "ja": ""
+    "ja": "Schoenfeld・Latouche 法による総標本サイズを計算します。R の `powerSurvEpi::ssizeEpi.default()` と同等です。"
   }
 }
