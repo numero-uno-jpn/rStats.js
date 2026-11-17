@@ -71,6 +71,11 @@ function makeFit(c: SimCase): { fit: ReturnType<typeof lmer> | ReturnType<typeof
   return { kind: "glmer", fit: glmer(formula, data, options) };
 }
 
+function asArray<T>(value: unknown): T[] {
+  if (value === null || value === undefined) return [];
+  return (Array.isArray(value) ? value : [value]) as T[];
+}
+
 function missingValue(value: unknown): boolean {
   return value === null || value === undefined || value === "NA";
 }
@@ -109,6 +114,10 @@ function applyReferenceFit(
   const structure = kind === "lmer" ? lmerInternals(fit as ReturnType<typeof lmer>).structure : glmerInternals(fit as ReturnType<typeof glmer>).structure;
   const sigma = num(reference.sigma);
   const vc = reference.varCorr.columns;
+  const grp = asArray<string>(vc.grp);
+  const var1 = asArray<string>(vc.var1);
+  const var2 = asArray<string | null>(vc.var2);
+  const sdcor = asArray<string>(vc.sdcor);
   const ranef = reference.ranef;
   const theta = new Array<number>(structure.theta.length).fill(0);
   const b = new Array<number>(structure.q).fill(0);
@@ -116,17 +125,17 @@ function applyReferenceFit(
     const group = structure.groups[term.group]!.name;
     const nc = term.columns.length;
     const sd = term.columns.map((column) => {
-      const index = vc.grp!.findIndex((g, i) => g === group && vc.var1![i] === column && missingValue(vc.var2![i]));
+      const index = grp.findIndex((g, i) => g === group && var1[i] === column && missingValue(var2[i]));
       if (index < 0) throw new Error(`R fixture lacks VarCorr SD for ${group}:${column}`);
-      return num(vc.sdcor![index] as string);
+      return num(sdcor[index]!);
     });
     const correlation: number[][] = Array.from({ length: nc }, (_, i) => Array.from({ length: nc }, (_, j) => (i === j ? 1 : 0)));
-    for (let i = 0; i < (vc.grp?.length ?? 0); i++) {
-      if (vc.grp![i] !== group || missingValue(vc.var2![i])) continue;
-      const row = term.columns.indexOf(vc.var1![i] as string);
-      const column = term.columns.indexOf(vc.var2![i] as string);
+    for (let i = 0; i < grp.length; i++) {
+      if (grp[i] !== group || missingValue(var2[i])) continue;
+      const row = term.columns.indexOf(var1[i]!);
+      const column = term.columns.indexOf(var2[i]!);
       if (row >= 0 && column >= 0) {
-        const value = num(vc.sdcor![i] as string);
+        const value = num(sdcor[i]!);
         correlation[row]![column] = value;
         correlation[column]![row] = value;
       }
@@ -143,7 +152,7 @@ function applyReferenceFit(
       for (let j = 0; j < nc; j++) {
         const values = groupRanef.columns[term.columns[j]!];
         if (values === undefined) throw new Error(`R fixture lacks ranef column ${group}:${term.columns[j]}`);
-        const row = groupRanef.rowNames.indexOf(structure.groups[term.group]!.levels[level]!);
+        const row = asArray<string>(groupRanef.rowNames).indexOf(structure.groups[term.group]!.levels[level]!);
         if (row < 0) throw new Error(`R fixture lacks ranef level ${group}:${structure.groups[term.group]!.levels[level]}`);
         b[term.zOffset + level * nc + j] = num(values[row]!);
       }
@@ -163,9 +172,9 @@ function applyReferenceFit(
       levels: [...group.levels],
       columns: terms.flatMap((term) => term.columns),
       values: group.levels.map((levelName) => {
-        const row = source.rowNames.indexOf(levelName);
+        const row = asArray<string>(source.rowNames).indexOf(levelName);
         if (row < 0) throw new Error(`R fixture lacks ranef level ${group.name}:${levelName}`);
-        return terms.flatMap((term) => term.columns.map((column) => num(source.columns[column]![row]!)));
+        return terms.flatMap((term) => term.columns.map((column) => num(asArray<string>(source.columns[column])[row]!)));
       }),
     };
   });
@@ -173,16 +182,16 @@ function applyReferenceFit(
     const internal = lmerInternals(fit as ReturnType<typeof lmer>);
     internal.theta = theta;
     internal.b = b;
-    fit.fitted = reference.fitted.map((v) => num(v));
+    fit.fitted = asArray<string>(reference.fitted).map((v) => num(v));
   } else {
     if (reference.eta === undefined) throw new Error("R fixture lacks the GLMM linear predictor");
     const internal = glmerInternals(fit as ReturnType<typeof glmer>);
     internal.theta = theta;
     internal.b = b;
-    internal.eta = reference.eta.map((v) => num(v));
-    internal.mu = reference.fitted.map((v) => num(v));
+    internal.eta = asArray<string>(reference.eta).map((v) => num(v));
+    internal.mu = asArray<string>(reference.fitted).map((v) => num(v));
     fit.fitted = reference.fitted.map((v) => num(v));
-    (fit as ReturnType<typeof glmer>).linearPredictor = reference.eta.map((v) => num(v));
+    (fit as ReturnType<typeof glmer>).linearPredictor = asArray<string>(reference.eta).map((v) => num(v));
   }
 }
 
