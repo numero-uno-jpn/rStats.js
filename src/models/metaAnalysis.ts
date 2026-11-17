@@ -519,7 +519,9 @@ export function confintRma(object:RmaResult,options:ConfintRmaOptions={}):{rando
     const ll=(t:number)=>weightedFit(object.yi,object.vi,object.mods,t).logLik;
     const target=(t:number)=>2*(fit.logLik-ll(t))-cutoff;
     if(object.tau2>0){
-      lo=root(target,0,object.tau2);
+      // If tau²=0 is inside the likelihood-ratio confidence set, the lower
+      // endpoint is the boundary itself, not a root between 0 and the estimate.
+      lo=target(0)<=0?0:root(target,0,object.tau2);
       let upper=Math.max(object.tau2*2,1e-8),value=target(upper);
       for(let i=0;i<80&&value<0;i++){upper*=2;value=target(upper);}
       hi=value>=0?root(target,object.tau2,upper):NaN;
