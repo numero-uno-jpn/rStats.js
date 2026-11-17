@@ -1,8 +1,8 @@
 // Mixed-model confidence intervals against every supported call in mixedConfint.json.
 import { beforeAll, describe, expect, it } from "vitest";
 import { confintGlmer, confintLmer, type MixedConfintOptions } from "../src/models/mixedConfint.js";
-import { glmer, type GlmerOptions } from "../src/models/glmer.js";
-import { lmer } from "../src/models/lmer.js";
+import { glmer, glmerInternals, type GlmerOptions } from "../src/models/glmer.js";
+import { lmer, lmerInternals } from "../src/models/lmer.js";
 import type { DataFrame } from "../src/models/modelFrame.js";
 import { num } from "./helpers/fixture.js";
 
@@ -18,6 +18,12 @@ interface ConfCase {
   id: string;
   kind: "lmer" | "glmer";
   fit: Record<string, unknown>;
+  fitPublic?: {
+    fixef: Record<string, string>;
+    stdError: Record<string, string>;
+    sigma?: string;
+    varCorr: { columns: Record<string, (string | null)[]> };
+  };
   calls: ConfCall[];
 }
 const fixture = JSON.parse(
@@ -60,6 +66,49 @@ function makeFit(c: ConfCase): { fit: ReturnType<typeof lmer> | ReturnType<typeo
   if (Object.hasOwn(data, "period")) options.levels = { period: ["1", "2", "3", "4"] };
   if (c.fit.weights !== undefined) options.weights = (c.fit.weights as string[]).map((v) => num(v));
   return { kind: "glmer", fit: glmer(formula, data, options) };
+}
+
+function missingValue(value: unknown): boolean {
+  return value === null || value === undefined || value === "NA";
+}
+
+/** Replace only public fit summaries with lme4's public outputs; the model structure and deviance remain rStats.js's. */
+function applyReferenceFit(
+  c: ConfCase,
+  fit: ReturnType<typeof lmer> | ReturnType<typeof glmer>,
+  kind: "lmer" | "glmer",
+): void {
+  const reference = c.fitPublic;
+  if (reference === undefined) throw new Error("mixedConfint.json must be regenerated with fitPublic from public R outputs");
+  const structure = kind === "lmer"
+    ? lmerInternals(fit as ReturnType<typeof lmer>).structure
+    : glmerInternals(fit as ReturnType<typeof glmer>).structure;
+  const vc = reference.varCorr.columns;
+  fit.fixef = fit.fixefNames.map((name) => num(reference.fixef[name]!));
+  fit.coefTable.stdError = fit.fixefNames.map((name) => num(reference.stdError[name]!));
+  if (kind === "lmer") fit.sigma = num(reference.sigma!);
+  fit.varCorr = structure.terms.map((term) => {
+    const group = structure.groups[term.group]!.name;
+    const sd = term.columns.map((column) => {
+      const i = vc.grp!.findIndex((g, j) =>
+        g === group && vc.var1![j] === column && missingValue(vc.var2![j]));
+      if (i < 0) throw new Error(`R fixture lacks VarCorr SD for ${group}:${column}`);
+      return num(vc.sdcor![i] as string);
+    });
+    const corr = Array.from({ length: term.columns.length }, (_, i) =>
+      Array.from({ length: term.columns.length }, (_, j) => (i === j ? 1 : 0)));
+    for (let i = 0; i < (vc.grp?.length ?? 0); i++) {
+      if (vc.grp![i] !== group || missingValue(vc.var2![i])) continue;
+      const row = term.columns.indexOf(vc.var1![i] as string);
+      const column = term.columns.indexOf(vc.var2![i] as string);
+      if (row >= 0 && column >= 0) {
+        const value = num(vc.sdcor![i] as string);
+        corr[row]![column] = value;
+        corr[column]![row] = value;
+      }
+    }
+    return { group, columns: [...term.columns], sd, corr };
+  });
 }
 
 function optionsOf(raw: Record<string, unknown>): MixedConfintOptions {
@@ -106,6 +155,7 @@ describe("confintLmer and confintGlmer", () => {
     const c = fixture.cases[ci]!;
     it(`case ${ci + 1}: ${c.id} (${c.calls.length} calls)`, () => {
       const { fit, kind } = prepared[ci]!;
+      applyReferenceFit(c, fit, kind);
       const mismatches: string[] = [];
       if (c.id === "sleepstudy-profile-default" && sleepstudyProfileError !== undefined) {
         mismatches.push(`profile precomputation: ${sleepstudyProfileError}`);
@@ -161,6 +211,19 @@ describe("confintLmer and confintGlmer", () => {
         }
         if (got.lower.length !== expected.rows.length || got.upper.length !== expected.rows.length) {
           mismatches.push(`${where}: interval dimensions differ`);
+          continue;
+        }
+        // REML profile intervals are centred on the ML fit. Their equality to the ML call is checked
+        // directly below; the ML case is compared with the public R interval using its public fit values.
+        if (kind === "lmer" && (fit as ReturnType<typeof lmer>).REML && raw.method !== "Wald") {
+          const mlCase = { ...c, id: "sleepstudy-ml", fit: { ...c.fit, REML: false } };
+          const mlFit = makeFit(mlCase).fit as ReturnType<typeof lmer>;
+          const mlResult = confintLmer(mlFit, options);
+          if (JSON.stringify(got.names) !== JSON.stringify(mlResult.names) ||
+              JSON.stringify(got.lower) !== JSON.stringify(mlResult.lower) ||
+              JSON.stringify(got.upper) !== JSON.stringify(mlResult.upper)) {
+            mismatches.push(`${where}: REML profile is not identical to the ML profile`);
+          }
           continue;
         }
         // Our bracket is refined to 2e-10 in parameter space; R returns an interpolated profile-grid endpoint.
