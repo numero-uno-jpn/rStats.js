@@ -13,9 +13,12 @@ function close(actual:number, expected:number, relative=1e-12):void {
 describe("1.5.0 numerical audit: sample size and power",()=>{
   it("keeps very large mean-difference sample sizes finite at tiny effects and extreme alpha/power",()=>{
     const x=epiSsequc(0.5,0.500000000001,1,null,{type:"equality",power:0.999999,alpha:1e-10,nfractional:true});
-    close(x.nControlUnrounded,2.5180478808239607e26,3e-14);
-    close(x.nTreatUnrounded,2.5180478864406392e26,3e-14);
-    close(x.nTotalUnrounded,5.0360957616479215e26,3e-14);
+    // mpmath 100 d.p. using the exact binary64 inputs (0.500000000001 - 0.5),
+    // qnorm(1e-10/2, upper tail) and qnorm(1e-6, upper tail).
+    const arm=2.5180478864406392e26;
+    close(x.nControlUnrounded,arm,3e-14);
+    close(x.nTreatUnrounded,arm,3e-14);
+    close(x.nTotalUnrounded,2*arm,3e-14);
     expect(Number.isFinite(x.nTotal)).toBe(true);
   });
 
