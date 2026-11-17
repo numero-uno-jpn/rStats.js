@@ -2,8 +2,8 @@
 
 rStats.js gives JavaScript the numerical core of R: probability distributions, random numbers that match R's
 `set.seed()`, descriptive statistics, hypothesis tests, linear, generalized linear and (generalized) linear mixed models with
-robust covariances, survival analysis, diagnostic accuracy and method comparison, linear algebra and numerical
-methods. Function names and results follow R, and the functions are tested
+robust covariances, survival analysis, trial-design sample-size and power calculations, meta-analysis and meta-regression,
+diagnostic accuracy and method comparison, linear algebra and numerical methods. Function names and results follow R, and the functions are tested
 against R (to a relative 1e-14 for distributions and 1e-12 for tests and models; see
 [accuracy](https://numero-uno-jpn.github.io/rStats.js/docs/accuracy.html)) or against high-precision references
 (where R itself is inaccurate, or has no such function).
@@ -64,8 +64,8 @@ Where R's name is a reserved word of JavaScript or too general to export, the na
 
 The methods of the models other than `lm` (R's `summary`, `predict`, `anova`, ... of a fit) carry the model's name in
 front: `glmSummary`, `glmPredict`, `lmerSummary`, `lmerAnova`, `glmerSummary`, `glmerPredict`, `coxZph`,
-`survregPredict`, `survregResiduals`. The exception is `predictCrr` (R's `predict.crr`). The methods without a prefix
-(`predict`, `confint`, `anova`) are those of `lm`.
+`survregPredict`, `survregResiduals`, `confintRma` and `predictRma`. The exception is `predictCrr` (R's `predict.crr`). The methods without a prefix
+(`predict`, `confint`, `anova`) are those of `lm`. `rma`'s methods are `confintRma` and `predictRma`.
 
 ### Arguments
 
