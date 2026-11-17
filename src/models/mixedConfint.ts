@@ -204,7 +204,10 @@ function profileAt(
   target: number,
   targetValue: number,
 ): number {
-  const free = parameters.map((p, i) => (i === target || (kind === "lmer" && p.kind === "beta") ? -1 : i)).filter((i) => i >= 0);
+  const targetKind = parameters[target]!.kind;
+  const free = parameters.map((p, i) =>
+    i === target || (kind === "lmer" && (p.kind === "beta" || (targetKind !== "sigma" && p.kind === "sigma"))) ? -1 : i,
+  ).filter((i) => i >= 0);
   const start = free.map((i) => transform(parameters[i]!));
   const valueAt = (x: readonly number[]): number => {
     const values = parameters.map((p) => p.value);
@@ -460,6 +463,7 @@ function confintLmerImpl(fit: LmerResult, options: MixedConfintOptions): MixedCo
       reml = false;
     }
     const r = profiledDeviance(structure, theta, reml);
+    if (targetParameter.kind !== "sigma") return r.deviance;
     const n = structure.y.length;
     const p = structure.xColNames.length;
     const df = reml ? n - p : n;
