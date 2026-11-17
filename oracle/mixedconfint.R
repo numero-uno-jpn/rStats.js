@@ -45,6 +45,20 @@ fit_record <- function(a) {
   json_value(out)
 }
 
+# Public fitted quantities used by the JS tests to separate interval calculations from the
+# independent optimiser. No model slots, closures, or package internals are inspected.
+fit_public_record <- function(fit, kind) {
+  fixed <- lme4::fixef(fit)
+  coefficient_table <- coef(summary(fit))
+  out <- list(
+    fixef=json_value(fixed),
+    stdError=json_value(coefficient_table[, "Std. Error"]),
+    varCorr=json_value(as.data.frame(VarCorr(fit)))
+  )
+  if (kind == "lmer") out$sigma <- num2str(sigma(fit))[1]
+  out
+}
+
 capture <- function(f) {
   warnings <- character(0); messages <- character(0)
   value <- tryCatch(withCallingHandlers(f(),
@@ -118,6 +132,7 @@ rows <- lapply(cases, function(case) {
     list(args=json_value(call_args), result=result)
   })
   list(id=case$id, kind=case$kind, fit=fit_record(case$fit),
+       fitPublic=fit_public_record(fit, case$kind),
        fitWarnings=fit_result$warnings, fitMessages=fit_result$messages, calls=calls)
 })
 
