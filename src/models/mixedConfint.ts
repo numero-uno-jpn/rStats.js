@@ -257,21 +257,28 @@ function profileLimit(
   if (boundary !== undefined && estimate === boundary) return boundary;
   const at = (x: number): number => profile(x) - cutoff;
   let inside = estimate;
-  let outside = estimate + direction * Math.max(parameter.kind === "beta" ? 0.25 : Math.abs(estimate) * 0.2, 0.05);
+  let step = Math.max(parameter.kind === "beta" ? 0.25 : Math.abs(estimate) * 0.2, 0.05);
+  let outside = estimate + direction * step;
   if (boundary !== undefined) outside = direction < 0 ? Math.max(boundary, outside) : Math.min(boundary, outside);
-  let fInside = at(inside);
+  const fInside = at(inside);
+  if (!Number.isFinite(fInside) || !(fInside < 0)) return NaN;
   let fOutside = at(outside);
-  for (let i = 0; i < 18 && !(fOutside >= 0); i++) {
+  // A failed nuisance minimisation is not evidence that the profile crossed the cutoff. Move closer until
+  // the profile is finite; only finite values below the cutoff justify expanding the bracket.
+  for (let i = 0; i < 36 && !(Number.isFinite(fOutside) && fOutside >= 0); i++) {
     if (boundary !== undefined && outside === boundary) {
       return (parameter.kind === "sd" || parameter.kind === "sigma") && direction < 0 ? boundary : NaN;
     }
-    const step = Math.abs(outside - inside) * 1.8;
+    const previous = outside;
+    step = Number.isFinite(fOutside) ? step * 1.8 : step * 0.5;
     outside = estimate + direction * step;
     if (boundary !== undefined) outside = direction < 0 ? Math.max(boundary, outside) : Math.min(boundary, outside);
+    if (outside === previous || outside === inside) break;
     fOutside = at(outside);
   }
-  if (!(fOutside >= 0)) return (parameter.kind === "sd" || parameter.kind === "sigma") && direction < 0 ? 0 : NaN;
-  if (!(fInside < 0)) return NaN;
+  if (!Number.isFinite(fOutside) || !(fOutside >= 0)) {
+    return (parameter.kind === "sd" || parameter.kind === "sigma") && direction < 0 ? 0 : NaN;
+  }
   // Illinois' safeguarded secant method usually needs far fewer profile minimisations than bisection.
   // The bracket is retained; a bisection fallback guarantees the requested endpoint precision.
   let a = inside;
@@ -288,8 +295,12 @@ function profileLimit(
     if (!Number.isFinite(candidate) || candidate <= low + margin || candidate >= high - margin) {
       candidate = a + (b - a) / 2;
     }
-    const fc = at(candidate);
-    if (!Number.isFinite(fc)) return NaN;
+    let fc = at(candidate);
+    if (!Number.isFinite(fc)) {
+      candidate = a + (b - a) / 2;
+      fc = at(candidate);
+      if (!Number.isFinite(fc)) return NaN;
+    }
     if (fc === 0) return candidate;
     if (fc >= 0) {
       b = candidate;
@@ -388,7 +399,7 @@ function finish(
     const z = qnorm((1 + level) / 2) as number;
     parameters.forEach((p, i) => {
       if (p.kind !== "beta") return;
-      const se = standardErrors[i]!;
+      const se = standardErrors[p.beta!]!;
       lowerAll[i] = p.value - z * se;
       upperAll[i] = p.value + z * se;
     });
