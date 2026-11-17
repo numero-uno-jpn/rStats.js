@@ -172,7 +172,7 @@
   "EpiOptions#summary": {
     "hash": "9b5cf86bb06c",
     "en": "Options shared by the epiR parallel-trial sample-size and power functions.",
-    "ja": "epiR の並行群間試験のサンプルサイズと検出力の関数で共通に使うオプションです。"
+    "ja": "epiR の並行群間試験の標本サイズと検出力の関数で共通に使うオプションです。"
   },
   "EpiOptions.alpha#summary": {
     "hash": "64bedbcd2cca",
@@ -212,7 +212,7 @@
   "EpiResult#summary": {
     "hash": "3aa116136c50",
     "en": "Sample-size and power result for an epiR parallel-trial design.",
-    "ja": "epiR の並行群間試験デザインにおけるサンプルサイズと検出力の結果です。"
+    "ja": "epiR の並行群間試験デザインにおける標本サイズと検出力の結果です。"
   },
   "EtaSquaredOptions#summary": {
     "hash": "dc3534b8cbee",
@@ -1202,7 +1202,7 @@
   "SSizeCTResult#summary": {
     "hash": "d2573e751fd2",
     "en": "Result of a Freedman clinical-trial sample-size calculation.",
-    "ja": "Freedman 法による臨床試験のサンプルサイズ計算の結果です。"
+    "ja": "Freedman 法による臨床試験の標本サイズ計算の結果です。"
   },
   "SimonDesign#summary": {
     "hash": "80f3c30bc481",
@@ -1222,7 +1222,7 @@
   "SurvivalOptions#summary": {
     "hash": "97356d331fc1",
     "en": "Significance-level options for survival sample-size calculations.",
-    "ja": "生存時間のサンプルサイズ計算で使う有意水準のオプションです。"
+    "ja": "生存時間の標本サイズ計算で使う有意水準のオプションです。"
   },
   "cohenES(0)#@example": {
     "hash": "f2167be5edf2",
@@ -1272,7 +1272,7 @@
   "epiSsequb#@param options": {
     "hash": "f6854bb0dffd",
     "en": "Sample-size, power and allocation options.",
-    "ja": "サンプルサイズ、検出力、割付に関するオプションです。"
+    "ja": "標本サイズ、検出力、割付に関するオプションです。"
   },
   "epiSsequb#@param treat": {
     "hash": "40a47f4348bf",
@@ -1282,12 +1282,12 @@
   "epiSsequb#@returns": {
     "hash": "8f2ef2146c89",
     "en": "The fractional and requested group sizes, and power. The sample-size formula follows epiR's expression and is not an exact inverse of the TOST power calculation.",
-    "ja": "小数の群サイズ、指定された群サイズ、検出力を返します。サンプルサイズの式は epiR の式に従い、TOST の検出力計算を厳密に逆算したものではありません。"
+    "ja": "小数の群サイズ、指定された群サイズ、検出力を返します。標本サイズの式は epiR の式に従い、TOST の検出力計算を厳密に逆算したものではありません。"
   },
   "epiSsequb#summary": {
     "hash": "4ea88d11b3a9",
     "en": "Equivalence/equality sample size or power for two proportions. Equivalent to `epiR::epi.ssequb()` in R.",
-    "ja": "2 つの比率の同等性・等値性のサンプルサイズまたは検出力を計算します。R の `epiR::epi.ssequb()` と同等です。"
+    "ja": "2 つの比率の同等性・等値性の標本サイズまたは検出力を計算します。R の `epiR::epi.ssequb()` と同等です。"
   },
   "epiSsequc#@example": {
     "hash": "f2167be5edf2",
@@ -1307,7 +1307,7 @@
   "epiSsequc#@param options": {
     "hash": "f6854bb0dffd",
     "en": "Sample-size, power and allocation options.",
-    "ja": "サンプルサイズ、検出力、割付に関するオプションです。"
+    "ja": "標本サイズ、検出力、割付に関するオプションです。"
   },
   "epiSsequc#@param sigma": {
     "hash": "edc7907be505",
@@ -1322,12 +1322,12 @@
   "epiSsequc#@returns": {
     "hash": "8f2ef2146c89",
     "en": "The fractional and requested group sizes, and power. The sample-size formula follows epiR's expression and is not an exact inverse of the TOST power calculation.",
-    "ja": "小数の群サイズ、指定された群サイズ、検出力を返します。サンプルサイズの式は epiR の式に従い、TOST の検出力計算を厳密に逆算したものではありません。"
+    "ja": "小数の群サイズ、指定された群サイズ、検出力を返します。標本サイズの式は epiR の式に従い、TOST の検出力計算を厳密に逆算したものではありません。"
   },
   "epiSsequc#summary": {
     "hash": "e03f3b608354",
     "en": "Equivalence/equality sample size or power for two means. Equivalent to `epiR::epi.ssequc()` in R.",
-    "ja": "2 つの平均の同等性・等値性のサンプルサイズまたは検出力を計算します。R の `epiR::epi.ssequc()` と同等です。"
+    "ja": "2 つの平均の同等性・等値性の標本サイズまたは検出力を計算します。R の `epiR::epi.ssequc()` と同等です。"
   },
   "epiSsninfb#@example": {
     "hash": "f2167be5edf2",
@@ -1347,7 +1347,7 @@
   "epiSsninfb#@param options": {
     "hash": "f6854bb0dffd",
     "en": "Sample-size, power and allocation options.",
-    "ja": "サンプルサイズ、検出力、割付に関するオプションです。"
+    "ja": "標本サイズ、検出力、割付に関するオプションです。"
   },
   "epiSsninfb#@param treat": {
     "hash": "40a47f4348bf",
@@ -1362,7 +1362,7 @@
   "epiSsninfb#summary": {
     "hash": "073c70cad02b",
     "en": "Non-inferiority sample size or power for two proportions. Equivalent to `epiR::epi.ssninfb()` in R.",
-    "ja": "2 つの比率の非劣性のサンプルサイズまたは検出力を計算します。R の `epiR::epi.ssninfb()` と同等です。"
+    "ja": "2 つの比率の非劣性の標本サイズまたは検出力を計算します。R の `epiR::epi.ssninfb()` と同等です。"
   },
   "epiSsninfc#@example": {
     "hash": "f2167be5edf2",
@@ -1382,7 +1382,7 @@
   "epiSsninfc#@param options": {
     "hash": "f6854bb0dffd",
     "en": "Sample-size, power and allocation options.",
-    "ja": "サンプルサイズ、検出力、割付に関するオプションです。"
+    "ja": "標本サイズ、検出力、割付に関するオプションです。"
   },
   "epiSsninfc#@param sigma": {
     "hash": "edc7907be505",
@@ -1402,7 +1402,7 @@
   "epiSsninfc#summary": {
     "hash": "1fdf86db2ead",
     "en": "Non-inferiority sample size or power for two means. Equivalent to `epiR::epi.ssninfc()` in R.",
-    "ja": "2 つの平均の非劣性のサンプルサイズまたは検出力を計算します。R の `epiR::epi.ssninfc()` と同等です。"
+    "ja": "2 つの平均の非劣性の標本サイズまたは検出力を計算します。R の `epiR::epi.ssninfc()` と同等です。"
   },
   "epiSssupb#@example": {
     "hash": "f2167be5edf2",
@@ -1422,7 +1422,7 @@
   "epiSssupb#@param options": {
     "hash": "f6854bb0dffd",
     "en": "Sample-size, power and allocation options.",
-    "ja": "サンプルサイズ、検出力、割付に関するオプションです。"
+    "ja": "標本サイズ、検出力、割付に関するオプションです。"
   },
   "epiSssupb#@param treat": {
     "hash": "40a47f4348bf",
@@ -1437,7 +1437,7 @@
   "epiSssupb#summary": {
     "hash": "4e76cf11061f",
     "en": "Superiority sample size or power for two proportions. Equivalent to `epiR::epi.sssupb()` in R.",
-    "ja": "2 つの比率の優越性のサンプルサイズまたは検出力を計算します。R の `epiR::epi.sssupb()` と同等です。"
+    "ja": "2 つの比率の優越性の標本サイズまたは検出力を計算します。R の `epiR::epi.sssupb()` と同等です。"
   },
   "epiSssupc#@example": {
     "hash": "f2167be5edf2",
@@ -1457,7 +1457,7 @@
   "epiSssupc#@param options": {
     "hash": "f6854bb0dffd",
     "en": "Sample-size, power and allocation options.",
-    "ja": "サンプルサイズ、検出力、割付に関するオプションです。"
+    "ja": "標本サイズ、検出力、割付に関するオプションです。"
   },
   "epiSssupc#@param sigma": {
     "hash": "edc7907be505",
@@ -1477,7 +1477,7 @@
   "epiSssupc#summary": {
     "hash": "79fc7e414249",
     "en": "Superiority sample size or power for two means. Equivalent to `epiR::epi.sssupc()` in R.",
-    "ja": "2 つの平均の優越性のサンプルサイズまたは検出力を計算します。R の `epiR::epi.sssupc()` と同等です。"
+    "ja": "2 つの平均の優越性の標本サイズまたは検出力を計算します。R の `epiR::epi.sssupc()` と同等です。"
   },
   "epsilonSquared#@example": {
     "hash": "f2167be5edf2",
@@ -1927,7 +1927,7 @@
   "ssizeCT#summary": {
     "hash": "c4e8c5ada32a",
     "en": "Freedman clinical-trial sample size. Equivalent to `powerSurvEpi::ssizeCT.default()` in R.",
-    "ja": "Freedman 法による臨床試験のサンプルサイズを計算します。R の `powerSurvEpi::ssizeCT.default()` と同等です。"
+    "ja": "Freedman 法による臨床試験の標本サイズを計算します。R の `powerSurvEpi::ssizeCT.default()` と同等です。"
   },
   "ssizeEpi#@example": {
     "hash": "f2167be5edf2",

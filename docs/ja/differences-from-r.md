@@ -1532,7 +1532,7 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
 - **`survregPredict` の newdata offset:** rStats.js は仕様どおり、新しい線形予測子に `newOffset` を `η = Xβ + offset` として加えます。offset 付きモデルの newdata 予測では R の fixture と異なるため、テストでは `lp`/`uquantile` への加算と、対数時間の response/quantile に対する `exp(newOffset)` の倍率を独立に検証します。
 - **1 件のイベントしかない分離状態の `survreg` 当てはめ:** 反復を続けると情報行列が特異に近づき、個々の係数は反復経路に依存します。そのため該当 fixture では、R の係数との単純な一致ではなく、対数尤度と解析的 score を検証します。
 
-## 試験デザインのサンプルサイズと検出力
+## 試験デザインの標本サイズと検出力
 
 照合先は epiR 3.0.0、exact2x2 1.7.0、powerSurvEpi 0.1.5、clinfun 1.1.6 です。詳細は
 [oracle/samplesize-behaviour.md](../../oracle/samplesize-behaviour.md) の「rStats.js's choices」にあります。
