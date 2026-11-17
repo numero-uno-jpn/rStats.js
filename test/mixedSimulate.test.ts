@@ -143,7 +143,9 @@ function applyReferenceFit(
       for (let j = 0; j < nc; j++) {
         const values = groupRanef.columns[term.columns[j]!];
         if (values === undefined) throw new Error(`R fixture lacks ranef column ${group}:${term.columns[j]}`);
-        b[term.zOffset + level * nc + j] = num(values[level]!);
+        const row = groupRanef.rowNames.indexOf(structure.groups[term.group]!.levels[level]!);
+        if (row < 0) throw new Error(`R fixture lacks ranef level ${group}:${structure.groups[term.group]!.levels[level]}`);
+        b[term.zOffset + level * nc + j] = num(values[row]!);
       }
     }
     return { group, columns: [...term.columns], sd, corr: correlation };
@@ -176,7 +178,7 @@ function applyReferenceFit(
     internal.eta = reference.eta.map((v) => num(v));
     internal.mu = reference.fitted.map((v) => num(v));
     fit.fitted = reference.fitted.map((v) => num(v));
-    fit.linearPredictor = reference.eta.map((v) => num(v));
+    (fit as ReturnType<typeof glmer>).linearPredictor = reference.eta.map((v) => num(v));
   }
 }
 
