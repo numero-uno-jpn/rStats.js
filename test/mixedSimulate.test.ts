@@ -97,6 +97,16 @@ describe("simulateLmer and simulateGlmer", () => {
     const c = fixture.cases[ci]!;
     it(`case ${ci + 1}: ${c.id} (${c.calls.length} calls)`, () => {
       const { fit, kind } = prepared[ci]!;
+      if (ci === 0 && kind === "lmer") {
+        const diagnostic = fit as ReturnType<typeof lmer>;
+        console.log("MIXED_SIM_LMER_FIT", JSON.stringify({
+          theta: diagnostic.theta,
+          sigma: diagnostic.sigma,
+          fixef: diagnostic.fixef,
+          varCorr: diagnostic.varCorr,
+          ranef: diagnostic.ranef[0],
+        }));
+      }
       const mismatches: string[] = [];
       for (let k = 0; k < c.calls.length; k++) {
         const call = c.calls[k]!;
