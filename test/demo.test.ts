@@ -35,6 +35,7 @@ const names = Object.keys(scope);
 const NOT_IN_DEMO_YET: string[] = [
   "epiSsequb", "epiSsequc", "epiSsninfb", "epiSsninfc", "epiSssupb", "epiSssupc",
   "powerPaired2x2", "ssizeCT", "powerCT", "ssizeEpi", "powerEpi", "numDEpi", "ph2simon",
+  "escalc", "rma", "confintRma", "predictRma", "regtest",
 ];
 
 /**

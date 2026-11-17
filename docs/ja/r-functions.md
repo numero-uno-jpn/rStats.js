@@ -182,6 +182,7 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `lmtest::coeftest()` | `coeftest` | 与えた共分散行列による `lm` または `glm` の当てはめの係数の検定 |
 | `pwr::cohen.ES()` | `cohenES` | Cohen による効果量の慣用値 |
 | `effectsize::cohens_d()` | `cohensD` | Cohen の d: 2 標本、対応のある標本、または 1 標本と `mu` の平均の差を標準化した値と、非心 t 分布による信頼区間 |
+| `metafor::confint.rma()` | `confintRma` | 異質性の信頼区間 |
 | `confint()` | `confint` | `lm` で当てはめた線形モデルの係数の信頼区間 |
 | `confint()` | `glmConfint` | `glm` で当てはめた一般化線形モデルの係数のプロファイル尤度信頼区間 |
 | `cooks.distance()` | `glmCooksDistance` | `glm` の当てはめの Cook の距離 (事前重みが 0 でない行について) |
@@ -206,6 +207,7 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `pwr::ES.h()` | `esH` | 2 つの比率の効果量 h |
 | `pwr::ES.w1()` | `esW1` | 適合度検定の効果量 w `sqrt(sum((p1 - p0)^2 / p0))` |
 | `pwr::ES.w2()` | `esW2` | セル確率の行列に対する関連の検定の効果量 w: 行和を r、列和を c として `p0 = r c'`、`sqrt(sum((p - p0)^2 / p0))` |
+| `metafor::escalc()` | `escalc` | 研究ごとの効果量とその標本分散 |
 | `effectsize::eta_squared()` | `etaSquared` | 分散分析表の各項のイータ二乗と、非心 F 分布による信頼区間 |
 | `Exact::exact.test()` | `boschlooTest` | 行が独立な 2 つの二項標本である 2 x 2 表に対する Boschloo の正確な無条件検定 |
 | `factanal()` | `factanal` | データ行列、または `options.covmat` を与えたときは共分散行列の最尤因子分析 |
@@ -261,6 +263,7 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `powerSurvEpi::powerEpi.default()` | `powerEpi` | Schoenfeld・Latouche の方法による Cox モデルの検出力 |
 | `exact2x2::powerPaired2x2()` | `powerPaired2x2` | 対応のある 2 値データの McNemar 検定の正確な検出力 |
 | `cmprsk::predict.crr()` | `predictCrr` | Fine-Gray の当てはめからの累積発生関数の予測 |
+| `metafor::predict.rma()` | `predictRma` | モデレーターの値での平均の効果とその予測区間 |
 | `predict.survreg()` | `survregPredict` | パラメトリック生存時間回帰モデルの予測値と標準誤差 |
 | `predict()` | `glmPredict` | `glm` で当てはめた一般化線形モデルの予測値とその標準誤差 |
 | `predict()` | `predict` | `lm` で当てはめた線形モデルの、説明変数の新しい値での予測値 (標準誤差と、必要に応じて区間つき) |
@@ -277,8 +280,10 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `pwr::pwr.t.test()` | `pwrTTest` | 平均の t 検定の検出力、または与えた検出力に対する標本サイズ、効果量、有意水準のいずれか |
 | `pwr::pwr.t2n.test()` | `pwrT2nTest` | 標本サイズが異なる 2 標本 t 検定の検出力、または与えた検出力に対する標本サイズの一方、効果量、有意水準のいずれか |
 | `quade.test()` | `quadeTest` | 反復のない完全ブロック計画に対する Quade 検定 |
+| `metafor::regtest()` | `regtest` | 回帰モデルによるファンネルプロットの非対称性の検定 |
 | `residuals.survreg()` | `survregResiduals` | パラメトリック生存時間回帰モデルの残差 (応答、deviance、working、dfbeta、影響度など) |
 | `residuals()` | `glmResiduals` | `glm` で当てはめた一般化線形モデルの残差 (1 行に 1 つ) |
+| `metafor::rma.uni()` | `rma` | 固定効果・ランダム効果のメタアナリシス (メタ回帰を含む) |
 | `survRM2::rmst2()` | `rmst2` | 制限平均生存時間 (RMST) と制限平均損失時間 (RMTL)、その群間の差と比 |
 | `pROC::roc.test()` | `rocTest` | 2 つの ROC 曲線の下の面積の差の検定 (DeLong の方法またはブートストラップ) |
 | `pROC::roc()` | `roc` | 2 値の応答に対する数値の予測変数の ROC 曲線 |

@@ -11,6 +11,13 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
 
 ### Added
 
+- **Meta-analysis** (after metafor): effect sizes (`escalc`: `RR`, `OR`, `RD`, `MD`, `SMD`, `ZCOR`,
+  with the zero-cell options), equal-, fixed- and random-effects models with eleven estimators of the
+  between-study variance, meta-regression with a moderator matrix or a formula, and z, t and Knapp-Hartung inference
+  (`rma`), Q-profile and profile-likelihood intervals of the heterogeneity (`confintRma`), predictions and prediction
+  intervals (`predictRma`), and Egger's regression test (`regtest`). The empirical Bayes and Paule-Mandel estimates
+  and the interval limits are solved to near double precision, where metafor stops its iterations earlier; the
+  standard error of their between-study variance differs from metafor's by about 2% (docs/differences-from-r.md).
 - **Sample size and power for trial designs** (roadmap item 1): equivalence, equality, non-inferiority and
   superiority for two proportions or two means (`epiSsequb`, `epiSsequc`, `epiSsninfb`, `epiSsninfc`, `epiSssupb`,
   `epiSssupc`, after epiR), the exact power of McNemar's test (`powerPaired2x2`, after exact2x2), survival with

@@ -20,6 +20,7 @@ const CATEGORIES = [
   "Hypothesis tests",
   "Multiple comparisons",
   "Effect sizes and power",
+  "Meta-analysis",
   "Linear models and ANOVA",
   "Generalized linear models",
   "Mixed models",
