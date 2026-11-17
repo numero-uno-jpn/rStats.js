@@ -182,6 +182,7 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `lmtest::coeftest()` | `coeftest` | Tests of the coefficients of an `lm` or `glm` fit with a given covariance matrix. |
 | `pwr::cohen.ES()` | `cohenES` | Cohen's conventional effect sizes. |
 | `effectsize::cohens_d()` | `cohensD` | Cohen's d: the standardized difference of means of two samples, of paired samples, or of one sample against `mu`, with a confidence interval from the noncentral t distribution. |
+| `metafor::confint.rma()` | `confintRma` | Computes heterogeneity confidence intervals. |
 | `confint()` | `confint` | Confidence intervals for the coefficients of a linear model, for an `lm` fit. |
 | `confint()` | `glmConfint` | Profile likelihood confidence intervals for the coefficients of a generalized linear model, for a `glm` fit. |
 | `cooks.distance()` | `glmCooksDistance` | Cook's distances, for the rows of non-zero prior weight, for a `glm` fit. |
@@ -206,6 +207,7 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `pwr::ES.h()` | `esH` | Effect size h of two proportions. |
 | `pwr::ES.w1()` | `esW1` | Effect size w of a goodness-of-fit test, `sqrt(sum((p1 - p0)^2 / p0))`. |
 | `pwr::ES.w2()` | `esW2` | Effect size w of a test of association, for a matrix of cell probabilities: with the row sums r and column sums c, `p0 = r c'` and `sqrt(sum((p - p0)^2 / p0))`. |
+| `metafor::escalc()` | `escalc` | Computes study-level effect sizes and sampling variances. |
 | `effectsize::eta_squared()` | `etaSquared` | Eta squared of the terms of an analysis-of-variance table, with confidence intervals from the noncentral F distribution. |
 | `Exact::exact.test()` | `boschlooTest` | Boschloo's exact unconditional test for a 2 x 2 table whose rows are two independent binomial samples. |
 | `factanal()` | `factanal` | Maximum-likelihood factor analysis of a data matrix or, with `options.covmat`, of a covariance matrix. |
@@ -261,6 +263,7 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `powerSurvEpi::powerEpi.default()` | `powerEpi` | Schoenfeld/Latouche Cox-model power. |
 | `exact2x2::powerPaired2x2()` | `powerPaired2x2` | Exact power of McNemar's test for paired binary outcomes. |
 | `cmprsk::predict.crr()` | `predictCrr` | Predict cumulative incidence from a Fine-Gray fit. |
+| `metafor::predict.rma()` | `predictRma` | Predicts the mean effect and its prediction interval at moderator values. |
 | `predict.survreg()` | `survregPredict` | Predictions from a parametric survival regression fit. |
 | `predict()` | `glmPredict` | Predictions of a generalized linear model with their standard errors, for a `glm` fit. |
 | `predict()` | `predict` | Predictions of a linear model at new values of the predictors, with standard errors and optionally intervals, for an `lm` fit. |
@@ -277,8 +280,10 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `pwr::pwr.t.test()` | `pwrTTest` | Power of a t test of means, or the sample size, effect size or significance level for a given power. |
 | `pwr::pwr.t2n.test()` | `pwrT2nTest` | Power of a two-sample t test with unequal sample sizes, or a sample size, the effect size or the significance level for a given power. |
 | `quade.test()` | `quadeTest` | Quade test for an unreplicated complete block design. |
+| `metafor::regtest()` | `regtest` | Tests for funnel-plot asymmetry using a regression model. |
 | `residuals.survreg()` | `survregResiduals` | Residuals from a parametric survival regression fit. |
 | `residuals()` | `glmResiduals` | Residuals of a generalized linear model, one per row, for a `glm` fit. |
+| `metafor::rma.uni()` | `rma` | Fits an equal-effects or random-effects meta-analysis, including meta-regression. |
 | `survRM2::rmst2()` | `rmst2` | Restricted mean survival time, restricted mean time lost, and their between-arm contrasts. |
 | `pROC::roc.test()` | `rocTest` | Tests the difference of the areas under two ROC curves, by DeLong's method or the bootstrap. |
 | `pROC::roc()` | `roc` | The ROC curve of a numeric predictor of a binary response. |

@@ -11,10 +11,12 @@
   公開する。CHANGELOG の Unreleased には 1.4.1 の分 (Gray の検定) とサンプルサイズの分がある
 - **トークン節約のため、外注できることはなるべく ChatGPT に外注する** (ユーザーの指示)。私は外注の仕組み、fixture の
   生成 (`npm run oracle`)、手元でのテスト、独立の検算、文書 (R との違い・CHANGELOG・ROADMAP・索引の訳)、取り込みをする
-- **メタアナリシス:** 照合先は metafor 5.2.1 (metadat 1.6.0)、GPL。指示書は `briefs/meta-analysis.ja.md`
-  (4 節に、サンプルサイズの作業で直しが入った点)。oracle と実験のイメージ、検査の許可リストに metafor を足した。
-  次: ChatGPT に段階 1 を依頼 (ブランチ `work/meta`) → oracle スクリプトが来たら fixture を作って push →
-  Decisions をユーザーに聞いて choices を書く
+- **メタアナリシス:** PR #530 (`work/meta-pr`、Issue #529)。照合先は metafor 5.2.1 (metadat 1.6.0)、GPL。範囲は
+  `escalc` (6 指標)、`rma` (11 の推定法、メタ回帰、z・t・Knapp-Hartung)、`confintRma`、`predictRma`、`regtest`
+  (choices は `oracle/meta-behaviour.md`)。fixture は私が作った (R がメモリを使い果たす REML の case を外し、`rma`
+  オブジェクトを入力だけで書くよう oracle を直した)。ChatGPT は 2 回ともウェブ検索で metafor のソースの抜粋を目に
+  した (使っていない。ユーザーはそのまま進めると判断)。EB・PM の `se.tau2` は R の式が分からず既知の違い。PM・EB・
+  区間の端は真の根と 1e-12 で比べ、R とは R の止め方の範囲で比べる
 - **サンプルサイズの作業で分かったこと:** ChatGPT はテストを実行できないので、各段階の後に私が手元で全テストを流して
   返すと早い。exact2x2 の `errbound = 0` の値は不正確 (有理数の計算で確かめた)。ChatGPT はウェブ検索の結果一覧で
   exact2x2 のソースの抜粋を目にした (使っていない。ユーザーはそのまま取り込むと判断)

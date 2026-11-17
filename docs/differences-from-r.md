@@ -1672,6 +1672,8 @@ The references are epiR 3.0.0, exact2x2 1.7.0, powerSurvEpi 0.1.5 and clinfun 1.
 
 ## Meta-analysis
 
+The reference is metafor 5.2.1; the details are in [oracle/meta-behaviour.md](../oracle/meta-behaviour.md).
+
 - **EB and PM estimates of `tau2`:** rStats.js solves the documented estimating equation
   `Q(tau2) = k - p` to near double precision. R's EB estimator uses Fisher scoring and stops when
   the change in `tau2` is below `1e-5`; R's PM estimator uses `uniroot` with its default
@@ -1692,8 +1694,7 @@ The references are epiR 3.0.0, exact2x2 1.7.0, powerSurvEpi 0.1.5 and clinfun 1.
   M-estimation variance estimators for EB/PM, but the available help and single fixture do not
   identify which approximation produced metafor's result. This remains a labelled known
   difference, not a convergence tolerance; the test checks the rStats.js formula strictly
-  rather than widening its tolerance to R. An R public-API experiment comparing these
-  candidates on additional datasets is in `experiments/meta-eb-pm-se-tau2.R` on `work/meta`.
+  rather than widening its tolerance to R.
 - **Q-profile and profile-likelihood interval endpoints:** rStats.js solves the defining
   equations to near double precision. R's interval root search stops at the default
   `uniroot` absolute tolerance `eps^0.25` (about `1.22e-4`), which can be material for a
