@@ -94,7 +94,7 @@ The complete observed matrix at 17 significant digits is:
 
 ## 4. lmer and glmer
 
-For `lmer`, both ML and REML fits are in scope. The profile criterion for a REML fit, particularly for fixed-effect parameters, must be established from the public R result rather than assumed from the ML likelihood.
+For `lmer`, both ML and REML fits are in scope. A public-output experiment on the pinned `sleepstudy` fit established that `profile()` for a REML fit is centred at the ML estimates for the variance parameters (including residual scale), and `confint(..., parm="theta_")` gives effectively the same variance-parameter intervals for REML and ML fits. Accordingly, all LMM profile coordinates, including variance parameters and fixed effects, are evaluated on the ML criterion even when the original fit was estimated by REML. The experiment and its exact output are recorded in Issue #535; no lme4 implementation source was consulted.
 
 For `glmer`, Wald intervals are in scope for all supported fits. **The rStats.js profile-interval API is restricted to fits made with `nAGQ = 1`; calls for `nAGQ = 0` or `nAGQ > 1` must fail explicitly rather than silently approximate.** The oracle still probes the public R behaviour at `nAGQ = 0`, 1, and greater than 1 so the compatibility boundary and any difference from this deliberate API restriction are documented. No silent approximation from an unsupported quadrature fit is acceptable.
 
