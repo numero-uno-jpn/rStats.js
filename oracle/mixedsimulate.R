@@ -48,9 +48,9 @@ fit_public_record <- function(fit, kind) {
     sigma=stats::sigma(fit),
     varCorr=as.data.frame(lme4::VarCorr(fit)),
     ranef=lme4::ranef(fit),
-    fitted=stats::fitted(fit)
+    fitted=unname(stats::fitted(fit))
   )
-  if (kind == "glmer") out$eta <- stats::predict(fit, re.form=NULL, type="link")
+  if (kind == "glmer") out$eta <- unname(stats::predict(fit, re.form=NULL, type="link"))
   json_value(out)
 }
 
