@@ -95,7 +95,7 @@ function applyReferenceFit(
       if (i < 0) throw new Error(`R fixture lacks VarCorr SD for ${group}:${column}`);
       return num(vc.sdcor![i] as string);
     });
-    const corr = Array.from({ length: term.columns.length }, (_, i) =>
+    const corr: number[][] = Array.from({ length: term.columns.length }, (_, i) =>
       Array.from({ length: term.columns.length }, (_, j) => (i === j ? 1 : 0)));
     for (let i = 0; i < (vc.grp?.length ?? 0); i++) {
       if (vc.grp![i] !== group || missingValue(vc.var2![i])) continue;
