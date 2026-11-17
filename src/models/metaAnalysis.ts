@@ -328,6 +328,35 @@ function logGamma(x:number):number {
   return 0.9189385332046727+(z+0.5)*Math.log(t)-t+Math.log(a);
 }
 
+/** A cross-product difference divided by the measure-specific denominator, without
+ * rounding two nearly equal products to the same binary64 value. Counts are first scaled
+ * by their maximum so the products stay in range; double-double arithmetic retains the
+ * small determinant (a*d - b*c).
+ */
+function crossProductRatio(a:number,b:number,c:number,d:number,measure:"RR"|"OR"|"RD"):number {
+  const scale=Math.max(a,b,c,d);
+  if(scale===0)return NaN;
+  const an=a/scale,bn=b/scale,cn=c/scale,dn=d/scale;
+  const numerator=ddSub(twoProd(an,dn),twoProd(bn,cn));
+  const ab=twoSum(an,bn),cd=twoSum(cn,dn);
+  const denominator=measure==="RR"?ddMul([cn,0],ab):measure==="OR"?twoProd(bn,cn):ddMul(ab,cd);
+  const quotient=ddDiv(numerator,denominator);
+  return quotient[0]+quotient[1];
+}
+/** Hedges' small-sample correction J(df) = Gamma(df/2) / (sqrt(df/2) Gamma((df-1)/2)).
+ * The gamma-log difference loses several digits when df is very large; use its asymptotic
+ * log-ratio expansion in inverse powers of x=df/2 in that range.
+ */
+function hedgesCorrection(df:number):number {
+  const x=df/2;
+  if(x>1000){
+    const u=1/x,u2=u*u,u3=u2*u,u4=u2*u2,u5=u4*u,u6=u3*u3,u7=u6*u,u8=u4*u4;
+    const logJ=-(3/8)*u-(1/8)*u2-(3/64)*u3-(1/64)*u4-(3/640)*u5-(1/384)*u6-(33/14336)*u7-(1/2048)*u8;
+    return Math.exp(logJ);
+  }
+  return Math.exp(logGamma(x)-0.5*Math.log(x)-logGamma(x-0.5));
+}
+
 /**
  * Computes study-level effect sizes and sampling variances. Equivalent to `metafor::escalc()` in R.
  *
@@ -364,7 +393,7 @@ export function escalc(measure:EscalcMeasure, options:EscalcOptions):EscalcResul
       else {
         const df=n1+n2-2, sp2=((n1-1)*sd1*sd1+(n2-1)*sd2*sd2)/df;
         const d=(m1-m2)/Math.sqrt(sp2);
-        const J=Math.exp(logGamma(df/2)-Math.log(Math.sqrt(df/2))-logGamma((df-1)/2));
+        const J=hedgesCorrection(df);
         y=J*d;v=(n1+n2)/(n1*n2)+y*y/(2*(n1+n2));
       }
     } else {
@@ -376,12 +405,17 @@ export function escalc(measure:EscalcMeasure, options:EscalcOptions):EscalcResul
       if(measure!=="RD"&&apply){a+=correction;b+=correction;c+=correction;d+=correction;}
       if(measure==="RD"&&apply){a+=correction;b+=correction;c+=correction;d+=correction;}
       if(options.drop00&&(a0===0&&c0===0||b0===0&&d0===0)){yi.push(NaN);vi.push(NaN);continue;}
+      const scale=Math.max(a,b,c,d),an=a/scale,bn=b/scale,cn=c/scale,dn=d/scale;
+      const ab=an+bn,cd=cn+dn,invScale=1/scale;
       if(measure==="RR"){
-        const p1=a/(a+b),p2=c/(c+d);y=Math.log(p1/p2);v=1/a-1/(a+b)+1/c-1/(c+d);
+        y=Math.log1p(crossProductRatio(a,b,c,d,"RR"));
+        v=invScale*(bn/(an*ab)+dn/(cn*cd));
       } else if(measure==="OR"){
-        y=Math.log(a*d/(b*c));v=1/a+1/b+1/c+1/d;
+        y=Math.log1p(crossProductRatio(a,b,c,d,"OR"));
+        v=invScale*(1/an+1/bn+1/cn+1/dn);
       } else {
-        const p1=a/(a+b),p2=c/(c+d);y=p1-p2;v=p1*(1-p1)/(a+b)+p2*(1-p2)/(c+d);
+        y=crossProductRatio(a,b,c,d,"RD");
+        v=invScale*(an*bn/(ab*ab*ab)+cn*dn/(cd*cd*cd));
       }
     }
     yi.push(y);vi.push(v);
