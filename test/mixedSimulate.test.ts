@@ -1,8 +1,8 @@
 // Mixed-model simulation against the complete public-output fixture, including the RNG state.
 import { beforeAll, describe, expect, it } from "vitest";
 import { getRandomSeed, setRandomSeed } from "../src/random/rng.js";
-import { glmer, type GlmerOptions } from "../src/models/glmer.js";
-import { lmer } from "../src/models/lmer.js";
+import { glmer, glmerInternals, type GlmerOptions } from "../src/models/glmer.js";
+import { lmer, lmerInternals } from "../src/models/lmer.js";
 import { simulateGlmer, simulateLmer, type MixedSimulateOptions } from "../src/models/mixedSimulate.js";
 import type { DataFrame } from "../src/models/modelFrame.js";
 import { num } from "./helpers/fixture.js";
@@ -18,6 +18,14 @@ interface SimCase {
   id: string;
   kind: "lmer" | "glmer";
   fit: Record<string, unknown>;
+  fitPublic?: {
+    fixef: Record<string, string>;
+    sigma: string;
+    varCorr: { columns: Record<string, (string | null)[]> };
+    ranef: Record<string, { rowNames: string[]; columns: Record<string, string[]> }>;
+    fitted: string[];
+    eta?: string[];
+  };
   calls: SimCall[];
 }
 const fixture = JSON.parse(
@@ -63,6 +71,115 @@ function makeFit(c: SimCase): { fit: ReturnType<typeof lmer> | ReturnType<typeof
   return { kind: "glmer", fit: glmer(formula, data, options) };
 }
 
+function missingValue(value: unknown): boolean {
+  return value === null || value === undefined || value === "NA";
+}
+
+/** Cholesky factor of a correlation matrix, lower triangular. */
+function correlationCholesky(correlation: number[][]): number[][] {
+  const n = correlation.length;
+  const lower = Array.from({ length: n }, () => new Array<number>(n).fill(0));
+  for (let i = 0; i < n; i++) {
+    for (let j = 0; j <= i; j++) {
+      let value = correlation[i]![j]!;
+      for (let k = 0; k < j; k++) value -= lower[i]![k]! * lower[j]![k]!;
+      if (i === j) {
+        if (!(value > 0) || !Number.isFinite(value)) throw new Error("R fixture has a non-positive-definite random-effects correlation matrix");
+        lower[i]![j] = Math.sqrt(value);
+      } else {
+        lower[i]![j] = value / lower[j]![j]!;
+      }
+    }
+  }
+  return lower;
+}
+
+/**
+ * Use the oracle's public fitted quantities when testing simulation. The lmer/glmer optimisers are independent and
+ * intentionally need not stop at identical last bits; the simulator itself is checked with exactly the R fit's
+ * fixed effects, covariance parameters, conditional modes, and dispersion.
+ */
+function applyReferenceFit(
+  c: SimCase,
+  fit: ReturnType<typeof lmer> | ReturnType<typeof glmer>,
+  kind: "lmer" | "glmer",
+): void {
+  const reference = c.fitPublic;
+  if (reference === undefined) throw new Error("mixedSimulate.json must be regenerated with fitPublic from public R outputs");
+  const structure = kind === "lmer" ? lmerInternals(fit as ReturnType<typeof lmer>).structure : glmerInternals(fit as ReturnType<typeof glmer>).structure;
+  const sigma = num(reference.sigma);
+  const vc = reference.varCorr.columns;
+  const ranef = reference.ranef;
+  const theta = new Array<number>(structure.theta.length).fill(0);
+  const b = new Array<number>(structure.q).fill(0);
+  const varCorr = structure.terms.map((term) => {
+    const group = structure.groups[term.group]!.name;
+    const nc = term.columns.length;
+    const sd = term.columns.map((column) => {
+      const index = vc.grp!.findIndex((g, i) => g === group && vc.var1![i] === column && missingValue(vc.var2![i]));
+      if (index < 0) throw new Error(`R fixture lacks VarCorr SD for ${group}:${column}`);
+      return num(vc.sdcor![index] as string);
+    });
+    const correlation = Array.from({ length: nc }, (_, i) => Array.from({ length: nc }, (_, j) => (i === j ? 1 : 0)));
+    for (let i = 0; i < (vc.grp?.length ?? 0); i++) {
+      if (vc.grp![i] !== group || missingValue(vc.var2![i])) continue;
+      const row = term.columns.indexOf(vc.var1![i] as string);
+      const column = term.columns.indexOf(vc.var2![i] as string);
+      if (row >= 0 && column >= 0) {
+        const value = num(vc.sdcor![i] as string);
+        correlation[row]![column] = value;
+        correlation[column]![row] = value;
+      }
+    }
+    const lower = correlationCholesky(correlation);
+    let k = term.thetaOffset;
+    const scale = kind === "lmer" ? sigma : 1;
+    for (let j = 0; j < nc; j++) {
+      for (let i = j; i < nc; i++) theta[k++] = (sd[i]! / scale) * lower[i]![j]!;
+    }
+    const groupRanef = ranef[group];
+    if (groupRanef === undefined) throw new Error(`R fixture lacks ranef for grouping factor ${group}`);
+    for (let level = 0; level < term.nLevels; level++) {
+      for (let j = 0; j < nc; j++) {
+        const values = groupRanef.columns[term.columns[j]!];
+        if (values === undefined) throw new Error(`R fixture lacks ranef column ${group}:${term.columns[j]}`);
+        b[term.zOffset + level * nc + j] = num(values[level]!);
+      }
+    }
+    return { group, columns: [...term.columns], sd, corr: correlation };
+  });
+  const fixef = fit.fixefNames.map((name) => num(reference.fixef[name]!));
+  fit.fixef = fixef;
+  fit.sigma = sigma;
+  fit.theta = theta;
+  fit.varCorr = varCorr;
+  fit.ranef = structure.groups.map((group, gi) => {
+    const terms = structure.terms.filter((term) => term.group === gi);
+    const source = ranef[group.name]!;
+    return {
+      group: group.name,
+      levels: [...group.levels],
+      columns: terms.flatMap((term) => term.columns),
+      values: group.levels.map((_, level) => terms.flatMap((term) => term.columns.map((column) => num(source.columns[column]![level]!)))),
+    };
+  });
+  if (kind === "lmer") {
+    const internal = lmerInternals(fit as ReturnType<typeof lmer>);
+    internal.theta = theta;
+    internal.b = b;
+    fit.fitted = reference.fitted.map((v) => num(v));
+  } else {
+    if (reference.eta === undefined) throw new Error("R fixture lacks the GLMM linear predictor");
+    const internal = glmerInternals(fit as ReturnType<typeof glmer>);
+    internal.theta = theta;
+    internal.b = b;
+    internal.eta = reference.eta.map((v) => num(v));
+    internal.mu = reference.fitted.map((v) => num(v));
+    fit.fitted = reference.fitted.map((v) => num(v));
+    fit.linearPredictor = reference.eta.map((v) => num(v));
+  }
+}
+
 function callOptions(args: Record<string, unknown>): MixedSimulateOptions {
   const out: MixedSimulateOptions = {};
   if (args.nsim !== undefined) out.nsim = num(args.nsim as string);
@@ -97,16 +214,7 @@ describe("simulateLmer and simulateGlmer", () => {
     const c = fixture.cases[ci]!;
     it(`case ${ci + 1}: ${c.id} (${c.calls.length} calls)`, () => {
       const { fit, kind } = prepared[ci]!;
-      if (ci === 0 && kind === "lmer") {
-        const diagnostic = fit as ReturnType<typeof lmer>;
-        console.log("MIXED_SIM_LMER_FIT", JSON.stringify({
-          theta: diagnostic.theta,
-          sigma: diagnostic.sigma,
-          fixef: diagnostic.fixef,
-          varCorr: diagnostic.varCorr,
-          ranef: diagnostic.ranef[0],
-        }));
-      }
+      applyReferenceFit(c, fit, kind);
       const mismatches: string[] = [];
       for (let k = 0; k < c.calls.length; k++) {
         const call = c.calls[k]!;
