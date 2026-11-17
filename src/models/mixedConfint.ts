@@ -3,7 +3,7 @@ import { qnorm } from "../distributions/normal.js";
 import { reportWarnings } from "../internal/warnings.js";
 import { glmerInternals, type GlmerResult } from "./glmer.js";
 import { glmerDeviance } from "./glmerDeviance.js";
-import { lmerInternals, logicalOption, type LmerResult } from "./lmer.js";
+import { lmer, lmerInternals, logicalOption, type LmerResult } from "./lmer.js";
 import { profiledDeviance } from "./mixedDeviance.js";
 import { LMER_SETTINGS, minimiseWithRestarts, type MinimiserProblem, type MinimiserSettings } from "./mixedMinimiser.js";
 import type { MixedModelStructure, RandomEffectsTerm } from "./mixedStructure.js";
@@ -435,27 +435,37 @@ const lmerCache = new WeakMap<LmerResult, Map<number, IntervalCache>>();
 
 function confintLmerImpl(fit: LmerResult, options: MixedConfintOptions): MixedConfintResult {
   const internals = lmerInternals(fit);
-  const s = internals.structure;
-  const set = parameterSet(s.terms, s.groups, fit.varCorr, fit.fixef, fit.fixefNames, fit.sigma);
+  const level = options.level ?? 0.95;
+  const method = options.method ?? "profile";
+  if (method !== "profile" && method !== "Wald") throw new RangeError(`invalid 'method': ${String(method)}`);
+  const set = parameterSet(internals.structure.terms, internals.structure.groups, fit.varCorr, fit.fixef, fit.fixefNames, fit.sigma);
   const signames = logicalOption(options.signames, true);
   const names = parameterNames(set.parameters, signames);
   const warnings: string[] = [];
   const selected = selectParameters(set.parameters, names, options.parm, warnings);
-  const level = options.level ?? 0.95;
-  const method = options.method ?? "profile";
-  if (method !== "profile" && method !== "Wald") throw new RangeError(`invalid 'method': ${String(method)}`);
+
+  // lme4 profiles a REML fit on the ML criterion, centred at the ML estimates. Refit with the same
+  // captured data and model options so the profile coordinates and the likelihood maximum use one fit.
+  const profileFit = method === "profile" && fit.REML
+    ? lmer(fit.formula, internals.snapshot, { ...internals.options, REML: false })
+    : fit;
+  const profileInternals = lmerInternals(profileFit);
+  const s = profileInternals.structure;
+  const profileSet = method === "profile"
+    ? parameterSet(s.terms, s.groups, profileFit.varCorr, profileFit.fixef, profileFit.fixefNames, profileFit.sigma)
+    : set;
+
   const evaluate = (values: readonly number[], target: number, targetValue: number): number => {
-    const sigmaIndex = set.parameters.findIndex((p) => p.kind === "sigma");
+    const sigmaIndex = profileSet.parameters.findIndex((p) => p.kind === "sigma");
     const sigma = values[sigmaIndex]!;
-    const theta = thetaOf(s.terms, set.parameters, values, sigma, true);
+    const theta = thetaOf(s.terms, profileSet.parameters, values, sigma, true);
     if (theta === undefined) return Infinity;
-    const targetParameter = set.parameters[target]!;
+    const targetParameter = profileSet.parameters[target]!;
     let structure: MixedModelStructure = s;
-    // Public lme4 profile output for a REML fit is centred at the ML estimates for variance parameters as well.
     const reml = false;
     if (targetParameter.kind === "beta") {
       const j = targetParameter.beta!;
-      const delta = targetValue - internals.beta0[j]!;
+      const delta = targetValue - profileInternals.beta0[j]!;
       structure = {
         ...s,
         y: s.y.map((v, i) => v - s.x[i]![j]! * delta),
@@ -475,7 +485,7 @@ function confintLmerImpl(fit: LmerResult, options: MixedConfintOptions): MixedCo
   const cache = byLevel.get(level) ?? new Map<number, [number, number]>();
   byLevel.set(level, cache);
   const profile = (): { lower: number[]; upper: number[] } =>
-    profileIntervals("lmer", set.parameters, evaluate, selected, level, cache, warnings);
+    profileIntervals("lmer", profileSet.parameters, evaluate, selected, level, cache, warnings);
   const standardErrors = set.parameters.map((p) => (p.kind === "beta" ? fit.coefTable.stdError[p.beta!]! : NaN));
   const result = finish(set.parameters, names, selected, level, method, profile, standardErrors, warnings);
   reportWarnings("confintLmer", result.warnings);
