@@ -73,7 +73,7 @@ Knapp-Hartung の推測を含む `rma`、`confintRma`、`predictRma`、`regtest`
 [oracle/meta-behaviour.md](oracle/meta-behaviour.md) の「rStats.js's choices」で決めたとおり、`ranktest`、`trimfill`、
 `rma.mh`、`rma.peto`、`rma.glmm`、`rma.mv`、描画、推定法の `PMM`・`GENQ`・`GENQM` は入れていません。
 
-試験デザインのサンプルサイズと検出力 (以前の項目 1) は 1.5.0 に向けて済ませました: epiR の並行群のデザイン、
+試験デザインの標本サイズと検出力 (以前の項目 1) は 1.5.0 に向けて済ませました: epiR の並行群のデザイン、
 exact2x2 の `powerPaired2x2`、powerSurvEpi の要約の値を受け取る版、clinfun の `ph2simon`。
 [oracle/samplesize-behaviour.md](oracle/samplesize-behaviour.md) の「rStats.js's choices」で決めたとおり、epiR の
 ほかの標本サイズの関数、McNemar 検定の標本サイズの探索、powerSurvEpi の試験前のデータ・交互作用・層別の版、
