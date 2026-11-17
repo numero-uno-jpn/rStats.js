@@ -262,7 +262,10 @@ function profileLimit(
   direction: -1 | 1,
   profile: (value: number) => number,
 ): number {
-  const boundary = parameter.kind === "sd" || parameter.kind === "sigma" ? 0 : parameter.kind === "cor" ? (direction < 0 ? -1 : 1) : undefined;
+  // Standard deviations and sigma have only a lower boundary; their upper endpoints are unbounded.
+  const boundary = parameter.kind === "sd" || parameter.kind === "sigma"
+    ? (direction < 0 ? 0 : undefined)
+    : parameter.kind === "cor" ? (direction < 0 ? -1 : 1) : undefined;
   if (boundary !== undefined && estimate === boundary) return boundary;
   const at = (x: number): number => profile(x) - cutoff;
   let inside = estimate;
