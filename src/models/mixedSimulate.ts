@@ -142,7 +142,8 @@ export function simulateLmer(fit: LmerResult, options: MixedSimulateOptions = {}
   const conditionedAll = allTermsSelected(s.terms, selected);
   const fittedRandom = conditionedAll ? [] : addRandomEffects(new Array<number>(fit.nObs).fill(0), s.z, internals.b);
   const fixed = conditionedAll ? fit.fitted : fit.fitted.map((v, i) => v - fittedRandom[i]!);
-  const sims: MixedSimulations = [];
+  const sims = [] as unknown as MixedSimulations;
+  sims.names = [];
   // lme4 draws all new random effects for all replicates before drawing any response vectors.
   const effects: number[][] = [];
   for (let j = 0; j < n; j++) effects.push(newEffects(s.terms, internals.theta, s.groups, selected, internals.b, fit.sigma));

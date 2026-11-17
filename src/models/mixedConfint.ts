@@ -150,7 +150,7 @@ function thetaOf(
   for (let t = 0; t < terms.length; t++) {
     const nc = terms[t]!.columns.length;
     const sd = new Array<number>(nc);
-    const corr = Array.from({ length: nc }, (_, i) => Array.from({ length: nc }, (_, j) => (i === j ? 1 : 0)));
+    const corr: number[][] = Array.from({ length: nc }, (_, i) => Array.from({ length: nc }, (_, j) => (i === j ? 1 : 0)));
     for (let k = 0; k < parameters.length; k++) {
       const p = parameters[k]!;
       if (p.term !== t) continue;

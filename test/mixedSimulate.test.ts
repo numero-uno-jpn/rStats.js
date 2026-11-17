@@ -1,6 +1,6 @@
 // Mixed-model simulation against the complete public-output fixture, including the RNG state.
 import { beforeAll, describe, expect, it } from "vitest";
-import { getRandomSeed, setRandomSeed, setSeed } from "../src/random/rng.js";
+import { getRandomSeed, setRandomSeed } from "../src/random/rng.js";
 import { glmer, type GlmerOptions } from "../src/models/glmer.js";
 import { lmer } from "../src/models/lmer.js";
 import { simulateGlmer, simulateLmer, type MixedSimulateOptions } from "../src/models/mixedSimulate.js";
@@ -47,7 +47,7 @@ function makeFit(c: SimCase): { fit: ReturnType<typeof lmer> | ReturnType<typeof
     return { kind: "lmer", fit: lmer(formula, data, { REML: c.fit.REML as boolean }) };
   }
   const options: GlmerOptions = {
-    family: c.fit.family as GlmerOptions["family"],
+    family: c.fit.family as NonNullable<GlmerOptions["family"]>,
     nAGQ: num(c.fit.nAGQ as string),
   };
   if (c.fit.weights !== undefined) options.weights = (c.fit.weights as string[]).map((v) => num(v));

@@ -46,7 +46,7 @@ function makeFit(c: ConfCase): { fit: ReturnType<typeof lmer> | ReturnType<typeo
   const data = mixedData(c.fit.data, formula);
   if (c.kind === "lmer") return { kind: "lmer", fit: lmer(formula, data, { REML: c.fit.REML as boolean }) };
   const options: GlmerOptions = {
-    family: c.fit.family as GlmerOptions["family"],
+    family: c.fit.family as NonNullable<GlmerOptions["family"]>,
     nAGQ: num(c.fit.nAGQ as string),
   };
   if (c.fit.weights !== undefined) options.weights = (c.fit.weights as string[]).map((v) => num(v));
