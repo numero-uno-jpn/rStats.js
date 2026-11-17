@@ -183,7 +183,7 @@ describe("confintLmer and confintGlmer", () => {
         }
       }
       expect(c.calls.length).toBeGreaterThan(0);
-      expect(mismatches).toEqual([]);
+      expect(mismatches, mismatches.join("\n")).toEqual([]);
     });
   }
 });
