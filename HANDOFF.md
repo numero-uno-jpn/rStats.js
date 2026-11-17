@@ -6,12 +6,12 @@
 
 ## 次のセッションで最初にやること (2026-11-17、セッション 22、Mac mini)
 
-- **1.5.0 の公開の手前 (2026-11-17):** 版上げ (package.json・package-lock.json・demo/app.js・README の Status と
-  CDN の URL・docs/api-reference.md の CDN の URL、本文の大きさ 322 KB・tests 288 KB)、CHANGELOG の `1.5.0 -
-  2026-11-17`、デモの competing-incidence-gray を元のデータ (群 B の時刻 6) に戻して `npm run demo:r` (下の節の
-  11 番は済み)。中身: サンプルサイズ (PR #528)、メタアナリシス (PR #530)、数値の点検 (PR #532)、文書・デモ・日本語の
-  API リファレンス (PR #534)、1.4.1 の分 (Gray の検定)。残り: main の push と CI → タグ `v1.5.0` の push (release.yml
-  が Trusted Publishing で npm に stage し、ユーザーが承認) → npm latest・jsDelivr・デモ・/api/ と /ja/api/ の確認
+- **1.5.0 を公開した (2026-11-17):** npm latest = 1.5.0 (stage id `8573ab61-...` をユーザーが `npm stage approve` で
+  承認)、tag `v1.5.0` = `5b4e37b4` (release がビルドの結果入りに付け替えた)、main = `f785b785`。確かめたもの: jsDelivr
+  (npm と gh の dist/rstats.js・tests.js・mixed.js)、デモ (VERSION v1.5.0)、/api/ と /ja/api/ の新しい関数のページ
+  (日本語の訳が出る)。中身: サンプルサイズ (PR #528)、メタアナリシス (PR #530)、数値の点検 (PR #532)、文書・デモ・
+  日本語の API リファレンス (PR #534)、1.4.1 の分 (Gray の検定)。次は ROADMAP の 1 番 (混合モデルの続き [lme4]) の
+  予定 (1.6.0、未着手)
 - **トークン節約のため、外注できることはなるべく ChatGPT に外注する** (ユーザーの指示)。私は外注の仕組み、fixture の
   生成 (`npm run oracle`)、手元でのテスト、独立の検算、文書 (R との違い・CHANGELOG・ROADMAP・索引の訳)、取り込みをする
 - **メタアナリシス:** PR #530 (`work/meta-pr`、Issue #529)。照合先は metafor 5.2.1 (metadat 1.6.0)、GPL。範囲は
