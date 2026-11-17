@@ -190,7 +190,7 @@ function applyReferenceFit(
     internal.b = b;
     internal.eta = asArray<string>(reference.eta).map((v) => num(v));
     internal.mu = asArray<string>(reference.fitted).map((v) => num(v));
-    fit.fitted = reference.fitted.map((v) => num(v));
+    fit.fitted = asArray<string>(reference.fitted).map((v) => num(v));
     (fit as ReturnType<typeof glmer>).linearPredictor = asArray<string>(reference.eta).map((v) => num(v));
   }
 }
