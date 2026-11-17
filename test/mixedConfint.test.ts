@@ -68,6 +68,11 @@ function makeFit(c: ConfCase): { fit: ReturnType<typeof lmer> | ReturnType<typeo
   return { kind: "glmer", fit: glmer(formula, data, options) };
 }
 
+function asArray<T>(value: unknown): T[] {
+  if (value === null || value === undefined) return [];
+  return (Array.isArray(value) ? value : [value]) as T[];
+}
+
 function missingValue(value: unknown): boolean {
   return value === null || value === undefined || value === "NA";
 }
@@ -84,23 +89,27 @@ function applyReferenceFit(
     ? lmerInternals(fit as ReturnType<typeof lmer>).structure
     : glmerInternals(fit as ReturnType<typeof glmer>).structure;
   const vc = reference.varCorr.columns;
+  const grp = asArray<string>(vc.grp);
+  const var1 = asArray<string>(vc.var1);
+  const var2 = asArray<string | null>(vc.var2);
+  const sdcor = asArray<string>(vc.sdcor);
   fit.fixef = fit.fixefNames.map((name) => num(reference.fixef[name]!));
   fit.coefTable.stdError = fit.fixefNames.map((name) => num(reference.stdError[name]!));
   if (kind === "lmer") fit.sigma = num(reference.sigma!);
   fit.varCorr = structure.terms.map((term) => {
     const group = structure.groups[term.group]!.name;
     const sd = term.columns.map((column) => {
-      const i = vc.grp!.findIndex((g, j) =>
-        g === group && vc.var1![j] === column && missingValue(vc.var2![j]));
+      const i = grp.findIndex((g, j) =>
+        g === group && var1[j] === column && missingValue(var2[j]));
       if (i < 0) throw new Error(`R fixture lacks VarCorr SD for ${group}:${column}`);
-      return num(vc.sdcor![i] as string);
+      return num(sdcor[i]!);
     });
     const corr: number[][] = Array.from({ length: term.columns.length }, (_, i) =>
       Array.from({ length: term.columns.length }, (_, j) => (i === j ? 1 : 0)));
-    for (let i = 0; i < (vc.grp?.length ?? 0); i++) {
-      if (vc.grp![i] !== group || missingValue(vc.var2![i])) continue;
-      const row = term.columns.indexOf(vc.var1![i] as string);
-      const column = term.columns.indexOf(vc.var2![i] as string);
+    for (let i = 0; i < grp.length; i++) {
+      if (grp[i] !== group || missingValue(var2[i])) continue;
+      const row = term.columns.indexOf(var1[i]!);
+      const column = term.columns.indexOf(var2[i]!);
       if (row >= 0 && column >= 0) {
         const value = num(vc.sdcor![i] as string);
         corr[row]![column] = value;
