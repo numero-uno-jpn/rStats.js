@@ -291,7 +291,7 @@ removed. Approximate sizes after minification and gzip:
 | `glm` and `glmSummary` / `glm` with all its methods | 35.1 / 51.4 KB |
 | `lmer` (from `/mixed`) / with `lmerSummary`, `lmerContest`, `lmerAnova` | 19.4 / 70.0 KB |
 | `glmer` (from `/mixed`) / with `glmerSummary`, `glmerAnova`, `glmerPredict` | 47.2 / 66.1 KB |
-| everything (except `/mixed`) | 312.6 KB |
+| everything (except `/mixed`) | 322.2 KB |
 
 (`npm run size` measures these.)
 

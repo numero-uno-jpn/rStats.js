@@ -292,7 +292,7 @@ double-double 演算で計算しているためです。詳しくは [docs/ja/ac
 | `glm` と `glmSummary` / `glm` とそのすべての関数 | 35.1 / 51.4 KB |
 | `lmer` (`/mixed` から) / `lmerSummary`・`lmerContest`・`lmerAnova` も | 19.4 / 70.0 KB |
 | `glmer` (`/mixed` から) / `glmerSummary`・`glmerAnova`・`glmerPredict` も | 47.2 / 66.1 KB |
-| すべて (`/mixed` を除く) | 312.6 KB |
+| すべて (`/mixed` を除く) | 322.2 KB |
 
 (`npm run size` で測れます。)
 

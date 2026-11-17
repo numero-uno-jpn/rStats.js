@@ -904,3 +904,14 @@
 | Schoenfeld residual | Schoenfeld 残差 | 新規 (1.4.0)。人名は英字 |
 | subject-level sandwich variance | 被験者単位のサンドイッチ分散 | 新規 (1.4.0) |
 | infinitesimal jackknife | 無限小ジャックナイフ | 新規 (1.4.0)。既存の「ジャックナイフ」に合わせた |
+| heterogeneity | 異質性 | 新規 (1.5.0)。メタアナリシス |
+| between-study variance | 研究間分散 | 新規 (1.5.0)。τ² |
+| sampling variance | 標本分散 | 新規 (1.5.0)。`escalc` の `vi` |
+| meta-regression | メタ回帰 | 新規 (1.5.0) |
+| moderator | モデレーター | 新規 (1.5.0)。メタ回帰の説明変数 (`mods`) |
+| prediction interval | 予測区間 | 新規 (1.5.0) |
+| random effects (model) | ランダム効果 (モデル) | 新規 (1.5.0)。「固定効果」と対 |
+| non-inferiority | 非劣性 | 新規 (1.5.0)。試験デザイン |
+| superiority | 優越性 | 新規 (1.5.0)。試験デザイン |
+| equality (`type: "equality"`) | 等値性 | 新規 (1.5.0)。epiR の `type`。「同等性」(equivalence) と区別 |
+| allocation ratio | 割付比 | 新規 (1.5.0)。epiR の `r` |

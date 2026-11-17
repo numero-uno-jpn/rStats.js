@@ -115,9 +115,9 @@ it. Tree-shaking keeps only the imported functions and their dependencies.
 | `qbeta` | 98.4 KB | 43.9 KB |
 | `pt`, `qt` | 89.7 KB | 40.4 KB |
 | `glm`, `glmSummary` / `glm` with all its methods | 85.2 / 122.3 KB | 35.1 / 51.4 KB |
-| everything (except `/mixed`) | 834.3 KB | 312.6 KB |
+| everything (except `/mixed`) | 860.9 KB | 322.2 KB |
 | `@numero-uno-jpn/rstats/distributions` (all of it) | 241.8 KB | 95.6 KB |
-| `@numero-uno-jpn/rstats/tests` (all of it) | 661.3 KB | 252.5 KB |
+| `@numero-uno-jpn/rstats/tests` (all of it) | 687.9 KB | 262.4 KB |
 | `@numero-uno-jpn/rstats/linalg` (all of it) | 65.6 KB | 24.1 KB |
 | `@numero-uno-jpn/rstats/descriptive` (all of it) | 58.8 KB | 21.7 KB |
 | `@numero-uno-jpn/rstats/numerics` (all of it) | 64.7 KB | 26.3 KB |
