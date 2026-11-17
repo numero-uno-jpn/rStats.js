@@ -1,0 +1,117 @@
+{
+  "ConfintRmaOptions#summary": {
+    "hash": "fc926b39caf9",
+    "en": "Options for {@link confintRma}.",
+    "ja": ""
+  },
+  "EscalcMeasure#summary": {
+    "hash": "7f7c6afa7653",
+    "en": "Effect-size measure supported by {@link escalc}.",
+    "ja": ""
+  },
+  "EscalcOptions#summary": {
+    "hash": "e2493cfc2c04",
+    "en": "Options for {@link escalc}.",
+    "ja": ""
+  },
+  "EscalcResult#summary": {
+    "hash": "615a9b017f28",
+    "en": "Study-level estimates returned by {@link escalc}.",
+    "ja": ""
+  },
+  "MetaMethod#summary": {
+    "hash": "506131fd9efa",
+    "en": "Estimator for the between-study variance.",
+    "ja": ""
+  },
+  "MetaTest#summary": {
+    "hash": "70ca64cbea7b",
+    "en": "Inference method for model coefficients.",
+    "ja": ""
+  },
+  "ModeratorMatrix#summary": {
+    "hash": "05f9a35b7f70",
+    "en": "A moderator matrix with optional column and row names.",
+    "ja": ""
+  },
+  "NumericMatrix#summary": {
+    "hash": "ec7b1dc6baa3",
+    "en": "A numeric matrix with its dimensions and dimnames.",
+    "ja": ""
+  },
+  "PredictRmaOptions#summary": {
+    "hash": "a2292e3e0966",
+    "en": "Options for {@link predictRma}.",
+    "ja": ""
+  },
+  "RegtestOptions#summary": {
+    "hash": "032dfd32f0b7",
+    "en": "Options for {@link regtest}.",
+    "ja": ""
+  },
+  "RmaControl#summary": {
+    "hash": "b949b3d5a48c",
+    "en": "Iteration controls for {@link rma}.",
+    "ja": ""
+  },
+  "RmaOptions#summary": {
+    "hash": "e29a0951b247",
+    "en": "Options for {@link rma}.",
+    "ja": ""
+  },
+  "RmaResult#summary": {
+    "hash": "8465338f2c1c",
+    "en": "Fitted meta-analysis model returned by {@link rma}.",
+    "ja": ""
+  },
+  "confintRma#summary": {
+    "hash": "4af2851177f3",
+    "en": "Computes heterogeneity confidence intervals. Equivalent to `metafor::confint.rma()` in R.",
+    "ja": ""
+  },
+  "escalc#@param measure": {
+    "hash": "eac3a9b0721d",
+    "en": "One of RR, OR, RD, MD, SMD or ZCOR.",
+    "ja": ""
+  },
+  "escalc#@param options": {
+    "hash": "1c82ebf3a410",
+    "en": "Study-level counts, means, standard deviations, sample sizes or correlations.",
+    "ja": ""
+  },
+  "escalc#@returns": {
+    "hash": "5a449252d03e",
+    "en": "The estimates yi and sampling variances vi.",
+    "ja": ""
+  },
+  "escalc#summary": {
+    "hash": "fe5541380563",
+    "en": "Computes study-level effect sizes and sampling variances. Equivalent to `metafor::escalc()` in R.",
+    "ja": ""
+  },
+  "predictRma#summary": {
+    "hash": "0d7cd5a86e03",
+    "en": "Predicts the mean effect and its prediction interval at moderator values. Equivalent to `metafor::predict.rma()` in R.",
+    "ja": ""
+  },
+  "regtest#summary": {
+    "hash": "4b289b248883",
+    "en": "Tests for funnel-plot asymmetry using a regression model. Equivalent to `metafor::regtest()` in R.",
+    "ja": ""
+  },
+  "rma#@param yi": {
+    "hash": "ad68ae864008",
+    "en": "Study effect estimates, or the result of {@link escalc}.",
+    "ja": ""
+  },
+  "rma#@returns": {
+    "hash": "da9e9bb2a8c7",
+    "en": "Coefficients, heterogeneity statistics, tests and model metadata.",
+    "ja": ""
+  },
+  "rma#summary": {
+    "hash": "4d690c3d8c5b",
+    "en": "Fits an equal-effects or random-effects meta-analysis, including meta-regression. Equivalent to `metafor::rma.uni()` in R.",
+    "ja": ""
+  }
+}
