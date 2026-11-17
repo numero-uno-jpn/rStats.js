@@ -119,8 +119,14 @@ function epi(
   const margin = equality ? undefined : delta;
   const E = kind === "noninferiority" ? D + margin! : kind === "superiority" ? D - margin! : equality ? D : margin! - Math.abs(D);
   if (kind === "noninferiority" && E <= 0) throw new RangeError("Target power is not reachable under the specified hypotheses");
-  const critical = kind === "superiority" ? z(1 - alpha / sides) : equality ? z(1 - alpha / 2) : z(1 - alpha);
-  const zPower = equality || kind !== "equivalence" ? z(power ?? 0.8) : z(1 - (1 - (power ?? 0.8)) / 2);
+  // Pass the upper-tail probability directly. Forming 1 - tail loses relative precision
+  // when alpha is much smaller than machine epsilon near 1.
+  const critical = kind === "superiority" ? qnorm(alpha / sides, { lowerTail: false }) as number :
+    equality ? qnorm(alpha / 2, { lowerTail: false }) as number : qnorm(alpha, { lowerTail: false }) as number;
+  const targetPower = power ?? 0.8;
+  const zPower = equality || kind !== "equivalence"
+    ? qnorm(1 - targetPower, { lowerTail: false }) as number
+    : qnorm((1 - targetPower) / 2, { lowerTail: false }) as number;
   let nTreat: number;
   let nControl: number;
   let nTreatUnrounded: number;
