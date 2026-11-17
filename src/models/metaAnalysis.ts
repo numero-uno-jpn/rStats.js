@@ -329,13 +329,17 @@ function logGamma(x:number):number {
   return 0.9189385332046727+(z+0.5)*Math.log(t)-t+Math.log(a);
 }
 
+function countScale(a:number,b:number,c:number,d:number):number {
+  const max=Math.max(a,b,c,d);
+  return max===0?0:2**Math.floor(Math.log2(max));
+}
 /** A cross-product difference divided by the measure-specific denominator, without
  * rounding two nearly equal products to the same binary64 value. Counts are first scaled
  * by their maximum so the products stay in range; double-double arithmetic retains the
  * small determinant (a*d - b*c).
  */
 function crossProductRatio(a:number,b:number,c:number,d:number,measure:"RR"|"OR"|"RD"):number {
-  const scale=Math.max(a,b,c,d);
+  const scale=countScale(a,b,c,d);
   if(scale===0)return NaN;
   const an=a/scale,bn=b/scale,cn=c/scale,dn=d/scale;
   const numerator=ddSub(twoProd(an,dn),twoProd(bn,cn));
@@ -406,7 +410,7 @@ export function escalc(measure:EscalcMeasure, options:EscalcOptions):EscalcResul
       if(measure!=="RD"&&apply){a+=correction;b+=correction;c+=correction;d+=correction;}
       if(measure==="RD"&&apply){a+=correction;b+=correction;c+=correction;d+=correction;}
       if(options.drop00&&(a0===0&&c0===0||b0===0&&d0===0)){yi.push(NaN);vi.push(NaN);continue;}
-      const scale=Math.max(a,b,c,d),an=a/scale,bn=b/scale,cn=c/scale,dn=d/scale;
+      const scale=countScale(a,b,c,d),an=a/scale,bn=b/scale,cn=c/scale,dn=d/scale;
       const ab=an+bn,cd=cn+dn,invScale=1/scale;
       if(measure==="RR"){
         y=Math.log1p(crossProductRatio(a,b,c,d,"RR"));
