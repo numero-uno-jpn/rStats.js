@@ -41,8 +41,16 @@ function mixedData(raw: unknown, formula: string): DataFrame {
 }
 
 function makeFit(c: SimCase): { fit: ReturnType<typeof lmer> | ReturnType<typeof glmer>; kind: "lmer" | "glmer" } {
-  const formula = c.fit.formula as string;
+  let formula = c.fit.formula as string;
   const data = mixedData(c.fit.data, formula);
+  // rStats.js currently accepts two cbind column names; express R's size - successes as an equivalent column.
+  const cbind = formula.match(/cbind\\(\\s*([A-Za-z_][\\w.]*)\\s*,\\s*([A-Za-z_][\\w.]*)\\s*-\\s*\\1\\s*\\)/);
+  if (cbind !== null) {
+    const successes = data[cbind[1]!] as Array<number | string | null>;
+    const totals = data[cbind[2]!] as Array<number | string | null>;
+    data.failures = totals.map((total, i) => total === null || successes[i] === null ? null : Number(total) - Number(successes[i]));
+    formula = formula.replace(cbind[0], `cbind(${cbind[1]}, failures)`);
+  }
   if (c.kind === "lmer") {
     return { kind: "lmer", fit: lmer(formula, data, { REML: c.fit.REML as boolean }) };
   }
