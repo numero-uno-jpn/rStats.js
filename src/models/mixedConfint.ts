@@ -238,11 +238,20 @@ function profileAt(
     failure: "mixed-model profile minimisation did not converge",
     robust: true,
   };
-  try {
-    return minimiseWithRestarts(problem, start, []).f;
-  } catch {
-    return Infinity;
+  // A profile point can be harder to minimise than the fitted model. If the trust-region
+  // iteration stalls, restart from its best finite point; never treat an unconverged value as a profile.
+  let from = start;
+  for (let attempt = 0; attempt < 4; attempt++) {
+    try {
+      const result = minimiseWithRestarts(problem, from, [], { bestOnFailure: true });
+      if (result.converged) return result.f;
+      if (result.theta.every((v, i) => v === from[i])) break;
+      from = result.theta;
+    } catch {
+      return Infinity;
+    }
   }
+  return Infinity;
 }
 
 /** Find one profile endpoint by bracketing and bisection of the signed likelihood-root equation. */
