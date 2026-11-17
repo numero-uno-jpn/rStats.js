@@ -127,7 +127,7 @@ it. Tree-shaking keeps only the imported functions and their dependencies.
 | `@numero-uno-jpn/rstats/mixed` (all of it) | 225.5 KB | 91.8 KB |
 
 The subpath rows are an area bundled on its own. The per-area CDN files (`dist/<area>.js`) share code between areas
-through `dist/chunks/`, so one area loaded from them transfers more: 39 KB (`special`) to 278 KB (`tests`) gzipped,
+through `dist/chunks/`, so one area loaded from them transfers more: 39 KB (`special`) to 288 KB (`tests`) gzipped,
 chunks included. `pt` is large because the non-central t and the double-double building blocks come with it; the
 tests with a formula form bring the formula and model-frame code.
 

@@ -7,10 +7,22 @@ While the version is 0.x, a minor release (0.y.0) may contain breaking changes;
 they are listed under **Breaking** for each release. From 1.0.0 the project follows
 [Semantic Versioning](https://semver.org/).
 
-## Unreleased
+## 1.5.0 - 2026-11-17
+
+Sample size and power for trial designs and meta-analysis (items 1 and 2 of the roadmap after 1.4.0), each checked
+against R's packages and audited at extreme inputs (cancellation, overflow and underflow, far tails, changes of
+scale), and the variance of Gray's test at tied failure times. The bundle of everything except `/mixed` is 322 KB
+gzipped (it was 313 KB).
 
 ### Added
 
+- **Sample size and power for trial designs:** equivalence, equality, non-inferiority and
+  superiority for two proportions or two means (`epiSsequb`, `epiSsequc`, `epiSsninfb`, `epiSsninfc`, `epiSssupb`,
+  `epiSssupc`, after epiR), the exact power of McNemar's test (`powerPaired2x2`, after exact2x2), survival with
+  Freedman's method (`ssizeCT`, `powerCT`) and Schoenfeld's and Latouche's (`ssizeEpi`, `powerEpi`, `numDEpi`, after
+  powerSurvEpi's `.default` methods), and Simon's two-stage Phase II designs (`ph2simon`, after clinfun). Where epiR
+  or exact2x2 is wrong (negative equivalence power, an allocation ratio left out, internal errors, inexact exact
+  power), rStats.js uses the correct value: see docs/differences-from-r.md.
 - **Meta-analysis** (after metafor): effect sizes (`escalc`: `RR`, `OR`, `RD`, `MD`, `SMD`, `ZCOR`,
   with the zero-cell options), equal-, fixed- and random-effects models with eleven estimators of the
   between-study variance, meta-regression with a moderator matrix or a formula, and z, t and Knapp-Hartung inference
@@ -18,13 +30,6 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   intervals (`predictRma`), and Egger's regression test (`regtest`). The empirical Bayes and Paule-Mandel estimates
   and the interval limits are solved to near double precision, where metafor stops its iterations earlier; the
   standard error of their between-study variance differs from metafor's by about 2% (docs/differences-from-r.md).
-- **Sample size and power for trial designs** (roadmap item 1): equivalence, equality, non-inferiority and
-  superiority for two proportions or two means (`epiSsequb`, `epiSsequc`, `epiSsninfb`, `epiSsninfc`, `epiSssupb`,
-  `epiSssupc`, after epiR), the exact power of McNemar's test (`powerPaired2x2`, after exact2x2), survival with
-  Freedman's method (`ssizeCT`, `powerCT`) and Schoenfeld's and Latouche's (`ssizeEpi`, `powerEpi`, `numDEpi`, after
-  powerSurvEpi's `.default` methods), and Simon's two-stage Phase II designs (`ph2simon`, after clinfun). Where epiR
-  or exact2x2 is wrong (negative equivalence power, an allocation ratio left out, internal errors, inexact exact
-  power), rStats.js uses the correct value: see docs/differences-from-r.md.
 
 ### Fixed
 

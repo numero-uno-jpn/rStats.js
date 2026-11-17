@@ -6,12 +6,12 @@
 
 ## 次のセッションで最初にやること (2026-11-17、セッション 22、Mac mini)
 
-- **1.5.0 の準備は完了 (未公開。公開はユーザーの指示を待つ):** main に取り込み済み: サンプルサイズ (PR #528)、
-  メタアナリシス (PR #530)、数値の点検 (PR #532)、文書・デモ・日本語の API リファレンス (PR #534)。用語集に 11 語、
-  サイズの表 (すべて gzip 322.2 KB、tests の分野 262.4 KB) も済み。**公開のときに残っていること:** 版上げ
-  (package.json・package-lock.json・demo/app.js・README の Status と CDN の URL・docs/api-reference.md の CDN の URL)、
-  CHANGELOG の Unreleased を `1.5.0 - <日付>` にして書き直す (1.4.1 の Gray の修正も 1.5.0 に入る)、デモのデータの
-  戻し (下の節の 11 番)、タグの push と npm の承認 (ユーザー)。作業ブランチ `work/release-1.5` は残っている (消すか未確認)
+- **1.5.0 の公開の手前 (2026-11-17):** 版上げ (package.json・package-lock.json・demo/app.js・README の Status と
+  CDN の URL・docs/api-reference.md の CDN の URL、本文の大きさ 322 KB・tests 288 KB)、CHANGELOG の `1.5.0 -
+  2026-11-17`、デモの competing-incidence-gray を元のデータ (群 B の時刻 6) に戻して `npm run demo:r` (下の節の
+  11 番は済み)。中身: サンプルサイズ (PR #528)、メタアナリシス (PR #530)、数値の点検 (PR #532)、文書・デモ・日本語の
+  API リファレンス (PR #534)、1.4.1 の分 (Gray の検定)。残り: main の push と CI → タグ `v1.5.0` の push (release.yml
+  が Trusted Publishing で npm に stage し、ユーザーが承認) → npm latest・jsDelivr・デモ・/api/ と /ja/api/ の確認
 - **トークン節約のため、外注できることはなるべく ChatGPT に外注する** (ユーザーの指示)。私は外注の仕組み、fixture の
   生成 (`npm run oracle`)、手元でのテスト、独立の検算、文書 (R との違い・CHANGELOG・ROADMAP・索引の訳)、取り込みをする
 - **メタアナリシス:** PR #530 (`work/meta-pr`、Issue #529)。照合先は metafor 5.2.1 (metadat 1.6.0)、GPL。範囲は
