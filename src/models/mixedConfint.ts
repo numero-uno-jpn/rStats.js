@@ -411,7 +411,7 @@ function finish(
     const z = qnorm((1 + level) / 2) as number;
     parameters.forEach((p, i) => {
       if (p.kind !== "beta") return;
-      const se = standardErrors[p.beta!]!;
+      const se = standardErrors[i]!;
       lowerAll[i] = p.value - z * se;
       upperAll[i] = p.value + z * se;
     });
