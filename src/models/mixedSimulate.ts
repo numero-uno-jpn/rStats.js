@@ -89,9 +89,6 @@ function newEffects(
     const term = terms[ti]!;
     const nc = term.columns.length;
     const conditioned = selected.get(ti) ?? new Set<number>();
-    // A wholly conditioned term consumes no random numbers. A partially conditioned correlated block still draws
-    // its full vector, because the unconditioned columns share that draw.
-    if (conditioned.size === nc) continue;
     const lower = Array.from({ length: nc }, () => new Array<number>(nc).fill(0));
     let k = term.thetaOffset;
     for (let j = 0; j < nc; j++) for (let i = j; i < nc; i++) lower[i]![j] = theta[k++]! * scale;
