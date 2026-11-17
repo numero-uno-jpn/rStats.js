@@ -120,7 +120,7 @@ function applyReferenceFit(
       if (index < 0) throw new Error(`R fixture lacks VarCorr SD for ${group}:${column}`);
       return num(vc.sdcor![index] as string);
     });
-    const correlation = Array.from({ length: nc }, (_, i) => Array.from({ length: nc }, (_, j) => (i === j ? 1 : 0)));
+    const correlation: number[][] = Array.from({ length: nc }, (_, i) => Array.from({ length: nc }, (_, j) => (i === j ? 1 : 0)));
     for (let i = 0; i < (vc.grp?.length ?? 0); i++) {
       if (vc.grp![i] !== group || missingValue(vc.var2![i])) continue;
       const row = term.columns.indexOf(vc.var1![i] as string);
