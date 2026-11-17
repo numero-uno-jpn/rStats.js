@@ -204,7 +204,7 @@ function profileAt(
   target: number,
   targetValue: number,
 ): number {
-  const free = parameters.map((p, i) => (i === target || (kind === "lmer" && p.kind === "beta") ? -1 : i)).filter((i) => i >= 0);
+  const free = parameters.map((p, i) => (i === target || (kind === "lmer" && (p.kind === "beta" || (p.kind === "sigma" && parameters[target]!.kind !== "sigma"))) ? -1 : i)).filter((i) => i >= 0);
   const start = free.map((i) => transform(parameters[i]!));
   const valueAt = (x: readonly number[]): number => {
     const values = parameters.map((p) => p.value);
@@ -465,6 +465,9 @@ function confintLmerImpl(fit: LmerResult, options: MixedConfintOptions): MixedCo
       // A fixed-effect profile uses the ML criterion, including for a fit originally estimated by REML.
       reml = false;
     }
+    // For every parameter except sigma, profile sigma analytically rather than asking the
+    // nuisance optimiser to recover its closed-form optimum alongside the covariance parameters.
+    if (targetParameter.kind !== "sigma") return profiledDeviance(structure, theta, reml).deviance;
     const r = profiledDeviance(structure, theta, reml);
     const n = structure.y.length;
     const p = structure.xColNames.length;
