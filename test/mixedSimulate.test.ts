@@ -57,6 +57,8 @@ function makeFit(c: SimCase): { fit: ReturnType<typeof lmer> | ReturnType<typeof
     family: c.fit.family as NonNullable<GlmerOptions["family"]>,
     nAGQ: num(c.fit.nAGQ as string),
   };
+  // The public cbpp data has a factor `period`; restore its levels lost by the JSON fixture. 
+  if (Object.hasOwn(data, "period")) options.levels = { period: ["1", "2", "3", "4"] };
   if (c.fit.weights !== undefined) options.weights = (c.fit.weights as string[]).map((v) => num(v));
   return { kind: "glmer", fit: glmer(formula, data, options) };
 }
