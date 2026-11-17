@@ -241,7 +241,7 @@ function profileAt(
   // A profile point can be harder to minimise than the fitted model. If the trust-region
   // iteration stalls, restart from its best finite point; never treat an unconverged value as a profile.
   let from = start;
-  for (let attempt = 0; attempt < 4; attempt++) {
+  for (let attempt = 0; attempt < 2; attempt++) {
     try {
       const result = minimiseWithRestarts(problem, from, [], { bestOnFailure: true });
       if (result.converged) return result.f;
