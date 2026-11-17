@@ -129,10 +129,16 @@ function choleskyCorrelation(corr: number[][]): number[][] | undefined {
       let value = corr[i]![j]!;
       for (let k = 0; k < j; k++) value -= l[i]![k]! * l[j]![k]!;
       if (i === j) {
-        if (!(value > 0) || !Number.isFinite(value)) return undefined;
-        l[i]![j] = Math.sqrt(value);
+        if (value < -1e-12 || !Number.isFinite(value)) return undefined;
+        l[i]![j] = Math.sqrt(Math.max(0, value));
       } else {
-        l[i]![j] = value / l[j]![j]!;
+        const diagonal = l[j]![j]!;
+        if (diagonal === 0) {
+          if (Math.abs(value) > 1e-12) return undefined;
+          l[i]![j] = 0;
+        } else {
+          l[i]![j] = value / diagonal;
+        }
       }
     }
   }
@@ -328,7 +334,7 @@ function profileIntervals(
     lower[index] = lo;
     upper[index] = hi;
     cache.set(index, [lo, hi]);
-    if (Number.isNaN(lo) || Number.isNaN(hi)) warnings.push(`NAs detected in profiling for ${parameter.name}`);
+    if ((Number.isNaN(lo) || Number.isNaN(hi)) && !warnings.includes("NAs detected in profiling")) warnings.push("NAs detected in profiling");
   }
   return { lower, upper };
 }

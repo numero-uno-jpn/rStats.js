@@ -438,10 +438,14 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `lme4::anova()` | `glmerAnova` | The ANOVA table of the fixed-effects terms of a generalized linear mixed model fitted by `glmer`, or, given an array of fits, the likelihood-ratio comparison of the models. |
 | `lmerTest::anova()` | `lmerAnova` | The ANOVA table of a linear mixed model fitted by `lmer`, with Satterthwaite's denominator degrees of freedom (lmerTest's `anova()`), or, given an array of fits, the likelihood-ratio comparison of the models (lme4's `anova()` of several fits). |
 | `lmerTest::contest()` | `lmerContest` | Tests of contrasts L β = rhs of the fixed effects of a linear mixed model fitted by `lmer`, with Satterthwaite's degrees of freedom. |
+| `lme4::confint.merMod()` | `confintGlmer` | Confidence intervals for a generalized linear mixed-model fit. |
+| `lme4::confint.merMod()` | `confintLmer` | Confidence intervals for a linear mixed-model fit. |
 | `lme4::glmer()` | `glmer` | Fit a generalized linear mixed model by the Laplace approximation, by adaptive Gauss-Hermite quadrature or with the fixed effects from the penalised IRLS. |
 | `lme4::lmer()` | `lmer` | Fit a linear mixed model by REML or maximum likelihood. |
 | `lme4::predict()` | `glmerPredict` | Predictions of a generalized linear mixed model fitted by `glmer`, at the rows of the fit or at new data, with all, some or none of the random-effects terms, on the link or the response scale, optionally with their standard errors. |
 | `lme4::predict()` | `lmerPredict` | Predictions of a linear mixed model fitted by `lmer`, at the rows of the fit or at new data, with all, some or none of the random-effects terms, optionally with their standard errors. |
+| `lme4::simulate.merMod()` | `simulateGlmer` | Simulations from a generalized linear mixed-model fit: one response vector per simulation, with R's simulation column names. |
+| `lme4::simulate.merMod()` | `simulateLmer` | Simulations from a linear mixed-model fit: one response vector per simulation, with R's simulation column names. |
 | `lme4::summary()` | `glmerSummary` | The summary of a generalized linear mixed model fitted by `glmer`: the coefficient table with p-values, the correlation of the fixed effects, the quantiles of the scaled residuals, the information criteria, the variance components and the numbers of groups. |
 | `lmerTest::summary()` | `lmerSummary` | The coefficient table of a linear mixed model fitted by `lmer`, with Satterthwaite's degrees of freedom and the p-values of the t-tests: the `summary()` of a fit by lmerTest. |
 | (not in R) | `setWarningHandler` | Sets the function that receives R's warnings, and returns the one it replaces. |
