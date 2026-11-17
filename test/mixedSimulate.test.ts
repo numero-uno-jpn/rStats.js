@@ -19,7 +19,7 @@ interface SimCase {
   kind: "lmer" | "glmer";
   fit: Record<string, unknown>;
   fitPublic?: {
-    fixef: Record<string, string>;
+    fixef: Record<string, string> | string;
     sigma: string;
     varCorr: { columns: Record<string, (string | null)[]> };
     ranef: Record<string, { rowNames: string[]; columns: Record<string, string[]> }>;
@@ -69,6 +69,14 @@ function makeFit(c: SimCase): { fit: ReturnType<typeof lmer> | ReturnType<typeof
   if (Object.hasOwn(data, "period")) options.levels = { period: ["1", "2", "3", "4"] };
   if (c.fit.weights !== undefined) options.weights = (c.fit.weights as string[]).map((v) => num(v));
   return { kind: "glmer", fit: glmer(formula, data, options) };
+}
+
+function namedValues(raw: Record<string, string> | string, names: string[]): number[] {
+  if (typeof raw === "string") {
+    if (names.length !== 1) throw new Error("R fixture has a scalar fixed-effect vector with multiple names");
+    return [num(raw)];
+  }
+  return names.map((name) => num(raw[name]!));
 }
 
 function asArray<T>(value: unknown): T[] {
@@ -159,7 +167,7 @@ function applyReferenceFit(
     }
     return { group, columns: [...term.columns], sd, corr: correlation };
   });
-  const fixef = fit.fixefNames.map((name) => num(reference.fixef[name]!));
+  const fixef = namedValues(reference.fixef, fit.fixefNames);
   fit.fixef = fixef;
   fit.sigma = sigma;
   fit.theta = theta;
