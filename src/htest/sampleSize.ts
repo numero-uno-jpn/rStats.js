@@ -603,7 +603,7 @@ export function ph2simon(pu:number,pa:number,ep1:number,ep2:number,options: {nma
     for(let n1=1;n1<n && (best===undefined || n1<best.enP0);n1++){
       const n2=n-n1;
       const p0Stage1=masses0[n1]!, p1Stage1=masses1[n1]!;
-      const p0Stage2Cdf=cdfs0[n2]!, p1Stage2Cdf=cdfs1[n2]!;
+      const p1Stage2Cdf=cdfs1[n2]!;
       const p0Stage1Cdf=cdfs0[n1]!;
       for(let r1=0;r1<n1;r1++){
         const pet=p0Stage1Cdf[r1]!;
