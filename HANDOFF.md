@@ -1,10 +1,91 @@
 # 引継ぎ: rStats.js (外部レビュー対応 2026-10-30〜11-04、1.0.0 への準備 11-04〜)
 
-最終更新: 2026-11-16 (セッション 21、Mac mini: 1.4.0 を公開、同時刻の Gray の検定を ChatGPT がクリーンルームで修正 (1.4.1 に入る、未公開)、外注用の R の実験の仕組みを作った。次は ROADMAP の 1 番)
+最終更新: 2026-11-17 (セッション 22、Mac mini: 1.5.0 を公開。次は混合モデルの続き)。以前: 2026-11-16 (セッション 21、Mac mini: 1.4.0 を公開、同時刻の Gray の検定を ChatGPT がクリーンルームで修正 (1.4.1 に入る、未公開)、外注用の R の実験の仕組みを作った。次は ROADMAP の 1 番)
 
 ## まず読むこと (セッション 16 から)
 
-## 次のセッションで最初にやること (2026-11-17、セッション 22、Mac mini)
+## 次のセッションで最初にやること: 混合モデルの続き (2026-11-17 に作成、セッション 22 → 23、Mac mini)
+
+ユーザーの指示: 次のセッションで ROADMAP の 1 番「混合モデルの続き」を始める (1.6.0 の予定)。
+
+### 状態
+
+- npm latest = **1.5.0** (2026-11-17 公開)。main = `03a8bb9f` 以降、CI 通過。作業ブランチは 1 本もない。未追跡の
+  `oracle/extreme-parameters-behaviour.md` は以前からあるもので、触らない
+- 1.5.0 の後に main に入った変更は、この HANDOFF だけ (CHANGELOG の Unreleased は空)
+
+### 中身 (ROADMAP の 1 番)
+
+- `lmer` と `glmer` の当てはめの `confint` (profile likelihood) と `simulate` [lme4]
+- 照合先: **lme4 2.0-6** (GPL ≥ 2。oracle のイメージ `rstats-oracle:4.6.2` に入っている。CRAN の日付 2026-10-23)。
+  `lmerTest` 3.2-1 も入っている
+- 混合モデルの分野 (`/mixed`、`src/entries/mixed.ts`) は、引き続きルートの export と `dist/rstats.js` に入れない
+  (2026-11-05 の決定)。新しい関数も `/mixed` から export する
+- 今あるもの: `lmer`・`lmerSummary`・`lmerContest`・`lmerAnova` などと `glmer`・`glmerSummary`・`glmerAnova`・
+  `glmerPredict`。仕様書は `oracle/lmer-behaviour.md`・`glmer-behaviour.md`・`lmertest-behaviour.md`。fixture の
+  oracle は `oracle/lmer*.R`・`glmer*.R`・`mixedpredict.R`。プロファイル化した逸脱度は `src/models/mixedDeviance.ts`
+
+### 最初にユーザーと決めること (着手の前に聞く)
+
+1. 範囲: `confint` の方法 (lme4 の `method` の `"profile"` だけか、`"Wald"`・`"boot"` も入れるか)、`profile()` そのもの
+   (プロファイルの表) を公開するか、`lmer` と `glmer` の両方か、glmer の AGQ (`nAGQ > 1`) の当てはめにも対応するか
+2. `simulate`: R の乱数の流れまで lme4 と同じにするか (rStats.js は R の乱数を再現している。`setSeed`・`rnorm` など)。
+   `newdata`・`re.form`・`use.u` などのどこまでを入れるか
+3. 名前: 方法の関数は `predictCrr`・`confintRma` の前例どおり `confintLmer`・`simulateLmer`・`confintGlmer`・
+   `simulateGlmer` などにするか
+
+### クリーンルーム (重要)
+
+- lmer・glmer は 2026-10 末〜11 月初め、「R のソースを読んでよい」とされていた時期 (2026-10-24〜11-09) に作った。
+  そのころの私 (Claude のセッション) が lme4 のソースを見た可能性がある。**今回の仕様と実装はすべて ChatGPT に任せ**、
+  私は仕組みの面倒・fixture の生成・テストの実行・独立の検算・文書・取り込みだけをする
+- 誰も lme4・Matrix・lmerTest と R のソースを読まない。ChatGPT への依頼文には、**毎回クリーンルームの規則の要点を書く**
+  (ユーザーの指示。記憶の feedback-chatgpt-request-cleanroom)
+- ChatGPT は 1.5.0 の作業中に 2 回、ウェブ検索の結果一覧で照合先のソースの抜粋を目にした (使っていない。ユーザーは
+  そのまま進めると判断した)。報告に出たら、ユーザーに判断を仰ぐ
+
+### 進め方 (1.5.0 のサンプルサイズ・メタアナリシスと同じ)
+
+1. ユーザーと上の 1〜3 を決める
+2. 外注の準備 (main に push。ワークフローは main の版の検査と Dockerfile を使う):
+   - `oracle/Dockerfile.experiments` に lme4 の層を足す (版の確認つき: lme4 2.0.6、Matrix 1.7.6)。lme4 が要る
+     システムのライブラリがあれば足す (epiR のときは GDAL などが要った)
+   - `scripts/r-experiment-check.mjs` の `ALLOWED_PACKAGES` に lme4 (と Matrix)、`REFERENCE_FUNCTIONS` に lme4 の公開
+     関数 (`getNamespaceExports` から、英数字と `.`・`_` だけの名前)。`print(lmer)` が止まり、`lmer(...)` が通ることを
+     手元で試す
+   - 指示書 `briefs/mixed-1.6.ja.md`。`briefs/meta-analysis.ja.md` を手本にし、その 4 節 (直しが入った点) に下の
+     「1.5.0 で分かったこと」を足す
+3. ChatGPT に段階 1 (仕様書 `oracle/<名前>-behaviour.md` と `oracle/<名前>.R`) → 私が `npm run oracle` で fixture を
+   作って push → Decisions をユーザーに聞いて choices を書く → (範囲が広がれば段階 1 の追加) → 段階 2 (実装・PR) →
+   私が手元で全テスト → 段階 3 (数値の点検。**忘れない**) → 取り込み → 公開の準備 (`briefs/release-1.5.ja.md` が手本)
+4. 依頼文は毎回、基準のコミットを書き、`git log -1` で確かめさせ、クリーンルームの要点を入れる
+
+### 1.5.0 で分かったこと (指示書と点検に生かす)
+
+- **ChatGPT はテストを実行できない。** 各段階の後に私が手元で型チェックと全テストを流し、失敗の一覧を返すと早い
+  (Issue へのコメントはユーザーに確認してから)。テストを実行できないことを理由に止まったら「push して CI と私の
+  結果で確かめればよい」と伝える
+- **ChatGPT がよくする誤り:** oracle の記録する引数と呼び出しの食い違い、rStats.js を自分自身と比べるだけのテスト、
+  表の先頭と末尾だけの比較、許容誤差を広げて通す (2% や 0.0012。反復の止め方の違いなら真の根を高精度で求めて
+  比べさせる)、`@category` を既存の合わないものにする (新しい分野ならカテゴリの一覧に足させる)、JSON ファイルを
+  丸ごと整形し直す (`demo/examples.json` の詰めた書式が崩れた。元の書式に新しい例だけを足し直した)、文字列の `\n` を
+  本物の改行にする、触らない約束の文書 (`docs/differences-from-r.md`・CHANGELOG) を書き換える、デモに R との違いと
+  決めた所を使う、R の誤りを「異常」としながら正しい値を疑う (exact2x2 の `errbound = 0`)
+- **私が独立に確かめると効く:** 正確な値を有理数 (`fractions`) で計算する (McNemar)。桁落ちの説明 (lgamma の差の ulp)
+- **oracle の注意:** R がメモリを使い果たす入力は外す (metafor の `vi = 1e300` の REML)。モデルのオブジェクトを JSON に
+  書くと C のスタックがあふれるので入力だけを書く。npm run oracle はエラーで止まっても 0 で終わることがある
+  (出力された fixture の数を確かめる)
+- **並行の push:** 私が直している間に ChatGPT が同じブランチに push することがある。ChatGPT を止めてもらってから直す
+- **CI の時間の上限:** `test/distributionProperties.test.ts` の `dsignrank(302775, 1100)` が遅い機械で 1 秒を超えて
+  落ちることがある。再実行で通る
+- **用語:** sample size は「標本サイズ」(用語集)。訳の後に用語集と照らす
+- **サイズの測り方:** 表は `npm run size`。本文の分野ごとの転送量は、`dist/<分野>.js` から import をたどった chunk の
+  gzip (level 9) の合計 (1.5.0: special 39 KB、tests 288 KB)。単一ファイルは表の「すべて」の値
+- **公開:** タグ (注釈なし) の push → release.yml が npm に stage → ユーザーが SSH の対話端末で
+  `npm stage approve <stage id>` (2FA はセキュリティキー。Claude の Bash からは EOTP で失敗)。デモ・Pages はタグから作る
+- **Bash の自動の許可:** ブランチの削除は、ユーザーがその場で頼んだときだけ (まとめて実行すると止められる)
+
+## セッション 22 の記録 (2026-11-16〜17、Mac mini)
 
 - **1.5.0 を公開した (2026-11-17):** npm latest = 1.5.0 (stage id `8573ab61-...` をユーザーが `npm stage approve` で
   承認)、tag `v1.5.0` = `5b4e37b4` (release がビルドの結果入りに付け替えた)、main = `f785b785`。確かめたもの: jsDelivr
