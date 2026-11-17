@@ -211,7 +211,7 @@ function tau2StandardError(y:number[],v:number[],X:number[][],method:MetaMethod,
 }
 function tauEstimate(y:number[],v:number[],X:number[][],method:MetaMethod,control:RmaControl) {
   const k=y.length,p=X[0]!.length,df=k-p;
-  const base=weightedFit(y,v,X,0),q0=base.qe;
+  const base=weightedFit(y,v,X,0);
 
   if(method==="EE"||method==="FE") return 0;
   if(method==="DL") return Math.max(0,(base.qeScaled-df*base.minVariance)/base.tracePNorm);
@@ -244,7 +244,7 @@ function tauEstimate(y:number[],v:number[],X:number[][],method:MetaMethod,contro
   for(let i=0;i<maxiter;i++){
     const fit=weightedFit(y,v,X,tau2);
     const score=method==="REML"?fit.score:fit.mlScore;
-    const information=method==="REML"?0.5*fit.traceP2:fit.mlInfo;
+    const information=method==="REML"?0.5*fit.traceP2Norm:fit.mlInfo;
     if(!(information>0)||!Number.isFinite(information)) return tau2;
     const next=Math.max(0,tau2+stepadj*score/information);
     if(!Number.isFinite(next)) return tau2;
@@ -525,8 +525,7 @@ export function confintRma(object:RmaResult,options:ConfintRmaOptions={}):{rando
     }
   }
   const base=weightedFit(object.yi,object.vi,object.mods,0);
-  const residualPrecision=base.P.reduce((sum,row,i)=>sum+row[i]!,0);
-  const vtilde=df>0?df/residualPrecision:0;
+  const vtilde=df>0?df*base.minVariance/base.tracePNorm:0;
   const transform=(t:number)=>[
     t,Math.sqrt(t),100*t/(t+vtilde),(t+vtilde)/vtilde
   ];
