@@ -181,9 +181,10 @@ function determinantSmall(a:number[][]):number {
     for(let i=j+1;i<n;i++){const z=m[i]![j]!/q;for(let c=j+1;c<n;c++)m[i]![c]!-=z*m[j]![c]!;}
   } return d;
 }
-function tracePVPV(P:number[][],V:number[],minVariance=1):number {
-  const scaledV=V.map(z=>z/minVariance);
-  return P.reduce((s,row,i)=>s+row.reduce((a,z,j)=>a+z*scaledV[j]!*P[j]![i]!*scaledV[i]!,0),0);
+function tracePVPV(P:number[][],V:number[]):number {
+  // P is the projection matrix normalized by the common inverse-weight scale.
+  // The omitted 1/minVariance^2 cancels in the DL/HS standard-error ratios.
+  return P.reduce((s,row,i)=>s+row.reduce((a,z,j)=>a+z*V[j]!*P[j]![i]!*V[i]!,0),0);
 }
 function tau2StandardError(y:number[],v:number[],X:number[][],method:MetaMethod,tau2:number,fit:ReturnType<typeof weightedFit>,base:ReturnType<typeof weightedFit>):number {
   const k=y.length,df=k-X[0]!.length,V=v.map(z=>z+tau2);
@@ -191,19 +192,19 @@ function tau2StandardError(y:number[],v:number[],X:number[][],method:MetaMethod,
   if(method==="REML") return fit.traceP2Norm>0?fit.minVariance*Math.sqrt(2/fit.traceP2Norm):NaN;
   if(method==="ML") return fit.sumWeightSquaredNorm>0?fit.minVariance*Math.sqrt(2/fit.sumWeightSquaredNorm):NaN;
   if(method==="DL"||method==="HS"||method==="HSk"){
-    const numerator=Math.sqrt(2*tracePVPV(base.P,V,base.minVariance));
+    const numerator=Math.sqrt(2*tracePVPV(base.P,V));
     const denominator=method==="DL"?base.tracePNorm:method==="HS"?base.sumWeightsNorm:(base.sumWeightsNorm*(k-1)/k);
     return denominator>0?numerator/denominator:NaN;
   }
   if(method==="HE"){
     const unweighted=weightedFit(y,Array(k).fill(1),X,0);
-    return df>0?Math.sqrt(2*tracePVPV(unweighted.P,V,unweighted.minVariance))/df:NaN;
+    return df>0?Math.sqrt(2*tracePVPV(unweighted.P,V))/df:NaN;
   }
   if(method==="SJ"){
     const unweighted=weightedFit(y,Array(k).fill(1),X,0),initial=unweighted.residuals.reduce((s,z)=>s+z*z,0)/k;
     if(!(initial>0)||df<=0)return NaN;
     const initialFit=weightedFit(y,v,X,initial);
-    return initial/df*Math.sqrt(2*tracePVPV(initialFit.P,V,initialFit.minVariance))/initialFit.minVariance;
+    return initial/df*Math.sqrt(2*tracePVPV(initialFit.P,V))/initialFit.minVariance;
   }
   // First-order delta method for Q(tau^2)=df. The normalized weights avoid forming w_i^2.
   const denominator=fit.residuals.reduce((s,z,i)=>s+fit.weights[i]!*fit.weights[i]!*z*z,0);
