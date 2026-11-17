@@ -18,8 +18,8 @@
 import { readFileSync } from "node:fs";
 
 const ALLOWED_PACKAGES = new Set([
-  "cmprsk", "survival", "epiR", "exact2x2", "clinfun", "powerSurvEpi", "metafor", "metadat", "jsonlite", "stats",
-  "utils", "base",
+  "cmprsk", "survival", "epiR", "exact2x2", "clinfun", "powerSurvEpi", "metafor", "metadat", "lme4", "Matrix",
+  "jsonlite", "stats", "utils", "base",
 ]);
 
 /** Functions of the reference packages: they may only be called. */
@@ -100,6 +100,31 @@ const REFERENCE_FUNCTIONS = [
   "transf.ztor.mode", "transf.ztor2", "trimfill", "trimfill.rma.uni", "update.rma", "vcalc", "vcov.deltamethod",
   "vcov.matreg", "vcov.rma", "vec2mat", "vif", "vif.rma", "weights.rma.glmm", "weights.rma.mh", "weights.rma.mv",
   "weights.rma.peto", "weights.rma.uni",
+  // lme4 and Matrix (mixed models, roadmap item 1, 1.6.0): their exported functions whose names are not also base R's
+  // (S3 methods and generics with other characters left out; the deviance-function builders are in FORBIDDEN_NAMES)
+  "allFit", "anyStructured", "bootMer", "checkConv", "confint.merMod", "cov2sdcor", "Cv_to_Sv", "Cv_to_Vv", "devcomp",
+  "dotplot.ranef.mer", "dummy", "expandDoubleVerts", "factorize", "findbars", "fixef", "forceNewMerMod", "formatVC",
+  "fortify.merMod", "getData", "getDoublevertDefault", "getL", "getLambda", "getLambdat.dp", "getLambdat.i",
+  "getLower", "getME", "getPar", "getParLength", "getParNames", "getProfLower", "getProfPar", "getProfUpper",
+  "getReCovs", "getSingTol", "getTheta", "getThetaIndex", "getThetaIndexLength", "getThetaLength", "getThetaNames",
+  "getUpper", "getVC", "getVCNames", "GHrule", "glFormula", "glmer", "glmer.nb", "glmerControl", "glmFamily",
+  "glmResp", "golden", "GQdk", "GQN", "isGLMM", "isLMM", "isNested", "isNewMerMod", "isNLMM", "isREML", "isSingular",
+  "lFormula", "llikAIC", "lme4_testlevel", "lmer", "lmerControl", "lmerResp", "lmList", "lmResp", "logProf",
+  "merPredD", "methTitle", "mkDataTemplate", "mkMerMod", "mkNewReTrms", "mkParsTemplate", "mkRespMod", "mkReTrms",
+  "mkVarCorr", "mlist2vec", "namedList", "negative.binomial", "Nelder_Mead", "NelderMead", "ngrps", "nlformula",
+  "nlmer", "nlmerControl", "nlminbwrap", "nloptwrap", "nlsResp", "nobars", "optimizeGlmer", "optimizeLmer", "ranef",
+  "refit", "refitML", "REMLcrit", "reOnly", "rePCA", "rePos", "sdcor2cov", "setPar", "setProfPar", "setTheta", "setVC",
+  "simulate.formula", "subbars", "Sv_to_Cv", "VarCorr", "varianceProf", "vcov.merMod", "vec2mlist", "vec2STlist",
+  "Vv_to_Cv",
+  "abIseq", "abIseq1", "aggregateT", "anyDuplicatedT", "asPerm", "asUniqueT", "band", "bandSparse", "bdiag",
+  "BunchKaufman", "c.sparseVector", "cBind", "Cholesky", "colScale", "condest", "diagN2U", "Diagonal", "diagU2N",
+  "dimScale", "dmperm", "drop0", "expand", "expand1", "expand2", "expm", "fac2sparse", "fac2Sparse", "facmul",
+  "forceSymmetric", "formatSparseM", "formatSpMatrix", "graph2T", "Hilbert", "invertPerm", "invPerm", "is.null.DN",
+  "isDiagonal", "isLDL", "isPerm", "isTriangular", "isUniqueT", "KhatriRao", "lu", "mat2triplet", "Matrix",
+  "Matrix.Version", "MatrixClass", "nearPD", "nnzero", "onenormest", "pack", "printSpMatrix", "printSpMatrix2",
+  "qr2rankMatrix", "qrR", "rankMatrix", "rBind", "readHB", "readMM", "rep2abI", "rowScale", "rsparsematrix", "Schur",
+  "signPerm", "skewpart", "sparse.model.matrix", "sparseMatrix", "sparseVector", "spMatrix", "symmpart", "T2graph",
+  "tril", "triu", "uniqTsparse", "unpack", "updown", "writeMM",
 ];
 
 /** Names that reach code, namespaces, compiled routines, other programs or files: not allowed at all. */
@@ -114,6 +139,9 @@ const FORBIDDEN_NAMES = [
   "scan", "download.file", "list.files", "file.show", "Sys.setenv", "setwd", "assignInNamespace",
   "fixInNamespace", "attach", "eapply", "as.list.environment", "lsf.str", "ls.str", "install.packages",
   "update.packages",
+  // lme4: the deviance functions it builds are closures whose bodies print, and the reference-class objects in a
+  // fit's resp and pp slots print their methods' code
+  "devFunOnly", "mkLmerDevfun", "mkGlmerDevfun", "devfun2", "updateGlmerDevfun", "glmerLaplaceHandle",
 ];
 
 const COMPILED = /\.(Fortran|C|Call|External|External2|Internal|Primitive)\b/;
@@ -160,6 +188,9 @@ function check(file) {
     const refCode = code
       .replace(/\b(library|require)\s*\(\s*[A-Za-z][A-Za-z0-9.]*\s*\)/g, (m) => m.replace(/\(.*\)/, "()"))
       .replace(/([A-Za-z][A-Za-z0-9.]*)\s*::(?!:)/g, (m, pkg) => (ALLOWED_PACKAGES.has(pkg) ? "" : m));
+    if (/@\s*(resp|pp)\b/.test(code)) {
+      problems.push(`${at}: a fit's resp and pp slots print their methods' code; use getME`);
+    }
     if (COMPILED.test(code)) problems.push(`${at}: calling compiled code directly is not allowed`);
     for (const name of FORBIDDEN_NAMES) {
       if (word(name).test(code)) problems.push(`${at}: '${name}' is not allowed`);

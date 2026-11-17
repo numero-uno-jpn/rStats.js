@@ -42,3 +42,11 @@ RUN install2.r --error --skipinstalled metafor \
                    got <- sapply(names(want), function(p) as.character(packageVersion(p))); \
                    cat(sprintf("%s %s\n", names(got), got), sep = ""); \
                    if (!identical(unname(got), unname(want))) quit(status = 1)'
+
+# Mixed models continued (roadmap item 1, 1.6.0): lme4 and its Matrix, in a layer of their own, at the versions of the
+# fixtures. Matrix is one of R's recommended packages; the check fails if the snapshot's lme4 brings another.
+RUN install2.r --error --skipinstalled lme4 \
+    && Rscript -e 'want <- c(lme4 = "2.0.6", Matrix = "1.7.6"); \
+                   got <- sapply(names(want), function(p) as.character(packageVersion(p))); \
+                   cat(sprintf("%s %s\n", names(got), got), sep = ""); \
+                   if (!identical(unname(got), unname(want))) quit(status = 1)'
