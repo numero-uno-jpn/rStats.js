@@ -162,7 +162,11 @@ function applyReferenceFit(
       group: group.name,
       levels: [...group.levels],
       columns: terms.flatMap((term) => term.columns),
-      values: group.levels.map((_, level) => terms.flatMap((term) => term.columns.map((column) => num(source.columns[column]![level]!)))),
+      values: group.levels.map((levelName) => {
+        const row = source.rowNames.indexOf(levelName);
+        if (row < 0) throw new Error(`R fixture lacks ranef level ${group.name}:${levelName}`);
+        return terms.flatMap((term) => term.columns.map((column) => num(source.columns[column]![row]!)));
+      }),
     };
   });
   if (kind === "lmer") {
