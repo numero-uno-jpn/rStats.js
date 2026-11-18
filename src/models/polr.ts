@@ -4,7 +4,7 @@
 
 import { pnorm, qnorm } from "../distributions/normal.js";
 import { qlogis } from "../distributions/logistic.js";
-import { pcauchy, qcauchy } from "../distributions/cauchy.js";
+import { qcauchy } from "../distributions/cauchy.js";
 import { chol, chol2inv } from "../linalg/chol.js";
 import { optim } from "../optim/optim.js";
 import { reported } from "../internal/warnings.js";
@@ -125,7 +125,19 @@ function log1mexp(x: number): number {
 function logCdf(z: number, method: PolrMethod, upper = false): number {
   if (method === "logistic") return upper ? -softplus(z) : -softplus(-z);
   if (method === "probit") return pnorm(z, { lowerTail: !upper, logP: true }) as number;
-  if (method === "cauchit") return pcauchy(z, { lowerTail: !upper, logP: true }) as number;
+  if (method === "cauchit") {
+    // F(t) = 1/2 + atan(t)/pi. Evaluate the smaller tail directly.
+    const t = upper ? -z : z;
+    if (t === 0) return -Math.LN2;
+    if (t > 0) {
+      const reciprocal = 1 / t;
+      const smallTail = reciprocal === 0 ? 0 : Math.atan(reciprocal) / Math.PI;
+      return Math.log1p(-smallTail);
+    }
+    const reciprocal = -1 / t;
+    if (reciprocal === 0) return -Infinity;
+    return Math.log(Math.atan(reciprocal)) - Math.log(Math.PI);
+  }
   if (method === "cloglog") return upper ? -Math.exp(z) : log1mexp(-Math.exp(z));
   return upper ? log1mexp(-Math.exp(-z)) : -Math.exp(-z);
 }
@@ -224,7 +236,7 @@ function covarianceFromHessian(hessian: number[][], p: number, k: number, theta:
 function offsetFormula(formula: string): { formula: string; column?: string } {
   const match = /\s*\+\s*offset\(\s*([A-Za-z.][\w.]*)\s*\)/.exec(formula);
   if (match === null) return { formula };
-  return { formula: formula.replace(match[0], ""), column: match[1] };
+  return { formula: formula.replace(match[0], ""), column: match[1]! };
 }
 
 /**
@@ -257,6 +269,7 @@ export function polr(formula: string, data: DataFrame, options: PolrOptions = {}
   if (options.weights !== undefined) designOptions.weights = options.weights;
   if (options.levels !== undefined) designOptions.levels = options.levels;
   if (options.contrasts !== undefined) designOptions.contrasts = options.contrasts;
+  designOptions.anyResponse = true;
   const d = design(parsed, data, designOptions);
   const response = d.frame.variables[0];
   if (response === undefined || response.kind !== "factor") throw new TypeError("response must be a factor");
@@ -281,7 +294,7 @@ export function polr(formula: string, data: DataFrame, options: PolrOptions = {}
   const k = responseLevels.length;
   const theta0 = options.start === undefined
     ? [...new Array<number>(p).fill(0), ...initialValues(y, weights, k, method)]
-    : rawStart(options.start, p, k);
+    : rawStart(Array.from(options.start), p, k);
   const objective = (theta: number[]): number => {
     const beta = theta.slice(0, p);
     const cuts = cutpointsFrom(theta, p, k);
