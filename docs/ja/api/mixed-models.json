@@ -987,52 +987,52 @@
   "MixedConfintOptions#summary": {
     "hash": "faeb526c1f83",
     "en": "Options of {@link confintLmer} and {@link confintGlmer}.",
-    "ja": ""
+    "ja": "{@link confintLmer} と {@link confintGlmer} のオプションです。"
   },
   "MixedConfintOptions.level#summary": {
     "hash": "20c0bf66d85d",
     "en": "Two-sided confidence level. Default 0.95.",
-    "ja": ""
+    "ja": "両側の信頼水準です。既定は 0.95 です。"
   },
   "MixedConfintOptions.method#summary": {
     "hash": "1ae29c42f678",
     "en": "\"profile\" (default) or \"Wald\" (fixed effects only).",
-    "ja": ""
+    "ja": "\"profile\" (既定) または \"Wald\" (固定効果のみ) です。"
   },
   "MixedConfintOptions.parm#summary": {
     "hash": "fb22af4feebe",
     "en": "Parameter names, one-based positions, \"theta_\" (variance parameters), or \"beta_\" (fixed effects).",
-    "ja": ""
+    "ja": "パラメータ名、1 始まりの位置、\"theta_\" (分散パラメータ)、または \"beta_\" (固定効果) です。"
   },
   "MixedConfintOptions.signames#summary": {
     "hash": "545922ef45a1",
     "en": "Use lme4's .sig01 names (default), or descriptive standard-deviation and correlation names.",
-    "ja": ""
+    "ja": "lme4 の .sig01 という名前 (既定)、または標準偏差と相関を表す名前を使います。"
   },
   "MixedConfintResult#summary": {
     "hash": "ef05b4f84e95",
     "en": "Confidence intervals from a mixed-model fit. Missing limits are NaN.",
-    "ja": ""
+    "ja": "混合モデルの当てはめから得た信頼区間です。欠けている限界値は NaN です。"
   },
   "MixedConfintResult.lower#summary": {
     "hash": "085ea5acdc2f",
     "en": "Lower confidence limits.",
-    "ja": ""
+    "ja": "信頼区間の下限です。"
   },
   "MixedConfintResult.names#summary": {
     "hash": "dd0d2c6bef6c",
     "en": "Parameter names in the same order as the limits.",
-    "ja": ""
+    "ja": "限界値と同じ順序のパラメータ名です。"
   },
   "MixedConfintResult.upper#summary": {
     "hash": "6f853a290f9a",
     "en": "Upper confidence limits.",
-    "ja": ""
+    "ja": "信頼区間の上限です。"
   },
   "MixedConfintResult.warnings#summary": {
     "hash": "f84900daffab",
     "en": "Warnings from profiling or parameter selection.",
-    "ja": ""
+    "ja": "プロファイル計算またはパラメータの選択による警告です。"
   },
   "MixedPrediction#summary": {
     "hash": "eeca8f1e500a",
@@ -1057,537 +1057,537 @@
   "MixedSimulateOptions#summary": {
     "hash": "c081e82383f4",
     "en": "Options of {@link simulateLmer} and {@link simulateGlmer}.",
-    "ja": ""
+    "ja": "{@link simulateLmer} と {@link simulateGlmer} のオプションです。"
   },
   "MixedSimulateOptions.nsim#summary": {
     "hash": "281418b4f5ab",
     "en": "Number of simulated response vectors. Default 1.",
-    "ja": ""
+    "ja": "シミュレーションする応答ベクトルの数です。既定は 1 です。"
   },
   "MixedSimulateOptions.reForm#summary": {
     "hash": "0a2038a3243b",
     "en": "Random-effects terms to condition on: null (all), \"NA\" or \"~0\" (none), or a formula selecting whole terms.",
-    "ja": ""
+    "ja": "条件付けする変量効果の項です。null (すべて)、\"NA\" または \"~0\" (なし)、または項全体を選ぶ式を指定します。"
   },
   "MixedSimulateOptions.seed#summary": {
     "hash": "4351eb3e9071",
     "en": "Set the shared R-compatible random stream before simulation. Null or omitted uses its current state.",
-    "ja": ""
+    "ja": "シミュレーションの前に、R と互換性のある共有乱数ストリームを設定します。null または省略した場合は、現在の状態を使います。"
   },
   "MixedSimulateOptions.useU#summary": {
     "hash": "d75e4d4f2de5",
     "en": "Condition on all fitted random effects, or generate new effects. Cannot be combined with reForm.",
-    "ja": ""
+    "ja": "当てはめたすべての変量効果に条件付けするか、新しい効果を生成します。reForm と同時には指定できません。"
   },
   "MixedSimulations#summary": {
     "hash": "32d32e0a1ec1",
     "en": "Simulations from a mixed-model fit: one response vector per simulation, with R's simulation column names.",
-    "ja": ""
+    "ja": "混合モデルの当てはめから得たシミュレーションです。シミュレーションごとに 1 つの応答ベクトルがあり、列名は R のシミュレーションと同じです。"
   },
   "MixedSimulations.[iterator]#summary": {
     "hash": "b0b0485265ee",
     "en": "Iterator",
-    "ja": ""
+    "ja": "反復子"
   },
   "MixedSimulations.[unscopables]#summary": {
     "hash": "08705db4c429",
     "en": "Is an object whose properties have the value 'true'\nwhen they will be absent when used in a 'with' statement.",
-    "ja": ""
+    "ja": "'with' 文で使ったときに存在しないプロパティの値が 'true' になるオブジェクトです。"
   },
   "MixedSimulations.[unscopables].[unscopables]#summary": {
     "hash": "08705db4c429",
     "en": "Is an object whose properties have the value 'true'\nwhen they will be absent when used in a 'with' statement.",
-    "ja": ""
+    "ja": "'with' 文で使ったときに存在しないプロパティの値が 'true' になるオブジェクトです。"
   },
   "MixedSimulations.[unscopables].length#summary": {
     "hash": "397a7759e005",
     "en": "Gets or sets the length of the array. This is a number one higher than the highest index in the array.",
-    "ja": ""
+    "ja": "配列の長さを取得または設定します。配列内の最大の添字より 1 大きい数です。"
   },
   "MixedSimulations.at#@param index": {
     "hash": "97494618054b",
     "en": "The zero-based index of the desired code unit. A negative index will count back from the last item.",
-    "ja": ""
+    "ja": "目的のコード単位の 0 始まりの添字です。負の添字は末尾の項目から逆に数えます。"
   },
   "MixedSimulations.at#summary": {
     "hash": "3313cb9217fd",
     "en": "Returns the item located at the specified index.",
-    "ja": ""
+    "ja": "指定した添字にある項目を返します。"
   },
   "MixedSimulations.concat(0)#@param items": {
     "hash": "dfb2705ba50f",
     "en": "Additional arrays and/or items to add to the end of the array.",
-    "ja": ""
+    "ja": "配列の末尾に追加する配列または項目です。"
   },
   "MixedSimulations.concat(0)#summary": {
     "hash": "2c39af526de6",
     "en": "Combines two or more arrays.\nThis method returns a new array without modifying any existing arrays.",
-    "ja": ""
+    "ja": "2 つ以上の配列を結合します。\n既存の配列を変更せず、新しい配列を返します。"
   },
   "MixedSimulations.concat(1)#@param items": {
     "hash": "dfb2705ba50f",
     "en": "Additional arrays and/or items to add to the end of the array.",
-    "ja": ""
+    "ja": "配列の末尾に追加する配列または項目です。"
   },
   "MixedSimulations.concat(1)#summary": {
     "hash": "2c39af526de6",
     "en": "Combines two or more arrays.\nThis method returns a new array without modifying any existing arrays.",
-    "ja": ""
+    "ja": "2 つ以上の配列を結合します。\n既存の配列を変更せず、新しい配列を返します。"
   },
   "MixedSimulations.copyWithin#@param end": {
     "hash": "c32238a11e07",
     "en": "If not specified, length of the this object is used as its default value.",
-    "ja": ""
+    "ja": "指定しない場合、このオブジェクトの length を既定値として使います。"
   },
   "MixedSimulations.copyWithin#@param start": {
     "hash": "2158ec4580d7",
     "en": "If start is negative, it is treated as length+start. If end is negative, it\nis treated as length+end.",
-    "ja": ""
+    "ja": "start が負の場合は length+start として扱います。end が負の場合は\nlength+end として扱います。"
   },
   "MixedSimulations.copyWithin#@param target": {
     "hash": "f69907206d03",
     "en": "If target is negative, it is treated as length+target where length is the\nlength of the array.",
-    "ja": ""
+    "ja": "target が負の場合は、length を配列の長さとして length+target として扱います。"
   },
   "MixedSimulations.copyWithin#summary": {
     "hash": "c1a4c8263809",
     "en": "Returns the this object after copying a section of the array identified by start and end\nto the same array starting at position target",
-    "ja": ""
+    "ja": "start と end で指定した配列の一部を、同じ配列の target の位置からコピーした後、このオブジェクトを返します。"
   },
   "MixedSimulations.entries#summary": {
     "hash": "cb7dd2c36e05",
     "en": "Returns an iterable of key, value pairs for every entry in the array",
-    "ja": ""
+    "ja": "配列の各要素について、キーと値のペアを反復可能な形で返します。"
   },
   "MixedSimulations.every(0)#@param predicate": {
     "hash": "d903000c460e",
     "en": "A function that accepts up to three arguments. The every method calls\nthe predicate function for each element in the array until the predicate returns a value\nwhich is coercible to the Boolean value false, or until the end of the array.",
-    "ja": ""
+    "ja": "最大 3 つの引数を受け取る関数です。every メソッドは、predicate 関数が Boolean の false に\n変換できる値を返すか、配列の末尾に達するまで、配列の各要素について predicate 関数を呼び出します。"
   },
   "MixedSimulations.every(0)#@param thisArg": {
     "hash": "9750730db71d",
     "en": "An object to which the this keyword can refer in the predicate function.\nIf thisArg is omitted, undefined is used as the this value.",
-    "ja": ""
+    "ja": "predicate 関数内で this キーワードが参照できるオブジェクトです。\nthisArg を省略した場合、this の値には undefined を使います。"
   },
   "MixedSimulations.every(0)#summary": {
     "hash": "6b200f1aaf02",
     "en": "Determines whether all the members of an array satisfy the specified test.",
-    "ja": ""
+    "ja": "配列のすべての要素が指定した検査を満たすかどうかを判定します。"
   },
   "MixedSimulations.every(1)#@param predicate": {
     "hash": "d903000c460e",
     "en": "A function that accepts up to three arguments. The every method calls\nthe predicate function for each element in the array until the predicate returns a value\nwhich is coercible to the Boolean value false, or until the end of the array.",
-    "ja": ""
+    "ja": "最大 3 つの引数を受け取る関数です。every メソッドは、predicate 関数が Boolean の false に\n変換できる値を返すか、配列の末尾に達するまで、配列の各要素について predicate 関数を呼び出します。"
   },
   "MixedSimulations.every(1)#@param thisArg": {
     "hash": "9750730db71d",
     "en": "An object to which the this keyword can refer in the predicate function.\nIf thisArg is omitted, undefined is used as the this value.",
-    "ja": ""
+    "ja": "predicate 関数内で this キーワードが参照できるオブジェクトです。\nthisArg を省略した場合、this の値には undefined を使います。"
   },
   "MixedSimulations.every(1)#summary": {
     "hash": "6b200f1aaf02",
     "en": "Determines whether all the members of an array satisfy the specified test.",
-    "ja": ""
+    "ja": "配列のすべての要素が指定した検査を満たすかどうかを判定します。"
   },
   "MixedSimulations.fill#@param end": {
     "hash": "46096fc119bb",
     "en": "index to stop filling the array at. If end is negative, it is treated as\nlength+end.",
-    "ja": ""
+    "ja": "配列への値の設定を終了する添字です。end が負の場合は\nlength+end として扱います。"
   },
   "MixedSimulations.fill#@param start": {
     "hash": "10afc65b2fbd",
     "en": "index to start filling the array at. If start is negative, it is treated as\nlength+start where length is the length of the array.",
-    "ja": ""
+    "ja": "配列への値の設定を開始する添字です。start が負の場合は、length を配列の長さとして\nlength+start として扱います。"
   },
   "MixedSimulations.fill#@param value": {
     "hash": "339869950079",
     "en": "value to fill array section with",
-    "ja": ""
+    "ja": "配列の一部に設定する値です。"
   },
   "MixedSimulations.fill#summary": {
     "hash": "e70bc835c8cb",
     "en": "Changes all array elements from `start` to `end` index to a static `value` and returns the modified array",
-    "ja": ""
+    "ja": "`start` から `end` までのすべての配列要素を固定の `value` に変更し、変更後の配列を返します。"
   },
   "MixedSimulations.filter(0)#@param predicate": {
     "hash": "29d4bab7b09c",
     "en": "A function that accepts up to three arguments. The filter method calls the predicate function one time for each element in the array.",
-    "ja": ""
+    "ja": "最大 3 つの引数を受け取る関数です。filter メソッドは、配列の各要素について predicate 関数を 1 回呼び出します。"
   },
   "MixedSimulations.filter(0)#@param thisArg": {
     "hash": "ae8524f1966b",
     "en": "An object to which the this keyword can refer in the predicate function. If thisArg is omitted, undefined is used as the this value.",
-    "ja": ""
+    "ja": "predicate 関数内で this キーワードが参照できるオブジェクトです。thisArg を省略した場合、this の値には undefined を使います。"
   },
   "MixedSimulations.filter(0)#summary": {
     "hash": "6e51d20c81b4",
     "en": "Returns the elements of an array that meet the condition specified in a callback function.",
-    "ja": ""
+    "ja": "コールバック関数で指定した条件を満たす配列の要素を返します。"
   },
   "MixedSimulations.filter(1)#@param predicate": {
     "hash": "29d4bab7b09c",
     "en": "A function that accepts up to three arguments. The filter method calls the predicate function one time for each element in the array.",
-    "ja": ""
+    "ja": "最大 3 つの引数を受け取る関数です。filter メソッドは、配列の各要素について predicate 関数を 1 回呼び出します。"
   },
   "MixedSimulations.filter(1)#@param thisArg": {
     "hash": "ae8524f1966b",
     "en": "An object to which the this keyword can refer in the predicate function. If thisArg is omitted, undefined is used as the this value.",
-    "ja": ""
+    "ja": "predicate 関数内で this キーワードが参照できるオブジェクトです。thisArg を省略した場合、this の値には undefined を使います。"
   },
   "MixedSimulations.filter(1)#summary": {
     "hash": "6e51d20c81b4",
     "en": "Returns the elements of an array that meet the condition specified in a callback function.",
-    "ja": ""
+    "ja": "コールバック関数で指定した条件を満たす配列の要素を返します。"
   },
   "MixedSimulations.find(0)#@param predicate": {
     "hash": "23922e554b83",
     "en": "find calls predicate once for each element of the array, in ascending\norder, until it finds one where predicate returns true. If such an element is found, find\nimmediately returns that element value. Otherwise, find returns undefined.",
-    "ja": ""
+    "ja": "find は、predicate が true を返す要素を見つけるまで、配列の各要素について添字の昇順に predicate を 1 回呼び出します。\nそのような要素が見つかると、find は直ちにその要素の値を返します。見つからない場合、find は undefined を返します。"
   },
   "MixedSimulations.find(0)#@param thisArg": {
     "hash": "b3284750390b",
     "en": "If provided, it will be used as the this value for each invocation of\npredicate. If it is not provided, undefined is used instead.",
-    "ja": ""
+    "ja": "指定した場合、predicate を呼び出すたびに this の値として使います。\n指定しない場合は、代わりに undefined を使います。"
   },
   "MixedSimulations.find(0)#summary": {
     "hash": "ca28a53f6dff",
     "en": "Returns the value of the first element in the array where predicate is true, and undefined\notherwise.",
-    "ja": ""
+    "ja": "predicate が true となる配列の最初の要素の値を返し、それ以外の場合は undefined を返します。"
   },
   "MixedSimulations.findIndex#@param predicate": {
     "hash": "ce99f1fe2d11",
     "en": "find calls predicate once for each element of the array, in ascending\norder, until it finds one where predicate returns true. If such an element is found,\nfindIndex immediately returns that element index. Otherwise, findIndex returns -1.",
-    "ja": ""
+    "ja": "findIndex は、predicate が true を返す要素を見つけるまで、配列の各要素について添字の昇順に predicate を 1 回呼び出します。\nそのような要素が見つかると、findIndex は直ちにその要素の添字を返します。見つからない場合、findIndex は -1 を返します。"
   },
   "MixedSimulations.findIndex#@param thisArg": {
     "hash": "b3284750390b",
     "en": "If provided, it will be used as the this value for each invocation of\npredicate. If it is not provided, undefined is used instead.",
-    "ja": ""
+    "ja": "指定した場合、predicate を呼び出すたびに this の値として使います。\n指定しない場合は、代わりに undefined を使います。"
   },
   "MixedSimulations.findIndex#summary": {
     "hash": "6cdea82734ad",
     "en": "Returns the index of the first element in the array where predicate is true, and -1\notherwise.",
-    "ja": ""
+    "ja": "predicate が true となる配列の最初の要素の添字を返し、それ以外の場合は -1 を返します。"
   },
   "MixedSimulations.flat#@param depth": {
     "hash": "c757ecffd808",
     "en": "The maximum recursion depth",
-    "ja": ""
+    "ja": "再帰の最大の深さです。"
   },
   "MixedSimulations.flat#summary": {
     "hash": "07a13563a1f0",
     "en": "Returns a new array with all sub-array elements concatenated into it recursively up to the\nspecified depth.",
-    "ja": ""
+    "ja": "指定した深さまで再帰的に部分配列のすべての要素を結合した、新しい配列を返します。"
   },
   "MixedSimulations.flatMap#@param callback": {
     "hash": "5e4a6a4cedbb",
     "en": "A function that accepts up to three arguments. The flatMap method calls the\ncallback function one time for each element in the array.",
-    "ja": ""
+    "ja": "最大 3 つの引数を受け取る関数です。flatMap メソッドは、配列の各要素について callback 関数を 1 回呼び出します。"
   },
   "MixedSimulations.flatMap#@param thisArg": {
     "hash": "f521863f44bb",
     "en": "An object to which the this keyword can refer in the callback function. If\nthisArg is omitted, undefined is used as the this value.",
-    "ja": ""
+    "ja": "callback 関数内で this キーワードが参照できるオブジェクトです。\nthisArg を省略した場合、this の値には undefined を使います。"
   },
   "MixedSimulations.flatMap#summary": {
     "hash": "db2c2d0f28e7",
     "en": "Calls a defined callback function on each element of an array. Then, flattens the result into\na new array.\nThis is identical to a map followed by flat with depth 1.",
-    "ja": ""
+    "ja": "配列の各要素について定義された callback 関数を呼び出し、その結果を平坦化して新しい配列にします。\nこれは、map の後に深さ 1 の flat を実行することと同じです。"
   },
   "MixedSimulations.forEach#@param callbackfn": {
     "hash": "ed8ae879c4f4",
     "en": "A function that accepts up to three arguments. forEach calls the callbackfn function one time for each element in the array.",
-    "ja": ""
+    "ja": "最大 3 つの引数を受け取る関数です。forEach は、配列の各要素について callbackfn 関数を 1 回呼び出します。"
   },
   "MixedSimulations.forEach#@param thisArg": {
     "hash": "61a8a0e0e02d",
     "en": "An object to which the this keyword can refer in the callbackfn function. If thisArg is omitted, undefined is used as the this value.",
-    "ja": ""
+    "ja": "callbackfn 関数内で this キーワードが参照できるオブジェクトです。thisArg を省略した場合、this の値には undefined を使います。"
   },
   "MixedSimulations.forEach#summary": {
     "hash": "314e15a521a1",
     "en": "Performs the specified action for each element in an array.",
-    "ja": ""
+    "ja": "配列の各要素に対して指定した処理を実行します。"
   },
   "MixedSimulations.includes#@param fromIndex": {
     "hash": "06595a77e500",
     "en": "The position in this array at which to begin searching for searchElement.",
-    "ja": ""
+    "ja": "この配列で searchElement の検索を開始する位置です。"
   },
   "MixedSimulations.includes#@param searchElement": {
     "hash": "e416b838992d",
     "en": "The element to search for.",
-    "ja": ""
+    "ja": "検索する要素です。"
   },
   "MixedSimulations.includes#summary": {
     "hash": "309bf37f81a9",
     "en": "Determines whether an array includes a certain element, returning true or false as appropriate.",
-    "ja": ""
+    "ja": "配列に特定の要素が含まれるかどうかを判定し、該当する true または false を返します。"
   },
   "MixedSimulations.indexOf#@param fromIndex": {
     "hash": "fe89decbadf3",
     "en": "The array index at which to begin the search. If fromIndex is omitted, the search starts at index 0.",
-    "ja": ""
+    "ja": "検索を開始する配列の添字です。fromIndex を省略した場合、添字 0 から検索を開始します。"
   },
   "MixedSimulations.indexOf#@param searchElement": {
     "hash": "64a5c290152f",
     "en": "The value to locate in the array.",
-    "ja": ""
+    "ja": "配列内で検索する値です。"
   },
   "MixedSimulations.indexOf#summary": {
     "hash": "3ea9734b692d",
     "en": "Returns the index of the first occurrence of a value in an array, or -1 if it is not present.",
-    "ja": ""
+    "ja": "配列内で値が最初に現れる位置を返します。存在しない場合は -1 を返します。"
   },
   "MixedSimulations.join#@param separator": {
     "hash": "e32895fe62e8",
     "en": "A string used to separate one element of the array from the next in the resulting string. If omitted, the array elements are separated with a comma.",
-    "ja": ""
+    "ja": "結果の文字列で配列の各要素を区切る文字列です。省略した場合、配列の要素はカンマで区切られます。"
   },
   "MixedSimulations.join#summary": {
     "hash": "6563d07d0aa6",
     "en": "Adds all the elements of an array into a string, separated by the specified separator string.",
-    "ja": ""
+    "ja": "配列のすべての要素を、指定した区切り文字列で区切って 1 つの文字列にします。"
   },
   "MixedSimulations.keys#summary": {
     "hash": "97a1c2b29dbe",
     "en": "Returns an iterable of keys in the array",
-    "ja": ""
+    "ja": "配列のキーを反復可能な形で返します。"
   },
   "MixedSimulations.lastIndexOf#@param fromIndex": {
     "hash": "54e48c63b47f",
     "en": "The array index at which to begin searching backward. If fromIndex is omitted, the search starts at the last index in the array.",
-    "ja": ""
+    "ja": "逆方向の検索を開始する配列の添字です。fromIndex を省略した場合、配列の最後の添字から検索を開始します。"
   },
   "MixedSimulations.lastIndexOf#@param searchElement": {
     "hash": "64a5c290152f",
     "en": "The value to locate in the array.",
-    "ja": ""
+    "ja": "配列内で検索する値です。"
   },
   "MixedSimulations.lastIndexOf#summary": {
     "hash": "8564b0e4eb25",
     "en": "Returns the index of the last occurrence of a specified value in an array, or -1 if it is not present.",
-    "ja": ""
+    "ja": "配列内で指定した値が最後に現れる位置を返します。存在しない場合は -1 を返します。"
   },
   "MixedSimulations.length#summary": {
     "hash": "397a7759e005",
     "en": "Gets or sets the length of the array. This is a number one higher than the highest index in the array.",
-    "ja": ""
+    "ja": "配列の長さを取得または設定します。配列内の最大の添字より 1 大きい数です。"
   },
   "MixedSimulations.map#@param callbackfn": {
     "hash": "6ce7b5004a59",
     "en": "A function that accepts up to three arguments. The map method calls the callbackfn function one time for each element in the array.",
-    "ja": ""
+    "ja": "最大 3 つの引数を受け取る関数です。map メソッドは、配列の各要素について callbackfn 関数を 1 回呼び出します。"
   },
   "MixedSimulations.map#@param thisArg": {
     "hash": "61a8a0e0e02d",
     "en": "An object to which the this keyword can refer in the callbackfn function. If thisArg is omitted, undefined is used as the this value.",
-    "ja": ""
+    "ja": "callbackfn 関数内で this キーワードが参照できるオブジェクトです。thisArg を省略した場合、this の値には undefined を使います。"
   },
   "MixedSimulations.map#summary": {
     "hash": "eec83d659933",
     "en": "Calls a defined callback function on each element of an array, and returns an array that contains the results.",
-    "ja": ""
+    "ja": "配列の各要素について定義された callback 関数を呼び出し、その結果を含む配列を返します。"
   },
   "MixedSimulations.names#summary": {
     "hash": "7e6fa763efc0",
     "en": "Names of the simulation columns, \"sim_1\", ...",
-    "ja": ""
+    "ja": "シミュレーション列の名前です。\"sim_1\" などになります。"
   },
   "MixedSimulations.pop#summary": {
     "hash": "74d121ecab8f",
     "en": "Removes the last element from an array and returns it.\nIf the array is empty, undefined is returned and the array is not modified.",
-    "ja": ""
+    "ja": "配列の最後の要素を削除して返します。\n配列が空の場合は undefined を返し、配列は変更しません。"
   },
   "MixedSimulations.push#@param items": {
     "hash": "b1b93aee658c",
     "en": "New elements to add to the array.",
-    "ja": ""
+    "ja": "配列に追加する新しい要素です。"
   },
   "MixedSimulations.push#summary": {
     "hash": "f9601a5c8b94",
     "en": "Appends new elements to the end of an array, and returns the new length of the array.",
-    "ja": ""
+    "ja": "配列の末尾に新しい要素を追加し、配列の新しい長さを返します。"
   },
   "MixedSimulations.reduce(0)#@param callbackfn": {
     "hash": "5d0773de4877",
     "en": "A function that accepts up to four arguments. The reduce method calls the callbackfn function one time for each element in the array.",
-    "ja": ""
+    "ja": "最大 4 つの引数を受け取る関数です。reduce メソッドは、配列の各要素について callbackfn 関数を 1 回呼び出します。"
   },
   "MixedSimulations.reduce(0)#summary": {
     "hash": "c108d9603ca0",
     "en": "Calls the specified callback function for all the elements in an array. The return value of the callback function is the accumulated result, and is provided as an argument in the next call to the callback function.",
-    "ja": ""
+    "ja": "配列のすべての要素について指定した callback 関数を呼び出します。callback 関数の戻り値は累積結果となり、次の callback 関数の呼び出しで引数として渡されます。"
   },
   "MixedSimulations.reduce(2)#@param callbackfn": {
     "hash": "5d0773de4877",
     "en": "A function that accepts up to four arguments. The reduce method calls the callbackfn function one time for each element in the array.",
-    "ja": ""
+    "ja": "最大 4 つの引数を受け取る関数です。reduce メソッドは、配列の各要素について callbackfn 関数を 1 回呼び出します。"
   },
   "MixedSimulations.reduce(2)#@param initialValue": {
     "hash": "6b457ed6c49c",
     "en": "If initialValue is specified, it is used as the initial value to start the accumulation. The first call to the callbackfn function provides this value as an argument instead of an array value.",
-    "ja": ""
+    "ja": "initialValue を指定した場合、累積を開始する初期値として使います。最初の callbackfn 関数の呼び出しでは、配列の値の代わりにこの値を引数として渡します。"
   },
   "MixedSimulations.reduce(2)#summary": {
     "hash": "c108d9603ca0",
     "en": "Calls the specified callback function for all the elements in an array. The return value of the callback function is the accumulated result, and is provided as an argument in the next call to the callback function.",
-    "ja": ""
+    "ja": "配列のすべての要素について指定した callback 関数を呼び出します。callback 関数の戻り値は累積結果となり、次の callback 関数の呼び出しで引数として渡されます。"
   },
   "MixedSimulations.reduceRight(0)#@param callbackfn": {
     "hash": "81b46f03d199",
     "en": "A function that accepts up to four arguments. The reduceRight method calls the callbackfn function one time for each element in the array.",
-    "ja": ""
+    "ja": "最大 4 つの引数を受け取る関数です。reduceRight メソッドは、配列の各要素について callbackfn 関数を 1 回呼び出します。"
   },
   "MixedSimulations.reduceRight(0)#summary": {
     "hash": "b439fb304610",
     "en": "Calls the specified callback function for all the elements in an array, in descending order. The return value of the callback function is the accumulated result, and is provided as an argument in the next call to the callback function.",
-    "ja": ""
+    "ja": "配列のすべての要素について、添字の降順に指定した callback 関数を呼び出します。callback 関数の戻り値は累積結果となり、次の callback 関数の呼び出しで引数として渡されます。"
   },
   "MixedSimulations.reduceRight(2)#@param callbackfn": {
     "hash": "81b46f03d199",
     "en": "A function that accepts up to four arguments. The reduceRight method calls the callbackfn function one time for each element in the array.",
-    "ja": ""
+    "ja": "最大 4 つの引数を受け取る関数です。reduceRight メソッドは、配列の各要素について callbackfn 関数を 1 回呼び出します。"
   },
   "MixedSimulations.reduceRight(2)#@param initialValue": {
     "hash": "6b457ed6c49c",
     "en": "If initialValue is specified, it is used as the initial value to start the accumulation. The first call to the callbackfn function provides this value as an argument instead of an array value.",
-    "ja": ""
+    "ja": "initialValue を指定した場合、累積を開始する初期値として使います。最初の callbackfn 関数の呼び出しでは、配列の値の代わりにこの値を引数として渡します。"
   },
   "MixedSimulations.reduceRight(2)#summary": {
     "hash": "b439fb304610",
     "en": "Calls the specified callback function for all the elements in an array, in descending order. The return value of the callback function is the accumulated result, and is provided as an argument in the next call to the callback function.",
-    "ja": ""
+    "ja": "配列のすべての要素について、添字の降順に指定した callback 関数を呼び出します。callback 関数の戻り値は累積結果となり、次の callback 関数の呼び出しで引数として渡されます。"
   },
   "MixedSimulations.reverse#summary": {
     "hash": "20de61f19234",
     "en": "Reverses the elements in an array in place.\nThis method mutates the array and returns a reference to the same array.",
-    "ja": ""
+    "ja": "配列の要素の順序をその場で逆にします。\nこのメソッドは配列を変更し、同じ配列への参照を返します。"
   },
   "MixedSimulations.shift#summary": {
     "hash": "1cf27e8dfba7",
     "en": "Removes the first element from an array and returns it.\nIf the array is empty, undefined is returned and the array is not modified.",
-    "ja": ""
+    "ja": "配列の最初の要素を削除して返します。\n配列が空の場合は undefined を返し、配列は変更しません。"
   },
   "MixedSimulations.slice#@param end": {
     "hash": "0d1a22e98b60",
     "en": "The end index of the specified portion of the array. This is exclusive of the element at the index 'end'.\nIf end is undefined, then the slice extends to the end of the array.",
-    "ja": ""
+    "ja": "配列の指定部分の終了位置です。添字 'end' の要素は含みません。\nend が undefined の場合、slice は配列の末尾までを対象にします。"
   },
   "MixedSimulations.slice#@param start": {
     "hash": "87a4b661763b",
     "en": "The beginning index of the specified portion of the array.\nIf start is undefined, then the slice begins at index 0.",
-    "ja": ""
+    "ja": "配列の指定部分の開始位置です。\nstart が undefined の場合、slice は添字 0 から開始します。"
   },
   "MixedSimulations.slice#summary": {
     "hash": "3b2846088fbc",
     "en": "Returns a copy of a section of an array.\nFor both start and end, a negative index can be used to indicate an offset from the end of the array.\nFor example, -2 refers to the second to last element of the array.",
-    "ja": ""
+    "ja": "配列の一部のコピーを返します。\nstart と end のどちらにも負の添字を指定でき、その場合は配列の末尾からの位置を表します。\nたとえば、-2 は配列の末尾から 2 番目の要素を指します。"
   },
   "MixedSimulations.some#@param predicate": {
     "hash": "1004dfdc81cf",
     "en": "A function that accepts up to three arguments. The some method calls\nthe predicate function for each element in the array until the predicate returns a value\nwhich is coercible to the Boolean value true, or until the end of the array.",
-    "ja": ""
+    "ja": "最大 3 つの引数を受け取る関数です。some メソッドは、predicate 関数が Boolean の true に\n変換できる値を返すか、配列の末尾に達するまで、配列の各要素について predicate 関数を呼び出します。"
   },
   "MixedSimulations.some#@param thisArg": {
     "hash": "9750730db71d",
     "en": "An object to which the this keyword can refer in the predicate function.\nIf thisArg is omitted, undefined is used as the this value.",
-    "ja": ""
+    "ja": "predicate 関数内で this キーワードが参照できるオブジェクトです。\nthisArg を省略した場合、this の値には undefined を使います。"
   },
   "MixedSimulations.some#summary": {
     "hash": "2fcd1e0c6288",
     "en": "Determines whether the specified callback function returns true for any element of an array.",
-    "ja": ""
+    "ja": "指定した callback 関数が配列のいずれかの要素について true を返すかどうかを判定します。"
   },
   "MixedSimulations.sort#@param compareFn": {
     "hash": "f71965092376",
     "en": "Function used to determine the order of the elements. It is expected to return\na negative value if the first argument is less than the second argument, zero if they're equal, and a positive\nvalue otherwise. If omitted, the elements are sorted in ascending, UTF-16 code unit order.\n⟦code1⟧",
-    "ja": ""
+    "ja": "要素の順序を決める関数です。最初の引数が 2 番目の引数より小さい場合は負の値、等しい場合は 0、それ以外の場合は正の\n値を返すことが期待されます。省略した場合、要素は UTF-16 コード単位の昇順に並べ替えられます。\n⟦code1⟧"
   },
   "MixedSimulations.sort#summary": {
     "hash": "e1ddd0926b15",
     "en": "Sorts an array in place.\nThis method mutates the array and returns a reference to the same array.",
-    "ja": ""
+    "ja": "配列をその場で並べ替えます。\nこのメソッドは配列を変更し、同じ配列への参照を返します。"
   },
   "MixedSimulations.splice(0)#@param deleteCount": {
     "hash": "fdaffb7334eb",
     "en": "The number of elements to remove. Omitting this argument will remove all elements from the start\nparamater location to end of the array. If value of this argument is either a negative number, zero, undefined, or a type\nthat cannot be converted to an integer, the function will evaluate the argument as zero and not remove any elements.",
-    "ja": ""
+    "ja": "削除する要素の数です。この引数を省略すると、start\nパラメータの位置から配列の末尾までのすべての要素を削除します。この引数の値が負の数、0、undefined、または整数に\n変換できない型の場合、関数は引数を 0 として扱い、要素を削除しません。"
   },
   "MixedSimulations.splice(0)#@param start": {
     "hash": "b3edbfa54999",
     "en": "The zero-based location in the array from which to start removing elements.",
-    "ja": ""
+    "ja": "要素の削除を開始する配列内の 0 始まりの位置です。"
   },
   "MixedSimulations.splice(0)#@returns": {
     "hash": "da987e29e9ae",
     "en": "An array containing the elements that were deleted.",
-    "ja": ""
+    "ja": "削除された要素を含む配列です。"
   },
   "MixedSimulations.splice(0)#summary": {
     "hash": "6efa63abc421",
     "en": "Removes elements from an array and, if necessary, inserts new elements in their place, returning the deleted elements.",
-    "ja": ""
+    "ja": "配列から要素を削除し、必要に応じてその位置に新しい要素を挿入して、削除された要素を返します。"
   },
   "MixedSimulations.splice(1)#@param deleteCount": {
     "hash": "ea49a2009222",
     "en": "The number of elements to remove. If value of this argument is either a negative number, zero,\nundefined, or a type that cannot be converted to an integer, the function will evaluate the argument as zero and\nnot remove any elements.",
-    "ja": ""
+    "ja": "削除する要素の数です。この引数の値が負の数、0、undefined、または整数に変換できない型の場合、\n関数は引数を 0 として扱い、要素を削除しません。"
   },
   "MixedSimulations.splice(1)#@param items": {
     "hash": "0d09981c9240",
     "en": "Elements to insert into the array in place of the deleted elements.",
-    "ja": ""
+    "ja": "削除した要素の代わりに配列へ挿入する要素です。"
   },
   "MixedSimulations.splice(1)#@param start": {
     "hash": "b3edbfa54999",
     "en": "The zero-based location in the array from which to start removing elements.",
-    "ja": ""
+    "ja": "要素の削除を開始する配列内の 0 始まりの位置です。"
   },
   "MixedSimulations.splice(1)#@returns": {
     "hash": "da987e29e9ae",
     "en": "An array containing the elements that were deleted.",
-    "ja": ""
+    "ja": "削除された要素を含む配列です。"
   },
   "MixedSimulations.splice(1)#summary": {
     "hash": "6efa63abc421",
     "en": "Removes elements from an array and, if necessary, inserts new elements in their place, returning the deleted elements.",
-    "ja": ""
+    "ja": "配列から要素を削除し、必要に応じてその位置に新しい要素を挿入して、削除された要素を返します。"
   },
   "MixedSimulations.toLocaleString(0)#summary": {
     "hash": "a2ef2091c85c",
     "en": "Returns a string representation of an array. The elements are converted to string using their toLocaleString methods.",
-    "ja": ""
+    "ja": "配列を文字列で表したものを返します。各要素は、それぞれの toLocaleString メソッドを使って文字列に変換されます。"
   },
   "MixedSimulations.toString#summary": {
     "hash": "8e07e38a8cba",
     "en": "Returns a string representation of an array.",
-    "ja": ""
+    "ja": "配列を文字列で表したものを返します。"
   },
   "MixedSimulations.unshift#@param items": {
     "hash": "6edaf9137be8",
     "en": "Elements to insert at the start of the array.",
-    "ja": ""
+    "ja": "配列の先頭に挿入する要素です。"
   },
   "MixedSimulations.unshift#summary": {
     "hash": "814806cdd5bb",
     "en": "Inserts new elements at the start of an array, and returns the new length of the array.",
-    "ja": ""
+    "ja": "配列の先頭に新しい要素を挿入し、配列の新しい長さを返します。"
   },
   "MixedSimulations.values#summary": {
     "hash": "3475cd7cb1bc",
     "en": "Returns an iterable of values in the array",
-    "ja": ""
+    "ja": "配列の値を反復可能な形で返します。"
   },
   "confintGlmer#summary": {
     "hash": "3a77fd4a162c",
     "en": "Confidence intervals for a generalized linear mixed-model fit. Equivalent to R's `lme4::confint.merMod()`.",
-    "ja": ""
+    "ja": "一般化線形混合モデルの当てはめの信頼区間です。R の `lme4::confint.merMod()` と同等です。"
   },
   "confintLmer#summary": {
     "hash": "6bc90975c5fb",
     "en": "Confidence intervals for a linear mixed-model fit. Equivalent to `lme4::confint.merMod()` in R.",
-    "ja": ""
+    "ja": "線形混合モデルの当てはめの信頼区間です。R の `lme4::confint.merMod()` と同等です。"
   },
   "glmer#@example": {
     "hash": "f2167be5edf2",
@@ -1867,11 +1867,11 @@
   "simulateGlmer#summary": {
     "hash": "86ea524757a0",
     "en": "Simulations from a generalized linear mixed-model fit. Equivalent to R's `lme4::simulate.merMod()`.",
-    "ja": ""
+    "ja": "一般化線形混合モデルの当てはめからのシミュレーションです。R の `lme4::simulate.merMod()` と同等です。"
   },
   "simulateLmer#summary": {
     "hash": "f04e17330bf6",
     "en": "Simulations from a linear mixed-model fit. Equivalent to R's `lme4::simulate.merMod()`.",
-    "ja": ""
+    "ja": "線形混合モデルの当てはめからのシミュレーションです。R の `lme4::simulate.merMod()` と同等です。"
   }
 }
