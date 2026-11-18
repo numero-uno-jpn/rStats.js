@@ -80,3 +80,7 @@
 
 - 追加の直接照合 `4438cf90`: 公開 API で `simulate(re.form=NA)` と `simulate(re.form=~(1|Subject))` を同じ seed で実行し、各応答ベクトルの差を fitted intercept と比較。2 simulation × 180観測の全360セルで `partial - none = ranef(Subject)[, "(Intercept)"]` が成立し、最大絶対誤差は `8.53e-14`。両方の RNG state index は 240。したがって部分切片の R 挙動は「無条件の全ブロック生成結果に fitted intercept を加える」で直接確認できた。条件付き Gaussian は正しく vectorized response noise を使った `08cdbe4b` でも 360/360 mismatch であり、今回のケースの再現方法ではない。
 - 手作業 layout-search の部分切片候補が不一致だった原因候補として、R の `ranef(fit)$Subject` の列を数値 index 1/2 で扱った点がある。次は `colnames(ranef)` と `term.columns` を名前で対応させ、旧 layout-search を再実行する。PR 実装側はすでに列名で選択しているため、fixture test の内部値・baseline の対応を別途診断する。
+
+- 原因をさらに絞り込んだ。R の直接差分 `partial - none = fitted intercept` は、部分指定時に選択成分を新規効果で**置換**するのではなく、新規ランダム効果の全ブロックを保持したまま fitted 成分を**加算**することを意味する。したがって `simulateLmer` の基準 predictor は `fixed + Z b_{new} + Z_{selected} b_{fit}`。現行 `newEffects()` は選択成分を fitted 値で置換しているため誤り。条件付き正規分布でもない。
+- 同じ原理から、複数項のうち一部の項だけを選択した場合、選択済み項も新規効果ブロックを消費してから fitted 効果を加算する必要がある。現行の `if (conditioned.size === nc) continue` はその乱数消費を飛ばすため、GLMM の RNG state 不一致も説明できる。全項が選択された `re.form=NULL` / `use.u=TRUE` の場合だけ全新規効果生成を省略する。
+- 次の独立 R 再構成では、full-block の新規効果に selected fitted component を置換ではなく加算し、切片・傾きの両方を照合する。その後 `newEffects()` を最小変更で修正する。
