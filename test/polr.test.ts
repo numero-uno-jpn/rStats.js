@@ -50,35 +50,31 @@ function prepareFit(spec: FitSpec): { data: DataFrame; options: PolrOptions } {
   const data: DataFrame = {};
   const levels: Record<string, readonly string[]> = {};
   for (const [name, raw] of Object.entries(spec.data.columns)) {
-    const column = raw as Raw | unknown[];
-    const values = Array.isArray(column) ? column : column.values as unknown[];
+    const objectColumn = Array.isArray(raw) ? undefined : raw as Raw;
+    const values = (objectColumn === undefined ? raw : objectColumn.values) as (number | string | boolean | null)[];
     if (!Array.isArray(values)) throw new Error(`invalid fixture column: ${name}`);
-    if (!Array.isArray(column) && Array.isArray(column.levels)) {
-      levels[name] = column.levels as string[];
-    }
-    const isNumeric = !Array.isArray(column) || !Array.isArray(column.levels)
-      ? values.every((value) => value === null || (typeof value === "string" && value.trim() !== "" && Number.isFinite(Number(value))))
-      : false;
+    const declaredLevels = objectColumn?.levels;
+    if (Array.isArray(declaredLevels)) levels[name] = declaredLevels as string[];
+    const isNumeric = !Array.isArray(declaredLevels)
+      && values.every((value) => value === null || (typeof value === "string" && value.trim() !== "" && Number.isFinite(Number(value))));
     data[name] = isNumeric ? values.map((value) => value === null ? null : numeric(value)) : values;
   }
-  const options: PolrOptions = { method: spec.method, weights: spec.weights, levels };
+  const options: PolrOptions = { levels };
+  if (spec.method !== undefined) options.method = spec.method;
+  if (spec.weights !== undefined) options.weights = spec.weights;
   if (spec.start !== undefined) options.start = spec.start.map(numeric);
   return { data, options };
 }
 
 function fitCase(id: string): { fixtureCase: FixtureCase; fit: PolrResult; expected: PublicFit; tight: PublicFit } {
   const fixtureCase = fixture.cases.find((item) => item.id === id);
-  if (fixtureCase?.fits.main?.fitPublic === undefined || fixtureCase.fits.main.fitTight?.fitPublic === undefined) {
+  const main = fixtureCase?.fits.main;
+  if (fixtureCase === undefined || main?.fitPublic === undefined || main.fitTight?.fitPublic === undefined) {
     throw new Error(`missing successful fixture fit: ${id}`);
   }
-  const { data, options } = prepareFit(fixtureCase.fits.main.fit);
-  const fit = polr(fixtureCase.fits.main.fit.formula, data, options);
-  return {
-    fixtureCase,
-    fit,
-    expected: fixtureCase.fits.main.fitPublic,
-    tight: fixtureCase.fits.main.fitTight.fitPublic,
-  };
+  const { data, options } = prepareFit(main.fit);
+  const fit = polr(main.fit.formula, data, options);
+  return { fixtureCase, fit, expected: main.fitPublic, tight: main.fitTight.fitPublic };
 }
 
 function closeAbsolute(actual: number, expected: unknown, tolerance: number, label: string): void {
