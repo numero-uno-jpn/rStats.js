@@ -89,9 +89,7 @@ function newEffects(
     const term = terms[ti]!;
     const nc = term.columns.length;
     const conditioned = selected.get(ti) ?? new Set<number>();
-    // A fully conditioned term needs no new draw; a partially conditioned
-    // correlated term still draws its full block before replacing selected columns.
-    if (conditioned.size === nc) continue;
+    // Even selected components get a new draw: re.form adds their fitted modes to the new effects.
     const lower = Array.from({ length: nc }, () => new Array<number>(nc).fill(0));
     let k = term.thetaOffset;
     for (let j = 0; j < nc; j++) for (let i = j; i < nc; i++) lower[i]![j] = theta[k++]! * scale;
@@ -100,7 +98,7 @@ function newEffects(
       for (let i = 0; i < nc; i++) {
         let value = 0;
         for (let j = 0; j <= i; j++) value += lower[i]![j]! * z[j]!;
-        b[term.zOffset + level * nc + i] = conditioned.has(i) ? conditional[term.zOffset + level * nc + i]! : value;
+        b[term.zOffset + level * nc + i] = value + (conditioned.has(i) ? conditional[term.zOffset + level * nc + i]! : 0);
       }
     }
   }
