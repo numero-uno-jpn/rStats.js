@@ -269,6 +269,8 @@ describe("confintLmer and confintGlmer", () => {
 });
 
 
+// Do not compare these extreme response scales with R: its profile calculation fails or is inaccurate
+// for this input, so the invariant is checked against the k = 1 rStats.js result instead.
 describe("confintLmer profile scale invariance", () => {
   it("scales sleepstudy intervals with the response while leaving correlations unchanged", () => {
     const c = fixture.cases.find((item) => item.id === "sleepstudy-profile-default")!;
