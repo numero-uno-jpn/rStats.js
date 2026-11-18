@@ -338,11 +338,11 @@ function maxAbs(values: readonly number[]): number {
 }
 
 function newtonPolish(
-  start: readonly number[], evaluate: (theta: number[]) => PolrDerivatives,
+  start: readonly number[], evaluate: (theta: number[]) => PolrDerivatives, scoreTolerance: number,
 ): PolrDerivatives & { theta: number[] } {
   let theta = Array.from(start);
   let current = evaluate(theta);
-  for (let iteration = 0; iteration < 30 && maxAbs(current.gradient) > 5e-11; iteration++) {
+  for (let iteration = 0; iteration < 30 && maxAbs(current.gradient) > scoreTolerance; iteration++) {
     let inverse: number[][];
     try {
       inverse = chol2inv(chol(current.hessian));
@@ -350,14 +350,23 @@ function newtonPolish(
       break;
     }
     const direction = inverse.map((row) => -row.reduce((sum, v, j) => sum + v * current.gradient[j]!, 0));
-    let slope = direction.reduce((sum, v, j) => sum + v * current.gradient[j]!, 0);
+    const slope = direction.reduce((sum, v, j) => sum + v * current.gradient[j]!, 0);
     if (!(slope < 0) || !Number.isFinite(slope)) break;
+    const currentScore = maxAbs(current.gradient);
     let step = 1;
     let accepted = false;
     for (let backtrack = 0; backtrack < 50; backtrack++, step *= 0.5) {
       const candidate = theta.map((v, j) => v + step * direction[j]!);
       const trial = evaluate(candidate);
-      if (Number.isFinite(trial.value) && trial.value <= current.value + 1e-4 * step * slope) {
+      if (!Number.isFinite(trial.value)) continue;
+      const armijo = trial.value <= current.value + 1e-4 * step * slope;
+      // Close to the optimum, the predicted decrease can be below one ulp of the
+      // total negative log likelihood. In that regime, accept a genuine score
+      // reduction if the objective has not increased beyond its rounding error.
+      const roundingAllowance = 16 * Number.EPSILON * Math.max(1, Math.abs(current.value), Math.abs(trial.value));
+      const scoreImproved = maxAbs(trial.gradient) <= 0.5 * currentScore
+        && trial.value <= current.value + roundingAllowance;
+      if (armijo || scoreImproved) {
         theta = candidate;
         current = trial;
         accepted = true;
@@ -488,8 +497,11 @@ export function polr(formula: string, data: DataFrame, options: PolrOptions = {}
   });
   // BFGS supplies a robust starting point; the exact score and observed Hessian finish the fit.
   // Its iteration-limit code is not decisive if the Newton refinement reaches the score tolerance.
-  const polished = newtonPolish(fit.par, evaluate);
-  if (maxAbs(polished.gradient) > 1e-9) {
+  // The score is a sum of weighted row contributions, so its absolute scale
+  // grows linearly with total prior weight. Use a per-unit-weight tolerance.
+  const scoreTolerance = 1e-9 * Math.max(1, weights.reduce((sum, weight) => sum + weight, 0));
+  const polished = newtonPolish(fit.par, evaluate, scoreTolerance);
+  if (maxAbs(polished.gradient) > scoreTolerance) {
     throw new Error(`ordinal regression score did not converge (max |score| = ${maxAbs(polished.gradient)})`);
   }
   const theta = polished.theta;
