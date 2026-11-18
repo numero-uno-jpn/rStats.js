@@ -210,3 +210,8 @@ Decided by the user on 2026-11-17.
    values exactly, continuous values to the last bits the existing `rnorm`/`rgamma` give) and the RNG state after
    the call equals R's `.Random.seed`. `seed` restores nothing afterwards unless R does so (follow the oracle).
 4. **Conflicting options.** Specifying both `useU` and `reForm` throws R's error before any random number is drawn.
+
+### Known difference from lme4
+
+For a fit with two or more random-effects terms and a partial `re.form`, rStats.js generates new effects for every unselected term using that term's own covariance factor (its own `theta` block), including correlated-slope blocks. lme4 2.0-6 instead uses the preceding term's `theta` block for an unselected term. This is an intentional mathematical choice made by the user on 2026-11-18. The number and order of random draws remain the same as R.
+
