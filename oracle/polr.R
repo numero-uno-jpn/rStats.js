@@ -290,6 +290,21 @@ rows <- lapply(cases, function(case) {
     } else {
       record$fitResult <- result
     }
+
+    # Refit every case with an explicitly tighter convergence target. Preserve
+    # the same formula, data, weights, method and resolved start as the main fit.
+    tight_args <- args
+    tight_args$control <- list(reltol = 1e-15, maxit = 2000)
+    tight_result <- capture_raw(function() do.call(MASS::polr, tight_args))
+    tight_record <- list(fit = fit_record(tight_args),
+                         fitResult = list(warnings = tight_result$warnings,
+                                          messages = tight_result$messages))
+    if (!is.null(tight_result$error)) {
+      tight_record$fitResult$error <- tight_result$error
+    } else {
+      tight_record$fitPublic <- fit_public_record(tight_result$value)
+    }
+    record$fitTight <- tight_record
     record
   })
   names(fit_rows) <- names(case$fits)
