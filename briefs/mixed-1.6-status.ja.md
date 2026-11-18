@@ -74,3 +74,6 @@
 - `f902a2df` の R 実験結果は Actions run `44231713980` / Issue #535 comment `6968291985` にも保存された。
 
 - 訂正: `94a2fda6` の layout-search と `f902a2df` の conditional-gaussian は、応答ノイズを `rnorm(n, mean=eta, sd=sigma)` と生成していた。R の `rnorm()` は観測別平均ベクトルをこの形で扱わないため、両実験の mismatch / match 結果は無効。以前の residual-stream で判明した問題を後続スクリプトへ反映し忘れた。正しくは `eta + rnorm(n) * sigma`。次にこの形へ直した同じ layout-search を再実行し、旧結果を判断材料から除外する。
+
+- 修正後の `883284d8` では応答ノイズを `eta + rnorm(n) * sigma` に変更して再実行。clean-room check と R 実行は成功。正しい応答ノイズを使うと、全ブロック生成の無条件ケースは 0/360 mismatch。部分切片は探索した全候補で 360/360 mismatch、部分傾きの最良候補は 324/360 mismatch。したがって `94a2fda6` の「none 0 mismatch」は維持できるが、部分切片についての旧 layout 結果は無効であり、既知の成功記録 `6944892622` との矛盾が残る。
+- 次の `08cdbe4b` は、条件付き正規分布を正しい条件付き生成として組み直した実験。切片条件付きでは slope の残差に (z_1)、傾き条件付きでは相関を除いた直交標準正規成分を使い、response は `eta + rnorm(n) * sigma`。Actions の結果待ち。
