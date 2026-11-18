@@ -299,9 +299,7 @@ function profileLimit(
         if (boundary !== undefined) return direction < 0 ? Math.max(boundary, endpoint) : Math.min(boundary, endpoint);
         return endpoint;
       }
-      if (boundary !== undefined && candidate === boundary) {
-        return Number.isFinite(delta) && delta > resolution ? boundary : boundary;
-      }
+      if (boundary !== undefined && candidate === boundary) return boundary;
       const next = estimate + direction * step * 2;
       if (next === candidate) break;
       step *= 2;
