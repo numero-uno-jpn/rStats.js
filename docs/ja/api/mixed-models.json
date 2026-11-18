@@ -1087,7 +1087,7 @@
   "MixedSimulations.[iterator]#summary": {
     "hash": "b0b0485265ee",
     "en": "Iterator",
-    "ja": "反復子"
+    "ja": "イテレーター"
   },
   "MixedSimulations.[unscopables]#summary": {
     "hash": "08705db4c429",
@@ -1107,7 +1107,7 @@
   "MixedSimulations.at#@param index": {
     "hash": "97494618054b",
     "en": "The zero-based index of the desired code unit. A negative index will count back from the last item.",
-    "ja": "目的のコード単位の 0 始まりの添字です。負の添字は末尾の項目から逆に数えます。"
+    "ja": "目的のコードユニットの 0 始まりの添字です。負の添字は末尾の項目から逆に数えます。"
   },
   "MixedSimulations.at#summary": {
     "hash": "3313cb9217fd",
@@ -1157,7 +1157,7 @@
   "MixedSimulations.entries#summary": {
     "hash": "cb7dd2c36e05",
     "en": "Returns an iterable of key, value pairs for every entry in the array",
-    "ja": "配列の各要素について、キーと値のペアを反復可能な形で返します。"
+    "ja": "配列の各要素について、キーと値のペアを反復可能なオブジェクトで返します。"
   },
   "MixedSimulations.every(0)#@param predicate": {
     "hash": "d903000c460e",
@@ -1352,7 +1352,7 @@
   "MixedSimulations.keys#summary": {
     "hash": "97a1c2b29dbe",
     "en": "Returns an iterable of keys in the array",
-    "ja": "配列のキーを反復可能な形で返します。"
+    "ja": "配列のキーを反復可能なオブジェクトで返します。"
   },
   "MixedSimulations.lastIndexOf#@param fromIndex": {
     "hash": "54e48c63b47f",
@@ -1502,7 +1502,7 @@
   "MixedSimulations.sort#@param compareFn": {
     "hash": "f71965092376",
     "en": "Function used to determine the order of the elements. It is expected to return\na negative value if the first argument is less than the second argument, zero if they're equal, and a positive\nvalue otherwise. If omitted, the elements are sorted in ascending, UTF-16 code unit order.\n⟦code1⟧",
-    "ja": "要素の順序を決める関数です。最初の引数が 2 番目の引数より小さい場合は負の値、等しい場合は 0、それ以外の場合は正の\n値を返すことが期待されます。省略した場合、要素は UTF-16 コード単位の昇順に並べ替えられます。\n⟦code1⟧"
+    "ja": "要素の順序を決める関数です。最初の引数が 2 番目の引数より小さい場合は負の値、等しい場合は 0、それ以外の場合は正の\n値を返すことが期待されます。省略した場合、要素は UTF-16 コードユニットの昇順に並べ替えられます。\n⟦code1⟧"
   },
   "MixedSimulations.sort#summary": {
     "hash": "e1ddd0926b15",
@@ -1577,7 +1577,7 @@
   "MixedSimulations.values#summary": {
     "hash": "3475cd7cb1bc",
     "en": "Returns an iterable of values in the array",
-    "ja": "配列の値を反復可能な形で返します。"
+    "ja": "配列の値を反復可能なオブジェクトで返します。"
   },
   "confintGlmer#summary": {
     "hash": "3a77fd4a162c",
