@@ -71,7 +71,9 @@ a CDN without a bundler, see the README section "Using it in the browser".
   response may be `cbind(successes, failures)` on the left-hand side). `summary(fit)` → `glmerSummary(fit)`;
   `anova(fit)` → `glmerAnova(fit)`, `anova(m1, m2)` → `glmerAnova([m1, m2], { names })` (glmer, lmer and glm fits);
   `predict(fit, newdata, re.form, type, se.fit)` → `glmerPredict(fit, { newdata, reForm, type, seFit })` and
-  `lmerPredict(fit, ...)`. Pass the object `glmer` returned (not a copy). For `nAGQ > 1` the log-likelihood is the
+  `lmerPredict(fit, ...)`. `confint(fit)` → `confintLmer(fit)` or `confintGlmer(fit)` (profile likelihood by default;
+  `method: "Wald"` for Wald intervals); `simulate(fit, nsim, seed)` → `simulateLmer(fit, { nsim, seed })` or
+  `simulateGlmer(fit, { nsim, seed })`. Pass the original fit object (not a copy). For `nAGQ > 1` the log-likelihood is the
   true one (R leaves out a constant).
 - Indices are 0-based where R returns indices: `sampleInt(n)` returns `0..n-1` (R's
   `sample.int(n) - 1` from the same random stream), and the pivots of `qr` and `chol`.
