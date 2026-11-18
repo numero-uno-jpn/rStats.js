@@ -1,6 +1,10 @@
 // Mixed-model simulation against the complete public-output fixture, including the RNG state.
 import { beforeAll, describe, expect, it } from "vitest";
-import { getRandomSeed, setRandomSeed } from "../src/random/rng.js";
+import { getRandomSeed, setRandomSeed, setSeed } from "../src/random/rng.js";
+import { rnorm1 } from "../src/random/continuous.js";
+import { rbinom1 } from "../src/random/binomial.js";
+import { rpois1 } from "../src/random/poisson.js";
+import { rgamma1 } from "../src/random/gamma.js";
 import { glmer, glmerInternals, type GlmerOptions } from "../src/models/glmer.js";
 import { lmer, lmerInternals } from "../src/models/lmer.js";
 import { simulateGlmer, simulateLmer, type MixedSimulateOptions } from "../src/models/mixedSimulate.js";
@@ -213,6 +217,8 @@ function callOptions(args: Record<string, unknown>): MixedSimulateOptions {
   return out;
 }
 
+function structureSize(fit: ReturnType<typeof glmer>, row: number): number { return glmerInternals(fit).structure.size![row]!; }
+
 function stateOf(raw: string[] | null): Int32Array | null {
   return raw === null ? null : Int32Array.from(raw, (v) => Number(v));
 }
@@ -220,6 +226,112 @@ function expectState(expected: string[] | null): void {
   if (expected === null) return;
   expect(Array.from(getRandomSeed()), "post-call .Random.seed").toEqual(expected.map(Number));
 }
+/**
+ * Independent GLMM reconstruction for the three known partial-re.form differences.
+ * It uses only fitPublic quantities and primitive RNG/family generators, not simulateGlmer().
+ */
+function reconstructPartialGlmer(
+  c: SimCase,
+  fit: ReturnType<typeof glmer>,
+  reForm: string,
+  nsim: number,
+): number[][] {
+  const reference = c.fitPublic!;
+  const internal = glmerInternals(fit);
+  const structure = internal.structure;
+  const beta = namedValues(reference.fixef, fit.fixefNames);
+  const eta = structure.x.map((row, i) =>
+    row.reduce((sum, value, j) => sum + value * beta[j]!, 0) + structure.offset[i]!,
+  );
+  const selectedGroup = reForm.match(/\\|\\s*([^\\)]+)/)?.[1]?.trim();
+  if (selectedGroup === undefined) throw new Error(`Cannot parse partial re.form: ${reForm}`);
+  const vc = reference.varCorr.columns;
+  const groups = asArray<string>(vc.grp);
+  const var1 = asArray<string>(vc.var1);
+  const var2 = asArray<string | null>(vc.var2);
+  const sdcor = asArray<string>(vc.sdcor);
+
+  const termSd = (termIndex: number): number => {
+    const term = structure.terms[termIndex]!;
+    if (term.columns.length !== 1) throw new Error("Independent reconstruction currently expects scalar random-effect terms");
+    const group = structure.groups[term.group]!.name;
+    const row = groups.findIndex((g, i) => g === group && var1[i] === term.columns[0] && missingValue(var2[i]));
+    if (row < 0) throw new Error(`fitPublic VarCorr lacks SD for ${group}:${term.columns[0]}`);
+    return num(sdcor[row]!);
+  };
+
+  const selectedTerms = new Set<number>();
+  const generatedTerms: number[] = [];
+  for (let ti = 0; ti < structure.terms.length; ti++) {
+    const term = structure.terms[ti]!;
+    const group = structure.groups[term.group]!.name;
+    if (group === selectedGroup) selectedTerms.add(ti);
+    else generatedTerms.push(ti);
+  }
+  if (selectedTerms.size === 0) throw new Error(`No fitted random-effects term for ${selectedGroup}`);
+
+  // Add the selected term's fitted conditional modes from the public ranef output.
+  for (const ti of selectedTerms) {
+    const term = structure.terms[ti]!;
+    const group = structure.groups[term.group]!;
+    const source = reference.ranef[group.name];
+    if (source === undefined) throw new Error(`fitPublic ranef lacks ${group.name}`);
+    for (let level = 0; level < term.nLevels; level++) {
+      const levelName = group.levels[level]!;
+      const row = asArray<string>(source.rowNames).indexOf(levelName);
+      if (row < 0) throw new Error(`fitPublic ranef lacks level ${group.name}:${levelName}`);
+      for (let j = 0; j < term.columns.length; j++) {
+        const values = source.columns[term.columns[j]!];
+        if (values === undefined) throw new Error(`fitPublic ranef lacks column ${term.columns[j]}`);
+        const value = num(asArray<string>(values)[row]!);
+        const column = structure.z[term.zOffset + level * term.columns.length + j]!;
+        for (let k = 0; k < column.rows.length; k++) eta[column.rows[k]!]! += column.values[k]! * value;
+      }
+    }
+  }
+
+  // Match the implementation's stream layout: all unselected effects for all replicates first.
+  const generated: number[][][] = [];
+  for (let sim = 0; sim < nsim; sim++) {
+    generated.push(generatedTerms.map((ti) => {
+      const term = structure.terms[ti]!;
+      const sd = termSd(ti);
+      return Array.from({ length: term.nLevels }, () => rnorm1(0, sd));
+    }));
+  }
+
+  const sims: number[][] = [];
+  for (let sim = 0; sim < nsim; sim++) {
+    const predictor = [...eta];
+    generatedTerms.forEach((ti, index) => {
+      const term = structure.terms[ti]!;
+      const values = generated[sim]![index]!;
+      for (let level = 0; level < term.nLevels; level++) {
+        const column = structure.z[term.zOffset + level * term.columns.length]!;
+        for (let k = 0; k < column.rows.length; k++) {
+          predictor[column.rows[k]!]! += column.values[k]! * values[level]!;
+        }
+      }
+    });
+    const mu = predictor.map((value) => structure.family.linkinv(value));
+    if (structure.family.family === "binomial") {
+      sims.push(mu.map((p, i) => {
+        const size = structure.size![i]!;
+        const successes = rbinom1(size, p);
+        return successes; // cbind response's failures are checked by the caller's pair comparison
+      }));
+    } else if (structure.family.family === "poisson") {
+      sims.push(mu.map((value) => rpois1(value)));
+    } else if (structure.family.family === "Gamma") {
+      const shape = 1 / (reference.sigma === undefined ? fit.sigma : num(reference.sigma)) ** 2;
+      sims.push(mu.map((value) => rgamma1(shape, value / shape)));
+    } else {
+      throw new Error(`Unsupported independent reconstruction family: ${structure.family.family}`);
+    }
+  }
+  return sims;
+}
+
 function closeValue(actual: number, expected: number, tolerance: number): boolean {
   if (Number.isNaN(expected) || Number.isNaN(actual)) return Number.isNaN(expected) && Number.isNaN(actual);
   if (actual === expected) return true;
@@ -253,6 +365,21 @@ for (let ci = 0; ci < fixture.cases.length; ci++) {
         } catch (e) {
           error = (e as Error).message;
         }
+        const knownPartialGlmer =
+          kind === "glmer" &&
+          ((c.id === "glmer-binomial" && k === 7) ||
+            (c.id === "glmer-poisson" && k === 6) ||
+            (c.id === "glmer-gamma" && k === 6));
+        let independentExpected: number[][] | undefined;
+        let actualPostState: number[] | undefined;
+        if (knownPartialGlmer && got !== undefined) {
+          actualPostState = Array.from(getRandomSeed());
+          if (before !== null) setRandomSeed(before);
+          if (typeof options.seed === "number") setSeed(options.seed);
+          independentExpected = reconstructPartialGlmer(c, fit as ReturnType<typeof glmer>, options.reForm!, options.nsim ?? 1);
+          expect(Array.from(getRandomSeed()), "independent reconstruction RNG state").toEqual(actualPostState);
+          setRandomSeed(Int32Array.from(actualPostState));
+        }
         const mismatches: string[] = [];
         if (call.result.error !== undefined) {
           const expectedError = c.id === "glmer-inverse-gaussian"
@@ -272,6 +399,7 @@ for (let ci = 0; ci < fixture.cases.length; ci++) {
             for (let j = 0; j < names.length; j++) {
               const expected = columns[names[j]!]!;
               const actual = got[j]!;
+              const independent = independentExpected?.[j];
               if (actual.length !== expected.length) {
                 mismatches.push(`${where} ${names[j]}: length ${actual.length}, expected ${expected.length}`);
                 continue;
@@ -281,11 +409,18 @@ for (let ci = 0; ci < fixture.cases.length; ci++) {
                 const a = actual[i];
                 if (Array.isArray(e)) {
                   const pair = a as [number, number];
+                  if (independent !== undefined) {
+                    const expectedSuccesses = independent[i]!;
+                    if (!Array.isArray(pair) || pair[0] !== expectedSuccesses || pair[1] !== structureSize(fit as ReturnType<typeof glmer>, i) - expectedSuccesses) {
+                      mismatches.push(`${where} ${names[j]}[${i}]: independent cbind reconstruction differs; got ${JSON.stringify(a)}`);
+                    }
+                    continue;
+                  }
                   if (!Array.isArray(pair) || pair.length !== 2 || pair[0] !== num(e[0] as string) || pair[1] !== num(e[1] as string)) {
                     mismatches.push(`${where} ${names[j]}[${i}]: expected ${JSON.stringify(e)}, got ${JSON.stringify(a)}`);
                   }
                 } else {
-                  const ev = num(e as string);
+                  const ev = independent === undefined ? num(e as string) : independent[i]!;
                   const av = a as number;
                   const discrete = c.id.includes("poisson") || (c.id.includes("binomial") && !c.id.includes("proportion"));
                   // RNG draws are exact; only fitted-mean/scale round-off is allowed here.
