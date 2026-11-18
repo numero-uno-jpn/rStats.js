@@ -37,3 +37,7 @@ export type { ContrastName } from "../models/modelMatrix.js";
 export type { GlmLinkName } from "../models/glmFamily.js";
 // The handler of R's warnings that the tests, models and fits return (also exported from the root and /distributions)
 export { setWarningHandler, type WarningHandler } from "../internal/warnings.js";
+
+export { simulateLmer, simulateGlmer, type MixedSimulateOptions, type MixedSimulations } from "../models/mixedSimulate.js";
+
+export { confintLmer, confintGlmer, type MixedConfintOptions, type MixedConfintResult } from "../models/mixedConfint.js";
