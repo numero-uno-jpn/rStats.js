@@ -114,9 +114,6 @@ function newEffects(
     // A complete term selected by re.form is fitted, not regenerated.
     if (completeTerms.has(ti)) {
       for (let level = 0; level < levels; level++) {
-        // Preserve this term's position in the NA random stream when other
-        // terms still need new effects; discard the draw and use its fitted mode.
-        for (let i = 0; i < nc; i++) rnorm1(0, 1);
         for (let i = 0; i < nc; i++) b[term.zOffset + level * nc + i] = conditional[term.zOffset + level * nc + i]!;
       }
       continue;
