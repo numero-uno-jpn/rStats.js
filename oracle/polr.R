@@ -59,7 +59,7 @@ tab <- function(x) {
        values = lapply(seq_len(nrow(as.matrix(x))), function(i) I(as.list(num_json(as.matrix(x)[i, ])))))
 }
 
-capture <- function(f) {
+capture_raw <- function(f) {
   warnings <- character(0)
   messages <- character(0)
   value <- tryCatch(withCallingHandlers(f(),
@@ -76,8 +76,14 @@ capture <- function(f) {
     return(list(error = value$message, warnings = I(as.list(unique(warnings))),
                 messages = I(as.list(unique(messages)))))
   }
-  list(value = json_value(value), warnings = I(as.list(unique(warnings))),
+  list(value = value, warnings = I(as.list(unique(warnings))),
        messages = I(as.list(unique(messages))))
+}
+
+capture <- function(f) {
+  result <- capture_raw(f)
+  if (!is.null(result$error)) return(result)
+  list(value = json_value(result$value), warnings = result$warnings, messages = result$messages)
 }
 
 fit_public_record <- function(fit) {
@@ -245,9 +251,9 @@ rows <- lapply(cases, function(case) {
       if (is.null(source_fit)) stop("startFrom must refer to an earlier successful fit")
       args$start <- c(coef(source_fit), source_fit$zeta)
     }
-    result <- capture(function() do.call(MASS::polr, args))
+    result <- capture_raw(function() do.call(MASS::polr, args))
     if (is.null(result$error)) fits[[id]] <<- result$value
-    record <- list(id = id, fit = fit_record(args), fitResult = result[c("error", "warnings", "messages")])
+    record <- list(id = id, fit = fit_record(args),\n                   fitResult = list(warnings = result$warnings, messages = result$messages))\n    if (!is.null(result$error)) record$fitResult$error <- result$error
     if (is.null(result$error)) {
       record$fitPublic <- fit_public_record(result$value)
     } else {
