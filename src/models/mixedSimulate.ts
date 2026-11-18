@@ -89,16 +89,27 @@ function newEffects(
     const term = terms[ti]!;
     const nc = term.columns.length;
     const conditioned = selected.get(ti) ?? new Set<number>();
-    // Even selected components get a new draw: re.form adds their fitted modes to the new effects.
+    const levels = groups[term.group]!.levels.length;
+    // A complete term selected by re.form is fitted, not regenerated.
+    if (conditioned.size === nc) {
+      for (let level = 0; level < levels; level++) {
+        for (let i = 0; i < nc; i++) b[term.zOffset + level * nc + i] = conditional[term.zOffset + level * nc + i]!;
+      }
+      continue;
+    }
+    // For a partially selected correlated term, draw the full block (preserving
+    // the marginal distribution and RNG layout of its unselected columns), then
+    // replace selected columns with their fitted modes. Do not condition or add.
     const lower = Array.from({ length: nc }, () => new Array<number>(nc).fill(0));
     let k = term.thetaOffset;
     for (let j = 0; j < nc; j++) for (let i = j; i < nc; i++) lower[i]![j] = theta[k++]! * scale;
-    for (let level = 0; level < groups[term.group]!.levels.length; level++) {
+    for (let level = 0; level < levels; level++) {
       const z = Array.from({ length: nc }, () => rnorm1(0, 1));
       for (let i = 0; i < nc; i++) {
         let value = 0;
         for (let j = 0; j <= i; j++) value += lower[i]![j]! * z[j]!;
-        b[term.zOffset + level * nc + i] = value + (conditioned.has(i) ? conditional[term.zOffset + level * nc + i]! : 0);
+        const index = term.zOffset + level * nc + i;
+        b[index] = conditioned.has(i) ? conditional[index]! : value;
       }
     }
   }
