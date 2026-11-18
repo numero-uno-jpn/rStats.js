@@ -184,7 +184,10 @@ function rawStart(values: readonly number[], p: number, k: number): number[] {
 
 function initialValues(y: readonly number[], weights: readonly number[], levels: number, method: PolrMethod): number[] {
   const counts = new Array<number>(levels).fill(0);
-  for (let i = 0; i < y.length; i++) counts[y[i]!] += weights[i]!;
+  for (let i = 0; i < y.length; i++) {
+    const j = y[i]!;
+    counts[j] = (counts[j] ?? 0) + weights[i]!;
+  }
   const total = counts.reduce((a, b) => a + b, 0);
   const cuts: number[] = [];
   let cumulative = 0;
@@ -195,6 +198,167 @@ function initialValues(y: readonly number[], weights: readonly number[], levels:
   const transformed = [cuts[0]!];
   for (let j = 1; j < cuts.length; j++) transformed.push(Math.log(cuts[j]! - cuts[j - 1]!));
   return transformed;
+}
+
+type PolrDerivatives = { value: number; gradient: number[]; hessian: number[][] };
+
+function linkDensity(t: number, method: PolrMethod): number {
+  if (!Number.isFinite(t)) return 0;
+  if (method === "logistic") {
+    const logF = -softplus(-t);
+    const logS = -softplus(t);
+    return Math.exp(logF + logS);
+  }
+  if (method === "probit") return Math.exp(-0.5 * t * t - 0.5 * Math.log(2 * Math.PI));
+  if (method === "cauchit") return 1 / (Math.PI * (1 + t * t));
+  if (method === "cloglog") {
+    const et = Math.exp(t);
+    return et === 0 || !Number.isFinite(et) ? 0 : Math.exp(t - et);
+  }
+  const emt = Math.exp(-t);
+  return emt === 0 || !Number.isFinite(emt) ? 0 : Math.exp(-t - emt);
+}
+
+function linkDensityDerivative(t: number, method: PolrMethod): number {
+  const f = linkDensity(t, method);
+  if (f === 0) return 0;
+  if (method === "logistic") return f * (1 - 2 / (1 + Math.exp(-t)));
+  if (method === "probit") return -t * f;
+  if (method === "cauchit") return -2 * t * f / (1 + t * t);
+  if (method === "cloglog") return f * (1 - Math.exp(t));
+  return f * (Math.exp(-t) - 1);
+}
+
+/** Negative log likelihood and its exact first and second derivatives in the unconstrained coordinates. */
+function polrDerivatives(
+  x: readonly (readonly number[])[], y: readonly number[], weights: readonly number[],
+  offset: readonly number[], levels: number, method: PolrMethod, theta: readonly number[],
+): PolrDerivatives {
+  const p = x[0]?.length ?? 0;
+  const n = p + levels - 1;
+  const beta = theta.slice(0, p);
+  const cuts = cutpointsFrom(theta, p, levels);
+  const gradientNatural = new Array<number>(n).fill(0);
+  const hessianNatural: number[][] = Array.from({ length: n }, () => new Array<number>(n).fill(0));
+  let value = 0;
+
+  for (let i = 0; i < y.length; i++) {
+    const w = weights[i]!;
+    if (w === 0) continue;
+    let eta = offset[i]!;
+    for (let r = 0; r < p; r++) eta += x[i]![r]! * beta[r]!;
+    const category = y[i]!;
+    const lowerT = category === 0 ? -Infinity : cuts[category - 1]! - eta;
+    const upperT = category === levels - 1 ? Infinity : cuts[category]! - eta;
+    const logP = categoryLogProbability(eta, cuts, category, method);
+    const probability = Math.exp(logP);
+    if (!(probability > 0) || !Number.isFinite(probability)) {
+      return { value: Number.MAX_VALUE, gradient: new Array<number>(n).fill(0), hessian: hessianNatural };
+    }
+
+    const fl = linkDensity(lowerT, method);
+    const fu = linkDensity(upperT, method);
+    const fpl = linkDensityDerivative(lowerT, method);
+    const fpu = linkDensityDerivative(upperT, method);
+    const pEta = fl - fu;
+    const pEtaEta = fpu - fpl;
+    const pGradient = new Array<number>(n).fill(0);
+    const pHessian: number[][] = Array.from({ length: n }, () => new Array<number>(n).fill(0));
+
+    for (let r = 0; r < p; r++) pGradient[r] = pEta * x[i]![r]!;
+    if (category < levels - 1) pGradient[p + category] = fu;
+    if (category > 0) pGradient[p + category - 1] = -fl;
+
+    for (let r = 0; r < p; r++) {
+      for (let c = 0; c < p; c++) pHessian[r]![c] = pEtaEta * x[i]![r]! * x[i]![c]!;
+      if (category < levels - 1) pHessian[r]![p + category] = -fpu * x[i]![r]!;
+      if (category > 0) pHessian[r]![p + category - 1] = fpl * x[i]![r]!;
+    }
+    if (category < levels - 1) pHessian[p + category]![p + category] = fpu;
+    if (category > 0) pHessian[p + category - 1]![p + category - 1] = -fpl;
+
+    value -= w * logP;
+    for (let a = 0; a < n; a++) {
+      gradientNatural[a] -= w * pGradient[a]! / probability;
+      for (let b = 0; b < n; b++) {
+        hessianNatural[a]![b] -= w * (
+          pHessian[a]![b]! / probability
+          - pGradient[a]! * pGradient[b]! / (probability * probability)
+        );
+      }
+    }
+  }
+
+  // Map derivatives from (beta, cut-points) to (beta, alpha_1, log-gap_2, ...).
+  const jacobian: number[][] = Array.from({ length: n }, () => new Array<number>(n).fill(0));
+  for (let j = 0; j < p; j++) jacobian[j]![j] = 1;
+  for (let j = 0; j < levels - 1; j++) {
+    jacobian[p + j]![p] = 1;
+    for (let m = 1; m <= j; m++) jacobian[p + j]![p + m] = Math.exp(theta[p + m]!);
+  }
+  const gradient = new Array<number>(n).fill(0);
+  const hessian: number[][] = Array.from({ length: n }, () => new Array<number>(n).fill(0));
+  for (let a = 0; a < n; a++) {
+    for (let u = 0; u < n; u++) gradient[a] += jacobian[u]![a]! * gradientNatural[u]!;
+    for (let b = 0; b < n; b++) {
+      for (let u = 0; u < n; u++) for (let v = 0; v < n; v++) {
+        hessian[a]![b] += jacobian[u]![a]! * hessianNatural[u]![v]! * jacobian[v]![b]!;
+      }
+    }
+  }
+  for (let m = 1; m < levels - 1; m++) {
+    const gap = Math.exp(theta[p + m]!);
+    let contribution = 0;
+    for (let j = m; j < levels - 1; j++) contribution += gradientNatural[p + j]!;
+    hessian[p + m]![p + m] += gap * contribution;
+  }
+  return { value, gradient, hessian };
+}
+
+/** Internal derivative hook used by finite-difference verification in the model tests. */
+export function __polrDerivativesForTest(
+  x: readonly (readonly number[])[], y: readonly number[], weights: readonly number[],
+  offset: readonly number[], levels: number, method: PolrMethod, theta: readonly number[],
+): PolrDerivatives {
+  return polrDerivatives(x, y, weights, offset, levels, method, theta);
+}
+
+function maxAbs(values: readonly number[]): number {
+  let result = 0;
+  for (const value of values) result = Math.max(result, Math.abs(value));
+  return result;
+}
+
+function newtonPolish(
+  start: readonly number[], evaluate: (theta: number[]) => PolrDerivatives,
+): PolrDerivatives & { theta: number[] } {
+  let theta = Array.from(start);
+  let current = evaluate(theta);
+  for (let iteration = 0; iteration < 30 && maxAbs(current.gradient) > 5e-11; iteration++) {
+    let inverse: number[][];
+    try {
+      inverse = chol2inv(chol(current.hessian));
+    } catch {
+      break;
+    }
+    const direction = inverse.map((row) => -row.reduce((sum, v, j) => sum + v * current.gradient[j]!, 0));
+    let slope = direction.reduce((sum, v, j) => sum + v * current.gradient[j]!, 0);
+    if (!(slope < 0) || !Number.isFinite(slope)) break;
+    let step = 1;
+    let accepted = false;
+    for (let backtrack = 0; backtrack < 50; backtrack++, step *= 0.5) {
+      const candidate = theta.map((v, j) => v + step * direction[j]!);
+      const trial = evaluate(candidate);
+      if (Number.isFinite(trial.value) && trial.value <= current.value + 1e-4 * step * slope) {
+        theta = candidate;
+        current = trial;
+        accepted = true;
+        break;
+      }
+    }
+    if (!accepted) break;
+  }
+  return { ...current, theta };
 }
 
 function rowPredictors(x: readonly (readonly number[])[], beta: readonly number[], offset: readonly number[]): number[] {
@@ -308,41 +472,28 @@ export function polr(formula: string, data: DataFrame, options: PolrOptions = {}
     }
     return logLikelihood;
   };
-  // A five-point central gradient avoids the relatively coarse default finite-difference step.
-  // BFGS then uses a stricter objective tolerance so the fitted likelihood is stable to about 1e-10.
-  const gradient = (theta: number[]): number[] => theta.map((value, j) => {
-    const h = 1e-4 * Math.max(1, Math.abs(value));
-    const x = theta.slice();
-    x[j] = value - 2 * h;
-    const fm2 = objective(x);
-    x[j] = value - h;
-    const fm1 = objective(x);
-    x[j] = value + h;
-    const fp1 = objective(x);
-    x[j] = value + 2 * h;
-    const fp2 = objective(x);
-    return (fm2 - 8 * fm1 + 8 * fp1 - fp2) / (12 * h);
-  });
+  const evaluate = (theta: number[]) => polrDerivatives(x, y, weights, offset, k, method, theta);
   const fit = optim(theta0, objective, {
     method: "BFGS",
-    gr: gradient,
-    hessian: true,
+    gr: (theta) => evaluate(theta).gradient,
     control: { maxit: options.maxit ?? 2000, reltol: options.reltol ?? 1e-15 },
   });
-  if (fit.convergence !== 0 || fit.hessian === undefined) {
-    throw new Error(`ordinal regression did not converge (code ${fit.convergence})`);
+  if (fit.convergence !== 0) throw new Error(`ordinal regression did not converge (code ${fit.convergence})`);
+  const polished = newtonPolish(fit.par, evaluate);
+  if (maxAbs(polished.gradient) > 1e-7) {
+    throw new Error(`ordinal regression score did not converge (max |score| = ${maxAbs(polished.gradient)})`);
   }
-  const theta = fit.par;
+  const theta = polished.theta;
   const beta = theta.slice(0, p);
   const cuts = cutpointsFrom(theta, p, k);
-  const hessian = fit.hessian;
+  const hessian = polished.hessian;
   const cov = covarianceFromHessian(hessian, p, k, theta);
   const eta = rowPredictors(x, beta, offset);
   const fitted = probabilities(eta, cuts, method);
   const names = [...columnNames, ...cuts.map((_, j) => `${responseLevels[j]}|${responseLevels[j + 1]}`)];
   const coefficients = Object.fromEntries(columnNames.map((name, i) => [name, beta[i]!]));
   const zeta = Object.fromEntries(names.slice(p).map((name, i) => [name, cuts[i]!]));
-  const logLik = -fit.value;
+  const logLik = -polished.value;
   const edf = p + k - 1;
   const nobs = weights.reduce((a, b) => a + b, 0);
   const warnings = [...d.warnings, ...fit.warnings];
