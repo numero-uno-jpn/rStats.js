@@ -277,7 +277,7 @@ export function polr(formula: string, data: DataFrame, options: PolrOptions = {}
   if (responseLevels.length < 3) throw new Error("response must have 3 or more levels");
   const weights = d.frame.weights ?? new Array<number>(d.frame.rows.length).fill(1);
   for (let j = 0; j < responseLevels.length; j++) {
-    if (!weights.some((w, i) => w > 0 && response.codes[i] === j)) {
+    if (!weights.some((w, i) => w > 0 && response.codes[i]! === j)) {
       throw new Error(`response level '${responseLevels[j]}' has no positive-weight observations`);
     }
   }
@@ -308,10 +308,26 @@ export function polr(formula: string, data: DataFrame, options: PolrOptions = {}
     }
     return logLikelihood;
   };
+  // A five-point central gradient avoids the relatively coarse default finite-difference step.
+  // BFGS then uses a stricter objective tolerance so the fitted likelihood is stable to about 1e-10.
+  const gradient = (theta: number[]): number[] => theta.map((value, j) => {
+    const h = 1e-4 * Math.max(1, Math.abs(value));
+    const x = theta.slice();
+    x[j] = value - 2 * h;
+    const fm2 = objective(x);
+    x[j] = value - h;
+    const fm1 = objective(x);
+    x[j] = value + h;
+    const fp1 = objective(x);
+    x[j] = value + 2 * h;
+    const fp2 = objective(x);
+    return (fm2 - 8 * fm1 + 8 * fp1 - fp2) / (12 * h);
+  });
   const fit = optim(theta0, objective, {
     method: "BFGS",
+    gr: gradient,
     hessian: true,
-    control: { maxit: options.maxit ?? 1000, reltol: options.reltol ?? 1e-12 },
+    control: { maxit: options.maxit ?? 2000, reltol: options.reltol ?? 1e-15 },
   });
   if (fit.convergence !== 0 || fit.hessian === undefined) {
     throw new Error(`ordinal regression did not converge (code ${fit.convergence})`);
