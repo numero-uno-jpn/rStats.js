@@ -1,0 +1,10 @@
+multinomial deviance: 64.8334530268632 
+logistic zeta: -0.1251631422 1.686398963 deviance: 64.8334530268632 
+probit zeta: -0.07841240689 1.009990177 deviance: 64.8334530268632 
+cloglog zeta: -0.458039393 0.6185841764 deviance: 64.8334530268632 
+loglog zeta: 0.277486629 1.772550922 deviance: 64.8334530268632 
+cauchit zeta: -0.09786038862 1.840323311 deviance: 65.2421784555914 
+qcauchy(p): -0.09849140336 1.870868412 
+MASS's cauchit deviance at its own zeta: 65.2421784555914 
+MASS's cauchit deviance at qcauchy(p): 65.2436744238265 
+standard Cauchy deviance by hand at MASS's zeta: 64.8349157739368 

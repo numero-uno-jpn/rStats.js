@@ -282,3 +282,11 @@ in `experiments/regression-polr-2.R` and `.json` on `work/regression`):
 10. **Warnings and rank deficiency:** distinct warnings in first-occurrence order; aliased columns dropped with a
     warning naming them; complete separation and a non-finite or indefinite information matrix are errors
 11. **Names:** R's model-matrix names for the slopes and R's `Low|Medium` labels for the cut-points, in `zeta`
+12. **The cauchit link is the standard Cauchy distribution,** $F(t) = 1/2 + \arctan(t)/\pi$ (decided 2026-11-19; a
+    known difference from R). MASS 7.3-66's `cauchit` does not fit that model:
+    `experiments/regression-polr-cauchit.R` and `.out.txt` show that, for an intercept-only model, where every link's
+    maximum-likelihood cut-points are $F^{-1}$ of the cumulative proportions and the deviance is the multinomial one
+    (64.8334530268632 for `mtcars$gear`), the other four links reach both, but MASS's cauchit stops at 65.2421784555914
+    with cut-points away from `qcauchy`. The standard Cauchy deviance at MASS's cut-points is 64.8349157739368, not
+    MASS's 65.24. rStats.js's cauchit fits are therefore checked against independent references (the exact
+    intercept-only solution and a high-precision maximisation of the standard Cauchy likelihood), not against MASS
