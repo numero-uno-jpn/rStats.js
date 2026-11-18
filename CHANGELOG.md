@@ -7,6 +7,24 @@ While the version is 0.x, a minor release (0.y.0) may contain breaking changes;
 they are listed under **Breaking** for each release. From 1.0.0 the project follows
 [Semantic Versioning](https://semver.org/).
 
+## Unreleased
+
+Mixed models continued (item 1 of the roadmap after 1.5.0): lme4's `confint` and `simulate` for `lmer` and `glmer`
+fits, checked against lme4 2.0-6 and audited at extreme inputs (changes of scale to 1e±100, cancellation, boundary
+fits, near separation, extreme confidence levels, large `nsim`).
+
+### Added
+
+- **Mixed-model confidence intervals:** `confintLmer` and `confintGlmer` (lme4's `confint`), by profile likelihood
+  (the default) or Wald, with `level`, `parm` and `signames`; the profile intervals of `glmer` are for `nAGQ = 1`
+  fits. Unlike R, the profile intervals of a `glmer` with a dispersion (Gamma, inverse Gaussian) are given, with the
+  dispersion as a nuisance parameter (R refuses them); the `.sigma` row itself is NaN. The endpoints are roots of
+  the profile, not interpolated, and stay right at scales where R's profile fails.
+- **Mixed-model simulation:** `simulateLmer` and `simulateGlmer` (lme4's `simulate`) with `nsim`, `seed`, `useU` and
+  `reForm`, drawing R's random numbers in R's order (gaussian, binomial including `cbind` and weighted proportions,
+  poisson, Gamma). With a partial `reForm` the unselected terms use their own covariance factors; lme4 2.0-6 uses the
+  preceding term's (a known difference, docs/differences-from-r.md).
+
 ## 1.5.0 - 2026-11-17
 
 Sample size and power for trial designs and meta-analysis (items 1 and 2 of the roadmap after 1.4.0), each checked

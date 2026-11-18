@@ -61,14 +61,18 @@ and effect measures with their confidence intervals, not only p-values. The list
 a statistics web application for medical and psychological research (2026-11-06). In order of priority; the R
 function or package that each item is checked against is given in brackets.
 
-1. **Mixed models, continued:** `confint` (profile likelihood) and `simulate` of `lmer` and `glmer` fits [lme4]. The
-   `mixed` area stays out of the root export and the single-file bundle `dist/rstats.js` (decided 2026-11-05); adding
-   it later would not break compatibility.
-2. **Later, in no particular order:** ordinal logistic regression [MASS `polr`], nonlinear regression [`nls` and the
+1. **Later, in no particular order:** ordinal logistic regression [MASS `polr`], nonlinear regression [`nls` and the
    self-starting models], robust and quantile regression [MASS `rlm`, quantreg], GEE [geepack]; MANOVA [`manova`],
    discriminant analysis [MASS `lda`], canonical correlation [`cancor`]; cluster analysis [`hclust`, `kmeans`];
    multidimensional scaling and correspondence analysis [`cmdscale`, MASS `isoMDS`, ca]; Tamhane's T2 and Page's
    test [PMCMRplus], Grubbs' test [outliers]; regularised regression [glmnet]; time series [`acf`, `arima`].
+
+Mixed models continued (the former item 1) were done for 1.6.0: `confintLmer`, `confintGlmer`, `simulateLmer` and
+`simulateGlmer` after lme4's `confint` (profile likelihood and Wald) and `simulate`. Left out, as decided in the
+"rStats.js's choices" of [oracle/mixedconfint-behaviour.md](oracle/mixedconfint-behaviour.md) and
+[oracle/mixedsimulate-behaviour.md](oracle/mixedsimulate-behaviour.md): bootstrap intervals, the profile table itself,
+profiles of `nAGQ > 1` fits and of the dispersion, `newdata`, `newparams` and `allow.new.levels` in `simulate`, and
+inverse Gaussian simulation. The `mixed` area stays out of the root export and `dist/rstats.js`.
 
 Meta-analysis (the former item 1) was done for 1.5.0 too, after metafor: `escalc`, `rma` with eleven estimators,
 meta-regression and Knapp-Hartung inference, `confintRma`, `predictRma` and `regtest`. Left out, as decided in the

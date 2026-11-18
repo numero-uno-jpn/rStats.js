@@ -1710,3 +1710,29 @@ The reference is metafor 5.2.1; the details are in [oracle/meta-behaviour.md](..
 - **`escalc` with `"SMD"` in large samples:** R's Hedges correction loses digits from the difference of the two
   log-gamma values (relative errors of about 1e-9 at 1e6 per group and 4e-6 at 1e9); rStats.js uses the asymptotic
   expansion of the gamma ratio for large degrees of freedom.
+
+## Mixed models: confint and simulate
+
+The reference is lme4 2.0-6; the details are in [oracle/mixedconfint-behaviour.md](../oracle/mixedconfint-behaviour.md)
+and [oracle/mixedsimulate-behaviour.md](../oracle/mixedsimulate-behaviour.md).
+
+- **Partial `re.form` in simulation (known difference):** for a fit with two or more random-effects terms and a
+  partial `reForm`, rStats.js draws every unselected term's new effects from that term's own covariance factor (its own
+  `theta` block, correlated slopes included). lme4 2.0-6 scales an unselected term that is not the first one by the
+  preceding term's `theta`: with the terms B, A, C and B selected, A varies as B and C as A, whatever the formula's
+  order (shown with public outputs only; reported in issue #535). The random effects are drawn in R's number and
+  order; the values differ, and a Poisson response can then consume a different number of uniforms than R's.
+- **Profile endpoints:** rStats.js finds each endpoint as a root of the signed square root of the profiled deviance;
+  R interpolates a spline (or, after its warnings, a straight line) through a grid of profile points. Near a boundary
+  or with few groups the two differ in the third or fourth digit (2e-3 at a zero random-intercept variance, 2e-4
+  with two groups). For a very small `level`, whose cutoff is below the deviance's resolution, rStats.js interpolates
+  the signed root linearly near the estimate.
+- **Scales R cannot profile:** with the response multiplied by 1e+100, R's profile fails ("profiling detected new,
+  lower deviance"); at 1e-100 it warns and gives inaccurate limits. rStats.js's limits are the limits at scale 1
+  times the scale.
+- **Families with a dispersion:** R refuses to profile a `glmer` with Gamma or inverse Gaussian responses ("can't
+  (yet) profile GLMMs with non-fixed scale parameters"). rStats.js profiles the other parameters with the dispersion
+  as a nuisance parameter (checked by offset refits in R); the `.sigma` row is NaN with a warning.
+- **Profiles of a local optimum:** for very sparse Poisson counts the Laplace fit can be a local optimum (in the
+  audit, fixing the intercept lower gave deviances below the fit's). Neither R nor rStats.js warns, and the lower
+  limit of the intercept is not meaningful there; the two differ (−4.16 and −3.88).

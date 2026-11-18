@@ -984,6 +984,56 @@
     "en": "The standard deviations of the random effects, one per column.",
     "ja": "変量効果の標準偏差です。列ごとに 1 つあります。"
   },
+  "MixedConfintOptions#summary": {
+    "hash": "faeb526c1f83",
+    "en": "Options of {@link confintLmer} and {@link confintGlmer}.",
+    "ja": ""
+  },
+  "MixedConfintOptions.level#summary": {
+    "hash": "20c0bf66d85d",
+    "en": "Two-sided confidence level. Default 0.95.",
+    "ja": ""
+  },
+  "MixedConfintOptions.method#summary": {
+    "hash": "1ae29c42f678",
+    "en": "\"profile\" (default) or \"Wald\" (fixed effects only).",
+    "ja": ""
+  },
+  "MixedConfintOptions.parm#summary": {
+    "hash": "fb22af4feebe",
+    "en": "Parameter names, one-based positions, \"theta_\" (variance parameters), or \"beta_\" (fixed effects).",
+    "ja": ""
+  },
+  "MixedConfintOptions.signames#summary": {
+    "hash": "545922ef45a1",
+    "en": "Use lme4's .sig01 names (default), or descriptive standard-deviation and correlation names.",
+    "ja": ""
+  },
+  "MixedConfintResult#summary": {
+    "hash": "ef05b4f84e95",
+    "en": "Confidence intervals from a mixed-model fit. Missing limits are NaN.",
+    "ja": ""
+  },
+  "MixedConfintResult.lower#summary": {
+    "hash": "085ea5acdc2f",
+    "en": "Lower confidence limits.",
+    "ja": ""
+  },
+  "MixedConfintResult.names#summary": {
+    "hash": "dd0d2c6bef6c",
+    "en": "Parameter names in the same order as the limits.",
+    "ja": ""
+  },
+  "MixedConfintResult.upper#summary": {
+    "hash": "6f853a290f9a",
+    "en": "Upper confidence limits.",
+    "ja": ""
+  },
+  "MixedConfintResult.warnings#summary": {
+    "hash": "f84900daffab",
+    "en": "Warnings from profiling or parameter selection.",
+    "ja": ""
+  },
   "MixedPrediction#summary": {
     "hash": "eeca8f1e500a",
     "en": "Result of {@link glmerPredict} and {@link lmerPredict}.",
@@ -1003,6 +1053,541 @@
     "hash": "5555764acb68",
     "en": "R's warnings (only when there are some: glmer's warning about the standard errors).",
     "ja": "R の警告です (ある場合のみ。glmer の標準誤差についての警告です)。"
+  },
+  "MixedSimulateOptions#summary": {
+    "hash": "c081e82383f4",
+    "en": "Options of {@link simulateLmer} and {@link simulateGlmer}.",
+    "ja": ""
+  },
+  "MixedSimulateOptions.nsim#summary": {
+    "hash": "281418b4f5ab",
+    "en": "Number of simulated response vectors. Default 1.",
+    "ja": ""
+  },
+  "MixedSimulateOptions.reForm#summary": {
+    "hash": "0a2038a3243b",
+    "en": "Random-effects terms to condition on: null (all), \"NA\" or \"~0\" (none), or a formula selecting whole terms.",
+    "ja": ""
+  },
+  "MixedSimulateOptions.seed#summary": {
+    "hash": "4351eb3e9071",
+    "en": "Set the shared R-compatible random stream before simulation. Null or omitted uses its current state.",
+    "ja": ""
+  },
+  "MixedSimulateOptions.useU#summary": {
+    "hash": "d75e4d4f2de5",
+    "en": "Condition on all fitted random effects, or generate new effects. Cannot be combined with reForm.",
+    "ja": ""
+  },
+  "MixedSimulations#summary": {
+    "hash": "32d32e0a1ec1",
+    "en": "Simulations from a mixed-model fit: one response vector per simulation, with R's simulation column names.",
+    "ja": ""
+  },
+  "MixedSimulations.[iterator]#summary": {
+    "hash": "b0b0485265ee",
+    "en": "Iterator",
+    "ja": ""
+  },
+  "MixedSimulations.[unscopables]#summary": {
+    "hash": "08705db4c429",
+    "en": "Is an object whose properties have the value 'true'\nwhen they will be absent when used in a 'with' statement.",
+    "ja": ""
+  },
+  "MixedSimulations.[unscopables].[unscopables]#summary": {
+    "hash": "08705db4c429",
+    "en": "Is an object whose properties have the value 'true'\nwhen they will be absent when used in a 'with' statement.",
+    "ja": ""
+  },
+  "MixedSimulations.[unscopables].length#summary": {
+    "hash": "397a7759e005",
+    "en": "Gets or sets the length of the array. This is a number one higher than the highest index in the array.",
+    "ja": ""
+  },
+  "MixedSimulations.at#@param index": {
+    "hash": "97494618054b",
+    "en": "The zero-based index of the desired code unit. A negative index will count back from the last item.",
+    "ja": ""
+  },
+  "MixedSimulations.at#summary": {
+    "hash": "3313cb9217fd",
+    "en": "Returns the item located at the specified index.",
+    "ja": ""
+  },
+  "MixedSimulations.concat(0)#@param items": {
+    "hash": "dfb2705ba50f",
+    "en": "Additional arrays and/or items to add to the end of the array.",
+    "ja": ""
+  },
+  "MixedSimulations.concat(0)#summary": {
+    "hash": "2c39af526de6",
+    "en": "Combines two or more arrays.\nThis method returns a new array without modifying any existing arrays.",
+    "ja": ""
+  },
+  "MixedSimulations.concat(1)#@param items": {
+    "hash": "dfb2705ba50f",
+    "en": "Additional arrays and/or items to add to the end of the array.",
+    "ja": ""
+  },
+  "MixedSimulations.concat(1)#summary": {
+    "hash": "2c39af526de6",
+    "en": "Combines two or more arrays.\nThis method returns a new array without modifying any existing arrays.",
+    "ja": ""
+  },
+  "MixedSimulations.copyWithin#@param end": {
+    "hash": "c32238a11e07",
+    "en": "If not specified, length of the this object is used as its default value.",
+    "ja": ""
+  },
+  "MixedSimulations.copyWithin#@param start": {
+    "hash": "2158ec4580d7",
+    "en": "If start is negative, it is treated as length+start. If end is negative, it\nis treated as length+end.",
+    "ja": ""
+  },
+  "MixedSimulations.copyWithin#@param target": {
+    "hash": "f69907206d03",
+    "en": "If target is negative, it is treated as length+target where length is the\nlength of the array.",
+    "ja": ""
+  },
+  "MixedSimulations.copyWithin#summary": {
+    "hash": "c1a4c8263809",
+    "en": "Returns the this object after copying a section of the array identified by start and end\nto the same array starting at position target",
+    "ja": ""
+  },
+  "MixedSimulations.entries#summary": {
+    "hash": "cb7dd2c36e05",
+    "en": "Returns an iterable of key, value pairs for every entry in the array",
+    "ja": ""
+  },
+  "MixedSimulations.every(0)#@param predicate": {
+    "hash": "d903000c460e",
+    "en": "A function that accepts up to three arguments. The every method calls\nthe predicate function for each element in the array until the predicate returns a value\nwhich is coercible to the Boolean value false, or until the end of the array.",
+    "ja": ""
+  },
+  "MixedSimulations.every(0)#@param thisArg": {
+    "hash": "9750730db71d",
+    "en": "An object to which the this keyword can refer in the predicate function.\nIf thisArg is omitted, undefined is used as the this value.",
+    "ja": ""
+  },
+  "MixedSimulations.every(0)#summary": {
+    "hash": "6b200f1aaf02",
+    "en": "Determines whether all the members of an array satisfy the specified test.",
+    "ja": ""
+  },
+  "MixedSimulations.every(1)#@param predicate": {
+    "hash": "d903000c460e",
+    "en": "A function that accepts up to three arguments. The every method calls\nthe predicate function for each element in the array until the predicate returns a value\nwhich is coercible to the Boolean value false, or until the end of the array.",
+    "ja": ""
+  },
+  "MixedSimulations.every(1)#@param thisArg": {
+    "hash": "9750730db71d",
+    "en": "An object to which the this keyword can refer in the predicate function.\nIf thisArg is omitted, undefined is used as the this value.",
+    "ja": ""
+  },
+  "MixedSimulations.every(1)#summary": {
+    "hash": "6b200f1aaf02",
+    "en": "Determines whether all the members of an array satisfy the specified test.",
+    "ja": ""
+  },
+  "MixedSimulations.fill#@param end": {
+    "hash": "46096fc119bb",
+    "en": "index to stop filling the array at. If end is negative, it is treated as\nlength+end.",
+    "ja": ""
+  },
+  "MixedSimulations.fill#@param start": {
+    "hash": "10afc65b2fbd",
+    "en": "index to start filling the array at. If start is negative, it is treated as\nlength+start where length is the length of the array.",
+    "ja": ""
+  },
+  "MixedSimulations.fill#@param value": {
+    "hash": "339869950079",
+    "en": "value to fill array section with",
+    "ja": ""
+  },
+  "MixedSimulations.fill#summary": {
+    "hash": "e70bc835c8cb",
+    "en": "Changes all array elements from `start` to `end` index to a static `value` and returns the modified array",
+    "ja": ""
+  },
+  "MixedSimulations.filter(0)#@param predicate": {
+    "hash": "29d4bab7b09c",
+    "en": "A function that accepts up to three arguments. The filter method calls the predicate function one time for each element in the array.",
+    "ja": ""
+  },
+  "MixedSimulations.filter(0)#@param thisArg": {
+    "hash": "ae8524f1966b",
+    "en": "An object to which the this keyword can refer in the predicate function. If thisArg is omitted, undefined is used as the this value.",
+    "ja": ""
+  },
+  "MixedSimulations.filter(0)#summary": {
+    "hash": "6e51d20c81b4",
+    "en": "Returns the elements of an array that meet the condition specified in a callback function.",
+    "ja": ""
+  },
+  "MixedSimulations.filter(1)#@param predicate": {
+    "hash": "29d4bab7b09c",
+    "en": "A function that accepts up to three arguments. The filter method calls the predicate function one time for each element in the array.",
+    "ja": ""
+  },
+  "MixedSimulations.filter(1)#@param thisArg": {
+    "hash": "ae8524f1966b",
+    "en": "An object to which the this keyword can refer in the predicate function. If thisArg is omitted, undefined is used as the this value.",
+    "ja": ""
+  },
+  "MixedSimulations.filter(1)#summary": {
+    "hash": "6e51d20c81b4",
+    "en": "Returns the elements of an array that meet the condition specified in a callback function.",
+    "ja": ""
+  },
+  "MixedSimulations.find(0)#@param predicate": {
+    "hash": "23922e554b83",
+    "en": "find calls predicate once for each element of the array, in ascending\norder, until it finds one where predicate returns true. If such an element is found, find\nimmediately returns that element value. Otherwise, find returns undefined.",
+    "ja": ""
+  },
+  "MixedSimulations.find(0)#@param thisArg": {
+    "hash": "b3284750390b",
+    "en": "If provided, it will be used as the this value for each invocation of\npredicate. If it is not provided, undefined is used instead.",
+    "ja": ""
+  },
+  "MixedSimulations.find(0)#summary": {
+    "hash": "ca28a53f6dff",
+    "en": "Returns the value of the first element in the array where predicate is true, and undefined\notherwise.",
+    "ja": ""
+  },
+  "MixedSimulations.findIndex#@param predicate": {
+    "hash": "ce99f1fe2d11",
+    "en": "find calls predicate once for each element of the array, in ascending\norder, until it finds one where predicate returns true. If such an element is found,\nfindIndex immediately returns that element index. Otherwise, findIndex returns -1.",
+    "ja": ""
+  },
+  "MixedSimulations.findIndex#@param thisArg": {
+    "hash": "b3284750390b",
+    "en": "If provided, it will be used as the this value for each invocation of\npredicate. If it is not provided, undefined is used instead.",
+    "ja": ""
+  },
+  "MixedSimulations.findIndex#summary": {
+    "hash": "6cdea82734ad",
+    "en": "Returns the index of the first element in the array where predicate is true, and -1\notherwise.",
+    "ja": ""
+  },
+  "MixedSimulations.flat#@param depth": {
+    "hash": "c757ecffd808",
+    "en": "The maximum recursion depth",
+    "ja": ""
+  },
+  "MixedSimulations.flat#summary": {
+    "hash": "07a13563a1f0",
+    "en": "Returns a new array with all sub-array elements concatenated into it recursively up to the\nspecified depth.",
+    "ja": ""
+  },
+  "MixedSimulations.flatMap#@param callback": {
+    "hash": "5e4a6a4cedbb",
+    "en": "A function that accepts up to three arguments. The flatMap method calls the\ncallback function one time for each element in the array.",
+    "ja": ""
+  },
+  "MixedSimulations.flatMap#@param thisArg": {
+    "hash": "f521863f44bb",
+    "en": "An object to which the this keyword can refer in the callback function. If\nthisArg is omitted, undefined is used as the this value.",
+    "ja": ""
+  },
+  "MixedSimulations.flatMap#summary": {
+    "hash": "db2c2d0f28e7",
+    "en": "Calls a defined callback function on each element of an array. Then, flattens the result into\na new array.\nThis is identical to a map followed by flat with depth 1.",
+    "ja": ""
+  },
+  "MixedSimulations.forEach#@param callbackfn": {
+    "hash": "ed8ae879c4f4",
+    "en": "A function that accepts up to three arguments. forEach calls the callbackfn function one time for each element in the array.",
+    "ja": ""
+  },
+  "MixedSimulations.forEach#@param thisArg": {
+    "hash": "61a8a0e0e02d",
+    "en": "An object to which the this keyword can refer in the callbackfn function. If thisArg is omitted, undefined is used as the this value.",
+    "ja": ""
+  },
+  "MixedSimulations.forEach#summary": {
+    "hash": "314e15a521a1",
+    "en": "Performs the specified action for each element in an array.",
+    "ja": ""
+  },
+  "MixedSimulations.includes#@param fromIndex": {
+    "hash": "06595a77e500",
+    "en": "The position in this array at which to begin searching for searchElement.",
+    "ja": ""
+  },
+  "MixedSimulations.includes#@param searchElement": {
+    "hash": "e416b838992d",
+    "en": "The element to search for.",
+    "ja": ""
+  },
+  "MixedSimulations.includes#summary": {
+    "hash": "309bf37f81a9",
+    "en": "Determines whether an array includes a certain element, returning true or false as appropriate.",
+    "ja": ""
+  },
+  "MixedSimulations.indexOf#@param fromIndex": {
+    "hash": "fe89decbadf3",
+    "en": "The array index at which to begin the search. If fromIndex is omitted, the search starts at index 0.",
+    "ja": ""
+  },
+  "MixedSimulations.indexOf#@param searchElement": {
+    "hash": "64a5c290152f",
+    "en": "The value to locate in the array.",
+    "ja": ""
+  },
+  "MixedSimulations.indexOf#summary": {
+    "hash": "3ea9734b692d",
+    "en": "Returns the index of the first occurrence of a value in an array, or -1 if it is not present.",
+    "ja": ""
+  },
+  "MixedSimulations.join#@param separator": {
+    "hash": "e32895fe62e8",
+    "en": "A string used to separate one element of the array from the next in the resulting string. If omitted, the array elements are separated with a comma.",
+    "ja": ""
+  },
+  "MixedSimulations.join#summary": {
+    "hash": "6563d07d0aa6",
+    "en": "Adds all the elements of an array into a string, separated by the specified separator string.",
+    "ja": ""
+  },
+  "MixedSimulations.keys#summary": {
+    "hash": "97a1c2b29dbe",
+    "en": "Returns an iterable of keys in the array",
+    "ja": ""
+  },
+  "MixedSimulations.lastIndexOf#@param fromIndex": {
+    "hash": "54e48c63b47f",
+    "en": "The array index at which to begin searching backward. If fromIndex is omitted, the search starts at the last index in the array.",
+    "ja": ""
+  },
+  "MixedSimulations.lastIndexOf#@param searchElement": {
+    "hash": "64a5c290152f",
+    "en": "The value to locate in the array.",
+    "ja": ""
+  },
+  "MixedSimulations.lastIndexOf#summary": {
+    "hash": "8564b0e4eb25",
+    "en": "Returns the index of the last occurrence of a specified value in an array, or -1 if it is not present.",
+    "ja": ""
+  },
+  "MixedSimulations.length#summary": {
+    "hash": "397a7759e005",
+    "en": "Gets or sets the length of the array. This is a number one higher than the highest index in the array.",
+    "ja": ""
+  },
+  "MixedSimulations.map#@param callbackfn": {
+    "hash": "6ce7b5004a59",
+    "en": "A function that accepts up to three arguments. The map method calls the callbackfn function one time for each element in the array.",
+    "ja": ""
+  },
+  "MixedSimulations.map#@param thisArg": {
+    "hash": "61a8a0e0e02d",
+    "en": "An object to which the this keyword can refer in the callbackfn function. If thisArg is omitted, undefined is used as the this value.",
+    "ja": ""
+  },
+  "MixedSimulations.map#summary": {
+    "hash": "eec83d659933",
+    "en": "Calls a defined callback function on each element of an array, and returns an array that contains the results.",
+    "ja": ""
+  },
+  "MixedSimulations.names#summary": {
+    "hash": "7e6fa763efc0",
+    "en": "Names of the simulation columns, \"sim_1\", ...",
+    "ja": ""
+  },
+  "MixedSimulations.pop#summary": {
+    "hash": "74d121ecab8f",
+    "en": "Removes the last element from an array and returns it.\nIf the array is empty, undefined is returned and the array is not modified.",
+    "ja": ""
+  },
+  "MixedSimulations.push#@param items": {
+    "hash": "b1b93aee658c",
+    "en": "New elements to add to the array.",
+    "ja": ""
+  },
+  "MixedSimulations.push#summary": {
+    "hash": "f9601a5c8b94",
+    "en": "Appends new elements to the end of an array, and returns the new length of the array.",
+    "ja": ""
+  },
+  "MixedSimulations.reduce(0)#@param callbackfn": {
+    "hash": "5d0773de4877",
+    "en": "A function that accepts up to four arguments. The reduce method calls the callbackfn function one time for each element in the array.",
+    "ja": ""
+  },
+  "MixedSimulations.reduce(0)#summary": {
+    "hash": "c108d9603ca0",
+    "en": "Calls the specified callback function for all the elements in an array. The return value of the callback function is the accumulated result, and is provided as an argument in the next call to the callback function.",
+    "ja": ""
+  },
+  "MixedSimulations.reduce(2)#@param callbackfn": {
+    "hash": "5d0773de4877",
+    "en": "A function that accepts up to four arguments. The reduce method calls the callbackfn function one time for each element in the array.",
+    "ja": ""
+  },
+  "MixedSimulations.reduce(2)#@param initialValue": {
+    "hash": "6b457ed6c49c",
+    "en": "If initialValue is specified, it is used as the initial value to start the accumulation. The first call to the callbackfn function provides this value as an argument instead of an array value.",
+    "ja": ""
+  },
+  "MixedSimulations.reduce(2)#summary": {
+    "hash": "c108d9603ca0",
+    "en": "Calls the specified callback function for all the elements in an array. The return value of the callback function is the accumulated result, and is provided as an argument in the next call to the callback function.",
+    "ja": ""
+  },
+  "MixedSimulations.reduceRight(0)#@param callbackfn": {
+    "hash": "81b46f03d199",
+    "en": "A function that accepts up to four arguments. The reduceRight method calls the callbackfn function one time for each element in the array.",
+    "ja": ""
+  },
+  "MixedSimulations.reduceRight(0)#summary": {
+    "hash": "b439fb304610",
+    "en": "Calls the specified callback function for all the elements in an array, in descending order. The return value of the callback function is the accumulated result, and is provided as an argument in the next call to the callback function.",
+    "ja": ""
+  },
+  "MixedSimulations.reduceRight(2)#@param callbackfn": {
+    "hash": "81b46f03d199",
+    "en": "A function that accepts up to four arguments. The reduceRight method calls the callbackfn function one time for each element in the array.",
+    "ja": ""
+  },
+  "MixedSimulations.reduceRight(2)#@param initialValue": {
+    "hash": "6b457ed6c49c",
+    "en": "If initialValue is specified, it is used as the initial value to start the accumulation. The first call to the callbackfn function provides this value as an argument instead of an array value.",
+    "ja": ""
+  },
+  "MixedSimulations.reduceRight(2)#summary": {
+    "hash": "b439fb304610",
+    "en": "Calls the specified callback function for all the elements in an array, in descending order. The return value of the callback function is the accumulated result, and is provided as an argument in the next call to the callback function.",
+    "ja": ""
+  },
+  "MixedSimulations.reverse#summary": {
+    "hash": "20de61f19234",
+    "en": "Reverses the elements in an array in place.\nThis method mutates the array and returns a reference to the same array.",
+    "ja": ""
+  },
+  "MixedSimulations.shift#summary": {
+    "hash": "1cf27e8dfba7",
+    "en": "Removes the first element from an array and returns it.\nIf the array is empty, undefined is returned and the array is not modified.",
+    "ja": ""
+  },
+  "MixedSimulations.slice#@param end": {
+    "hash": "0d1a22e98b60",
+    "en": "The end index of the specified portion of the array. This is exclusive of the element at the index 'end'.\nIf end is undefined, then the slice extends to the end of the array.",
+    "ja": ""
+  },
+  "MixedSimulations.slice#@param start": {
+    "hash": "87a4b661763b",
+    "en": "The beginning index of the specified portion of the array.\nIf start is undefined, then the slice begins at index 0.",
+    "ja": ""
+  },
+  "MixedSimulations.slice#summary": {
+    "hash": "3b2846088fbc",
+    "en": "Returns a copy of a section of an array.\nFor both start and end, a negative index can be used to indicate an offset from the end of the array.\nFor example, -2 refers to the second to last element of the array.",
+    "ja": ""
+  },
+  "MixedSimulations.some#@param predicate": {
+    "hash": "1004dfdc81cf",
+    "en": "A function that accepts up to three arguments. The some method calls\nthe predicate function for each element in the array until the predicate returns a value\nwhich is coercible to the Boolean value true, or until the end of the array.",
+    "ja": ""
+  },
+  "MixedSimulations.some#@param thisArg": {
+    "hash": "9750730db71d",
+    "en": "An object to which the this keyword can refer in the predicate function.\nIf thisArg is omitted, undefined is used as the this value.",
+    "ja": ""
+  },
+  "MixedSimulations.some#summary": {
+    "hash": "2fcd1e0c6288",
+    "en": "Determines whether the specified callback function returns true for any element of an array.",
+    "ja": ""
+  },
+  "MixedSimulations.sort#@param compareFn": {
+    "hash": "f71965092376",
+    "en": "Function used to determine the order of the elements. It is expected to return\na negative value if the first argument is less than the second argument, zero if they're equal, and a positive\nvalue otherwise. If omitted, the elements are sorted in ascending, UTF-16 code unit order.\n⟦code1⟧",
+    "ja": ""
+  },
+  "MixedSimulations.sort#summary": {
+    "hash": "e1ddd0926b15",
+    "en": "Sorts an array in place.\nThis method mutates the array and returns a reference to the same array.",
+    "ja": ""
+  },
+  "MixedSimulations.splice(0)#@param deleteCount": {
+    "hash": "fdaffb7334eb",
+    "en": "The number of elements to remove. Omitting this argument will remove all elements from the start\nparamater location to end of the array. If value of this argument is either a negative number, zero, undefined, or a type\nthat cannot be converted to an integer, the function will evaluate the argument as zero and not remove any elements.",
+    "ja": ""
+  },
+  "MixedSimulations.splice(0)#@param start": {
+    "hash": "b3edbfa54999",
+    "en": "The zero-based location in the array from which to start removing elements.",
+    "ja": ""
+  },
+  "MixedSimulations.splice(0)#@returns": {
+    "hash": "da987e29e9ae",
+    "en": "An array containing the elements that were deleted.",
+    "ja": ""
+  },
+  "MixedSimulations.splice(0)#summary": {
+    "hash": "6efa63abc421",
+    "en": "Removes elements from an array and, if necessary, inserts new elements in their place, returning the deleted elements.",
+    "ja": ""
+  },
+  "MixedSimulations.splice(1)#@param deleteCount": {
+    "hash": "ea49a2009222",
+    "en": "The number of elements to remove. If value of this argument is either a negative number, zero,\nundefined, or a type that cannot be converted to an integer, the function will evaluate the argument as zero and\nnot remove any elements.",
+    "ja": ""
+  },
+  "MixedSimulations.splice(1)#@param items": {
+    "hash": "0d09981c9240",
+    "en": "Elements to insert into the array in place of the deleted elements.",
+    "ja": ""
+  },
+  "MixedSimulations.splice(1)#@param start": {
+    "hash": "b3edbfa54999",
+    "en": "The zero-based location in the array from which to start removing elements.",
+    "ja": ""
+  },
+  "MixedSimulations.splice(1)#@returns": {
+    "hash": "da987e29e9ae",
+    "en": "An array containing the elements that were deleted.",
+    "ja": ""
+  },
+  "MixedSimulations.splice(1)#summary": {
+    "hash": "6efa63abc421",
+    "en": "Removes elements from an array and, if necessary, inserts new elements in their place, returning the deleted elements.",
+    "ja": ""
+  },
+  "MixedSimulations.toLocaleString(0)#summary": {
+    "hash": "a2ef2091c85c",
+    "en": "Returns a string representation of an array. The elements are converted to string using their toLocaleString methods.",
+    "ja": ""
+  },
+  "MixedSimulations.toString#summary": {
+    "hash": "8e07e38a8cba",
+    "en": "Returns a string representation of an array.",
+    "ja": ""
+  },
+  "MixedSimulations.unshift#@param items": {
+    "hash": "6edaf9137be8",
+    "en": "Elements to insert at the start of the array.",
+    "ja": ""
+  },
+  "MixedSimulations.unshift#summary": {
+    "hash": "814806cdd5bb",
+    "en": "Inserts new elements at the start of an array, and returns the new length of the array.",
+    "ja": ""
+  },
+  "MixedSimulations.values#summary": {
+    "hash": "3475cd7cb1bc",
+    "en": "Returns an iterable of values in the array",
+    "ja": ""
+  },
+  "confintGlmer#summary": {
+    "hash": "3a77fd4a162c",
+    "en": "Confidence intervals for a generalized linear mixed-model fit. Equivalent to R's `lme4::confint.merMod()`.",
+    "ja": ""
+  },
+  "confintLmer#summary": {
+    "hash": "6bc90975c5fb",
+    "en": "Confidence intervals for a linear mixed-model fit. Equivalent to `lme4::confint.merMod()` in R.",
+    "ja": ""
   },
   "glmer#@example": {
     "hash": "f2167be5edf2",
@@ -1278,5 +1863,15 @@
     "hash": "673ae9f45af9",
     "en": "The coefficient table of a linear mixed model fitted by {@link lmer}, with Satterthwaite's degrees of freedom and\nthe p-values of the t-tests: the `summary()` of a fit by lmerTest. Equivalent to `lmerTest::summary()` in R.\n\nThe degrees of freedom of each coefficient are Satterthwaite's: 2 var² / (g'Ag), with var its variance, g its\nderivative in the variance parameters (θ, σ) and A their asymptotic covariance (twice the inverse Hessian of the\ndeviance). The derivatives are computed analytically at the exact optimum (lmerTest differentiates numerically at\nlme4's optimum, so its degrees of freedom typically differ in the 5th to 8th significant digit). With\n`ddf: \"lme4\"` the table is lme4's (as `coefTable` of the fit), without degrees of freedom and p-values.",
     "ja": "{@link lmer} で当てはめた線形混合モデルの係数表です。Satterthwaite の自由度と、t 検定の p 値を含みます。\nlmerTest による当てはめの `summary()` です。R の `lmerTest::summary()` と同等です。\n\n各係数の自由度は Satterthwaite のもので、2 var² / (g'Ag) です。var はその分散、\ng は分散パラメータ (θ、σ) についての導関数、A はそれらの漸近共分散です (逸脱度の逆ヘッセ行列の 2 倍です)。\n導関数は、厳密な最適点で解析的に計算されます (lmerTest は lme4 の最適点で数値的に微分するため、\nその自由度は通常、\n5 から 8 桁目の有効数字が異なります)。`ddf: \"lme4\"` の場合の表は lme4 のもの (当てはめの `coefTable`) で、自由度と p 値はありません。"
+  },
+  "simulateGlmer#summary": {
+    "hash": "86ea524757a0",
+    "en": "Simulations from a generalized linear mixed-model fit. Equivalent to R's `lme4::simulate.merMod()`.",
+    "ja": ""
+  },
+  "simulateLmer#summary": {
+    "hash": "f04e17330bf6",
+    "en": "Simulations from a linear mixed-model fit. Equivalent to R's `lme4::simulate.merMod()`.",
+    "ja": ""
   }
 }
