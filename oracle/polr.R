@@ -253,7 +253,9 @@ rows <- lapply(cases, function(case) {
     }
     result <- capture_raw(function() do.call(MASS::polr, args))
     if (is.null(result$error)) fits[[id]] <<- result$value
-    record <- list(id = id, fit = fit_record(args),\n                   fitResult = list(warnings = result$warnings, messages = result$messages))\n    if (!is.null(result$error)) record$fitResult$error <- result$error
+    record <- list(id = id, fit = fit_record(args),
+                   fitResult = list(warnings = result$warnings, messages = result$messages))
+    if (!is.null(result$error)) record$fitResult$error <- result$error
     if (is.null(result$error)) {
       record$fitPublic <- fit_public_record(result$value)
     } else {
