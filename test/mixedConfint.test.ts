@@ -373,4 +373,21 @@ describe("confintGlmer Gamma dispersion and inverse-link profile", () => {
     expect(Math.abs(result.lower[0]! / 0.015833330943392218 - 1)).toBeLessThanOrEqual(1e-8);
     expect(Math.abs(result.upper[0]! / 0.017637424443160726 - 1)).toBeLessThanOrEqual(1e-8);
   }, 120_000);
+
+  it("keeps R's .sigma row in profile intervals, NaN with a warning, and R's numbering for parm", () => {
+    // The dispersion's own profile interval is not computed (user's decision, 2026-11-18); the other rows are
+    // profiled with the dispersion as a nuisance parameter. R refuses to profile this fit.
+    const result = confintGlmer(fit, { method: "profile" });
+    expect(result.names).toEqual(confintGlmer(fit, { method: "Wald" }).names);
+    const at = result.names.indexOf(".sigma");
+    expect(at).toBeGreaterThanOrEqual(0);
+    expect(result.lower[at]).toBeNaN();
+    expect(result.upper[at]).toBeNaN();
+    expect(result.warnings).toContain("the profile interval of the dispersion (.sigma) is not computed");
+    const i = result.names.indexOf("(Intercept)");
+    expect(Math.abs(result.lower[i]! / 0.015833330943392218 - 1)).toBeLessThanOrEqual(1e-8);
+    const byNumber = confintGlmer(fit, { method: "profile", parm: [at + 1, i + 1] });
+    expect(byNumber.names).toEqual([".sigma", "(Intercept)"]);
+    expect(byNumber.upper[1]).toBe(result.upper[i]);
+  }, 120_000);
 });

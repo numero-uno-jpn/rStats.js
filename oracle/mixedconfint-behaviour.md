@@ -152,3 +152,11 @@ Decided by the user on 2026-11-17.
 4. **REML fits.** Follow lme4's public result for the fixed effects and the variance parameters of a REML fit.
 5. **Invalid input.** Follow R where R gives a result (a `level` outside (0, 1) gives `NaN` and R's warning; an
    unknown `parm` gives an empty result and R's warning).
+
+6. **Families with a dispersion (Gamma, inverse.gaussian, gaussian with a link other than identity; decided by the
+   user on 2026-11-18).** R refuses to profile these fits ("can't (yet) profile GLMMs with non-fixed scale
+   parameters"); rStats.js returns the statistically right profile intervals of the other rows, with the
+   dispersion re-estimated as a nuisance parameter (checked independently: offset refits in R give
+   ζ = ±1.95996 at the Pastes Gamma intercept's endpoints). The rows and the numbering for `parm` are R's
+   (Wald and profile both have `.sigma`); the `.sigma` interval itself is NaN in both, with a warning for the
+   profile (R's Wald gives NA; a profile of the dispersion is left for later).

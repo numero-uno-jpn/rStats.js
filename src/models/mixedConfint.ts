@@ -578,9 +578,22 @@ export function confintGlmer(fit: GlmerResult, options: MixedConfintOptions = {}
     s.terms, s.groups, fit.varCorr, fit.fixef, fit.fixefNames,
     method === "Wald" && hasDispersion ? fit.sigma : undefined,
   );
-  const names = parameterNames(set.parameters, logicalOption(options.signames, true));
+  const signames = logicalOption(options.signames, true);
+  const names = parameterNames(set.parameters, signames);
   const warnings: string[] = [];
-  const selected = selectParameters(set.parameters, names, options.parm, warnings);
+  // Profile intervals of a family with a dispersion keep R's row of .sigma (and R's numbering for parm), but
+  // its interval is not computed: the dispersion stays a nuisance parameter of the profiles of the other rows
+  // (user's decision, 2026-11-18; R refuses to profile these fits at all). The row is NaN, with a warning.
+  const withSigma = method === "profile" && hasDispersion
+    ? parameterSet(s.terms, s.groups, fit.varCorr, fit.fixef, fit.fixefNames, fit.sigma).parameters
+    : undefined;
+  const sigmaAt = withSigma?.findIndex((p) => p.kind === "sigma") ?? -1;
+  const selectedFull = withSigma === undefined
+    ? selectParameters(set.parameters, names, options.parm, warnings)
+    : selectParameters(withSigma, parameterNames(withSigma, signames), options.parm, warnings);
+  const selected = withSigma === undefined
+    ? selectedFull
+    : selectedFull.filter((i) => i !== sigmaAt).map((i) => (i > sigmaAt ? i - 1 : i));
   const evaluate = (values: readonly number[], target: number, targetValue: number): number => {
     const theta = thetaOf(s.terms, set.parameters, values, 1, false);
     if (theta === undefined) return Infinity;
@@ -598,6 +611,13 @@ export function confintGlmer(fit: GlmerResult, options: MixedConfintOptions = {}
     profileIntervals("glmer", set.parameters, evaluate, selected, level, parameterScales, new Map(), warnings);
   const standardErrors = set.parameters.map((p) => (p.kind === "beta" ? fit.coefTable.stdError[p.beta!]! : NaN));
   const result = finish(set.parameters, names, selected, level, method, profile, standardErrors, warnings);
+  if (withSigma !== undefined && selectedFull.includes(sigmaAt)) {
+    const at = selectedFull.indexOf(sigmaAt);
+    result.names.splice(at, 0, parameterNames(withSigma, signames)[sigmaAt]!);
+    result.lower.splice(at, 0, NaN);
+    result.upper.splice(at, 0, NaN);
+    result.warnings.push("the profile interval of the dispersion (.sigma) is not computed");
+  }
   reportWarnings("confintGlmer", result.warnings);
   return result;
 }
