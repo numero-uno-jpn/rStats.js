@@ -84,3 +84,5 @@
 - 原因をさらに絞り込んだ。R の直接差分 `partial - none = fitted intercept` は、部分指定時に選択成分を新規効果で**置換**するのではなく、新規ランダム効果の全ブロックを保持したまま fitted 成分を**加算**することを意味する。したがって `simulateLmer` の基準 predictor は `fixed + Z b_{new} + Z_{selected} b_{fit}`。現行 `newEffects()` は選択成分を fitted 値で置換しているため誤り。条件付き正規分布でもない。
 - 同じ原理から、複数項のうち一部の項だけを選択した場合、選択済み項も新規効果ブロックを消費してから fitted 効果を加算する必要がある。現行の `if (conditioned.size === nc) continue` はその乱数消費を飛ばすため、GLMM の RNG state 不一致も説明できる。全項が選択された `re.form=NULL` / `use.u=TRUE` の場合だけ全新規効果生成を省略する。
 - 次の独立 R 再構成では、full-block の新規効果に selected fitted component を置換ではなく加算し、切片・傾きの両方を照合する。その後 `newEffects()` を最小変更で修正する。
+
+- 最終確認 `00acd679` (R 4.6.2): full-block の新規効果を生成した後、選択成分の fitted ranef を**加算**する再構成は none / intercept / slope の全条件で 0/360 mismatch。RNG state index は全条件で 240。ranef と VarCorr の列順も `(Intercept), Days` と確認。これで sleepstudy の部分 `re.form` に対する生成式と乱数配置が確定した。
