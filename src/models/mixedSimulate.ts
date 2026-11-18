@@ -45,17 +45,31 @@ function simulationCount(value: number | undefined): number {
   return k;
 }
 
+interface RandomEffectSelection {
+  columns: Map<number, Set<number>>;
+  /** Terms matched by one complete term in reForm; these are not regenerated. */
+  completeTerms: Set<number>;
+}
+
 function selectedTerms(
   terms: readonly RandomEffectsTerm[],
   groups: readonly { name: string }[],
   reForm: string | null | undefined,
-): Map<number, Set<number>> {
-  if (reForm === undefined || reForm === "NA" || reForm === "~0" || reForm === "~0+0") return new Map();
-  if (reForm === null) return new Map(terms.map((term, i) => [i, new Set(term.columns.map((_, j) => j))]));
+): RandomEffectSelection {
+  if (reForm === undefined || reForm === "NA" || reForm === "~0" || reForm === "~0+0") {
+    return { columns: new Map(), completeTerms: new Set() };
+  }
+  if (reForm === null) {
+    return {
+      columns: new Map(terms.map((term, i) => [i, new Set(term.columns.map((_, j) => j))])),
+      completeTerms: new Set(terms.map((_, i) => i)),
+    };
+  }
   if (typeof reForm !== "string") throw new TypeError("reForm must be a formula, null, or \"NA\"");
   const compact = reForm.replace(/\s+/g, "");
   if (!compact.startsWith("~")) throw new SyntaxError("reForm must be a one-sided formula");
   const selected = new Map<number, Set<number>>();
+  const completeTerms = new Set<number>();
   const pattern = /\(([^|]+)\|([^()]+)\)/g;
   for (const match of compact.matchAll(pattern)) {
     const lhs = match[1]!;
@@ -64,15 +78,21 @@ function selectedTerms(
     for (let i = 0; i < terms.length; i++) {
       const term = terms[i]!;
       if (groups[term.group]!.name.replace(/\s+/g, "") !== group) continue;
-      const cols = selected.get(i) ?? new Set<number>();
+      const matchedColumns = new Set<number>();
       term.columns.forEach((name, j) => {
-        if ((name === "(Intercept)" && intercept) || (name !== "(Intercept)" && lhs.includes(name))) cols.add(j);
+        if ((name === "(Intercept)" && intercept) || (name !== "(Intercept)" && lhs.includes(name))) matchedColumns.add(j);
       });
-      if (cols.size > 0) selected.set(i, cols);
+      if (matchedColumns.size > 0) {
+        const cols = selected.get(i) ?? new Set<number>();
+        for (const column of matchedColumns) cols.add(column);
+        selected.set(i, cols);
+        // A union of several partial terms is not a whole-term match.
+        if (matchedColumns.size === term.columns.length) completeTerms.add(i);
+      }
     }
   }
   if (selected.size === 0) throw new RangeError("reForm does not select a random-effects term in this fit");
-  return selected;
+  return { columns: selected, completeTerms };
 }
 
 /** Fill new random effects in Z-column order; terms and levels follow the fitted model structure. */
@@ -81,6 +101,7 @@ function newEffects(
   theta: readonly number[],
   groups: readonly { levels: readonly unknown[] }[],
   selected: ReadonlyMap<number, ReadonlySet<number>>,
+  completeTerms: ReadonlySet<number>,
   conditional: readonly number[],
   scale: number,
 ): number[] {
@@ -91,7 +112,7 @@ function newEffects(
     const conditioned = selected.get(ti) ?? new Set<number>();
     const levels = groups[term.group]!.levels.length;
     // A complete term selected by re.form is fitted, not regenerated.
-    if (conditioned.size === nc) {
+    if (completeTerms.has(ti)) {
       for (let level = 0; level < levels; level++) {
         for (let i = 0; i < nc; i++) b[term.zOffset + level * nc + i] = conditional[term.zOffset + level * nc + i]!;
       }
@@ -116,8 +137,8 @@ function newEffects(
   return b;
 }
 
-function allTermsSelected(terms: readonly RandomEffectsTerm[], selected: ReadonlyMap<number, ReadonlySet<number>>): boolean {
-  return terms.every((term, i) => (selected.get(i)?.size ?? 0) === term.columns.length);
+function allTermsSelected(terms: readonly RandomEffectsTerm[], completeTerms: ReadonlySet<number>): boolean {
+  return terms.every((_, i) => completeTerms.has(i));
 }
 
 /** Add the random-effects contribution Zb to a vector of fixed-effect predictors. */
@@ -148,16 +169,21 @@ export function simulateLmer(fit: LmerResult, options: MixedSimulateOptions = {}
   const useU = options.useU === undefined ? undefined : logicalOption(options.useU, false);
   const internals = lmerInternals(fit);
   const s = internals.structure;
-  const selected = useU === true ? new Map(s.terms.map((term, i) => [i, new Set(term.columns.map((_, j) => j))])) : useU === false ? new Map<number, Set<number>>() : selectedTerms(s.terms, s.groups, options.reForm);
+  const selection: RandomEffectSelection = useU === true
+    ? { columns: new Map(s.terms.map((term, i) => [i, new Set(term.columns.map((_, j) => j))])), completeTerms: new Set(s.terms.map((_, i) => i)) }
+    : useU === false
+      ? { columns: new Map(), completeTerms: new Set() }
+      : selectedTerms(s.terms, s.groups, options.reForm);
+  const selected = selection.columns;
   if (options.seed !== undefined && options.seed !== null) setSeed(options.seed);
-  const conditionedAll = allTermsSelected(s.terms, selected);
+  const conditionedAll = allTermsSelected(s.terms, selection.completeTerms);
   const fittedRandom = conditionedAll ? [] : addRandomEffects(new Array<number>(fit.nObs).fill(0), s.z, internals.b);
   const fixed = conditionedAll ? fit.fitted : fit.fitted.map((v, i) => v - fittedRandom[i]!);
   const sims = [] as unknown as MixedSimulations;
   sims.names = [];
   // lme4 draws all new random effects for all replicates before drawing any response vectors.
   const effects: number[][] = [];
-  for (let j = 0; j < n; j++) effects.push(conditionedAll ? [] : newEffects(s.terms, internals.theta, s.groups, selected, internals.b, fit.sigma));
+  for (let j = 0; j < n; j++) effects.push(conditionedAll ? [] : newEffects(s.terms, internals.theta, s.groups, selected, selection.completeTerms, internals.b, fit.sigma));
   for (let j = 0; j < n; j++) {
     const eta = conditionedAll ? fixed : addRandomEffects(fixed, s.z, effects[j]!);
     sims.push(eta.map((m) => rnorm1(m, fit.sigma)));
@@ -183,13 +209,18 @@ export function simulateGlmer(fit: GlmerResult, options: MixedSimulateOptions = 
   const useU = options.useU === undefined ? undefined : logicalOption(options.useU, false);
   const internals = glmerInternals(fit);
   const s = internals.structure;
-  const selected = useU === true ? new Map(s.terms.map((term, i) => [i, new Set(term.columns.map((_, j) => j))])) : useU === false ? new Map<number, Set<number>>() : selectedTerms(s.terms, s.groups, options.reForm);
+  const selection: RandomEffectSelection = useU === true
+    ? { columns: new Map(s.terms.map((term, i) => [i, new Set(term.columns.map((_, j) => j))])), completeTerms: new Set(s.terms.map((_, i) => i)) }
+    : useU === false
+      ? { columns: new Map(), completeTerms: new Set() }
+      : selectedTerms(s.terms, s.groups, options.reForm);
+  const selected = selection.columns;
   if (options.seed !== undefined && options.seed !== null) setSeed(options.seed);
-  const conditionedAll = allTermsSelected(s.terms, selected);
+  const conditionedAll = allTermsSelected(s.terms, selection.completeTerms);
   const fittedRandom = conditionedAll ? [] : addRandomEffects(new Array<number>(fit.nObs).fill(0), s.z, internals.b);
   const fixedEta = conditionedAll ? internals.eta : internals.eta.map((v, i) => v - fittedRandom[i]!);
   const effects: number[][] = [];
-  for (let j = 0; j < n; j++) effects.push(conditionedAll ? [] : newEffects(s.terms, internals.theta, s.groups, selected, internals.b, 1));
+  for (let j = 0; j < n; j++) effects.push(conditionedAll ? [] : newEffects(s.terms, internals.theta, s.groups, selected, selection.completeTerms, internals.b, 1));
   // R draws all random effects before discovering that inverse-Gaussian response simulation needs statmod.
   if (s.family.family === "inverse.gaussian") throw new Error("simulateGlmer: inverse.gaussian is not supported (R requires statmod)");
   const sims = [] as unknown as MixedSimulations;
