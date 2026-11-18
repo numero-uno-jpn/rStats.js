@@ -103,3 +103,5 @@
 
 - GLMM fixture で追加診断。R の公開 `fitPublic.eta` は `X beta + Z b` と最大誤差 (1.0e-15) 未満で一致し、fitPublic の ranef / Z 対応と固定線形予測子の分解は正しい。残る binomial / Poisson / Gamma の不一致は、選択項以外の新規項に割り当てる乱数の位置が違う可能性を示す。
 - 重要な RNG 仮説: 全項が完全選択なら新規乱数を使わない。一方、完全選択項と未選択項が混在する場合、完全選択項の新規乱数は出力には使わないが、`re.form=NA` と同じ項順・位置を保つために消費だけ行う。その後の未選択項に NA と同じストリーム位置の乱数を割り当てる。これを `cb6bed65` で実装し、Actions fixture で検証中。
+
+- R 公開 API 実験 `experiments/mixed-partial-glmer-eta-rng.R` (`699e7d79`) の結果: binomial と Gamma では「完全一致項をスキップして、未選択項だけを seed 123 から生成し、その後 family response を生成」の候補が R の post-call RNG state と完全一致。完全一致項のダミー乱数を消費する候補は一致しない。したがって `cb6bed65` のダミー消費仮説は誤りであり、`f49f84fe` で撤回した。Poisson だけ候補 state が不一致で、eta / term draw layout を追加調査する。
