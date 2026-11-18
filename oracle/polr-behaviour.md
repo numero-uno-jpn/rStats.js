@@ -56,7 +56,7 @@ $$
 
 $$
 p_{ij}=F(\zeta_j-\eta_i)-F(\zeta_{j-1}-\eta_i),
-quad j=2,\ldots,K-1,
+\quad j=2,\ldots,K-1,
 $$
 
 $$
