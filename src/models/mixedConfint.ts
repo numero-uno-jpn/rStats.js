@@ -291,7 +291,8 @@ function profileLimit(
   // the profile is finite; only finite values below the cutoff justify expanding the bracket.
   for (let i = 0; i < 36 && !(Number.isFinite(fOutside) && fOutside >= 0); i++) {
     if (boundary !== undefined && outside === boundary) {
-      return (parameter.kind === "sd" || parameter.kind === "sigma") && direction < 0 ? boundary : NaN;
+      // If the profile reaches a parameter boundary before its likelihood cutoff, report that boundary.
+      return boundary;
     }
     const previous = outside;
     step = Number.isFinite(fOutside) ? step * 1.8 : step * 0.5;
@@ -301,7 +302,7 @@ function profileLimit(
     fOutside = at(outside);
   }
   if (!Number.isFinite(fOutside) || !(fOutside >= 0)) {
-    return (parameter.kind === "sd" || parameter.kind === "sigma") && direction < 0 ? 0 : NaN;
+    return boundary !== undefined && outside === boundary ? boundary : NaN;
   }
   // Illinois' safeguarded secant method usually needs far fewer profile minimisations than bisection.
   // The bracket is retained; a bisection fallback guarantees the requested endpoint precision.
@@ -384,7 +385,10 @@ function profileIntervals(
     }
     const parameter = parameters[index]!;
     const estimate = parameter.value;
-    const pointCache = new Map<number, number>();
+    // At the fitted estimate, ζ is exactly zero by definition. Do not re-minimise nuisance
+    // parameters here: numerical noise in that redundant refit can exceed a very small cutoff.
+    const dHat = evaluate(parameters.map((p) => p.value), index, estimate);
+    const pointCache = new Map<number, number>([[estimate, dHat]]);
     const profile = (value: number): number => {
       const cached = pointCache.get(value);
       if (cached !== undefined) return cached;
@@ -392,7 +396,6 @@ function profileIntervals(
       pointCache.set(value, result);
       return result;
     };
-    const dHat = profile(estimate);
     if (!Number.isFinite(dHat)) {
       if (!warnings.includes("NAs detected in profiling")) warnings.push("NAs detected in profiling");
       cache.set(index, [NaN, NaN]);
