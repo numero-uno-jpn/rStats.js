@@ -1,4 +1,5 @@
 // Mixed-model confidence intervals against every supported call in mixedConfint.json.
+import { readFileSync } from "node:fs";
 import { beforeAll, describe, expect, it } from "vitest";
 import { confintGlmer, confintLmer, type MixedConfintOptions } from "../src/models/mixedConfint.js";
 import { glmer, glmerInternals, type GlmerOptions } from "../src/models/glmer.js";
@@ -27,7 +28,7 @@ interface ConfCase {
   calls: ConfCall[];
 }
 const fixture = JSON.parse(
-  (await import("node:fs")).readFileSync(new URL("./fixtures/mixedConfint.json", import.meta.url), "utf8"),
+  readFileSync(new URL("./fixtures/mixedConfint.json", import.meta.url), "utf8"),
 ) as { r_version: string; cases: ConfCase[] };
 
 function mixedData(raw: unknown, formula: string): DataFrame {
@@ -314,13 +315,17 @@ describe("confintLmer profile endpoints at extreme confidence levels", () => {
 
   it("keeps every endpoint at the estimate for a very small level", () => {
     const result = confintLmer(fit, { method: "profile", level: 1e-10 });
+    // As level -> 0 the interval shrinks to the minimum of the profiled deviance. For this REML fit the
+    // variance parameters are profiled on the ML deviance (as R: its intervals at level 1e-10 sit at the ML
+    // estimates, e.g. .sig01 23.78, not the REML 24.74), so the centre is the ML fit.
+    const ml = lmer(c.fit.formula as string, mixedData(c.fit.data, c.fit.formula as string), { REML: false });
     const estimates = [
-      ...fit.varCorr.flatMap((vc) => [
+      ...ml.varCorr.flatMap((vc) => [
         ...vc.sd,
         ...vc.corr.slice(1).flatMap((row, i) => row.slice(0, i + 1)),
       ]),
-      fit.sigma,
-      ...fit.fixef,
+      ml.sigma,
+      ...ml.fixef,
     ];
     expect(result.lower).toHaveLength(estimates.length);
     expect(result.upper).toHaveLength(estimates.length);
@@ -344,7 +349,7 @@ describe("confintLmer profile endpoints at extreme confidence levels", () => {
 
 describe("confintGlmer Gamma dispersion and inverse-link profile", () => {
   const simulationFixture = JSON.parse(
-    (await import("node:fs")).readFileSync(new URL("./fixtures/mixedSimulate.json", import.meta.url), "utf8"),
+    readFileSync(new URL("./fixtures/mixedSimulate.json", import.meta.url), "utf8"),
   ) as { cases: Array<{ id: string; fit: { formula: string; data: unknown } }> };
   const gammaCase = simulationFixture.cases.find((item) => item.id === "glmer-gamma")!;
   const formula = "strength ~ (1 | batch) + (1 | cask)";
