@@ -129,6 +129,22 @@ housing_newdata <- expand.grid(
 
 # Each fit specification is passed unchanged to MASS::polr after resolving only a
 # declared startFrom dependency. Each call's args are both recorded and forwarded.
+housing_predict_calls <- function() {
+  list(
+    list(operation = "predict", args = list(newdata = housing_newdata, type = "class")),
+    list(operation = "predict", args = list(newdata = housing_newdata, type = "probs"))
+  )
+}
+
+all_interval_calls <- function() {
+  list(
+    list(operation = "profile-ci", args = list(level = 0.95)),
+    list(operation = "profile-ci", args = list(level = 0.90)),
+    list(operation = "wald-ci", args = list(level = 0.95)),
+    list(operation = "wald-ci", args = list(level = 0.90))
+  )
+}
+
 cases <- list(
   list(id = "housing-logistic",
        fits = list(main = list(args = list(
@@ -217,22 +233,6 @@ cases <- list(
          formula = gear ~ mpg, data = mtcars_data, Hess = TRUE))),
        calls = list())
 )
-
-housing_predict_calls <- function() {
-  list(
-    list(operation = "predict", args = list(newdata = housing_newdata, type = "class")),
-    list(operation = "predict", args = list(newdata = housing_newdata, type = "probs"))
-  )
-}
-
-all_interval_calls <- function() {
-  list(
-    list(operation = "profile-ci", args = list(level = 0.95)),
-    list(operation = "profile-ci", args = list(level = 0.90)),
-    list(operation = "wald-ci", args = list(level = 0.95)),
-    list(operation = "wald-ci", args = list(level = 0.90))
-  )
-}
 
 run_call <- function(call_spec, fit, all_fits) {
   op <- call_spec$operation
