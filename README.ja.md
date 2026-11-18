@@ -179,6 +179,10 @@ Type I・II・III の分散分析表を返します (自由度はその最適点
 一部または全部を除いた変量効果、標準誤差つきも可) を返します。`lmer` と同じく推定値は厳密な最適点です。標準誤差と
 `nAGQ > 1` については[違い](docs/ja/differences-from-r.md#混合モデル)を見てください。
 
+`confintLmer` と `confintGlmer` は、当てはめたモデルの信頼区間を返します (既定はプロファイル尤度法、
+`method: "Wald"` で Wald 法)。`simulateLmer` と `simulateGlmer` は、当てはめたモデルから応答データを生成します。
+シミュレーションの回数は `nsim`、乱数の seed は `seed` で指定します。
+
 ### 効果量と検出力
 
 ```ts
@@ -221,7 +225,8 @@ eigen([[2, 1], [1, 3]]).values;     // ≈ [3.618033989, 1.381966011]
 | 試験デザインの標本サイズと検出力 | `epiSsequb`・`epiSsequc`・`epiSsninfb`・`epiSsninfc`・`epiSssupb`・`epiSssupc` (epiR: 比率と平均の同等性・非劣性・優越性)、`powerPaired2x2` (対応のある 2 × 2 表の正確な McNemar 検定の検出力)、`ssizeCT`・`powerCT`・`ssizeEpi`・`powerEpi`・`numDEpi` (生存時間の標本サイズと検出力)、`ph2simon` (Simon の 2 段階デザイン) |
 | メタアナリシス | `escalc` (効果量と標本分散)、`rma` (等効果・ランダム効果のメタアナリシスとメタ回帰)、`confintRma`・`predictRma`・`regtest` (metafor) |
 | 線形モデル | `lm` (formula とデータフレーム、または行列で渡す。`summary` の値も返す), `modelMatrix` (`model.matrix`), `confint`, `predict`。`glm` (行列で渡す形。R の `stats` のすべての族とリンク) と `glmSummary` (`summary.glm`)、`glmResiduals` (4 種類)、`glmHatvalues`、`glmRstandard`、`glmCooksDistance`、`glmPredict` (標準誤差つき)、`glmConfint` (プロファイル尤度、厳密な限界)、`glmAnova` (`anova.glm`)。`vcovHC`、`vcovCL` (sandwich: HC0〜HC5、一元と多元のクラスター)、`coeftest`、`coefci` (lmtest) |
-| 混合モデル | `lmer` (lme4: REML と最尤法、相関のある変量効果と相関のない変量効果、交差と入れ子の群。`fixef`、`vcov`、`VarCorr`、`ranef`、`logLik`、`AIC`、`BIC`、`REMLcrit`、`isSingular`)、`lmerSummary`・`lmerContest`・`lmerAnova` (lmerTest: Satterthwaite の t 検定と F 検定、Type I/II/III の分散分析表。当てはめどうしの尤度比検定)、`glmer` (lme4: glm のすべての族、ラプラス近似と適応的 Gauss-Hermite 求積)、`glmerSummary`・`glmerAnova`・`glmerPredict`・`lmerPredict`。`@numero-uno-jpn/rstats/mixed` から import する |
+| 混合モデル | `lmer` (lme4: REML と最尤法、相関のある変量効果と相関のない変量効果、交差と入れ子の群。`fixef`、`vcov`、`VarCorr`、`ranef`、`logLik`、`AIC`、`BIC`、`REMLcrit`、`isSingular`)、`lmerSummary`・`lmerContest`・`lmerAnova` (lmerTest: Satterthwaite の t 検定と F 検定、Type I/II/III の分散分析表。当てはめどうしの尤度比検定)、`glmer` (lme4: glm のすべての族、ラプラス近似と適応的 Gauss-Hermite 求積)、`glmerSummary`・`glmerAnova`・`glmerPredict`・`lmerPredict`・`confintLmer`・`confintGlmer`・`simulateLmer`・`simulateGlmer`。
+`@numero-uno-jpn/rstats/mixed` から import する |
 | ほかの検定 | `leveneTest`、`propTrendTest` (`prop.trend.test`)、`jonckheereTest`、`cochranQTest`、`adTest`、`lillieTest`、`cvmTest`、`sfTest`、`pearsonTest` (car、DescTools、clinfun、nortest)。`tTOST`、`tsumTOST` (TOSTER: 平均の同等性検定と最小効果検定) |
 | 分割表と比率 | `binomCI`、`binomDiffCI`、`binomRatioCI` (DescTools の `BinomCI`、`BinomDiffCI`、`BinomRatioCI`)、`oddsRatio` (epitools と epiR のスコア区間)、`fisherTest(x, { midp: true })` (exact2x2)、`boschlooTest` (Exact)、`gTest`、`stuartMaxwellTest`、`goodmanKruskalGamma` (DescTools)、`lblTest` (coin)、`chisqTest(x, { nMinus1: true })` (Campbell の N − 1 検定) と Freeman-Tukey 残差、`tost` (equivalence)、`binomDiffEquivalenceTest` (2 つの比率のスコア法の TOST) |
 | 多重比較 | `dscfAllPairsTest` (Steel-Dwass)、`kwAllPairsDunnTest`、`kwManyOneDunnTest`、`manyOneUTest` (Steel の多対一の順位検定)、`dunnettTest`、`gamesHowellTest`、`tukeyTest` (PMCMRplus)、`dunnTest` (dunn.test)、`glhtDunnett` (multcomp) |
