@@ -228,7 +228,9 @@ function expectState(expected: string[] | null): void {
 }
 /**
  * Independent GLMM reconstruction for the three known partial-re.form differences.
- * It uses only fitPublic quantities and primitive RNG/family generators, not simulateGlmer().
+ * lme4 2.0-6 uses the preceding term's theta block for an unselected term; rStats.js deliberately
+ * uses that term's own VarCorr covariance. The reconstruction uses public fitPublic quantities
+ * and primitive RNG/family generators, not simulateGlmer().
  */
 function reconstructPartialGlmer(
   c: SimCase,
@@ -243,7 +245,7 @@ function reconstructPartialGlmer(
   const eta = structure.x.map((row, i) =>
     row.reduce((sum, value, j) => sum + value * beta[j]!, 0) + structure.offset[i]!,
   );
-  const selectedGroup = reForm.match(/\\|\\s*([^\\)]+)/)?.[1]?.trim();
+  const selectedGroup = reForm.match(/\|\s*([^)]+)/)?.[1]?.trim();
   if (selectedGroup === undefined) throw new Error(`Cannot parse partial re.form: ${reForm}`);
   const vc = reference.varCorr.columns;
   const groups = asArray<string>(vc.grp);
@@ -349,7 +351,8 @@ for (let ci = 0; ci < fixture.cases.length; ci++) {
 
     for (let k = 0; k < c.calls.length; k++) {
       const call = c.calls[k]!;
-      it(`call ${k + 1}`, () => {
+      const knownPartialLabel = (c.id === "glmer-binomial" && k === 7) || (c.id === "glmer-poisson" && k === 6) || (c.id === "glmer-gamma" && k === 6);
+      it("call " + (k + 1) + (knownPartialLabel ? " — known difference from lme4 2.0-6: unsere.form use the preceding term's theta inlme4" : ""), () => {
         const { fit, kind } = prepared;
         applyReferenceFit(c, fit, kind);
         const where = `case ${ci + 1} (${c.id}) call ${k + 1}`;
