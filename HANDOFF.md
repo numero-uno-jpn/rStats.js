@@ -1,6 +1,6 @@
 # 引継ぎ: rStats.js (外部レビュー対応 2026-10-30〜11-04、1.0.0 への準備 11-04〜)
 
-最終更新: 2026-11-17 (セッション 22、Mac mini: 1.5.0 を公開。次は混合モデルの続き)。以前: 2026-11-16 (セッション 21、Mac mini: 1.4.0 を公開、同時刻の Gray の検定を ChatGPT がクリーンルームで修正 (1.4.1 に入る、未公開)、外注用の R の実験の仕組みを作った。次は ROADMAP の 1 番)
+最終更新: 2026-11-18 (セッション 23、Mac mini: 混合モデルの続き (1.6.0) を ChatGPT に外注中。Issue #535、PR #537)。以前: 2026-11-17 (セッション 22、1.5.0 を公開)。その前: 2026-11-16 (セッション 21、Mac mini: 1.4.0 を公開、同時刻の Gray の検定を ChatGPT がクリーンルームで修正 (1.4.1 に入る、未公開)、外注用の R の実験の仕組みを作った。次は ROADMAP の 1 番)
 
 ## まず読むこと (セッション 16 から)
 
@@ -84,6 +84,39 @@
 - **公開:** タグ (注釈なし) の push → release.yml が npm に stage → ユーザーが SSH の対話端末で
   `npm stage approve <stage id>` (2FA はセキュリティキー。Claude の Bash からは EOTP で失敗)。デモ・Pages はタグから作る
 - **Bash の自動の許可:** ブランチの削除は、ユーザーがその場で頼んだときだけ (まとめて実行すると止められる)
+
+## セッション 23 の記録 (2026-11-17〜18、Mac mini): 混合モデルの confint と simulate (1.6.0、作業中)
+
+### 状態 (2026-11-18)
+
+- Issue #535、PR #537 (`work/mixed-pr`、実装)。R の実験は `work/mixed`。PR #536 は閉じた。現状の要約は
+  `work/mixed-pr` の `briefs/mixed-1.6-status.ja.md` (ChatGPT の新しい会話の入口)、指示書は main の
+  `briefs/mixed-1.6.ja.md`
+- 決めたこと (choices は `oracle/mixedconfint-behaviour.md`・`mixedsimulate-behaviour.md` の末尾): `confintLmer`・
+  `confintGlmer` (profile と Wald、`{ names, lower, upper }`、`level`・`parm`・`signames`、glmer の profile は
+  `nAGQ = 1` だけ)、`simulateLmer`・`simulateGlmer` (`nsim`・`seed`・`useU`・`reForm`、R と同じ乱数の流れ、配列の
+  配列、inverse Gaussian は未対応のエラー)
+- 2026-11-18 時点: 型チェック通過、confint のテストは全部通過、simulate は glmer の部分的な `re.form` の 3 件だけ失敗。
+  ChatGPT の実験で、**lme4 2.0-6 の `simulate` は部分的な `re.form` で選ばれなかった項に 1 つ前の項の θ を使う**
+  (`work/mixed` の `experiments/mixed-partial-glmer-report.md`)。ユーザーの決定: rStats.js は各項自身の θ で正しい
+  値にし (乱数の個数と順は R と同じ)、R との既知の違いとして記録する。lme4 へのバグ報告は今は出さない。この方針の
+  依頼を ChatGPT の新しい会話に渡したところ (テストで「θ を 1 つずらすと R の値になる」ことも確かめさせる)
+- 残り: 段階 2 の完了 → 私が全テスト → 段階 3 (数値の点検) → 私が `docs/differences-from-r.md`・CHANGELOG・
+  ROADMAP・デモ・日本語の API → 1.6.0 の公開
+- 手元で `test/issue179.test.ts`・`test/issue513.test.ts` が落ちるが main でも同じ (Mac の浮動小数点。CI では通る)
+- 外注の仕組み: `oracle/Dockerfile.experiments` に lme4 2.0.6・Matrix 1.7.6、検査は lme4・Matrix の公開関数と
+  `@resp`・`@pp`・`devFunOnly`・`mk*Devfun` を止める (`13e8d1f5`)
+
+### クリーンルームの露出 (2026-11-18、記録)
+
+- ユーザーが別の独立エージェントに lme4 のこの挙動を調べさせ、そのレポート (ReactiveStat の
+  `docs/lme4_simulate_reform_bug_report_2026-11-18.md`) の URL が渡された。私 (Claude) は開く前にキーワードで調べ、
+  **全文は読んでいない**。目に入ったのは当たった 3 行だけ: そのエージェントが lme4 1.1-37 のソース (CRAN の
+  tarball) を読んだという記述、`lme4:::mkNewReTrms(fit, NULL, ~(1 | b))` を補集合の項に使う 1 行、こちらの
+  スクリプトと同じ形の関数 1 行
+- このレポートは ChatGPT に渡さない。rStats.js の対応と文書は、ChatGPT の公開の出力だけの実験 (上のレポート) を
+  根拠にし、このレポートの内容 (「1.1-37 から続く」など) は使わない
+- 目に入った手がかり (内部の関数で補集合の項を作る) から、実装に何も足していない
 
 ## セッション 22 の記録 (2026-11-16〜17、Mac mini)
 
