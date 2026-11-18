@@ -61,11 +61,18 @@ and effect measures with their confidence intervals, not only p-values. The list
 a statistics web application for medical and psychological research (2026-11-06). In order of priority; the R
 function or package that each item is checked against is given in brackets.
 
-1. **Later, in no particular order:** ordinal logistic regression [MASS `polr`], nonlinear regression [`nls` and the
-   self-starting models], robust and quantile regression [MASS `rlm`, quantreg], GEE [geepack]; MANOVA [`manova`],
-   discriminant analysis [MASS `lda`], canonical correlation [`cancor`]; cluster analysis [`hclust`, `kmeans`];
-   multidimensional scaling and correspondence analysis [`cmdscale`, MASS `isoMDS`, ca]; Tamhane's T2 and Page's
-   test [PMCMRplus], Grubbs' test [outliers]; regularised regression [glmnet]; time series [`acf`, `arima`].
+1. **Regression for 1.7.0** (decided 2026-11-19): ordinal logistic regression [MASS `polr`: the logistic, probit,
+   cloglog, loglog and cauchit links, with `summary`, `predict`, profile-likelihood `confint` and `anova`],
+   nonlinear regression [`nls` with the default, `plinear` and `port` algorithms and the self-starting models, with
+   `summary`, `predict` and profile `confint`] and robust regression [MASS `rlm`: Huber, Hampel and bisquare psi
+   functions, M and MM estimation, with `summary`], in a new `regression` area. These extend maximum likelihood and
+   iteratively reweighted least squares, which `glm` already has, and are checked against R and MASS alone.
+2. **Regression for 1.8.0:** quantile regression [quantreg `rq`], GEE [geepack] and regularised regression [glmnet].
+   They need linear programming, working correlations and coordinate descent, and matching R takes more work.
+3. **Later, in no particular order:** MANOVA [`manova`], discriminant analysis [MASS `lda`], canonical correlation
+   [`cancor`]; cluster analysis [`hclust`, `kmeans`]; multidimensional scaling and correspondence analysis
+   [`cmdscale`, MASS `isoMDS`, ca]; Tamhane's T2 and Page's test [PMCMRplus], Grubbs' test [outliers]; time series
+   [`acf`, `arima`].
 
 Mixed models continued (the former item 1) were done for 1.6.0: `confintLmer`, `confintGlmer`, `simulateLmer` and
 `simulateGlmer` after lme4's `confint` (profile likelihood and Wald) and `simulate`. Left out, as decided in the

@@ -19,7 +19,7 @@ import { readFileSync } from "node:fs";
 
 const ALLOWED_PACKAGES = new Set([
   "cmprsk", "survival", "epiR", "exact2x2", "clinfun", "powerSurvEpi", "metafor", "metadat", "lme4", "Matrix",
-  "jsonlite", "stats", "utils", "base",
+  "MASS", "jsonlite", "stats", "utils", "base",
 ]);
 
 /** Functions of the reference packages: they may only be called. */
@@ -125,6 +125,20 @@ const REFERENCE_FUNCTIONS = [
   "qr2rankMatrix", "qrR", "rankMatrix", "rBind", "readHB", "readMM", "rep2abI", "rowScale", "rsparsematrix", "Schur",
   "signPerm", "skewpart", "sparse.model.matrix", "sparseMatrix", "sparseVector", "spMatrix", "symmpart", "T2graph",
   "tril", "triu", "uniqTsparse", "unpack", "updown", "writeMM",
+  // MASS (regression, 1.7.0): its exported functions whose names are not also base R's. The psi functions may also be
+  // passed to rlm as `psi = psi.huber` (see PSI_ARGUMENT)
+  "addterm", "area", "as.fractions", "bandwidth.nrd", "bcv", "boxcox", "con2tr", "contr.sdif", "corresp", "cov.mcd",
+  "cov.mve", "cov.rob", "cov.trob", "denumerate", "dose.p", "dropterm", "enlist", "eqscplot", "fbeta", "fitdistr",
+  "fractions", "frequency.polygon", "gamma.dispersion", "gamma.shape", "ginv", "glm.convert", "glm.nb", "glmmPQL",
+  "hist.FD", "hist.scott", "huber", "hubers", "is.fractions", "isoMDS", "kde2d", "lda", "ldahist", "lm.gls",
+  "lm.ridge", "lmsreg", "loglm", "loglm1", "logtrans", "lqs", "lqs.formula", "ltsreg", "mca", "mvrnorm",
+  "nclass.freq", "neg.bin", "negexp.SSival", "Null", "parcoord", "polr", "psi.bisquare", "psi.hampel",
+  "psi.huber", "qda", "rational", "renumerate", "rlm", "rms.curv", "rnegbin", "sammon", "select", "Shepard",
+  "stdres", "stepAIC", "studres", "theta.md", "theta.ml", "theta.mm", "truehist", "ucv", "width.SJ", "write.matrix",
+  // stats' nonlinear least squares and self-starting models (regression, 1.7.0): R's own code, GPL like the packages
+  "nls", "nls.control", "selfStart", "getInitial", "numericDeriv", "sortedXyData", "NLSstClosestX",
+  "NLSstRtReplicate", "NLSstLfAsymptote", "NLSstAsymptotic", "SSasymp", "SSasympOff", "SSasympOrig", "SSbiexp",
+  "SSfol", "SSfpl", "SSgompertz", "SSlogis", "SSmicmen", "SSweibull",
 ];
 
 /** Names that reach code, namespaces, compiled routines, other programs or files: not allowed at all. */
@@ -142,7 +156,12 @@ const FORBIDDEN_NAMES = [
   // lme4: the deviance functions it builds are closures whose bodies print, and the reference-class objects in a
   // fit's resp and pp slots print their methods' code
   "devFunOnly", "mkLmerDevfun", "mkGlmerDevfun", "devfun2", "updateGlmerDevfun", "glmerLaplaceHandle",
+  // printing a fit without its class prints the functions inside it (rlm's psi, nls's m)
+  "unclass",
 ];
+
+/** rlm's argument `psi = psi.huber` passes the function without calling it, which is how rlm is used */
+const PSI_ARGUMENT = /\bpsi\s*=\s*(?:MASS::)?psi\.(huber|hampel|bisquare)(?![A-Za-z0-9._])/g;
 
 const COMPILED = /\.(Fortran|C|Call|External|External2|Internal|Primitive)\b/;
 
@@ -191,14 +210,20 @@ function check(file) {
     if (/@\s*(resp|pp)\b/.test(code)) {
       problems.push(`${at}: a fit's resp and pp slots print their methods' code; use getME`);
     }
+    // rlm keeps its psi function in the fit and nls its model's closures (the m element)
+    if (/\$\s*`?(psi|m)\b`?(?![A-Za-z0-9._])/.test(code) || /\[\[\s*["'](psi|m)["']\s*\]\]/.test(line) ||
+        /\$\s*`(psi|m)`/.test(line)) {
+      problems.push(`${at}: rlm's psi and nls's m elements are functions whose code prints; use coef, summary, predict`);
+    }
     if (COMPILED.test(code)) problems.push(`${at}: calling compiled code directly is not allowed`);
     for (const name of FORBIDDEN_NAMES) {
       if (word(name).test(code)) problems.push(`${at}: '${name}' is not allowed`);
     }
+    const callCode = refCode.replace(PSI_ARGUMENT, "psi = ");
     for (const name of REFERENCE_FUNCTIONS) {
       // fit$cuminc-style element names are fine; a reference package's function that is not called is not
       const re = new RegExp(`(?<![A-Za-z0-9._$@])(?:[A-Za-z][A-Za-z0-9.]*::)?${escape(name)}(?![A-Za-z0-9._])(?!\\s*\\()`);
-      if (re.test(refCode)) problems.push(`${at}: '${name}' must be called, not referred to (that would print its source)`);
+      if (re.test(callCode)) problems.push(`${at}: '${name}' must be called, not referred to (that would print its source)`);
     }
     for (const s of strings) {
       const t = s.trim();

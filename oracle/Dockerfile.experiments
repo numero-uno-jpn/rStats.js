@@ -50,3 +50,10 @@ RUN install2.r --error --skipinstalled lme4 \
                    got <- sapply(names(want), function(p) as.character(packageVersion(p))); \
                    cat(sprintf("%s %s\n", names(got), got), sep = ""); \
                    if (!identical(unname(got), unname(want))) quit(status = 1)'
+
+# Regression (1.7.0): MASS is one of R's recommended packages and already present; the check fails if the image's
+# version is not that of the fixtures (rstats-oracle:4.6.2)
+RUN Rscript -e 'want <- c(MASS = "7.3.66"); \
+                got <- sapply(names(want), function(p) as.character(packageVersion(p))); \
+                cat(sprintf("%s %s\n", names(got), got), sep = ""); \
+                if (!identical(unname(got), unname(want))) quit(status = 1)'

@@ -1,6 +1,6 @@
 # 引継ぎ: rStats.js (外部レビュー対応 2026-10-30〜11-04、1.0.0 への準備 11-04〜)
 
-最終更新: 2026-11-19 (セッション 23、Mac mini: 1.6.0 を公開 (混合モデルの confint と simulate)。次は 1.7.0 の回帰 (`polr`・`nls`・`rlm`))。以前: 2026-11-17 (セッション 22、1.5.0 を公開)。その前: 2026-11-16 (セッション 21、Mac mini: 1.4.0 を公開、同時刻の Gray の検定を ChatGPT がクリーンルームで修正 (1.4.1 に入る、未公開)、外注用の R の実験の仕組みを作った。次は ROADMAP の 1 番)
+最終更新: 2026-11-19 (セッション 24、Mac mini: 1.7.0 の回帰の外注の準備)。以前: 2026-11-19 (セッション 23、1.6.0 を公開 (混合モデルの confint と simulate))。以前: 2026-11-17 (セッション 22、1.5.0 を公開)。その前: 2026-11-16 (セッション 21、Mac mini: 1.4.0 を公開、同時刻の Gray の検定を ChatGPT がクリーンルームで修正 (1.4.1 に入る、未公開)、外注用の R の実験の仕組みを作った。次は ROADMAP の 1 番)
 
 ## まず読むこと (セッション 16 から)
 
@@ -11,6 +11,23 @@
 - **1.8.0:** 分位点回帰 [quantreg `rq`]、GEE [geepack]、正則化回帰 [glmnet]
 - 理由: 1.7.0 の 3 つは最尤法・反復重み付き最小二乗法の延長で `glm` の仕組みを生かせ、照合先が R 本体と MASS (推奨
   パッケージ) に収まる。1.8.0 の 3 つは線形計画法・座標降下法・作業相関で、R との合わせ込みが重い
+
+### セッション 24 で決めたこと・したこと (2026-11-19)
+
+- **ユーザーの決定:** R の実行は (b) (私が手元でまとめて流し、ChatGPT は R を実行しない)。範囲は下の「最初に
+  ユーザーと決めること」の 2 の案を全部。入口は新しい分野 `/regression` (`/mixed` と同じくルートと `dist/rstats.js` に
+  入れない。package.json・bundle.mjs・size.mjs・デモ・demo.test/docExamples.test の scope の配線は段階 2 の後に私がする)
+- ROADMAP (en, ja) の Remaining を 1 = 1.7.0、2 = 1.8.0、3 = その後 に書き換えた
+- `oracle/Dockerfile.experiments` に MASS 7.3.66 の版の確認 (手元で build 済み)。`scripts/r-experiment-check.mjs` に
+  MASS と stats の nls・自己開始モデルの呼ぶだけの一覧、`fit$psi`・`fit$m`・`unclass` の禁止、`psi = psi.huber` の
+  形だけの例外
+- 指示書 `briefs/regression-1.7.ja.md` (R を実行しない形の 3 節、1.6.0 の誤りを足した 4 節)
+- 最初の R の出力: `experiments/regression-{polr,rlm,nls}.R` と `.json` (`rstats-oracle-amd64:4.6.2` で実行。
+  `docker run --rm -v "$PWD":/w -w /w rstats-oracle-amd64:4.6.2 Rscript --vanilla <file>.R > <file>.json`)。
+  main ではなく作業ブランチ `work/regression` に置く予定
+- 分かったこと: housing の cauchit は R の既定の初期値が失敗する。`rlm` の MM は乱数の種で係数が変わる (S 推定の抽出)
+- **次:** (ユーザーの許可を得て) main に準備を commit・push → `work/regression` に実験を push → Issue
+  `ROADMAP 1: 回帰 (polr・rlm・nls)` → ChatGPT への最初の依頼文 (基準のコミット、`git log -1`、クリーンルームの要点)
 
 ### 状態
 
