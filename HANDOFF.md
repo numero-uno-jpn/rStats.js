@@ -30,6 +30,11 @@
   `ROADMAP 1: 回帰 (polr・rlm・nls)`。ChatGPT への最初の依頼文 (`polr` の仕様書と `oracle/polr.R` だけ) をユーザーに
   渡した。**次:** ChatGPT の段階 1 の報告を待つ。「実験の依頼」が来たら、検査を通して `rstats-oracle-amd64:4.6.2` で
   まとめて流し、`experiments/<名前>.out.txt` を push する。Decisions はユーザーに聞く
+- **polr の段階 1 (2026-11-19):** ChatGPT が `oracle/polr-behaviour.md` (`42ebe17d`) を書いた。数値は R の出力と照合して
+  合っていた。数式が `$` でない (直しを依頼)。検索結果に MASS のソースの抜粋が出たと報告 → ユーザーはそのまま進めると
+  判断。追加の実験 6 件は私が `experiments/regression-polr-2.R`・`.json` で流した。Decisions は全部推奨どおり +
+  「観測 0 件の応答の水準はエラー」(R は意味のない有限値を返す)。choices を書いて push (`1ead80e7`)。ChatGPT に
+  数式の直しと `oracle/polr.R` を依頼した → 来たら `npm run oracle -- polr` で fixture を作って push
 - **注意:** 新しい `work/**` ブランチの最初の push では、R の実験のワークフローが追跡中の `experiments/*.R` を全部
   流す (比べる前のコミットがないため)。今回は main にある `mcnemar-siglevel-boundaries.R` が閉じた #527 にコメントを
   書いた (ユーザーの許可で削除済み)。ワークフローは直していない (頼まれていない)
