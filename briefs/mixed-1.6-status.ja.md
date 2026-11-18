@@ -72,3 +72,5 @@
 - PR fixture の `lmer-default-new-effects` は呼び出し12、`re.form=~(1 | Subject)`。R の先頭値は `265.53577437958046`、現行実装は `279.4023106657324`、呼び出し後 RNG state は両方 240。
 - 重要な差分候補: fixture test の `applyReferenceFit()` が public `fitPublic` の `fixef`・`ranef`・`fitted`・`VarCorr` を内部 fit に反映する経路。以前の独立実験は公開 R 出力から再構成した別経路だった。まずこの変換を観測単位・群水準・係数列ごとに照合する。実装の変更はまだ行わない。
 - `f902a2df` の R 実験結果は Actions run `44231713980` / Issue #535 comment `6968291985` にも保存された。
+
+- 訂正: `94a2fda6` の layout-search と `f902a2df` の conditional-gaussian は、応答ノイズを `rnorm(n, mean=eta, sd=sigma)` と生成していた。R の `rnorm()` は観測別平均ベクトルをこの形で扱わないため、両実験の mismatch / match 結果は無効。以前の residual-stream で判明した問題を後続スクリプトへ反映し忘れた。正しくは `eta + rnorm(n) * sigma`。次にこの形へ直した同じ layout-search を再実行し、旧結果を判断材料から除外する。
