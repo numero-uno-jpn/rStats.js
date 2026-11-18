@@ -227,6 +227,9 @@ export function simulateGlmer(fit: GlmerResult, options: MixedSimulateOptions = 
   sims.names = [];
   for (let j = 0; j < n; j++) {
     const eta = conditionedAll ? fixedEta : addRandomEffects(fixedEta, s.z, effects[j]!);
+    if (typeof options.reForm === "string" && options.reForm.includes("|")) {
+      console.log("SIM_GLMM_ETA", s.family.family, options.reForm, j, eta.slice(0, 4));
+    }
     const mu = eta.map((v) => s.family.linkinv(v));
     if (s.family.family === "binomial") {
       if (s.response?.length === 2) {
