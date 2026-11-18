@@ -97,9 +97,9 @@ function newEffects(
       }
       continue;
     }
-    // For a partially selected correlated term, draw the full block (preserving
-    // the marginal distribution and RNG layout of its unselected columns), then
-    // replace selected columns with their fitted modes. Do not condition or add.
+    // A partial match does not select the whole fitted term: generate its
+    // complete new block, then add the fitted contribution for selected columns.
+    // This is an additive overlay, not a conditional Gaussian draw.
     const lower = Array.from({ length: nc }, () => new Array<number>(nc).fill(0));
     let k = term.thetaOffset;
     for (let j = 0; j < nc; j++) for (let i = j; i < nc; i++) lower[i]![j] = theta[k++]! * scale;
@@ -109,7 +109,7 @@ function newEffects(
         let value = 0;
         for (let j = 0; j <= i; j++) value += lower[i]![j]! * z[j]!;
         const index = term.zOffset + level * nc + i;
-        b[index] = conditioned.has(i) ? conditional[index]! : value;
+        b[index] = value + (conditioned.has(i) ? conditional[index]! : 0);
       }
     }
   }
