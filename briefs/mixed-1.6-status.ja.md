@@ -77,3 +77,6 @@
 
 - 修正後の `883284d8` では応答ノイズを `eta + rnorm(n) * sigma` に変更して再実行。clean-room check と R 実行は成功。正しい応答ノイズを使うと、全ブロック生成の無条件ケースは 0/360 mismatch。部分切片は探索した全候補で 360/360 mismatch、部分傾きの最良候補は 324/360 mismatch。したがって `94a2fda6` の「none 0 mismatch」は維持できるが、部分切片についての旧 layout 結果は無効であり、既知の成功記録 `6944892622` との矛盾が残る。
 - 次の `08cdbe4b` は、条件付き正規分布を正しい条件付き生成として組み直した実験。切片条件付きでは slope の残差に (z_1)、傾き条件付きでは相関を除いた直交標準正規成分を使い、response は `eta + rnorm(n) * sigma`。Actions の結果待ち。
+
+- 追加の直接照合 `4438cf90`: 公開 API で `simulate(re.form=NA)` と `simulate(re.form=~(1|Subject))` を同じ seed で実行し、各応答ベクトルの差を fitted intercept と比較。2 simulation × 180観測の全360セルで `partial - none = ranef(Subject)[, "(Intercept)"]` が成立し、最大絶対誤差は `8.53e-14`。両方の RNG state index は 240。したがって部分切片の R 挙動は「無条件の全ブロック生成結果に fitted intercept を加える」で直接確認できた。条件付き Gaussian は正しく vectorized response noise を使った `08cdbe4b` でも 360/360 mismatch であり、今回のケースの再現方法ではない。
+- 手作業 layout-search の部分切片候補が不一致だった原因候補として、R の `ranef(fit)$Subject` の列を数値 index 1/2 で扱った点がある。次は `colnames(ranef)` と `term.columns` を名前で対応させ、旧 layout-search を再実行する。PR 実装側はすでに列名で選択しているため、fixture test の内部値・baseline の対応を別途診断する。
