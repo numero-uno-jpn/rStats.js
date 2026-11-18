@@ -124,7 +124,7 @@ it. Tree-shaking keeps only the imported functions and their dependencies.
 | `@numero-uno-jpn/rstats/special` (all of it) | 67.6 KB | 30.4 KB |
 | `@numero-uno-jpn/rstats/mixed`: `lmer` alone / with lmerTest's tests | 50.1 / 164.6 KB | 19.4 / 70.0 KB |
 | `@numero-uno-jpn/rstats/mixed`: `glmer` alone / with `glmerSummary`, `glmerAnova`, `glmerPredict` | 116.9 / 160.4 KB | 47.2 / 66.1 KB |
-| `@numero-uno-jpn/rstats/mixed` (all of it) | 225.5 KB | 91.8 KB |
+| `@numero-uno-jpn/rstats/mixed` (all of it) | 250.2 KB | 101.5 KB |
 
 The subpath rows are an area bundled on its own. The per-area CDN files (`dist/<area>.js`) share code between areas
 through `dist/chunks/`, so one area loaded from them transfers more: 39 KB (`special`) to 288 KB (`tests`) gzipped,

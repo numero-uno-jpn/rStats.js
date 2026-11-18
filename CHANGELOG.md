@@ -7,11 +7,12 @@ While the version is 0.x, a minor release (0.y.0) may contain breaking changes;
 they are listed under **Breaking** for each release. From 1.0.0 the project follows
 [Semantic Versioning](https://semver.org/).
 
-## Unreleased
+## 1.6.0 - 2026-11-19
 
 Mixed models continued (item 1 of the roadmap after 1.5.0): lme4's `confint` and `simulate` for `lmer` and `glmer`
 fits, checked against lme4 2.0-6 and audited at extreme inputs (changes of scale to 1e±100, cancellation, boundary
-fits, near separation, extreme confidence levels, large `nsim`).
+fits, near separation, extreme confidence levels, large `nsim`). The bundle of everything except `/mixed` is still
+322 KB gzipped; `/mixed` is 102 KB (it was 92 KB).
 
 ### Added
 

@@ -120,7 +120,7 @@ rStats.js は精度を最優先にしています。分布関数は遠い裾で�
 | `@numero-uno-jpn/rstats/special` (全体) | 67.6 KB | 30.4 KB |
 | `@numero-uno-jpn/rstats/mixed`: `lmer` だけ / lmerTest の検定も | 50.1 / 164.6 KB | 19.4 / 70.0 KB |
 | `@numero-uno-jpn/rstats/mixed`: `glmer` だけ / `glmerSummary`・`glmerAnova`・`glmerPredict` も | 116.9 / 160.4 KB | 47.2 / 66.1 KB |
-| `@numero-uno-jpn/rstats/mixed` (全体) | 225.5 KB | 91.8 KB |
+| `@numero-uno-jpn/rstats/mixed` (全体) | 250.2 KB | 101.5 KB |
 
 サブパスの行は、その分野だけをバンドルした大きさです。CDN 向けの分野ごとのファイル (`dist/<area>.js`) は分野の間でコードを
 `dist/chunks/` で共有するため、そこから 1 分野を読み込むと転送量はこれより多くなります。chunk を含めて gzip で 39 KB
