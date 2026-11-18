@@ -95,3 +95,6 @@
 - この結果から、部分指定の線形予測子は「選択された成分の fitted contribution + 選択されなかった成分の新規ランダム効果」であり、条件付き正規分布を使わない。選択列に対応する新規効果は出力に含めず、相関ブロックの未選択列を正しい周辺分布で生成するためにブロック全体の標準正規乱数を消費した後、選択列を fitted mode で置換する。完全選択された項は新規効果を生成しない。
 - 実装を `src/models/mixedSimulate.ts` で修正 (`344797fe`)。部分選択列は fitted mode で置換、完全選択項は乱数を消費せず fitted mode を設定、未選択列のみ新規効果を残す。LMM/GLMM 共通の `newEffects` に適用。
 - clean-room の R 実験は成功。実装側の typecheck は成功、GitHub CI の npm test / build / browser test は実行中のため、まだ実装完了とはしない。
+
+- **訂正 (同日、実験結果の解釈を精査):** 上記の残差化実験が示すのは「部分指定した列の新規乱数を捨てる」ことではない。`simulate(partial)-predict(partial) = simulate(NA)-predict(NA)` なので、部分指定された項が fitted model の項と丸ごと一致しない場合、その項の新規ブロック全体は `re.form=NA` と同じように生成され、選択列の fitted contribution がその新規効果に**加算**される。つまり `Z_sel b_hat_sel + Z_rest b_new` の `b_new` は、部分一致項についてはその項全体の新規ブロックであり、選択列の新規成分も残る。条件付き正規分布も選択列の置換も使わない。
+- 完全一致する項だけは新規ブロックを生成せず fitted contribution のみを使う。実装 `76c2f491` で、完全選択項は乱数を消費せず fitted mode、部分選択項はブロック全体を生成して選択列に fitted mode を加算する形へ修正。直前の `344797fe` の「部分選択列を置換」は誤りであり、上記 commit で訂正した。
