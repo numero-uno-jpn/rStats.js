@@ -64,8 +64,9 @@ Where R's name is a reserved word of JavaScript or too general to export, the na
 
 The methods of the models other than `lm` (R's `summary`, `predict`, `anova`, ... of a fit) carry the model's name in
 front: `glmSummary`, `glmPredict`, `lmerSummary`, `lmerAnova`, `glmerSummary`, `glmerPredict`, `coxZph`,
-`survregPredict`, `survregResiduals`, `confintRma` and `predictRma`. The exception is `predictCrr` (R's `predict.crr`). The methods without a prefix
-(`predict`, `confint`, `anova`) are those of `lm`. `rma`'s methods are `confintRma` and `predictRma`.
+`survregPredict`, `survregResiduals`, `confintRma`, `predictRma`, `confintLmer`, `confintGlmer`, `simulateLmer` and
+`simulateGlmer`. The exception is `predictCrr` (R's `predict.crr`). The methods without a prefix (`predict`, `confint`,
+`anova`) are those of `lm`. `rma`'s methods are `confintRma` and `predictRma`.
 
 ### Arguments
 
