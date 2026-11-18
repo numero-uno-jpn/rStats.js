@@ -240,25 +240,6 @@ for (let ci = 0; ci < fixture.cases.length; ci++) {
       it(`call ${k + 1}`, () => {
         const { fit, kind } = prepared;
         applyReferenceFit(c, fit, kind);
-        if (kind === "glmer" && typeof call.args["re.form"] === "string" && call.args["re.form"] !== "NA") {
-          const internal = glmerInternals(fit as ReturnType<typeof glmer>);
-          const structure = internal.structure;
-          const beta = (fit as ReturnType<typeof glmer>).fixef;
-          const fixedEta = structure.x.map((row) => row.reduce((sum, value, j) => sum + value * beta[j]!, 0));
-          const fittedRandom = new Array<number>(structure.x.length).fill(0);
-          for (let j = 0; j < structure.z.length; j++) {
-            const col = structure.z[j]!;
-            for (let q = 0; q < col.rows.length; q++) fittedRandom[col.rows[q]!]! += col.values[q]! * internal.b[j]!;
-          }
-          const residual = internal.eta.map((v, i) => v - fixedEta[i]! - fittedRandom[i]!);
-          console.log("GLMER_ETA_DIAG", c.id, call.args["re.form"], JSON.stringify({
-            maxDecompositionError: Math.max(...residual.map(Math.abs)),
-            firstEta: internal.eta.slice(0, 4),
-            firstFixed: fixedEta.slice(0, 4),
-            firstRandom: fittedRandom.slice(0, 4),
-            terms: structure.terms.map(t => ({ label: t.label, group: structure.groups[t.group]!.name, columns: t.columns, levels: t.nLevels, zOffset: t.zOffset })),
-          }));
-        }
         const where = `case ${ci + 1} (${c.id}) call ${k + 1}`;
         const before = stateOf(call.rngBefore);
         if (before !== null) setRandomSeed(before);
