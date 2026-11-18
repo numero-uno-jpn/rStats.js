@@ -290,10 +290,11 @@ describe("confintLmer profile scale invariance", () => {
       for (let i = 0; i < reference.names.length; i++) {
         const isCorrelation = reference.names[i] === ".sig03";
         const factor = isCorrelation ? 1 : k;
-        for (const [actual, expected] of [
+        const pairs: [number, number][] = [
           [scaled.lower[i]!, reference.lower[i]! * factor],
           [scaled.upper[i]!, reference.upper[i]! * factor],
-        ]) {
+        ];
+        for (const [actual, expected] of pairs) {
           expect(Number.isFinite(actual)).toBe(true);
           expect(Math.abs(actual / expected - 1)).toBeLessThanOrEqual(1e-8);
         }
