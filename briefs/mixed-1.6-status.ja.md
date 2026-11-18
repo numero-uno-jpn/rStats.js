@@ -86,3 +86,12 @@
 - 次の独立 R 再構成では、full-block の新規効果に selected fitted component を置換ではなく加算し、切片・傾きの両方を照合する。その後 `newEffects()` を最小変更で修正する。
 
 - 最終確認 `00acd679` (R 4.6.2): full-block の新規効果を生成した後、選択成分の fitted ranef を**加算**する再構成は none / intercept / slope の全条件で 0/360 mismatch。RNG state index は全条件で 240。ranef と VarCorr の列順も `(Intercept), Days` と確認。これで sleepstudy の部分 `re.form` に対する生成式と乱数配置が確定した。
+
+## 2026-11-18 確定: 部分 `re.form` の線形予測子と実装修正
+
+- ユーザー提示の差分実験を `experiments/mixed-partial-reform-residual-identity.R` (`af5ac405`) として実行。sleepstudy、`(Days | Subject)` に対する `re.form=~(1|Subject)`、seed 123、12 simulation。
+- `predict(fit,re.form=~(1|Subject)) - predict(fit,re.form=NA)` は fitted intercept の寄与と一致。
+- `simulate(partial)-predict(partial)` と `simulate(NA)-predict(NA)` の差は 2,160/2,160 セルで一致。最大絶対差 `5.6843418860808015e-14`。両方の RNG state は 192 で完全一致。
+- この結果から、部分指定の線形予測子は「選択された成分の fitted contribution + 選択されなかった成分の新規ランダム効果」であり、条件付き正規分布を使わない。選択列に対応する新規効果は出力に含めず、相関ブロックの未選択列を正しい周辺分布で生成するためにブロック全体の標準正規乱数を消費した後、選択列を fitted mode で置換する。完全選択された項は新規効果を生成しない。
+- 実装を `src/models/mixedSimulate.ts` で修正 (`344797fe`)。部分選択列は fitted mode で置換、完全選択項は乱数を消費せず fitted mode を設定、未選択列のみ新規効果を残す。LMM/GLMM 共通の `newEffects` に適用。
+- clean-room の R 実験は成功。実装側の typecheck は成功、GitHub CI の npm test / build / browser test は実行中のため、まだ実装完了とはしない。
