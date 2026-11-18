@@ -277,6 +277,37 @@ function profileLimit(
     ? (direction < 0 ? 0 : undefined)
     : parameter.kind === "cor" ? (direction < 0 ? -1 : 1) : undefined;
   if (boundary !== undefined && estimate === boundary) return boundary;
+  const dHat = profile(estimate);
+  const targetDelta = cutoff - dHat;
+  const resolution = 1e-8 * Math.max(1, Math.abs(dHat));
+  // When the requested likelihood increment is below the deviance's floating-point resolution,
+  // bracket in signed likelihood-root (ζ) space instead. Near the maximum, ζ is locally
+  // proportional to the parameter; a well-resolved point avoids subtracting nearly equal deviances.
+  if (Number.isFinite(dHat) && targetDelta >= 0 && targetDelta < resolution) {
+    let step = parameter.kind === "cor"
+      ? Math.max(Math.abs(estimate) * 0.2, 0.05)
+      : scale * (parameter.kind === "beta" ? 0.5 : 0.5);
+    let candidate = estimate + direction * step;
+    for (let i = 0; i < 40; i++) {
+      if (boundary !== undefined) candidate = direction < 0 ? Math.max(boundary, candidate) : Math.min(boundary, candidate);
+      if (candidate === estimate) return boundary !== undefined ? boundary : NaN;
+      const delta = profile(candidate) - dHat;
+      if (Number.isFinite(delta) && delta >= 0.25) {
+        const root = Math.sqrt(delta);
+        const endpoint = estimate + direction * (Math.abs(candidate - estimate) * Math.sqrt(targetDelta) / root);
+        if (boundary !== undefined) return direction < 0 ? Math.max(boundary, endpoint) : Math.min(boundary, endpoint);
+        return endpoint;
+      }
+      if (boundary !== undefined && candidate === boundary) {
+        return Number.isFinite(delta) && delta > resolution ? boundary : boundary;
+      }
+      const next = estimate + direction * step * 2;
+      if (next === candidate) break;
+      step *= 2;
+      candidate = next;
+    }
+    return NaN;
+  }
   const at = (x: number): number => profile(x) - cutoff;
   let inside = estimate;
   let step = parameter.kind === "cor"
@@ -539,7 +570,13 @@ export function confintGlmer(fit: GlmerResult, options: MixedConfintOptions = {}
   if (method === "profile" && fit.nAGQ !== 1) throw new RangeError("profile intervals for glmer require nAGQ = 1");
   const internals = glmerInternals(fit);
   const s = internals.structure;
-  const set = parameterSet(s.terms, s.groups, fit.varCorr, fit.fixef, fit.fixefNames);
+  const hasDispersion = s.family.family !== "binomial" && s.family.family !== "poisson";
+  // The dispersion estimate is reported for Wald intervals, but its interval is a separate
+  // profiling problem (kept out of this parameter set until that method is specified).
+  const set = parameterSet(
+    s.terms, s.groups, fit.varCorr, fit.fixef, fit.fixefNames,
+    method === "Wald" && hasDispersion ? fit.sigma : undefined,
+  );
   const names = parameterNames(set.parameters, logicalOption(options.signames, true));
   const warnings: string[] = [];
   const selected = selectParameters(set.parameters, names, options.parm, warnings);
