@@ -3,7 +3,7 @@
 // oracle/polr-behaviour.md, and the public model-matrix and optimisation APIs.
 
 import { pnorm, qnorm } from "../distributions/normal.js";
-import { plogis, qlogis } from "../distributions/logistic.js";
+import { qlogis } from "../distributions/logistic.js";
 import { pcauchy, qcauchy } from "../distributions/cauchy.js";
 import { chol, chol2inv } from "../linalg/chol.js";
 import { optim } from "../optim/optim.js";
@@ -180,12 +180,9 @@ function initialValues(y: readonly number[], weights: readonly number[], levels:
     cumulative += counts[j]!;
     cuts.push(inverseCdf(cumulative / total, method));
   }
-  const raw = [0];
-  raw.length = 0;
-  raw.push(...new Array<number>(0));
   const transformed = [cuts[0]!];
   for (let j = 1; j < cuts.length; j++) transformed.push(Math.log(cuts[j]! - cuts[j - 1]!));
-  return [...transformed.slice(0, 0), ...transformed].length === 0 ? [] : transformed;
+  return transformed;
 }
 
 function rowPredictors(x: readonly (readonly number[])[], beta: readonly number[], offset: readonly number[]): number[] {
