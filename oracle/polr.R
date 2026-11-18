@@ -134,7 +134,7 @@ cases <- list(
        fits = list(main = list(args = list(
          formula = Sat ~ Infl + Type + Cont, data = housing_data, weights = quote(Freq),
          method = "logistic", Hess = TRUE))),
-       calls = list(
+       calls = c(list(
          list(operation = "summary", args = list()),
          list(operation = "vcov", args = list()),
          list(operation = "predict", args = list(newdata = housing_newdata, type = "class")),
@@ -145,22 +145,22 @@ cases <- list(
          list(operation = "wald-ci", args = list(parm = "InflMedium", level = 0.99)),
          list(operation = "predict-unknown-level",
               args = list(newdata = data.frame(Infl = "Huge", Type = "Tower", Cont = "Low"),
-                          type = "probs")))),
+                          type = "probs"))), all_interval_calls())),
   list(id = "housing-probit",
        fits = list(main = list(args = list(
          formula = Sat ~ Infl + Type + Cont, data = housing_data, weights = quote(Freq),
          method = "probit", Hess = TRUE))),
-       calls = list()),
+       calls = c(housing_predict_calls(), all_interval_calls())),
   list(id = "housing-cloglog",
        fits = list(main = list(args = list(
          formula = Sat ~ Infl + Type + Cont, data = housing_data, weights = quote(Freq),
          method = "cloglog", Hess = TRUE))),
-       calls = list()),
+       calls = housing_predict_calls()),
   list(id = "housing-loglog",
        fits = list(main = list(args = list(
          formula = Sat ~ Infl + Type + Cont, data = housing_data, weights = quote(Freq),
          method = "loglog", Hess = TRUE))),
-       calls = list()),
+       calls = housing_predict_calls()),
   list(id = "housing-cauchit-start",
        fits = list(
          logistic_start = list(args = list(
@@ -169,13 +169,18 @@ cases <- list(
          main = list(startFrom = "logistic_start", args = list(
            formula = Sat ~ Infl + Type + Cont, data = housing_data, weights = quote(Freq),
            method = "cauchit", Hess = TRUE))),
-       calls = list()),
+       calls = housing_predict_calls()),
   list(id = "mtcars-cauchit",
        fits = list(main = list(args = list(
          formula = gearO ~ mpg + wt, data = mtcars_data, method = "cauchit", Hess = TRUE))),
-       calls = list(
+       calls = c(list(
          list(operation = "predict", args = list(
-           newdata = data.frame(mpg = c(15, 25), wt = c(3.5, 2)), type = "probs")))),
+           newdata = data.frame(mpg = c(15, 25), wt = c(3.5, 2)), type = "probs"))),
+         all_interval_calls())),
+  list(id = "mtcars-logistic",
+       fits = list(main = list(args = list(
+         formula = gearO ~ mpg + wt, data = mtcars_data, method = "logistic", Hess = TRUE))),
+       calls = all_interval_calls()),
   list(id = "mtcars-weights",
        fits = list(main = list(args = list(
          formula = gearO ~ mpg + wt, data = mtcars_data,
