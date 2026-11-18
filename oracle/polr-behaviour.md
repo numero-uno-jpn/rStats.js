@@ -254,4 +254,33 @@ These cases are deliberately listed as unknown rather than guessed from source o
 
 ## rStats.js's choices
 
-(To be completed after the user's decisions.)
+Decided by the user on 2026-11-19 (all eleven recommendations above, and one more point from the further experiments
+in `experiments/regression-polr-2.R` and `.json` on `work/regression`):
+
+1. **Input and factor levels:** the formula string and the data, as `glm`. The response must be categorical (strings
+   or booleans in the data); a `levels` option gives its order, otherwise the order is that of the existing
+   model-frame API. A numeric response is an error, as in R. **A response level with no observations, or with only
+   zero weights, is an error that names the level** (a known difference from R: R fits and returns finite but
+   meaningless cut-points and standard errors where no maximum-likelihood estimate exists, as in `empty_top_level`,
+   `empty_middle_level` and `zero_frequency_middle_category` of the further experiments)
+2. **Two-level response:** an error, as R (`response must have 3 or more levels`); binary responses belong to `glm`
+3. **Fit result:** named `coefficients` and named `zeta` kept separate, with the fitted probabilities, the linear
+   predictors, `deviance`, `logLik`, `aic`, `bic`, `edf`, `nobs`, the convergence and `warnings`. No intercept
+   coefficient
+4. **Hessian:** always computed and kept (there is no `Hess` option). `polrSummary` and `polrVcov` are exported; the
+   covariance matrix is in slope-then-cut-point order
+5. **Summary:** the three columns `Value`, `Std. Error` and `t value` for slopes and cut-points, no p-values
+6. **Prediction:** `polrPredict`, `type: "class" | "probs"`, `"class"` by default as R. The behaviour for unseen
+   levels and missing values follows the further experiments (R: an error naming the new level; a missing predictor
+   gives a missing row)
+7. **Intervals:** `polrConfint`, profile likelihood by default and Wald as an option, for the slopes only (as R). An
+   endpoint that cannot be found is `NaN` with a warning
+8. **Model comparison:** `polrAnova` for two or more nested fits to the same response and rows, likelihood-ratio
+   chi-squared tests. Fits that are not nested are rejected (a known difference: R compares them and reports a
+   negative statistic with p = 1, `anova_not_nested`)
+9. **Optimisation:** a small typed set of options (`method`, `weights`, `offset`, `start`, `contrasts`, `maxit`,
+   `reltol` or similar). The initial values are deterministic and robust to the scale; R's preliminary
+   starting-value path is not reproduced, so rStats.js may fit where R's start fails (housing with `cauchit`)
+10. **Warnings and rank deficiency:** distinct warnings in first-occurrence order; aliased columns dropped with a
+    warning naming them; complete separation and a non-finite or indefinite information matrix are errors
+11. **Names:** R's model-matrix names for the slopes and R's `Low|Medium` labels for the cut-points, in `zeta`
