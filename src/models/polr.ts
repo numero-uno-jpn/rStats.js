@@ -271,8 +271,14 @@ function polrDerivatives(
 
     for (let r = 0; r < p; r++) {
       for (let c = 0; c < p; c++) pHessian[r]![c] = pEtaEta * x[i]![r]! * x[i]![c]!;
-      if (category < levels - 1) pHessian[r]![p + category] = -fpu * x[i]![r]!;
-      if (category > 0) pHessian[r]![p + category - 1] = fpl * x[i]![r]!;
+      if (category < levels - 1) {
+        pHessian[r]![p + category] = -fpu * x[i]![r]!;
+        pHessian[p + category]![r] = -fpu * x[i]![r]!;
+      }
+      if (category > 0) {
+        pHessian[r]![p + category - 1] = fpl * x[i]![r]!;
+        pHessian[p + category - 1]![r] = fpl * x[i]![r]!;
+      }
     }
     if (category < levels - 1) pHessian[p + category]![p + category] = fpu;
     if (category > 0) pHessian[p + category - 1]![p + category - 1] = -fpl;
@@ -480,7 +486,7 @@ export function polr(formula: string, data: DataFrame, options: PolrOptions = {}
   });
   if (fit.convergence !== 0) throw new Error(`ordinal regression did not converge (code ${fit.convergence})`);
   const polished = newtonPolish(fit.par, evaluate);
-  if (maxAbs(polished.gradient) > 1e-7) {
+  if (maxAbs(polished.gradient) > 1e-9) {
     throw new Error(`ordinal regression score did not converge (max |score| = ${maxAbs(polished.gradient)})`);
   }
   const theta = polished.theta;
