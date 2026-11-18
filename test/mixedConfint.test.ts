@@ -340,3 +340,31 @@ describe("confintLmer profile endpoints at extreme confidence levels", () => {
     expect(result.upper).toEqual([1]);
   }, 120_000);
 });
+
+
+describe("confintGlmer Gamma dispersion and inverse-link profile", () => {
+  const simulationFixture = JSON.parse(
+    (await import("node:fs")).readFileSync(new URL("./fixtures/mixedSimulate.json", import.meta.url), "utf8"),
+  ) as { cases: Array<{ id: string; fit: { formula: string; data: unknown } }> };
+  const gammaCase = simulationFixture.cases.find((item) => item.id === "glmer-gamma")!;
+  const formula = "strength ~ (1 | batch) + (1 | cask)";
+  const fit = glmer(formula, mixedData(gammaCase.fit.data, formula), { family: "Gamma" });
+
+  it("adds a missing Wald interval row for the estimated dispersion", () => {
+    const result = confintGlmer(fit, { method: "Wald" });
+    const index = result.names.indexOf(".sigma");
+    expect(index).toBeGreaterThanOrEqual(0);
+    expect(Number.isNaN(result.lower[index]!)).toBe(true);
+    expect(Number.isNaN(result.upper[index]!)).toBe(true);
+  });
+
+  it("preserves the Gamma inverse-link intercept profile endpoints", () => {
+    // Independently checked by fixing the intercept with an offset and evaluating logLik:
+    // the signed likelihood roots at these endpoints are -1.959962969 and 1.959962970.
+    // R's confint profile errors for this fit, so these are not R confint endpoints.
+    const result = confintGlmer(fit, { method: "profile", parm: "(Intercept)" });
+    expect(result.names).toEqual(["(Intercept)"]);
+    expect(Math.abs(result.lower[0]! / 0.015833330943392218 - 1)).toBeLessThanOrEqual(1e-8);
+    expect(Math.abs(result.upper[0]! / 0.017637424443160726 - 1)).toBeLessThanOrEqual(1e-8);
+  }, 120_000);
+});
