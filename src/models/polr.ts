@@ -285,9 +285,9 @@ function polrDerivatives(
 
     value -= w * logP;
     for (let a = 0; a < n; a++) {
-      gradientNatural[a] -= w * pGradient[a]! / probability;
+      gradientNatural[a] = gradientNatural[a]! - w * pGradient[a]! / probability;
       for (let b = 0; b < n; b++) {
-        hessianNatural[a]![b] -= w * (
+        hessianNatural[a]![b] = hessianNatural[a]![b]! - w * (
           pHessian[a]![b]! / probability
           - pGradient[a]! * pGradient[b]! / (probability * probability)
         );
@@ -305,10 +305,10 @@ function polrDerivatives(
   const gradient = new Array<number>(n).fill(0);
   const hessian: number[][] = Array.from({ length: n }, () => new Array<number>(n).fill(0));
   for (let a = 0; a < n; a++) {
-    for (let u = 0; u < n; u++) gradient[a] += jacobian[u]![a]! * gradientNatural[u]!;
+    for (let u = 0; u < n; u++) gradient[a] = gradient[a]! + jacobian[u]![a]! * gradientNatural[u]!;
     for (let b = 0; b < n; b++) {
       for (let u = 0; u < n; u++) for (let v = 0; v < n; v++) {
-        hessian[a]![b] += jacobian[u]![a]! * hessianNatural[u]![v]! * jacobian[v]![b]!;
+        hessian[a]![b] = hessian[a]![b]! + jacobian[u]![a]! * hessianNatural[u]![v]! * jacobian[v]![b]!;
       }
     }
   }
@@ -316,7 +316,7 @@ function polrDerivatives(
     const gap = Math.exp(theta[p + m]!);
     let contribution = 0;
     for (let j = m; j < levels - 1; j++) contribution += gradientNatural[p + j]!;
-    hessian[p + m]![p + m] += gap * contribution;
+    hessian[p + m]![p + m] = hessian[p + m]![p + m]! + gap * contribution;
   }
   return { value, gradient, hessian };
 }
