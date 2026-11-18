@@ -268,6 +268,7 @@ function profileLimit(
   estimate: number,
   parameter: Parameter,
   cutoff: number,
+  targetRoot: number,
   direction: -1 | 1,
   scale: number,
   profile: (value: number) => number,
@@ -278,7 +279,8 @@ function profileLimit(
     : parameter.kind === "cor" ? (direction < 0 ? -1 : 1) : undefined;
   if (boundary !== undefined && estimate === boundary) return boundary;
   const dHat = profile(estimate);
-  const targetDelta = cutoff - dHat;
+  // Keep ζ itself: adding ζ² to a large deviance can round the increment to exactly zero.
+  const targetDelta = targetRoot * targetRoot;
   const resolution = 1e-8 * Math.max(1, Math.abs(dHat));
   // When the requested likelihood increment is below the deviance's floating-point resolution,
   // bracket in signed likelihood-root (ζ) space instead. Near the maximum, ζ is locally
@@ -433,8 +435,8 @@ function profileIntervals(
     }
     const cutoff = dHat + z * z;
     const scale = parameterScales[index]!;
-    const lo = profileLimit(estimate, parameter, cutoff, -1, scale, profile);
-    const hi = profileLimit(estimate, parameter, cutoff, 1, scale, profile);
+    const lo = profileLimit(estimate, parameter, cutoff, z, -1, scale, profile);
+    const hi = profileLimit(estimate, parameter, cutoff, z, 1, scale, profile);
     lower[index] = lo;
     upper[index] = hi;
     cache.set(index, [lo, hi]);
