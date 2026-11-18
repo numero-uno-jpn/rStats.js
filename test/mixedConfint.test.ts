@@ -302,3 +302,41 @@ describe("confintLmer profile scale invariance", () => {
     }
   }, 120_000);
 });
+
+describe("confintLmer profile endpoints at extreme confidence levels", () => {
+  const c = fixture.cases.find((item) => item.id === "sleepstudy-profile-default")!;
+  let fit: ReturnType<typeof lmer>;
+
+  beforeAll(() => {
+    fit = makeFit(c).fit as ReturnType<typeof lmer>;
+    applyReferenceFit(c, fit, "lmer");
+  }, 120_000);
+
+  it("keeps every endpoint at the estimate for a very small level", () => {
+    const result = confintLmer(fit, { method: "profile", level: 1e-10 });
+    const estimates = [
+      ...fit.varCorr.flatMap((vc) => [
+        ...vc.sd,
+        ...vc.corr.slice(1).flatMap((row, i) => row.slice(0, i + 1)),
+      ]),
+      fit.sigma,
+      ...fit.fixef,
+    ];
+    expect(result.lower).toHaveLength(estimates.length);
+    expect(result.upper).toHaveLength(estimates.length);
+    for (let i = 0; i < estimates.length; i++) {
+      const estimate = estimates[i]!;
+      expect(result.lower[i]).toBeLessThanOrEqual(estimate);
+      expect(result.upper[i]).toBeGreaterThanOrEqual(estimate);
+      expect(Math.abs(result.lower[i]! / estimate - 1)).toBeLessThanOrEqual(1e-6);
+      expect(Math.abs(result.upper[i]! / estimate - 1)).toBeLessThanOrEqual(1e-6);
+    }
+  }, 120_000);
+
+  it("returns both correlation boundaries when the profile reaches them before the cutoff", () => {
+    const result = confintLmer(fit, { method: "profile", level: 0.9999999, parm: ".sig03" });
+    expect(result.names).toEqual([".sig03"]);
+    expect(result.lower).toEqual([-1]);
+    expect(result.upper).toEqual([1]);
+  }, 120_000);
+});
