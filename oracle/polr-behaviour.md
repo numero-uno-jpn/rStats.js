@@ -42,7 +42,7 @@ $$
 \eta_i=x_i^\mathsf T\beta+o_i.
 $$
 
-For the selected cumulative distribution function (F),
+For the selected cumulative distribution function $F$,
 
 $$
 P(Y_i\leq j\mid x_i)=F(\zeta_j-\eta_i),\qquad j=1,\ldots,K-1.
