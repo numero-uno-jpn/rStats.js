@@ -227,21 +227,20 @@ function closeValue(actual: number, expected: number, tolerance: number): boolea
   return Math.abs(actual - expected) <= tolerance * (Math.abs(actual) + Math.abs(expected));
 }
 
-describe("simulateLmer and simulateGlmer", () => {
-  const prepared: Array<{ fit: ReturnType<typeof lmer> | ReturnType<typeof glmer>; kind: "lmer" | "glmer" }> = [];
-  beforeAll(() => {
-    for (const c of fixture.cases) prepared.push(makeFit(c));
-  }, 120_000);
+for (let ci = 0; ci < fixture.cases.length; ci++) {
+  const c = fixture.cases[ci]!;
+  describe(\`case \${ci + 1}: \${c.id}\`, () => {
+    let prepared: { fit: ReturnType<typeof lmer> | ReturnType<typeof glmer>; kind: "lmer" | "glmer" };
+    beforeAll(() => {
+      prepared = makeFit(c);
+    }, 120_000);
 
-  for (let ci = 0; ci < fixture.cases.length; ci++) {
-    const c = fixture.cases[ci]!;
-    it(`case ${ci + 1}: ${c.id} (${c.calls.length} calls)`, () => {
-      const { fit, kind } = prepared[ci]!;
-      applyReferenceFit(c, fit, kind);
-      const mismatches: string[] = [];
-      for (let k = 0; k < c.calls.length; k++) {
-        const call = c.calls[k]!;
-        const where = `case ${ci + 1} (${c.id}) call ${k + 1}`;
+    for (let k = 0; k < c.calls.length; k++) {
+      const call = c.calls[k]!;
+      it(\`call \${k + 1}\`, () => {
+        const { fit, kind } = prepared;
+        applyReferenceFit(c, fit, kind);
+        const where = \`case \${ci + 1} (\${c.id}) call \${k + 1}\`;
         const before = stateOf(call.rngBefore);
         if (before !== null) setRandomSeed(before);
         const options = callOptions(call.args);
@@ -254,26 +253,27 @@ describe("simulateLmer and simulateGlmer", () => {
         } catch (e) {
           error = (e as Error).message;
         }
+        const mismatches: string[] = [];
         if (call.result.error !== undefined) {
           const expectedError = c.id === "glmer-inverse-gaussian"
             ? /inverse.gaussian is not supported/
             : call.result.error;
           if (expectedError instanceof RegExp ? !expectedError.test(error ?? "") : error !== expectedError) {
-            mismatches.push(`${where}: expected error ${String(expectedError)}, got ${error ?? "a result"}`);
+            mismatches.push(\`\${where}: expected error \${String(expectedError)}, got \${error ?? "a result"}\`);
           }
         } else if (error !== undefined || got === undefined) {
-          mismatches.push(`${where}: unexpected error ${error}`);
+          mismatches.push(\`\${where}: unexpected error \${error}\`);
         } else {
           const columns = call.result.value!.columns;
           const names = Object.keys(columns);
           if (got.length !== names.length || JSON.stringify(got.names) !== JSON.stringify(names)) {
-            mismatches.push(`${where}: simulation names/count differ; got ${JSON.stringify(got.names)}`);
+            mismatches.push(\`\${where}: simulation names/count differ; got \${JSON.stringify(got.names)}\`);
           } else {
             for (let j = 0; j < names.length; j++) {
               const expected = columns[names[j]!]!;
               const actual = got[j]!;
               if (actual.length !== expected.length) {
-                mismatches.push(`${where} ${names[j]}: length ${actual.length}, expected ${expected.length}`);
+                mismatches.push(\`\${where} \${names[j]}: length \${actual.length}, expected \${expected.length}\`);
                 continue;
               }
               for (let i = 0; i < expected.length; i++) {
@@ -282,16 +282,15 @@ describe("simulateLmer and simulateGlmer", () => {
                 if (Array.isArray(e)) {
                   const pair = a as [number, number];
                   if (!Array.isArray(pair) || pair.length !== 2 || pair[0] !== num(e[0] as string) || pair[1] !== num(e[1] as string)) {
-                    mismatches.push(`${where} ${names[j]}[${i}]: expected ${JSON.stringify(e)}, got ${JSON.stringify(a)}`);
+                    mismatches.push(\`\${where} \${names[j]}[\${i}]: expected \${JSON.stringify(e)}, got \${JSON.stringify(a)}\`);
                   }
                 } else {
                   const ev = num(e as string);
                   const av = a as number;
                   const discrete = c.id.includes("poisson") || (c.id.includes("binomial") && !c.id.includes("proportion"));
-                  // RNG draws are exact; only the fitted mean/scale round-off is allowed here.
                   const tolerance = c.id.includes("gamma") ? 2e-14 : c.id.includes("proportion") ? 1e-15 : 1e-10;
                   if (discrete ? av !== ev : !closeValue(av, ev, tolerance)) {
-                    mismatches.push(`${where} ${names[j]}[${i}]: expected ${ev}, got ${av}`);
+                    mismatches.push(\`\${where} \${names[j]}[\${i}]: expected \${ev}, got \${av}\`);
                   }
                 }
               }
@@ -299,15 +298,15 @@ describe("simulateLmer and simulateGlmer", () => {
           }
         }
         if (call.result.warnings.length !== 0 && c.id !== "glmer-inverse-gaussian") {
-          mismatches.push(`${where}: unexpected R warnings ${JSON.stringify(call.result.warnings)}`);
+          mismatches.push(\`\${where}: unexpected R warnings \${JSON.stringify(call.result.warnings)}\`);
         }
         try {
           expectState(call.rngAfter);
         } catch (e) {
-          mismatches.push(`${where}: ${(e as Error).message}`);
+          mismatches.push(\`\${where}: \${(e as Error).message}\`);
         }
-      }
-      expect(mismatches).toEqual([]);
-    });
-  }
-});
+        expect(mismatches).toEqual([]);
+      });
+    }
+  });
+}
