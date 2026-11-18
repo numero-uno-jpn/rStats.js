@@ -32,17 +32,17 @@ json_value <- function(x) {
   }
   if (is.numeric(x)) {
     v <- num_json(x)
-    if (length(v) == 1L) return(unname(v))
     if (!is.null(names(x))) {
       y <- as.list(v); names(y) <- names(x); return(y)
     }
+    if (length(v) == 1L) return(unname(v))
     return(I(as.list(v)))
   }
   if (is.logical(x) || is.character(x)) {
-    if (length(x) == 1L) return(unname(x))
     if (!is.null(names(x))) {
       y <- as.list(x); names(y) <- names(x); return(y)
     }
+    if (length(x) == 1L) return(unname(x))
     return(I(as.list(x)))
   }
   if (is.list(x)) {
@@ -53,7 +53,12 @@ json_value <- function(x) {
   as.character(x)
 }
 
-tab <- function(x) {
+tab <- function(x, row_name = NULL) {
+  if (is.null(dim(x))) {
+    if (is.null(row_name)) row_name <- if (length(x) == 1L) names(x)[1L] else NULL
+    x <- matrix(as.numeric(x), nrow = 1L,
+                dimnames = list(row_name, names(x)))
+  }
   list(rows = if (is.null(rownames(x))) NULL else I(as.list(rownames(x))),
        cols = if (is.null(colnames(x))) NULL else I(as.list(colnames(x))),
        values = lapply(seq_len(nrow(as.matrix(x))), function(i) I(as.list(num_json(as.matrix(x)[i, ])))))
@@ -208,6 +213,22 @@ cases <- list(
        calls = list())
 )
 
+housing_predict_calls <- function() {
+  list(
+    list(operation = "predict", args = list(newdata = housing_newdata, type = "class")),
+    list(operation = "predict", args = list(newdata = housing_newdata, type = "probs"))
+  )
+}
+
+all_interval_calls <- function() {
+  list(
+    list(operation = "profile-ci", args = list(level = 0.95)),
+    list(operation = "profile-ci", args = list(level = 0.90)),
+    list(operation = "wald-ci", args = list(level = 0.95)),
+    list(operation = "wald-ci", args = list(level = 0.90))
+  )
+}
+
 run_call <- function(call_spec, fit, all_fits) {
   op <- call_spec$operation
   a <- call_spec$args
@@ -225,7 +246,10 @@ run_call <- function(call_spec, fit, all_fits) {
     }))
   }
   if (op == "profile-ci") {
-    return(capture(function() tab(do.call(stats::confint, c(list(object = fit), a)))))
+    return(capture(function() {
+      result <- do.call(stats::confint, c(list(object = fit), a))
+      if (is.null(dim(result))) tab(result, row_name = a$parm) else tab(result)
+    }))
   }
   if (op == "wald-ci") {
     return(capture(function() tab(do.call(stats::confint.default, c(list(object = fit), a)))))
@@ -233,7 +257,7 @@ run_call <- function(call_spec, fit, all_fits) {
   if (op == "anova") {
     selected <- all_fits[a$models]
     return(capture(function() {
-      result <- do.call(stats::anova, selected)
+      result <- do.call(stats::anova, unname(selected))
       list(table = as.list(result), rows = I(as.list(rownames(result))),
            heading = attr(result, "heading"))
     }))
