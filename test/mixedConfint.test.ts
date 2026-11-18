@@ -351,6 +351,7 @@ describe("confintGlmer Gamma dispersion and inverse-link profile", () => {
   const fit = glmer(formula, mixedData(gammaCase.fit.data, formula), { family: "Gamma" });
 
   it("adds a missing Wald interval row for the estimated dispersion", () => {
+    expect(fit.link).toBe("inverse");
     const result = confintGlmer(fit, { method: "Wald" });
     const index = result.names.indexOf(".sigma");
     expect(index).toBeGreaterThanOrEqual(0);
