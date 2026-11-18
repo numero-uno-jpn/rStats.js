@@ -176,6 +176,10 @@ glm fits, and `glmerPredict` and `lmerPredict` the predictions (at new data, wit
 effects, with standard errors). As for `lmer`, the estimates are the exact optimum; see the
 [differences](docs/differences-from-r.md#mixed-models) for the standard errors and `nAGQ > 1`.
 
+`confintLmer` and `confintGlmer` give confidence intervals for fitted models (profile likelihood by default, or
+Wald intervals with `method: "Wald"`). `simulateLmer` and `simulateGlmer` simulate response data from a fitted model;
+`nsim` sets the number of simulations and `seed` the random seed.
+
 ### Effect sizes and power
 
 ```ts
@@ -219,7 +223,8 @@ eigen([[2, 1], [1, 3]]).values;     // ≈ [3.618033989, 1.381966011]
 | Sample size and power for trial designs | `epiSsequb`, `epiSsequc`, `epiSsninfb`, `epiSsninfc`, `epiSssupb`, `epiSssupc` (epiR: equivalence, non-inferiority and superiority for proportions and means), `powerPaired2x2` (exact paired McNemar power), `ssizeCT`, `powerCT`, `ssizeEpi`, `powerEpi`, `numDEpi` (survival sample size and power), `ph2simon` (Simon two-stage designs) |
 | Meta-analysis | `escalc` (effect sizes and sampling variances), `rma` (equal- and random-effects meta-analysis and meta-regression), `confintRma`, `predictRma`, `regtest` (metafor) |
 | Linear models | `lm` (a formula and a data frame, or a matrix, with the `summary` quantities), `modelMatrix` (`model.matrix`), `confint`, `predict`; `glm` (matrix interface, every family and link of R's `stats`) with `glmSummary` (`summary.glm`), `glmResiduals` (the four kinds), `glmHatvalues`, `glmRstandard`, `glmCooksDistance`, `glmPredict` (with standard errors), `glmConfint` (profile likelihood, exact limits), `glmAnova` (`anova.glm`); `vcovHC`, `vcovCL` (sandwich: HC0 to HC5, one-way and multi-way clustered), `coeftest`, `coefci` (lmtest) |
-| Mixed models | `lmer` (lme4: REML and ML, correlated and uncorrelated random effects, crossed and nested grouping factors; `fixef`, `vcov`, `VarCorr`, `ranef`, `logLik`, `AIC`, `BIC`, `REMLcrit`, `isSingular`), `lmerSummary`, `lmerContest` and `lmerAnova` (lmerTest: Satterthwaite's t- and F-tests, Type I/II/III ANOVA tables; likelihood-ratio comparison of fits), `glmer` (lme4: all glm families, Laplace approximation and adaptive Gauss-Hermite quadrature), `glmerSummary`, `glmerAnova`, `glmerPredict` and `lmerPredict`, from `@numero-uno-jpn/rstats/mixed` |
+| Mixed models | `lmer` (lme4: REML and ML, correlated and uncorrelated random effects, crossed and nested grouping factors; `fixef`, `vcov`, `VarCorr`, `ranef`, `logLik`, `AIC`, `BIC`, `REMLcrit`, `isSingular`), `lmerSummary`, `lmerContest` and `lmerAnova` (lmerTest: Satterthwaite's t- and F-tests, Type I/II/III ANOVA tables; likelihood-ratio comparison of fits), `glmer` (lme4: all glm families, Laplace approximation and adaptive Gauss-Hermite quadrature), `glmerSummary`, `glmerAnova`, `glmerPredict`, `lmerPredict`, `confintLmer`, `confintGlmer`, `simulateLmer` and
+`simulateGlmer`, from `@numero-uno-jpn/rstats/mixed` |
 | More tests | `leveneTest`, `propTrendTest` (`prop.trend.test`), `jonckheereTest`, `cochranQTest`, `adTest`, `lillieTest`, `cvmTest`, `sfTest`, `pearsonTest` (car, DescTools, clinfun, nortest); `tTOST`, `tsumTOST` (TOSTER: equivalence and minimal-effect t tests) |
 | Contingency tables and proportions | `binomCI`, `binomDiffCI`, `binomRatioCI` (DescTools' `BinomCI`, `BinomDiffCI`, `BinomRatioCI`), `oddsRatio` (epitools, and epiR's score interval), `fisherTest(x, { midp: true })` (exact2x2), `boschlooTest` (Exact), `gTest`, `stuartMaxwellTest`, `goodmanKruskalGamma` (DescTools), `lblTest` (coin), `chisqTest(x, { nMinus1: true })` (Campbell's 'N − 1' test) and Freeman-Tukey residuals, `tost` (equivalence), `binomDiffEquivalenceTest` (score TOST of two proportions) |
 | Multiple comparisons | `dscfAllPairsTest` (Steel-Dwass), `kwAllPairsDunnTest`, `kwManyOneDunnTest`, `manyOneUTest` (Steel's many-one rank test), `dunnettTest`, `gamesHowellTest`, `tukeyTest` (PMCMRplus), `dunnTest` (dunn.test), `glhtDunnett` (multcomp) |
