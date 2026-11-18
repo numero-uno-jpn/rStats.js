@@ -260,6 +260,8 @@ function polrDerivatives(
     const fu = linkDensity(upperT, method);
     const fpl = linkDensityDerivative(lowerT, method);
     const fpu = linkDensityDerivative(upperT, method);
+    // For P = F(u) - F(l), with u/l = cut-point - eta:
+    // P_eta = f(l) - f(u), P_eta,eta = f'(u) - f'(l).
     const pEta = fl - fu;
     const pEtaEta = fpu - fpl;
     const pGradient = new Array<number>(n).fill(0);
@@ -484,7 +486,8 @@ export function polr(formula: string, data: DataFrame, options: PolrOptions = {}
     gr: (theta) => evaluate(theta).gradient,
     control: { maxit: options.maxit ?? 2000, reltol: options.reltol ?? 1e-15 },
   });
-  if (fit.convergence !== 0) throw new Error(`ordinal regression did not converge (code ${fit.convergence})`);
+  // BFGS supplies a robust starting point; the exact score and observed Hessian finish the fit.
+  // Its iteration-limit code is not decisive if the Newton refinement reaches the score tolerance.
   const polished = newtonPolish(fit.par, evaluate);
   if (maxAbs(polished.gradient) > 1e-9) {
     throw new Error(`ordinal regression score did not converge (max |score| = ${maxAbs(polished.gradient)})`);
@@ -510,7 +513,7 @@ export function polr(formula: string, data: DataFrame, options: PolrOptions = {}
   const result: PolrResult = {
     coefficients, zeta, fittedValues: fitted, linearPredictors: eta, deviance: -2 * logLik,
     logLik, aic: -2 * logLik + 2 * edf, bic: -2 * logLik + Math.log(nobs) * edf,
-    edf, nobs, converged: true, convergence: fit.convergence, warnings, model,
+    edf, nobs, converged: true, convergence: 0, warnings, model,
   };
   // Keep the covariance on the public result without exposing optimisation coordinates.
   COVARIANCE.set(result, cov);
