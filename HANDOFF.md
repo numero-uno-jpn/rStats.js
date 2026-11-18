@@ -35,6 +35,16 @@
   判断。追加の実験 6 件は私が `experiments/regression-polr-2.R`・`.json` で流した。Decisions は全部推奨どおり +
   「観測 0 件の応答の水準はエラー」(R は意味のない有限値を返す)。choices を書いて push (`1ead80e7`)。ChatGPT に
   数式の直しと `oracle/polr.R` を依頼した → 来たら `npm run oracle -- polr` で fixture を作って push
+- **polr の段階 2 の途中 (2026-11-19 夕):** `work/regression` に当てはめ・`polrSummary`・`polrVcov`・テストの最初の区切り。
+  分かったこと:
+  - MASS の cauchit は標準コーシーのモデルではない (choices 12、ユーザーの決定で既知の違い)
+  - R の既定の当てはめは止まるのが早い (fixture に `fitTight`)
+  - rStats.js は解析的な微分と Newton の仕上げで、`fitTight` と 8e-8 以内
+  - Newton の Armijo の条件が丸めで止まる不具合は、私が見つけて直させた
+
+  ChatGPT は**新しい会話**に移る。入口は `work/regression` の `briefs/regression-1.7-status.ja.md` (次の手順・手元の
+  結果・規則)。手元の比べ方のスクリプトはジョブの tmp にあり、消える。fixture と比べるなら書き直すか、
+  `test/polr.test.ts` を流す
 - **注意:** 新しい `work/**` ブランチの最初の push では、R の実験のワークフローが追跡中の `experiments/*.R` を全部
   流す (比べる前のコミットがないため)。今回は main にある `mcnemar-siglevel-boundaries.R` が閉じた #527 にコメントを
   書いた (ユーザーの許可で削除済み)。ワークフローは直していない (頼まれていない)
