@@ -1,10 +1,58 @@
 # 引継ぎ: rStats.js (外部レビュー対応 2026-10-30〜11-04、1.0.0 への準備 11-04〜)
 
-最終更新: 2026-11-19 (セッション 23、Mac mini: 1.6.0 を公開 (混合モデルの confint と simulate)。次の作業は未定)。以前: 2026-11-17 (セッション 22、1.5.0 を公開)。その前: 2026-11-16 (セッション 21、Mac mini: 1.4.0 を公開、同時刻の Gray の検定を ChatGPT がクリーンルームで修正 (1.4.1 に入る、未公開)、外注用の R の実験の仕組みを作った。次は ROADMAP の 1 番)
+最終更新: 2026-11-19 (セッション 23、Mac mini: 1.6.0 を公開 (混合モデルの confint と simulate)。次は 1.7.0 の回帰 (`polr`・`nls`・`rlm`))。以前: 2026-11-17 (セッション 22、1.5.0 を公開)。その前: 2026-11-16 (セッション 21、Mac mini: 1.4.0 を公開、同時刻の Gray の検定を ChatGPT がクリーンルームで修正 (1.4.1 に入る、未公開)、外注用の R の実験の仕組みを作った。次は ROADMAP の 1 番)
 
 ## まず読むこと (セッション 16 から)
 
-## 次のセッションで最初にやること: 混合モデルの続き (2026-11-17 に作成、セッション 22 → 23、Mac mini)
+## 次のセッションで最初にやること: 1.7.0 の回帰 (2026-11-19 に作成、セッション 23 → 24、Mac mini)
+
+ユーザーの決定 (2026-11-19): ROADMAP の「その後」から回帰を選び、2 つの版に分ける。
+- **1.7.0:** 順序ロジスティック回帰 [MASS `polr`]、非線形回帰 [`nls` と自己開始モデル]、ロバスト回帰 [MASS `rlm`]
+- **1.8.0:** 分位点回帰 [quantreg `rq`]、GEE [geepack]、正則化回帰 [glmnet]
+- 理由: 1.7.0 の 3 つは最尤法・反復重み付き最小二乗法の延長で `glm` の仕組みを生かせ、照合先が R 本体と MASS (推奨
+  パッケージ) に収まる。1.8.0 の 3 つは線形計画法・座標降下法・作業相関で、R との合わせ込みが重い
+
+### 状態
+
+- npm latest = 1.6.0。main = `a52306bb` 以降、CI 通過。ブランチは main だけ (ユーザーの許可で全部消した)。開いている
+  Issue はない。未追跡の `oracle/extreme-parameters-behaviour.md` は以前からあるもので、触らない
+- ROADMAP の Remaining はまだ「その後 (順不同)」の一覧のまま。1.7.0/1.8.0 の分け方を書くのは次のセッションの最初でよい
+
+### 進め方 (ユーザーの指示: トークン節約、ChatGPT を最大限使う)
+
+- **仕様と実装は ChatGPT** (照合先はどれも GPL。クリーンルーム。依頼文に毎回規則の要点を書く: 記憶の
+  feedback-chatgpt-request-cleanroom)。私は仕組み・fixture・テストの実行・点検・文書・取り込み・公開
+- **R の実行はまとめて行う** (ChatGPT の Actions の R は 1 本ごとの待ちが長く、R 自身の不具合を追い始める)。次の
+  どちらかにする。最初にユーザーと決める
+  - (a) ChatGPT に「必要な R の実験を全部 1 本のスクリプトに」まとめさせ、1 回だけ流す (Actions か私の手元)
+  - (b) 私が手元で、仕様を書くのに要る R の出力をまとめて作り、ChatGPT に渡す (公開の関数だけの R を
+    `scripts/r-experiment-check.mjs` に通し、`rstats-oracle-amd64:4.6.2` で流して JSON に)
+- 段階 3 (数値の点検) と端の入力の点検は私が手元で一括でする (1.6.0 の手順: HANDOFF のセッション 23 の
+  「1.6.0 で分かったこと」)。見つかった直しは R の要らない小さな依頼にして ChatGPT に 1 回 1 項目で
+- ChatGPT は長い返答でストリームのエラーが出る。依頼は「1 回の返答で 1 項目、数行で報告して止まる」と書く。新しい会話に
+  引き継ぐときは、現状の要約のファイル (`briefs/<名前>-status.ja.md` の形) をリポジトリに置き、依頼文を短くする
+
+### 最初にユーザーと決めること
+
+1. R の実行のまとめ方 ((a) か (b))
+2. 範囲: `polr` (method の logistic・probit・cloglog・loglog・cauchit、`summary`・`predict`・`confint` (profile)・
+   `anova`)、`nls` (アルゴリズムの default・plinear・port、自己開始モデル `SSlogis`・`SSmicmen`・`SSasymp` など
+   どこまで、`summary`・`predict`・`confint` (MASS の profile))、`rlm` (Huber・Hampel・bisquare の psi、M 推定と
+   MM 推定、`summary`)
+3. 入口: 新しい分野 (`/regression` など) にするか、`glm` と同じ入口 (`src/entries/tests.ts`) に入れるか。全部入りの
+   大きさ (322 KB) に効く。名前は `polr`・`nls`・`rlm` と付属の関数 (前例: `confintRma`、`predictCrr`)
+
+### 外注の準備 (決まったら)
+
+- `scripts/r-experiment-check.mjs` の `ALLOWED_PACKAGES` に MASS、`REFERENCE_FUNCTIONS` に MASS の公開関数
+  (`getNamespaceExports("MASS")` から、R 本体と名前が重ならないもの。1.6.0 の lme4 と同じ作り方、`13e8d1f5`)。
+  `nls` は stats なので許可済み。`print(nls)` などで本体が見えないよう、stats の `nls`・`selfStart` 系も
+  「呼ぶだけ」の一覧に入れるか検討する
+- `oracle/Dockerfile.experiments` は MASS が推奨パッケージで入っているはず。版を確かめる層を足す
+- 指示書 `briefs/regression-1.7.ja.md`。手本は `briefs/mixed-1.6.ja.md` (4 節の直しが入った点に、1.6.0 の
+  「ChatGPT の誤り」を足す)
+
+## 以前の「最初にやること」: 混合モデルの続き (2026-11-17 に作成。1.6.0 で済み)
 
 ユーザーの指示: 次のセッションで ROADMAP の 1 番「混合モデルの続き」を始める (1.6.0 の予定)。
 
@@ -85,7 +133,7 @@
   `npm stage approve <stage id>` (2FA はセキュリティキー。Claude の Bash からは EOTP で失敗)。デモ・Pages はタグから作る
 - **Bash の自動の許可:** ブランチの削除は、ユーザーがその場で頼んだときだけ (まとめて実行すると止められる)
 
-## セッション 23 の記録 (2026-11-17〜18、Mac mini): 混合モデルの confint と simulate (1.6.0、作業中)
+## セッション 23 の記録 (2026-11-17〜19、Mac mini): 混合モデルの confint と simulate (1.6.0、公開済み)
 
 ### 1.6.0 を公開した (2026-11-19)
 
