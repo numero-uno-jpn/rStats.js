@@ -26,8 +26,13 @@
   `docker run --rm -v "$PWD":/w -w /w rstats-oracle-amd64:4.6.2 Rscript --vanilla <file>.R > <file>.json`)。
   main ではなく作業ブランチ `work/regression` に置く予定
 - 分かったこと: housing の cauchit は R の既定の初期値が失敗する。`rlm` の MM は乱数の種で係数が変わる (S 推定の抽出)
-- **次:** (ユーザーの許可を得て) main に準備を commit・push → `work/regression` に実験を push → Issue
-  `ROADMAP 1: 回帰 (polr・rlm・nls)` → ChatGPT への最初の依頼文 (基準のコミット、`git log -1`、クリーンルームの要点)
+- **済み:** main `35cb10c5` (準備、CI 通過)、`work/regression` `9303c499` (最初の R の出力)、Issue #540
+  `ROADMAP 1: 回帰 (polr・rlm・nls)`。ChatGPT への最初の依頼文 (`polr` の仕様書と `oracle/polr.R` だけ) をユーザーに
+  渡した。**次:** ChatGPT の段階 1 の報告を待つ。「実験の依頼」が来たら、検査を通して `rstats-oracle-amd64:4.6.2` で
+  まとめて流し、`experiments/<名前>.out.txt` を push する。Decisions はユーザーに聞く
+- **注意:** 新しい `work/**` ブランチの最初の push では、R の実験のワークフローが追跡中の `experiments/*.R` を全部
+  流す (比べる前のコミットがないため)。今回は main にある `mcnemar-siglevel-boundaries.R` が閉じた #527 にコメントを
+  書いた (ユーザーの許可で削除済み)。ワークフローは直していない (頼まれていない)
 
 ### 状態
 
