@@ -32,69 +32,69 @@ The model is a cumulative-link regression for an ordered response with $K\geq3$ 
 
 Let $Y_i\in\{1,\ldots,K\}$, let (x_i\) be the predictor row, let (\beta\) be the slope vector, and let (o_i\) be an optional offset. There are $K-1$ ordered cut-points
 
-[
+$
 -\infty=\zeta_0<\zeta_1<\cdots<\zeta_{K-1}<\zeta_K=+\infty.
-]
+$
 
 The linear predictor has no separately estimated intercept:
 
-[
+$
 \eta_i=x_i^\mathsf T\beta+o_i.
-]
+$
 
 For the selected cumulative distribution function (F),
 
-[
+$
 P(Y_i\leq j\mid x_i)=F(\zeta_j-\eta_i),\qquad j=1,\ldots,K-1.
-]
+$
 
 Consequently the category probabilities are
 
-[
+$
 p_{i1}=F(\zeta_1-\eta_i),
-]
+$
 
-[
+$
 p_{ij}=F(\zeta_j-\eta_i)-F(\zeta_{j-1}-\eta_i),
 quad j=2,\ldots,K-1,
-]
+$
 
-[
+$
 p_{iK}=1-F(\zeta_{K-1}-\eta_i).
-]
+$
 
 For case weights $w_i\geq0$, the log likelihood is
 
-[
+$
 \ell(\beta,\zeta)=\sum_i w_i\log p_{i,Y_i}.
-]
+$
 
-The fit maximizes this likelihood over the slopes and strictly ordered cut-points. The deviance is $-2\ell$, up to the likelihood's parameter-independent convention. A positive slope increases (\eta_i), decreases the cumulative probabilities $P(Y_i\leq j)$, and shifts probability toward higher response categories. This sign convention is important: some software uses the opposite sign.
+The fit maximizes this likelihood over the slopes and strictly ordered cut-points. The deviance is $-2\ell$, up to the likelihood's parameter-independent convention. A positive slope increases $\eta_i$, decreases the cumulative probabilities $P(Y_i\leq j)$, and shifts probability toward higher response categories. This sign convention is important: some software uses the opposite sign.
 
 The link functions are monotone and map cumulative probabilities to the real line. For the extreme-value links,
 
-[
-F^{-1}_{\mathrm{loglog}}$p$=-\log[-\log(p)],
+$
+F^{-1}_{\mathrm{loglog}}(p)=-\log[-\log(p)],
 \qquad
 F^{-1}_{\mathrm{cloglog}}(p)=\log[-\log(1-p)].
-]
+$
 
 The cloglog model has the grouped-time proportional-hazards interpretation when categories are ordered by increasing event time. The cauchit model uses a Cauchy latent error distribution.
 
 ## 2. Parameters, likelihood, and covariance
 
-The free parameter vector consists of all slope coefficients followed by all (K-1) cut-points. The cut-points are not a conventional intercept: there is one threshold for every boundary between adjacent response categories.
+The free parameter vector consists of all slope coefficients followed by all $K-1$ cut-points. The cut-points are not a conventional intercept: there is one threshold for every boundary between adjacent response categories.
 
 The observed information is the negative Hessian of the log likelihood at the maximum-likelihood estimate. The asymptotic covariance matrix is its inverse,
 
-[
+$
 \widehat{\operatorname{Var}}(\widehat\theta)
 =\left[-\frac{\partial^2\ell(\theta)}
 {\partial\theta\,\partial\theta^\mathsf T}
 \bigg|_{\widehat\theta}\right]^{-1},
 \qquad
 \theta=(\beta^\mathsf T,\zeta^\mathsf T)^\mathsf T.
-]
+$
 
 This is the observed-information approximation. MASS help explicitly cautions that the Hessian is a numerical approximation and that the model-matrix columns should be sensibly scaled, with ranges of order one, for reliable covariance estimates.
 
@@ -102,7 +102,7 @@ The R experiment confirms that `vcov` includes both slope coefficients and cut-p
 
 For the `housing` logistic fit (1,681 effective observations, six slopes, three response levels), the experiment reports eight estimated parameters and an $8\times8$ covariance matrix. The six slope rows are named `InflMedium`, `InflHigh`, `TypeApartment`, `TypeAtrium`, `TypeTerrace`, and `ContHigh`; the cut-points are `Low|Medium` and `Medium|High`.
 
-The effective parameter count is $p+(K-1)$, where (p) is the design-matrix rank after aliased columns are removed. The observed `edf` agrees with this count. The observed `n` and `nobs` are effective weighted sample sizes; a zero-weight row does not contribute. The residual degrees of freedom are based on the effective sample size less the effective parameter count.
+The effective parameter count is $p+(K-1)$, where $p$ is the design-matrix rank after aliased columns are removed. The observed `edf` agrees with this count. The observed `n` and `nobs` are effective weighted sample sizes; a zero-weight row does not contribute. The residual degrees of freedom are based on the effective sample size less the effective parameter count.
 
 ## 3. Defaults and fitting controls
 
@@ -128,12 +128,12 @@ The fit reports the optimizer convergence code and function/gradient evaluation 
 
 ## 4. Fitted values and prediction
 
-For every retained observation, fitted values are the (K) category probabilities
+For every retained observation, fitted values are the $K$ category probabilities
 
-[
+$
 (\widehat p_{i1},\ldots,\widehat p_{iK}),
 \qquad \sum_{j=1}^{K}\widehat p_{ij}=1.
-]
+$
 
 The probability columns follow the response-level order. The linear predictor includes the offset. The R experiment records the full fitted-probability matrix, including row and column names.
 
@@ -153,9 +153,9 @@ Further experiments establish that an unseen factor level is an error naming tha
 
 For a parameter $\theta_j$ with standard error $s_j$, the two-sided Wald interval at confidence level $1-\alpha$ is
 
-[
+$
 \widehat\theta_j\pm z_{1-\alpha/2}s_j.
-]
+$
 
 The R oracle calls `confint.default` to record these intervals. The observed output contains rows for the slope coefficients, not for the cut-points. This is distinct from `vcov` and `summary`, both of which include cut-points.
 
@@ -163,23 +163,23 @@ The R oracle calls `confint.default` to record these intervals. The observed out
 
 For a slope coefficient $\beta_j$, let $\lambda$ denote all other free parameters, including the cut-points. Its profile log likelihood is
 
-[
-\ell_{p,j}$b$=\max_{\lambda}\ell(\beta_j=b,\lambda).
-]
+$
+\ell_{p,j}(b)=\max_{\lambda}\ell(\beta_j=b,\lambda).
+$
 
 The likelihood-ratio confidence limits solve
 
-[
+$
 2\{\ell(\widehat\theta)-\ell_{p,j}(b)\}
 =\chi^2_{1,1-\alpha}.
-]
+$
 
 Equivalently, the signed likelihood-root coordinate is
 
-[
+$
 r_j(b)=\operatorname{sign}(b-\widehat\beta_j)
 \sqrt{2\{\ell(\widehat\theta)-\ell_{p,j}(b)\}},
-]
+$
 
 and the endpoints solve $r_j(b)=\pm z_{1-\alpha/2}$. This defines the statistical target; it does not prescribe MASS's profile grid, interpolation, or root-finding implementation.
 
@@ -191,10 +191,10 @@ The further experiments show that profile intervals are available for slope coef
 
 For nested fits to the same response and observations, the likelihood-ratio statistic comparing a smaller model $M_0$ with a larger model $M_1$ is
 
-[
+$
 G^2=2\{\ell(M_1)-\ell(M_0)\}
 =D(M_0)-D(M_1).
-]
+$
 
 Under the usual regularity conditions, the reference comparison uses a chi-squared distribution with degrees of freedom equal to the difference in effective parameter counts. The oracle records the sequential comparison table from `anova`, including model labels, residual degrees of freedom, residual deviances, the compared-model labels, degrees of freedom, likelihood-ratio statistics, and chi-squared p-values.
 
