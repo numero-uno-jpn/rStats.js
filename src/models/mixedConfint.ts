@@ -111,7 +111,7 @@ function parameterNames(parameters: readonly Parameter[], signames: boolean): st
 }
 
 function transform(p: Parameter): number {
-  if (p.kind === "sd" || p.kind === "sigma") return Math.log(Math.max(p.value, 1e-14));
+  if (p.kind === "sd" || p.kind === "sigma") return Math.log(p.value);
   if (p.kind === "cor") return Math.atanh(Math.max(-1 + 1e-12, Math.min(1 - 1e-12, p.value)));
   return p.value;
 }
@@ -204,7 +204,13 @@ function profileAt(
   target: number,
   targetValue: number,
 ): number {
-  const free = parameters.map((p, i) => (i === target || (kind === "lmer" && p.kind === "beta") ? -1 : i)).filter((i) => i >= 0);
+  const free = parameters.map((p, i) => (
+    i === target ||
+    (kind === "lmer" && p.kind === "beta") ||
+    ((p.kind === "sd" || p.kind === "sigma") && p.value === 0)
+      ? -1
+      : i
+  )).filter((i) => i >= 0);
   const start = free.map((i) => transform(parameters[i]!));
   const valueAt = (x: readonly number[]): number => {
     const values = parameters.map((p) => p.value);
@@ -263,6 +269,7 @@ function profileLimit(
   parameter: Parameter,
   cutoff: number,
   direction: -1 | 1,
+  scale: number,
   profile: (value: number) => number,
 ): number {
   // Standard deviations and sigma have only a lower boundary; their upper endpoints are unbounded.
@@ -272,7 +279,9 @@ function profileLimit(
   if (boundary !== undefined && estimate === boundary) return boundary;
   const at = (x: number): number => profile(x) - cutoff;
   let inside = estimate;
-  let step = Math.max(parameter.kind === "beta" ? 0.25 : Math.abs(estimate) * 0.2, 0.05);
+  let step = parameter.kind === "cor"
+    ? Math.max(Math.abs(estimate) * 0.2, 0.05)
+    : scale * (parameter.kind === "beta" ? 0.25 : 0.2);
   let outside = estimate + direction * step;
   if (boundary !== undefined) outside = direction < 0 ? Math.max(boundary, outside) : Math.min(boundary, outside);
   const fInside = at(inside);
@@ -328,7 +337,8 @@ function profileLimit(
       wa = fa;
       wb *= 0.5;
     }
-    if (Math.abs(b - a) <= 2e-10 * Math.max(1, Math.abs(candidate))) return a + (b - a) / 2;
+    const toleranceScale = parameter.kind === "cor" ? Math.max(1, Math.abs(candidate)) : Math.max(scale, Math.abs(candidate));
+    if (Math.abs(b - a) <= 2e-10 * toleranceScale) return a + (b - a) / 2;
   }
   for (let i = 0; i < 56; i++) {
     const candidate = a + (b - a) / 2;
@@ -341,10 +351,12 @@ function profileLimit(
       a = candidate;
       fa = fc;
     }
-    if (Math.abs(b - a) <= 2e-10 * Math.max(1, Math.abs(candidate))) break;
+    const toleranceScale = parameter.kind === "cor" ? Math.max(1, Math.abs(candidate)) : Math.max(scale, Math.abs(candidate));
+    if (Math.abs(b - a) <= 2e-10 * toleranceScale) break;
   }
   const root = a + (b - a) / 2;
-  if (Math.abs(b - a) > 2e-10 * Math.max(1, Math.abs(root))) return NaN;
+  const toleranceScale = parameter.kind === "cor" ? Math.max(1, Math.abs(root)) : Math.max(scale, Math.abs(root));
+  if (Math.abs(b - a) > 2e-10 * toleranceScale) return NaN;
   return root;
 }
 
@@ -355,6 +367,7 @@ function profileIntervals(
   evaluate: (values: readonly number[], target: number, targetValue: number) => number,
   selected: readonly number[],
   level: number,
+  parameterScales: readonly number[],
   cache: IntervalCache,
   warnings: string[],
 ): { lower: number[]; upper: number[] } {
@@ -386,8 +399,9 @@ function profileIntervals(
       continue;
     }
     const cutoff = dHat + z * z;
-    const lo = profileLimit(estimate, parameter, cutoff, -1, profile);
-    const hi = profileLimit(estimate, parameter, cutoff, 1, profile);
+    const scale = parameterScales[index]!;
+    const lo = profileLimit(estimate, parameter, cutoff, -1, scale, profile);
+    const hi = profileLimit(estimate, parameter, cutoff, 1, scale, profile);
     lower[index] = lo;
     upper[index] = hi;
     cache.set(index, [lo, hi]);
@@ -484,8 +498,15 @@ function confintLmerImpl(fit: LmerResult, options: MixedConfintOptions): MixedCo
   lmerCache.set(fit, byLevel);
   const cache = byLevel.get(level) ?? new Map<number, [number, number]>();
   byLevel.set(level, cache);
+  const residualScale = profileSet.parameters.find((p) => p.kind === "sigma")?.value ?? 1;
+  const parameterScales = profileSet.parameters.map((p) => {
+    if (p.kind === "beta") return profileFit.coefTable.stdError[p.beta!]!;
+    if (p.kind === "sd") return p.value > 0 ? p.value : residualScale;
+    if (p.kind === "sigma") return p.value;
+    return 1;
+  });
   const profile = (): { lower: number[]; upper: number[] } =>
-    profileIntervals("lmer", profileSet.parameters, evaluate, selected, level, cache, warnings);
+    profileIntervals("lmer", profileSet.parameters, evaluate, selected, level, parameterScales, cache, warnings);
   const standardErrors = set.parameters.map((p) => (p.kind === "beta" ? fit.coefTable.stdError[p.beta!]! : NaN));
   const result = finish(set.parameters, names, selected, level, method, profile, standardErrors, warnings);
   reportWarnings("confintLmer", result.warnings);
@@ -527,8 +548,13 @@ export function confintGlmer(fit: GlmerResult, options: MixedConfintOptions = {}
     if (targetParameter.kind === "beta") beta[targetParameter.beta!] = targetValue;
     return glmerDeviance(s, theta, beta, 1).deviance;
   };
+  const parameterScales = set.parameters.map((p) => {
+    if (p.kind === "beta") return fit.coefTable.stdError[p.beta!]!;
+    if (p.kind === "sd") return p.value > 0 ? p.value : 1;
+    return 1;
+  });
   const profile = (): { lower: number[]; upper: number[] } =>
-    profileIntervals("glmer", set.parameters, evaluate, selected, level, new Map(), warnings);
+    profileIntervals("glmer", set.parameters, evaluate, selected, level, parameterScales, new Map(), warnings);
   const standardErrors = set.parameters.map((p) => (p.kind === "beta" ? fit.coefTable.stdError[p.beta!]! : NaN));
   const result = finish(set.parameters, names, selected, level, method, profile, standardErrors, warnings);
   reportWarnings("confintGlmer", result.warnings);
