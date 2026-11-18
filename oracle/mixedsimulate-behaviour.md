@@ -210,6 +210,14 @@ Decided by the user on 2026-11-17.
    values exactly, continuous values to the last bits the existing `rnorm`/`rgamma` give) and the RNG state after
    the call equals R's `.Random.seed`. `seed` restores nothing afterwards unless R does so (follow the oracle).
 4. **Conflicting options.** Specifying both `useU` and `reForm` throws R's error before any random number is drawn.
+5. **Partial `reForm` (decided by the user on 2026-11-18).** A term that `reForm` names whole is held at its fitted
+   conditional modes and draws nothing. Every other term draws new effects from its own covariance factor (its own
+   `theta` block); when `reForm` names only some columns of a term (`~(1 | Subject)` for `(Days | Subject)`), the
+   whole term is drawn new and the fitted values of the named columns are added, as R does. lme4 2.0-6 scales an
+   unselected term that is not the first one by the preceding term's `theta` (see "Known difference from lme4");
+   rStats.js does not follow it. The random effects are drawn in R's number and order, so the stream before the
+   response draws is R's; a family whose response draws use a variable number of uniforms (poisson) can then
+   consume a different number than R, because the means differ.
 
 ### Known difference from lme4
 
