@@ -267,3 +267,35 @@ describe("confintLmer and confintGlmer", () => {
     });
   }
 });
+
+
+describe("confintLmer profile scale invariance", () => {
+  it("scales sleepstudy intervals with the response while leaving correlations unchanged", () => {
+    const c = fixture.cases.find((item) => item.id === "sleepstudy-profile-default")!;
+    const formula = c.fit.formula as string;
+    const baseData = mixedData(c.fit.data, formula);
+    const fitAtScale = (k: number) => {
+      const data: DataFrame = {
+        ...baseData,
+        Reaction: (baseData.Reaction as number[]).map((value) => value * k),
+      };
+      return lmer(formula, data, { REML: false });
+    };
+    const reference = confintLmer(fitAtScale(1), { method: "profile" });
+    for (const k of [1e100, 1e-100]) {
+      const scaled = confintLmer(fitAtScale(k), { method: "profile" });
+      expect(scaled.names).toEqual(reference.names);
+      for (let i = 0; i < reference.names.length; i++) {
+        const isCorrelation = reference.names[i] === ".sig03";
+        const factor = isCorrelation ? 1 : k;
+        for (const [actual, expected] of [
+          [scaled.lower[i]!, reference.lower[i]! * factor],
+          [scaled.upper[i]!, reference.upper[i]! * factor],
+        ]) {
+          expect(Number.isFinite(actual)).toBe(true);
+          expect(Math.abs(actual / expected - 1)).toBeLessThanOrEqual(1e-8);
+        }
+      }
+    }
+  }, 120_000);
+});
