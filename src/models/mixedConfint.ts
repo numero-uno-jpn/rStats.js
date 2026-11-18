@@ -284,15 +284,16 @@ function profileLimit(
   // bracket in signed likelihood-root (ζ) space instead. Near the maximum, ζ is locally
   // proportional to the parameter; a well-resolved point avoids subtracting nearly equal deviances.
   if (Number.isFinite(dHat) && targetDelta >= 0 && targetDelta < resolution) {
+    const resolvedDelta = Math.max(100 * resolution, 1e-4);
     let step = parameter.kind === "cor"
-      ? Math.max(Math.abs(estimate) * 0.2, 0.05)
-      : scale * (parameter.kind === "beta" ? 0.5 : 0.5);
+      ? Math.max(Math.abs(estimate) * 0.05, 0.01)
+      : scale * 0.05;
     let candidate = estimate + direction * step;
     for (let i = 0; i < 40; i++) {
       if (boundary !== undefined) candidate = direction < 0 ? Math.max(boundary, candidate) : Math.min(boundary, candidate);
       if (candidate === estimate) return boundary !== undefined ? boundary : NaN;
       const delta = profile(candidate) - dHat;
-      if (Number.isFinite(delta) && delta >= 0.25) {
+      if (Number.isFinite(delta) && delta >= resolvedDelta) {
         const root = Math.sqrt(delta);
         const endpoint = estimate + direction * (Math.abs(candidate - estimate) * Math.sqrt(targetDelta) / root);
         if (boundary !== undefined) return direction < 0 ? Math.max(boundary, endpoint) : Math.min(boundary, endpoint);
