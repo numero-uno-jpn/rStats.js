@@ -115,6 +115,8 @@ function correlationCholesky(correlation: number[][]): number[][] {
  * Use the oracle's public fitted quantities when testing simulation. The lmer/glmer optimisers are independent and
  * intentionally need not stop at identical last bits; the simulator itself is checked with exactly the R fit's
  * fixed effects, covariance parameters, conditional modes, and dispersion.
+ * Poisson sampling can consume a mu-dependent number of uniforms; a different theta changes mu and therefore
+ * the post-response RNG state even when the preceding random-effect draws match.
  */
 function applyReferenceFit(
   c: SimCase,
@@ -218,7 +220,6 @@ function callOptions(args: Record<string, unknown>): MixedSimulateOptions {
 }
 
 function structureSize(fit: ReturnType<typeof glmer>, row: number): number { return glmerInternals(fit).structure.size![row]!; }
-
 function stateOf(raw: string[] | null): Int32Array | null {
   return raw === null ? null : Int32Array.from(raw, (v) => Number(v));
 }
@@ -352,7 +353,7 @@ for (let ci = 0; ci < fixture.cases.length; ci++) {
     for (let k = 0; k < c.calls.length; k++) {
       const call = c.calls[k]!;
       const knownPartialLabel = (c.id === "glmer-binomial" && k === 7) || (c.id === "glmer-poisson" && k === 6) || (c.id === "glmer-gamma" && k === 6);
-      it("call " + (k + 1) + (knownPartialLabel ? " — known difference from lme4 2.0-6: unsere.form use the preceding term's theta inlme4" : ""), () => {
+      it("call " + (k + 1) + (knownPartialLabel ? " — known difference from lme4 2.0-6: unselected terms of a partial re.form use the preceding term's theta in lme4" : ""), () => {
         const { fit, kind } = prepared;
         applyReferenceFit(c, fit, kind);
         const where = `case ${ci + 1} (${c.id}) call ${k + 1}`;
@@ -437,12 +438,16 @@ for (let ci = 0; ci < fixture.cases.length; ci++) {
           }
         }
         if (call.result.warnings.length !== 0 && c.id !== "glmer-inverse-gaussian") {
-          mismatches.push(`${where}: unexpected R warnings ${JSON.stringify(call.result.warnings)}`);
-        }
-        try {
-          expectState(call.rngAfter);
-        } catch (e) {
-          mismatches.push(`${where}: ${(e as Error).message}`);
+          mismatches.push(`${where}: unexpected R warnings ${JSON.stringify(call.result.warnings)}`);        }
+        // For the known partial-re.form differences, response RNG consumption may differ because mu differs.
+        // The independent reconstruction above checks the complete post-call state; the R post-call state is
+        // intentionally not compared for these cases. The fixture has no pre-response RNG checkpoint.
+        if (!knownPartialGlmer) {
+          try {
+            expectState(call.rngAfter);
+          } catch (e) {
+            mismatches.push(`${where}: ${(e as Error).message}`);
+          }
         }
         expect(mismatches).toEqual([]);
       });
