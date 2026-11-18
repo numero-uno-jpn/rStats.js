@@ -1,6 +1,6 @@
 # 引継ぎ: rStats.js (外部レビュー対応 2026-10-30〜11-04、1.0.0 への準備 11-04〜)
 
-最終更新: 2026-11-18 (セッション 23、Mac mini: 混合モデルの続き (1.6.0) を ChatGPT に外注中。Issue #535、PR #537)。以前: 2026-11-17 (セッション 22、1.5.0 を公開)。その前: 2026-11-16 (セッション 21、Mac mini: 1.4.0 を公開、同時刻の Gray の検定を ChatGPT がクリーンルームで修正 (1.4.1 に入る、未公開)、外注用の R の実験の仕組みを作った。次は ROADMAP の 1 番)
+最終更新: 2026-11-19 (セッション 23、Mac mini: 1.6.0 を公開 (混合モデルの confint と simulate)。次の作業は未定)。以前: 2026-11-17 (セッション 22、1.5.0 を公開)。その前: 2026-11-16 (セッション 21、Mac mini: 1.4.0 を公開、同時刻の Gray の検定を ChatGPT がクリーンルームで修正 (1.4.1 に入る、未公開)、外注用の R の実験の仕組みを作った。次は ROADMAP の 1 番)
 
 ## まず読むこと (セッション 16 から)
 
@@ -87,7 +87,35 @@
 
 ## セッション 23 の記録 (2026-11-17〜18、Mac mini): 混合モデルの confint と simulate (1.6.0、作業中)
 
-### 状態 (2026-11-18)
+### 1.6.0 を公開した (2026-11-19)
+
+- npm latest = **1.6.0** (stage id `7ee53283-...` をユーザーが `npm stage approve` で承認)。tag `v1.6.0` = `a37b38a2`
+  (release がビルドの結果入りに付け替えた)、main = `34a9908f`。確かめたもの: jsDelivr (npm と gh の `dist/rstats.js`・
+  `dist/mixed.js`)、デモ (VERSION v1.6.0)、`/api/` と `/ja/api/` の新しい関数のページ (日本語の訳が出る)
+- 中身: PR #537 (実装)、PR #539 (文書・デモ・日本語の API)。Issue #535・#538・#522 (1.4.0 の閉じ忘れ) は閉じた。
+  開いている Issue はない
+- **次の作業は未定。** ROADMAP の Remaining は「その後 (順不同)」の一覧だけ。ユーザーと決める
+- **消してよいか未確認のブランチ:** `work/mixed` (実験のスクリプト入り)、`work/mixed-pr`、`work/mixed-stage2-pr`、
+  `release/1.6.0-docs` (取り込み済み)、前からの `work/samplesize`・`work/samplesize-pr`。消す前にユーザーに確認する
+- release.yml の `npm test` が `dsignrank(302775, 1100)` の時間 (1086 ms) で落ちた。`gh run rerun <id> --failed` で通った
+
+### 1.6.0 で分かったこと
+
+- **ChatGPT の R の実験は遅い** (Actions の待ちが長く、R 自身の不具合の原因を追い始める)。段階 3 と端の点検は私が手元で
+  行った: 公開の関数だけの R のスクリプトを `scripts/r-experiment-check.mjs` に通し、`rstats-oracle-amd64:4.6.2` で
+  流して JSON に書き、`npm run build` の `dist/mixed.js` を読む普通の JS で比べる (`npx -y tsx` は自動の許可で止められる)。
+  ChatGPT には R の要らないコードの直しだけを頼むと速い
+- **ChatGPT の誤り (今回も):** oracle で指定しない引数を `NULL` で明示的に渡す (`use.u` だけのつもりが `re.form = NULL`
+  も渡り、R がエラー)、`demo/examples.json` の整形し直し、テストの型エラー・`describe` の中の `await`、REML の推定値を
+  profile の中心と思い込むテスト
+- **lme4 2.0-6 の不具合:** 部分的な `re.form` で、選ばれなかった先頭以外の項に 1 つ前の項の θ を使う。rStats.js は各項
+  自身の θ (ユーザーの決定)。`docs/differences-from-r.md` の「Mixed models: confint and simulate」
+- **R より正しい所 (ユーザーの方針「あえてエラーにする理由がなければ統計学的に正しい値」):** 尺度 1e±100 の profile、
+  Gamma の profile (R は断る)、Gamma の当てはめ (対数尤度が R より大きい)、1e12 の offset
+- **独立の検算:** profile の端は、パラメータを `offset` で固定した当て直しの `logLik` から $\zeta$ を計算して確かめられる
+  (公開の関数だけ)
+
+### 状態 (2026-11-18、記録)
 
 - Issue #535、PR #537 (`work/mixed-pr`、実装)。R の実験は `work/mixed`。PR #536 は閉じた。現状の要約は
   `work/mixed-pr` の `briefs/mixed-1.6-status.ja.md` (ChatGPT の新しい会話の入口)、指示書は main の
