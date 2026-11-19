@@ -191,8 +191,8 @@ describe("nonlinear least-squares regression", () => {
           const actual = conf.values[0]!;
           const lower = expected.values[0]![0]!;
           const upper = expected.values[1]![0]!;
-          if (Math.abs(actual[0] - lower) > 2e-5 * Math.max(1, Math.abs(lower))) mismatches.push(`${cs.id} ${level} lower`);
-          if (Math.abs(actual[1] - upper) > 2e-5 * Math.max(1, Math.abs(upper))) mismatches.push(`${cs.id} ${level} upper`);
+          if (Math.abs(actual[0] - lower) > 2e-5 * Math.max(1, Math.abs(lower))) mismatches.push(`${cs.id} ${level} lower ${actual[0]} vs ${lower}`);
+          if (Math.abs(actual[1] - upper) > 2e-5 * Math.max(1, Math.abs(upper))) mismatches.push(`${cs.id} ${level} upper ${actual[1]} vs ${upper}`);
         } else {
           for (let i = 0; i < expected.values.length; i++) {
             for (let j = 0; j < 2; j++) {
