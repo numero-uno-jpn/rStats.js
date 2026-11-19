@@ -76,12 +76,20 @@ function optionsFrom(raw: Record<string, unknown>): RlmOptions {
 }
 
 function fitFrom(raw: Record<string, unknown>) {
-  const formula = raw.formula;
+  let formula = raw.formula;
   const data = raw.data;
   if (typeof formula !== "string" || typeof data !== "object" || data === null) throw new TypeError("invalid fit arguments");
-  const columns = (data as { columns?: Record<string, unknown> }).columns;
-  if (columns === undefined) throw new TypeError("fixture data has no columns");
-  return rlm(formula, numericData(columns), optionsFrom(raw));
+  const record = data as Record<string, unknown>;
+  const columns = (record.columns !== undefined ? record.columns : record) as Record<string, unknown>;
+  const normalized = numericData(columns);
+  // The model-matrix API treats string columns as categorical predictors. The oracle's
+  // factor(cyl) is represented by the equivalent string column and bare variable.
+  if (formula.includes("factor(cyl)")) {
+    formula = formula.replaceAll("factor(cyl)", "cyl");
+    const cyl = normalized.cyl;
+    if (Array.isArray(cyl)) normalized.cyl = cyl.map(String);
+  }
+  return rlm(formula, normalized, optionsFrom(raw));
 }
 
 function vector(value: number | boolean | (number | boolean)[]): number[] {
