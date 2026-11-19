@@ -442,25 +442,72 @@ const confidenceCalls: ConfidenceCall[] = fixture.cases.flatMap((fixtureCase) =>
     .map((call, index) => ({ fixtureCase, call, index })),
 );
 
-/** Independently refit the reduced model with the fixed slope represented as an offset. */
+type ExpandedPolrData = { data: DataFrame; formula: string; columns: string[] };
+
+/** Expand factor predictors to treatment-coded numeric columns, preserving fitted row order. */
+function expandPolrFactors(fit: PolrResult, data: DataFrame): ExpandedPolrData {
+  const model = fit.model;
+  const expanded: DataFrame = {};
+  for (const [name, column] of Object.entries(data)) {
+    expanded[name] = model.rows.map((row) => column[row] ?? null);
+  }
+  const columns: string[] = [];
+  for (const predictor of model.predictorVariables) {
+    const levels = model.factorLevels[predictor];
+    const source = data[predictor];
+    if (source === undefined) throw new Error(`missing predictor column: ${predictor}`);
+    if (levels === undefined) {
+      columns.push(predictor);
+      continue;
+    }
+    for (const level of levels.slice(1)) {
+      const name = predictor + level;
+      columns.push(name);
+      expanded[name] = model.rows.map((row) => String(source[row]) === level ? 1 : 0);
+    }
+  }
+  if (columns.length !== model.columnNames.length
+    || columns.some((name, index) => name !== model.columnNames[index])) {
+    throw new Error(`expanded treatment columns do not match fitted coefficients: ${columns.join(", ")}`);
+  }
+  return {
+    data: expanded,
+    formula: `${model.response} ~ ${columns.length === 0 ? "1" : columns.join(" + ")}`,
+    columns,
+  };
+}
+
+const expandedPolrVerified = new WeakSet<PolrResult>();
+
+/** Independently refit the numeric reduced model with the fixed slope represented as an offset. */
 function independentProfileAt(
   fit: PolrResult, data: DataFrame, fixedIndex: number, fixedValue: number,
 ): number {
   const model = fit.model;
-  const fixedTerm = model.columnNames[fixedIndex];
-  if (fixedTerm === undefined || !model.predictorVariables.includes(fixedTerm)) {
-    throw new Error(`profile verification cannot map coefficient to predictor: ${String(fixedTerm)}`);
+  const expanded = expandPolrFactors(fit, data);
+  const options: PolrOptions = {
+    method: model.method,
+    weights: model.weights,
+    levels: { [model.response]: model.responseLevels },
+  };
+  if (!expandedPolrVerified.has(fit)) {
+    const full = polr(expanded.formula, expanded.data, options);
+    closeAbsolute(full.deviance, fit.deviance, 1e-8 * Math.max(1, fit.nobs),
+      `${model.formula} factor expansion preserves deviance`);
+    expandedPolrVerified.add(fit);
   }
-  const remainingTerms = model.predictorVariables.filter((term) => term !== fixedTerm);
-  const formula = `${model.response} ~ ${remainingTerms.length === 0 ? "1" : remainingTerms.join(" + ")}`;
-  const rawColumn = data[fixedTerm];
-  if (rawColumn === undefined) throw new Error(`missing predictor column for profile offset: ${fixedTerm}`);
-  const offset = Array.from(rawColumn, (value) => fixedValue * Number(value));
-  const reduced = polr(formula, data, {
+  const fixedTerm = expanded.columns[fixedIndex];
+  if (fixedTerm === undefined) throw new Error(`missing expanded coefficient column: ${fixedIndex}`);
+  const rawColumn = expanded.data[fixedTerm];
+  if (rawColumn === undefined) throw new Error(`missing expanded predictor column: ${fixedTerm}`);
+  const offset = rawColumn.map((value) => fixedValue * Number(value));
+  const remaining = expanded.columns.filter((_, index) => index !== fixedIndex);
+  const formula = `${model.response} ~ ${remaining.length === 0 ? "1" : remaining.join(" + ")}`;
+  const reduced = polr(formula, expanded.data, {
     method: model.method,
     weights: model.weights,
     offset,
-    levels: { ...model.factorLevels, [model.response]: model.responseLevels },
+    levels: { [model.response]: model.responseLevels },
   });
   return reduced.deviance;
 }
