@@ -573,3 +573,15 @@ describe("majority-exact robust regression", () => {
     }
   });
 });
+
+
+describe("deterministic robust-start search budget", () => {
+  it("examines all 4,950 two-row subsets for n=100 and p=2", () => {
+    const x = Array.from({ length: 100 }, (_, i) => (i - 49.5) / 10);
+    const y = x.map((value, i) => 1 + 2 * value + 0.3 * Math.sin(i * 1.3));
+    const fit = rlm("y ~ x", { x, y }, { method: "MM" });
+    expect(fit.initialization?.candidatesEvaluated).toBe(4950);
+    expect(fit.initialization?.candidateCount).toBe("4950");
+    expect(fit.initialization?.exhaustive).toBe(true);
+  });
+});
