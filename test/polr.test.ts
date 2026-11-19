@@ -567,7 +567,7 @@ describe("polrConfint: all profile and Wald fixtures", () => {
             closeAbsolute(actualValue, tightEndpoint, seTolerance,
               `${fixtureCase.id} fitTight Wald endpoint ${rowName} [${j}]`);
 
-            const defaultRow = expected.summary.rows.indexOf(rowName);
+            const defaultRow = defaultFit.summary.rows.indexOf(rowName);
             const defaultEstimate = numeric(defaultFit.summary.values[defaultRow]![valueColumn]);
             const defaultSe = numeric(defaultFit.summary.values[defaultRow]![seColumn]);
             const defaultEndpoint = defaultEstimate + (j === 0 ? -1 : 1) * z * defaultSe;
