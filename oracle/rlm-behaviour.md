@@ -157,7 +157,7 @@ The default `scale.est = "MAD"` is a normal-consistent median absolute deviation
 
 $$
 s_{\mathrm{MAD}}=
-\frac{\operatorname{median}_i |r_i|}{0.6745}.
+\frac{\operatorname{median}_i |r_i|}{0.6745}. The rounded constant is intentional: the recorded reference fixture scales agree with this definition to the stored precision, including the weighted-median case.
 $$
 
 For weighted observations, the median is interpreted with the relevant observation weights. The scale is recomputed from the current residuals during M fitting.
