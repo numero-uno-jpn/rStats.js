@@ -5,6 +5,7 @@ import {
   __polrDerivativesForTest,
   polr,
   polrPredict,
+  polrConfint,
   polrSummary,
   polrVcov,
   type PolrMethod,
@@ -13,6 +14,9 @@ import {
 } from "../src/models/polr.js";
 import type { DataFrame } from "../src/models/modelFrame.js";
 import { design } from "../src/models/modelMatrix.js";
+import { optim } from "../src/optim/optim.js";
+import { chol, chol2inv } from "../src/linalg/chol.js";
+import { qnorm } from "../src/distributions/normal.js";
 
 type Raw = Record<string, unknown>;
 type PublicFit = {
@@ -32,7 +36,7 @@ type FitSpec = {
 type RawNewData = { rowNames?: string[]; columns: Record<string, unknown> };
 type FixtureCall = {
   operation: string;
-  args?: { newdata?: RawNewData; type?: "class" | "probs" };
+  args?: { newdata?: RawNewData; type?: "class" | "probs"; level?: string; parm?: string | number };
   result: { value?: unknown; error?: string };
 };
 type FixtureCase = {
@@ -427,5 +431,186 @@ describe("polrPredict: missing rows", () => {
     expect(probs.values[1]).toEqual([null, null, null]);
     expect(probs.values[0]).not.toBeNull();
     expect(probs.values[2]).not.toBeNull();
+  });
+});
+
+
+type ConfidenceFixtureValue = { rows: string[] | null; cols: string[]; values: unknown[][] };
+type ConfidenceCall = { fixtureCase: FixtureCase; call: FixtureCall; index: number };
+
+const confidenceCalls: ConfidenceCall[] = fixture.cases.flatMap((fixtureCase) =>
+  (fixtureCase.calls ?? [])
+    .filter((call) => call.operation === "profile-ci" || call.operation === "wald-ci")
+    .map((call, index) => ({ fixtureCase, call, index })),
+);
+
+/** Independent constrained refit: fix one slope, optimise every other slope and all cut-points. */
+function independentProfileNll(fit: PolrResult, fixedIndex: number, fixedValue: number): number {
+  const model = fit.model;
+  const fullStart = Array.from(model.theta);
+  fullStart[fixedIndex] = fixedValue;
+  const free = fullStart.map((_, i) => i).filter((i) => i !== fixedIndex);
+  const full = (point: number[]): number[] => {
+    const theta = Array.from(fullStart);
+    free.forEach((index, j) => { theta[index] = point[j]!; });
+    return theta;
+  };
+  const evaluate = (point: number[]) => {
+    const d = __polrDerivativesForTest(
+      model.x, model.y, model.weights, model.offset, model.responseLevels.length, model.method, full(point),
+    );
+    return {
+      value: d.value,
+      gradient: free.map((i) => d.gradient[i]!),
+      hessian: free.map((i) => free.map((j) => d.hessian[i]![j]!)),
+    };
+  };
+  const start = free.map((i) => fullStart[i]!);
+  const first = optim(start, (point) => evaluate(point).value, {
+    method: "BFGS",
+    gr: (point) => evaluate(point).gradient,
+    control: { maxit: 2000, reltol: 1e-14 },
+  });
+  let point = first.par;
+  let current = evaluate(point);
+  for (let iteration = 0; iteration < 30; iteration++) {
+    const score = Math.max(0, ...current.gradient.map(Math.abs));
+    if (score <= 1e-10 * Math.max(1, fit.nobs)) break;
+    let inverse: number[][];
+    try {
+      inverse = chol2inv(chol(current.hessian));
+    } catch {
+      break;
+    }
+    const direction = inverse.map((row) => -row.reduce((sum, value, j) => sum + value * current.gradient[j]!, 0));
+    const slope = direction.reduce((sum, value, j) => sum + value * current.gradient[j]!, 0);
+    if (!(slope < 0)) break;
+    let step = 1;
+    let accepted = false;
+    for (let backtrack = 0; backtrack < 50; backtrack++, step *= 0.5) {
+      const candidate = point.map((value, j) => value + step * direction[j]!);
+      const trial = evaluate(candidate);
+      if (Number.isFinite(trial.value) && trial.value <= current.value + 1e-4 * step * slope) {
+        point = candidate;
+        current = trial;
+        accepted = true;
+        break;
+      }
+    }
+    if (!accepted) break;
+  }
+  return current.value;
+}
+
+function independentProfileEndpoint(fit: PolrResult, parameterIndex: number, target: number): number {
+  const estimate = Object.values(fit.coefficients)[parameterIndex]!;
+  const covariance = polrVcov(fit).values;
+  const se = Math.sqrt(covariance[parameterIndex]![parameterIndex]!);
+  const centre = -fit.logLik;
+  const root = (value: number): number => {
+    const deviance = Math.max(0, 2 * (independentProfileNll(fit, parameterIndex, value) - centre));
+    return Math.sign(value - estimate) * Math.sqrt(deviance);
+  };
+  let inside = estimate;
+  let outside = estimate + Math.sign(target) * Math.max(se, 1e-6);
+  let value = root(outside);
+  for (let i = 0; i < 60 && !(Number.isFinite(value) && (target < 0 ? value <= target : value >= target)); i++) {
+    outside = estimate + 2 * (outside - estimate);
+    value = root(outside);
+  }
+  if (!Number.isFinite(value) || (target < 0 ? value > target : value < target)) return NaN;
+  let low = Math.min(inside, outside);
+  let high = Math.max(inside, outside);
+  for (let i = 0; i < 100; i++) {
+    const mid = low + (high - low) / 2;
+    if (mid === low || mid === high) return mid;
+    const r = root(mid);
+    if (!Number.isFinite(r)) return NaN;
+    if (target < 0 ? r > target : r < target) {
+      if (target < 0) high = mid;
+      else low = mid;
+    } else {
+      if (target < 0) low = mid;
+      else high = mid;
+    }
+    if (high - low <= 2e-12 * Math.max(1, Math.abs(mid))) return low + (high - low) / 2;
+  }
+  return low + (high - low) / 2;
+}
+
+describe("polrConfint: all profile and Wald fixtures", () => {
+  for (const { fixtureCase, call, index } of confidenceCalls) {
+    it(`${fixtureCase.id} ${call.operation} #${index + 1} matches every fixture cell`, () => {
+      const expected = call.result.value as ConfidenceFixtureValue;
+      const level = call.args?.level === undefined ? 0.95 : numeric(call.args.level);
+      const method = call.operation === "wald-ci" ? "wald" : "profile";
+      const parm = call.args?.parm;
+      const { fit } = fitCase(fixtureCase.id);
+      const actual = polrConfint(fit, {
+        method,
+        level,
+        ...(parm === undefined ? {} : { parm }),
+      });
+      if (fixtureCase.id === "mtcars-cauchit") {
+        // choices 12: MASS's cauchit fit is not the standard Cauchy cumulative-link model.
+        // Its profile and Wald values are deliberately not used as references.
+        if (method === "wald") return;
+        const z = qnorm(1 - (1 - level) / 2) as number;
+        for (let i = 0; i < actual.rows.length; i++) {
+          const lower = independentProfileEndpoint(fit, Object.keys(fit.coefficients).indexOf(actual.rows[i]!), -z);
+          const upper = independentProfileEndpoint(fit, Object.keys(fit.coefficients).indexOf(actual.rows[i]!), z);
+          closeAbsolute(actual.values[i]![0]!, lower, 2e-9, `choices 12 cauchit independent lower ${actual.rows[i]}`);
+          closeAbsolute(actual.values[i]![1]!, upper, 2e-9, `choices 12 cauchit independent upper ${actual.rows[i]}`);
+        }
+        return;
+      }
+      expect(actual.rows).toEqual(expected.rows ?? []);
+      expect(actual.columns).toEqual(expected.cols);
+      expect(actual.values).toHaveLength(expected.values.length);
+      const z = qnorm(1 - (1 - level) / 2) as number;
+      for (let i = 0; i < expected.values.length; i++) {
+        expect(actual.values[i]).toHaveLength(expected.values[i]!.length);
+        for (let j = 0; j < expected.values[i]!.length; j++) {
+          const target = numeric(expected.values[i]![j]);
+          const actualValue = actual.values[i]![j]!;
+          if (method === "profile") {
+            const parameterIndex = Object.keys(fit.coefficients).indexOf(actual.rows[i]!);
+            const independent = independentProfileEndpoint(fit, parameterIndex, j === 0 ? -z : z);
+            // The independent constrained refit and bisection define the target to near machine precision.
+            closeAbsolute(actualValue, independent, 2e-9, `${fixtureCase.id} independent profile root ${actual.rows[i]} [${j}]`);
+            // MASS's profile search stops/interpolates on its own finite profile trace; this 1e-3 allowance
+            // covers that endpoint-location resolution and the small displacement of its default fit.
+            closeAbsolute(actualValue, target, 1e-3, `${fixtureCase.id} R profile endpoint ${actual.rows[i]} [${j}]`);
+          } else {
+            // MASS's covariance uses a numerical Hessian; the analytic observed information differs slightly.
+            closeAbsolute(actualValue, target, 2e-5, `${fixtureCase.id} R Wald endpoint ${actual.rows[i]} [${j}]`);
+          }
+        }
+      }
+    });
+  }
+});
+
+describe("polrConfint: parameter selection and empty slope sets", () => {
+  it("accepts slope names and 1-based positions", () => {
+    const { fit } = fitCase("housing-logistic");
+    const byName = polrConfint(fit, { method: "wald", parm: "InflMedium" });
+    const byPosition = polrConfint(fit, { method: "wald", parm: 1 });
+    expect(byName.rows).toEqual(["InflMedium"]);
+    expect(byName.values).toEqual(byPosition.values);
+  });
+
+  it("returns an empty table for an intercept-only fit", () => {
+    const { fit } = fitCase("mtcars-intercept-only");
+    const result = polrConfint(fit, { level: 0.9 });
+    expect(result.rows).toEqual([]);
+    expect(result.columns).toEqual(["5 %", "95 %"]);
+    expect(result.values).toEqual([]);
+  });
+
+  it("rejects cut-points and invalid confidence levels", () => {
+    const { fit } = fitCase("housing-logistic");
+    expect(() => polrConfint(fit, { parm: "Low|Medium" })).toThrow("unknown slope parameter");
+    expect(() => polrConfint(fit, { level: 1 })).toThrow("'level' must be between 0 and 1");
   });
 });
