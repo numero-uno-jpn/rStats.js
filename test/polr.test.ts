@@ -260,6 +260,28 @@ function predictionStoppingTolerance(
   return 0.8 * (etaDisplacement + cutDisplacement) + 1e-12;
 }
 
+function tightPredictionTolerance(
+  fit: PolrResult, tight: PublicFit, data: DataFrame, row: number,
+): number {
+  const designOptions: Parameters<typeof design>[2] = {
+    levels: fit.model.factorLevels,
+    contrasts: fit.model.contrasts,
+  };
+  if (fit.model.offsetColumn !== undefined) designOptions.extraVariables = [fit.model.offsetColumn];
+  const d = design({ response: undefined, rhs: fit.model.rhs }, data, designOptions);
+  const used = d.frame.rows.indexOf(row);
+  if (used < 0) return 1e-12;
+  const first = d.terms.intercept ? 1 : 0;
+  const x = d.x[used]!.slice(first);
+  const betaDisplacement = fit.model.columnNames.reduce((sum, name, j) =>
+    sum + Math.abs(fit.coefficients[name]! - numeric(tight.coefficients[name])) * Math.abs(x[j]!), 0,
+  );
+  const cutDisplacement = Object.keys(tight.zeta).reduce((largest, name) => Math.max(
+    largest, Math.abs(fit.zeta[name]! - numeric(tight.zeta[name])),
+  ), 0);
+  return 0.8 * (betaDisplacement + cutDisplacement) + 1e-12;
+}
+
 function prepareNewData(raw: RawNewData): { data: DataFrame; rowNames: string[] } {
   const data: DataFrame = {};
   for (const [name, column] of Object.entries(raw.columns)) {
@@ -301,6 +323,43 @@ describe("polrPredict: all prediction fixtures", () => {
       if (args.type === "probs") {
         if (Array.isArray(actual)) throw new Error("expected a probability matrix");
         const expectedPrediction = call.result.value as { rows: string[]; cols: string[]; values: unknown[][] };
+        if (fixtureCase.id === "mtcars-offset") {
+          const wt = data.wt;
+          const off = data.off;
+          if (wt === undefined || off === undefined) throw new Error("mtcars-offset prediction data is incomplete");
+          const tightBeta = numeric(tight.coefficients.wt);
+          const cut1 = numeric(tight.zeta["3|4"]);
+          const cut2 = numeric(tight.zeta["4|5"]);
+          const logistic = (value: number): number => 1 / (1 + Math.exp(-value));
+          const manual = wt.map((value, i) => {
+            const eta = tightBeta * Number(value) + Number(off[i]);
+            const lower = logistic(cut1 - eta);
+            const upper = logistic(cut2 - eta);
+            return [lower, upper - lower, 1 - upper];
+          });
+          expect(actual.rows).toEqual(["1", "2"]);
+          expect(actual.columns).toEqual(["3", "4", "5"]);
+          for (let i = 0; i < manual.length; i++) {
+            for (let j = 0; j < 3; j++) {
+              closeAbsolute(actual.values[i]![j]!, manual[i]![j]!,
+                tightPredictionTolerance(fit, tight, data, i), `choices 13: mtcars-offset hand probability [${i},${j}]`);
+            }
+          }
+
+          const zeroOffsetData: DataFrame = { ...data, off: off.map(() => 0) };
+          const zeroOffset = polrPredict(fit, { newdata: zeroOffsetData, rowNames, type: "probs" });
+          if (Array.isArray(zeroOffset)) throw new Error("expected zero-offset probability matrix");
+          expect(zeroOffset.rows).toEqual(expectedPrediction.rows);
+          expect(zeroOffset.columns).toEqual(expectedPrediction.cols);
+          for (let i = 0; i < expectedPrediction.values.length; i++) {
+            for (let j = 0; j < expectedPrediction.values[i]!.length; j++) {
+              closeAbsolute(zeroOffset.values[i]![j]!, expectedPrediction.values[i]![j]!,
+                predictionStoppingTolerance(fit, expected, tight, zeroOffsetData, i),
+                `choices 13: mtcars-offset zero offset vs R fixture [${i},${j}]`);
+            }
+          }
+          return;
+        }
         expect(actual.rows).toEqual(expectedPrediction.rows);
         expect(actual.columns).toEqual(expectedPrediction.cols);
         expect(actual.values).toHaveLength(expectedPrediction.values.length);
