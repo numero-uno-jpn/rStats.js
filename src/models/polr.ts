@@ -134,6 +134,32 @@ export interface PolrVcovResult {
 }
 
 /**
+ * Options for {@link polrConfint}.
+ *
+ * @category Regression
+ */
+export interface PolrConfintOptions {
+  /** Interval method. Default "profile". */
+  method?: "profile" | "wald";
+  /** Confidence level. Default 0.95. */
+  level?: number;
+  /** Slope names or 1-based slope positions. Omitted means all slopes. */
+  parm?: string | number | readonly (string | number)[];
+}
+
+/**
+ * Confidence intervals for ordinal-regression slopes.
+ *
+ * @category Regression
+ */
+export interface PolrConfintResult {
+  rows: string[];
+  columns: string[];
+  values: number[][];
+  warnings: string[];
+}
+
+/**
  * Options for {@link polrPredict}.
  *
  * @category Regression
@@ -735,4 +761,153 @@ export function polrVcov(fit: PolrResult): PolrVcovResult {
   if (covariance === undefined) throw new TypeError("fit was not created by polr");
   const names = [...Object.keys(fit.coefficients), ...Object.keys(fit.zeta)];
   return reported("polrVcov", { rows: names, columns: names, values: covariance, warnings: fit.warnings }, fit);
+}
+
+
+const POLR_CONFINT_KEYS = ["method", "level", "parm"] as const;
+
+/** Indices of requested slopes, preserving the caller's order. */
+function confintParameterIndices(names: readonly string[], parm: PolrConfintOptions["parm"]): number[] {
+  const requested = parm === undefined ? Array.from({ length: names.length }, (_, i) => i + 1)
+    : Array.isArray(parm) ? Array.from(parm) : [parm as string | number];
+  return requested.map((value) => {
+    if (typeof value === "number") {
+      if (!Number.isInteger(value) || value < 1 || value > names.length) {
+        throw new RangeError(`'parm' must identify a slope from 1 to ${names.length}`);
+      }
+      return value - 1;
+    }
+    const index = names.indexOf(value);
+    if (index < 0) throw new RangeError(`unknown slope parameter '${value}'`);
+    return index;
+  });
+}
+
+function profileNegativeLogLikelihood(
+  fit: PolrResult, fixedIndex: number, fixedValue: number,
+): number {
+  const model = fit.model;
+  const fullStart = Array.from(model.theta);
+  fullStart[fixedIndex] = fixedValue;
+  const freeIndices = fullStart.map((_, i) => i).filter((i) => i !== fixedIndex);
+  const toFull = (free: number[]): number[] => {
+    const full = Array.from(fullStart);
+    for (let i = 0; i < freeIndices.length; i++) full[freeIndices[i]!] = free[i]!;
+    return full;
+  };
+  const evaluate = (free: number[]): PolrDerivatives => {
+    const full = toFull(free);
+    const d = polrDerivatives(model.x, model.y, model.weights, model.offset,
+      model.responseLevels.length, model.method, full);
+    return {
+      value: d.value,
+      gradient: freeIndices.map((i) => d.gradient[i]!),
+      hessian: freeIndices.map((i) => freeIndices.map((j) => d.hessian[i]![j]!)),
+    };
+  };
+  const objective = (free: number[]): number => evaluate(free).value;
+  const start = freeIndices.map((i) => fullStart[i]!);
+  const optimised = optim(start, objective, {
+    method: "BFGS",
+    gr: (free) => evaluate(free).gradient,
+    control: { maxit: 2000, reltol: 1e-14 },
+  });
+  const scoreTolerance = 1e-10 * Math.max(1, model.weights.reduce((sum, w) => sum + w, 0));
+  const polished = newtonPolish(optimised.par, evaluate, scoreTolerance);
+  if (!Number.isFinite(polished.value)) return NaN;
+  return polished.value;
+}
+
+function profileEndpoint(
+  fit: PolrResult, parameterIndex: number, target: number, standardError: number,
+): number {
+  const estimate = Object.values(fit.coefficients)[parameterIndex]!;
+  const fixedIndex = parameterIndex;
+  const centre = -fit.logLik;
+  const signedRoot = (value: number): number => {
+    const profile = profileNegativeLogLikelihood(fit, fixedIndex, value);
+    if (!Number.isFinite(profile)) return NaN;
+    const deviance = Math.max(0, 2 * (profile - centre));
+    return Math.sign(value - estimate) * Math.sqrt(deviance);
+  };
+  let inside = estimate;
+  let outside = estimate + (target < 0 ? -1 : 1) * Math.max(standardError, 1e-6);
+  let outsideRoot = signedRoot(outside);
+  let bracketed = Number.isFinite(outsideRoot) && (target < 0 ? outsideRoot <= target : outsideRoot >= target);
+  for (let i = 0; i < 60 && !bracketed; i++) {
+    outside = estimate + 2 * (outside - estimate);
+    outsideRoot = signedRoot(outside);
+    bracketed = Number.isFinite(outsideRoot) && (target < 0 ? outsideRoot <= target : outsideRoot >= target);
+  }
+  if (!bracketed) return NaN;
+
+  let low = Math.min(inside, outside);
+  let high = Math.max(inside, outside);
+  for (let i = 0; i < 100; i++) {
+    const mid = low + (high - low) / 2;
+    if (mid === low || mid === high) return mid;
+    const root = signedRoot(mid);
+    if (!Number.isFinite(root)) return NaN;
+    if (target < 0 ? root > target : root < target) {
+      if (target < 0) high = mid;
+      else low = mid;
+    } else {
+      if (target < 0) low = mid;
+      else high = mid;
+    }
+    if (high - low <= 2e-12 * Math.max(1, Math.abs(mid))) return low + (high - low) / 2;
+  }
+  return low + (high - low) / 2;
+}
+
+/**
+ * Confidence intervals for the slope coefficients. Equivalent to R's `confint.polr()`.
+ *
+ * @param fit A fit returned by {@link polr}.
+ * @param options The interval method, confidence level and selected slope parameters.
+ * @returns A table of lower and upper confidence limits; cut-points are not included.
+ *
+ * @example
+ * ```ts
+ * const fit = polr("rating ~ dose", { rating: ["low", "medium", "high", "low", "medium", "high"], dose: [0, 1, 2, 0, 1, 2] });
+ * polrConfint(fit, { method: "wald", level: 0.95 });
+ * ```
+ *
+ * @category Regression
+ */
+export function polrConfint(fit: PolrResult, options: PolrConfintOptions = {}): PolrConfintResult {
+  checkOptions(options, POLR_CONFINT_KEYS, "polrConfint"); // generated: option-keys.mjs
+  const method = options.method ?? "profile";
+  if (method !== "profile" && method !== "wald") throw new RangeError(`unknown confidence-interval method '${String(method)}'`);
+  const level = options.level ?? 0.95;
+  if (!(level > 0 && level < 1) || !Number.isFinite(level)) {
+    throw new RangeError("'level' must be between 0 and 1");
+  }
+  const names = Object.keys(fit.coefficients);
+  const indices = confintParameterIndices(names, options.parm);
+  const alpha = (1 - level) / 2;
+  const lowerPercent = String(Number((100 * alpha).toPrecision(12)));
+  const upperPercent = String(Number((100 * (1 - alpha)).toPrecision(12)));
+  const columns = [`${lowerPercent} %`, `${upperPercent} %`];
+  const covariance = COVARIANCE.get(fit);
+  if (covariance === undefined) throw new TypeError("fit was not created by polr");
+  const z = qnorm(1 - alpha) as number;
+  const warnings: string[] = [];
+  const values = indices.map((index) => {
+    const estimate = Object.values(fit.coefficients)[index]!;
+    const se = Math.sqrt(covariance[index]![index]!);
+    if (method === "wald") return [estimate - z * se, estimate + z * se];
+    const lower = profileEndpoint(fit, index, -z, se);
+    const upper = profileEndpoint(fit, index, z, se);
+    if (!Number.isFinite(lower) || !Number.isFinite(upper)) {
+      warnings.push(`profile confidence limit could not be found for '${names[index]}'`);
+    }
+    return [lower, upper];
+  });
+  return reported("polrConfint", {
+    rows: indices.map((index) => names[index]!),
+    columns,
+    values,
+    warnings: [...new Set(warnings)],
+  }, fit);
 }
