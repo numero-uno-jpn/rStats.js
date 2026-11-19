@@ -14,8 +14,6 @@ import {
 } from "../src/models/polr.js";
 import type { DataFrame } from "../src/models/modelFrame.js";
 import { design } from "../src/models/modelMatrix.js";
-import { chol, chol2inv } from "../src/linalg/chol.js";
-import { optim } from "../src/optim/optim.js";
 import { qnorm } from "../src/distributions/normal.js";
 
 type Raw = Record<string, unknown>;
@@ -79,7 +77,7 @@ function prepareFit(spec: FitSpec): { data: DataFrame; options: PolrOptions } {
   return { data, options };
 }
 
-function fitCase(id: string): { fixtureCase: FixtureCase; fit: PolrResult; expected: PublicFit; tight: PublicFit } {
+function fitCase(id: string): { fixtureCase: FixtureCase; fit: PolrResult; expected: PublicFit; tight: PublicFit; data: DataFrame } {
   const fixtureCase = fixture.cases.find((item) => item.id === id);
   const main = fixtureCase?.fits.main;
   if (fixtureCase === undefined || main?.fitPublic === undefined || main.fitTight?.fitPublic === undefined) {
@@ -87,7 +85,7 @@ function fitCase(id: string): { fixtureCase: FixtureCase; fit: PolrResult; expec
   }
   const { data, options } = prepareFit(main.fit);
   const fit = polr(main.fit.formula, data, options);
-  return { fixtureCase, fit, expected: main.fitPublic, tight: main.fitTight.fitPublic };
+  return { fixtureCase, fit, expected: main.fitPublic, tight: main.fitTight.fitPublic, data };
 }
 
 function closeAbsolute(actual: number, expected: unknown, tolerance: number, label: string): void {
@@ -444,86 +442,35 @@ const confidenceCalls: ConfidenceCall[] = fixture.cases.flatMap((fixtureCase) =>
     .map((call, index) => ({ fixtureCase, call, index })),
 );
 
-/** One independent constrained Newton refit at a returned endpoint. */
+/** Independently refit the reduced model with the fixed slope represented as an offset. */
 function independentProfileAt(
-  fit: PolrResult, fixedIndex: number, fixedValue: number,
-): { nll: number; fixedScore: number } {
+  fit: PolrResult, data: DataFrame, fixedIndex: number, fixedValue: number,
+): number {
   const model = fit.model;
-  const theta = Array.from(model.theta);
-  theta[fixedIndex] = fixedValue;
-  const free = theta.map((_, i) => i).filter((i) => i !== fixedIndex);
-  const evaluate = (point: number[]) => {
-    const full = Array.from(theta);
-    free.forEach((index, j) => { full[index] = point[j]!; });
-    const d = __polrDerivativesForTest(
-      model.x, model.y, model.weights, model.offset, model.responseLevels.length, model.method, full,
-    );
-    return {
-      full,
-      value: d.value,
-      fixedScore: d.gradient[fixedIndex]!,
-      gradient: free.map((i) => d.gradient[i]!),
-      hessian: free.map((i) => free.map((j) => d.hessian[i]![j]!)),
-    };
-  };
-  let point = free.map((i) => theta[i]!);
-  let current = evaluate(point);
-  for (let iteration = 0; iteration < 40; iteration++) {
-    const score = Math.max(0, ...current.gradient.map(Math.abs));
-    if (score <= 2e-11 * Math.max(1, model.weights.reduce((sum, w) => sum + w, 0))) break;
-    let inverse: number[][];
-    try {
-      inverse = chol2inv(chol(current.hessian));
-    } catch {
-      const result = optim(point, (candidate) => evaluate(candidate).value, {
-        method: "BFGS",
-        gr: (candidate) => evaluate(candidate).gradient,
-        control: { maxit: 1000, reltol: 1e-14 },
-      });
-      point = result.par;
-      current = evaluate(point);
-      break;
-    }
-    const direction = inverse.map((row) => -row.reduce((sum, value, j) => sum + value * current.gradient[j]!, 0));
-    const slope = direction.reduce((sum, value, j) => sum + value * current.gradient[j]!, 0);
-    if (!(slope < 0)) {
-      const result = optim(point, (candidate) => evaluate(candidate).value, {
-        method: "BFGS",
-        gr: (candidate) => evaluate(candidate).gradient,
-        control: { maxit: 1000, reltol: 1e-14 },
-      });
-      point = result.par;
-      current = evaluate(point);
-      break;
-    }
-    let step = 1;
-    let accepted = false;
-    for (let backtrack = 0; backtrack < 40; backtrack++, step *= 0.5) {
-      const candidate = point.map((value, j) => value + step * direction[j]!);
-      const trial = evaluate(candidate);
-      const allowance = 16 * Number.EPSILON * Math.max(1, Math.abs(current.value), Math.abs(trial.value));
-      if (Number.isFinite(trial.value)
-        && (trial.value <= current.value + 1e-4 * step * slope
-          || (Math.max(0, ...trial.gradient.map(Math.abs)) < score && trial.value <= current.value + allowance))) {
-        point = candidate;
-        current = trial;
-        accepted = true;
-        break;
-      }
-    }
-    if (!accepted) break;
+  const fixedTerm = model.columnNames[fixedIndex];
+  if (fixedTerm === undefined || !model.predictorVariables.includes(fixedTerm)) {
+    throw new Error(`profile verification cannot map coefficient to predictor: ${String(fixedTerm)}`);
   }
-  const finalScore = Math.max(0, ...current.gradient.map(Math.abs));
-  expect(finalScore).toBeLessThanOrEqual(2e-11 * Math.max(1, model.weights.reduce((sum, w) => sum + w, 0)));
-  return { nll: current.value, fixedScore: current.fixedScore };
+  const remainingTerms = model.predictorVariables.filter((term) => term !== fixedTerm);
+  const formula = `${model.response} ~ ${remainingTerms.length === 0 ? "1" : remainingTerms.join(" + ")}`;
+  const rawColumn = data[fixedTerm];
+  if (rawColumn === undefined) throw new Error(`missing predictor column for profile offset: ${fixedTerm}`);
+  const offset = Array.from(rawColumn, (value) => fixedValue * Number(value));
+  const reduced = polr(formula, data, {
+    method: model.method,
+    weights: model.weights,
+    offset,
+    levels: { ...model.factorLevels, [model.response]: model.responseLevels },
+  });
+  return reduced.deviance;
 }
 
 function expectProfileRoot(
-  fit: PolrResult, parameterIndex: number, endpoint: number, target: number, label: string,
+  fit: PolrResult, data: DataFrame, parameterIndex: number, endpoint: number, target: number, label: string,
 ): void {
   const estimate = Object.values(fit.coefficients)[parameterIndex]!;
-  const point = independentProfileAt(fit, parameterIndex, endpoint);
-  const signedRoot = Math.sign(endpoint - estimate) * Math.sqrt(Math.max(0, 2 * (point.nll + fit.logLik)));
+  const constrainedDeviance = independentProfileAt(fit, data, parameterIndex, endpoint);
+  const signedRoot = Math.sign(endpoint - estimate) * Math.sqrt(Math.max(0, constrainedDeviance - fit.deviance));
   closeAbsolute(signedRoot, target, 1e-8, label);
 }
 
@@ -534,7 +481,7 @@ describe("polrConfint: all profile and Wald fixtures", () => {
       const level = call.args?.level === undefined ? 0.95 : numeric(call.args.level);
       const method = call.operation === "wald-ci" ? "wald" : "profile";
       const parm = call.args?.parm;
-      const { fit, expected: defaultFit, tight } = fitCase(fixtureCase.id);
+      const { fit, expected: defaultFit, tight, data } = fitCase(fixtureCase.id);
       const actual = polrConfint(fit, {
         method,
         level,
@@ -554,8 +501,8 @@ describe("polrConfint: all profile and Wald fixtures", () => {
             closeAbsolute(actual.values[i]![0]!, estimate - z * se, 1e-12, `choices 12 cauchit independent Wald lower ${actual.rows[i]}`);
             closeAbsolute(actual.values[i]![1]!, estimate + z * se, 1e-12, `choices 12 cauchit independent Wald upper ${actual.rows[i]}`);
           } else {
-            expectProfileRoot(fit, parameterIndex, actual.values[i]![0]!, -z, `choices 12 cauchit lower root ${actual.rows[i]}`);
-            expectProfileRoot(fit, parameterIndex, actual.values[i]![1]!, z, `choices 12 cauchit upper root ${actual.rows[i]}`);
+            expectProfileRoot(fit, data, parameterIndex, actual.values[i]![0]!, -z, `choices 12 cauchit lower root ${actual.rows[i]}`);
+            expectProfileRoot(fit, data, parameterIndex, actual.values[i]![1]!, z, `choices 12 cauchit upper root ${actual.rows[i]}`);
           }
         }
         return;
@@ -572,7 +519,7 @@ describe("polrConfint: all profile and Wald fixtures", () => {
           if (method === "profile") {
             const parameterIndex = Object.keys(fit.coefficients).indexOf(actual.rows[i]!);
             // A single independent constrained refit at the returned endpoint must reproduce the signed-root target.
-            expectProfileRoot(fit, parameterIndex, actualValue, j === 0 ? -z : z,
+            expectProfileRoot(fit, data, parameterIndex, actualValue, j === 0 ? -z : z,
               `${fixtureCase.id} independent profile root ${actual.rows[i]} [${j}]`);
             // MASS's profile search stops/interpolates on its own finite profile trace; this 1e-3 allowance
             // covers that endpoint-location resolution and the small displacement of its default fit.
