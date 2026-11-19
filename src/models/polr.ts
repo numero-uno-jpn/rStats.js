@@ -1061,7 +1061,7 @@ export function polrAnova(...fits: PolrResult[]): PolrAnovaResult {
   for (let i = 1; i < fits.length; i++) {
     const df = fits[i]!.edf - fits[i - 1]!.edf;
     if (df < 0) throw new Error("models are not nested");
-    const statistic = Math.max(0, fits[i - 1]!.deviance - fits[i]!.deviance);
+    const statistic = df === 0 ? 0 : Math.max(0, fits[i - 1]!.deviance - fits[i]!.deviance);
     degrees.push(df);
     statistics.push(statistic);
     probabilities.push(df === 0 ? 1 : pchisq(statistic, df, { lowerTail: false }) as number);
