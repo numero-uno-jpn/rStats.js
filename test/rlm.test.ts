@@ -28,8 +28,7 @@ interface RobustReference {
 }
 interface ExactReference {
   kind: "S" | "lts";
-  args?: { formula?: string; data?: { columns?: Record<string, unknown> } };
-  reference: { crit?: number | string; scale?: number | string; coefficients?: Record<string, string | number> };
+  reference: { crit?: number | string; scale?: number | string; residuals?: (string | number)[] };
 }
 interface RlmCase {
   id: string;
@@ -317,60 +316,17 @@ describe("deterministic S initialization for MM", () => {
       expect(fit.initialization?.objective, c.id + " S scale").toBeDefined();
       expect(fit.initialization!.objective, c.id + " S scale").toBeGreaterThanOrEqual(0);
       const exactScale = num(exact!.reference.scale!);
-      const exactCoefficients = exact!.reference.coefficients!;
-      const exactFormula = exact!.args?.formula;
-      const exactColumns = exact!.args?.data?.columns;
-      if (typeof exactFormula !== "string" || !exactColumns) {
-        throw new TypeError(c.id + " exact S reference must include its original formula and fixture data");
-      }
-      const responseName = exactFormula.split("~")[0]?.trim();
-      if (!responseName || !Array.isArray(exactColumns[responseName])) {
-        throw new TypeError(c.id + " exact S response column is missing");
-      }
-      const exactData = numericData(exactColumns);
-      const response = exactData[responseName];
-      if (!response) throw new TypeError(c.id + " exact S response column is missing");
-      const predictorTerms = Object.entries(exactCoefficients)
-        .filter(([name]) => name !== "(Intercept)");
-      const exactResiduals: number[] = Array.from(response).map((value, i) => {
-        let predicted = exactCoefficients["(Intercept)"] === undefined
-          ? 0
-          : num(exactCoefficients["(Intercept)"]);
-        for (const [name, coefficient] of predictorTerms) {
-          const column = exactData[name];
-          if (!column) throw new TypeError(c.id + " exact S predictor column is missing: " + name);
-          predicted += num(coefficient) * num(column[i] as string | number);
-        }
-        return num(value as string | number) - predicted;
-      });
-      const absolute = exactResiduals.map((r, i) =>
-        Math.abs(fit.model.wtMethod === "inv" ? Math.sqrt(fit.model.observationWeights[i]!) * r : r));
-      const exactDivisor = absolute.length - Object.keys(exactCoefficients).length;
-      const rhoMean = (scale: number): number => absolute.reduce((sum, value) => {
-        const u = value / (1.548 * scale);
-        if (u >= 1) return sum + 1;
-        const square = u * u;
-        return sum + 1 - (1 - square) ** 3;
-      }, 0) / exactDivisor;
-      let lo = 0;
-      let hi = Math.max(1, ...absolute);
-      while (rhoMean(hi) > 0.5) hi *= 2;
-      for (let iteration = 0; iteration < 100; iteration++) {
-        const mid = lo + (hi - lo) / 2;
-        if (rhoMean(mid) > 0.5) lo = mid;
-        else hi = mid;
-      }
-      const exactCoefficientScale = (lo + hi) / 2;
-      if (c.id === "stackloss-mm") {
-        expect(exactCoefficientScale, "stackloss exact-coefficient S scale from fixture data")
-          .toBeCloseTo(1.91190717374, 10);
-      }
-      expect(Math.abs(exactScale - exactCoefficientScale) / exactCoefficientScale, c.id + " R reported S scale at exact coefficients")
-        .toBeLessThanOrEqual(1e-4);
-      expect(fit.initialization!.objective, c.id + " rStats S scale no worse than R exact coefficients")
-        .toBeLessThanOrEqual(exactCoefficientScale + 1e-10 * Math.max(1, exactCoefficientScale));
+      const exactResiduals = exact!.reference.residuals;
+      if (!exactResiduals) throw new TypeError(c.id + " exact S reference residuals are missing");
       const sResiduals = fit.model.y.map((value, i) =>
         value - fit.model.x[i]!.reduce((sum, x, j) => sum + x * fit.initialization!.coefficients[fit.model.columnNames[j]!]!, 0));
+      expect(sResiduals.length, c.id + " S residual count").toBe(exactResiduals.length);
+      for (let i = 0; i < sResiduals.length; i++) {
+        expect(Math.abs(sResiduals[i]! - num(exactResiduals[i]!)), c.id + " S residual " + i)
+          .toBeLessThanOrEqual(1e-4 * exactScale);
+      }
+      expect(Math.abs(fit.initialization!.objective - exactScale) / exactScale, c.id + " S scale")
+        .toBeLessThanOrEqual(1e-4);
       const divisor = sResiduals.length - (fit.model.x[0]?.length ?? 0);
       let rhoSum = 0;
       for (let i = 0; i < sResiduals.length; i++) {
