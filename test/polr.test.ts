@@ -6,6 +6,7 @@ import {
   polr,
   polrPredict,
   polrConfint,
+  polrAnova,
   polrSummary,
   polrVcov,
   type PolrMethod,
@@ -622,5 +623,131 @@ describe("polrConfint: parameter selection and empty slope sets", () => {
     const { fit } = fitCase("housing-logistic");
     expect(() => polrConfint(fit, { parm: "Low|Medium" })).toThrow("unknown slope parameter");
     expect(() => polrConfint(fit, { level: 1 })).toThrow("'level' must be between 0 and 1");
+  });
+});
+
+
+type AnovaFixtureFit = {
+  fit: FitSpec;
+  fitPublic: PublicFit;
+  fitTight: { fitPublic: PublicFit };
+};
+
+describe("polrAnova: nested housing models", () => {
+  it("matches every row and column of the sequential likelihood-ratio table", () => {
+    const fixtureCase = fixture.cases.find((item) => item.id === "housing-nested-anova");
+    if (fixtureCase === undefined || fixtureCase.calls?.[0]?.result.value === undefined) {
+      throw new Error("missing housing nested-anova fixture");
+    }
+    const fitSpecs = fixtureCase.fits as unknown as Record<string, AnovaFixtureFit>;
+    const ids = ["infl", "full", "interaction"];
+    const fitted = ids.map((id) => {
+      const item = fitSpecs[id];
+      if (item?.fitPublic === undefined || item.fitTight?.fitPublic === undefined) {
+        throw new Error(`missing ANOVA fit fixture: ${id}`);
+      }
+      const { data, options } = prepareFit(item.fit);
+      return { fit: polr(item.fit.formula, data, options), expected: item.fitPublic, tight: item.fitTight.fitPublic };
+    });
+    const actual = polrAnova(...fitted.map((item) => item.fit));
+    const expected = (fixtureCase.calls[0]!.result.value as {
+      table: Record<string, unknown[]>;
+      rows: string[];
+      heading: string[];
+    });
+    const table = expected.table;
+    expect(actual.rows).toEqual(expected.rows);
+    expect(actual.heading).toEqual(expected.heading);
+
+    const columns = ["Model", "Resid. df", "Resid. Dev", "Test", "   Df", "LR stat.", "Pr(Chi)"] as const;
+    for (const column of columns) {
+      const values = actual.table[column];
+      const targets = table[column];
+      if (!Array.isArray(targets)) throw new Error(`missing fixture ANOVA column: ${column}`);
+      expect(values).toHaveLength(targets.length);
+      for (let row = 0; row < targets.length; row++) {
+        const target = targets[row];
+        if (column === "Model" || column === "Test") {
+          expect(values[row]).toBe(target);
+        } else if (column === "Resid. df" || column === "   Df") {
+          expect(values[row]).toBe(numeric(target));
+        } else if (target === "NA") {
+          expect(values[row]).toBe("NA");
+        } else if (column === "Resid. Dev") {
+          const defaultValue = numeric(fitted[row]!.expected.deviance);
+          const tightValue = numeric(fitted[row]!.tight.deviance);
+          // R's default optimizer stops slightly before fitTight; use that measured deviance displacement,
+          // plus 1e-7 for the independent rStats.js fit's numerical remainder.
+          closeAbsolute(values[row] as number, target, Math.abs(defaultValue - tightValue) + 1e-7,
+            `housing ANOVA ${column} row ${row + 1}`);
+        } else if (column === "LR stat.") {
+          if (row === 0) {
+            expect(values[row]).toBe("NA");
+          } else {
+            const defaultStatistic = numeric(fitted[row - 1]!.expected.deviance)
+              - numeric(fitted[row]!.expected.deviance);
+            const tightStatistic = numeric(fitted[row - 1]!.tight.deviance)
+              - numeric(fitted[row]!.tight.deviance);
+            // The LR tolerance is the sum of the two models' measured default-to-tight deviance displacements.
+            closeAbsolute(values[row] as number, target,
+              Math.abs(defaultStatistic - tightStatistic) + 1e-7,
+              `housing ANOVA ${column} row ${row + 1}`);
+          }
+        } else {
+          if (row === 0) {
+            expect(values[row]).toBe("NA");
+          } else {
+            const df = numeric(table["   Df"]![row]);
+            const defaultStatistic = numeric(table["LR stat."]![row]);
+            const tightStatistic = numeric(fitted[row - 1]!.tight.deviance)
+              - numeric(fitted[row]!.tight.deviance);
+            const defaultP = numeric(target);
+            const tightP = pchisq(tightStatistic, df, { lowerTail: false }) as number;
+            // Propagate the observed default-vs-tight LR displacement through the chi-square tail probability.
+            closeAbsolute(values[row] as number, target, Math.abs(defaultP - tightP) + 1e-12,
+              `housing ANOVA ${column} row ${row + 1}`);
+            void defaultStatistic;
+          }
+        }
+      }
+    }
+  });
+});
+
+describe("polrAnova: model validation and user choices", () => {
+  it("rejects non-nested models (choice 8)", () => {
+    const { fit: smaller, data, fixtureCase } = fitCase("housing-logistic");
+    const source = fixtureCase.fits.main;
+    if (source === undefined) throw new Error("missing housing fit specification");
+    const { options } = prepareFit(source.fit);
+    const differentPredictor = polr("Sat ~ Type", data, options);
+    expect(() => polrAnova(smaller, differentPredictor)).toThrow("models are not nested");
+  });
+
+  it("rejects fits with different analysis rows", () => {
+    const { fit, data, fixtureCase } = fitCase("housing-logistic");
+    const source = fixtureCase.fits.main;
+    if (source === undefined) throw new Error("missing housing fit specification");
+    const { options } = prepareFit(source.fit);
+    const shortened: DataFrame = Object.fromEntries(
+      Object.entries(data).map(([name, values]) => [name, Array.from(values).slice(0, 71)]),
+    );
+    const other = polr(source.fit.formula, shortened, options);
+    expect(() => polrAnova(fit, other)).toThrow("models were not all fitted to the same response, rows, link, weights and offset");
+  });
+
+  it("rejects a single fit as R does", () => {
+    const { fit } = fitCase("housing-logistic");
+    expect(() => polrAnova(fit)).toThrow('anova is not implemented for a single "polr" object');
+  });
+
+  it("rejects a declared response level with no observations (choice 1)", () => {
+    const data: DataFrame = {
+      rating: ["low", "medium", "high", "low", "medium", "high"],
+      dose: [0, 1, 2, 0, 1, 2],
+    };
+    expect(() => polr("rating ~ dose", data, {
+      levels: { rating: ["low", "medium", "high", "unused"] },
+    })).toThrow("response level 'unused' has no positive-weight observations");
   });
 });
