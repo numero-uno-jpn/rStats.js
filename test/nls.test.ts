@@ -290,6 +290,10 @@ describe("nonlinear expression derivatives and constants", () => {
     const expression = parseNlsFormula("y ~ x/pi").expression;
     expect(evaluateNlsExpression(expression, { x: 1 }, {})).toBeCloseTo(1 / Math.PI, 15);
     expect(evaluateNlsExpression(expression, { x: 1, pi: 2 }, {})).toBe(0.5);
+    expect(evaluateNlsExpression(expression, { x: 1, pi: 2 }, { pi: 3 })).toBe(0.5);
+    const fit = nls("y ~ a*x/pi", { y: [2, 4], x: [1, 2], pi: [2, 2] }, { start: { a: 4, pi: 3 } });
+    expect(fit.coefficients.a).toBe(4);
+    expect(fit.fitted).toEqual([2, 4]);
   });
 });
 
