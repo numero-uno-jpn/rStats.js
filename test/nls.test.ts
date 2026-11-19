@@ -307,7 +307,9 @@ describe("nonlinear expression derivatives and constants", () => {
 describe("NIST StRD nonlinear regression edge cases", () => {
   it("fits Thurber from Start 2 to at least seven certified digits", () => {
     const cs = stage3Fixture.thurber;
-    const fit = nls(cs.formula, dataFrame(cs.data), { start: cs.start });
+    const fit = nls(cs.formula, dataFrame(cs.data), { start: cs.start, warnOnly: true });
+    console.log("NIST Thurber Start 2 coefficients", JSON.stringify(fit.coefficients),
+      "RSS", fit.deviance, "iterations", fit.iterations, "converged", fit.converged);
     const lre: Record<string, number> = {};
     for (const [name, expected] of Object.entries(cs.certified)) {
       const relativeError = Math.abs(fit.coefficients[name]! - expected) / Math.abs(expected);
