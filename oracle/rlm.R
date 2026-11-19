@@ -388,6 +388,7 @@ run_exact_reference <- function(spec) {
   fit <- result$value
   if (identical(spec$kind, "S")) {
     record$reference <- list(coefficients = json_value(coef(fit)),
+                             residuals = json_value(unname(residuals(fit))),
                              scale = scalar_num(fit$scale))
   } else if (identical(spec$kind, "lts")) {
     record$reference <- list(coefficients = json_value(coef(fit)),
