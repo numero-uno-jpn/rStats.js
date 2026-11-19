@@ -235,12 +235,13 @@ describe("deterministic LTS starts", () => {
       expect(fit.initialization?.method).toBe("LTS");
       const objective = fit.initialization?.objective;
       expect(objective, c.id + " LTS crit").toBeDefined();
-      expect(objective!, c.id + " LTS crit").toBeLessThanOrEqual(bestReference + 1e-8 * Math.max(1, bestReference));
+      expect(objective!, c.id + " LTS crit").toBeCloseTo(bestReference, 7);
+      expect(fit.initialization?.exhaustive, c.id + " exhaustive subset search").toBe(true);
       expect(estimatingEquationResidual(fit), c.id + " M estimating equations").toBeLessThanOrEqual(1e-8);
       const n = fit.residuals.length;
       const p = fit.model.x[0]?.length ?? 0;
       const total = binomialForTest(n, p);
-      if (total > 1024n) {
+      if (total > 10_000n) {
         expect(fit.warnings.some((warning) => warning.includes("high-breakdown start is not certified"))).toBe(true);
       }
     });
@@ -255,11 +256,21 @@ describe("deterministic S initialization for MM", () => {
       const bestReference = Math.min(...references.map((entry) => num(entry.reference.scale!)));
       expect(fit.initialization?.method).toBe("S");
       expect(fit.initialization?.objective, c.id + " S scale").toBeDefined();
-      expect(fit.initialization!.objective, c.id + " S scale").toBeLessThanOrEqual(bestReference + 1e-8 * Math.max(1, bestReference));
+      expect(fit.initialization!.objective, c.id + " S scale").toBeCloseTo(bestReference, 7);
+      expect(fit.initialization?.exhaustive, c.id + " exhaustive subset search").toBe(true);
       expect(fit.scale).toBe(fit.initialization!.objective);
       expect(estimatingEquationResidual(fit), c.id + " MM estimating equations").toBeLessThanOrEqual(1e-8);
       expect(fit.model.psi).toBe("bisquare");
       expect(fit.converged).toBe(true);
+      const independentlyCalculatedStddev = independentMmStddev(fit);
+      expect(fit.stddev, c.id + " independently calculated MM covariance scale")
+        .toBeCloseTo(independentlyCalculatedStddev, 10);
+      for (let i = 0; i < fit.covariance.length; i++) {
+        for (let j = 0; j < fit.covariance[i]!.length; j++) {
+          expect(fit.covariance[i]![j], c.id + " covariance[" + i + "," + j + "]")
+            .toBeCloseTo(independentlyCalculatedStddev ** 2 * fit.covarianceUnscaled[i]![j]!, 10);
+        }
+      }
       const n = fit.residuals.length;
       const p = fit.model.x[0]?.length ?? 0;
       const total = binomialForTest(n, p);
@@ -269,6 +280,31 @@ describe("deterministic S initialization for MM", () => {
     });
   }
 });
+
+function independentMmStddev(fit: ReturnType<typeof fitFrom>): number {
+  const { model, residuals, scale } = fit;
+  const n = residuals.length;
+  const p = model.x[0]?.length ?? 0;
+  const q = model.wtMethod === "case" ? model.observationWeights : model.observationWeights.map(() => 1);
+  const u = residuals.map((r, i) =>
+    (model.wtMethod === "inv" ? Math.sqrt(model.observationWeights[i]!) * r : r) / scale);
+  const psi = u.map((v) => v * (model.psi === "huber"
+    ? Number(psiHuber(v, { k: model.k }))
+    : model.psi === "hampel"
+      ? Number(psiHampel(v, { a: model.a, b: model.b, c: model.c }))
+      : Number(psiBisquare(v, { c: model.c }))));
+  const derivative = u.map((v) => model.psi === "huber"
+    ? Number(psiHuber(v, { k: model.k, deriv: 1 }))
+    : model.psi === "hampel"
+      ? Number(psiHampel(v, { a: model.a, b: model.b, c: model.c, deriv: 1 }))
+      : Number(psiBisquare(v, { c: model.c, deriv: 1 })));
+  const N = q.reduce((sum, value) => sum + value, 0);
+  const meanD = q.reduce((sum, value, i) => sum + value * derivative[i]!, 0) / N;
+  const varianceD = q.reduce((sum, value, i) => sum + value * (derivative[i]! - meanD) ** 2, 0) / (N - 1);
+  const correction = 1 + (p / N) * varianceD / (meanD * meanD);
+  const scoreSquares = q.reduce((sum, value, i) => sum + value * psi[i]! ** 2, 0);
+  return scale * correction * Math.sqrt(scoreSquares / (N - p)) / meanD;
+}
 
 function binomialForTest(n: number, k: number): bigint {
   let value = 1n;

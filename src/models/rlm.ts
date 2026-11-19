@@ -399,9 +399,9 @@ function covarianceScale(residuals: readonly number[], scale: number, weights: r
 }
 
 
-const S_RHO_C = 1.547;
-const MAX_SUBSET_CANDIDATES = 1024;
-const MAX_CANDIDATE_ROW_EVALUATIONS = 250_000;
+const S_RHO_C = 1.548;
+const MAX_SUBSET_CANDIDATES = 10_000;
+const MAX_CANDIDATE_ROW_EVALUATIONS = 750_000;
 
 interface RobustStart {
  coefficients: number[];
@@ -539,35 +539,23 @@ function ltsStart(
 }
 
 function sRhoValue(u: number): number {
- const absolute = Math.abs(u);
- const cap = S_RHO_C * S_RHO_C;
- if (absolute >= S_RHO_C) return cap / 6;
- const ratio = u / S_RHO_C;
- const square = ratio * ratio;
- return (u * u / 2) * (1 - square + square * square / 3);
+ const t = u / S_RHO_C;
+ if (Math.abs(t) >= 1) return 1;
+ const remainder = 1 - t * t;
+ return 1 - remainder * remainder * remainder;
 }
 
-function sRhoConstant(): number {
- const c = S_RHO_C;
- const density = Math.exp(-0.5 * c * c) / Math.sqrt(2 * Math.PI);
- const inside = 2 * (pnorm(c) as number) - 1;
- const moment2 = inside - 2 * c * density;
- const moment4 = 3 * inside - 2 * (c ** 3 + 3 * c) * density;
- const moment6 = 15 * inside - 2 * (c ** 5 + 5 * c ** 3 + 15 * c) * density;
- return moment2 / 2 - moment4 / (2 * c * c) + moment6 / (6 * c ** 4) + c * c / 6 * (1 - inside);
-}
-
-function sRhoScale(residuals: readonly number[], weights: readonly number[], wtMethod: "inv" | "case"): number {
+function sRhoScale(residuals: readonly number[], weights: readonly number[], wtMethod: "inv" | "case", p: number): number {
  const absolute = effectiveAbsoluteResiduals(residuals, weights, wtMethod);
- const target = sRhoConstant();
  const n = absolute.length;
- if (n === 0) return NaN;
- const maximumMean = absolute.filter((value) => value > 0).length * S_RHO_C * S_RHO_C / (6 * n);
- if (maximumMean <= target) return 0;
+ const denominator = n - p;
+ if (!(denominator > 0)) return NaN;
+ const maximumMean = absolute.filter((value) => value > 0).length / denominator;
+ if (maximumMean <= 0.5) return 0;
  const equation = (scale: number): number => {
    let sum = 0;
    for (const value of absolute) sum += sRhoValue(value / scale);
-   return sum / n - target;
+   return sum / denominator - 0.5;
  };
  let lo = 0;
  let hi = Math.max(1, median(absolute));
@@ -602,7 +590,7 @@ function sStart(
        indices.map((i) => y[i]!),
        indices.map((i) => observationWeights[i]!),
      );
-     const scale = sRhoScale(residualVector(x, y, beta), observationWeights, wtMethod);
+     const scale = sRhoScale(residualVector(x, y, beta), observationWeights, wtMethod, p);
      if (Number.isFinite(scale)) candidates.push({ coefficients: beta, objective: scale, rank });
    } catch {
      // A singular elemental subset cannot identify the regression coefficients.
@@ -628,7 +616,7 @@ function sStart(
      } catch {
        break;
      }
-     const nextScale = sRhoScale(residualVector(x, y, next), observationWeights, wtMethod);
+     const nextScale = sRhoScale(residualVector(x, y, next), observationWeights, wtMethod, p);
      if (!(nextScale >= 0) || nextScale > scale + 1e-12 * Math.max(1, scale)) break;
      const same = next.every((value, j) => Math.abs(value - beta[j]!) <= 1e-12 * Math.max(1, Math.abs(value)));
      beta = next;
