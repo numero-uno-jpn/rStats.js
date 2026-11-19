@@ -225,6 +225,13 @@ export interface RlmResult {
  convergence: number[];
  warnings: string[];
  model: RlmModel;
+ initialization?: {
+   method: "LTS" | "S";
+   objective: number;
+   candidatesEvaluated: number;
+   candidateCount: string;
+   exhaustive: boolean;
+ };
 }
 
 /** Coefficient table returned by {@link rlmSummary}.
@@ -703,14 +710,23 @@ export function rlm(formula: string, data: DataFrame, options: RlmOptions = {}):
  const searchWarnings: string[] = [];
  let coefficients: number[];
  let fixedScale: number | undefined;
+ let initialization: RlmResult["initialization"];
  if (method === "MM") {
    const start = sStart(x, y, observationWeights, wtMethod);
    coefficients = start.coefficients;
    fixedScale = start.objective;
+   initialization = {
+     method: "S", objective: start.objective, candidatesEvaluated: start.evaluated,
+     candidateCount: start.total.toString(), exhaustive: start.warning === undefined,
+   };
    if (start.warning !== undefined) searchWarnings.push(start.warning);
  } else if (options.init === "lts") {
    const start = ltsStart(x, y, observationWeights, wtMethod);
    coefficients = start.coefficients;
+   initialization = {
+     method: "LTS", objective: start.objective, candidatesEvaluated: start.evaluated,
+     candidateCount: start.total.toString(), exhaustive: start.warning === undefined,
+   };
    if (start.warning !== undefined) searchWarnings.push(start.warning);
  } else if (options.init === undefined || options.init === "ls") {
    coefficients = weightedLeastSquares(x, y, observationWeights);
@@ -795,6 +811,7 @@ export function rlm(formula: string, data: DataFrame, options: RlmOptions = {}):
    covariance: covariance.covUnscaled.map((row) => row.map((v) => v * covariance.stddev ** 2)),
    covarianceUnscaled: covariance.covUnscaled,
    converged, iterations, convergence, warnings, model,
+   ...(initialization === undefined ? {} : { initialization }),
  };
  return reported("rlm", result);
 }
