@@ -308,3 +308,18 @@ describe("NIST StRD nonlinear regression edge cases", () => {
     expect(fit.converged).toBe(true);
   });
 });
+
+
+describe("near-zero residual convergence", () => {
+  it("treats scaleOffset and the ordinary exact-fit case identically", () => {
+    const offsetFit = fitCase("exact-scaleOffset");
+    const exactFit = fitCase("error-exact-fit");
+    expect(offsetFit.converged).toBe(true);
+    expect(exactFit.converged).toBe(true);
+    expect(offsetFit.exactFit).toBe(true);
+    expect(exactFit.exactFit).toBe(true);
+    expect(offsetFit.coefficients).toEqual(exactFit.coefficients);
+    expect(offsetFit.covariance.flat().every(Number.isNaN)).toBe(true);
+    expect(exactFit.covariance.flat().every(Number.isNaN)).toBe(true);
+  });
+});
