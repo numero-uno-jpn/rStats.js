@@ -333,7 +333,9 @@ replaces the current subset by the h observations with the smallest absolute res
 and retains the step only when the objective does not increase. This monotone refinement is repeated until the
 coefficient vector stops changing or 50 steps have been taken.
 
-For the S start, the bounded loss is rho(u) = min(u^2, cS^2), with cS = 1.547. Its scale at b solves
+For the S start, use the bounded Tukey biweight loss with cS = 1.547:
+rho(u) = u^2/2 - u^4/(2 cS^2) + u^6/(6 cS^4) for |u| < cS, and cS^2/6 otherwise.
+Its Gaussian consistency constant is beta = E[rho(Z)], Z ~ N(0,1). Its scale at b solves
 
 $
 \frac{1}{n}\sum_{i=1}^{n}\min\left\{\left(\frac{r_i(b)}{s}\right)^2,c_S^2\right\}
@@ -341,8 +343,8 @@ $
 $
 
 and the S objective is the smallest such scale over coefficient vectors. The S refinement alternates between
-solving this scalar scale equation and least squares on rows satisfying |r_i|/s < cS; a step is retained
-only if the scale does not increase. This gives a deterministic finite candidate approximation to the
+solving this scalar scale equation and weighted least squares with Tukey weights
+(1 - (r_i/(cS s))^2)^2 inside the cutoff and zero outside; a step is retained only if the scale does not increase. This gives a deterministic finite candidate approximation to the
 scale-minimization problem in Rousseeuw & Yohai (1984).
 
 The deterministic candidate set is defined without random numbers. If choose(n,p) is no larger than the
@@ -365,7 +367,8 @@ $
 \sum_{i=1}^{n} x_i\,\psi\left(\frac{r_i(b)}{s_S}\right)=0,
 $
 
-using a redescending score (bisquare by default, c = 4.685). The scale is held at sS throughout the
+using a redescending score (bisquare by default, c = 4.685). Redescending IRLS updates use a fixed half-step
+to prevent oscillation between distinct roots. The scale is held at sS throughout the
 M step. This follows the three-stage construction in Yohai (1987): a high-breakdown initial estimate, a robust
 initial scale, and a more efficient redescending M estimate at that fixed scale. MM with case weights remains
 an explicit error; inverse-variance weights are handled by applying their square roots to residuals.
@@ -474,16 +477,18 @@ No additional R experiment is required for the covariance formula and weight con
 Decided by the user on 2026-11-19.
 
 1. **MM: a deterministic S-estimator** (Decisions 1 and 2). No random numbers. The S objective uses the
-   bounded capped-quadratic loss rho(u) = min(u^2, cS^2), with cS = 1.547, and its Gaussian consistency constant
-   beta = E[min(Z^2, cS^2)], Z ~ N(0,1). For each coefficient vector, its S-scale is the positive solution
-   of mean(rho(r_i / s)) = beta; the S estimate minimizes this scale. This is a concrete bounded S objective
-   within the scale-minimization framework of Rousseeuw & Yohai (1984).
+   bounded Tukey biweight loss with cS = 1.547:
+   rho(u) = u^2/2 - u^4/(2 cS^2) + u^6/(6 cS^4) for |u| < cS, and cS^2/6 otherwise.
+   Its Gaussian consistency constant is beta = E[rho(Z)], Z ~ N(0,1). For each coefficient vector,
+   its S-scale is the positive solution of mean(rho(r_i / s)) = beta; the S estimate minimizes this scale.
+   This is the bounded smooth S construction described by Rousseeuw & Yohai (1984).
 
    Generate elemental subsets of p rows in lexicographic combinatorial order. If choose(n,p) is within the
    search budget, evaluate every subset. Otherwise evaluate a fixed, evenly spaced set of combinatorial ranks,
    including the first and last ranks. The candidate budget is
    min(1024, max(1, floor(250000 / n))); score all evaluated candidates, refine the best 16 by repeatedly
-   refitting least squares to observations inside |r_i| / s < cS, and stop a refinement after 50 steps or
+   refitting weighted least squares with Tukey weights (1 - (r_i / (cS s))^2)^2 inside the cutoff,
+   and stop a refinement after 50 steps or
    when the coefficients stop changing. The same input always gives the same candidates and fit.
 
    When the budget does not cover all choose(n,p) subsets, add a warning stating the number examined and that
