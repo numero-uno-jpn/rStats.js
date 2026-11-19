@@ -559,7 +559,8 @@ function sRhoScale(residuals: readonly number[], weights: readonly number[], wtM
    return sum / denominator - 0.5;
  };
  let lo = 0;
- let hi = Math.max(1, median(absolute));
+ let hi = Math.max(...absolute);
+ if (hi === 0) return 0;
  while (equation(hi) > 0 && hi < Number.MAX_VALUE / 4) hi *= 2;
  if (!Number.isFinite(hi)) return NaN;
  for (let iteration = 0; iteration < 64; iteration++) {
