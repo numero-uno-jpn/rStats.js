@@ -323,13 +323,13 @@ describe("deterministic S initialization for MM", () => {
         value - fit.model.x[i]!.reduce((sum, x, j) => sum + x * exactBeta[j]!, 0));
       const absolute = exactResiduals.map((r, i) =>
         Math.abs(fit.model.wtMethod === "inv" ? Math.sqrt(fit.model.observationWeights[i]!) * r : r));
-      const divisor = absolute.length - exactBeta.length;
+      const exactDivisor = absolute.length - exactBeta.length;
       const rhoMean = (scale: number): number => absolute.reduce((sum, value) => {
         const u = value / (1.548 * scale);
         if (u >= 1) return sum + 1;
         const square = u * u;
         return sum + 1 - (1 - square) ** 3;
-      }, 0) / divisor;
+      }, 0) / exactDivisor;
       let lo = 0;
       let hi = Math.max(1, ...absolute);
       while (rhoMean(hi) > 0.5) hi *= 2;
