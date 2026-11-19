@@ -186,6 +186,92 @@ function initialValue(name: string, x: number[], y: number[]): number {
   return 1;
 }
 
+function linearTrend(x: number[], y: number[]): { intercept: number; slope: number; error: number } | undefined {
+  const mx = x.reduce((s, v) => s + v, 0) / x.length, my = y.reduce((s, v) => s + v, 0) / y.length;
+  const denominator = x.reduce((s, v) => s + (v - mx) ** 2, 0);
+  if (!(denominator > 0)) return undefined;
+  const slope = x.reduce((s, v, i) => s + (v - mx) * (y[i]! - my), 0) / denominator;
+  const intercept = my - slope * mx;
+  return { intercept, slope, error: x.reduce((s, v, i) => s + (y[i]! - intercept - slope * v) ** 2, 0) };
+}
+
+function asymptoticRiseStart(x: number[], y: number[], shifted: boolean): { Asym: number; lrc: number; c0?: number } | undefined {
+  const ymax = Math.max(...y), range = Math.max(ymax - Math.min(...y), Number.EPSILON);
+  let best: { Asym: number; lrc: number; c0?: number; error: number } | undefined;
+  for (let k = 0; k <= 180; k++) {
+    const Asym = ymax + range * 10 ** (-3 + k * 0.03);
+    const z = y.map(value => Math.log(1 - value / Asym));
+    if (!z.every(Number.isFinite)) continue;
+    let intercept = 0, slope = 0, error = 0;
+    if (shifted) {
+      const line = linearTrend(x, z);
+      if (!line || !(line.slope < 0)) continue;
+      ({ intercept, slope, error } = line);
+    } else {
+      const denominator = x.reduce((s, v) => s + v * v, 0);
+      if (!(denominator > 0)) continue;
+      slope = x.reduce((s, v, i) => s + v * z[i]!, 0) / denominator;
+      if (!(slope < 0)) continue;
+      error = x.reduce((s, v, i) => s + (z[i]! - slope * v) ** 2, 0);
+    }
+    const c0 = intercept / -slope;
+    if (shifted && (!Number.isFinite(c0) || c0 >= Math.min(...x))) continue;
+    const candidate = { Asym, lrc: Math.log(-slope), ...(shifted ? { c0 } : {}), error };
+    if (!best || candidate.error < best.error) best = candidate;
+  }
+  if (!best) return undefined;
+  const { error: _error, ...result } = best;
+  return result;
+}
+
+function fourParameterLogisticStart(x: number[], y: number[]): { A: number; B: number; xmid: number; scal: number } | undefined {
+  const ymin = Math.min(...y), ymax = Math.max(...y), range = Math.max(ymax - ymin, Number.EPSILON);
+  let best: { A: number; B: number; xmid: number; scal: number; error: number } | undefined;
+  for (let ia = 0; ia <= 120; ia++) {
+    const A = ymin - range * 10 ** (-3 + ia * 0.025);
+    for (let ib = 0; ib <= 120; ib++) {
+      const B = ymax + range * 10 ** (-3 + ib * 0.025);
+      const z = y.map(value => Math.log((B - A) / (value - A) - 1));
+      if (!z.every(Number.isFinite)) continue;
+      const line = linearTrend(x, z);
+      if (!line || !(line.slope < 0)) continue;
+      const scal = -1 / line.slope, xmid = line.intercept * scal;
+      if (!(scal > 0) || !Number.isFinite(xmid)) continue;
+      if (!best || line.error < best.error) best = { A, B, xmid, scal, error: line.error };
+    }
+  }
+  if (!best) return undefined;
+  const { error: _error, ...result } = best;
+  return result;
+}
+
+function weibullRiseStart(x: number[], y: number[]): { Asym: number; Drop: number; lrc: number; pwr: number } | undefined {
+  const ymin = Math.min(...y), ymax = Math.max(...y), range = Math.max(ymax - ymin, Number.EPSILON);
+  let best: { Asym: number; Drop: number; lrc: number; pwr: number; error: number } | undefined;
+  for (let ia = 0; ia <= 180; ia++) {
+    const Asym = ymax - 0.2 * range + ia * (2.2 * range / 180);
+    const selected = x.map((value, i) => ({ x: value, y: y[i]! })).filter(point => point.x > 0 && point.y < Asym);
+    if (selected.length < 5) continue;
+    for (let id = 0; id <= 50; id++) {
+      const Drop = (Asym - ymin) * (1.001 + id * 0.02);
+      const lx: number[] = [], ly: number[] = [];
+      let valid = true;
+      for (const point of selected) {
+        const ratio = (Asym - point.y) / Drop;
+        if (!(ratio > 0 && ratio < 1)) { valid = false; break; }
+        lx.push(Math.log(point.x)); ly.push(Math.log(-Math.log(ratio)));
+      }
+      if (!valid) continue;
+      const line = linearTrend(lx, ly);
+      if (!line || !(line.slope > 0)) continue;
+      if (!best || line.error < best.error) best = { Asym, Drop, lrc: line.intercept, pwr: line.slope, error: line.error };
+    }
+  }
+  if (!best) return undefined;
+  const { error: _error, ...result } = best;
+  return result;
+}
+
 function solve(A0: number[][], b0: number[]): number[] {
   const n = b0.length;
   if (A0.length !== n || A0.some(row => row.length !== n)) throw new Error("least-squares system has incompatible dimensions");
@@ -433,7 +519,7 @@ export function nls(formula: string, data: DataFrame, options: NlsOptions = {}):
   }
   if (options.start && Object.values(options.start).some(v => !Number.isFinite(v))) throw new RangeError("starting values must be finite");
   let start = options.start ? parameterNames.map(name => options.start![name]!) : parameterNames.map(name => initialValue(name, rawY, column(data, variables.find(v => dataNames.has(v)) ?? parsed.response)));
-  if (!options.start && /\bSSmicmen\s*\(/.test(formula)) {
+  if (!options.start && /\\bSSmicmen\\s*\\(/.test(formula)) {
     const predictorName = variables.find(name => dataNames.has(name));
     if (predictorName) {
       const x = column(data, predictorName);
@@ -450,6 +536,21 @@ export function nls(formula: string, data: DataFrame, options: NlsOptions = {}):
           if (parameterNames[i] === "Vm") start[i] = 1 / intercept;
           if (parameterNames[i] === "K") start[i] = slope / intercept;
         }
+      }
+    }
+  }
+  if (!options.start) {
+    const predictorName = variables.find(name => dataNames.has(name));
+    if (predictorName) {
+      const x = column(data, predictorName);
+      let improved: Record<string, number> | undefined;
+      if (/\\bSSasympOrig\\s*\\(/.test(formula)) improved = asymptoticRiseStart(x, rawY, false);
+      else if (/\\bSSasympOff\\s*\\(/.test(formula)) improved = asymptoticRiseStart(x, rawY, true);
+      else if (/\\bSSfpl\\s*\\(/.test(formula)) improved = fourParameterLogisticStart(x, rawY);
+      else if (/\\bSSweibull\\s*\\(/.test(formula)) improved = weibullRiseStart(x, rawY);
+      if (improved) for (let i = 0; i < parameterNames.length; i++) {
+        const value = improved[parameterNames[i]!];
+        if (value !== undefined && Number.isFinite(value)) start[i] = value;
       }
     }
   }
