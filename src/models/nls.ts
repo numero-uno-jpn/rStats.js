@@ -278,7 +278,7 @@ function fitCore(
     try { delta = solve(matrix, rhs); }
     catch (error) { throw new Error("singular gradient: " + (error instanceof Error ? error.message : String(error))); }
     const gradientNorm = Math.max(0, ...rhs.map(Math.abs));
-    const stepNorm = Math.max(0, ...delta.map((v, i) => Math.abs(v) / (1 + Math.abs(values[i]!)));
+    const stepNorm = Math.max(0, ...delta.map((v, i) => Math.abs(v) / (1 + Math.abs(values[i]!))));
     if (gradientNorm <= control.tol * (1 + Math.sqrt(current.objective) + control.scaleOffset)
       && stepNorm <= Math.sqrt(control.tol) * 4) {
       converged = true; break;
