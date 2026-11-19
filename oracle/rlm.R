@@ -284,7 +284,7 @@ cases <- list(
        }),
        exactReferences = list(
          list(kind = "S", args = list(formula = phones_formula, data = phones_data,
-                                      method = "S", nsamp = "exact")),
+                                      method = "S", nsamp = "exact"))
        ),
        calls = list()),
 
