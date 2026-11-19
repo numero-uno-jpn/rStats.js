@@ -778,3 +778,49 @@ export function nlsConfint(fit: NlsResult, options: NlsConfintOptions = {}): Nls
     : [String(Number(percent.toPrecision(12))) + "%", String(Number((100 - percent).toPrecision(12))) + "%"];
   return reported("nlsConfint", { rows: names, cols, values, warnings: [...new Set(warnings)] }, fit);
 }
+
+/**
+ * Analysis of variance for nested nonlinear least-squares fits. Equivalent to R's `anova.nls()`.
+ *
+ * @param fits Two or more nested fits to the same observations.
+ * @returns The sequential F-test table.
+ *
+ * @example
+ * ```ts
+ * const data = { x: [1, 2, 3, 4, 5], y: [2, 3, 5, 7, 8] };
+ * const small = nls("y ~ a * x", data, { start: { a: 1 } });
+ * const large = nls("y ~ a * x + b", data, { start: { a: 1, b: 0 } });
+ * nlsAnova(small, large);
+ * ```
+ *
+ * @category Regression
+ */
+export function nlsAnova(...fits: NlsResult[]): NlsAnovaResult {
+  if (fits.length < 2) throw new Error("nlsAnova requires at least two fitted models");
+  const warnings = [...new Set(fits.flatMap(fit => fit.warnings))];
+  for (let i = 1; i < fits.length; i++) {
+    const a = fits[i - 1]!, b = fits[i]!;
+    if (a.response !== b.response || a.rows.length !== b.rows.length
+      || a.rows.some((row, j) => row !== b.rows[j])
+      || a.weights.length !== b.weights.length || a.weights.some((w, j) => w !== b.weights[j])) {
+      throw new Error("models were not all fitted to the same observations and weights");
+    }
+    if (!a.parameterNames.every(name => b.parameterNames.includes(name))) throw new Error("models are not nested");
+  }
+  const table: NlsAnovaResult["table"] = {
+    Model: fits.map(f => f.formula),
+    "Res.Df": fits.map(f => f.dfResidual),
+    "Res.Sum Sq": fits.map(f => f.deviance),
+    Df: ["NA"], "Sum Sq": ["NA"], "F value": ["NA"], "Pr(>F)": ["NA"],
+  };
+  for (let i = 1; i < fits.length; i++) {
+    const a = fits[i - 1]!, b = fits[i]!;
+    const df = a.dfResidual - b.dfResidual;
+    if (df <= 0) throw new Error("models are not nested in increasing parameter dimension");
+    const sumSq = a.deviance - b.deviance;
+    const f = (sumSq / df) / (b.deviance / b.dfResidual);
+    table.Df.push(df); table["Sum Sq"].push(sumSq); table["F value"].push(f);
+    table["Pr(>F)"].push(pf1(f, df, b.dfResidual, false, false));
+  }
+  return reported("nlsAnova", { table, warnings }, ...fits);
+}
