@@ -619,8 +619,10 @@ function sStart(
        break;
      }
      const nextScale = sRhoScale(residualVector(x, y, next), observationWeights, wtMethod, p);
-     if (!(nextScale >= 0) || nextScale > scale + 1e-12 * Math.max(1, scale)) break;
-     const same = next.every((value, j) => Math.abs(value - beta[j]!) <= 1e-12 * Math.max(1, Math.abs(value)));
+     const scaleTolerance = 1e-12 * Math.max(Math.abs(scale), Math.abs(nextScale), Number.MIN_VALUE);
+     if (!(nextScale >= 0) || nextScale > scale + scaleTolerance) break;
+     const same = next.every((value, j) => Math.abs(value - beta[j]!)
+       <= 1e-12 * Math.max(Math.abs(value), Math.abs(beta[j]!), Number.MIN_VALUE));
      beta = next;
      scale = nextScale;
      if (same) break;
