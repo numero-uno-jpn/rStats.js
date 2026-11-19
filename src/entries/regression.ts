@@ -40,3 +40,24 @@ export {
   type PolrSummaryResult,
   type PolrVcovResult,
 } from "../models/polr.js";
+
+// Nonlinear regression (rStats.js/regression)
+
+export {
+  nls,
+  nlsSummary,
+  nlsVcov,
+  nlsPredict,
+  nlsConfint,
+  nlsAnova,
+  type NlsAlgorithm,
+  type NlsControl,
+  type NlsOptions,
+  type NlsModel,
+  type NlsResult,
+  type NlsSummaryResult,
+  type NlsPredictOptions,
+  type NlsConfintOptions,
+  type NlsConfintResult,
+  type NlsAnovaResult,
+} from "../models/nls.js";
