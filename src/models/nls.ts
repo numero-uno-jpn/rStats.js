@@ -467,7 +467,7 @@ function fitCore(
     }));
     const stepTolerance = control.scaleOffset > 0
       ? 8 * Number.EPSILON
-      : Math.max(1e-12, Math.sqrt(control.tol) * 0.001);
+      : Math.max(8 * Number.EPSILON, control.tol);
     const roundedStep = projectedDelta.every((value, i) => {
       const next = values[i]! + value;
       const ulp = Number.EPSILON * Math.max(Math.abs(values[i]!), Math.abs(next), Number.MIN_VALUE);
