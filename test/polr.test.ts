@@ -289,15 +289,16 @@ const predictionCalls = fixture.cases.flatMap((fixtureCase) =>
 describe("polrPredict: all prediction fixtures", () => {
   for (const { fixtureCase, call, index } of predictionCalls) {
     it(`${fixtureCase.id} predict #${index + 1} (${call.args?.type ?? "class"})`, () => {
-      if (call.args?.newdata === undefined) throw new Error("fixture prediction has no newdata");
+      const args = call.args;
+      if (args?.newdata === undefined) throw new Error("fixture prediction has no newdata");
       const { fit, expected, tight } = fitCase(fixtureCase.id);
-      const { data, rowNames } = prepareNewData(call.args.newdata);
+      const { data, rowNames } = prepareNewData(args.newdata);
       const actual = polrPredict(fit, {
         newdata: data,
         rowNames,
-        ...(call.args.type === undefined ? {} : { type: call.args.type }),
+        ...(args.type === undefined ? {} : { type: args.type }),
       });
-      if (call.args.type === "probs") {
+      if (args.type === "probs") {
         if (Array.isArray(actual)) throw new Error("expected a probability matrix");
         const expectedPrediction = call.result.value as { rows: string[]; cols: string[]; values: unknown[][] };
         expect(actual.rows).toEqual(expectedPrediction.rows);
@@ -307,8 +308,8 @@ describe("polrPredict: all prediction fixtures", () => {
           const actualRow = actual.values[i];
           if (actualRow === null || actualRow === undefined) throw new Error(`unexpected missing prediction row ${i}`);
           expect(actualRow).toHaveLength(expectedPrediction.values[i]!.length);
-          for (let j = 0; j < expected.values[i]!.length; j++) {
-            const target = numeric(expected.values[i]![j]);
+          for (let j = 0; j < expectedPrediction.values[i]!.length; j++) {
+            const target = numeric(expectedPrediction.values[i]![j]);
             const actualValue = actualRow[j];
             if (actualValue === null || actualValue === undefined) throw new Error(`unexpected missing probability [${i},${j}]`);
             closeAbsolute(actualValue, target, predictionStoppingTolerance(fit, expected, tight, data, i),
@@ -331,12 +332,16 @@ describe("polrPredict: all prediction fixtures", () => {
       if (call.args?.newdata === undefined || call.result.error === undefined) {
         throw new Error("invalid unknown-level fixture");
       }
+      const args = call.args;
+      if (args?.newdata === undefined || call.result.error === undefined) {
+        throw new Error("invalid unknown-level fixture");
+      }
       const { fit } = fitCase(fixtureCase.id);
-      const { data, rowNames } = prepareNewData(call.args.newdata);
+      const { data, rowNames } = prepareNewData(args.newdata);
       expect(() => polrPredict(fit, {
         newdata: data,
         rowNames,
-        ...(call.args.type === undefined ? {} : { type: call.args.type }),
+        ...(args.type === undefined ? {} : { type: args.type }),
       })).toThrow(call.result.error);
     });
   }
@@ -358,7 +363,7 @@ describe("polrPredict: missing rows", () => {
     if (Array.isArray(probs)) throw new Error("expected a probability matrix");
     expect(probs.rows).toEqual(rowNames);
     expect(probs.columns).toEqual(["Low", "Medium", "High"]);
-    expect(probs.values[1]).toBeNull();
+    expect(probs.values[1]).toEqual([null, null, null]);
     expect(probs.values[0]).not.toBeNull();
     expect(probs.values[2]).not.toBeNull();
   });
