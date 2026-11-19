@@ -490,6 +490,12 @@ No additional R experiment is required for the covariance formula and weight con
 11. **Tuning constants and scale defaults.** Options are to match MASS defaults or select different constants. **Recommendation:** retain Huber $k=1.345$, Hampel $(2,4,8)$, bisquare $c=4.685$, MAD scale, and Proposal 2 $k_2=1.345$ as the documented defaults; keep the psi tuning constant separate from the scale tuning constant.
 12. **Result shape.** Options are to return a minimal coefficient object or an `lm`-like result with residuals, fitted values, weights, scale, convergence history, and covariance. **Recommendation:** return named coefficients, fitted values, residuals, robust scale, robust weights, convergence diagnostics, and an explicit covariance object. Do not set an ordinary residual degrees of freedom value that invites least-squares scale estimation.
 
+## Stage 3 implementation notes
+
+- MM S-scale refinement uses relative scale and coefficient tolerances, so multiplying the response by a positive constant multiplies the fitted coefficients, robust scale, and standard errors by that constant (within floating-point limits).
+- When more than half of the positive-weight observations lie on the fitted regression surface to machine-relative precision, the fit returns that surface with scale zero and converged status. This includes the all-observations-exact case. Robust weights identify the inliers; scale-based inference (standard errors, t statistics, and covariance) is undefined and is returned as NaN with a warning.
+- Deterministic elemental-subset search has a 5,000,000 row-evaluation budget and can examine all 4,950 two-row subsets for n=100, p=2. The existing choices text is unchanged.
+
 ## rStats.js's choices
 
 Decided by the user on 2026-11-19.
