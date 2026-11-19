@@ -460,11 +460,10 @@ function fitCore(
     const scaledGradientNorm = Math.max(0, ...rhs.map((value, i) =>
       projectedDelta[i] === 0 ? 0 : Math.abs(value) / (Math.sqrt(Math.max(matrix[i]![i]!, Number.MIN_VALUE))
         * (Math.sqrt(current.objective) + control.scaleOffset + Number.EPSILON))));
-    const stepNorm = Math.max(0, ...projectedDelta.map((v, i) => {
-      const scale = Math.max(Math.abs(values[i]!), Math.abs(start[i]!));
-      return Math.abs(v) / (scale > 0 ? scale : 1);
-    }));
-    const stepTolerance = Math.max(8 * Number.EPSILON, control.tol * 0.001);
+    const stepNorm = Math.max(0, ...projectedDelta.map((v, i) => Math.abs(v) / (1 + Math.abs(values[i]!))));
+    const stepTolerance = control.scaleOffset > 0
+      ? Math.max(8 * Number.EPSILON, control.tol * 0.0001)
+      : Math.max(1e-12, Math.sqrt(control.tol) * 0.001);
     const roundedStep = projectedDelta.every((value, i) => {
       const next = values[i]! + value;
       const ulp = Number.EPSILON * Math.max(Math.abs(values[i]!), Math.abs(next), Number.MIN_VALUE);
@@ -472,7 +471,7 @@ function fitCore(
     });
     const gradientTolerance = Math.max(control.tol * 100, 1e-13);
     if ((scaledGradientNorm <= gradientTolerance
-      && (algorithm === "port" || stepNorm <= stepTolerance))
+      && (algorithm === "port" || (control.scaleOffset > 0 ? roundedStep : stepNorm <= stepTolerance)))
       || (roundedStep && scaledGradientNorm <= Math.sqrt(Number.EPSILON))) {
       converged = true; break;
     }
@@ -485,16 +484,19 @@ function fitCore(
           ? evaluateProfiled(expr, rows, y, weights, names, candidate)
           : evaluate(expr, rows, y, weights, names, candidate, algorithm);
         const candidateStepNorm = alpha * stepNorm;
-        const roundingAllowance = 4 * Number.EPSILON * Math.max(current.objective, Number.MIN_VALUE);
+        const responseSquared = weights.reduce((sum, weight, i) => sum + weight * y[i]! * y[i]!, 0);
+      const roundingAllowance = 4 * Number.EPSILON * Math.max(
+        current.objective, Number.EPSILON * responseSquared, Number.MIN_VALUE,
+      );
         if (trial.objective < current.objective
-          || (candidateStepNorm <= stepTolerance * 4 && trial.objective <= current.objective + roundingAllowance)) {
+          || (candidateStepNorm <= stepTolerance * 10 && trial.objective <= current.objective + roundingAllowance)) {
           values = candidate; current = trial; accepted = true; break;
         }
       } catch { /* A trial outside the function domain is rejected and the step is reduced. */ }
       alpha /= 2;
     }
     if (!accepted) {
-      if (roundedStep && scaledGradientNorm <= Math.sqrt(Number.EPSILON)) {
+      if (stepNorm <= stepTolerance * 10 || (roundedStep && scaledGradientNorm <= Math.sqrt(Number.EPSILON))) {
         converged = true; break;
       }
       break;
