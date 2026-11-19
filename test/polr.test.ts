@@ -591,8 +591,9 @@ describe("polrConfint: all profile and Wald fixtures", () => {
             // covers that endpoint-location resolution and the small displacement of its default fit.
             closeAbsolute(actualValue, target, 1e-3, `${fixtureCase.id} R profile endpoint ${actual.rows[i]} [${j}]`);
           } else {
-            // MASS's covariance uses a numerical Hessian; the analytic observed information differs slightly.
-            closeAbsolute(actualValue, target, 2e-5, `${fixtureCase.id} R Wald endpoint ${actual.rows[i]} [${j}]`);
+            // The largest observed SE difference is 1.2e-5; multiplying by z <= 2.576 gives
+            // at most 3.1e-5 endpoint displacement. Keep a 4e-5 absolute bound for that numerical-Hessian effect.
+            closeAbsolute(actualValue, target, 4e-5, `${fixtureCase.id} R Wald endpoint ${actual.rows[i]} [${j}]`);
           }
         }
       }
