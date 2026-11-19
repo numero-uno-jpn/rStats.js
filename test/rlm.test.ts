@@ -536,7 +536,7 @@ describe("MM scale equivariance", () => {
     const relative = (actual: number, expected: number) =>
       Math.abs(actual - expected) / Math.max(Math.abs(expected), Number.MIN_VALUE);
     expect(fit.scale).toBeGreaterThan(0);
-    for (const factor of [1e-8, 1e-50, 1e-100]) {
+    for (const factor of [1e-100, 1e-50, 1e-8, 1e8, 1e50, 1e100]) {
       const scaled = rlm("y ~ x", { x, y: y.map(value => value * factor) }, { method: "MM" });
       for (const name of Object.keys(fit.coefficients)) {
         expect(relative(scaled.coefficients[name]!, fit.coefficients[name]! * factor), name + " at " + factor)
