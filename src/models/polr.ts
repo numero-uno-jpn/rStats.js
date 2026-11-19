@@ -598,7 +598,7 @@ const COVARIANCE = new WeakMap<PolrResult, number[][]>();
 const POLR_PREDICT_KEYS = ["newdata", "rowNames", "type"] as const;
 
 /**
- * Predict ordinal categories or their probabilities for new observations. Equivalent to R's predict().
+ * Predict ordinal categories or their probabilities for new observations. Equivalent to R's `predict.polr()`.
  *
  * @param fit A fit returned by {@link polr}.
  * @param options New predictor columns, optional row labels, and the prediction type.
