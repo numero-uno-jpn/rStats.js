@@ -671,8 +671,8 @@ export function polrPredict(fit: PolrResult, options: PolrPredictOptions = {}): 
     warnings = [...fit.warnings, ...d.warnings];
   }
 
-  if (rowNames.length !== (options.newdata === undefined ? x.length : rowNames.length)) {
-    throw new RangeError("rowNames must have the same length as newdata");
+  if (options.newdata === undefined && rowNames.length !== x.length) {
+    throw new RangeError("rowNames must have the same length as the fitted observations");
   }
   const beta = Object.values(fit.coefficients);
   const cuts = Object.values(fit.zeta);
