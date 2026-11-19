@@ -197,17 +197,6 @@ function tightReferenceIsStationary(args: Record<string, unknown>, expected: Fit
 }
 
 
-function ltsCriterion(fit: ReturnType<typeof fitFrom>): number {
-  const n = fit.residuals.length;
-  const p = fit.model.x[0]?.length ?? 0;
-  const h = Math.floor((n + p) / 2);
-  const squares = fit.residuals.map((r, i) => {
-    const value = fit.model.wtMethod === "inv" ? Math.sqrt(fit.model.observationWeights[i]!) * r : r;
-    return value * value;
-  }).sort((a, b) => a - b);
-  return squares.slice(0, h).reduce((sum, value) => sum + value, 0);
-}
-
 function estimatingEquationResidual(fit: ReturnType<typeof fitFrom>): number {
   const model = fit.model;
   const p = model.x[0]?.length ?? 0;
@@ -243,8 +232,10 @@ describe("deterministic LTS starts", () => {
       const fit = fitFrom(c.fits.main.fit);
       const references = c.ltsReferences!;
       const bestReference = Math.min(...references.map((entry) => num(entry.reference.crit)));
-      const objective = ltsCriterion(fit);
-      expect(objective, c.id + " LTS crit").toBeLessThanOrEqual(bestReference + 1e-8 * Math.max(1, bestReference));
+      expect(fit.initialization?.method).toBe("LTS");
+      const objective = fit.initialization?.objective;
+      expect(objective, c.id + " LTS crit").toBeDefined();
+      expect(objective!, c.id + " LTS crit").toBeLessThanOrEqual(bestReference + 1e-8 * Math.max(1, bestReference));
       expect(estimatingEquationResidual(fit), c.id + " M estimating equations").toBeLessThanOrEqual(1e-8);
       const n = fit.residuals.length;
       const p = fit.model.x[0]?.length ?? 0;
@@ -262,7 +253,10 @@ describe("deterministic S initialization for MM", () => {
       const fit = fitFrom(c.fits.main.fit);
       const references = c.sReferences!;
       const bestReference = Math.min(...references.map((entry) => num(entry.reference.scale!)));
-      expect(fit.scale, c.id + " S scale").toBeLessThanOrEqual(bestReference + 1e-8 * Math.max(1, bestReference));
+      expect(fit.initialization?.method).toBe("S");
+      expect(fit.initialization?.objective, c.id + " S scale").toBeDefined();
+      expect(fit.initialization!.objective, c.id + " S scale").toBeLessThanOrEqual(bestReference + 1e-8 * Math.max(1, bestReference));
+      expect(fit.scale).toBe(fit.initialization!.objective);
       expect(estimatingEquationResidual(fit), c.id + " MM estimating equations").toBeLessThanOrEqual(1e-8);
       expect(fit.model.psi).toBe("bisquare");
       expect(fit.converged).toBe(true);
