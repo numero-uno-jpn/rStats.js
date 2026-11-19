@@ -21,14 +21,14 @@ const FUNCTIONS: Record<string, number> = {
 };
 const SELF_START: Record<string, { args: number; expression: string }> = {
   SSmicmen: { args: 3, expression: "p1*p0/(p2+p0)" },
-  SSlogis: { args: 4, expression: "p1/(1+exp((p3-p0)/p2))" },
+  SSlogis: { args: 4, expression: "p1/(1+exp((p2-p0)/p3))" },
   SSasymp: { args: 4, expression: "p1+(p2-p1)*exp(-exp(p3)*p0)" },
   SSasympOff: { args: 4, expression: "p1*(1-exp(-exp(p2)*(p0-p3)))" },
   SSasympOrig: { args: 3, expression: "p1*(1-exp(-exp(p2)*p0))" },
   SSbiexp: { args: 5, expression: "p1*exp(-exp(p2)*p0)+p3*exp(-exp(p4)*p0)" },
   SSfol: { args: 5, expression: "p0*exp(p2)*exp(p3)/(exp(p4)*(exp(p3)-exp(p2)))*(exp(-exp(p2)*p1)-exp(-exp(p3)*p1))" },
   SSfpl: { args: 5, expression: "p1+(p2-p1)/(1+exp((p3-p0)/p4))" },
-  SSgompertz: { args: 4, expression: "p1*exp(-p2*exp(-p3*p0))" },
+  SSgompertz: { args: 4, expression: "p1*exp(-p2*p3^p0)" },
   SSweibull: { args: 5, expression: "p1-p2*exp(-exp(p3)*p0^p4)" },
 };
 
@@ -121,7 +121,8 @@ export function parseNlsFormula(formula: string): ParsedNlsFormula {
     }
     if (depth < 0) throw new SyntaxError("unbalanced parentheses in formula");
   }
-  if (depth !== 0 || split < 0) throw new SyntaxError("formula must be response ~ expression");
+  if (depth !== 0) throw new SyntaxError("unbalanced parentheses in formula");
+  if (split < 0) throw new SyntaxError("formula must be response ~ expression");
   const response = formula.slice(0, split).trim();
   if (!/^[A-Za-z.][A-Za-z0-9._]*$/.test(response)) throw new SyntaxError("response must be a column name");
   const rhs = formula.slice(split + 1).trim();
