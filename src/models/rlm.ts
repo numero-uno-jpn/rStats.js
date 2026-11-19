@@ -391,6 +391,244 @@ function covarianceScale(residuals: readonly number[], scale: number, weights: r
  return { stddev, covUnscaled };
 }
 
+
+const S_RHO_C = 1.547;
+const MAX_SUBSET_CANDIDATES = 1024;
+const MAX_CANDIDATE_ROW_EVALUATIONS = 250_000;
+
+interface RobustStart {
+ coefficients: number[];
+ objective: number;
+ evaluated: number;
+ total: bigint;
+ warning?: string;
+}
+
+function binomial(n: number, k: number): bigint {
+ if (k < 0 || k > n) return 0n;
+ const m = Math.min(k, n - k);
+ let value = 1n;
+ for (let i = 1; i <= m; i++) value = value * BigInt(n - m + i) / BigInt(i);
+ return value;
+}
+
+function unrankSubset(n: number, p: number, initialRank: bigint): number[] {
+ let rank = initialRank;
+ const subset: number[] = [];
+ let first = 0;
+ for (let position = 0; position < p; position++) {
+   const remaining = p - position - 1;
+   let selected = false;
+   for (let candidate = first; candidate <= n - remaining - 1; candidate++) {
+     const count = binomial(n - candidate - 1, remaining);
+     if (rank < count) {
+       subset.push(candidate);
+       first = candidate + 1;
+       selected = true;
+       break;
+     }
+     rank -= count;
+   }
+   if (!selected) throw new RangeError("invalid deterministic subset rank");
+ }
+ return subset;
+}
+
+function deterministicSubsets(n: number, p: number): { subsets: number[][]; total: bigint; exhaustive: boolean } {
+ const total = binomial(n, p);
+ const budget = Math.max(1, Math.min(MAX_SUBSET_CANDIDATES, Math.floor(MAX_CANDIDATE_ROW_EVALUATIONS / n)));
+ const count = total < BigInt(budget) ? Number(total) : budget;
+ const subsets: number[][] = [];
+ for (let i = 0; i < count; i++) {
+   const rank = count === 1 ? 0n : BigInt(i) * (total - 1n) / BigInt(count - 1);
+   subsets.push(unrankSubset(n, p, rank));
+ }
+ return { subsets, total, exhaustive: BigInt(count) === total };
+}
+
+function residualVector(x: readonly (readonly number[])[], y: readonly number[], coefficients: readonly number[]): number[] {
+ return y.map((value, i) => value - x[i]!.reduce((sum, v, j) => sum + v * coefficients[j]!, 0));
+}
+
+function effectiveAbsoluteResiduals(residuals: readonly number[], weights: readonly number[], wtMethod: "inv" | "case"): number[] {
+ return residuals.map((value, i) => Math.abs(wtMethod === "inv" ? Math.sqrt(weights[i]!) * value : value));
+}
+
+function ltsObjective(residuals: readonly number[], h: number, weights: readonly number[], wtMethod: "inv" | "case"): number {
+ const squares = effectiveAbsoluteResiduals(residuals, weights, wtMethod).map((value) => value * value);
+ squares.sort((a, b) => a - b);
+ let total = 0;
+ for (let i = 0; i < h; i++) total += squares[i]!;
+ return total;
+}
+
+function ltsStart(
+ x: readonly (readonly number[])[],
+ y: readonly number[],
+ observationWeights: readonly number[],
+ wtMethod: "inv" | "case",
+): RobustStart {
+ if (wtMethod === "case" && observationWeights.some((value) => value !== 1)) {
+   throw new RangeError("deterministic LTS initialization does not support case weights");
+ }
+ const n = y.length, p = x[0]?.length ?? 0;
+ const h = Math.floor((n + p) / 2);
+ if (h < p) throw new RangeError("not enough observations for a high-breakdown LTS start");
+ const search = deterministicSubsets(n, p);
+ const candidates: { coefficients: number[]; objective: number; rank: number }[] = [];
+ for (let rank = 0; rank < search.subsets.length; rank++) {
+   const indices = search.subsets[rank]!;
+   try {
+     const beta = weightedLeastSquares(
+       indices.map((i) => x[i]!),
+       indices.map((i) => y[i]!),
+       indices.map((i) => observationWeights[i]!),
+     );
+     const objective = ltsObjective(residualVector(x, y, beta), h, observationWeights, wtMethod);
+     if (Number.isFinite(objective)) candidates.push({ coefficients: beta, objective, rank });
+   } catch {
+     // A singular elemental subset cannot identify the regression coefficients.
+   }
+ }
+ candidates.sort((a, b) => a.objective - b.objective || a.rank - b.rank);
+ let best: { coefficients: number[]; objective: number } | undefined;
+ for (const candidate of candidates.slice(0, 16)) {
+   let beta = candidate.coefficients;
+   let objective = candidate.objective;
+   for (let iteration = 0; iteration < 50; iteration++) {
+     const residuals = residualVector(x, y, beta);
+     const order = effectiveAbsoluteResiduals(residuals, observationWeights, wtMethod)
+       .map((value, index) => ({ value, index }))
+       .sort((a, b) => a.value - b.value || a.index - b.index);
+     const selected = order.slice(0, h).map((entry) => entry.index).sort((a, b) => a - b);
+     let next: number[];
+     try {
+       next = weightedLeastSquares(
+         selected.map((i) => x[i]!),
+         selected.map((i) => y[i]!),
+         selected.map((i) => observationWeights[i]!),
+       );
+     } catch {
+       break;
+     }
+     const nextObjective = ltsObjective(residualVector(x, y, next), h, observationWeights, wtMethod);
+     if (nextObjective > objective + 1e-12 * Math.max(1, objective)) break;
+     const same = next.every((value, j) => Math.abs(value - beta[j]!) <= 1e-12 * Math.max(1, Math.abs(value)));
+     beta = next;
+     objective = nextObjective;
+     if (same) break;
+   }
+   if (best === undefined || objective < best.objective) best = { coefficients: beta, objective };
+ }
+ if (best === undefined) throw new Error("deterministic LTS search found no full-rank subset");
+ return {
+   ...best,
+   evaluated: search.subsets.length,
+   total: search.total,
+   ...(search.exhaustive ? {} : {
+     warning: "deterministic LTS search examined " + search.subsets.length + " of " + search.total.toString() + " elemental subsets; a high-breakdown start is not certified",
+   }),
+ };
+}
+
+function sRhoScale(residuals: readonly number[], weights: readonly number[], wtMethod: "inv" | "case"): number {
+ const absolute = effectiveAbsoluteResiduals(residuals, weights, wtMethod);
+ const target = proposal2Constant(S_RHO_C);
+ const cap = S_RHO_C * S_RHO_C;
+ const n = absolute.length;
+ if (n === 0) return NaN;
+ const maximumMean = absolute.filter((value) => value > 0).length * cap / n;
+ if (maximumMean <= target) return 0;
+ const equation = (scale: number): number => {
+   let sum = 0;
+   for (const value of absolute) {
+     const standardized = value / scale;
+     sum += Math.min(standardized * standardized, cap);
+   }
+   return sum / n - target;
+ };
+ let lo = 0;
+ let hi = Math.max(1, median(absolute) / S_RHO_C);
+ while (equation(hi) > 0 && hi < Number.MAX_VALUE / 4) hi *= 2;
+ if (!Number.isFinite(hi)) return NaN;
+ for (let iteration = 0; iteration < 64; iteration++) {
+   const mid = lo + (hi - lo) / 2;
+   if (equation(mid) > 0) lo = mid;
+   else hi = mid;
+ }
+ return (lo + hi) / 2;
+}
+
+function sStart(
+ x: readonly (readonly number[])[],
+ y: readonly number[],
+ observationWeights: readonly number[],
+ wtMethod: "inv" | "case",
+): RobustStart {
+ if (wtMethod === "case" && observationWeights.some((value) => value !== 1)) {
+   throw new RangeError("MM estimation does not support case weights");
+ }
+ const n = y.length, p = x[0]?.length ?? 0;
+ if (n <= p) throw new RangeError("not enough observations for a high-breakdown S start");
+ const search = deterministicSubsets(n, p);
+ const candidates: { coefficients: number[]; objective: number; rank: number }[] = [];
+ for (let rank = 0; rank < search.subsets.length; rank++) {
+   const indices = search.subsets[rank]!;
+   try {
+     const beta = weightedLeastSquares(
+       indices.map((i) => x[i]!),
+       indices.map((i) => y[i]!),
+       indices.map((i) => observationWeights[i]!),
+     );
+     const scale = sRhoScale(residualVector(x, y, beta), observationWeights, wtMethod);
+     if (Number.isFinite(scale)) candidates.push({ coefficients: beta, objective: scale, rank });
+   } catch {
+     // A singular elemental subset cannot identify the regression coefficients.
+   }
+ }
+ candidates.sort((a, b) => a.objective - b.objective || a.rank - b.rank);
+ let best: { coefficients: number[]; objective: number } | undefined;
+ for (const candidate of candidates.slice(0, 16)) {
+   let beta = candidate.coefficients;
+   let scale = candidate.objective;
+   for (let iteration = 0; iteration < 50; iteration++) {
+     if (!(scale > 0)) break;
+     const residuals = residualVector(x, y, beta);
+     const absolute = effectiveAbsoluteResiduals(residuals, observationWeights, wtMethod);
+     const selected = absolute.map((value, index) => ({ value, index }))
+       .filter((entry) => entry.value / scale < S_RHO_C)
+       .map((entry) => entry.index);
+     if (selected.length < p) break;
+     let next: number[];
+     try {
+       next = weightedLeastSquares(
+         selected.map((i) => x[i]!),
+         selected.map((i) => y[i]!),
+         selected.map((i) => observationWeights[i]!),
+       );
+     } catch {
+       break;
+     }
+     const nextScale = sRhoScale(residualVector(x, y, next), observationWeights, wtMethod);
+     if (!(nextScale >= 0) || nextScale > scale + 1e-12 * Math.max(1, scale)) break;
+     const same = next.every((value, j) => Math.abs(value - beta[j]!) <= 1e-12 * Math.max(1, Math.abs(value)));
+     beta = next;
+     scale = nextScale;
+     if (same) break;
+   }
+   if (best === undefined || scale < best.objective) best = { coefficients: beta, objective: scale };
+ }
+ if (best === undefined) throw new Error("deterministic S search found no full-rank subset");
+ return {
+   ...best,
+   evaluated: search.subsets.length,
+   total: search.total,
+   ...(search.exhaustive ? {} : {
+     warning: "deterministic S search examined " + search.subsets.length + " of " + search.total.toString() + " elemental subsets; a high-breakdown start is not certified",
+   }),
+ };
+}
+
 /** Robust M regression. Equivalent to R's `MASS::rlm()`.
 *
 * @param formula A formula such as `"y ~ x1 + x2"`.
