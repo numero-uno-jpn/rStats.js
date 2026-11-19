@@ -616,7 +616,6 @@ interface ProfilePoint {
 /** Refit nuisance parameters with one coefficient fixed, starting from the nearest profile point. */
 function profilePoint(fit: NlsResult, fixedIndex: number, fixedValue: number, initial: number[]): ProfilePoint {
   const nonlinearNames = fit.parameterNames.filter(name => name !== ".lin");
-  const fixedName = nonlinearNames[fixedIndex]!;
   const nuisanceIndices = nonlinearNames.map((_, i) => i).filter(i => i !== fixedIndex);
   const nuisanceNames = nuisanceIndices.map(i => nonlinearNames[i]!);
   let nuisance = [...initial];
@@ -667,7 +666,6 @@ function profilePoint(fit: NlsResult, fixedIndex: number, fixedValue: number, in
   const full = fit.algorithm === "plinear"
     ? evaluateProfiled(fit.expression, fit.rows.map(i => Object.fromEntries(Object.entries(fit.data).map(([name, col]) => [name, col[i]!]))), fit.y, fit.weights, nonlinearNames, fullValues)
     : evaluate(fit.expression, fit.rows.map(i => Object.fromEntries(Object.entries(fit.data).map(([name, col]) => [name, col[i]!]))), fit.y, fit.weights, nonlinearNames, fullValues, "default");
-  const fixedDerivative = full.jacobian.reduce((sum, row, i) => sum - 2 * fit.weights[i]! * full.residuals[i]! * row[fixedIndex]!, 0);
   return { value: fixedValue, objective: full.objective, nuisance, residuals: full.residuals, jacobian: full.jacobian.map(row => [row[fixedIndex]!]), };
 }
 
@@ -696,38 +694,30 @@ function profileEndpoint(fit: NlsResult, index: number, direction: -1 | 1, targe
     }
   }
   if (!outside) return Number.NaN;
-  let lo = Math.min(inside.value, outside.value), hi = Math.max(inside.value, outside.value);
-  let loPoint = inside.value < outside.value ? inside : outside;
-  let hiPoint = inside.value < outside.value ? outside : inside;
+  let innerT = 0, outerT = direction * (outside.value - estimate);
   let current = outside;
   for (let iteration = 0; iteration < 100; iteration++) {
     const f = current.objective - target;
+    const t = direction * (current.value - estimate);
     if (Math.abs(f) <= 2e-11 * Math.max(1, target)
-      || Math.abs(hi - lo) <= 2e-10 * Math.max(1, Math.abs(current.value))) break;
+      || Math.abs(outerT - innerT) <= 2e-10 * Math.max(1, Math.abs(estimate))) break;
     const derivative = current.residuals.reduce((sum, residual, i) =>
-      sum - 2 * fit.weights[i]! * residual * current.jacobian[i]![0]!, 0);
-    let next = current.value - f / derivative;
-    if (!Number.isFinite(next) || !(next > lo && next < hi)) next = (lo + hi) / 2;
+      sum - 2 * fit.weights[i]! * residual * current.jacobian[i]![0]!, 0) * direction;
+    let nextT = t - f / derivative;
+    if (!Number.isFinite(nextT) || !(nextT > innerT && nextT < outerT)) nextT = (innerT + outerT) / 2;
+    const nextValue = estimate + direction * nextT;
     try {
-      const trial = evaluateAt(next, current.nuisance);
-      if (trial.objective >= target) {
-        if (next < estimate) { lo = next; loPoint = trial; }
-        else { hi = next; hiPoint = trial; }
-      } else {
-        if (next < estimate) { hi = next; hiPoint = trial; }
-        else { lo = next; loPoint = trial; }
-      }
+      const trial = evaluateAt(nextValue, current.nuisance);
+      if (trial.objective >= target) outerT = nextT;
+      else innerT = nextT;
       current = trial;
-      // Keep the best nearby successful nuisance solution as the next warm start.
-      warm = trial.nuisance;
     } catch {
-      next = (lo + hi) / 2;
-      current = evaluateAt(next, warm);
+      outerT = nextT;
+      current = evaluateAt(estimate + direction * ((innerT + outerT) / 2), current.nuisance);
     }
-    void loPoint; void hiPoint;
   }
-  const endpoint = (lo + hi) / 2;
-  // Independent endpoint verification starts from the fitted nuisance estimates, not the root iteration.
+  const endpoint = estimate + direction * ((innerT + outerT) / 2);
+  // Independently verify the endpoint from the original fitted nuisance values.
   const checked = evaluateAt(endpoint, nuisanceNames.map(name => fit.coefficients[name]!));
   if (Math.abs(checked.objective - target) > 2e-7 * Math.max(1, target)) return Number.NaN;
   return endpoint;
