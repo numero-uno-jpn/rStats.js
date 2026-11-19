@@ -531,24 +531,39 @@ function ltsStart(
  };
 }
 
+function sRhoValue(u: number): number {
+ const absolute = Math.abs(u);
+ const cap = S_RHO_C * S_RHO_C;
+ if (absolute >= S_RHO_C) return cap / 6;
+ const ratio = u / S_RHO_C;
+ const square = ratio * ratio;
+ return (u * u / 2) * (1 - square + square * square / 3);
+}
+
+function sRhoConstant(): number {
+ const c = S_RHO_C;
+ const density = Math.exp(-0.5 * c * c) / Math.sqrt(2 * Math.PI);
+ const inside = 2 * (pnorm(c) as number) - 1;
+ const moment2 = inside - 2 * c * density;
+ const moment4 = 3 * inside - 2 * (c ** 3 + 3 * c) * density;
+ const moment6 = 15 * inside - 2 * (c ** 5 + 5 * c ** 3 + 15 * c) * density;
+ return moment2 / 2 - moment4 / (2 * c * c) + moment6 / (6 * c ** 4) + c * c / 6 * (1 - inside);
+}
+
 function sRhoScale(residuals: readonly number[], weights: readonly number[], wtMethod: "inv" | "case"): number {
  const absolute = effectiveAbsoluteResiduals(residuals, weights, wtMethod);
- const target = proposal2Constant(S_RHO_C);
- const cap = S_RHO_C * S_RHO_C;
+ const target = sRhoConstant();
  const n = absolute.length;
  if (n === 0) return NaN;
- const maximumMean = absolute.filter((value) => value > 0).length * cap / n;
+ const maximumMean = absolute.filter((value) => value > 0).length * S_RHO_C * S_RHO_C / (6 * n);
  if (maximumMean <= target) return 0;
  const equation = (scale: number): number => {
    let sum = 0;
-   for (const value of absolute) {
-     const standardized = value / scale;
-     sum += Math.min(standardized * standardized, cap);
-   }
+   for (const value of absolute) sum += sRhoValue(value / scale);
    return sum / n - target;
  };
  let lo = 0;
- let hi = Math.max(1, median(absolute) / S_RHO_C);
+ let hi = Math.max(1, median(absolute));
  while (equation(hi) > 0 && hi < Number.MAX_VALUE / 4) hi *= 2;
  if (!Number.isFinite(hi)) return NaN;
  for (let iteration = 0; iteration < 64; iteration++) {
@@ -595,17 +610,14 @@ function sStart(
      if (!(scale > 0)) break;
      const residuals = residualVector(x, y, beta);
      const absolute = effectiveAbsoluteResiduals(residuals, observationWeights, wtMethod);
-     const selected = absolute.map((value, index) => ({ value, index }))
-       .filter((entry) => entry.value / scale < S_RHO_C)
-       .map((entry) => entry.index);
-     if (selected.length < p) break;
+     const refinementWeights = absolute.map((value, i) => {
+       const ratio = value / (scale * S_RHO_C);
+       return ratio < 1 ? (1 - ratio * ratio) ** 2 * observationWeights[i]! : 0;
+     });
+     if (refinementWeights.filter((value) => value > 0).length < p) break;
      let next: number[];
      try {
-       next = weightedLeastSquares(
-         selected.map((i) => x[i]!),
-         selected.map((i) => y[i]!),
-         selected.map((i) => observationWeights[i]!),
-       );
+       next = weightedLeastSquares(x, y, refinementWeights);
      } catch {
        break;
      }
