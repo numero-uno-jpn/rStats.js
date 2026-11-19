@@ -646,18 +646,22 @@ function sStart(
 export function rlm(formula: string, data: DataFrame, options: RlmOptions = {}): RlmResult {
  checkOptions(options, RLM_KEYS, "rlm"); // generated: option-keys.mjs
  const method = options.method ?? "M";
- if (method !== "M") throw new RangeError("MM estimation is implemented in the deterministic-estimator stage");
- const psi = options.psi ?? "huber";
+ if (method !== "M" && method !== "MM") throw new RangeError("method must be 'M' or 'MM'");
+ const psi = options.psi ?? (method === "MM" ? "bisquare" : "huber");
  if (psi !== "huber" && psi !== "hampel" && psi !== "bisquare") throw new RangeError("unknown psi function");
+ if (method === "MM" && psi === "huber") throw new RangeError("MM estimation requires a redescending psi function");
  const scaleEst = options.scaleEst ?? "MAD";
  if (scaleEst !== "MAD" && scaleEst !== "Huber" && scaleEst !== "proposal 2") throw new RangeError("unknown scale estimator");
  const wtMethod = options.wtMethod ?? "inv";
  if (wtMethod !== "inv" && wtMethod !== "case") throw new RangeError("wtMethod must be 'inv' or 'case'");
+ if (method === "MM" && wtMethod === "case" && options.weights !== undefined) {
+   throw new RangeError("MM estimation does not support case weights");
+ }
+ if (method === "MM" && options.init !== undefined) {
+   throw new RangeError("MM estimation always uses its deterministic S-estimator start");
+ }
  const k = options.k ?? 1.345, a = options.a ?? 2, b = options.b ?? 4;
  const c = options.c ?? (psi === "bisquare" ? 4.685 : 8), k2 = options.k2 ?? 1.345;
- // Target the estimator itself, not an early stopping heuristic: solve the standardized
- // score equations and scale fixed point to numerical precision. Robust fits can converge
- // slowly, so the default budget is generous; explicit maxit/acc remain available.
  const maxit = options.maxit ?? 1000, acc = options.acc ?? 1e-10;
  if (!(k > 0 && k2 > 0) || ![k, k2].every(Number.isFinite)) throw new RangeError("k and k2 must be positive and finite");
  if (!(a > 0 && a < b && b < c) || ![a, b, c].every(Number.isFinite)) {
@@ -666,7 +670,6 @@ export function rlm(formula: string, data: DataFrame, options: RlmOptions = {}):
  if (psi === "bisquare" && (!(c > 0) || !Number.isFinite(c))) throw new RangeError("bisquare c must be positive and finite");
  if (!Number.isInteger(maxit) || maxit < 1) throw new RangeError("maxit must be a positive integer");
  if (!(acc > 0) || !Number.isFinite(acc)) throw new RangeError("acc must be positive and finite");
- if (options.init === "lts") throw new Error("deterministic LTS initialization is implemented in the next stage");
 
  const parsed = parseFormula(formula);
  if (parsed.response === undefined) throw new TypeError("formula must have a response");
@@ -685,18 +688,30 @@ export function rlm(formula: string, data: DataFrame, options: RlmOptions = {}):
    formula, x, y, columnNames: d.colNames, observationWeights, wtMethod, psi, scaleEst,
    k, a, b, c, k2, rows: d.frame.rows,
  };
- const init = options.init ?? "ls";
+ const searchWarnings: string[] = [];
  let coefficients: number[];
- if (init === "ls") coefficients = weightedLeastSquares(x, y, observationWeights);
- else if (typeof init === "string") throw new RangeError("init must be 'ls' or a numeric coefficient vector");
- else {
-   coefficients = Array.from(init);
-   if (coefficients.length !== p || !coefficients.every(Number.isFinite)) throw new RangeError(`init must have ${p} finite coefficients`);
+ let fixedScale: number | undefined;
+ if (method === "MM") {
+   const start = sStart(x, y, observationWeights, wtMethod);
+   coefficients = start.coefficients;
+   fixedScale = start.objective;
+   if (start.warning !== undefined) searchWarnings.push(start.warning);
+ } else if (options.init === "lts") {
+   const start = ltsStart(x, y, observationWeights, wtMethod);
+   coefficients = start.coefficients;
+   if (start.warning !== undefined) searchWarnings.push(start.warning);
+ } else if (options.init === undefined || options.init === "ls") {
+   coefficients = weightedLeastSquares(x, y, observationWeights);
+ } else if (typeof options.init === "string") {
+   throw new RangeError("init must be 'ls', 'lts' or a numeric coefficient vector");
+ } else {
+   coefficients = Array.from(options.init);
+   if (coefficients.length !== p || !coefficients.every(Number.isFinite)) throw new RangeError("init must have " + p + " finite coefficients");
  }
 
  const convergence: number[] = [];
  let converged = false;
- let scale = NaN;
+ let scale = fixedScale ?? NaN;
  let robustWeights = new Array<number>(y.length).fill(1);
  let workingWeights = observationWeights.slice();
  let iterations = 0;
@@ -706,8 +721,8 @@ export function rlm(formula: string, data: DataFrame, options: RlmOptions = {}):
  };
  for (let iteration = 1; iteration <= maxit; iteration++) {
    iterations = iteration;
-   const residuals = y.map((v, i) => v - x[i]!.reduce((sum, z, j) => sum + z * coefficients[j]!, 0));
-   scale = robustScale(residuals, observationWeights, wtMethod, scaleEst, k2, p);
+   const residuals = residualVector(x, y, coefficients);
+   scale = fixedScale ?? robustScale(residuals, observationWeights, wtMethod, scaleEst, k2, p);
    if (!(scale > 0) || !Number.isFinite(scale)) {
      if (scale === 0) { converged = true; break; }
      throw new Error("robust scale is not positive and finite");
@@ -718,15 +733,12 @@ export function rlm(formula: string, data: DataFrame, options: RlmOptions = {}):
    });
    workingWeights = effectiveObsWeights(residuals, scale);
    const next = weightedLeastSquares(x, y, workingWeights);
-   const nextResiduals = y.map((v, i) => v - x[i]!.reduce((sum, z, j) => sum + z * next[j]!, 0));
-   const nextScale = robustScale(nextResiduals, observationWeights, wtMethod, scaleEst, k2, p);
+   const nextResiduals = residualVector(x, y, next);
+   const nextScale = fixedScale ?? robustScale(nextResiduals, observationWeights, wtMethod, scaleEst, k2, p);
    if (!(nextScale > 0) || !Number.isFinite(nextScale)) {
      if (nextScale === 0) { coefficients = next; scale = 0; converged = true; break; }
      throw new Error("robust scale is not positive and finite");
    }
-   // Check the actual M-estimating equations, not the size of the last coefficient step.
-   // Normalize each column by its absolute score contributions, making the criterion
-   // dimensionless and invariant to predictor units.
    let scoreNorm = 0;
    for (let j = 0; j < p; j++) {
      let score = 0, magnitude = 0;
@@ -739,34 +751,31 @@ export function rlm(formula: string, data: DataFrame, options: RlmOptions = {}):
      }
      scoreNorm = Math.max(scoreNorm, magnitude === 0 ? Math.abs(score) : Math.abs(score) / magnitude);
    }
-   // The scale equation is a fixed point: the scale used in the score must agree with
-   // the scale recomputed from residuals at the updated coefficients.
-   const scaleNorm = Math.abs(nextScale - scale) / Math.max(Math.abs(nextScale), Math.abs(scale), Number.MIN_VALUE);
+   const scaleNorm = fixedScale === undefined
+     ? Math.abs(nextScale - scale) / Math.max(Math.abs(nextScale), Math.abs(scale), Number.MIN_VALUE)
+     : 0;
    const residual = Math.max(scoreNorm, scaleNorm);
    convergence.push(residual);
    coefficients = next;
    scale = nextScale;
    if (residual <= acc) { converged = true; break; }
  }
- if (!converged) {
-   // Keep the estimate and its diagnostics; a caller must not mistake an iteration-limit fit for convergence.
- }
  const fittedValues = x.map((row) => row.reduce((sum, v, j) => sum + v * coefficients[j]!, 0));
  const residuals = y.map((v, i) => v - fittedValues[i]!);
- scale = robustScale(residuals, observationWeights, wtMethod, scaleEst, k2, p);
+ scale = fixedScale ?? robustScale(residuals, observationWeights, wtMethod, scaleEst, k2, p);
  robustWeights = residuals.map((r, i) => {
    const u = (wtMethod === "inv" ? Math.sqrt(observationWeights[i]!) * r : r) / scale;
    return psiWeight(psi, u, model);
  });
  workingWeights = effectiveObsWeights(residuals, scale);
  const covariance = covarianceScale(residuals, scale, observationWeights, model, p);
- const warnings = [...d.warnings];
- if (!converged) warnings.push(`'rlm' failed to converge in ${maxit} steps`);
+ const warnings = [...d.warnings, ...searchWarnings];
+ if (!converged) warnings.push("'rlm' failed to converge in " + maxit + " steps");
  const result: RlmResult = {
    coefficients: Object.fromEntries(d.colNames.map((name, i) => [name, coefficients[i]!])),
    fittedValues, residuals, robustWeights, workingWeights,
    scale, stddev: covariance.stddev,
-   covariance: covariance.covUnscaled.map((row, i) => row.map((v, j) => v * covariance.stddev ** 2)),
+   covariance: covariance.covUnscaled.map((row) => row.map((v) => v * covariance.stddev ** 2)),
    covarianceUnscaled: covariance.covUnscaled,
    converged, iterations, convergence, warnings, model,
  };
