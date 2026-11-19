@@ -861,7 +861,7 @@ function profileEndpoint(
 }
 
 /**
- * Confidence intervals for the slope coefficients. Equivalent to R's `confint.polr()`.
+ * Equivalent to R's `confint.polr()`.
  *
  * @param fit A fit returned by {@link polr}.
  * @param options The interval method, confidence level and selected slope parameters.
