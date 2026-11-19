@@ -1028,7 +1028,7 @@ export function polrAnova(...fits: PolrResult[]): PolrAnovaResult {
       || a.method !== b.method
       || a.weights.length !== b.weights.length || a.weights.some((value, i) => value !== b.weights[i])
       || a.offset.length !== b.offset.length || a.offset.some((value, i) => value !== b.offset[i])) {
-      throw new Error("models were not all fitted to the same response, rows, link, weights and offset");
+      throw new Error("models were not all fitted to the same size of dataset");
     }
 
     const previousColumns = new Map(a.columnNames.map((name, i) => [name, i]));
@@ -1075,7 +1075,7 @@ export function polrAnova(...fits: PolrResult[]): PolrAnovaResult {
       "Pr(Chi)": probabilities,
     },
     rows: fits.map((_, i) => String(i + 1)),
-    heading: ["Likelihood ratio tests of ordinal regression models\\n", `Response: ${reference.response}`],
+    heading: ["Likelihood ratio tests of ordinal regression models\n", `Response: ${reference.response}`],
     warnings,
   }, ...fits);
 }
