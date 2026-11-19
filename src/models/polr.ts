@@ -598,7 +598,7 @@ const COVARIANCE = new WeakMap<PolrResult, number[][]>();
 const POLR_PREDICT_KEYS = ["newdata", "rowNames", "type"] as const;
 
 /**
- * Predict ordinal categories or their probabilities for new observations.
+ * Predict ordinal categories or their probabilities for new observations. Equivalent to R's predict().
  *
  * @param fit A fit returned by {@link polr}.
  * @param options New predictor columns, optional row labels, and the prediction type.
@@ -613,7 +613,7 @@ const POLR_PREDICT_KEYS = ["newdata", "rowNames", "type"] as const;
  * @category Regression
  */
 export function polrPredict(fit: PolrResult, options: PolrPredictOptions = {}): PolrPredictResult {
-  checkOptions(options, POLR_PREDICT_KEYS, "polrPredict");
+  checkOptions(options, POLR_PREDICT_KEYS, "polrPredict"); // generated: option-keys.mjs
   const type = options.type ?? "class";
   if (type !== "class" && type !== "probs") throw new RangeError(`unknown prediction type '${String(type)}'`);
 
@@ -679,12 +679,14 @@ export function polrPredict(fit: PolrResult, options: PolrPredictOptions = {}): 
   const eta = rowPredictors(x, beta, offsets);
   const predicted = probabilities(eta, cuts, model.method);
   const n = rowNames.length;
-  const full: (number[] | null)[] = new Array<number[] | null>(n).fill(null);
+  const full: (number | null)[][] = Array.from(
+    { length: n }, () => new Array<number | null>(model.responseLevels.length).fill(null),
+  );
   rowIndices.forEach((original, i) => { full[original] = predicted[i]!; });
 
   if (type === "class") {
     const classes = full.map((values) => {
-      if (values === null) return null;
+      if (values[0] === null) return null;
       let best = 0;
       for (let j = 1; j < values.length; j++) if (values[j]! > values[best]!) best = j;
       return model.responseLevels[best]!;
