@@ -136,7 +136,7 @@ fit_public_record <- function(fit) {
 }
 
 # Data are stored in the argument records, making every case independently reproducible.
-stackloss_data <- MASS::stackloss
+stackloss_data <- datasets::stackloss
 phones_data <- MASS::phones
 mtcars_data <- datasets::mtcars
 stackloss_formula <- stack.loss ~ Air.Flow + Water.Temp + Acid.Conc.
@@ -157,8 +157,13 @@ cases <- list(
        calls = list()),
 
   list(id = "stackloss-hampel-lts",
-       fits = list(main = list(args = list(formula = stackloss_formula, data = stackloss_data,
+       fits = list(main = list(seed = 1L,
+                               args = list(formula = stackloss_formula, data = stackloss_data,
                                            psi = quote(psi.hampel), init = "lts"))),
+       ltsReferences = lapply(c(1L, 2L, 123L), function(seed) {
+         list(seed = seed, args = list(formula = stackloss_formula, data = stackloss_data,
+                                       method = "lts"))
+       }),
        calls = list()),
 
   list(id = "stackloss-hampel-ls",
@@ -167,8 +172,13 @@ cases <- list(
        calls = list()),
 
   list(id = "stackloss-bisquare-lts",
-       fits = list(main = list(args = list(formula = stackloss_formula, data = stackloss_data,
+       fits = list(main = list(seed = 1L,
+                               args = list(formula = stackloss_formula, data = stackloss_data,
                                            psi = quote(psi.bisquare), init = "lts"))),
+       ltsReferences = lapply(c(1L, 2L, 123L), function(seed) {
+         list(seed = seed, args = list(formula = stackloss_formula, data = stackloss_data,
+                                       method = "lts"))
+       }),
        calls = list()),
 
   list(id = "stackloss-scale-mad",
@@ -197,13 +207,23 @@ cases <- list(
        calls = list()),
 
   list(id = "phones-hampel",
-       fits = list(main = list(args = list(formula = phones_formula, data = phones_data,
+       fits = list(main = list(seed = 1L,
+                               args = list(formula = phones_formula, data = phones_data,
                                            psi = quote(psi.hampel), init = "lts", maxit = 50))),
+       ltsReferences = lapply(c(1L, 2L, 123L), function(seed) {
+         list(seed = seed, args = list(formula = phones_formula, data = phones_data,
+                                       method = "lts"))
+       }),
        calls = list()),
 
   list(id = "phones-bisquare",
-       fits = list(main = list(args = list(formula = phones_formula, data = phones_data,
+       fits = list(main = list(seed = 1L,
+                               args = list(formula = phones_formula, data = phones_data,
                                            psi = quote(psi.bisquare), init = "lts", maxit = 50))),
+       ltsReferences = lapply(c(1L, 2L, 123L), function(seed) {
+         list(seed = seed, args = list(formula = phones_formula, data = phones_data,
+                                       method = "lts"))
+       }),
        calls = list()),
 
   list(id = "weights-inv",
@@ -262,7 +282,7 @@ cases <- list(
                                            scale.est = "mad"))),
        calls = list()),
 
-  list(id = "error-mm-case-weights",
+  list(id = "mm-case-weights",
        fits = list(main = list(args = list(formula = stackloss_formula, data = stackloss_data,
                                            method = "MM", weights = weight_values,
                                            wt.method = "case"))),
@@ -315,7 +335,7 @@ run_call <- function(call_spec, fit) {
   stop("unknown oracle operation")
 }
 
-run_s_reference <- function(spec) {
+run_lqs_reference <- function(spec, method) {
   args <- spec$args
   set.seed(spec$seed)
   result <- capture_raw(function() do.call(MASS::lqs, args))
@@ -325,9 +345,10 @@ run_s_reference <- function(spec) {
     record$result$error <- result$error
   } else {
     refit <- result$value
-    record$reference <- list(coefficients = json_value(coef(refit)),
-                             scale = scalar_num(refit$scale),
-                             crit = scalar_num(refit$crit))
+    reference <- list(coefficients = json_value(coef(refit)),
+                      crit = scalar_num(refit$crit))
+    if (identical(method, "S")) reference$scale <- scalar_num(refit$scale)
+    record$reference <- reference
   }
   record
 }
@@ -357,9 +378,12 @@ rows <- lapply(cases, function(case) {
   })
 
   s_refs <- if (is.null(case$sReferences)) list() else
-    lapply(case$sReferences, run_s_reference)
+    lapply(case$sReferences, run_lqs_reference, method = "S")
+  lts_refs <- if (is.null(case$ltsReferences)) list() else
+    lapply(case$ltsReferences, run_lqs_reference, method = "lts")
 
-  row <- list(id = case$id, fits = fit_rows, calls = calls, sReferences = s_refs)
+  row <- list(id = case$id, fits = fit_rows, calls = calls,
+              sReferences = s_refs, ltsReferences = lts_refs)
   if (grepl("-mm$", case$id)) {
     row$comparison = list(mmCoefficients = "record-only; do not compare",
                           lqsSScale = "compare as the S-scale reference",
