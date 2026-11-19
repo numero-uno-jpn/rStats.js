@@ -266,8 +266,9 @@ describe("robust M regression against the R fixture", () => {
       if (tightArgs !== undefined && tightExpected !== undefined) {
         const tightFit = fitFrom(tightArgs);
         for (const name of Object.keys(tightExpected.coefficients)) {
+          const actualName = rename(name);
           const r = num(tightExpected.coefficients[name]!);
-          expect(Math.abs(tightFit.coefficients[name]! - r) / Math.max(1, Math.abs(r)), c.id + " tight " + name)
+          expect(Math.abs(tightFit.coefficients[actualName]! - r) / Math.max(1, Math.abs(r)), c.id + " tight " + name)
             .toBeLessThanOrEqual(1e-8);
         }
         expect(Math.abs(tightFit.scale - num(tightExpected.s)) / Math.max(1, Math.abs(num(tightExpected.s))), c.id + " tight scale")
