@@ -1,0 +1,52 @@
+Bennett5  higher   start1 LRE coef 10.3  SE  6.8  RSS 11.0 11ms
+Bennett5  higher   start2 LRE coef 11.0  SE  6.9  RSS 11.0 7ms
+BoxBOD    higher   start1 ERROR number of iterations exceeded; nonlinear fit did not converge 1ms
+BoxBOD    higher   start2 LRE coef 10.5  SE 10.2  RSS 10.4 1ms
+Chwirut1  lower    start1 LRE coef  9.9  SE 10.2  RSS 11.0 7ms
+Chwirut1  lower    start2 LRE coef 10.0  SE 10.3  RSS 11.0 6ms
+Chwirut2  lower    start1 LRE coef 10.2  SE 10.9  RSS 11.0 2ms
+Chwirut2  lower    start2 LRE coef 10.1  SE 10.8  RSS 11.0 2ms
+DanWood   lower    start1 LRE coef 11.0  SE 11.0  RSS 11.0 0ms
+DanWood   lower    start2 LRE coef 10.7  SE 10.7  RSS 11.0 0ms
+ENSO      average  start1 LRE coef  8.9  SE 10.1  RSS 11.0 641ms
+ENSO      average  start2 LRE coef  8.8  SE  9.9  RSS 11.0 515ms
+Eckerle4  higher   start1 ERROR non-finite model value or gradient; check the formula domain and starting values 0ms
+Eckerle4  higher   start2 ERROR non-finite model value or gradient; check the formula domain and starting values 0ms
+Gauss1    lower    start1 ERROR non-finite model value or gradient; check the formula domain and starting values 0ms
+Gauss1    lower    start2 ERROR non-finite model value or gradient; check the formula domain and starting values 0ms
+Gauss2    lower    start1 ERROR non-finite model value or gradient; check the formula domain and starting values 0ms
+Gauss2    lower    start2 ERROR non-finite model value or gradient; check the formula domain and starting values 0ms
+Gauss3    average  start1 ERROR non-finite model value or gradient; check the formula domain and starting values 0ms
+Gauss3    average  start2 ERROR non-finite model value or gradient; check the formula domain and starting values 0ms
+Hahn1     average  start1 LRE coef  7.6  SE  8.3  RSS 10.6 169ms
+Hahn1     average  start2 LRE coef  9.8  SE 10.2  RSS 10.6 95ms
+Thurber   higher   start1 ERROR non-finite model value or gradient; check the formula domain and starting values 0ms
+Thurber   higher   start2 ERROR non-finite model value or gradient; check the formula domain and starting values 0ms
+Kirby2    average  start1 LRE coef  8.3  SE  8.6  RSS 11.0 69ms
+Kirby2    average  start2 LRE coef  9.0  SE  9.4  RSS 11.0 18ms
+Lanczos1  average  start1 ERROR number of iterations exceeded; nonlinear fit did not converge 250ms
+Lanczos1  average  start2 ERROR number of iterations exceeded; nonlinear fit did not converge 243ms
+Lanczos2  average  start1 LRE coef 10.3  SE  8.7  RSS 10.5 7ms
+Lanczos2  average  start2 LRE coef 10.4  SE  8.6  RSS 10.2 3ms
+Lanczos3  lower    start1 LRE coef  9.5  SE  9.1  RSS 10.6 7ms
+Lanczos3  lower    start2 LRE coef  9.7  SE  8.5  RSS 10.6 5ms
+MGH09     higher   start1 ERROR number of iterations exceeded; nonlinear fit did not converge 4ms
+MGH09     higher   start2 LRE coef  8.9  SE  9.0  RSS 11.0 5ms
+MGH10     higher   start1 ERROR singular gradient: singular gradient matrix; parameters are not locally identifiable 0ms
+MGH10     higher   start2 LRE coef  8.9  SE  8.9  RSS 11.0 2ms
+MGH17     average  start1 ERROR singular gradient: singular gradient matrix; parameters are not locally identifiable 0ms
+MGH17     average  start2 LRE coef  8.8  SE  8.3  RSS 11.0 3ms
+Misra1a   lower    start1 LRE coef 11.0  SE 10.9  RSS 10.5 1ms
+Misra1a   lower    start2 LRE coef 10.1  SE  9.8  RSS 10.5 0ms
+Misra1b   lower    start1 LRE coef 10.1  SE  9.9  RSS 11.0 1ms
+Misra1b   lower    start2 LRE coef  9.4  SE  9.1  RSS 11.0 1ms
+Misra1c   average  start1 LRE coef  8.4  SE  8.2  RSS 11.0 1ms
+Misra1c   average  start2 LRE coef 10.1  SE 10.0  RSS 11.0 0ms
+Misra1d   average  start1 LRE coef 11.0  SE 10.8  RSS 11.0 1ms
+Misra1d   average  start2 LRE coef 11.0  SE 10.9  RSS 11.0 0ms
+Nelson    average  start1 LRE coef  8.8  SE  8.8  RSS 10.9 63ms
+Nelson    average  start2 LRE coef  7.2  SE  7.3  RSS 10.9 6ms
+Rat42     higher   start1 LRE coef 10.8  SE 10.7  RSS 11.0 3ms
+Rat42     higher   start2 LRE coef  9.7  SE  9.3  RSS 11.0 1ms
+Rat43     higher   start1 ERROR singular gradient: singular gradient matrix; parameters are not locally identifiable 0ms
+Rat43     higher   start2 LRE coef  9.8  SE  9.8  RSS 11.0 2ms

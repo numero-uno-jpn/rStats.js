@@ -1,0 +1,6 @@
+rlm M all on a line: coef 1 2 scale 1.54588e-16 converged TRUE 
+rlm MM all on a line: ERROR incompatible dimensions 
+rlm M 60% on a line: coef 0.999995916291873 2.000037929384523 scale 0.000126902 converged TRUE 
+rlm MM 60% on a line: coef 1 2 scale 6.68986e-16 converged TRUE 
+polr 200 levels n=1000: coef 1.6841487 logLik -4953.925171 elapsed 0.868 
+polr 150-level factor n=300: coef x 1.1784494 logLik -275.44731 elapsed 1.761 

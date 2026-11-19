@@ -1,0 +1,11 @@
+base coef  0.6512504966 -0.3526283590 zeta -0.80900864293  0.04803431267  1.28907784602 logLik -388.393474494 
+scale 1e+100 : ERROR infinite or missing values in 'x' 
+scale 1e-100 : coef*s rel 4.3e-02 zeta rel 1.7e-02 logLik rel 7.4e-05 se*s rel NaN 
+scale 1e+300 : ERROR infinite or missing values in 'x' 
+scale 1e-300 : coef*s rel 4.3e-02 zeta rel 1.7e-02 logLik rel 7.4e-05 se*s rel 1.0e+00 
+Warning message:
+In sqrt(diag(vcov(f))) : NaNs produced
+  warning: glm.fit: algorithm did not converge 
+  warning: glm.fit: fitted probabilities numerically 0 or 1 occurred 
+complete separation: ERROR attempt to find suitable starting values failed 
+near separation: coef 8.1799709 zeta 16.768938 32.310882 logLik -8.0436729 convergence 0 
