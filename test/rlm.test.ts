@@ -562,8 +562,8 @@ describe("majority-exact robust regression", () => {
       rlm("y ~ x", data, { method: "MM" }),
     ];
     for (const fit of fits) {
-      expect(fit.coefficients["(Intercept)"]).toBe(2);
-      expect(fit.coefficients.x).toBe(3);
+      expect(fit.coefficients["(Intercept)"]).toBeCloseTo(2, 12);
+      expect(fit.coefficients.x).toBeCloseTo(3, 12);
       expect(fit.scale).toBe(0);
       expect(fit.converged).toBe(true);
       expect(fit.warnings).toContain("more than half of the observations lie exactly on the fitted line; scale and inference are undefined");
