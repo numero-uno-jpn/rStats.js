@@ -10,7 +10,8 @@ import {
   nlsVcov,
 } from "../src/entries/regression.js";
 import { qf } from "../src/distributions/f.js";
-import type { DataFrame } from "../src/models/modelFrame.js";\nimport { evaluateNlsWithGradient, parseNlsFormula, evaluateNlsExpression } from "../src/models/nlsFormula.js";
+import type { DataFrame } from "../src/models/modelFrame.js";
+import { evaluateNlsWithGradient, parseNlsFormula, evaluateNlsExpression } from "../src/models/nlsFormula.js";
 
 interface PublicFit {
   coefficients: Record<string, number>;
