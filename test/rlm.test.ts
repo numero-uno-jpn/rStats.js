@@ -144,15 +144,17 @@ describe("robust M regression against the R fixture", () => {
       expect(vcov.columns).toEqual(expected.vcov.cols);
       numericMatrix(vcov.values, expected.vcov.values, c.id + " vcov", 3e-3);
 
-      const tight = c.fits.main.fitTight?.fitPublic;
-      if (tight !== undefined) {
-        for (const name of Object.keys(tight.coefficients)) {
-          const r = num(tight.coefficients[name]!);
-          expect(Math.abs(fit.coefficients[name]! - r) / Math.max(1, Math.abs(r)), c.id + " tight " + name)
-            .toBeLessThanOrEqual(3e-3);
+      const tightArgs = c.fits.main.fitTight?.fit;
+      const tightExpected = c.fits.main.fitTight?.fitPublic;
+      if (tightArgs !== undefined && tightExpected !== undefined) {
+        const tightFit = fitFrom(tightArgs);
+        for (const name of Object.keys(tightExpected.coefficients)) {
+          const r = num(tightExpected.coefficients[name]!);
+          expect(Math.abs(tightFit.coefficients[name]! - r) / Math.max(1, Math.abs(r)), c.id + " tight " + name)
+            .toBeLessThanOrEqual(1e-8);
         }
-        expect(Math.abs(fit.scale - num(tight.s)) / Math.max(1, Math.abs(num(tight.s))), c.id + " tight scale")
-          .toBeLessThanOrEqual(3e-3);
+        expect(Math.abs(tightFit.scale - num(tightExpected.s)) / Math.max(1, Math.abs(num(tightExpected.s))), c.id + " tight scale")
+          .toBeLessThanOrEqual(1e-8);
       }
     });
   }
