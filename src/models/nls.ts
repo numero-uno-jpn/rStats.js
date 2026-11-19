@@ -513,7 +513,8 @@ export function nlsPredict(fit: NlsResult, options: NlsPredictOptions): number[]
     const row: Record<string, number> = {};
     for (const [name, col] of Object.entries(data)) row[name] = Number(col[i]);
     try {
-      out.push(evaluateNlsExpression(fit.expression, row, fit.coefficients));
+      const value = evaluateNlsExpression(fit.expression, row, fit.coefficients);
+      out.push(fit.algorithm === "plinear" ? fit.coefficients[".lin"]! * value : value);
     } catch {
       out.push(Number.NaN);
     }
