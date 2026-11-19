@@ -11,6 +11,7 @@ import { num } from "./helpers/fixture.js";
 interface FitPublic {
   coefficients: Record<string, string | number>;
   s: number | string;
+  stddev: number | string;
   summary: { rows: string[]; cols: string[]; values: (string | number)[][] };
   "cov.unscaled": { rows: string[]; cols: string[]; values: (string | number)[][] };
   vcov: { rows: string[]; cols: string[]; values: (string | number)[][] };
@@ -147,6 +148,10 @@ describe("robust M regression against the R fixture", () => {
       expect(vcov.rows).toEqual(expected.vcov.rows);
       expect(vcov.columns).toEqual(expected.vcov.cols);
       numericMatrix(vcov.values, expected.vcov.values, c.id + " vcov", 3e-3);
+      const unscaled = fit.covarianceUnscaled;
+      numericMatrix(unscaled, expected["cov.unscaled"].values, c.id + " cov.unscaled", 1e-10);
+      expect(Math.abs(fit.stddev - num(expected.stddev)) / Math.max(1, Math.abs(num(expected.stddev))), c.id + " stddev")
+        .toBeLessThanOrEqual(3e-3);
 
       const tightArgs = c.fits.main.fitTight?.fit;
       const tightExpected = c.fits.main.fitTight?.fitPublic;
