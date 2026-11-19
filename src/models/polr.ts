@@ -346,32 +346,30 @@ function polrDerivatives(
     const pEta = fl - fu;
     const pEtaEta = fpu - fpl;
     const pGradient = new Array<number>(n).fill(0);
-    const pHessian: number[][] = Array.from({ length: n }, () => new Array<number>(n).fill(0));
+    const upperIndex = category < levels - 1 ? p + category : -1;
+    const lowerIndex = category > 0 ? p + category - 1 : -1;
+    const active = Array.from({ length: p }, (_, j) => j);
+    if (upperIndex >= 0) active.push(upperIndex);
+    if (lowerIndex >= 0) active.push(lowerIndex);
 
     for (let r = 0; r < p; r++) pGradient[r] = pEta * x[i]![r]!;
-    if (category < levels - 1) pGradient[p + category] = fu;
-    if (category > 0) pGradient[p + category - 1] = -fl;
-
-    for (let r = 0; r < p; r++) {
-      for (let c = 0; c < p; c++) pHessian[r]![c] = pEtaEta * x[i]![r]! * x[i]![c]!;
-      if (category < levels - 1) {
-        pHessian[r]![p + category] = -fpu * x[i]![r]!;
-        pHessian[p + category]![r] = -fpu * x[i]![r]!;
-      }
-      if (category > 0) {
-        pHessian[r]![p + category - 1] = fpl * x[i]![r]!;
-        pHessian[p + category - 1]![r] = fpl * x[i]![r]!;
-      }
-    }
-    if (category < levels - 1) pHessian[p + category]![p + category] = fpu;
-    if (category > 0) pHessian[p + category - 1]![p + category - 1] = -fpl;
+    if (upperIndex >= 0) pGradient[upperIndex] = fu;
+    if (lowerIndex >= 0) pGradient[lowerIndex] = -fl;
 
     value -= w * logP;
-    for (let a = 0; a < n; a++) {
+    for (const a of active) {
       gradientNatural[a] = gradientNatural[a]! - w * pGradient[a]! / probability;
-      for (let b = 0; b < n; b++) {
+      for (const b of active) {
+        let second = 0;
+        if (a < p && b < p) second = pEtaEta * x[i]![a]! * x[i]![b]!;
+        else if (a < p && b === upperIndex) second = -fpu * x[i]![a]!;
+        else if (b < p && a === upperIndex) second = -fpu * x[i]![b]!;
+        else if (a < p && b === lowerIndex) second = fpl * x[i]![a]!;
+        else if (b < p && a === lowerIndex) second = fpl * x[i]![b]!;
+        else if (a === upperIndex && b === upperIndex) second = fpu;
+        else if (a === lowerIndex && b === lowerIndex) second = -fpl;
         hessianNatural[a]![b] = hessianNatural[a]![b]! - w * (
-          pHessian[a]![b]! / probability
+          second / probability
           - pGradient[a]! * pGradient[b]! / (probability * probability)
         );
       }
