@@ -750,3 +750,34 @@ describe("polrAnova: model validation and user choices", () => {
     })).toThrow("response level 'unused' has no positive-weight observations");
   });
 });
+
+
+describe("ordinal regression predictor scale equivariance", () => {
+  it("fits predictors scaled by 1e-100 and 1e100 with transformed slopes and standard errors", () => {
+    const x = Array.from({ length: 120 }, (_, i) => (i - 59.5) / 30);
+    const levels = ["a", "b", "c", "d"];
+    const y = x.map((value, i) => {
+      const latent = 0.9 * value + 0.25 * Math.sin(i * 1.7);
+      return levels[latent < -0.9 ? 0 : latent < 0.1 ? 1 : latent < 1.1 ? 2 : 3]!;
+    });
+    const base = polr("y ~ x", { y, x }, { levels: { y: levels } });
+    const baseSummary = polrSummary(base);
+    const relative = (actual: number, expected: number) =>
+      Math.abs(actual - expected) / Math.max(Math.abs(expected), Number.MIN_VALUE);
+    for (const factor of [1e-100, 1e100]) {
+      const fit = polr("y ~ x", { y, x: x.map(value => value * factor) }, { levels: { y: levels } });
+      expect(relative(fit.coefficients.x * factor, base.coefficients.x)).toBeLessThanOrEqual(1e-8);
+      for (const name of Object.keys(base.zeta)) {
+        expect(relative(fit.zeta[name]!, base.zeta[name]!)).toBeLessThanOrEqual(1e-8);
+      }
+      expect(relative(fit.logLik, base.logLik)).toBeLessThanOrEqual(1e-10);
+      const summary = polrSummary(fit);
+      expect(relative(summary.values[0]![1]! * factor, baseSummary.values[0]![1]!)).toBeLessThanOrEqual(1e-8);
+      const basePred = polrPredict(base, { newdata: { x: [0.2, 0.8] }, type: "probs" });
+      const scaledPred = polrPredict(fit, { newdata: { x: [0.2 * factor, 0.8 * factor] }, type: "probs" });
+      for (let i = 0; i < 2; i++) for (let j = 0; j < levels.length; j++) {
+        expect(scaledPred.values[i]![j]).toBeCloseTo(basePred.values[i]![j]!, 9);
+      }
+    }
+  });
+});
