@@ -143,15 +143,15 @@ describe("nonlinear least-squares regression", () => {
             mismatches.push(`${cs.id}: coefficient ${name} (${actual} vs ${expected})`);
           }
         }
-        if (Math.abs(fit.deviance - ref.deviance) > 1e-7 * Math.max(1, ref.deviance)) {
-          mismatches.push(`${cs.id}: deviance (${fit.deviance} vs ${ref.deviance})`);
-        }
+        if (Math.abs(fit.deviance - ref.deviance) > 5e-7) mismatches.push(`${cs.id}: deviance (${fit.deviance} vs ${ref.deviance})`);
+        if (Math.abs(fit.sigma - ref.sigma) > 5e-7) mismatches.push(`${cs.id}: sigma (${fit.sigma} vs ${ref.sigma})`);
         if (fit.dfResidual !== ref.dfResidual) mismatches.push(`${cs.id}: residual df`);
         if (fit.fitted.length !== ref.fitted.length) mismatches.push(`${cs.id}: fitted length`);
         for (let i = 0; i < ref.fitted.length; i++) {
-          if (Math.abs(fit.fitted[i]! - ref.fitted[i]!) > 1e-7 * Math.max(1, Math.abs(ref.fitted[i]!))) {
-            mismatches.push(`${cs.id}: fitted[${i}]`);
-          }
+          if (Math.abs(fit.fitted[i]! - ref.fitted[i]!) > 5e-7) mismatches.push(`${cs.id}: fitted[${i}]`);
+        }
+        for (let i = 0; i < ref.summary.values.length; i++) for (let j = 0; j < ref.summary.values[i]!.length; j++) {
+          if (Math.abs(fit.summary.values[i]![j]! - ref.summary.values[i]![j]!) > 5e-7) mismatches.push(`${cs.id}: summary[${i},${j}]`);
         }
       } catch (error) {
         mismatches.push(`${cs.id}: threw ${error instanceof Error ? error.message : String(error)}`);
