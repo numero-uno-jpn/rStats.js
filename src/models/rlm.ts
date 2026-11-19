@@ -753,7 +753,7 @@ export function rlm(formula: string, data: DataFrame, options: RlmOptions = {}):
    const u = residuals.map((r, i) => (wtMethod === "inv" ? Math.sqrt(observationWeights[i]!) * r : r) / s);
    return u.map((v, i) => psiWeight(psi, v, model) * observationWeights[i]!);
  };
- for (let iteration = 1; iteration <= maxit; iteration++) {
+ for (let iteration = 1; !converged && iteration <= maxit; iteration++) {
    iterations = iteration;
    const residuals = residualVector(x, y, coefficients);
    scale = fixedScale ?? robustScale(residuals, observationWeights, wtMethod, scaleEst, k2, p);
