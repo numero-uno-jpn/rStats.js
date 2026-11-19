@@ -15,9 +15,17 @@ import {
   type NlsExpr,
 } from "./nlsFormula.js";
 
-/** Algorithm used to fit a nonlinear least-squares model.\n *\n * @category Regression\n */\nexport type NlsAlgorithm = "default" | "plinear" | "port";
+/** Algorithm used to fit a nonlinear least-squares model.
+ *
+ * @category Regression
+ */
+export type NlsAlgorithm = "default" | "plinear" | "port";
 
-/** Convergence controls for nonlinear least squares.\n *\n * @category Regression\n */\nexport interface NlsControl {
+/** Convergence controls for nonlinear least squares.
+ *
+ * @category Regression
+ */
+export interface NlsControl {
   maxiter?: number;
   tol?: number;
   minFactor?: number;
@@ -25,7 +33,11 @@ import {
   scaleOffset?: number;
 }
 
-/** Options for {@link nls}.\n *\n * @category Regression\n */\nexport interface NlsOptions {
+/** Options for {@link nls}.
+ *
+ * @category Regression
+ */
+export interface NlsOptions {
   start?: Record<string, number>;
   algorithm?: NlsAlgorithm;
   weights?: Sample | string;
@@ -34,7 +46,11 @@ import {
   control?: NlsControl;
 }
 
-/** Internal and public fitted-model quantities.\n *\n * @category Regression\n */\nexport interface NlsModel {
+/** Internal and public fitted-model quantities.
+ *
+ * @category Regression
+ */
+export interface NlsModel {
   formula: string;
   response: string;
   parameterNames: string[];
@@ -59,9 +75,17 @@ import {
   exactFit: boolean;
 }
 
-/** Result returned by {@link nls}.\n *\n * @category Regression\n */\nexport interface NlsResult extends NlsModel {}
+/** Result returned by {@link nls}.
+ *
+ * @category Regression
+ */
+export interface NlsResult extends NlsModel {}
 
-/** Result returned by {@link nlsSummary}.\n *\n * @category Regression\n */\nexport interface NlsSummaryResult {
+/** Result returned by {@link nlsSummary}.
+ *
+ * @category Regression
+ */
+export interface NlsSummaryResult {
   coefficients: { rows: string[]; cols: string[]; values: number[][] };
   sigma: number;
   df: [number, number];
@@ -70,24 +94,40 @@ import {
   warnings: string[];
 }
 
-/** Options for {@link nlsPredict}.\n *\n * @category Regression\n */\nexport interface NlsPredictOptions {
+/** Options for {@link nlsPredict}.
+ *
+ * @category Regression
+ */
+export interface NlsPredictOptions {
   newdata: DataFrame;
 }
 
-/** Options for {@link nlsConfint}.\n *\n * @category Regression\n */\nexport interface NlsConfintOptions {
+/** Options for {@link nlsConfint}.
+ *
+ * @category Regression
+ */
+export interface NlsConfintOptions {
   method?: "profile" | "wald";
   level?: number;
   parm?: readonly string[];
 }
 
-/** Result returned by {@link nlsConfint}.\n *\n * @category Regression\n */\nexport interface NlsConfintResult {
+/** Result returned by {@link nlsConfint}.
+ *
+ * @category Regression
+ */
+export interface NlsConfintResult {
   rows: string[];
   cols: [string, string];
   values: [number, number][];
   warnings: string[];
 }
 
-/** Result returned by {@link nlsAnova}.\n *\n * @category Regression\n */\nexport interface NlsAnovaResult {
+/** Result returned by {@link nlsAnova}.
+ *
+ * @category Regression
+ */
+export interface NlsAnovaResult {
   table: {
     Model: string[];
     "Res.Df": number[];
