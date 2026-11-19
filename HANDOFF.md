@@ -55,6 +55,17 @@
   - ChatGPT は再び新しい会話に移る。入口は `briefs/regression-1.7-status.ja.md` (`0f60b75f` で更新済み)
   - ChatGPT は今回の 2 つの会話で計 2 回、検索結果に MASS のソースの抜粋を見た。ユーザーはどちらもそのまま進めると
     判断した。依頼文では、関数名・パッケージ名を検索語に入れないよう指示している
+- **2026-11-19 深夜の状態 (`work/regression` `891dbdb6`):**
+  - **rlm も完了。** 公開の出力から突き止めて R に合わせたもの: MAD の定数 0.6745、Proposal 2 の $n-p$、S の尺度
+    ($n-p$、$c=1.548$)、LTS の $h=\lfloor n/2\rfloor+\lfloor (p+1)/2\rfloor$。R の exact の S は、係数が改善前・残差と
+    尺度が改善後で、その改善後は rStats.js の S と同じ。`rlm` の MM は `nsamp` を使わない。どれも choices 1・11 と
+    `experiments/regression-rlm-*`
+  - **進め方を変えた** (記憶の feedback-chatgpt-fewer-round-trips): draft の PR #541 で CI を回し、ChatGPT が自分で
+    結果を読む。生成物は私が作って CI を緑にしてある。nls は oracle と fixture を**私が書いた** (`oracle/nls.R`)。
+    ChatGPT には `briefs/nls-1.7.ja.md` の 1 つの依頼で、仕様書から CI が通るまで頼む (新しい会話)
+  - ユーザーの決定 (nls): 式は文字列で渡す、範囲は全部 (添字つきのパラメータは除く)
+  - 残り: nls、配線 (exports・bundle・size・デモ)、文書 (differences-from-r ほか)、取り込みの PR (`experiments/`
+    を除く)、公開
 - **注意:** 新しい `work/**` ブランチの最初の push では、R の実験のワークフローが追跡中の `experiments/*.R` を全部
   流す (比べる前のコミットがないため)。今回は main にある `mcnemar-siglevel-boundaries.R` が閉じた #527 にコメントを
   書いた (ユーザーの許可で削除済み)。ワークフローは直していない (頼まれていない)
