@@ -607,7 +607,7 @@ const POLR_PREDICT_KEYS = ["newdata", "rowNames", "type"] as const;
  * @example
  * ```ts
  * const fit = polr("rating ~ dose", { rating: ["low", "medium", "high", "low", "medium", "high"], dose: [0, 1, 2, 0, 1, 2] });
- * polrPredict(fit, { newdata: { dose: [0, 1, 2] }, type: "class" });
+ * polrPredict(fit, { newdata: { dose: [0, 1, 2] } });
  * ```
  *
  * @category Regression
