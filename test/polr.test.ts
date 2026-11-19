@@ -670,10 +670,10 @@ describe("polrAnova: nested housing models", () => {
         const target = targets[row];
         if (column === "Model" || column === "Test") {
           expect(values[row]).toBe(target);
-        } else if (column === "Resid. df" || column === "   Df") {
-          expect(values[row]).toBe(numeric(target));
         } else if (target === "NA") {
           expect(values[row]).toBe("NA");
+        } else if (column === "Resid. df" || column === "   Df") {
+          expect(values[row]).toBe(numeric(target));
         } else if (column === "Resid. Dev") {
           const defaultValue = numeric(fitted[row]!.expected.deviance);
           const tightValue = numeric(fitted[row]!.tight.deviance);
