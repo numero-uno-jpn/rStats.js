@@ -10,7 +10,7 @@ import {
   nlsVcov,
 } from "../src/entries/regression.js";
 import { qf } from "../src/distributions/f.js";
-import type { DataFrame } from "../src/models/modelFrame.js";
+import type { DataFrame } from "../src/models/modelFrame.js";\nimport { evaluateNlsWithGradient, parseNlsFormula, evaluateNlsExpression } from "../src/models/nlsFormula.js";
 
 interface PublicFit {
   coefficients: Record<string, number>;
@@ -255,5 +255,36 @@ describe("nonlinear least-squares regression", () => {
     expect(() => nls(cs.formula, dataFrame(cs.data))).toThrow(/start must be supplied/);
     const valid = byId("puromycin-default");
     expect(() => nls(valid.formula, dataFrame(valid.data), { start: valid.args.start!, algorithm: "bogus" as "default" })).toThrow(/unsupported algorithm/);
+  });
+});
+
+
+describe("nonlinear expression derivatives and constants", () => {
+  it("differentiates constant powers with negative bases without evaluating log(base)", () => {
+    const expression = parseNlsFormula("y ~ a + b*x^2 + c*x").expression;
+    const result = evaluateNlsWithGradient(expression, { x: -2 }, { a: 1, b: 2, c: 3 }, ["a", "b", "c"]);
+    expect(result.value).toBe(15);
+    expect(result.gradient).toEqual([1, 4, -2]);
+  });
+
+  it("supports atan, asin and acos with analytic derivatives", () => {
+    const atan = parseNlsFormula("y ~ atan(b/(x-c))").expression;
+    const asin = parseNlsFormula("y ~ asin(b*x)").expression;
+    const acos = parseNlsFormula("y ~ acos(b*x)").expression;
+    for (const [expression, data, parameters] of [
+      [atan, { x: -2 }, { b: 1, c: 0 }],
+      [asin, { x: 0.25 }, { b: 1 }],
+      [acos, { x: 0.25 }, { b: 1 }],
+    ] as const) {
+      const result = evaluateNlsWithGradient(expression, data, parameters, Object.keys(parameters));
+      expect(Number.isFinite(result.value)).toBe(true);
+      expect(result.gradient.every(Number.isFinite)).toBe(true);
+    }
+  });
+
+  it("uses the mathematical constant pi unless a data column shadows it", () => {
+    const expression = parseNlsFormula("y ~ x/pi").expression;
+    expect(evaluateNlsExpression(expression, { x: 1 }, {})).toBeCloseTo(1 / Math.PI, 15);
+    expect(evaluateNlsExpression(expression, { x: 1, pi: 2 }, {})).toBe(0.5);
   });
 });
