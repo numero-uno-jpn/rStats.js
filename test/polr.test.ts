@@ -513,6 +513,8 @@ function independentProfileAt(
     }
     if (!accepted) break;
   }
+  const finalScore = Math.max(0, ...current.gradient.map(Math.abs));
+  expect(finalScore).toBeLessThanOrEqual(2e-11 * Math.max(1, model.weights.reduce((sum, w) => sum + w, 0)));
   return { nll: current.value, fixedScore: current.fixedScore };
 }
 
