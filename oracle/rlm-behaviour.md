@@ -476,29 +476,24 @@ No additional R experiment is required for the covariance formula and weight con
 
 Decided by the user on 2026-11-19.
 
-1. **MM: a deterministic S-estimator** (Decisions 1 and 2). No random numbers. The S objective uses the
-   bounded Tukey biweight loss with cS = 1.547:
-   rho(u) = u^2/2 - u^4/(2 cS^2) + u^6/(6 cS^4) for |u| < cS, and cS^2/6 otherwise.
-   Its Gaussian consistency constant is beta = E[rho(Z)], Z ~ N(0,1). For each coefficient vector,
-   its S-scale is the positive solution of mean(rho(r_i / s)) = beta; the S estimate minimizes this scale.
-   This is the bounded smooth S construction described by Rousseeuw & Yohai (1984).
-
-   Generate elemental subsets of p rows in lexicographic combinatorial order. If choose(n,p) is within the
-   search budget, evaluate every subset. Otherwise evaluate a fixed, evenly spaced set of combinatorial ranks,
-   including the first and last ranks. The candidate budget is
-   min(1024, max(1, floor(250000 / (n p)))); score all evaluated candidates, refine the best 16 by repeatedly
-   refitting weighted least squares with Tukey weights (1 - (r_i / (cS s))^2)^2 inside the cutoff,
-   and stop a refinement after 50 steps or
-   when the coefficients stop changing. The same input always gives the same candidates and fit.
-
-   When the budget does not cover all choose(n,p) subsets, add a warning stating the number examined and that
-   a high-breakdown start is not certified. This is a deliberate computational limit, not a claim of global
-   optimality. The bounded number of candidate-row evaluations keeps the search practical for larger data.
-   This is a known difference from R, whose MM coefficients depend on the seed (stackloss_MM_seed*). MM fits
-   are therefore not compared with MASS's coefficients; tests check that the S-scale is no larger than the
-   smallest of the three recorded S-reference scales for the same data, and that the final M step solves its
-   estimating equations at that fixed scale. The final MM step uses a redescending bisquare score (default
-   c = 4.685); the S-scale is not re-estimated during that step.
+1. **MM: a deterministic S-estimator** (Decisions 1 and 2; amended 2026-11-19). No random numbers. Every elemental
+   subset is examined while their number is small enough for about a second of work (tens of thousands; stackloss
+   has 5985), without a warning; only above that is a fixed, documented set of candidates used, with a warning that a
+   high-breakdown start is not certified. The same input always gives the same fit.
+   **The S scale is that of MASS** (found from public outputs, `experiments/regression-rlm-sscale.R`, `.json` and
+   `.check.txt`): $s$ solves
+   $$\frac{1}{n-p}\sum_i \rho\!\left(\frac{r_i}{c\,s}\right) = \frac12,\qquad
+   \rho(u) = \begin{cases}1-(1-u^2)^3 & |u|<1\\ 1 & |u|\ge 1\end{cases},\qquad c = 1.548$$
+   ($c$ is `lqs`'s documented `k0`; MM's `s` is this scale). It reproduces MASS's reported `scale` to a relative
+   1.5e-5 to 6.6e-5 for stackloss, phones and three location samples, and for `k0` = 2 and 3; the remainder is taken
+   to be MASS solving the scale equation loosely (rStats.js solves it exactly). Dividing by $n$ instead (the first
+   implementation) gave about half MASS's scale and so about half its MM standard errors. `crit` is a different
+   quantity and is not used.
+   **Comparison with R:** MASS's `nsamp = "exact"` (documented in `?lqs`, passed through by `rlm`) examines every
+   subset and is deterministic, so rStats.js's exhaustive search is compared with it: the S scale is not larger than
+   MASS's exact S scale beyond MASS's loose solution, and the MM coefficients are compared with
+   `rlm(..., method = "MM", nsamp = "exact")`. With random subsets (`nsamp` left at its default) MASS's MM depends on
+   the seed and is not compared (a known difference)
 2. **Covariance: Huber's (1981) formula, which reproduces MASS's `summary`** (Decision 3). The covariance is
    $\texttt{stddev}^2 (X^\top X)^{-1}$ (`cov.unscaled` equals $(X^\top X)^{-1}$ to 8e-11 in `stackloss_huber`), with
    $$\texttt{stddev} = s\,\kappa\,\frac{\sqrt{\sum_i \psi(r_i/s)^2/(n-p)}}{\overline{\psi'}},\qquad

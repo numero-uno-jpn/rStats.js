@@ -1,0 +1,7 @@
+stackloss_exact        crit 1.95553999577 /n: 1.37609273879 (crit/x 1.4210815)  /n-p: 1.91190717374 (crit/x 1.0228216)  scale/crit 0.97771194 n 21 p 4
+stackloss_exact_k0_2   crit 1.51358795672 /n: 1.06509577983 (crit/x 1.4210815)  /n-p: 1.47981615247 (crit/x 1.0228216)  scale/crit 0.97771194 n 21 p 4
+stackloss_exact_k0_3   crit 1.00905863782 /n: 0.710063853217 (crit/x 1.4210815)  /n-p: 0.986544101649 (crit/x 1.0228216)  scale/crit 0.97771194 n 21 p 4
+phones_exact           crit 2.14051123959 /n: 1.75393817151 (crit/x 1.2204029)  /n-p: 2.12844882475 (crit/x 1.0056672)  scale/crit 0.99441017 n 24 p 2
+location_a             crit 2.46960769399 /n: 1.77527641681 (crit/x 1.3911116)  /n-p: 2.30433288889 (crit/x 1.0717235)  scale/crit 0.93309005 n 5 p 1
+location_b             crit 2.46275483668 /n: 1.93926270538 (crit/x 1.2699439)  /n-p: 2.46060136934 (crit/x 1.0008752)  scale/crit 0.99914448 n 7 p 1
+location_c             crit 1.96741343724 /n: 1.41038049083 (crit/x 1.3949522)  /n-p: 1.81312272918 (crit/x 1.0850967)  scale/crit 0.92163806 n 9 p 1
