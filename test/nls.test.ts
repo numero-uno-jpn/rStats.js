@@ -406,3 +406,34 @@ describe("NIST StRD additional nonlinear cases", () => {
     expect(fit.converged, label + " converged").toBe(true);
   });
 });
+
+
+describe("nonlinear regression scale equivariance", () => {
+  it("scales x and y with the corresponding coefficients and standard errors", () => {
+    const conc = [0.02, 0.02, 0.06, 0.06, 0.11, 0.11, 0.22, 0.22, 0.56, 0.56, 1.1, 1.1];
+    const rate = [76, 47, 97, 107, 123, 139, 159, 152, 191, 201, 207, 200];
+    const base = nls("rate ~ Vm*conc/(K+conc)", { rate, conc }, { start: { Vm: 200, K: 0.05 } });
+    const baseSe = nlsSummary(base).coefficients;
+    const relative = (actual: number, expected: number) =>
+      Math.abs(actual - expected) / Math.max(Math.abs(expected), Number.MIN_VALUE);
+    for (const factor of [1e-20, 1e20]) {
+      const xFit = nls("rate ~ Vm*conc/(K+conc)", {
+        rate, conc: conc.map(value => value * factor),
+      }, { start: { Vm: 200, K: 0.05 * factor } });
+      expect(relative(xFit.coefficients.Vm, base.coefficients.Vm)).toBeLessThanOrEqual(1e-8);
+      expect(relative(xFit.coefficients.K / factor, base.coefficients.K)).toBeLessThanOrEqual(1e-8);
+      const xSe = nlsSummary(xFit).coefficients;
+      expect(relative(xSe.values[0]![1]!, baseSe.values[0]![1]!)).toBeLessThanOrEqual(1e-8);
+      expect(relative(xSe.values[1]![1]! / factor, baseSe.values[1]![1]!)).toBeLessThanOrEqual(1e-8);
+
+      const yFit = nls("rate ~ Vm*conc/(K+conc)", {
+        rate: rate.map(value => value * factor), conc,
+      }, { start: { Vm: 200 * factor, K: 0.05 } });
+      expect(relative(yFit.coefficients.Vm / factor, base.coefficients.Vm)).toBeLessThanOrEqual(1e-8);
+      expect(relative(yFit.coefficients.K, base.coefficients.K)).toBeLessThanOrEqual(1e-8);
+      const ySe = nlsSummary(yFit).coefficients;
+      expect(relative(ySe.values[0]![1]! / factor, baseSe.values[0]![1]!)).toBeLessThanOrEqual(1e-8);
+      expect(relative(ySe.values[1]![1]!, baseSe.values[1]![1]!)).toBeLessThanOrEqual(1e-8);
+    }
+  });
+});
