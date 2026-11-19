@@ -321,7 +321,7 @@ A non-converged result must remain explicitly marked `converged = false` and ret
 ### 6.7 Deterministic high-breakdown starts and MM refinement
 
 For an LTS start, let p be the number of fitted coefficients and n the number of usable rows. The
-finite-sample trimming count selected for this implementation is h = floor((n + p) / 2). For a coefficient
+finite-sample trimming count selected for this implementation is h = floor(n / 2) + floor((p + 1) / 2). For a coefficient
 vector b, write r_i(b) = y_i - x_i^T b; its objective is
 
 $$
@@ -331,9 +331,9 @@ $$
 The implementation obtains elemental coefficient candidates from full-rank subsets of p rows. A C-step
 replaces the current subset by the h observations with the smallest absolute residuals, refits least squares,
 and retains the step only when the objective does not increase. This monotone refinement is repeated until the
-coefficient vector stops changing or 50 steps have been taken. For the exhaustive small-sample search, the
-resulting LTS criterion is compared directly with the public exact-subset reference criterion; it is not merely
-required to be below a stochastic reference.
+coefficient vector stops changing or 50 steps have been taken. For the exhaustive small-sample search, the LTS criterion at the public exact-subset coefficients is recomputed
+from the same h smallest squared residuals and must reproduce the public exact crit. The refined rStats.js
+criterion is then required to be no larger than that exact-coefficient criterion; its coefficients need not match.
 
 For the S start, use the bounded Tukey biweight loss
 
@@ -388,10 +388,12 @@ M step. This follows the three-stage construction in Yohai (1987): a high-breakd
 initial scale, and a more efficient redescending M estimate at that fixed scale. MM with case weights remains
 an explicit error; inverse-variance weights are handled by applying their square roots to residuals.
 
-The reference checks use the public exact-subset S references for the initial S coefficients and scale. The
-scale is allowed a relative tolerance of 1e-4 because the reference implementation does not solve its scale
-equation as tightly as rStats.js; rStats.js must independently satisfy the equation above to near machine
-precision. LTS crit is compared with the public exact-subset criterion (relative tolerance 1e-10). The final
+For S, solve the scale equation at the public exact-subset coefficients and compare the reference's reported
+scale with that value at relative tolerance 1e-4. Require the minimized rStats.js S scale to be no larger than
+the scale at those exact coefficients (apart from rounding); do not compare coefficient vectors. For LTS,
+recompute the criterion at the public exact-subset coefficients and verify that it reproduces the reported
+exact crit; require the refined rStats.js criterion to be no larger than that value. Do not compare coefficient
+vectors. The final
 MM estimating equations must have normalized residual at most 1e-8. Random-seed MM coefficients are not
 used as targets.
 ## 7. Oracle coverage and unresolved reference behaviour

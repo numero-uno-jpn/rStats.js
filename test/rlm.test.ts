@@ -241,19 +241,66 @@ describe("deterministic LTS starts", () => {
       const objective = fit.initialization?.objective;
       expect(objective, c.id + " LTS crit").toBeDefined();
       expect(objective!, c.id + " LTS crit").toBeGreaterThanOrEqual(0);
-      const exactCrit = num(exact!.reference.crit!);
-      expect(Math.abs(objective! - exactCrit) / Math.max(1, Math.abs(exactCrit)), c.id + " exact LTS crit")
-        .toBeLessThanOrEqual(1e-10);
-      expect(fit.initialization?.exhaustive, c.id + " exhaustive subset search").toBe(true);
-      expect(estimatingEquationResidual(fit), c.id + " M estimating equations").toBeLessThanOrEqual(1e-8);
       const n = fit.residuals.length;
       const p = fit.model.x[0]?.length ?? 0;
+      const h = Math.floor(n / 2) + Math.floor((p + 1) / 2);
+      const exactCoefficients = exact!.reference.coefficients!;
+      const exactBeta = fit.model.columnNames.map((name) => {
+        const value = exactCoefficients[name];
+        expect(value, c.id + " R exact coefficient " + name).toBeDefined();
+        return num(value!);
+      });
+      const exactResiduals = fit.model.y.map((value, i) =>
+        value - fit.model.x[i]!.reduce((sum, x, j) => sum + x * exactBeta[j]!, 0));
+      const exactSquares = exactResiduals.map((r, i) => {
+        const working = fit.model.wtMethod === "inv" ? Math.sqrt(fit.model.observationWeights[i]!) * r : r;
+        return working * working;
+      }).sort((a, b) => a - b);
+      const exactObjective = exactSquares.slice(0, h).reduce((sum, value) => sum + value, 0);
+      const reportedCrit = num(exact!.reference.crit!);
+      expect(Math.abs(exactObjective - reportedCrit) / Math.max(1, Math.abs(reportedCrit)), c.id + " R exact coefficients reproduce crit")
+        .toBeLessThanOrEqual(1e-10);
+      expect(objective!, c.id + " rStats LTS objective no worse than R exact")
+        .toBeLessThanOrEqual(exactObjective + 1e-10 * Math.max(1, exactObjective));
+      expect(fit.initialization?.exhaustive, c.id + " exhaustive subset search").toBe(true);
+      expect(estimatingEquationResidual(fit), c.id + " M estimating equations").toBeLessThanOrEqual(1e-8);
       const total = binomialForTest(n, p);
       if (total > 10_000n) {
         expect(fit.warnings.some((warning) => warning.includes("high-breakdown start is not certified"))).toBe(true);
       }
     });
   }
+});
+
+describe("LTS trimming count when n is even and p is odd", () => {
+  it("stackloss[-1, ]: n=20, p=3 uses h=12", () => {
+    const source = fixture.cases.find((entry) => entry.id === "stackloss-hampel-lts");
+    expect(source, "stackloss source fixture").toBeDefined();
+    const raw = source!.fits.main.fit;
+    const data = raw.data as { columns: Record<string, unknown[]> };
+    const reduced = {
+      ...raw,
+      formula: "stack.loss ~ Air.Flow + Water.Temp",
+      data: { columns: Object.fromEntries(Object.entries(data.columns).map(([name, values]) => [name, values.slice(1)])) },
+    };
+    const fit = fitFrom(reduced);
+    const n = fit.residuals.length;
+    const p = fit.model.x[0]?.length ?? 0;
+    const h = Math.floor(n / 2) + Math.floor((p + 1) / 2);
+    expect(n).toBe(20);
+    expect(p).toBe(3);
+    expect(h).toBe(12);
+    const objective = fit.initialization?.objective;
+    expect(objective, "LTS objective with h=12").toBeDefined();
+    const squares = fit.residuals.map((r, i) => {
+      const working = fit.model.wtMethod === "inv" ? Math.sqrt(fit.model.observationWeights[i]!) * r : r;
+      return working * working;
+    }).sort((a, b) => a - b);
+    const recomputed = squares.slice(0, h).reduce((sum, value) => sum + value, 0);
+    expect(Math.abs(recomputed - objective!), "reported LTS objective uses h=12").toBeLessThanOrEqual(1e-10);
+    expect(objective!, "rStats LTS criterion no worse than R exact crit")
+      .toBeLessThanOrEqual(1.65740740740738 + 1e-10);
+  });
 });
 
 describe("deterministic S initialization for MM", () => {
@@ -266,15 +313,36 @@ describe("deterministic S initialization for MM", () => {
       expect(fit.initialization?.objective, c.id + " S scale").toBeDefined();
       expect(fit.initialization!.objective, c.id + " S scale").toBeGreaterThanOrEqual(0);
       const exactScale = num(exact!.reference.scale!);
-      expect(Math.abs(fit.initialization!.objective - exactScale) / exactScale, c.id + " exact S scale")
-        .toBeLessThanOrEqual(1e-4);
       const exactCoefficients = exact!.reference.coefficients!;
-      for (const [name, expected] of Object.entries(exactCoefficients)) {
-        const actual = fit.initialization!.coefficients[name];
-        expect(actual, c.id + " S coefficient " + name).toBeDefined();
-        expect(Math.abs(actual! - num(expected)) / Math.max(1, Math.abs(num(expected))), c.id + " exact S coefficient " + name)
-          .toBeLessThanOrEqual(1e-8);
+      const exactBeta = fit.model.columnNames.map((name) => {
+        const value = exactCoefficients[name];
+        expect(value, c.id + " R exact coefficient " + name).toBeDefined();
+        return num(value!);
+      });
+      const exactResiduals = fit.model.y.map((value, i) =>
+        value - fit.model.x[i]!.reduce((sum, x, j) => sum + x * exactBeta[j]!, 0));
+      const absolute = exactResiduals.map((r, i) =>
+        Math.abs(fit.model.wtMethod === "inv" ? Math.sqrt(fit.model.observationWeights[i]!) * r : r));
+      const divisor = absolute.length - exactBeta.length;
+      const rhoMean = (scale: number): number => absolute.reduce((sum, value) => {
+        const u = value / (1.548 * scale);
+        if (u >= 1) return sum + 1;
+        const square = u * u;
+        return sum + 1 - (1 - square) ** 3;
+      }, 0) / divisor;
+      let lo = 0;
+      let hi = Math.max(1, ...absolute);
+      while (rhoMean(hi) > 0.5) hi *= 2;
+      for (let iteration = 0; iteration < 100; iteration++) {
+        const mid = lo + (hi - lo) / 2;
+        if (rhoMean(mid) > 0.5) lo = mid;
+        else hi = mid;
       }
+      const exactCoefficientScale = (lo + hi) / 2;
+      expect(Math.abs(exactScale - exactCoefficientScale) / exactCoefficientScale, c.id + " R reported S scale at exact coefficients")
+        .toBeLessThanOrEqual(1e-4);
+      expect(fit.initialization!.objective, c.id + " rStats S scale no worse than R exact coefficients")
+        .toBeLessThanOrEqual(exactCoefficientScale + 1e-10 * Math.max(1, exactCoefficientScale));
       const sResiduals = fit.model.y.map((value, i) =>
         value - fit.model.x[i]!.reduce((sum, x, j) => sum + x * fit.initialization!.coefficients[fit.model.columnNames[j]!]!, 0));
       const divisor = sResiduals.length - (fit.model.x[0]?.length ?? 0);

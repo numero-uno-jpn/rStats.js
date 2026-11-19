@@ -480,7 +480,7 @@ function ltsStart(
    throw new RangeError("deterministic LTS initialization does not support case weights");
  }
  const n = y.length, p = x[0]?.length ?? 0;
- const h = Math.floor((n + p) / 2);
+ const h = Math.floor(n / 2) + Math.floor((p + 1) / 2);
  if (h < p) throw new RangeError("not enough observations for a high-breakdown LTS start");
  const search = deterministicSubsets(n, p);
  const candidates: { coefficients: number[]; objective: number; rank: number }[] = [];
