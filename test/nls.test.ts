@@ -49,6 +49,7 @@ const fixture = JSON.parse(readFileSync(fileURLToPath(new URL("../test/fixtures/
 const stage3Fixture = JSON.parse(readFileSync(fileURLToPath(new URL("../test/fixtures/nls-stage3.json", import.meta.url)), "utf8")) as {
   thurber: { formula: string; data: Record<string, number[]>; start: Record<string, number>; certified: Record<string, number>; rss: number };
   roszman1: { formula: string; data: Record<string, number[]>; start: Record<string, number>; certified: Record<string, number>; rss: number };
+  nelson: { formula: string; data: Record<string, number[]>; start: Record<string, number>; certified: Record<string, number>; rss: number };
 };
 const byId = (id: string): Case => {
   const found = fixture.cases.find(x => x.id === id);
@@ -358,6 +359,20 @@ describe("nonlinear response expressions", () => {
     expect(fit.coefficients.b3).toBeCloseTo(-0.5, 7);
     const predicted = nlsPredict(fit, { newdata: { x1, x2 } });
     for (let i = 0; i < y.length; i++) expect(predicted[i]).toBeCloseTo(Math.log(y[i]!), 10);
+  });
+
+  it("fits NIST Nelson on the log response scale to at least seven certified digits", () => {
+    const cs = stage3Fixture.nelson;
+    const fit = nls(cs.formula, dataFrame(cs.data), { start: cs.start });
+    for (const [name, expected] of Object.entries(cs.certified)) {
+      const relativeError = Math.abs(fit.coefficients[name]! - expected) / Math.abs(expected);
+      const lre = relativeError === 0 ? Infinity : -Math.log10(relativeError);
+      expect(lre, "Nelson " + name + " LRE").toBeGreaterThanOrEqual(7);
+    }
+    expect(fit.deviance).toBeCloseTo(cs.rss, 6);
+    expect(fit.converged).toBe(true);
+    const predicted = nlsPredict(fit, { newdata: { x1: cs.data.x1!, x2: cs.data.x2! } });
+    for (let i = 0; i < predicted.length; i++) expect(predicted[i]).toBeCloseTo(Math.log(cs.data.y![i]!), 6);
   });
 
   it("rejects parameters in the response expression", () => {
