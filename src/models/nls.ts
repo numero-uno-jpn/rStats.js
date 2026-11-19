@@ -345,6 +345,7 @@ function corrFromCovariance(cov: number[][]): number[][] {
  *
  * @example
  * ```ts
+ * const data = { conc: [0.02, 0.06, 0.11, 0.22, 0.56, 1.1], rate: [76, 97, 123, 159, 191, 207] };
  * const fit = nls("rate ~ Vm * conc / (K + conc)", data, { start: { Vm: 200, K: 0.05 } });
  * fit.coefficients;
  * ```
@@ -452,6 +453,8 @@ export function nls(formula: string, data: DataFrame, options: NlsOptions = {}):
  *
  * @example
  * ```ts
+ * const data = { conc: [0.02, 0.06, 0.11, 0.22, 0.56, 1.1], rate: [76, 97, 123, 159, 191, 207] };
+ * const fit = nls("rate ~ Vm * conc / (K + conc)", data, { start: { Vm: 200, K: 0.05 } });
  * nlsSummary(fit);
  * ```
  *
@@ -481,6 +484,8 @@ export function nlsSummary(fit: NlsResult): NlsSummaryResult {
  *
  * @example
  * ```ts
+ * const data = { conc: [0.02, 0.06, 0.11, 0.22, 0.56, 1.1], rate: [76, 97, 123, 159, 191, 207] };
+ * const fit = nls("rate ~ Vm * conc / (K + conc)", data, { start: { Vm: 200, K: 0.05 } });
  * nlsVcov(fit);
  * ```
  *
@@ -499,6 +504,8 @@ export function nlsVcov(fit: NlsResult): number[][] {
  *
  * @example
  * ```ts
+ * const data = { conc: [0.02, 0.06, 0.11, 0.22, 0.56, 1.1], rate: [76, 97, 123, 159, 191, 207] };
+ * const fit = nls("rate ~ Vm * conc / (K + conc)", data, { start: { Vm: 200, K: 0.05 } });
  * nlsPredict(fit, { newdata: { conc: [0.1, 0.5] } });
  * ```
  *
@@ -532,6 +539,8 @@ export function nlsPredict(fit: NlsResult, options: NlsPredictOptions): number[]
  *
  * @example
  * ```ts
+ * const data = { conc: [0.02, 0.06, 0.11, 0.22, 0.56, 1.1], rate: [76, 97, 123, 159, 191, 207] };
+ * const fit = nls("rate ~ Vm * conc / (K + conc)", data, { start: { Vm: 200, K: 0.05 } });
  * nlsConfint(fit, { method: "wald", level: 0.95 });
  * ```
  *
@@ -575,6 +584,13 @@ export function nlsConfint(fit: NlsResult, options: NlsConfintOptions = {}): Nls
  *
  * @example
  * ```ts
+ * const data = {
+ *   conc: [0.02, 0.06, 0.11, 0.22, 0.56, 1.1, 0.02, 0.06, 0.11, 0.22, 0.56, 1.1],
+ *   rate: [76, 97, 123, 159, 191, 207, 47, 107, 139, 152, 201, 200],
+ *   treated: [0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1],
+ * };
+ * const small = nls("rate ~ Vm * conc / (K + conc)", data, { start: { Vm: 160, K: 0.05 } });
+ * const large = nls("rate ~ (Vm + delV * treated) * conc / (K + conc)", data, { start: { Vm: 160, delV: 40, K: 0.05 } });
  * nlsAnova(small, large);
  * ```
  *
