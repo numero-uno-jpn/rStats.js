@@ -766,7 +766,7 @@ describe("ordinal regression predictor scale equivariance", () => {
       Math.abs(actual - expected) / Math.max(Math.abs(expected), Number.MIN_VALUE);
     for (const factor of [1e-100, 1e100]) {
       const fit = polr("y ~ x", { y, x: x.map(value => value * factor) }, { levels: { y: levels } });
-      expect(relative(fit.coefficients.x * factor, base.coefficients.x)).toBeLessThanOrEqual(1e-8);
+      expect(relative(fit.coefficients.x! * factor, base.coefficients.x!)).toBeLessThanOrEqual(1e-8);
       for (const name of Object.keys(base.zeta)) {
         expect(relative(fit.zeta[name]!, base.zeta[name]!)).toBeLessThanOrEqual(1e-8);
       }
@@ -775,6 +775,7 @@ describe("ordinal regression predictor scale equivariance", () => {
       expect(relative(summary.values[0]![1]! * factor, baseSummary.values[0]![1]!)).toBeLessThanOrEqual(1e-8);
       const basePred = polrPredict(base, { newdata: { x: [0.2, 0.8] }, type: "probs" });
       const scaledPred = polrPredict(fit, { newdata: { x: [0.2 * factor, 0.8 * factor] }, type: "probs" });
+      if (!("values" in basePred) || !("values" in scaledPred)) throw new Error("expected probability predictions");
       for (let i = 0; i < 2; i++) for (let j = 0; j < levels.length; j++) {
         expect(scaledPred.values[i]![j]).toBeCloseTo(basePred.values[i]![j]!, 9);
       }
