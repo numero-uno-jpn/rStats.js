@@ -1,3 +1,23 @@
+// Regression models (rStats.js/regression)
+
+export {
+  rlm,
+  rlmSummary,
+  rlmVcov,
+  psiHuber,
+  psiHampel,
+  psiBisquare,
+  type RlmPsi,
+  type RlmOptions,
+  type RlmModel,
+  type RlmResult,
+  type RlmSummaryResult,
+  type RlmVcovResult,
+  type RlmPsiHuberOptions,
+  type RlmPsiHampelOptions,
+  type RlmPsiBisquareOptions,
+} from "../models/rlm.js";
+
 // Ordinal regression (rStats.js/regression)
 
 export {
