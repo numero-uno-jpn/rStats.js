@@ -3,6 +3,8 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
   nls,
+  nlsAnova,
+  nlsConfint,
   nlsPredict,
   nlsSummary,
   nlsVcov,
@@ -28,14 +30,17 @@ interface Case {
     lower?: number[];
     upper?: number[];
     weights?: string;
+    control?: { maxiter?: number; tol?: number; minFactor?: number; warnOnly?: boolean; scaleOffset?: number };
   };
   fit: { value?: PublicFit; error?: string };
   fitTight?: { value?: PublicFit; error?: string };
   newdata?: Record<string, number[]>;
   predict?: { value?: number[] };
+  confint?: Record<string, { value?: { rows?: string[]; cols?: string[] | null; values?: number[][] } }>;
 }
 interface Fixture {
   cases: Case[];
+  anova?: { data: Record<string, number[]>; models: { formula: string; start: Record<string, number> }[]; result: { value: { table: Record<string, (string | number)[]> } } };
 }
 
 const fixture = JSON.parse(readFileSync(fileURLToPath(new URL("../test/fixtures/nls.json", import.meta.url)), "utf8")) as Fixture;
@@ -54,6 +59,7 @@ function fitCase(id: string) {
     ...(cs.args.lower === undefined ? {} : { lower: cs.args.lower }),
     ...(cs.args.upper === undefined ? {} : { upper: cs.args.upper }),
     ...(cs.args.weights === undefined ? {} : { weights: cs.args.weights }),
+    ...(cs.args.control === undefined ? {} : { control: cs.args.control }),
   });
 }
 
@@ -120,6 +126,103 @@ describe("nonlinear least-squares regression", () => {
     const fit = fitCase("puromycin-SSmicmen");
     const ref = byId("puromycin-SSmicmen").fitTight?.value ?? byId("puromycin-SSmicmen").fit.value!;
     compareCoefficients(fit.coefficients, ref.coefficients);
+  });
+
+
+  it("fits every successful fixture case against the tight reference", () => {
+    const cases = fixture.cases.filter(cs => cs.fitTight?.value !== undefined);
+    const mismatches: string[] = [];
+    for (const cs of cases) {
+      try {
+        const fit = fitCase(cs.id);
+        const ref = cs.fitTight!.value!;
+        for (const name of Object.keys(ref.coefficients)) {
+          const actual = fit.coefficients[name];
+          const expected = ref.coefficients[name]!;
+          if (actual === undefined || Math.abs(actual - expected) > 1e-6 * Math.max(1, Math.abs(expected))) {
+            mismatches.push(`${cs.id}: coefficient ${name} (${actual} vs ${expected})`);
+          }
+        }
+        if (Math.abs(fit.deviance - ref.deviance) > 1e-7 * Math.max(1, ref.deviance)) {
+          mismatches.push(`${cs.id}: deviance (${fit.deviance} vs ${ref.deviance})`);
+        }
+        if (fit.dfResidual !== ref.dfResidual) mismatches.push(`${cs.id}: residual df`);
+        if (fit.fitted.length !== ref.fitted.length) mismatches.push(`${cs.id}: fitted length`);
+        for (let i = 0; i < ref.fitted.length; i++) {
+          if (Math.abs(fit.fitted[i]! - ref.fitted[i]!) > 1e-7 * Math.max(1, Math.abs(ref.fitted[i]!))) {
+            mismatches.push(`${cs.id}: fitted[${i}]`);
+          }
+        }
+      } catch (error) {
+        mismatches.push(`${cs.id}: threw ${error instanceof Error ? error.message : String(error)}`);
+      }
+    }
+    expect(mismatches).toEqual([]);
+  });
+
+  it("handles all documented error and exact-fit boundary cases", () => {
+    const errorIds = [
+      "error-no-start", "error-singular-start", "error-singular-gradient",
+      "error-maxiter", "error-algorithm", "error-port-start-outside", "error-too-few-rows",
+    ];
+    for (const id of errorIds) {
+      const cs = byId(id);
+      expect(() => fitCase(id), id).toThrow();
+    }
+    const exact = fitCase("error-exact-fit");
+    expect(exact.converged).toBe(true);
+    expect(exact.exactFit).toBe(true);
+    expect(exact.covariance.flat().every(Number.isNaN)).toBe(true);
+    const warnOnly = fitCase("maxiter-warnOnly");
+    expect(warnOnly.converged).toBe(false);
+    expect(warnOnly.warnings.length).toBeGreaterThan(0);
+    const na = fitCase("puromycin-na-row");
+    expect(na.nobs).toBe(11);
+  });
+
+  it("matches all fixture profile endpoints, including plinear", () => {
+    const cases = fixture.cases.filter(cs => cs.confint?.profile95?.value !== undefined);
+    const mismatches: string[] = [];
+    for (const cs of cases) {
+      const fit = fitCase(cs.id);
+      for (const level of ["profile95", "profile90"] as const) {
+        const expected = cs.confint?.[level]?.value;
+        if (!expected?.values) continue;
+        const conf = nlsConfint(fit, { method: "profile", level: level === "profile95" ? 0.95 : 0.9 });
+        if (cs.args.algorithm === "plinear") {
+          const actual = conf.values[0]!;
+          const lower = expected.values[0]![0]!;
+          const upper = expected.values[1]![0]!;
+          if (Math.abs(actual[0] - lower) > 2e-5 * Math.max(1, Math.abs(lower))) mismatches.push(`${cs.id} ${level} lower`);
+          if (Math.abs(actual[1] - upper) > 2e-5 * Math.max(1, Math.abs(upper))) mismatches.push(`${cs.id} ${level} upper`);
+        } else {
+          for (let i = 0; i < expected.values.length; i++) {
+            for (let j = 0; j < 2; j++) {
+              const a = conf.values[i]?.[j] ?? Number.NaN;
+              const e = expected.values[i]![j]!;
+              if (Math.abs(a - e) > 2e-5 * Math.max(1, Math.abs(e))) mismatches.push(`${cs.id} ${level} [${i},${j}] ${a} vs ${e}`);
+            }
+          }
+        }
+      }
+    }
+    expect(mismatches).toEqual([]);
+  });
+
+  it("matches the nested-model ANOVA fixture", () => {
+    const oracle = fixture.anova!;
+    const fits = oracle.models.map(model => nls(model.formula, dataFrame(oracle.data), { start: model.start }));
+    const result = nlsAnova(...fits);
+    const expected = oracle.result.value.table;
+    for (const key of Object.keys(expected)) {
+      const actual = result.table[key as keyof typeof result.table];
+      expect(actual.length).toBe(expected[key]!.length);
+      for (let i = 0; i < actual.length; i++) {
+        const e = expected[key]![i]!;
+        if (typeof e === "number" && typeof actual[i] === "number") expect(actual[i]).toBeCloseTo(e, 6);
+        else expect(actual[i]).toBe(e);
+      }
+    }
   });
 
   it("rejects missing starts for an ordinary formula and an invalid algorithm", () => {
