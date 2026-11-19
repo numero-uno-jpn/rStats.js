@@ -423,7 +423,11 @@ function fitCore(
   let converged = false, iterations = 0;
   for (; iterations < control.maxiter; iterations++) {
     const { matrix, rhs } = normalEquations(current.jacobian, current.residuals, weights);
-    const boundTolerance = values.map(value => Math.max(16 * Number.EPSILON, Math.sqrt(control.tol) * 0.1) * Math.max(1, Math.abs(value)));
+    const boundTolerance = values.map((value, i) => {
+      const scale = Math.max(Math.abs(value), Number.isFinite(lower[i]!) ? Math.abs(lower[i]!) : 0,
+        Number.isFinite(upper[i]!) ? Math.abs(upper[i]!) : 0);
+      return Math.max(16 * Number.EPSILON, Math.sqrt(control.tol) * 0.1) * (scale > 0 ? scale : 1);
+    });
     const freeIndices = names.map((_, i) => i).filter(i => algorithm !== "port" || !(
       (values[i]! <= lower[i]! + boundTolerance[i]! && rhs[i]! <= 0)
       || (values[i]! >= upper[i]! - boundTolerance[i]! && rhs[i]! >= 0)
@@ -478,7 +482,7 @@ function fitCore(
           ? evaluateProfiled(expr, rows, y, weights, names, candidate)
           : evaluate(expr, rows, y, weights, names, candidate, algorithm);
         const candidateStepNorm = alpha * stepNorm;
-        const roundingAllowance = 4 * Number.EPSILON * Math.max(1, current.objective);
+        const roundingAllowance = 4 * Number.EPSILON * Math.max(current.objective, Number.MIN_VALUE);
         if (trial.objective < current.objective
           || (candidateStepNorm <= stepTolerance * 4 && trial.objective <= current.objective + roundingAllowance)) {
           values = candidate; current = trial; accepted = true; break;
