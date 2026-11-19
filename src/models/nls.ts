@@ -754,31 +754,40 @@ function profilePoint(fit: NlsResult, fixedIndex: number, fixedValue: number, in
     return { ...evaluated, jacobian };
   };
   let current = calculate();
-  for (let iteration = 0; iteration < 120 && nuisance.length > 0; iteration++) {
+  for (let iteration = 0; iteration < 200 && nuisance.length > 0; iteration++) {
     const { matrix, rhs } = normalEquations(current.jacobian, current.residuals, fit.weights);
-    let delta: number[];
-    try {
-      const scales = matrix.map((row, i) => Math.sqrt(Math.max(row[i]!, Number.MIN_VALUE)));
-      const scaled = matrix.map((row, i) => row.map((v, j) => v / (scales[i]! * scales[j]!)));
-      delta = solve(scaled, rhs.map((v, i) => v / scales[i]!)).map((v, i) => v / scales[i]!);
-    } catch { break; }
-    const gradientNorm = Math.max(0, ...rhs.map((v, i) => Math.abs(v) / Math.sqrt(Math.max(matrix[i]![i]!, Number.MIN_VALUE))));
-    const stepNorm = Math.max(0, ...delta.map((v, i) => Math.abs(v) / (1 + Math.abs(nuisance[i]!))));
-    if (gradientNorm <= 1e-10 * (Math.sqrt(current.objective) + 1) && stepNorm <= 1e-10) break;
-    let alpha = 1, accepted = false;
-    while (alpha >= 1 / 4096) {
-      const candidate = nuisance.map((v, i) => v + alpha * delta[i]!);
-      const previous = nuisance;
-      nuisance = candidate;
+    const scales = matrix.map((row, i) => Math.sqrt(Math.max(row[i]!, Number.MIN_VALUE)));
+    const scaled = matrix.map((row, i) => row.map((value, j) => value / (scales[i]! * scales[j]!)));
+    const scaledRhs = rhs.map((value, i) => value / scales[i]!);
+    const gradientNorm = Math.max(0, ...rhs.map((value, i) =>
+      Math.abs(value) / Math.sqrt(Math.max(matrix[i]![i]!, Number.MIN_VALUE))));
+    if (gradientNorm <= 1e-11 * (Math.sqrt(current.objective) + 1)) break;
+    let accepted = false;
+    for (const damping of [0, 1e-12, 1e-10, 1e-8, 1e-6, 1e-4, 1e-2]) {
+      let delta: number[];
       try {
-        const trial = calculate();
-        if (trial.objective < current.objective
-          || (alpha * stepNorm < 1e-9 && trial.objective <= current.objective + 8 * Number.EPSILON * Math.max(1, current.objective))) {
-          current = trial; accepted = true; break;
-        }
-      } catch { /* reject a point outside the expression domain */ }
-      nuisance = previous;
-      alpha /= 2;
+        const system = scaled.map((row, i) => row.map((value, j) => value + (i === j ? damping : 0)));
+        delta = solve(system, scaledRhs).map((value, i) => value / scales[i]!);
+      } catch { continue; }
+      const stepNorm = Math.max(0, ...delta.map((value, i) => Math.abs(value) / (1 + Math.abs(nuisance[i]!))));
+      if (stepNorm <= 1e-12) continue;
+      let alpha = 1;
+      while (alpha >= 1 / 4096) {
+        const candidate = nuisance.map((value, i) => value + alpha * delta[i]!);
+        const previous = nuisance;
+        nuisance = candidate;
+        try {
+          const trial = calculate();
+          const roundingAllowance = 8 * Number.EPSILON * Math.max(1, current.objective);
+          if (trial.objective < current.objective
+            || (alpha * stepNorm <= 1e-10 && trial.objective <= current.objective + roundingAllowance)) {
+            current = trial; accepted = true; break;
+          }
+        } catch { /* reject a point outside the expression domain */ }
+        nuisance = previous;
+        alpha /= 2;
+      }
+      if (accepted) break;
     }
     if (!accepted) break;
   }
