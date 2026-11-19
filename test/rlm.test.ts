@@ -332,7 +332,7 @@ describe("deterministic S initialization for MM", () => {
       if (!response) throw new TypeError(c.id + " exact S response column is missing");
       const predictorTerms = Object.entries(exactCoefficients)
         .filter(([name]) => name !== "(Intercept)");
-      const exactResiduals = response.map((value, i) => {
+      const exactResiduals: number[] = Array.from(response).map((value, i) => {
         let predicted = exactCoefficients["(Intercept)"] === undefined
           ? 0
           : num(exactCoefficients["(Intercept)"]);
