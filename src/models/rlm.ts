@@ -113,8 +113,8 @@ export function psiHampel(u: PsiInput, options: RlmPsiHampelOptions = {}): numbe
  const one = (v: number): number => {
    const z = Math.abs(v);
    if (options.deriv === 1) {
-     if (z < a) return 1;
-     if (z < b) return 0;
+     if (z <= a) return 1;
+     if (z <= b) return 0;
      if (z < c) return -a / (c - b);
      return 0;
    }
@@ -179,9 +179,9 @@ export interface RlmOptions {
  c?: number;
  /** Proposal 2 scale tuning constant. Default 1.345. */
  k2?: number;
- /** Maximum number of IRLS iterations. Default 20. */
+ /** Maximum number of IRLS iterations. Default 1000, allowing the estimating equations to reach their solution. */
  maxit?: number;
- /** Relative coefficient-change tolerance. Default 1e-4. */
+ /** Dimensionless estimating-equation and scale fixed-point tolerance. Default 1e-10. */
  acc?: number;
 }
 
@@ -408,7 +408,10 @@ export function rlm(formula: string, data: DataFrame, options: RlmOptions = {}):
  if (wtMethod !== "inv" && wtMethod !== "case") throw new RangeError("wtMethod must be 'inv' or 'case'");
  const k = options.k ?? 1.345, a = options.a ?? 2, b = options.b ?? 4;
  const c = options.c ?? (psi === "bisquare" ? 4.685 : 8), k2 = options.k2 ?? 1.345;
- const maxit = options.maxit ?? 20, acc = options.acc ?? 1e-4;
+ // Target the estimator itself, not an early stopping heuristic: solve the standardized
+ // score equations and scale fixed point to numerical precision. Robust fits can converge
+ // slowly, so the default budget is generous; explicit maxit/acc remain available.
+ const maxit = options.maxit ?? 1000, acc = options.acc ?? 1e-10;
  if (!(k > 0 && k2 > 0) || ![k, k2].every(Number.isFinite)) throw new RangeError("k and k2 must be positive and finite");
  if (!(a > 0 && a < b && b < c) || ![a, b, c].every(Number.isFinite)) {
    if (psi === "hampel") throw new RangeError("Hampel psi requires 0 < a < b < c");
@@ -468,12 +471,35 @@ export function rlm(formula: string, data: DataFrame, options: RlmOptions = {}):
    });
    workingWeights = effectiveObsWeights(residuals, scale);
    const next = weightedLeastSquares(x, y, workingWeights);
-   const change = Math.max(...next.map((v, j) => Math.abs(v - coefficients[j]!)));
-   const magnitude = Math.max(1, ...next.map(Math.abs));
-   const relative = change / magnitude;
-   convergence.push(relative);
+   const nextResiduals = y.map((v, i) => v - x[i]!.reduce((sum, z, j) => sum + z * next[j]!, 0));
+   const nextScale = robustScale(nextResiduals, observationWeights, wtMethod, scaleEst, k2);
+   if (!(nextScale > 0) || !Number.isFinite(nextScale)) {
+     if (nextScale === 0) { coefficients = next; scale = 0; converged = true; break; }
+     throw new Error("robust scale is not positive and finite");
+   }
+   // Check the actual M-estimating equations, not the size of the last coefficient step.
+   // Normalize each column by its absolute score contributions, making the criterion
+   // dimensionless and invariant to predictor units.
+   let scoreNorm = 0;
+   for (let j = 0; j < p; j++) {
+     let score = 0, magnitude = 0;
+     for (let i = 0; i < y.length; i++) {
+       const rootWeight = wtMethod === "inv" ? Math.sqrt(observationWeights[i]!) : observationWeights[i]!;
+       const u = (wtMethod === "inv" ? Math.sqrt(observationWeights[i]!) * nextResiduals[i]! : nextResiduals[i]!) / nextScale;
+       const contribution = rootWeight * x[i]![j]! * psiScore(psi, u, model);
+       score += contribution;
+       magnitude += Math.abs(contribution);
+     }
+     scoreNorm = Math.max(scoreNorm, magnitude === 0 ? Math.abs(score) : Math.abs(score) / magnitude);
+   }
+   // The scale equation is a fixed point: the scale used in the score must agree with
+   // the scale recomputed from residuals at the updated coefficients.
+   const scaleNorm = Math.abs(nextScale - scale) / Math.max(Math.abs(nextScale), Math.abs(scale), Number.MIN_VALUE);
+   const residual = Math.max(scoreNorm, scaleNorm);
+   convergence.push(residual);
    coefficients = next;
-   if (relative <= acc) { converged = true; break; }
+   scale = nextScale;
+   if (residual <= acc) { converged = true; break; }
  }
  if (!converged) {
    // Keep the estimate and its diagnostics; a caller must not mistake an iteration-limit fit for convergence.
