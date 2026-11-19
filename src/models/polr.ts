@@ -567,21 +567,27 @@ export function polr(formula: string, data: DataFrame, options: PolrOptions = {}
   if (weights.some((w) => !Number.isFinite(w) || w < 0)) throw new RangeError("weights must be finite and non-negative");
   const x = d.x.map((row) => row.slice(d.terms.intercept ? 1 : 0));
   const columnNames = d.colNames.slice(d.terms.intercept ? 1 : 0);
+  const p = columnNames.length;
+  const columnScales = Array.from({ length: p }, (_, j) => {
+    const scale = Math.max(0, ...x.map(row => Math.abs(row[j]!)));
+    return scale > 0 && Number.isFinite(scale) ? scale : 1;
+  });
+  const scaledX = x.map(row => row.map((value, j) => value / columnScales[j]!));
   const offsetSource = options.offset ?? (extracted.column === undefined ? undefined : data[extracted.column]);
   const offset = offsetSource === undefined
     ? new Array<number>(d.frame.rows.length).fill(0)
     : d.frame.rows.map((row) => Number(offsetSource[row]));
   if (offset.some((v) => !Number.isFinite(v))) throw new RangeError("offset must contain finite values");
   const y = response.codes;
-  const p = columnNames.length;
   const k = responseLevels.length;
-  const theta0 = options.start === undefined
+  const rawTheta0 = options.start === undefined
     ? [...new Array<number>(p).fill(0), ...initialValues(y, weights, k, method)]
     : rawStart(Array.from(options.start), p, k);
+  const theta0 = rawTheta0.map((value, i) => i < p ? value * columnScales[i]! : value);
   const objective = (theta: number[]): number => {
     const beta = theta.slice(0, p);
     const cuts = cutpointsFrom(theta, p, k);
-    const eta = rowPredictors(x, beta, offset);
+    const eta = rowPredictors(scaledX, beta, offset);
     let logLikelihood = 0;
     for (let i = 0; i < y.length; i++) {
       if (weights[i] === 0) continue;
@@ -591,7 +597,7 @@ export function polr(formula: string, data: DataFrame, options: PolrOptions = {}
     }
     return logLikelihood;
   };
-  const evaluate = (theta: number[]) => polrDerivatives(x, y, weights, offset, k, method, theta);
+  const evaluate = (theta: number[]) => polrDerivatives(scaledX, y, weights, offset, k, method, theta);
   const fit = optim(theta0, objective, {
     method: "BFGS",
     gr: (theta) => evaluate(theta).gradient,
@@ -606,11 +612,14 @@ export function polr(formula: string, data: DataFrame, options: PolrOptions = {}
   if (maxAbs(polished.gradient) > scoreTolerance) {
     throw new Error(`ordinal regression score did not converge (max |score| = ${maxAbs(polished.gradient)})`);
   }
-  const theta = polished.theta;
+  const thetaScaled = polished.theta;
+  const theta = thetaScaled.map((value, i) => i < p ? value / columnScales[i]! : value);
   const beta = theta.slice(0, p);
   const cuts = cutpointsFrom(theta, p, k);
   const hessian = polished.hessian;
-  const cov = covarianceFromHessian(hessian, p, k, theta);
+  const scaledCovariance = covarianceFromHessian(hessian, p, k, thetaScaled);
+  const cov = scaledCovariance.map((row, i) => row.map((value, j) =>
+    value / (i < p ? columnScales[i]! : 1) / (j < p ? columnScales[j]! : 1)));
   const eta = rowPredictors(x, beta, offset);
   const fitted = probabilities(eta, cuts, method);
   const names = [...columnNames, ...cuts.map((_, j) => `${responseLevels[j]}|${responseLevels[j + 1]}`)];
