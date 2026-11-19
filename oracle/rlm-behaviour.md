@@ -165,12 +165,16 @@ For weighted observations, the median is interpreted with the relevant observati
 The alternatives `"Huber"` and `"proposal 2"` select Huber's Proposal 2 scale estimate. They are aliases in the public interface and produce identical oracle results. The scale is defined by a robust scale equation of the form
 
 $$
-\frac{1}{n}\sum_i \chi(r_i/s)=b,
+\frac{1}{n-p}\sum_i \chi(r_i/s)=b,
 \qquad
 \chi(u)=\min(u^2,k_2^2),
 \qquad
-b=E\{\min(Z^2,k_2^2)\},\quad Z\sim N(0,1).
-$$
+b=E\{\min(Z^2,k_2^2)\},\quad Z\sim N(0,1),
+$
+
+where $p$ is the number of fitted coefficients. The denominator is established by the supplied 'stackloss-scale-huber' fitTight check: with $k_2=1.345$, the reported fit gives a scale-equation residual of $-1.1\times10^{-15}$ using $n-p$, but $-0.135$ using $n$. The rStats.js fit before the correction satisfies the $n$ equation to $2.2\times10^{-16}$ and has the different scale $2.30648597055$, whereas the R fitTight scale is $2.85513271974$. This is evidence for the $n-p$ divisor, not merely a preference for matching an iteration flag.
+
+For weighted fits, the implementation uses $N-p$ for case/frequency weights, where $N=\sum_i a_i$, and $n-p$ for inverse-variance weights (the original observation count). These weighted Proposal 2 extensions are mathematically natural but have not been directly verified: the current fixture contains no Proposal 2 case combined with observation weights.
 
 The tuning constant `k2` is $1.345$ by default. It belongs to the Proposal 2 scale equation; it is distinct from the tuning constant supplied to the coefficient psi-function. In particular, changing the Huber psi tuning constant does not redefine `k2`.
 
