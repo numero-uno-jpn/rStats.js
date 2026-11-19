@@ -19,9 +19,11 @@
 
 - **CI の結果は自分で読む。** draft の PR #541 (`work/regression` → main、マージしない) で、push のたびに CI が型チェックと
   全テストを流す。push したら PR #541 の Checks で結果を確かめ、型エラーとテストの失敗は自分で直してから報告する。
-  次の 3 件は最後にこちらが作るので、落ちても直さない: `test/unknownOptions.test.ts` の生成のブロックの検査、
-  `test/rIndexDoc.test.ts` の 2 件 (`docs/r-functions.md` の英・日)。Mac だけで落ちる `test/issue179.test.ts`・
-  `test/issue513.test.ts` は CI では通る
+  CI は (Mac だけで落ちる `test/issue179.test.ts`・`test/issue513.test.ts` を除き) 全部通る状態にしてある
+  (`d4` 以降)。新しい関数やオプションを足すと、次の 3 つが落ちる。こちらがスクリプトで作り直すので、その 3 件だけは
+  直さなくてよい: `test/unknownOptions.test.ts` (生成のブロック。**手で `import { checkOptions }` や `*_KEYS` の定数を
+  書かない**。前回、生成のブロックと二重になってファイルが読み込めなくなった)、`test/rIndexDoc.test.ts` の 2 件
+  (`docs/r-functions.md` の英・日)
 - **区切りは大きめでよい。** 依頼にある項目は、1 回の返答でまとめて片付けてよい。ただし長い作業の途中では、区切りごとに
   push して Issue #540 に数行の途中経過を書く (表示が崩れるのを防ぐ)
 - **こちらがすること:** R の実行、fixture の生成、数値の点検 (テストが正しい物差しで比べているか、R とどちらが正しいか)。
