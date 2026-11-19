@@ -217,6 +217,7 @@ export function evaluateNlsExpression(
   switch (expr.type) {
     case "number": return expr.value;
     case "variable": {
+      if (expr.name === "pi" && Object.prototype.hasOwnProperty.call(data, "pi")) return data.pi!;
       const value = Object.prototype.hasOwnProperty.call(parameters, expr.name) ? parameters[expr.name] : data[expr.name];
       if (value !== undefined) return value;
       if (expr.name === "pi") return Math.PI;
