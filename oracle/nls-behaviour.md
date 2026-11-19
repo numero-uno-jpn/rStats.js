@@ -214,6 +214,13 @@ The following recommendations from `briefs/nls-1.7.ja.md` section 3 are adopted 
 
 No additional user decision is currently required. The supported formula function list, initial-value heuristics, profile algorithm, and bound-constrained optimizer are implementation details that can be refined against the public oracle and independent numerical checks without changing the requested API scope.
 
+## Stage 3 implementation notes
+
+- The left-hand side may be a parameter-free expression. Its variables must resolve to data columns or the mathematical constant `pi`; parameter names are rejected. The response expression is evaluated once per row for fitting. Predictions remain on that transformed response scale (for example, `log(y) ~ ...` returns predictions for `log(y)`, without an automatic inverse transform).
+- `pi` is the mathematical constant when no data column named `pi` exists. A data column named `pi` takes precedence over both the constant and any same-named start entry; that start entry is not treated as a free parameter.
+- `atan`, `asin`, and `acos` are supported with analytic derivatives. A power with a parameter-independent exponent uses the constant-exponent derivative, avoiding an unnecessary `log(base)` term for negative bases.
+- Near-zero residual convergence uses a representable-step test relative to the parameter scale. `scaleOffset` can relax the scaled-gradient test but cannot replace the step-precision check. Exact-fit detection is relative to the response norm, so response rescaling does not turn a merely small residual into an exact fit.
+
 ## rStats.js's choices
 
 Decided by the user on 2026-11-20, as recommended in `briefs/nls-1.7.ja.md` section 3. Checked by the coordinator
