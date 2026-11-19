@@ -23,9 +23,14 @@ interface FitRecord {
   fitPublic?: FitPublic;
   fitTight?: { fit: Record<string, unknown>; fitPublic?: FitPublic; fitResult: { error?: string; warnings: string[] } };
 }
+interface RobustReference {
+  reference: { crit: number | string; scale?: number | string };
+}
 interface RlmCase {
   id: string;
   fits: { main: FitRecord };
+  ltsReferences?: RobustReference[];
+  sReferences?: RobustReference[];
 }
 interface Fixture {
   cases: RlmCase[];
@@ -189,6 +194,92 @@ function tightReferenceIsStationary(args: Record<string, unknown>, expected: Fit
   // A false convergence flag alone is not disqualifying: use the estimating-equation
   // and scale-equation residuals. This rejects genuinely oscillating reference fits.
   return scoreResidual <= 1e-8 && scaleResidual <= 1e-8;
+}
+
+
+function ltsCriterion(fit: ReturnType<typeof fitFrom>): number {
+  const n = fit.residuals.length;
+  const p = fit.model.x[0]?.length ?? 0;
+  const h = Math.floor((n + p) / 2);
+  const squares = fit.residuals.map((r, i) => {
+    const value = fit.model.wtMethod === "inv" ? Math.sqrt(fit.model.observationWeights[i]!) * r : r;
+    return value * value;
+  }).sort((a, b) => a - b);
+  return squares.slice(0, h).reduce((sum, value) => sum + value, 0);
+}
+
+function estimatingEquationResidual(fit: ReturnType<typeof fitFrom>): number {
+  const model = fit.model;
+  const p = model.x[0]?.length ?? 0;
+  let maximum = 0;
+  for (let j = 0; j < p; j++) {
+    let score = 0;
+    let magnitude = 0;
+    for (let i = 0; i < fit.residuals.length; i++) {
+      const weight = model.observationWeights[i]!;
+      const rootWeight = model.wtMethod === "inv" ? Math.sqrt(weight) : weight;
+      const residual = model.wtMethod === "inv" ? Math.sqrt(weight) * fit.residuals[i]! : fit.residuals[i]!;
+      const u = residual / fit.scale;
+      const psiWeight = model.psi === "huber"
+        ? Number(psiHuber(u, { k: model.k }))
+        : model.psi === "hampel"
+          ? Number(psiHampel(u, { a: model.a, b: model.b, c: model.c }))
+          : Number(psiBisquare(u, { c: model.c }));
+      const contribution = rootWeight * model.x[i]![j]! * u * psiWeight;
+      score += contribution;
+      magnitude += Math.abs(contribution);
+    }
+    maximum = Math.max(maximum, magnitude === 0 ? Math.abs(score) : Math.abs(score) / magnitude);
+  }
+  return maximum;
+}
+
+const LTS_CASES = fixture.cases.filter((c) => (c.ltsReferences?.length ?? 0) > 0);
+const MM_CASES = fixture.cases.filter((c) => (c.sReferences?.length ?? 0) > 0);
+
+describe("deterministic LTS starts", () => {
+  for (const c of LTS_CASES) {
+    it(c.id, () => {
+      const fit = fitFrom(c.fits.main.fit);
+      const references = c.ltsReferences!;
+      const bestReference = Math.min(...references.map((entry) => num(entry.reference.crit)));
+      const objective = ltsCriterion(fit);
+      expect(objective, c.id + " LTS crit").toBeLessThanOrEqual(bestReference + 1e-8 * Math.max(1, bestReference));
+      expect(estimatingEquationResidual(fit), c.id + " M estimating equations").toBeLessThanOrEqual(1e-8);
+      const n = fit.residuals.length;
+      const p = fit.model.x[0]?.length ?? 0;
+      const total = binomialForTest(n, p);
+      if (total > 1024n) {
+        expect(fit.warnings.some((warning) => warning.includes("high-breakdown start is not certified"))).toBe(true);
+      }
+    });
+  }
+});
+
+describe("deterministic S initialization for MM", () => {
+  for (const c of MM_CASES) {
+    it(c.id, () => {
+      const fit = fitFrom(c.fits.main.fit);
+      const references = c.sReferences!;
+      const bestReference = Math.min(...references.map((entry) => num(entry.reference.scale!)));
+      expect(fit.scale, c.id + " S scale").toBeLessThanOrEqual(bestReference + 1e-8 * Math.max(1, bestReference));
+      expect(estimatingEquationResidual(fit), c.id + " MM estimating equations").toBeLessThanOrEqual(1e-8);
+      expect(fit.model.psi).toBe("bisquare");
+      expect(fit.converged).toBe(true);
+      const n = fit.residuals.length;
+      const p = fit.model.x[0]?.length ?? 0;
+      const total = binomialForTest(n, p);
+      if (total > 1024n) {
+        expect(fit.warnings.some((warning) => warning.includes("high-breakdown start is not certified"))).toBe(true);
+      }
+    });
+  }
+});
+
+function binomialForTest(n: number, k: number): bigint {
+  let value = 1n;
+  for (let i = 1; i <= Math.min(k, n - k); i++) value = value * BigInt(n - Math.min(k, n - k) + i) / BigInt(i);
+  return value;
 }
 
 describe("robust regression psi functions", () => {
