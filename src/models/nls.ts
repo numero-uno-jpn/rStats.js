@@ -443,7 +443,7 @@ function fitCore(
     }
     let alpha = 1, accepted = false;
     while (alpha >= control.minFactor) {
-      const candidate = values.map((v, i) => Math.min(upper[i]!, Math.max(lower[i]!, v + alpha * delta[i]!)));
+      const candidate = values.map((v, i) => Math.min(upper[i]!, Math.max(lower[i]!, v + alpha * projectedDelta[i]!)));
       if (candidate.every((v, i) => v === values[i])) { alpha /= 2; continue; }
       try {
         const trial = algorithm === "plinear"
