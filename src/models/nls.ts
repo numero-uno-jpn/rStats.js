@@ -426,7 +426,7 @@ export function nls(formula: string, data: DataFrame, options: NlsOptions = {}):
   }
   if (options.start && Object.values(options.start).some(v => !Number.isFinite(v))) throw new RangeError("starting values must be finite");
   let start = options.start ? parameterNames.map(name => options.start![name]!) : parameterNames.map(name => initialValue(name, rawY, column(data, variables.find(v => dataNames.has(v)) ?? parsed.response)));
-  if (!options.start && /\\bSSmicmen\\s*\\(/.test(formula)) {
+  if (!options.start && /\bSSmicmen\s*\(/.test(formula)) {
     const predictorName = variables.find(name => dataNames.has(name));
     if (predictorName) {
       const x = column(data, predictorName);
