@@ -164,6 +164,9 @@ cases <- list(
          list(seed = seed, args = list(formula = stackloss_formula, data = stackloss_data,
                                        method = "lts"))
        }),
+       exactReferences = list(list(kind = "lts",
+                                   args = list(formula = stackloss_formula, data = stackloss_data,
+                                               method = "lts", nsamp = "exact"))),
        calls = list()),
 
   list(id = "stackloss-hampel-ls",
@@ -179,6 +182,9 @@ cases <- list(
          list(seed = seed, args = list(formula = stackloss_formula, data = stackloss_data,
                                        method = "lts"))
        }),
+       exactReferences = list(list(kind = "lts",
+                                   args = list(formula = stackloss_formula, data = stackloss_data,
+                                               method = "lts", nsamp = "exact"))),
        calls = list()),
 
   list(id = "stackloss-scale-mad",
@@ -214,6 +220,9 @@ cases <- list(
          list(seed = seed, args = list(formula = phones_formula, data = phones_data,
                                        method = "lts"))
        }),
+       exactReferences = list(list(kind = "lts",
+                                   args = list(formula = phones_formula, data = phones_data,
+                                               method = "lts", nsamp = "exact"))),
        calls = list()),
 
   list(id = "phones-bisquare",
@@ -256,6 +265,12 @@ cases <- list(
          list(seed = seed, args = list(formula = stackloss_formula, data = stackloss_data,
                                        method = "S"))
        }),
+       exactReferences = list(
+         list(kind = "S", args = list(formula = stackloss_formula, data = stackloss_data,
+                                      method = "S", nsamp = "exact")),
+         list(kind = "MM", args = list(formula = stackloss_formula, data = stackloss_data,
+                                       method = "MM", nsamp = "exact"))
+       ),
        calls = list()),
 
   list(id = "phones-mm",
@@ -266,6 +281,12 @@ cases <- list(
          list(seed = seed, args = list(formula = phones_formula, data = phones_data,
                                        method = "S"))
        }),
+       exactReferences = list(
+         list(kind = "S", args = list(formula = phones_formula, data = phones_data,
+                                      method = "S", nsamp = "exact")),
+         list(kind = "MM", args = list(formula = phones_formula, data = phones_data,
+                                       method = "MM", nsamp = "exact", maxit = 50))
+       ),
        calls = list()),
 
   list(id = "error-collinear",
@@ -354,6 +375,34 @@ run_lqs_reference <- function(spec, method) {
   record
 }
 
+# Deterministic exhaustive references requested for the exact-subset path.
+# Only public coefficients, scale/crit, and summary output are serialized.
+run_exact_reference <- function(spec) {
+  args <- spec$args
+  if (identical(spec$kind, "MM")) {
+    result <- capture_raw(function() do.call(MASS::rlm, args))
+  } else {
+    result <- capture_raw(function() do.call(MASS::lqs, args))
+  }
+  record <- list(kind = spec$kind, args = fit_record(args),
+                 result = list(warnings = result$warnings, messages = result$messages))
+  if (!is.null(result$error)) {
+    record$result$error <- result$error
+    return(record)
+  }
+  fit <- result$value
+  if (identical(spec$kind, "MM")) {
+    record$reference <- fit_public_record(fit)
+  } else if (identical(spec$kind, "S")) {
+    record$reference <- list(coefficients = json_value(coef(fit)),
+                             scale = scalar_num(fit$scale))
+  } else if (identical(spec$kind, "lts")) {
+    record$reference <- list(coefficients = json_value(coef(fit)),
+                             crit = scalar_num(fit$crit))
+  }
+  record
+}
+
 rows <- lapply(cases, function(case) {
   fit_rows <- lapply(names(case$fits), function(id) {
     spec <- case$fits[[id]]
@@ -382,9 +431,12 @@ rows <- lapply(cases, function(case) {
     lapply(case$sReferences, run_lqs_reference, method = "S")
   lts_refs <- if (is.null(case$ltsReferences)) list() else
     lapply(case$ltsReferences, run_lqs_reference, method = "lts")
+  exact_refs <- if (is.null(case$exactReferences)) list() else
+    lapply(case$exactReferences, run_exact_reference)
 
   row <- list(id = case$id, fits = fit_rows, calls = calls,
-              sReferences = s_refs, ltsReferences = lts_refs)
+              sReferences = s_refs, ltsReferences = lts_refs,
+              exactReferences = exact_refs)
   if (grepl("-mm$", case$id)) {
     row$comparison = list(mmCoefficients = "record-only; do not compare",
                           lqsSScale = "compare as the S-scale reference",
