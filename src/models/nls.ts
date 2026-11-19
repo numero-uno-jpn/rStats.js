@@ -320,8 +320,14 @@ function fitCore(
   for (; iterations < control.maxiter; iterations++) {
     const { matrix, rhs } = normalEquations(current.jacobian, current.residuals, weights);
     let delta: number[];
-    try { delta = solve(matrix, rhs); }
-    catch (error) { throw new Error("singular gradient: " + (error instanceof Error ? error.message : String(error))); }
+    try {
+      const scales = matrix.map((row, i) => Math.sqrt(Math.max(row[i]!, Number.MIN_VALUE)));
+      const scaledMatrix = matrix.map((row, i) => row.map((value, j) => value / (scales[i]! * scales[j]!)));
+      const scaledRhs = rhs.map((value, i) => value / scales[i]!);
+      delta = solve(scaledMatrix, scaledRhs).map((value, i) => value / scales[i]!);
+    } catch (error) {
+      throw new Error("singular gradient: " + (error instanceof Error ? error.message : String(error)));
+    }
     const scaledGradientNorm = Math.max(0, ...rhs.map((value, i) =>
       Math.abs(value) / (Math.sqrt(Math.max(matrix[i]![i]!, Number.MIN_VALUE))
         * (Math.sqrt(current.objective) + control.scaleOffset + Number.EPSILON))));
