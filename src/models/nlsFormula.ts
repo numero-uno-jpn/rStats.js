@@ -157,7 +157,7 @@ const binary = (op: "+" | "-" | "*" | "/" | "^", left: NlsExpr, right: NlsExpr):
 const call = (name: string, ...args: NlsExpr[]): NlsExpr => ({ type: "call", name, args });
 
 /** Construct the symbolic derivative of an expression with respect to one parameter. */
-export function isZeroDerivative(expr: NlsExpr): boolean {
+function isZeroDerivative(expr: NlsExpr): boolean {
   if (expr.type === "number") return expr.value === 0;
   if (expr.type === "unary") return isZeroDerivative(expr.value);
   if (expr.type === "binary" && (expr.op === "+" || expr.op === "-")) return isZeroDerivative(expr.left) && isZeroDerivative(expr.right);
