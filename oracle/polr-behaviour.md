@@ -290,3 +290,9 @@ in `experiments/regression-polr-2.R` and `.json` on `work/regression`):
     with cut-points away from `qcauchy`. The standard Cauchy deviance at MASS's cut-points is 64.8349157739368, not
     MASS's 65.24. rStats.js's cauchit fits are therefore checked against independent references (the exact
     intercept-only solution and a high-precision maximisation of the standard Cauchy likelihood), not against MASS
+13. **Prediction on new data includes the offset** of the formula (decided 2026-11-19; a known difference from R).
+    MASS 7.3-66's `predict(fit, newdata)` leaves out a formula offset: for `mtcars-offset` (`gearO ~ wt +
+    offset(off)`, new rows `wt = 2, 3` and `off = 2, 3`) MASS's probabilities equal, to every digit, those computed by
+    hand with the offset set to 0. rStats.js adds the new rows' offset to the linear predictor, as `glm`'s prediction
+    does. The test checks rStats.js against the probabilities computed by hand with the offset, and that setting the
+    new offset to 0 gives MASS's values
