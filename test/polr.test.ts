@@ -272,10 +272,14 @@ describe("polrPredict: all prediction fixtures", () => {
         expect(actual.columns).toEqual(expected.cols);
         expect(actual.values).toHaveLength(expected.values.length);
         for (let i = 0; i < expected.values.length; i++) {
-          expect(actual.values[i]).toHaveLength(expected.values[i]!.length);
+          const actualRow = actual.values[i];
+          if (actualRow === null || actualRow === undefined) throw new Error(`unexpected missing prediction row ${i}`);
+          expect(actualRow).toHaveLength(expected.values[i]!.length);
           for (let j = 0; j < expected.values[i]!.length; j++) {
             const target = numeric(expected.values[i]![j]);
-            closeAbsolute(actual.values[i]![j]!, target, 1e-12 * Math.max(1, Math.abs(target)),
+            const actualValue = actualRow[j];
+            if (actualValue === null || actualValue === undefined) throw new Error(`unexpected missing probability [${i},${j}]`);
+            closeAbsolute(actualValue, target, 1e-12 * Math.max(1, Math.abs(target)),
               `${fixtureCase.id} predict probs [${i},${j}]`);
           }
         }
