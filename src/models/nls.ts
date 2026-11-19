@@ -428,10 +428,16 @@ function fitCore(
     const projectedDelta = delta.map((value, i) => {
       if (algorithm !== "port") return value;
       const boundTolerance = 16 * Number.EPSILON * Math.max(1, Math.abs(values[i]!));
-      // At a lower bound, rhs <= 0 means the objective gradient points out of the feasible set.
-      if (values[i]! <= lower[i]! + boundTolerance && rhs[i]! <= 0) return 0;
-      // At an upper bound, rhs >= 0 means the objective gradient points out of the feasible set.
-      if (values[i]! >= upper[i]! - boundTolerance && rhs[i]! >= 0) return 0;
+      // At a lower bound, rhs <= 0 satisfies KKT; otherwise use a feasible inward gradient step.
+      if (values[i]! <= lower[i]! + boundTolerance) {
+        if (rhs[i]! <= 0) return 0;
+        return value > 0 ? value : rhs[i]! / Math.max(matrix[i]![i]!, Number.MIN_VALUE);
+      }
+      // At an upper bound, rhs >= 0 satisfies KKT; otherwise use a feasible inward gradient step.
+      if (values[i]! >= upper[i]! - boundTolerance) {
+        if (rhs[i]! >= 0) return 0;
+        return value < 0 ? value : rhs[i]! / Math.max(matrix[i]![i]!, Number.MIN_VALUE);
+      }
       return value;
     });
     const scaledGradientNorm = Math.max(0, ...rhs.map((value, i) =>
