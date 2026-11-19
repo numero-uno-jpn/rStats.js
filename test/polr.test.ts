@@ -299,14 +299,14 @@ describe("polrPredict: all prediction fixtures", () => {
       });
       if (call.args.type === "probs") {
         if (Array.isArray(actual)) throw new Error("expected a probability matrix");
-        const expected = call.result.value as { rows: string[]; cols: string[]; values: unknown[][] };
-        expect(actual.rows).toEqual(expected.rows);
-        expect(actual.columns).toEqual(expected.cols);
-        expect(actual.values).toHaveLength(expected.values.length);
-        for (let i = 0; i < expected.values.length; i++) {
+        const expectedPrediction = call.result.value as { rows: string[]; cols: string[]; values: unknown[][] };
+        expect(actual.rows).toEqual(expectedPrediction.rows);
+        expect(actual.columns).toEqual(expectedPrediction.cols);
+        expect(actual.values).toHaveLength(expectedPrediction.values.length);
+        for (let i = 0; i < expectedPrediction.values.length; i++) {
           const actualRow = actual.values[i];
           if (actualRow === null || actualRow === undefined) throw new Error(`unexpected missing prediction row ${i}`);
-          expect(actualRow).toHaveLength(expected.values[i]!.length);
+          expect(actualRow).toHaveLength(expectedPrediction.values[i]!.length);
           for (let j = 0; j < expected.values[i]!.length; j++) {
             const target = numeric(expected.values[i]![j]);
             const actualValue = actualRow[j];
