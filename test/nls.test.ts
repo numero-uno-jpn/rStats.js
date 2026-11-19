@@ -146,6 +146,19 @@ describe("nonlinear least-squares regression", () => {
         }
         if (Math.abs(fit.deviance - ref.deviance) > 5e-7) mismatches.push(`${cs.id}: deviance (${fit.deviance} vs ${ref.deviance})`);
         if (Math.abs(fit.sigma - ref.sigma) > 5e-7) mismatches.push(`${cs.id}: sigma (${fit.sigma} vs ${ref.sigma})`);
+        const actualSummary = nlsSummary(fit).coefficients;
+        for (const name of Object.keys(ref.coefficients)) {
+          const actualRow = actualSummary.rows.indexOf(name);
+          const tightRow = ref.summary.rows.indexOf(name);
+          const defaultRow = cs.fit.value!.summary.rows.indexOf(name);
+          const actualSe = actualSummary.values[actualRow]![1]!;
+          const tightSe = ref.summary.values[tightRow]![1]!;
+          const defaultSe = cs.fit.value!.summary.values[defaultRow]![1]!;
+          const seTolerance = Math.max(5e-7, Math.abs(defaultSe - tightSe) * 1.05);
+          if (Math.abs(actualSe - tightSe) > seTolerance) {
+            mismatches.push(`${cs.id}: SE ${name} (${actualSe} vs ${tightSe}; allowed ${seTolerance})`);
+          }
+        }
         if (fit.dfResidual !== ref.dfResidual) mismatches.push(`${cs.id}: residual df`);
         if (fit.fitted.length !== ref.fitted.length) mismatches.push(`${cs.id}: fitted length`);
         for (let i = 0; i < ref.fitted.length; i++) {
