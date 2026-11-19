@@ -10,6 +10,7 @@ export type NlsExpr =
 
 export interface ParsedNlsFormula {
   response: string;
+  responseExpression: NlsExpr;
   expression: NlsExpr;
 }
 
@@ -124,10 +125,11 @@ export function parseNlsFormula(formula: string): ParsedNlsFormula {
   if (depth !== 0) throw new SyntaxError("unbalanced parentheses in formula");
   if (split < 0) throw new SyntaxError("formula must be response ~ expression");
   const response = formula.slice(0, split).trim();
-  if (!/^[A-Za-z.][A-Za-z0-9._]*$/.test(response)) throw new SyntaxError("response must be a column name");
+  if (!response) throw new SyntaxError("formula has an empty response expression");
+  const responseExpression = new ExpressionParser(response).parse();
   const rhs = formula.slice(split + 1).trim();
   if (!rhs) throw new SyntaxError("formula has an empty right-hand side");
-  return { response, expression: expandSelfStart(new ExpressionParser(rhs).parse()) };
+  return { response, responseExpression, expression: expandSelfStart(new ExpressionParser(rhs).parse()) };
 }
 
 function expandSelfStart(expr: NlsExpr): NlsExpr {
