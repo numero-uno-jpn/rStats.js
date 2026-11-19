@@ -564,6 +564,10 @@ export function nls(formula: string, data: DataFrame, options: NlsOptions = {}):
   const parameterNames = options.start
     ? startNames.filter(name => !(name === "pi" && dataNames.has("pi")))
     : inferredNames;
+  const responseParameters = responseVariables.filter(name => parameterNames.includes(name));
+  if (responseParameters.length > 0) {
+    throw new SyntaxError("response expression must not contain parameters: " + responseParameters.join(", "));
+  }
   if (parameterNames.length === 0) throw new Error("no free parameters were found in the formula");
   if (!options.start && !/\bSS(?:asymp|asympOff|asympOrig|biexp|fol|fpl|gompertz|logis|micmen|weibull)\s*\(/.test(formula)) {
     throw new Error("start must be supplied for a formula without a self-starting model");
