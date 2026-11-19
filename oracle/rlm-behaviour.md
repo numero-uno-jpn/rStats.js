@@ -490,10 +490,13 @@ Decided by the user on 2026-11-19.
    implementation) gave about half MASS's scale and so about half its MM standard errors. `crit` is a different
    quantity and is not used.
    **Comparison with R:** MASS's `nsamp = "exact"` (documented in `?lqs`, passed through by `rlm`) examines every
-   subset and is deterministic, so rStats.js's exhaustive search is compared with it: the S scale is not larger than
-   MASS's exact S scale beyond MASS's loose solution, and the MM coefficients are compared with
-   `rlm(..., method = "MM", nsamp = "exact")`. With random subsets (`nsamp` left at its default) MASS's MM depends on
-   the seed and is not compared (a known difference)
+   subset and is deterministic, so rStats.js's exhaustive S search is compared with
+   `lqs(..., method = "S", nsamp = "exact")`: the S coefficients agree and the S scale is not larger than MASS's
+   beyond MASS's loose solution of the scale equation. **`rlm(..., method = "MM")` does not use `nsamp = "exact"`**
+   (`experiments/regression-rlm-mm-nsamp.R` and `.out.txt`: after `set.seed(1)` the "exact" MM equals the random MM
+   of seed 1 to every digit, and it changes with the seed and between arm64 and x86_64), so MASS's MM is never
+   compared (a known difference). rStats.js's final MM step is checked independently: the bisquare estimating
+   equations ($c = 4.685$) at the fixed S scale, and the covariance by Huber's formula of item 2
 2. **Covariance: Huber's (1981) formula, which reproduces MASS's `summary`** (Decision 3). The covariance is
    $\texttt{stddev}^2 (X^\top X)^{-1}$ (`cov.unscaled` equals $(X^\top X)^{-1}$ to 8e-11 in `stackloss_huber`), with
    $$\texttt{stddev} = s\,\kappa\,\frac{\sqrt{\sum_i \psi(r_i/s)^2/(n-p)}}{\overline{\psi'}},\qquad
