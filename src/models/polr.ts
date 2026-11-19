@@ -1024,11 +1024,13 @@ export function polrAnova(...fits: PolrResult[]): PolrAnovaResult {
       || a.rows.some((row, i) => row !== b.rows[i])
       || a.responseLevels.length !== b.responseLevels.length
       || a.responseLevels.some((level, i) => level !== b.responseLevels[i])
-      || a.y.length !== b.y.length || a.y.some((value, i) => value !== b.y[i])
-      || a.method !== b.method
-      || a.weights.length !== b.weights.length || a.weights.some((value, i) => value !== b.weights[i])
-      || a.offset.length !== b.offset.length || a.offset.some((value, i) => value !== b.offset[i])) {
+      || a.y.length !== b.y.length || a.y.some((value, i) => value !== b.y[i])) {
       throw new Error("models were not all fitted to the same size of dataset");
+    }
+    if (a.method !== b.method) throw new Error("models must use the same link");
+    if (a.weights.length !== b.weights.length || a.weights.some((value, i) => value !== b.weights[i])
+      || a.offset.length !== b.offset.length || a.offset.some((value, i) => value !== b.offset[i])) {
+      throw new Error("models must use identical weights and offsets");
     }
 
     const previousColumns = new Map(a.columnNames.map((name, i) => [name, i]));
