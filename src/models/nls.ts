@@ -196,26 +196,30 @@ function linearTrend(x: number[], y: number[]): { intercept: number; slope: numb
 }
 
 function asymptoticRiseStart(x: number[], y: number[], shifted: boolean): { Asym: number; lrc: number; c0?: number } | undefined {
-  const ymax = Math.max(...y), range = Math.max(ymax - Math.min(...y), Number.EPSILON);
+  const ymax = Math.max(...y), ymin = Math.min(...y), range = Math.max(ymax - ymin, Number.EPSILON);
   let best: { Asym: number; lrc: number; c0?: number; error: number } | undefined;
   for (let k = 0; k <= 180; k++) {
-    const Asym = ymax + range * 10 ** (-3 + k * 0.03);
-    const z = y.map(value => Math.log(1 - value / Asym));
+    const Asym = shifted
+      ? ymax - 0.2 * range + k * (0.5 * range / 180)
+      : ymax + range * 10 ** (-3 + k * 0.03);
+    const selected = x.map((value, i) => ({ x: value, y: y[i]! })).filter(point => point.y < Asym);
+    if (selected.length < (shifted ? 4 : 2)) continue;
+    const sx = selected.map(point => point.x), z = selected.map(point => Math.log(1 - point.y / Asym));
     if (!z.every(Number.isFinite)) continue;
     let intercept = 0, slope = 0, error = 0;
     if (shifted) {
-      const line = linearTrend(x, z);
+      const line = linearTrend(sx, z);
       if (!line || !(line.slope < 0)) continue;
       ({ intercept, slope, error } = line);
     } else {
-      const denominator = x.reduce((s, v) => s + v * v, 0);
+      const denominator = sx.reduce((sum, value) => sum + value * value, 0);
       if (!(denominator > 0)) continue;
-      slope = x.reduce((s, v, i) => s + v * z[i]!, 0) / denominator;
+      slope = sx.reduce((sum, value, i) => sum + value * z[i]!, 0) / denominator;
       if (!(slope < 0)) continue;
-      error = x.reduce((s, v, i) => s + (z[i]! - slope * v) ** 2, 0);
+      error = sx.reduce((sum, value, i) => sum + (z[i]! - slope * value) ** 2, 0);
     }
     const c0 = intercept / -slope;
-    if (shifted && (!Number.isFinite(c0) || c0 >= Math.min(...x))) continue;
+    if (shifted && (!Number.isFinite(c0) || c0 < 0 || c0 >= Math.min(...sx))) continue;
     const candidate = { Asym, lrc: Math.log(-slope), ...(shifted ? { c0 } : {}), error };
     if (!best || candidate.error < best.error) best = candidate;
   }
@@ -223,7 +227,6 @@ function asymptoticRiseStart(x: number[], y: number[], shifted: boolean): { Asym
   const { error: _error, ...result } = best;
   return result;
 }
-
 function fourParameterLogisticStart(x: number[], y: number[]): { A: number; B: number; xmid: number; scal: number } | undefined {
   const ymin = Math.min(...y), ymax = Math.max(...y), range = Math.max(ymax - ymin, Number.EPSILON);
   let best: { A: number; B: number; xmid: number; scal: number; error: number } | undefined;
@@ -249,11 +252,11 @@ function weibullRiseStart(x: number[], y: number[]): { Asym: number; Drop: numbe
   const ymin = Math.min(...y), ymax = Math.max(...y), range = Math.max(ymax - ymin, Number.EPSILON);
   let best: { Asym: number; Drop: number; lrc: number; pwr: number; error: number } | undefined;
   for (let ia = 0; ia <= 180; ia++) {
-    const Asym = ymax - 0.2 * range + ia * (2.2 * range / 180);
+    const Asym = ymax - 0.04 * range + ia * (0.10 * range / 180);
     const selected = x.map((value, i) => ({ x: value, y: y[i]! })).filter(point => point.x > 0 && point.y < Asym);
     if (selected.length < 5) continue;
     for (let id = 0; id <= 50; id++) {
-      const Drop = (Asym - ymin) * (1.001 + id * 0.02);
+      const Drop = (Asym - ymin) * (1.001 + id * 0.002);
       const lx: number[] = [], ly: number[] = [];
       let valid = true;
       for (const point of selected) {
