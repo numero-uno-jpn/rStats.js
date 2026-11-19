@@ -4,6 +4,23 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 関数は `package::function()` と書いています。引数の書き方は [JavaScript の開発者のための rStats.js](guide-for-js-developers.md) を、
 各関数の詳しい説明は [API リファレンス](https://numero-uno-jpn.github.io/rStats.js/ja/api/) を参照してください。
 
+## Regression models (`rStats.js/regression`)
+
+| R | rStats.js | 説明 |
+| --- | --- | --- |
+| `anova.polr()` | `polrAnova` | 入れ子の順序回帰の当てはめどうしの尤度比検定 |
+| `confint.polr()` | `polrConfint` | 順序回帰の傾きのプロファイル尤度または Wald の信頼区間 |
+| `MASS::polr()` | `polr` | 累積リンクの順序ロジスティック回帰 (と probit・cloglog・loglog・cauchit) の最尤推定 |
+| `predict.polr()` | `polrPredict` | 順序回帰の当てはめによる、新しいデータの水準または各水準の確率の予測 |
+| `MASS::psi.bisquare()` | `psiBisquare` | Tukey の bisquare の psi 関数 (重み・値・微分) |
+| `MASS::psi.hampel()` | `psiHampel` | Hampel の 3 段の psi 関数 (重み・値・微分) |
+| `MASS::psi.huber()` | `psiHuber` | Huber の psi 関数 (重み・値・微分) |
+| `MASS::rlm()` | `rlm` | M 推定と MM 推定によるロバストな線形回帰 (反復重み付き最小二乗法) |
+| `summary.polr()` | `polrSummary` | 順序回帰の傾きとカットポイントの推定値・標準誤差・t 値の表 |
+| `summary.rlm()` | `rlmSummary` | ロバスト回帰の係数の推定値・標準誤差・t 値の表と残差の尺度 |
+| `vcov.polr()` | `polrVcov` | 順序回帰の傾きとカットポイントの共分散行列 (観測情報量から) |
+| `vcov.rlm()` | `rlmVcov` | ロバスト回帰の係数の共分散行列 (Huber の有限標本の補正つき) |
+
 ## 特殊関数 (`rStats.js/special`)
 
 | R | rStats.js | 説明 |
