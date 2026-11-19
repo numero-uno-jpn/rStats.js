@@ -550,3 +550,26 @@ describe("MM scale equivariance", () => {
     }
   });
 });
+
+
+describe("majority-exact robust regression", () => {
+  it("returns the exact line with zero scale and undefined inference for M and MM", () => {
+    const x = Array.from({ length: 10 }, (_, i) => i + 1);
+    const y = x.map((value, i) => 2 + 3 * value + (i >= 7 ? (i === 7 ? 5 : i === 8 ? -4 : 7) : 0));
+    const data = { x, y };
+    const fits = [
+      rlm("y ~ x", data, { method: "M", init: [2, 3] }),
+      rlm("y ~ x", data, { method: "MM" }),
+    ];
+    for (const fit of fits) {
+      expect(fit.coefficients["(Intercept)"]).toBe(2);
+      expect(fit.coefficients.x).toBe(3);
+      expect(fit.scale).toBe(0);
+      expect(fit.converged).toBe(true);
+      expect(fit.warnings).toContain("more than half of the observations lie exactly on the fitted line; scale and inference are undefined");
+      expect(fit.covariance.flat().every(Number.isNaN)).toBe(true);
+      const summary = rlmSummary(fit);
+      expect(summary.values.every(row => Number.isNaN(row[1]) && Number.isNaN(row[2]))).toBe(true);
+    }
+  });
+});
