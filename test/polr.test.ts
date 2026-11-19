@@ -290,7 +290,7 @@ describe("polrPredict: all prediction fixtures", () => {
   for (const { fixtureCase, call, index } of predictionCalls) {
     it(`${fixtureCase.id} predict #${index + 1} (${call.args?.type ?? "class"})`, () => {
       const args = call.args;
-      if (args?.newdata === undefined) throw new Error("fixture prediction has no newdata");
+      if (args === undefined || args.newdata === undefined) throw new Error("fixture prediction has no newdata");
       const { fit, expected, tight } = fitCase(fixtureCase.id);
       const { data, rowNames } = prepareNewData(args.newdata);
       const actual = polrPredict(fit, {
