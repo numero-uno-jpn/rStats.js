@@ -354,3 +354,34 @@ No additional R experiment is required to describe the current statistical scope
 
 ## rStats.js's choices
 
+Decided by the user on 2026-11-19.
+
+1. **MM: a deterministic S-estimator** (Decisions 1 and 2). No random numbers: every subset for small data, a fixed,
+   documented set of candidates for larger data, with the effort limit and a warning when the search cannot establish
+   a reliable high-breakdown start. The same input always gives the same fit. This is a known difference from R, whose
+   MM coefficients depend on the seed (`stackloss_MM_seed*`). MM fits are therefore not compared with MASS's
+   coefficients; the tests check that rStats.js's S-scale is not larger than the scale of MASS's S-estimates for the
+   same data, and that the final M step solves its estimating equations at that scale
+2. **Covariance: Huber's (1981) formula, which reproduces MASS's `summary`** (Decision 3). The covariance is
+   $\texttt{stddev}^2 (X^\top X)^{-1}$ (`cov.unscaled` equals $(X^\top X)^{-1}$ to 8e-11 in `stackloss_huber`), with
+   $$\texttt{stddev} = s\,\kappa\,\frac{\sqrt{\sum_i \psi(r_i/s)^2/(n-p)}}{\overline{\psi'}},\qquad
+   \kappa = 1 + \frac{p}{n}\,\frac{\widehat{\mathrm{Var}}(\psi')}{\overline{\psi'}^{\,2}},$$
+   where $\psi'$ is evaluated at $r_i/s$, $\overline{\psi'}$ is its mean over the $n$ observations and
+   $\widehat{\mathrm{Var}}$ is the sample variance (divisor $n-1$). This is the finite-sample correction of Huber
+   (1981, section 7.6). Checked by the coordinator from public outputs only (no source): it equals MASS's `stddev`
+   to 7e-16 to 4e-15 in `stackloss_huber`, `stackloss_bisquare`, `stackloss_scale_Huber` and `stackloss_MM_seed1`
+   (with Huber's psi, $k = 1.345$, and the bisquare, $c = 4.685$). How it extends to prior weights (`weights_inv`,
+   `weights_case`) and to Hampel's psi is to be checked against the oracle the same way before it is implemented
+3. **Names:** `rlm`, `rlmSummary`, `rlmVcov`, and the psi functions `psiHuber`, `psiHampel`, `psiBisquare`
+   (Decisions 4 and 5)
+4. **Weights: R's form** (not Decision 6's recommendation): `weights` and `wtMethod` (`"inv"`, the default, or
+   `"case"`), as in R and consistent with `glm` and the other functions
+5. **Non-convergence:** coefficients and diagnostics with `converged = false` and a warning (Decision 7)
+6. **Rank deficiency:** an error, as R (Decision 8)
+7. **Exact fits:** a scale-aware floor for safe arithmetic only, an explicit exact-fit diagnostic, and no
+   presentation of meaningless standard errors as reliable inference (Decision 9)
+8. **MM with case weights:** an error (Decision 10)
+9. **Constants:** MASS's defaults: Huber $k = 1.345$, Hampel $(2, 4, 8)$, bisquare $c = 4.685$, MAD scale, Proposal 2
+   with $k_2 = 1.345$; the psi constant kept separate from the scale constant (Decision 11)
+10. **Result:** named coefficients, fitted values, residuals, robust scale, robust weights, convergence diagnostics;
+    the covariance from `rlmVcov` (Decision 12)
