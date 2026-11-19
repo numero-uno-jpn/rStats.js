@@ -122,7 +122,7 @@ function tightReferenceIsStationary(args: Record<string, unknown>, expected: Fit
   const model = designFit.model;
   const scale = num(expected.s);
   if (!(scale > 0) || !Number.isFinite(scale)) return false;
-  const rename = (name: string) => name.replace(/^factor\\(cyl\\)([0-9]+)$/, "cyl$1");
+  const rename = (name: string) => name.replace(/^factor\(cyl\)([0-9]+)$/, "cyl$1");
   const sourceNames = Object.keys(expected.coefficients);
   const beta = model.columnNames.map((name) => {
     const source = sourceNames.find((candidate) => rename(candidate) === name);
