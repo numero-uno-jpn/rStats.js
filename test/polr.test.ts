@@ -14,7 +14,6 @@ import {
 } from "../src/models/polr.js";
 import type { DataFrame } from "../src/models/modelFrame.js";
 import { design } from "../src/models/modelMatrix.js";
-import { optim } from "../src/optim/optim.js";
 import { chol, chol2inv } from "../src/linalg/chol.js";
 import { qnorm } from "../src/distributions/normal.js";
 
@@ -444,53 +443,46 @@ const confidenceCalls: ConfidenceCall[] = fixture.cases.flatMap((fixtureCase) =>
     .map((call, index) => ({ fixtureCase, call, index })),
 );
 
-/** Independent constrained refit: fix one slope, optimise every other slope and all cut-points. */
-function independentProfileNll(fit: PolrResult, fixedIndex: number, fixedValue: number): number {
+/** One independent constrained Newton refit at a returned endpoint. */
+function independentProfileAt(
+  fit: PolrResult, fixedIndex: number, fixedValue: number,
+): { nll: number; fixedScore: number } {
   const model = fit.model;
-  const fullStart = Array.from(model.theta);
-  fullStart[fixedIndex] = fixedValue;
-  const free = fullStart.map((_, i) => i).filter((i) => i !== fixedIndex);
-  const full = (point: number[]): number[] => {
-    const theta = Array.from(fullStart);
-    free.forEach((index, j) => { theta[index] = point[j]!; });
-    return theta;
-  };
+  const theta = Array.from(model.theta);
+  theta[fixedIndex] = fixedValue;
+  const free = theta.map((_, i) => i).filter((i) => i !== fixedIndex);
   const evaluate = (point: number[]) => {
+    const full = Array.from(theta);
+    free.forEach((index, j) => { full[index] = point[j]!; });
     const d = __polrDerivativesForTest(
-      model.x, model.y, model.weights, model.offset, model.responseLevels.length, model.method, full(point),
+      model.x, model.y, model.weights, model.offset, model.responseLevels.length, model.method, full,
     );
     return {
+      full,
       value: d.value,
+      fixedScore: d.gradient[fixedIndex]!,
       gradient: free.map((i) => d.gradient[i]!),
       hessian: free.map((i) => free.map((j) => d.hessian[i]![j]!)),
     };
   };
-  const start = free.map((i) => fullStart[i]!);
-  const first = optim(start, (point) => evaluate(point).value, {
-    method: "BFGS",
-    gr: (point) => evaluate(point).gradient,
-    control: { maxit: 2000, reltol: 1e-14 },
-  });
-  let point = first.par;
+  let point = free.map((i) => theta[i]!);
   let current = evaluate(point);
-  for (let iteration = 0; iteration < 30; iteration++) {
+  for (let iteration = 0; iteration < 40; iteration++) {
     const score = Math.max(0, ...current.gradient.map(Math.abs));
-    if (score <= 1e-10 * Math.max(1, fit.nobs)) break;
-    let inverse: number[][];
-    try {
-      inverse = chol2inv(chol(current.hessian));
-    } catch {
-      break;
-    }
+    if (score <= 2e-11 * Math.max(1, model.weights.reduce((sum, w) => sum + w, 0))) break;
+    const inverse = chol2inv(chol(current.hessian));
     const direction = inverse.map((row) => -row.reduce((sum, value, j) => sum + value * current.gradient[j]!, 0));
     const slope = direction.reduce((sum, value, j) => sum + value * current.gradient[j]!, 0);
     if (!(slope < 0)) break;
     let step = 1;
     let accepted = false;
-    for (let backtrack = 0; backtrack < 50; backtrack++, step *= 0.5) {
+    for (let backtrack = 0; backtrack < 40; backtrack++, step *= 0.5) {
       const candidate = point.map((value, j) => value + step * direction[j]!);
       const trial = evaluate(candidate);
-      if (Number.isFinite(trial.value) && trial.value <= current.value + 1e-4 * step * slope) {
+      const allowance = 16 * Number.EPSILON * Math.max(1, Math.abs(current.value), Math.abs(trial.value));
+      if (Number.isFinite(trial.value)
+        && (trial.value <= current.value + 1e-4 * step * slope
+          || (Math.max(0, ...trial.gradient.map(Math.abs)) < score && trial.value <= current.value + allowance))) {
         point = candidate;
         current = trial;
         accepted = true;
@@ -499,43 +491,16 @@ function independentProfileNll(fit: PolrResult, fixedIndex: number, fixedValue: 
     }
     if (!accepted) break;
   }
-  return current.value;
+  return { nll: current.value, fixedScore: current.fixedScore };
 }
 
-function independentProfileEndpoint(fit: PolrResult, parameterIndex: number, target: number): number {
+function expectProfileRoot(
+  fit: PolrResult, parameterIndex: number, endpoint: number, target: number, label: string,
+): void {
   const estimate = Object.values(fit.coefficients)[parameterIndex]!;
-  const covariance = polrVcov(fit).values;
-  const se = Math.sqrt(covariance[parameterIndex]![parameterIndex]!);
-  const centre = -fit.logLik;
-  const root = (value: number): number => {
-    const deviance = Math.max(0, 2 * (independentProfileNll(fit, parameterIndex, value) - centre));
-    return Math.sign(value - estimate) * Math.sqrt(deviance);
-  };
-  let inside = estimate;
-  let outside = estimate + Math.sign(target) * Math.max(se, 1e-6);
-  let value = root(outside);
-  for (let i = 0; i < 60 && !(Number.isFinite(value) && (target < 0 ? value <= target : value >= target)); i++) {
-    outside = estimate + 2 * (outside - estimate);
-    value = root(outside);
-  }
-  if (!Number.isFinite(value) || (target < 0 ? value > target : value < target)) return NaN;
-  let low = Math.min(inside, outside);
-  let high = Math.max(inside, outside);
-  for (let i = 0; i < 100; i++) {
-    const mid = low + (high - low) / 2;
-    if (mid === low || mid === high) return mid;
-    const r = root(mid);
-    if (!Number.isFinite(r)) return NaN;
-    if (target < 0 ? r > target : r < target) {
-      if (target < 0) high = mid;
-      else low = mid;
-    } else {
-      if (target < 0) low = mid;
-      else high = mid;
-    }
-    if (high - low <= 2e-12 * Math.max(1, Math.abs(mid))) return low + (high - low) / 2;
-  }
-  return low + (high - low) / 2;
+  const point = independentProfileAt(fit, parameterIndex, endpoint);
+  const signedRoot = Math.sign(endpoint - estimate) * Math.sqrt(Math.max(0, 2 * (point.nll + fit.logLik)));
+  closeAbsolute(signedRoot, target, 1e-8, label);
 }
 
 describe("polrConfint: all profile and Wald fixtures", () => {
@@ -565,10 +530,8 @@ describe("polrConfint: all profile and Wald fixtures", () => {
             closeAbsolute(actual.values[i]![0]!, estimate - z * se, 1e-12, `choices 12 cauchit independent Wald lower ${actual.rows[i]}`);
             closeAbsolute(actual.values[i]![1]!, estimate + z * se, 1e-12, `choices 12 cauchit independent Wald upper ${actual.rows[i]}`);
           } else {
-            const lower = independentProfileEndpoint(fit, parameterIndex, -z);
-            const upper = independentProfileEndpoint(fit, parameterIndex, z);
-            closeAbsolute(actual.values[i]![0]!, lower, 2e-9, `choices 12 cauchit independent lower ${actual.rows[i]}`);
-            closeAbsolute(actual.values[i]![1]!, upper, 2e-9, `choices 12 cauchit independent upper ${actual.rows[i]}`);
+            expectProfileRoot(fit, parameterIndex, actual.values[i]![0]!, -z, `choices 12 cauchit lower root ${actual.rows[i]}`);
+            expectProfileRoot(fit, parameterIndex, actual.values[i]![1]!, z, `choices 12 cauchit upper root ${actual.rows[i]}`);
           }
         }
         return;
@@ -584,16 +547,35 @@ describe("polrConfint: all profile and Wald fixtures", () => {
           const actualValue = actual.values[i]![j]!;
           if (method === "profile") {
             const parameterIndex = Object.keys(fit.coefficients).indexOf(actual.rows[i]!);
-            const independent = independentProfileEndpoint(fit, parameterIndex, j === 0 ? -z : z);
-            // The independent constrained refit and bisection define the target to near machine precision.
-            closeAbsolute(actualValue, independent, 2e-9, `${fixtureCase.id} independent profile root ${actual.rows[i]} [${j}]`);
+            // A single independent constrained refit at the returned endpoint must reproduce the signed-root target.
+            expectProfileRoot(fit, parameterIndex, actualValue, j === 0 ? -z : z,
+              `${fixtureCase.id} independent profile root ${actual.rows[i]} [${j}]`);
             // MASS's profile search stops/interpolates on its own finite profile trace; this 1e-3 allowance
             // covers that endpoint-location resolution and the small displacement of its default fit.
             closeAbsolute(actualValue, target, 1e-3, `${fixtureCase.id} R profile endpoint ${actual.rows[i]} [${j}]`);
           } else {
-            // The largest observed SE difference is 1.2e-5; multiplying by z <= 2.576 gives
-            // at most 3.1e-5 endpoint displacement. Keep a 4e-5 absolute bound for that numerical-Hessian effect.
-            closeAbsolute(actualValue, target, 4e-5, `${fixtureCase.id} R Wald endpoint ${actual.rows[i]} [${j}]`);
+            const rowName = actual.rows[i]!;
+            const tightRow = tight.summary.rows.indexOf(rowName);
+            const valueColumn = tight.summary.cols.indexOf("Value");
+            const seColumn = tight.summary.cols.indexOf("Std. Error");
+            const tightEstimate = numeric(tight.summary.values[tightRow]![valueColumn]);
+            const tightSe = numeric(tight.summary.values[tightRow]![seColumn]);
+            const tightEndpoint = tightEstimate + (j === 0 ? -1 : 1) * z * tightSe;
+            // The largest observed difference between analytic and R's numerical-Hessian SEs is 1.2e-5.
+            // Scale that bound by this interval's z; the tight-fit coefficient itself is compared at 1e-8.
+            const seTolerance = z * 1.2e-5 + 1e-8;
+            closeAbsolute(actualValue, tightEndpoint, seTolerance,
+              `${fixtureCase.id} fitTight Wald endpoint ${rowName} [${j}]`);
+
+            const defaultRow = expected.summary.rows.indexOf(rowName);
+            const defaultEstimate = numeric(expected.summary.values[defaultRow]![valueColumn]);
+            const defaultSe = numeric(expected.summary.values[defaultRow]![seColumn]);
+            const defaultEndpoint = defaultEstimate + (j === 0 ? -1 : 1) * z * defaultSe;
+            // R's default stopping error is case-specific: allow exactly the endpoint displacement
+            // between its default fit and fitTight, plus the numerical-Hessian SE allowance above.
+            const defaultFitAllowance = Math.abs(defaultEndpoint - tightEndpoint) + seTolerance;
+            closeAbsolute(actualValue, defaultEndpoint, defaultFitAllowance,
+              `${fixtureCase.id} R default Wald endpoint ${rowName} [${j}]`);
           }
         }
       }
