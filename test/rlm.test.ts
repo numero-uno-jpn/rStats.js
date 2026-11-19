@@ -83,6 +83,10 @@ function fitFrom(raw: Record<string, unknown>) {
   return rlm(formula, numericData(columns), optionsFrom(raw));
 }
 
+function vector(value: number | boolean | (number | boolean)[]): number[] {
+  return (Array.isArray(value) ? value : [value]).map(Number);
+}
+
 function numericMatrix(actual: number[][], expected: (string | number)[][], label: string, tolerance: number): void {
   expect(actual.length, label + " rows").toBe(expected.length);
   for (let i = 0; i < expected.length; i++) {
@@ -105,12 +109,12 @@ describe("robust regression psi functions", () => {
       expect(actual.length, label + " length").toBe(expected.length);
       actual.forEach((v, i) => expect(Math.abs(v - expected[i]!), `${label}[${i}]`).toBeLessThanOrEqual(3e-15));
     };
-    compare(psiHuber(u) as number[], h.w, "Huber weights");
-    compare(Array.from(psiHuber(u, { deriv: 1 }) as boolean[], Number), h.d.map(Number), "Huber derivative");
-    compare(psiHampel(u), a.w, "Hampel weights");
-    compare(psiHampel(u, { deriv: 1 }), a.d, "Hampel derivative");
-    compare(psiBisquare(u), b.w, "bisquare weights");
-    compare(psiBisquare(u, { deriv: 1 }), b.d, "bisquare derivative");
+    compare(vector(psiHuber(u)), h.w, "Huber weights");
+    compare(vector(psiHuber(u, { deriv: 1 })), h.d.map(Number), "Huber derivative");
+    compare(vector(psiHampel(u)), a.w, "Hampel weights");
+    compare(vector(psiHampel(u, { deriv: 1 })), a.d, "Hampel derivative");
+    compare(vector(psiBisquare(u)), b.w, "bisquare weights");
+    compare(vector(psiBisquare(u, { deriv: 1 })), b.d, "bisquare derivative");
   });
 });
 
