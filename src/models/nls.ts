@@ -15,9 +15,9 @@ import {
   type NlsExpr,
 } from "./nlsFormula.js";
 
-export type NlsAlgorithm = "default" | "plinear" | "port";
+/** Algorithm used to fit a nonlinear least-squares model.\n *\n * @category Regression\n */\nexport type NlsAlgorithm = "default" | "plinear" | "port";
 
-export interface NlsControl {
+/** Convergence controls for nonlinear least squares.\n *\n * @category Regression\n */\nexport interface NlsControl {
   maxiter?: number;
   tol?: number;
   minFactor?: number;
@@ -25,7 +25,7 @@ export interface NlsControl {
   scaleOffset?: number;
 }
 
-export interface NlsOptions {
+/** Options for {@link nls}.\n *\n * @category Regression\n */\nexport interface NlsOptions {
   start?: Record<string, number>;
   algorithm?: NlsAlgorithm;
   weights?: Sample | string;
@@ -34,7 +34,7 @@ export interface NlsOptions {
   control?: NlsControl;
 }
 
-export interface NlsModel {
+/** Internal and public fitted-model quantities.\n *\n * @category Regression\n */\nexport interface NlsModel {
   formula: string;
   response: string;
   parameterNames: string[];
@@ -59,9 +59,9 @@ export interface NlsModel {
   exactFit: boolean;
 }
 
-export interface NlsResult extends NlsModel {}
+/** Result returned by {@link nls}.\n *\n * @category Regression\n */\nexport interface NlsResult extends NlsModel {}
 
-export interface NlsSummaryResult {
+/** Result returned by {@link nlsSummary}.\n *\n * @category Regression\n */\nexport interface NlsSummaryResult {
   coefficients: { rows: string[]; cols: string[]; values: number[][] };
   sigma: number;
   df: [number, number];
@@ -70,24 +70,24 @@ export interface NlsSummaryResult {
   warnings: string[];
 }
 
-export interface NlsPredictOptions {
+/** Options for {@link nlsPredict}.\n *\n * @category Regression\n */\nexport interface NlsPredictOptions {
   newdata: DataFrame;
 }
 
-export interface NlsConfintOptions {
+/** Options for {@link nlsConfint}.\n *\n * @category Regression\n */\nexport interface NlsConfintOptions {
   method?: "profile" | "wald";
   level?: number;
   parm?: readonly string[];
 }
 
-export interface NlsConfintResult {
+/** Result returned by {@link nlsConfint}.\n *\n * @category Regression\n */\nexport interface NlsConfintResult {
   rows: string[];
   cols: [string, string];
   values: [number, number][];
   warnings: string[];
 }
 
-export interface NlsAnovaResult {
+/** Result returned by {@link nlsAnova}.\n *\n * @category Regression\n */\nexport interface NlsAnovaResult {
   table: {
     Model: string[];
     "Res.Df": number[];
@@ -277,9 +277,11 @@ function fitCore(
     let delta: number[];
     try { delta = solve(matrix, rhs); }
     catch (error) { throw new Error("singular gradient: " + (error instanceof Error ? error.message : String(error))); }
-    const gradientNorm = Math.max(0, ...rhs.map(Math.abs));
+    const scaledGradientNorm = Math.max(0, ...rhs.map((value, i) =>
+      Math.abs(value) / (Math.sqrt(Math.max(matrix[i]![i]!, Number.MIN_VALUE))
+        * (Math.sqrt(current.objective) + control.scaleOffset + Number.EPSILON))));
     const stepNorm = Math.max(0, ...delta.map((v, i) => Math.abs(v) / (1 + Math.abs(values[i]!))));
-    if (gradientNorm <= control.tol * (1 + Math.sqrt(current.objective) + control.scaleOffset)
+    if (scaledGradientNorm <= Math.sqrt(control.tol) * 2
       && stepNorm <= Math.sqrt(control.tol) * 4) {
       converged = true; break;
     }
@@ -291,15 +293,14 @@ function fitCore(
         const trial = algorithm === "plinear"
           ? evaluateProfiled(expr, rows, y, weights, names, candidate)
           : evaluate(expr, rows, y, weights, names, candidate, algorithm);
-        if (trial.objective < current.objective
-          || (gradientNorm <= control.tol * (1 + Math.sqrt(current.objective) + control.scaleOffset))) {
+        if (trial.objective < current.objective) {
           values = candidate; current = trial; accepted = true; break;
         }
       } catch { /* A trial outside the function domain is rejected and the step is reduced. */ }
       alpha /= 2;
     }
     if (!accepted) {
-      if (gradientNorm <= control.tol * (1 + Math.sqrt(current.objective) + control.scaleOffset)) {
+      if (stepNorm <= Math.sqrt(control.tol) * 4) {
         converged = true; break;
       }
       break;
@@ -404,8 +405,8 @@ export function nls(formula: string, data: DataFrame, options: NlsOptions = {}):
   }
   const ctl = options.control ?? {};
   const control: Required<NlsControl> = {
-    maxiter: ctl.maxiter ?? 50,
-    tol: ctl.tol ?? 1e-10,
+    maxiter: ctl.maxiter ?? 100,
+    tol: ctl.tol ?? 1e-12,
     minFactor: ctl.minFactor ?? 1 / 1024,
     warnOnly: ctl.warnOnly ?? false,
     scaleOffset: ctl.scaleOffset ?? 0,
