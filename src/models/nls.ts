@@ -445,8 +445,9 @@ function fitCore(
         * (Math.sqrt(current.objective) + control.scaleOffset + Number.EPSILON))));
     const stepNorm = Math.max(0, ...projectedDelta.map((v, i) => Math.abs(v) / (1 + Math.abs(values[i]!))));
     const stepTolerance = Math.max(1e-12, Math.sqrt(control.tol) * 0.001);
-    if (scaledGradientNorm <= Math.max(control.tol * 100, 1e-13)
-      && stepNorm <= stepTolerance) {
+    const gradientTolerance = Math.max(control.tol * 100, 1e-13);
+    if (scaledGradientNorm <= gradientTolerance
+      && (algorithm === "port" || stepNorm <= stepTolerance)) {
       converged = true; break;
     }
     let alpha = 1, accepted = false;
