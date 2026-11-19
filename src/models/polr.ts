@@ -806,16 +806,37 @@ function profileConstrainedFit(
   let point = freeIndices.map((i) => theta[i]!);
   let current = evaluate(point);
   const scoreTolerance = 2e-11 * Math.max(1, model.weights.reduce((sum, w) => sum + w, 0));
+  let usedBfgs = false;
+  const bfgsFallback = (): boolean => {
+    try {
+      const result = optim(point, (candidate) => evaluate(candidate).value, {
+        method: "BFGS",
+        gr: (candidate) => evaluate(candidate).gradient,
+        control: { maxit: 1000, reltol: 1e-14 },
+      });
+      if (!result.par.every(Number.isFinite)) return false;
+      point = result.par;
+      current = evaluate(point);
+      usedBfgs = true;
+      return Number.isFinite(current.value);
+    } catch {
+      return false;
+    }
+  };
   for (let iteration = 0; iteration < 40 && maxAbs(current.gradient) > scoreTolerance; iteration++) {
     let inverse: number[][];
     try {
       inverse = chol2inv(chol(current.hessian));
     } catch {
+      if (!usedBfgs && bfgsFallback()) continue;
       break;
     }
     const direction = inverse.map((row) => -row.reduce((sum, value, j) => sum + value * current.gradient[j]!, 0));
     const slope = direction.reduce((sum, value, j) => sum + value * current.gradient[j]!, 0);
-    if (!(slope < 0) || !Number.isFinite(slope)) break;
+    if (!(slope < 0) || !Number.isFinite(slope)) {
+      if (!usedBfgs && bfgsFallback()) continue;
+      break;
+    }
     let step = 1;
     let accepted = false;
     for (let backtrack = 0; backtrack < 40; backtrack++, step *= 0.5) {
@@ -831,7 +852,10 @@ function profileConstrainedFit(
         break;
       }
     }
-    if (!accepted) break;
+    if (!accepted) {
+      if (!usedBfgs && bfgsFallback()) continue;
+      break;
+    }
   }
   const full = Array.from(theta);
   for (let i = 0; i < freeIndices.length; i++) full[freeIndices[i]!] = point[i]!;
