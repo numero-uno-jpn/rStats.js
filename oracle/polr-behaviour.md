@@ -250,6 +250,11 @@ No additional experiments are required before writing the first oracle script. T
 10. **Warnings and rank deficiency.** Recommendation: retain distinct warnings in first-occurrence order. Drop aliased columns only if the retained design remains identifiable, and report which terms were dropped. Fail explicitly for complete separation or a non-finite/indefinite information matrix; do not return plausible-looking standard errors from an invalid Hessian.
 11. **Names.** Recommendation: use R-compatible model-matrix column names for slopes and boundary labels such as `Low|Medium` for cut-points. Keep thresholds in a separate `zeta` object to avoid collisions with predictor names.
 
+## Stage 3 implementation notes
+
+- Predictor columns are scaled internally by their maximum absolute value for optimization. Starting coefficients are transformed into scaled coordinates; fitted coefficients and covariance are transformed back to the original predictor units. The returned model, prediction path, and profile starting point remain in original units.
+- The natural cut-point gradient and Hessian are mapped to the first cut-point/log-gap parameterization with suffix sums. This avoids the previous dense four-loop Hessian transformation while preserving the same analytic derivatives.
+
 ## rStats.js's choices
 
 Decided by the user on 2026-11-19 (all eleven recommendations above, and one more point from the further experiments
