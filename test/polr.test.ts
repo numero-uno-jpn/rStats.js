@@ -15,6 +15,7 @@ import {
 import type { DataFrame } from "../src/models/modelFrame.js";
 import { design } from "../src/models/modelMatrix.js";
 import { chol, chol2inv } from "../src/linalg/chol.js";
+import { optim } from "../src/optim/optim.js";
 import { qnorm } from "../src/distributions/normal.js";
 
 type Raw = Record<string, unknown>;
@@ -470,10 +471,31 @@ function independentProfileAt(
   for (let iteration = 0; iteration < 40; iteration++) {
     const score = Math.max(0, ...current.gradient.map(Math.abs));
     if (score <= 2e-11 * Math.max(1, model.weights.reduce((sum, w) => sum + w, 0))) break;
-    const inverse = chol2inv(chol(current.hessian));
+    let inverse: number[][];
+    try {
+      inverse = chol2inv(chol(current.hessian));
+    } catch {
+      const result = optim(point, (candidate) => evaluate(candidate).value, {
+        method: "BFGS",
+        gr: (candidate) => evaluate(candidate).gradient,
+        control: { maxit: 1000, reltol: 1e-14 },
+      });
+      point = result.par;
+      current = evaluate(point);
+      break;
+    }
     const direction = inverse.map((row) => -row.reduce((sum, value, j) => sum + value * current.gradient[j]!, 0));
     const slope = direction.reduce((sum, value, j) => sum + value * current.gradient[j]!, 0);
-    if (!(slope < 0)) break;
+    if (!(slope < 0)) {
+      const result = optim(point, (candidate) => evaluate(candidate).value, {
+        method: "BFGS",
+        gr: (candidate) => evaluate(candidate).gradient,
+        control: { maxit: 1000, reltol: 1e-14 },
+      });
+      point = result.par;
+      current = evaluate(point);
+      break;
+    }
     let step = 1;
     let accepted = false;
     for (let backtrack = 0; backtrack < 40; backtrack++, step *= 0.5) {
