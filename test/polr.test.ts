@@ -553,14 +553,23 @@ describe("polrConfint: all profile and Wald fixtures", () => {
       });
       if (fixtureCase.id === "mtcars-cauchit") {
         // choices 12: MASS's cauchit fit is not the standard Cauchy cumulative-link model.
-        // Its profile and Wald values are deliberately not used as references.
-        if (method === "wald") return;
+        // Neither profile nor Wald values from MASS are references for this model.
         const z = qnorm(1 - (1 - level) / 2) as number;
+        const names = Object.keys(fit.coefficients);
+        const covariance = polrVcov(fit).values;
         for (let i = 0; i < actual.rows.length; i++) {
-          const lower = independentProfileEndpoint(fit, Object.keys(fit.coefficients).indexOf(actual.rows[i]!), -z);
-          const upper = independentProfileEndpoint(fit, Object.keys(fit.coefficients).indexOf(actual.rows[i]!), z);
-          closeAbsolute(actual.values[i]![0]!, lower, 2e-9, `choices 12 cauchit independent lower ${actual.rows[i]}`);
-          closeAbsolute(actual.values[i]![1]!, upper, 2e-9, `choices 12 cauchit independent upper ${actual.rows[i]}`);
+          const parameterIndex = names.indexOf(actual.rows[i]!);
+          if (method === "wald") {
+            const estimate = Object.values(fit.coefficients)[parameterIndex]!;
+            const se = Math.sqrt(covariance[parameterIndex]![parameterIndex]!);
+            closeAbsolute(actual.values[i]![0]!, estimate - z * se, 1e-12, `choices 12 cauchit independent Wald lower ${actual.rows[i]}`);
+            closeAbsolute(actual.values[i]![1]!, estimate + z * se, 1e-12, `choices 12 cauchit independent Wald upper ${actual.rows[i]}`);
+          } else {
+            const lower = independentProfileEndpoint(fit, parameterIndex, -z);
+            const upper = independentProfileEndpoint(fit, parameterIndex, z);
+            closeAbsolute(actual.values[i]![0]!, lower, 2e-9, `choices 12 cauchit independent lower ${actual.rows[i]}`);
+            closeAbsolute(actual.values[i]![1]!, upper, 2e-9, `choices 12 cauchit independent upper ${actual.rows[i]}`);
+          }
         }
         return;
       }
