@@ -12,6 +12,7 @@ import {
   type PolrResult,
 } from "../src/models/polr.js";
 import type { DataFrame } from "../src/models/modelFrame.js";
+import { design } from "../src/models/modelMatrix.js";
 
 type Raw = Record<string, unknown>;
 type PublicFit = {
@@ -228,6 +229,37 @@ describe("polr: standard cauchit reference", () => {
 });
 
 
+/**
+ * Bound the probability displacement caused by the measured difference between the actual, R-default and tight
+ * coefficient vectors. Every supported link density is at most 0.4; a category probability is a difference of at
+ * most two CDF values, so the bound is 0.8 times the sum of the absolute changes in both cut and linear predictor.
+ */
+function predictionStoppingTolerance(
+  fit: PolrResult, expected: PublicFit, tight: PublicFit, data: DataFrame, row: number,
+): number {
+  const designOptions: Parameters<typeof design>[2] = {
+    levels: fit.model.factorLevels,
+    contrasts: fit.model.contrasts,
+  };
+  if (fit.model.offsetColumn !== undefined) designOptions.extraVariables = [fit.model.offsetColumn];
+  const d = design({ response: undefined, rhs: fit.model.rhs }, data, designOptions);
+  const used = d.frame.rows.indexOf(row);
+  if (used < 0) return 1e-12;
+  const first = d.terms.intercept ? 1 : 0;
+  const x = d.x[used]!.slice(first);
+  const betaDisplacement = fit.model.columnNames.map((name) =>
+    Math.abs(fit.coefficients[name]! - numeric(tight.coefficients[name]))
+    + Math.abs(numeric(expected.coefficients[name]) - numeric(tight.coefficients[name])),
+  );
+  const etaDisplacement = x.reduce((sum, value, j) => sum + Math.abs(value) * betaDisplacement[j]!, 0);
+  const cutDisplacement = Object.keys(tight.zeta).reduce((largest, name) => Math.max(
+    largest,
+    Math.abs(fit.zeta[name]! - numeric(tight.zeta[name]))
+      + Math.abs(numeric(expected.zeta[name]) - numeric(tight.zeta[name])),
+  ), 0);
+  return 0.8 * (etaDisplacement + cutDisplacement) + 1e-12;
+}
+
 function prepareNewData(raw: RawNewData): { data: DataFrame; rowNames: string[] } {
   const data: DataFrame = {};
   for (const [name, column] of Object.entries(raw.columns)) {
@@ -258,7 +290,7 @@ describe("polrPredict: all prediction fixtures", () => {
   for (const { fixtureCase, call, index } of predictionCalls) {
     it(`${fixtureCase.id} predict #${index + 1} (${call.args?.type ?? "class"})`, () => {
       if (call.args?.newdata === undefined) throw new Error("fixture prediction has no newdata");
-      const { fit } = fitCase(fixtureCase.id);
+      const { fit, expected, tight } = fitCase(fixtureCase.id);
       const { data, rowNames } = prepareNewData(call.args.newdata);
       const actual = polrPredict(fit, {
         newdata: data,
@@ -279,7 +311,7 @@ describe("polrPredict: all prediction fixtures", () => {
             const target = numeric(expected.values[i]![j]);
             const actualValue = actualRow[j];
             if (actualValue === null || actualValue === undefined) throw new Error(`unexpected missing probability [${i},${j}]`);
-            closeAbsolute(actualValue, target, 1e-12 * Math.max(1, Math.abs(target)),
+            closeAbsolute(actualValue, target, predictionStoppingTolerance(fit, expected, tight, data, i),
               `${fixtureCase.id} predict probs [${i},${j}]`);
           }
         }
