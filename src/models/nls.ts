@@ -506,7 +506,8 @@ export function nls(formula: string, data: DataFrame, options: NlsOptions = {}):
   if (algorithm === "plinear") coefficients[".lin"] = fitted.linear!;
   const dfResidual = rows.length - coefficientNames.length;
   const sigma = Math.sqrt(fitted.objective / dfResidual);
-  const exactFit = fitted.objective === 0;
+  const responseNorm = Math.sqrt(weights.reduce((sum, weight, i) => sum + weight * y[i]! * y[i]!, 0));
+  const exactFit = Math.sqrt(fitted.objective) <= 64 * Number.EPSILON * Math.max(1, responseNorm);
   let fullJacobian = fitted.jacobian;
   if (algorithm === "plinear") {
     const parameters = Object.fromEntries(parameterNames.map((name, i) => [name, fitted.values[i]!]));
@@ -703,11 +704,15 @@ function profileEndpoint(fit: NlsResult, index: number, direction: -1 | 1, targe
   if (!outside) return Number.NaN;
   let innerT = 0, outerT = direction * (outside.value - estimate);
   let current = outside;
+  let rootValue = Number.NaN;
   for (let iteration = 0; iteration < 100; iteration++) {
     const f = current.objective - target;
     const t = direction * (current.value - estimate);
-    if (Math.abs(f) <= 2e-11 * Math.max(1, target)
-      || Math.abs(outerT - innerT) <= 2e-10 * Math.max(1, Math.abs(estimate))) break;
+    if (Math.abs(f) <= 2e-11 * Math.max(1, target)) { rootValue = current.value; break; }
+    if (Math.abs(outerT - innerT) <= 2e-10 * Math.max(1, Math.abs(estimate))) {
+      rootValue = estimate + direction * ((innerT + outerT) / 2);
+      break;
+    }
     const derivative = current.residuals.reduce((sum, residual, i) =>
       sum - 2 * fit.weights[i]! * residual * current.jacobian[i]![0]!, 0) * direction;
     let nextT = t - f / derivative;
@@ -723,7 +728,7 @@ function profileEndpoint(fit: NlsResult, index: number, direction: -1 | 1, targe
       current = evaluateAt(estimate + direction * ((innerT + outerT) / 2), current.nuisance);
     }
   }
-  const endpoint = estimate + direction * ((innerT + outerT) / 2);
+  const endpoint = Number.isFinite(rootValue) ? rootValue : estimate + direction * ((innerT + outerT) / 2);
   // Independently verify the endpoint from the original fitted nuisance values.
   const checked = evaluateAt(endpoint, nuisanceNames.map(name => fit.coefficients[name]!));
   if (Math.abs(checked.objective - target) > 2e-7 * Math.max(1, target)) return Number.NaN;
