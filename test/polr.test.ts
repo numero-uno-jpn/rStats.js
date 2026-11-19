@@ -510,7 +510,7 @@ describe("polrConfint: all profile and Wald fixtures", () => {
       const level = call.args?.level === undefined ? 0.95 : numeric(call.args.level);
       const method = call.operation === "wald-ci" ? "wald" : "profile";
       const parm = call.args?.parm;
-      const { fit } = fitCase(fixtureCase.id);
+      const { fit, expected: defaultFit, tight } = fitCase(fixtureCase.id);
       const actual = polrConfint(fit, {
         method,
         level,
@@ -568,8 +568,8 @@ describe("polrConfint: all profile and Wald fixtures", () => {
               `${fixtureCase.id} fitTight Wald endpoint ${rowName} [${j}]`);
 
             const defaultRow = expected.summary.rows.indexOf(rowName);
-            const defaultEstimate = numeric(expected.summary.values[defaultRow]![valueColumn]);
-            const defaultSe = numeric(expected.summary.values[defaultRow]![seColumn]);
+            const defaultEstimate = numeric(defaultFit.summary.values[defaultRow]![valueColumn]);
+            const defaultSe = numeric(defaultFit.summary.values[defaultRow]![seColumn]);
             const defaultEndpoint = defaultEstimate + (j === 0 ? -1 : 1) * z * defaultSe;
             // R's default stopping error is case-specific: allow exactly the endpoint displacement
             // between its default fit and fitTight, plus the numerical-Hessian SE allowance above.
