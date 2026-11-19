@@ -515,13 +515,21 @@ function fitCore(
 
 function covarianceFromJacobian(J: number[][], weights: number[], sigma2: number): number[][] {
   const p = J[0]?.length ?? 0;
-  const matrix = Array.from({ length: p }, () => Array(p).fill(0) as number[]);
+  const columnNorms = Array.from({ length: p }, (_, a) =>
+    Math.sqrt(J.reduce((sum, row, i) => sum + weights[i]! * row[a]! * row[a]!, 0)));
+  if (columnNorms.some(scale => !(scale > 0) || !Number.isFinite(scale))) {
+    throw new Error("singular gradient matrix; parameters are not locally identifiable");
+  }
+  const correlation = Array.from({ length: p }, () => Array(p).fill(0) as number[]);
   for (let i = 0; i < J.length; i++) {
     for (let a = 0; a < p; a++) for (let b = 0; b < p; b++) {
-      matrix[a]![b] = matrix[a]![b]! + weights[i]! * J[i]![a]! * J[i]![b]!;
+      correlation[a]![b] = correlation[a]![b]! + weights[i]! *
+        (J[i]![a]! / columnNorms[a]!) * (J[i]![b]! / columnNorms[b]!);
     }
   }
-  return inverse(matrix).map(row => row.map(v => v * sigma2));
+  const inverseCorrelation = inverse(correlation);
+  return inverseCorrelation.map((row, a) => row.map((value, b) =>
+    value * sigma2 / columnNorms[a]! / columnNorms[b]!));
 }
 
 function corrFromCovariance(cov: number[][]): number[][] {
