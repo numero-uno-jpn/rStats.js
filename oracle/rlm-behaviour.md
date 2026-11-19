@@ -430,8 +430,16 @@ Decided by the user on 2026-11-19.
 6. **Rank deficiency:** an error, as R (Decision 8)
 7. **Exact fits:** a scale-aware floor for safe arithmetic only, an explicit exact-fit diagnostic, and no
    presentation of meaningless standard errors as reliable inference (Decision 9)
-8. **MM with case weights:** an error (Decision 10)
+8. **MM with case weights:** an error (Decision 10). A known difference from R: contrary to the premise of Decision
+   10, MASS 7.3-66 fits this combination without a warning and the weights change the fit (`error-mm-case-weights`
+   of `oracle/rlm.R`: scale 1.912 against 1.983 without weights). rStats.js still refuses it (decided 2026-11-19),
+   since its deterministic S-estimator does not match R's MM anyway and a weighted S-estimator is not defined here
 9. **Constants:** MASS's defaults: Huber $k = 1.345$, Hampel $(2, 4, 8)$, bisquare $c = 4.685$, MAD scale, Proposal 2
    with $k_2 = 1.345$; the psi constant kept separate from the scale constant (Decision 11)
 10. **Result:** named coefficients, fitted values, residuals, robust scale, robust weights, convergence diagnostics;
     the covariance from `rlmVcov` (Decision 12)
+11. **`init = "lts"`: a deterministic least-trimmed-squares start** (decided 2026-11-19), by the same kind of search as
+    the S-estimator of item 1, without random numbers. A known difference from R, whose LTS start uses a random subset
+    search. For Huber's psi the start does not change the solution; for the redescending Hampel and bisquare psi it
+    can. Fits started from LTS are therefore checked by the LTS objective (not larger than that of R's LTS starts for
+    the same data) and by the estimating equations of the M step, not against MASS's coefficients
