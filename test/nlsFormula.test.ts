@@ -48,7 +48,7 @@ describe("nonlinear formula parser and symbolic derivatives", () => {
   it("parses arithmetic precedence, unary operators, and supported functions", () => {
     const parsed = parseNlsFormula("y ~ -a * x^2 + exp(b) / sqrt(x)");
     const result = evaluateNlsWithGradient(parsed.expression, { x: 2 }, { a: 3, b: 0 }, ["a", "b"]);
-    expect(result.value).toBeCloseTo(-10 + 1 / Math.sqrt(2), 14);
+    expect(result.value).toBeCloseTo(-12 + 1 / Math.sqrt(2), 14);
     expect(result.gradient[0]).toBeCloseTo(-4, 14);
     expect(result.gradient[1]).toBeCloseTo(1 / Math.sqrt(2), 14);
   });
