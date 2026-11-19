@@ -550,7 +550,9 @@ export function nls(formula: string, data: DataFrame, options: NlsOptions = {}):
   const dataNames = new Set(Object.keys(data));
   const startNames = options.start ? Object.keys(options.start) : [];
   const inferredNames = variables.filter(name => name !== "pi" && !dataNames.has(name));
-  const parameterNames = options.start ? startNames : inferredNames;
+  const parameterNames = options.start
+    ? startNames.filter(name => !(name === "pi" && dataNames.has("pi")))
+    : inferredNames;
   if (parameterNames.length === 0) throw new Error("no free parameters were found in the formula");
   if (!options.start && !/\bSS(?:asymp|asympOff|asympOrig|biexp|fol|fpl|gompertz|logis|micmen|weibull)\s*\(/.test(formula)) {
     throw new Error("start must be supplied for a formula without a self-starting model");
