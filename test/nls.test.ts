@@ -264,7 +264,7 @@ describe("nonlinear expression derivatives and constants", () => {
   it("differentiates constant powers with negative bases without evaluating log(base)", () => {
     const expression = parseNlsFormula("y ~ a + b*x^2 + c*x").expression;
     const result = evaluateNlsWithGradient(expression, { x: -2 }, { a: 1, b: 2, c: 3 }, ["a", "b", "c"]);
-    expect(result.value).toBe(15);
+    expect(result.value).toBe(3);
     expect(result.gradient).toEqual([1, 4, -2]);
   });
 
