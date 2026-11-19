@@ -523,3 +523,30 @@ describe("rlm errors and numerical boundaries", () => {
     expect(fit.covariance.flat().every((value) => value === 0)).toBe(true);
   });
 });
+
+
+describe("MM scale equivariance", () => {
+  it("scales coefficients, S scale and standard errors with the response", () => {
+    const x = Array.from({ length: 15 }, (_, i) => i + 1);
+    const noise = [0.02, -0.03, 0.01, 0.04, -0.02, 0.03, -0.01, 0.02, -0.04, 0.01, -0.02, 0.03, -0.01, 0.02, -0.03];
+    const y = x.map((value, i) => 2 + 0.75 * value + noise[i]! + (i === 3 ? 1.5 : i === 10 ? -1.2 : 0));
+    const fit = rlm("y ~ x", { x, y }, { method: "MM" });
+    const relative = (actual: number, expected: number) =>
+      Math.abs(actual - expected) / Math.max(Math.abs(expected), Number.MIN_VALUE);
+    expect(fit.scale).toBeGreaterThan(0);
+    for (const factor of [1e-8, 1e-50, 1e-100]) {
+      const scaled = rlm("y ~ x", { x, y: y.map(value => value * factor) }, { method: "MM" });
+      for (const name of Object.keys(fit.coefficients)) {
+        expect(relative(scaled.coefficients[name]!, fit.coefficients[name]! * factor), name + " at " + factor)
+          .toBeLessThanOrEqual(1e-12);
+      }
+      expect(relative(scaled.scale, fit.scale * factor), "scale at " + factor).toBeLessThanOrEqual(1e-12);
+      expect(relative(scaled.stddev, fit.stddev * factor), "stddev at " + factor).toBeLessThanOrEqual(1e-12);
+      for (let j = 0; j < fit.covariance.length; j++) {
+        const baseSe = Math.sqrt(fit.covariance[j]![j]!);
+        const scaledSe = Math.sqrt(scaled.covariance[j]![j]!);
+        expect(relative(scaledSe, baseSe * factor), "SE " + j + " at " + factor).toBeLessThanOrEqual(1e-12);
+      }
+    }
+  });
+});
