@@ -486,7 +486,7 @@ Decided by the user on 2026-11-19.
    Generate elemental subsets of p rows in lexicographic combinatorial order. If choose(n,p) is within the
    search budget, evaluate every subset. Otherwise evaluate a fixed, evenly spaced set of combinatorial ranks,
    including the first and last ranks. The candidate budget is
-   min(1024, max(1, floor(250000 / n))); score all evaluated candidates, refine the best 16 by repeatedly
+   min(1024, max(1, floor(250000 / (n p)))); score all evaluated candidates, refine the best 16 by repeatedly
    refitting weighted least squares with Tukey weights (1 - (r_i / (cS s))^2)^2 inside the cutoff,
    and stop a refinement after 50 steps or
    when the coefficients stop changing. The same input always gives the same candidates and fit.
