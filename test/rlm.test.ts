@@ -184,7 +184,6 @@ describe("robust M regression against the R fixture", () => {
         .toBeLessThanOrEqual(stddevAllowance);
 
       const tightArgs = c.fits.main.fitTight?.fit;
-      const tightExpected = c.fits.main.fitTight?.fitPublic;
       if (tightArgs !== undefined && tightExpected !== undefined) {
         const tightFit = fitFrom(tightArgs);
         for (const name of Object.keys(tightExpected.coefficients)) {
