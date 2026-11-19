@@ -359,7 +359,13 @@ rows <- lapply(cases, function(case) {
   s_refs <- if (is.null(case$sReferences)) list() else
     lapply(case$sReferences, run_s_reference)
 
-  list(id = case$id, fits = fit_rows, calls = calls, sReferences = s_refs)
+  row <- list(id = case$id, fits = fit_rows, calls = calls, sReferences = s_refs)
+  if (grepl("-mm$", case$id)) {
+    row$comparison = list(mmCoefficients = "record-only; do not compare",
+                          lqsSScale = "compare as the S-scale reference",
+                          lqsSCoefficients = "record-only")
+  }
+  row
 })
 
 stamp <- format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z")
