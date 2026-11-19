@@ -308,6 +308,12 @@ Multiplying the response by $10^{100}$ or $10^{-100}$ produces finite fits in th
 
 The extreme-scale cases are important tests of numerical stability. They do not establish that every design matrix or every response magnitude is safe; the design itself can still be ill-conditioned or rank deficient.
 
+### 6.6 Redescending bisquare with an LTS start
+
+The `stackloss-bisquare-lts` case did not converge even in the strict `fitTight` refit (`acc = 10^{-15}`, `maxit = 2000`). Its convergence history reaches a small numerical cycle rather than satisfying the requested stopping tolerance. This is an observed boundary of this particular redescending fit; oscillation of the IRLS fixed-point iteration is a plausible explanation, but the oracle does not establish the cause.
+
+A non-converged result must remain explicitly marked `converged = false` and retain its warning and convergence diagnostics. Increasing the iteration limit or tightening the tolerance must not be treated as evidence of convergence, and tests must not silently accept this case as a successful fit. The deterministic LTS implementation should be assessed by its own objective and the final M-step estimating equations, as specified in the selected choices, rather than by requiring this reference iteration to converge.
+
 ## 7. Oracle coverage and unresolved reference behaviour
 
 The initial oracle covers:
