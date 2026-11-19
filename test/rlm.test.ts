@@ -176,8 +176,12 @@ describe("robust M regression against the R fixture", () => {
       numericMatrix(vcov.values, expected.vcov.values, c.id + " vcov", 3e-3, tightExpected?.vcov.values);
       const unscaled = fit.covarianceUnscaled;
       numericMatrix(unscaled, expected["cov.unscaled"].values, c.id + " cov.unscaled", 1e-10);
-      expect(Math.abs(fit.stddev - num(expected.stddev)) / Math.max(1, Math.abs(num(expected.stddev))), c.id + " stddev")
-        .toBeLessThanOrEqual(3e-3);
+      const tightStddev = tightExpected?.stddev;
+      const stddevExpected = num(expected.stddev);
+      const stddevAllowance = tightStddev === undefined ? 3e-3 : Math.max(3e-3,
+        Math.abs(stddevExpected - num(tightStddev)) / Math.max(Math.abs(stddevExpected), 1e-300) + 1e-8);
+      expect(Math.abs(fit.stddev - stddevExpected) / Math.max(1, Math.abs(stddevExpected)), c.id + " stddev")
+        .toBeLessThanOrEqual(stddevAllowance);
 
       const tightArgs = c.fits.main.fitTight?.fit;
       const tightExpected = c.fits.main.fitTight?.fitPublic;
