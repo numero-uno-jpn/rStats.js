@@ -861,7 +861,8 @@ function profileConstrainedFit(
   for (let i = 0; i < freeIndices.length; i++) full[freeIndices[i]!] = point[i]!;
   const final = polrDerivatives(model.x, model.y, model.weights, model.offset,
     model.responseLevels.length, model.method, full);
-  return { value: final.value, fixedScore: final.gradient[fixedIndex]!, theta: full };
+  const converged = maxAbs(freeIndices.map((i) => final.gradient[i]!)) <= scoreTolerance;
+  return { value: converged ? final.value : NaN, fixedScore: final.gradient[fixedIndex]!, theta: full };
 }
 
 function profileEndpoint(
