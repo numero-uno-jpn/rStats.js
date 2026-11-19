@@ -314,6 +314,7 @@ describe("NIST StRD nonlinear regression edge cases", () => {
       lre[name] = relativeError === 0 ? Infinity : -Math.log10(relativeError);
       expect(lre[name], "Thurber " + name + " LRE").toBeGreaterThanOrEqual(7);
     }
+    console.log("NIST Thurber Start 2 LRE", JSON.stringify(lre));
     expect(fit.deviance).toBeCloseTo(cs.rss, 5);
     expect(fit.converged).toBe(true);
   });
@@ -326,6 +327,7 @@ describe("NIST StRD nonlinear regression edge cases", () => {
       const lre = relativeError === 0 ? Infinity : -Math.log10(relativeError);
       expect(lre, "Roszman1 " + name + " LRE").toBeGreaterThanOrEqual(7);
     }
+    console.log("NIST Roszman1 Start 1 LRE", JSON.stringify(Object.fromEntries(Object.entries(cs.certified).map(([name, expected]) => [name, -Math.log10(Math.abs(fit.coefficients[name]! - expected) / Math.abs(expected))]))));
     expect(fit.deviance).toBeCloseTo(cs.rss, 7);
     expect(fit.converged).toBe(true);
   });
@@ -373,6 +375,7 @@ describe("nonlinear response expressions", () => {
       const lre = relativeError === 0 ? Infinity : -Math.log10(relativeError);
       expect(lre, "Nelson " + name + " LRE").toBeGreaterThanOrEqual(7);
     }
+    console.log("NIST Nelson Start 2 LRE", JSON.stringify(Object.fromEntries(Object.entries(cs.certified).map(([name, expected]) => [name, -Math.log10(Math.abs(fit.coefficients[name]! - expected) / Math.abs(expected))]))));
     expect(fit.deviance).toBeCloseTo(cs.rss, 6);
     expect(fit.converged).toBe(true);
     const predicted = nlsPredict(fit, { newdata: { x1: cs.data.x1!, x2: cs.data.x2! } });
@@ -398,11 +401,14 @@ describe("NIST StRD additional nonlinear cases", () => {
     ["Misra1a", stage3Fixture.misra1a, 7],
   ] as const)("fits %s from Start 2 to the certified values", (label, cs, minimumLre) => {
     const fit = nls(cs.formula, dataFrame(cs.data), { start: cs.start });
+    const lreValues: Record<string, number> = {};
     for (const [name, expected] of Object.entries(cs.certified)) {
       const relativeError = Math.abs(fit.coefficients[name]! - expected) / Math.abs(expected);
       const lre = relativeError === 0 ? Infinity : -Math.log10(relativeError);
+      lreValues[name] = lre;
       expect(lre, label + " " + name + " LRE").toBeGreaterThanOrEqual(minimumLre);
     }
+    console.log("NIST " + label + " Start 2 LRE", JSON.stringify(lreValues));
     const rssRelativeError = Math.abs(fit.deviance - cs.rss) / Math.max(Math.abs(cs.rss), Number.MIN_VALUE);
     expect(rssRelativeError, label + " RSS").toBeLessThanOrEqual(1e-5);
     expect(fit.converged, label + " converged").toBe(true);
