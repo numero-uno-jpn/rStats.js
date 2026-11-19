@@ -456,11 +456,17 @@ function fitCore(
     const scaledGradientNorm = Math.max(0, ...rhs.map((value, i) =>
       projectedDelta[i] === 0 ? 0 : Math.abs(value) / (Math.sqrt(Math.max(matrix[i]![i]!, Number.MIN_VALUE))
         * (Math.sqrt(current.objective) + control.scaleOffset + Number.EPSILON))));
-    const stepNorm = Math.max(0, ...projectedDelta.map((v, i) => Math.abs(v) / (1 + Math.abs(values[i]!))));
-    const stepTolerance = Math.max(1e-12, Math.sqrt(control.tol) * 0.001);
+    const stepNorm = Math.max(0, ...projectedDelta.map((v, i) => Math.abs(v) / (1 + Math.abs(values[i]!)));
+    const stepTolerance = Math.max(8 * Number.EPSILON, control.tol * 0.001);
+    const roundedStep = projectedDelta.every((value, i) => {
+      const next = values[i]! + value;
+      const ulp = Number.EPSILON * Math.max(Math.abs(values[i]!), Math.abs(next), Number.MIN_VALUE);
+      return next === values[i] || Math.abs(value) <= 4 * ulp;
+    });
     const gradientTolerance = Math.max(control.tol * 100, 1e-13);
-    if (scaledGradientNorm <= gradientTolerance
-      && (algorithm === "port" || stepNorm <= stepTolerance)) {
+    if ((scaledGradientNorm <= gradientTolerance
+      && (algorithm === "port" || stepNorm <= stepTolerance))
+      || (roundedStep && scaledGradientNorm <= Math.sqrt(Number.EPSILON))) {
       converged = true; break;
     }
     let alpha = 1, accepted = false;
@@ -474,14 +480,14 @@ function fitCore(
         const candidateStepNorm = alpha * stepNorm;
         const roundingAllowance = 4 * Number.EPSILON * Math.max(1, current.objective);
         if (trial.objective < current.objective
-          || (candidateStepNorm <= stepTolerance * 10 && trial.objective <= current.objective + roundingAllowance)) {
+          || (candidateStepNorm <= stepTolerance * 4 && trial.objective <= current.objective + roundingAllowance)) {
           values = candidate; current = trial; accepted = true; break;
         }
       } catch { /* A trial outside the function domain is rejected and the step is reduced. */ }
       alpha /= 2;
     }
     if (!accepted) {
-      if (stepNorm <= stepTolerance * 10) {
+      if (roundedStep && scaledGradientNorm <= Math.sqrt(Number.EPSILON)) {
         converged = true; break;
       }
       break;
@@ -643,7 +649,7 @@ export function nls(formula: string, data: DataFrame, options: NlsOptions = {}):
   const dfResidual = rows.length - coefficientNames.length;
   const sigma = Math.sqrt(fitted.objective / dfResidual);
   const responseNorm = Math.sqrt(weights.reduce((sum, weight, i) => sum + weight * y[i]! * y[i]!, 0));
-  const exactFit = Math.sqrt(fitted.objective) <= 64 * Number.EPSILON * Math.max(1, responseNorm);
+  const exactFit = Math.sqrt(fitted.objective) <= 64 * Number.EPSILON * Math.max(responseNorm, Number.MIN_VALUE);
   let fullJacobian = fitted.jacobian;
   if (algorithm === "plinear") {
     const parameters = Object.fromEntries(parameterNames.map((name, i) => [name, fitted.values[i]!]));
