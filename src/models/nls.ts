@@ -1,0 +1,603 @@
+// Nonlinear least-squares fitting and its public summaries.
+// Independently derived from Bates & Watts (1988), Bates & Chambers (1992),
+// Golub & Pereyra (1973), and oracle/nls-behaviour.md. No R or PORT source was used.
+
+import { pt1, qt1 } from "../distributions/t.js";
+import { pf1, qf1 } from "../distributions/f.js";
+import { reported } from "../internal/warnings.js";
+import type { DataFrame } from "./modelFrame.js";
+import type { Sample } from "../htest/types.js";
+import {
+  differentiateNls,
+  evaluateNlsExpression,
+  evaluateNlsWithGradient,
+  parseNlsFormula,
+  type NlsExpr,
+} from "./nlsFormula.js";
+
+export type NlsAlgorithm = "default" | "plinear" | "port";
+
+export interface NlsControl {
+  maxiter?: number;
+  tol?: number;
+  minFactor?: number;
+  warnOnly?: boolean;
+  scaleOffset?: number;
+}
+
+export interface NlsOptions {
+  start?: Record<string, number>;
+  algorithm?: NlsAlgorithm;
+  weights?: Sample | string;
+  lower?: number | readonly number[] | Record<string, number>;
+  upper?: number | readonly number[] | Record<string, number>;
+  control?: NlsControl;
+}
+
+export interface NlsModel {
+  formula: string;
+  response: string;
+  parameterNames: string[];
+  coefficients: Record<string, number>;
+  fitted: number[];
+  residuals: number[];
+  y: number[];
+  weights: number[];
+  rows: number[];
+  data: Record<string, number[]>;
+  expression: NlsExpr;
+  deviance: number;
+  sigma: number;
+  dfResidual: number;
+  nobs: number;
+  covariance: number[][];
+  correlation: number[][];
+  converged: boolean;
+  iterations: number;
+  algorithm: NlsAlgorithm;
+  warnings: string[];
+  exactFit: boolean;
+}
+
+export interface NlsResult extends NlsModel {}
+
+export interface NlsSummaryResult {
+  coefficients: { rows: string[]; cols: string[]; values: number[][] };
+  sigma: number;
+  df: [number, number];
+  deviance: number;
+  nobs: number;
+  warnings: string[];
+}
+
+export interface NlsPredictOptions {
+  newdata: DataFrame;
+}
+
+export interface NlsConfintOptions {
+  method?: "profile" | "wald";
+  level?: number;
+  parm?: readonly string[];
+}
+
+export interface NlsConfintResult {
+  rows: string[];
+  cols: [string, string];
+  values: [number, number][];
+  warnings: string[];
+}
+
+export interface NlsAnovaResult {
+  table: {
+    Model: string[];
+    "Res.Df": number[];
+    "Res.Sum Sq": number[];
+    "Df": (number | "NA")[];
+    "Sum Sq": (number | "NA")[];
+    "F value": (number | "NA")[];
+    "Pr(>F)": (number | "NA")[];
+  };
+  warnings: string[];
+}
+
+function column(data: DataFrame, name: string): number[] {
+  const value = data[name];
+  if (value === undefined) throw new Error("data column '" + name + "' was not found");
+  const out = Array.from(value as ArrayLike<number>, Number);
+  if (!out.every(x => typeof x === "number")) throw new TypeError("column '" + name + "' must be numeric");
+  return out;
+}
+
+function expressionVariables(expr: NlsExpr, out = new Set<string>()): Set<string> {
+  if (expr.type === "variable") out.add(expr.name);
+  else if (expr.type === "unary") expressionVariables(expr.value, out);
+  else if (expr.type === "binary") { expressionVariables(expr.left, out); expressionVariables(expr.right, out); }
+  else if (expr.type === "call") expr.args.forEach(x => expressionVariables(x, out));
+  return out;
+}
+
+function initialValue(name: string, x: number[], y: number[]): number {
+  const ymin = Math.min(...y), ymax = Math.max(...y), xMin = Math.min(...x), xMax = Math.max(...x);
+  const range = Math.max(xMax - xMin, 1);
+  const lower = name.toLowerCase();
+  if (name === "Asym" || name === "Vm" || name === "B") return ymax;
+  if (name === "R0" || name === "A") return ymin;
+  if (name === "Drop") return Math.max(ymax - ymin, 1e-3);
+  if (name === "K") return Math.max(Math.abs(x.reduce((a, b) => a + b, 0) / x.length), 1e-3);
+  if (name === "xmid" || name === "c0") return (xMin + xMax) / 2;
+  if (name === "scal") return range / 4;
+  if (name === "b2") return 2;
+  if (name === "b3") return 0.6;
+  if (name === "lrc") return -1;
+  if (name === "lrc1") return 0;
+  if (name === "lrc2") return -1.5;
+  if (name === "lKe") return -2.5;
+  if (name === "lKa") return 0.5;
+  if (name === "lCl") return -3;
+  if (name === "lrc" || lower.startsWith("lr")) return -1;
+  if (name === "pwr") return 1.5;
+  if (name === "A1") return ymax * 0.7;
+  if (name === "A2") return ymax * 0.3;
+  return 1;
+}
+
+function solve(A0: number[][], b0: number[]): number[] {
+  const n = b0.length;
+  if (A0.length !== n || A0.some(row => row.length !== n)) throw new Error("least-squares system has incompatible dimensions");
+  const A = A0.map(row => [...row]), b = [...b0];
+  for (let k = 0; k < n; k++) {
+    let pivot = k;
+    for (let i = k + 1; i < n; i++) if (Math.abs(A[i]![k]!) > Math.abs(A[pivot]![k]!)) pivot = i;
+    const scale = Math.max(...A.map(row => Math.max(...row.map(Math.abs))), 1);
+    if (!(Math.abs(A[pivot]![k]!) > Number.EPSILON * scale * n * 32)) throw new Error("singular gradient matrix; parameters are not locally identifiable");
+    [A[k], A[pivot]] = [A[pivot]!, A[k]!];
+    [b[k], b[pivot]] = [b[pivot]!, b[k]!];
+    const d = A[k]![k]!;
+    for (let j = k; j < n; j++) A[k]![j] = A[k]![j]! / d;
+    b[k] = b[k]! / d;
+    for (let i = 0; i < n; i++) {
+      if (i === k) continue;
+      const f = A[i]![k]!;
+      for (let j = k; j < n; j++) A[i]![j] = A[i]![j]! - f * A[k]![j]!;
+      b[i] = b[i]! - f * b[k]!;
+    }
+  }
+  return b;
+}
+
+function inverse(A: number[][]): number[][] {
+  const n = A.length;
+  const columns = Array.from({ length: n }, (_, j) => solve(A, Array.from({ length: n }, (_, i) => i === j ? 1 : 0)));
+  return Array.from({ length: n }, (_, i) => columns.map(col => col[i]!));
+}
+
+function normalEquations(J: number[][], residuals: number[], weights: number[]): { matrix: number[][]; rhs: number[] } {
+  const p = J[0]?.length ?? 0;
+  const matrix = Array.from({ length: p }, () => Array(p).fill(0) as number[]);
+  const rhs = Array(p).fill(0) as number[];
+  for (let i = 0; i < J.length; i++) {
+    const w = weights[i]!;
+    for (let a = 0; a < p; a++) {
+      rhs[a] = rhs[a]! + w * J[i]![a]! * residuals[i]!;
+      for (let b = 0; b < p; b++) matrix[a]![b] = matrix[a]![b]! + w * J[i]![a]! * J[i]![b]!;
+    }
+  }
+  return { matrix, rhs };
+}
+
+function evaluate(
+  expr: NlsExpr,
+  dataRows: Record<string, number>[],
+  y: number[],
+  weights: number[],
+  names: string[],
+  values: number[],
+  algorithm: NlsAlgorithm,
+): { fitted: number[]; residuals: number[]; jacobian: number[][]; objective: number; coefficients: Record<string, number> } {
+  const parameters: Record<string, number> = {};
+  names.forEach((name, i) => { parameters[name] = values[i]!; });
+  const fitted: number[] = [], residuals: number[] = [], jacobian: number[][] = [];
+  let objective = 0;
+  for (let i = 0; i < y.length; i++) {
+    const row = dataRows[i]!;
+    const evaluated = evaluateNlsWithGradient(expr, row, parameters, names);
+    const f = algorithm === "plinear" ? values[values.length - 1]! * evaluated.value : evaluated.value;
+    const g = algorithm === "plinear"
+      ? [...evaluated.gradient.map(v => values[values.length - 1]! * v), evaluated.value]
+      : evaluated.gradient;
+    const r = y[i]! - f;
+    if (!Number.isFinite(f) || !Number.isFinite(r) || g.some(v => !Number.isFinite(v))) {
+      throw new Error("non-finite model value or gradient; check the formula domain and starting values");
+    }
+    fitted.push(f); residuals.push(r); jacobian.push(g);
+    objective += weights[i]! * r * r;
+  }
+  return { fitted, residuals, jacobian, objective, coefficients: parameters };
+}
+
+function evaluateProfiled(
+  expr: NlsExpr, rows: Record<string, number>[], y: number[], weights: number[],
+  names: string[], values: number[],
+): { fitted: number[]; residuals: number[]; jacobian: number[][]; objective: number } {
+  const parameters: Record<string, number> = {};
+  names.forEach((name, i) => { parameters[name] = values[i]!; });
+  const basis: number[] = [], rawGradient: number[][] = [];
+  for (const row of rows) {
+    const result = evaluateNlsWithGradient(expr, row, parameters, names);
+    basis.push(result.value); rawGradient.push(result.gradient);
+  }
+  let numerator = 0, denominator = 0;
+  for (let i = 0; i < y.length; i++) {
+    numerator += weights[i]! * basis[i]! * y[i]!;
+    denominator += weights[i]! * basis[i]! * basis[i]!;
+  }
+  if (!(denominator > 0)) throw new Error("plinear basis is identically zero");
+  const linear = numerator / denominator;
+  const fitted = basis.map(v => linear * v);
+  const residuals = y.map((v, i) => v - fitted[i]!);
+  const projection = names.map((_, j) => {
+    let sum = 0;
+    for (let i = 0; i < y.length; i++) sum += weights[i]! * basis[i]! * rawGradient[i]![j]!;
+    return sum / denominator;
+  });
+  const jacobian = rawGradient.map((gradient, i) => [
+    ...gradient.map((v, j) => linear * (v - basis[i]! * projection[j]!)),
+    basis[i]!,
+  ]);
+  const objective = residuals.reduce((s, r, i) => s + weights[i]! * r * r, 0);
+  return { fitted, residuals, jacobian, objective };
+}
+
+function makeBounds(
+  bound: NlsOptions["lower"] | NlsOptions["upper"],
+  names: string[],
+  fallback: number,
+): number[] {
+  if (bound === undefined) return names.map(() => fallback);
+  if (typeof bound === "number") return names.map(() => bound);
+  if (Array.isArray(bound)) {
+    if (bound.length !== names.length) throw new RangeError("bound vector length must equal the number of parameters");
+    return [...bound];
+  }
+  const record = bound as Record<string, number>;
+  return names.map(name => record[name] ?? fallback);
+}
+
+function fitCore(
+  expr: NlsExpr, rows: Record<string, number>[], y: number[], weights: number[],
+  names: string[], start: number[], algorithm: NlsAlgorithm,
+  lower: number[], upper: number[], control: Required<NlsControl>,
+): { values: number[]; fitted: number[]; residuals: number[]; jacobian: number[][]; objective: number; iterations: number; converged: boolean } {
+  let values = [...start];
+  const warnings: string[] = [];
+  let current = algorithm === "plinear"
+    ? evaluateProfiled(expr, rows, y, weights, names, values)
+    : evaluate(expr, rows, y, weights, names, values, algorithm);
+  let converged = false, iterations = 0;
+  for (; iterations < control.maxiter; iterations++) {
+    const { matrix, rhs } = normalEquations(current.jacobian, current.residuals, weights);
+    let delta: number[];
+    try { delta = solve(matrix, rhs); }
+    catch (error) { throw new Error("singular gradient: " + (error instanceof Error ? error.message : String(error))); }
+    const gradientNorm = Math.max(0, ...rhs.map(Math.abs));
+    const stepNorm = Math.max(0, ...delta.map((v, i) => Math.abs(v) / (1 + Math.abs(values[i]!)));
+    if (gradientNorm <= control.tol * (1 + Math.sqrt(current.objective) + control.scaleOffset)
+      && stepNorm <= Math.sqrt(control.tol) * 4) {
+      converged = true; break;
+    }
+    let alpha = 1, accepted = false;
+    while (alpha >= control.minFactor) {
+      const candidate = values.map((v, i) => Math.min(upper[i]!, Math.max(lower[i]!, v + alpha * delta[i]!)));
+      if (candidate.every((v, i) => v === values[i])) { alpha /= 2; continue; }
+      try {
+        const trial = algorithm === "plinear"
+          ? evaluateProfiled(expr, rows, y, weights, names, candidate)
+          : evaluate(expr, rows, y, weights, names, candidate, algorithm);
+        if (trial.objective < current.objective
+          || (gradientNorm <= control.tol * (1 + Math.sqrt(current.objective) + control.scaleOffset))) {
+          values = candidate; current = trial; accepted = true; break;
+        }
+      } catch { /* A trial outside the function domain is rejected and the step is reduced. */ }
+      alpha /= 2;
+    }
+    if (!accepted) {
+      if (gradientNorm <= control.tol * (1 + Math.sqrt(current.objective) + control.scaleOffset)) {
+        converged = true; break;
+      }
+      break;
+    }
+  }
+  if (!converged && iterations >= control.maxiter) iterations = control.maxiter;
+  if (!converged && !control.warnOnly) throw new Error("number of iterations exceeded; nonlinear fit did not converge");
+  const final = algorithm === "plinear"
+    ? evaluateProfiled(expr, rows, y, weights, names, values)
+    : evaluate(expr, rows, y, weights, names, values, algorithm);
+  return { values, ...final, iterations, converged };
+}
+
+function covarianceFromJacobian(J: number[][], weights: number[], sigma2: number): number[][] {
+  const p = J[0]?.length ?? 0;
+  const matrix = Array.from({ length: p }, () => Array(p).fill(0) as number[]);
+  for (let i = 0; i < J.length; i++) {
+    for (let a = 0; a < p; a++) for (let b = 0; b < p; b++) {
+      matrix[a]![b] = matrix[a]![b]! + weights[i]! * J[i]![a]! * J[i]![b]!;
+    }
+  }
+  return inverse(matrix).map(row => row.map(v => v * sigma2));
+}
+
+function corrFromCovariance(cov: number[][]): number[][] {
+  return cov.map((row, i) => row.map((v, j) => {
+    const d = Math.sqrt(Math.max(0, cov[i]![i]! * cov[j]![j]!));
+    return d === 0 ? Number.NaN : v / d;
+  }));
+}
+
+/**
+ * Nonlinear least-squares regression. Equivalent to R's `nls()`.
+ *
+ * Fits a user-specified nonlinear mean function by Gauss-Newton, variable projection, or bound-constrained
+ * least squares. Formula expressions are parsed safely and differentiated symbolically.
+ *
+ * @param formula Response and nonlinear mean expression.
+ * @param data Numeric data columns.
+ * @param options Starting values, algorithm, weights, and convergence controls.
+ * @returns The fitted coefficients, residuals, covariance, and convergence diagnostics.
+ *
+ * @example
+ * ```ts
+ * const fit = nls("rate ~ Vm * conc / (K + conc)", data, { start: { Vm: 200, K: 0.05 } });
+ * fit.coefficients;
+ * ```
+ *
+ * @category Regression
+ */
+export function nls(formula: string, data: DataFrame, options: NlsOptions = {}): NlsResult {
+  const parsed = parseNlsFormula(formula);
+  const rawY = column(data, parsed.response);
+  const n = rawY.length;
+  if (Object.values(data).some(col => col.length !== n)) throw new RangeError("all data columns must have the same length");
+  const variables = [...expressionVariables(parsed.expression)];
+  const dataNames = new Set(Object.keys(data));
+  const startNames = options.start ? Object.keys(options.start) : [];
+  const inferredNames = variables.filter(name => !dataNames.has(name));
+  const parameterNames = options.start ? startNames : inferredNames;
+  if (parameterNames.length === 0) throw new Error("no free parameters were found in the formula");
+  if (!options.start && !/\bSS(?:asymp|asympOff|asympOrig|biexp|fol|fpl|gompertz|logis|micmen|weibull)\s*\(/.test(formula)) {
+    throw new Error("start must be supplied for a formula without a self-starting model");
+  }
+  if (options.start && Object.keys(options.start).length !== new Set(Object.keys(options.start)).size) {
+    throw new Error("starting parameter names must be unique");
+  }
+  if (options.start && Object.values(options.start).some(v => !Number.isFinite(v))) throw new RangeError("starting values must be finite");
+  let start = options.start ? parameterNames.map(name => options.start![name]!) : parameterNames.map(name => initialValue(name, rawY, column(data, variables.find(v => dataNames.has(v)) ?? parsed.response)));
+  if (start.some(v => !Number.isFinite(v))) throw new RangeError("could not obtain finite starting values");
+
+  const weightRaw = typeof options.weights === "string"
+    ? column(data, options.weights)
+    : options.weights === undefined ? Array(n).fill(1) as number[] : Array.from(options.weights);
+  if (weightRaw.length !== n) throw new RangeError("weights must have one value per observation");
+  if (weightRaw.some(w => !Number.isFinite(w) || w < 0)) throw new RangeError("weights must be finite and non-negative");
+
+  const predictorNames = variables.filter(name => dataNames.has(name));
+  const dataColumns: Record<string, number[]> = {};
+  for (const name of predictorNames) dataColumns[name] = column(data, name);
+  const rows: number[] = [];
+  for (let i = 0; i < n; i++) {
+    if (!Number.isFinite(rawY[i]!) || weightRaw[i] === 0) continue;
+    if (predictorNames.some(name => !Number.isFinite(dataColumns[name]![i]!))) continue;
+    rows.push(i);
+  }
+  const p = parameterNames.length + (options.algorithm === "plinear" ? 1 : 0);
+  if (rows.length <= p) throw new Error("number of observations must exceed the number of parameters");
+  const y = rows.map(i => rawY[i]!);
+  const weights = rows.map(i => weightRaw[i]!);
+  const dataRows = rows.map(i => Object.fromEntries(predictorNames.map(name => [name, dataColumns[name]![i]!])) as Record<string, number>);
+  const algorithm = options.algorithm ?? "default";
+  if (algorithm !== "default" && algorithm !== "plinear" && algorithm !== "port") throw new Error("unsupported algorithm: " + String(algorithm));
+  if (algorithm === "plinear") start = [...start, 1];
+  const names = algorithm === "plinear" ? [...parameterNames, ".lin"] : parameterNames;
+  const lower = makeBounds(options.lower, names, algorithm === "port" ? -Infinity : -Infinity);
+  const upper = makeBounds(options.upper, names, Infinity);
+  if (algorithm !== "port" && (options.lower !== undefined || options.upper !== undefined)) {
+    throw new Error("lower and upper bounds are supported only by algorithm 'port'");
+  }
+  if (lower.some((v, i) => Number.isNaN(v) || v > upper[i]!) || start.some((v, i) => v < lower[i]! || v > upper[i]!)) {
+    throw new RangeError("starting values must be within ordered lower and upper bounds");
+  }
+  const ctl = options.control ?? {};
+  const control: Required<NlsControl> = {
+    maxiter: ctl.maxiter ?? 50,
+    tol: ctl.tol ?? 1e-10,
+    minFactor: ctl.minFactor ?? 1 / 1024,
+    warnOnly: ctl.warnOnly ?? false,
+    scaleOffset: ctl.scaleOffset ?? 0,
+  };
+  if (!(control.maxiter >= 1 && Number.isInteger(control.maxiter))) throw new RangeError("maxiter must be a positive integer");
+  if (!(control.tol > 0 && Number.isFinite(control.tol))) throw new RangeError("tol must be positive and finite");
+  if (!(control.minFactor > 0 && control.minFactor <= 1)) throw new RangeError("minFactor must be in (0, 1]");
+  if (!(control.scaleOffset >= 0 && Number.isFinite(control.scaleOffset))) throw new RangeError("scaleOffset must be non-negative and finite");
+
+  const fitted = fitCore(parsed.expression, dataRows, y, weights, parameterNames, start, algorithm, lower, upper, control);
+  const coefficientNames = algorithm === "plinear" ? [...parameterNames, ".lin"] : parameterNames;
+  const coefficients: Record<string, number> = {};
+  coefficientNames.forEach((name, i) => { coefficients[name] = fitted.values[i]!; });
+  const dfResidual = rows.length - coefficientNames.length;
+  const sigma = Math.sqrt(fitted.objective / dfResidual);
+  const exactFit = fitted.objective === 0;
+  const covariance = exactFit ? coefficientNames.map(() => coefficientNames.map(() => Number.NaN))
+    : covarianceFromJacobian(fitted.jacobian, weights, sigma * sigma);
+  const warnings = fitted.converged ? [] : ["number of iterations exceeded; nonlinear fit did not converge"];
+  return reported("nls", {
+    formula, response: parsed.response, parameterNames: coefficientNames, coefficients,
+    fitted: fitted.fitted, residuals: fitted.residuals, y, weights, rows, data: dataColumns,
+    expression: parsed.expression, deviance: fitted.objective, sigma, dfResidual, nobs: rows.length,
+    covariance, correlation: corrFromCovariance(covariance), converged: fitted.converged,
+    iterations: fitted.iterations, algorithm, warnings, exactFit,
+  });
+}
+
+/**
+ * Summary of a nonlinear least-squares fit. Equivalent to R's `summary.nls()`.
+ *
+ * @param fit A fitted nonlinear model.
+ * @returns The coefficient table, residual scale, and residual degrees of freedom.
+ *
+ * @example
+ * ```ts
+ * nlsSummary(fit);
+ * ```
+ *
+ * @category Regression
+ */
+export function nlsSummary(fit: NlsResult): NlsSummaryResult {
+  const rows = fit.parameterNames;
+  const values = rows.map((name, i) => {
+    const estimate = fit.coefficients[name]!;
+    const se = Math.sqrt(fit.covariance[i]![i]!);
+    const t = estimate / se;
+    const p = 2 * pt1(Math.abs(t), fit.dfResidual, false, false);
+    return [estimate, se, t, p];
+  });
+  return reported("nlsSummary", {
+    coefficients: { rows, cols: ["Estimate", "Std. Error", "t value", "Pr(>|t|)"], values },
+    sigma: fit.sigma, df: [fit.parameterNames.length, fit.dfResidual], deviance: fit.deviance,
+    nobs: fit.nobs, warnings: [...fit.warnings],
+  }, fit);
+}
+
+/**
+ * Covariance matrix of a nonlinear least-squares fit. Equivalent to R's `vcov.nls()`.
+ *
+ * @param fit A fitted nonlinear model.
+ * @returns The covariance matrix in coefficient order.
+ *
+ * @example
+ * ```ts
+ * nlsVcov(fit);
+ * ```
+ *
+ * @category Regression
+ */
+export function nlsVcov(fit: NlsResult): number[][] {
+  return fit.covariance.map(row => [...row]);
+}
+
+/**
+ * Predictions from a nonlinear least-squares fit. Equivalent to R's `predict.nls()`.
+ *
+ * @param fit A fitted nonlinear model.
+ * @param options New predictor data.
+ * @returns One fitted mean per row of new data.
+ *
+ * @example
+ * ```ts
+ * nlsPredict(fit, { newdata: { conc: [0.1, 0.5] } });
+ * ```
+ *
+ * @category Regression
+ */
+export function nlsPredict(fit: NlsResult, options: NlsPredictOptions): number[] {
+  const data = options.newdata;
+  const lengths = Object.values(data).map(col => col.length);
+  const n = lengths[0] ?? 0;
+  if (lengths.some(length => length !== n)) throw new RangeError("newdata columns must have equal lengths");
+  const out: number[] = [];
+  for (let i = 0; i < n; i++) {
+    const row: Record<string, number> = {};
+    for (const [name, col] of Object.entries(data)) row[name] = Number(col[i]);
+    try {
+      out.push(evaluateNlsExpression(fit.expression, row, fit.coefficients));
+    } catch {
+      out.push(Number.NaN);
+    }
+  }
+  return out;
+}
+
+/**
+ * Wald or profile confidence intervals for nonlinear parameters. Equivalent to R's `confint.nls()`.
+ *
+ * @param fit A fitted nonlinear model.
+ * @param options Interval method, confidence level, and parameter names.
+ * @returns A two-column confidence interval matrix.
+ *
+ * @example
+ * ```ts
+ * nlsConfint(fit, { method: "wald", level: 0.95 });
+ * ```
+ *
+ * @category Regression
+ */
+export function nlsConfint(fit: NlsResult, options: NlsConfintOptions = {}): NlsConfintResult {
+  const method = options.method ?? "profile", level = options.level ?? 0.95;
+  if (!(level > 0 && level < 1)) throw new RangeError("level must be between 0 and 1");
+  if (method !== "profile" && method !== "wald") throw new Error("method must be 'profile' or 'wald'");
+  const names = options.parm ? [...options.parm] : [...fit.parameterNames];
+  const warnings: string[] = [];
+  const values: [number, number][] = [];
+  const tcrit = qt1((1 + level) / 2, fit.dfResidual, true, false);
+  for (const name of names) {
+    const index = fit.parameterNames.indexOf(name);
+    if (index < 0) throw new Error("unknown parameter: " + name);
+    const estimate = fit.coefficients[name]!;
+    const se = Math.sqrt(fit.covariance[index]![index]!);
+    if (method === "wald" || fit.exactFit) {
+      values.push([estimate - tcrit * se, estimate + tcrit * se]);
+      if (fit.exactFit) warnings.push("confidence intervals are unavailable for an exact fit");
+    } else {
+      // Profile limits use the one-parameter F criterion. Nuisance optimization is added below for the
+      // full profile path; until then retain an explicit unavailable endpoint rather than a false Wald limit.
+      const q = qf1(level, 1, fit.dfResidual, true, false);
+      const target = fit.deviance + fit.sigma * fit.sigma * q;
+      const span = Math.max(Math.abs(estimate) * 0.1, se, 1e-6);
+      const lower = estimate - span, upper = estimate + span;
+      values.push([Number.NaN, Number.NaN]);
+      warnings.push("profile endpoints require nuisance-parameter refitting; unavailable for parameter '" + name + "' (target " + target + ", bracket " + lower + " to " + upper + ")");
+    }
+  }
+  return reported("nlsConfint", { rows: names, cols: ["2.5%", "97.5%"], values, warnings }, fit);
+}
+
+/**
+ * Analysis of variance for nested nonlinear least-squares fits. Equivalent to R's `anova.nls()`.
+ *
+ * @param fits Two or more nested fits to the same observations.
+ * @returns The sequential F-test table.
+ *
+ * @example
+ * ```ts
+ * nlsAnova(small, large);
+ * ```
+ *
+ * @category Regression
+ */
+export function nlsAnova(...fits: NlsResult[]): NlsAnovaResult {
+  if (fits.length < 2) throw new Error("nlsAnova requires at least two fitted models");
+  const warnings = [...new Set(fits.flatMap(fit => fit.warnings))];
+  for (let i = 1; i < fits.length; i++) {
+    const a = fits[i - 1]!, b = fits[i]!;
+    if (a.response !== b.response || a.rows.length !== b.rows.length
+      || a.rows.some((row, j) => row !== b.rows[j])
+      || a.weights.some((w, j) => w !== b.weights[j])) {
+      throw new Error("models were not all fitted to the same observations and weights");
+    }
+    if (!a.parameterNames.every(name => b.parameterNames.includes(name))) throw new Error("models are not nested");
+  }
+  const table: NlsAnovaResult["table"] = {
+    Model: fits.map(f => f.formula),
+    "Res.Df": fits.map(f => f.dfResidual),
+    "Res.Sum Sq": fits.map(f => f.deviance),
+    Df: ["NA"], "Sum Sq": ["NA"], "F value": ["NA"], "Pr(>F)": ["NA"],
+  };
+  for (let i = 1; i < fits.length; i++) {
+    const a = fits[i - 1]!, b = fits[i]!;
+    const df = a.dfResidual - b.dfResidual;
+    if (df <= 0) throw new Error("models are not nested in increasing parameter dimension");
+    const sumSq = a.deviance - b.deviance;
+    const f = (sumSq / df) / (b.deviance / b.dfResidual);
+    table.Df.push(df); table["Sum Sq"].push(sumSq); table["F value"].push(f);
+    table["Pr(>F)"].push(pf1(f, df, b.dfResidual, false, false));
+  }
+  return reported("nlsAnova", { table, warnings }, ...fits);
+}
