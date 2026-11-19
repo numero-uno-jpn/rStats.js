@@ -352,7 +352,7 @@ candidate budget, all elemental subsets are evaluated. Otherwise, the search eva
 lexicographic combinatorial ranks from the first through the last subset. The budget is
 
 $$
-B(n)=\min\left(1024,\max\left(1,\left\lfloor\frac{250000}{n}\right\rfloor\right)\right).
+B(n,p)=\min\left(1024,\max\left(1,\left\lfloor\frac{250000}{np}\right\rfloor\right)\right).
 $$
 
 All evaluated candidates are scored, and only the best 16 are refined (50 steps maximum each). When
