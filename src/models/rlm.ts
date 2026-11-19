@@ -443,7 +443,7 @@ function unrankSubset(n: number, p: number, initialRank: bigint): number[] {
 
 function deterministicSubsets(n: number, p: number): { subsets: number[][]; total: bigint; exhaustive: boolean } {
  const total = binomial(n, p);
- const budget = Math.max(1, Math.min(MAX_SUBSET_CANDIDATES, Math.floor(MAX_CANDIDATE_ROW_EVALUATIONS / n)));
+ const budget = Math.max(1, Math.min(MAX_SUBSET_CANDIDATES, Math.floor(MAX_CANDIDATE_ROW_EVALUATIONS / (n * p))));
  const count = total < BigInt(budget) ? Number(total) : budget;
  const subsets: number[][] = [];
  for (let i = 0; i < count; i++) {
