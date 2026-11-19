@@ -12,7 +12,7 @@ interface FitPublic {
   coefficients: Record<string, string | number>;
   s: number | string;
   summary: { rows: string[]; cols: string[]; values: (string | number)[][] };
-  cov.unscaled: { rows: string[]; cols: string[]; values: (string | number)[][] };
+  "cov.unscaled": { rows: string[]; cols: string[]; values: (string | number)[][] };
   vcov: { rows: string[]; cols: string[]; values: (string | number)[][] };
 }
 interface FitRecord {
@@ -106,7 +106,7 @@ describe("robust regression psi functions", () => {
       actual.forEach((v, i) => expect(Math.abs(v - expected[i]!), `${label}[${i}]`).toBeLessThanOrEqual(3e-15));
     };
     compare(psiHuber(u) as number[], h.w, "Huber weights");
-    compare(psiHuber(u, { deriv: 1 }).map(Number), h.d.map(Number), "Huber derivative");
+    compare(Array.from(psiHuber(u, { deriv: 1 }) as boolean[], Number), h.d.map(Number), "Huber derivative");
     compare(psiHampel(u), a.w, "Hampel weights");
     compare(psiHampel(u, { deriv: 1 }), a.d, "Hampel derivative");
     compare(psiBisquare(u), b.w, "bisquare weights");
