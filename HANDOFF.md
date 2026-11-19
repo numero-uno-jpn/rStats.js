@@ -1,10 +1,84 @@
 # 引継ぎ: rStats.js (外部レビュー対応 2026-10-30〜11-04、1.0.0 への準備 11-04〜)
 
-最終更新: 2026-11-19 (セッション 24、Mac mini: 1.7.0 の回帰の外注の準備)。以前: 2026-11-19 (セッション 23、1.6.0 を公開 (混合モデルの confint と simulate))。以前: 2026-11-17 (セッション 22、1.5.0 を公開)。その前: 2026-11-16 (セッション 21、Mac mini: 1.4.0 を公開、同時刻の Gray の検定を ChatGPT がクリーンルームで修正 (1.4.1 に入る、未公開)、外注用の R の実験の仕組みを作った。次は ROADMAP の 1 番)
+最終更新: 2026-11-19 深夜 (セッション 24 の終わり、Mac mini: polr・rlm は完了、nls を ChatGPT に依頼済み)。以前: 2026-11-19 (セッション 23、1.6.0 を公開 (混合モデルの confint と simulate))。以前: 2026-11-17 (セッション 22、1.5.0 を公開)。その前: 2026-11-16 (セッション 21、Mac mini: 1.4.0 を公開、同時刻の Gray の検定を ChatGPT がクリーンルームで修正 (1.4.1 に入る、未公開)、外注用の R の実験の仕組みを作った。次は ROADMAP の 1 番)
 
 ## まず読むこと (セッション 16 から)
 
-## 次のセッションで最初にやること: 1.7.0 の回帰 (2026-11-19 に作成、セッション 23 → 24、Mac mini)
+## 次のセッションで最初にやること: 1.7.0 の続き (セッション 24 → 25、2026-11-19 深夜に作成)
+
+### 今の状態
+
+- **作業ブランチ `work/regression`** (main から分岐、`891dbdb6` 以降)。**draft の PR #541** (`work/regression` → main、
+  **マージしない**。CI を回すためだけ)。**Issue #540** (`ROADMAP 1: 回帰 (polr・rlm・nls)`)。main は `d4d23168` 以降
+- **polr は完了** (`polr`・`polrSummary`・`polrVcov`・`polrPredict`・`polrConfint`・`polrAnova`)。仕様書
+  `oracle/polr-behaviour.md` の choices 13 項目。R との既知の違い: choices 12 (MASS の cauchit は標準コーシーのモデルで
+  ない)、13 (MASS の `predict` は newdata の offset を無視する)、空の水準と入れ子でない anova はエラー
+- **rlm は完了** (`rlm`・`rlmSummary`・`rlmVcov`・`psiHuber`・`psiHampel`・`psiBisquare`)。仕様書
+  `oracle/rlm-behaviour.md` の choices 11 項目。公開の出力から突き止めて R に合わせたもの: 共分散は Huber (1981) の
+  式 (§7.1、重みつきも)、MAD の定数 0.6745、Proposal 2 の $n-p$、S の尺度 ($n-p$、$c = 1.548$)、LTS の
+  $h = \lfloor n/2\rfloor + \lfloor (p+1)/2\rfloor$。R の exact の S (`lqs(nsamp = "exact")`) は、係数が改善前・
+  残差と尺度が改善後で、改善後は rStats.js の S と同じ。`rlm(method = "MM")` は `nsamp` を使わない (乱数しだい)。
+  MM と LTS は決定的 (既知の違い)、MM とケースの重みはエラー (既知の違い)。証拠は `experiments/regression-rlm-*`
+- **nls は ChatGPT が作業中** (新しい会話、2026-11-19 深夜に依頼)。指示書 `work/regression` の
+  `briefs/nls-1.7.ja.md` の 6 節 1〜7 を 1 つの依頼で: 仕様書 → 式の解析と微分 → 当てはめ (既定・plinear・port) →
+  付属の関数 → エラーと境界 → CI が通るまで。**oracle `oracle/nls.R` と fixture `test/fixtures/nls.json` は私が書いた**
+  (29 case、`fitTight`、anova、自己開始モデル 10 個の値と勾配)。ユーザーの決定: 式は文字列で渡す、範囲は全部
+  (添字つきのパラメータは除く)。小さな判断は指示書 3 節の推奨で進めさせている
+- CI は (Mac だけで落ちる `test/issue179.test.ts`・`test/issue513.test.ts` を除き) 緑の状態にしてある。新しい関数や
+  オプションが入ると、生成物の検査 (`test/unknownOptions.test.ts`・`test/rIndexDoc.test.ts`) が落ちる → 私が作り直す
+- 未追跡の `oracle/extreme-parameters-behaviour.md` は以前からあるもので、触らない
+
+### ChatGPT から報告が来たら (nls)
+
+1. pull して、**型チェックを省かずに** `npm run -s typecheck` と `npx vitest run test/nls*.test.ts`。CI は
+   `gh pr checks 541`
+2. **数値の点検** (私にしかできない。いちばん価値が高い): テストが同じ物差しで比べているか、R と違う所はどちらが
+   正しいか。手の確かめは、`npx esbuild src/entries/regression.ts --bundle --format=esm --platform=node --outfile=<tmp>`
+   で一時的にバンドルし、普通の JS で fixture と比べる (前のセッションの補助スクリプトはジョブの tmp にあり、消えている)。
+   R で確かめたいときは、公開の関数だけの R を `scripts/r-experiment-check.mjs` に通して
+   `docker run --rm -v "$PWD":/w -w /w rstats-oracle-amd64:4.6.2 Rscript --vanilla <file>.R`。証拠は
+   `experiments/` に `.R` と出力を残してコミットする
+3. 仕様書の Decisions をユーザーに聞き、`oracle/nls-behaviour.md` の「rStats.js's choices」を**私が**書く
+4. 生成物を作る: `node scripts/option-keys.mjs --write`、`node scripts/r-index.mjs > docs/r-functions.md`、
+   `docs/ja/r-functions.json` に新しい関数の日本語の説明を足し (**キーの順の位置に 1 行ずつ差し込む。整形し直さない**)、
+   `node scripts/r-index.mjs --ja > docs/ja/r-functions.md`。ChatGPT が手で書いた `import { checkOptions }` や `*_KEYS`
+   が生成のブロックと二重になっていたら消す
+
+### nls の後 (1.7.0 の公開まで。手本は `briefs/release-1.6.ja.md`)
+
+- **分野 `/regression` の配線:** package.json の `exports` に `./regression`、`scripts/bundle.mjs` と
+  `scripts/size.mjs` の分野の一覧に `regression`、デモ (`demo/app.js` が `dist/regression.js` も読む)、
+  `test/demo.test.ts` の scope (`docExamples.test.ts` とカテゴリの一覧は済み)。ルートの export と `dist/rstats.js` には
+  入れない (`/mixed` と同じ)
+- **文書:** `docs/differences-from-r.md` (英・日) に既知の違いをまとめる (polr の cauchit・offset・空の水準・入れ子で
+  ない anova、rlm の MM と LTS の決定性・MM とケースの重み、nls の分)、CHANGELOG、ROADMAP (英・日) の項目 1 を済みに、
+  README (英・日) の Status、`llms.txt`、API リファレンスと日本語版 (`docs/ja/api/*.json`: extract → stale を訳す)、
+  デモの例 (`demo/examples.json` は**詰めた書式を崩さない**)、`docs/performance.md` の大きさ
+- **段階 3 の端の入力の点検** (私が手元で一括): 尺度 1e±100、水準 2 つ・数千、外れ値の割合が 50% 近く、完全分離に近い
+  順序データ、nls の悪条件の問題。直しは ChatGPT にまとめて頼む
+- **取り込み:** `experiments/` を含めない PR を別に作って main へ (PR #541 は閉じる)。バージョン、タグ、npm の公開
+  (公開の前にユーザーに確認する)
+
+### 保留 (ユーザーの判断待ち)
+
+- MASS の `predict` が newdata の offset を無視するのが意図か不具合か: **ユーザーが別の repo で調べている** (私はソースを
+  見ないので、渡した文書の結果だけを聞く)。結果で `docs/differences-from-r.md` の書き方を決める
+- MASS に報告するか (cauchit、offset、`rlm` の MM が `nsamp` を使わない、exact の S の係数と残差の食い違い): 未定
+
+### 進め方 (ユーザーの指示、2026-11-19。記憶の feedback-chatgpt-fewer-round-trips)
+
+- トークンと往復を減らす。ChatGPT は PR #541 の CI を自分で読んで直す。依頼はまとめる (並行できる作業は 1 つの依頼に)、
+  依頼文は短く (規則の全文は `briefs/regression-1.7-status.ja.md`、依頼文には要点 2〜3 行。毎回の要点は省かない)
+- R の実験と oracle は私が先に多めに作る (ChatGPT の oracle の誤りの直しで往復が増えたため)
+- ChatGPT の会話が長くなったら新しい会話に移す。入口は `briefs/regression-1.7-status.ja.md` と指示書
+- **ChatGPT が choices を書き換えることがある** (rlm で 1 回、根拠の記録が消えた)。報告のたびに choices の節の差分を
+  見出しから全部比べる: `diff <(git show <前>:oracle/X-behaviour.md | sed -n "/^## rStats.js.s choices/,\$p") <(sed -n "/^## rStats.js.s choices/,\$p" oracle/X-behaviour.md)`
+- ChatGPT は検索で GPL のソースの抜粋を計 2 回見た (ユーザーはそのまま進めると判断)。報告に出たらユーザーに聞く
+- 私の誤った指示が 3 回あった (cauchit を「誤り」と言った、S の係数の一致を求めた、R の残差から計算した値を係数の値と
+  言った)。**R の値を「正しい参照」と思い込まず、独立の計算で確かめてから指示する**
+
+## 以前の「最初にやること」: 1.7.0 の回帰の始め (2026-11-19 に作成、セッション 23 → 24。セッション 24 で準備は済み)
+
 
 ユーザーの決定 (2026-11-19): ROADMAP の「その後」から回帰を選び、2 つの版に分ける。
 - **1.7.0:** 順序ロジスティック回帰 [MASS `polr`]、非線形回帰 [`nls` と自己開始モデル]、ロバスト回帰 [MASS `rlm`]
