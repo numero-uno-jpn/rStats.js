@@ -53,6 +53,7 @@ const stage3Fixture = JSON.parse(readFileSync(fileURLToPath(new URL("../test/fix
   eckerle4: { formula: string; data: Record<string, number[]>; start: Record<string, number>; certified: Record<string, number>; rss: number };
   lanczos1: { formula: string; data: Record<string, number[]>; start: Record<string, number>; certified: Record<string, number>; rss: number };
   misra1a: { formula: string; data: Record<string, number[]>; start: Record<string, number>; certified: Record<string, number>; rss: number };
+  gauss1: { formula: string; data: Record<string, number[]>; start: Record<string, number>; certified: Record<string, number>; rss: number };
 };
 const byId = (id: string): Case => {
   const found = fixture.cases.find(x => x.id === id);
@@ -391,6 +392,7 @@ describe("nonlinear response expressions", () => {
 
 describe("NIST StRD additional nonlinear cases", () => {
   it.each([
+    ["Gauss1", stage3Fixture.gauss1, 7],
     ["Eckerle4", stage3Fixture.eckerle4, 7],
     ["Lanczos1", stage3Fixture.lanczos1, 9],
     ["Misra1a", stage3Fixture.misra1a, 7],
