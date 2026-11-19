@@ -338,8 +338,8 @@ rho(u) = u^2/2 - u^4/(2 cS^2) + u^6/(6 cS^4) for |u| < cS, and cS^2/6 otherwise.
 Its Gaussian consistency constant is beta = E[rho(Z)], Z ~ N(0,1). Its scale at b solves
 
 $
-\frac{1}{n}\sum_{i=1}^{n}\min\left\{\left(\frac{r_i(b)}{s}\right)^2,c_S^2\right\}
-= E\left[\min\{Z^2,c_S^2\}\right], \qquad Z\sim N(0,1),
+\frac{1}{n}\sum_{i=1}^{n}\rho\left(\frac{r_i(b)}{s}\right)
+= E[\rho(Z)], \qquad Z\sim N(0,1),
 $
 
 and the S objective is the smallest such scale over coefficient vectors. The S refinement alternates between
