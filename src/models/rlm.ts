@@ -300,19 +300,26 @@ function proposal2Constant(k: number): number {
   return 2 * upper - 1 - 2 * k * density + 2 * k * k * (1 - upper);
 }
 
-function proposalScale(residuals: readonly number[], weights: readonly number[], method: "inv" | "case", k2: number): number {
+function proposalScale(residuals: readonly number[], weights: readonly number[], method: "inv" | "case", k2: number, p: number): number {
  const transformed = effectiveResiduals(residuals, weights, method);
  const absolute = transformed.u.map(Math.abs);
  const q = transformed.q;
- if (!(transformed.n > 0)) return NaN;
+ const denominator = transformed.n - p;
+ if (!(denominator > 0)) return NaN;
  const target = proposal2Constant(k2);
+ // The supplied stackloss-scale-huber check distinguishes the divisor: MASS fitTight
+ // satisfies sum(chi)/(n-p) - beta = -1.1e-15, while sum(chi)/n - beta = -0.135.
+ // The rStats.js fit satisfies the latter equation (2.2e-16) and has the wrong scale.
+ // Thus Proposal 2 uses the residual degrees of freedom, not the raw observation count.
+ // Weighted case/inverse extensions (N-p / n-p respectively) are mathematically natural
+ // but are not directly covered by a weighted Proposal 2 fixture.
  const meanChi = (scale: number): number => {
    let sum = 0;
    for (let i = 0; i < absolute.length; i++) {
      const z = absolute[i]! / scale;
      sum += q[i]! * Math.min(z * z, k2 * k2);
    }
-   return sum / transformed.n;
+   return sum / denominator;
  };
  let lo = 0, hi = Math.max(1, median(absolute));
  if (!(hi > 0)) return 0;
@@ -325,7 +332,7 @@ function proposalScale(residuals: readonly number[], weights: readonly number[],
  return (lo + hi) / 2;
 }
 
-function robustScale(residuals: readonly number[], weights: readonly number[], method: "inv" | "case", scaleEst: "MAD" | "Huber" | "proposal 2", k2: number): number {
+function robustScale(residuals: readonly number[], weights: readonly number[], method: "inv" | "case", scaleEst: "MAD" | "Huber" | "proposal 2", k2: number, p: number): number {
  if (scaleEst === "MAD") {
    const transformed = effectiveResiduals(residuals, weights, method);
    const values = transformed.u.map(Math.abs);
@@ -334,7 +341,7 @@ function robustScale(residuals: readonly number[], weights: readonly number[], m
    // their public scale agrees with median(|residual|) / 0.6745 to the fixture's full precision.
    return m / 0.6745;
  }
- return proposalScale(residuals, weights, method, k2);
+ return proposalScale(residuals, weights, method, k2, p);
 }
 
 function weightedLeastSquares(x: readonly (readonly number[])[], y: readonly number[], weights: readonly number[]): number[] {
@@ -462,7 +469,7 @@ export function rlm(formula: string, data: DataFrame, options: RlmOptions = {}):
  for (let iteration = 1; iteration <= maxit; iteration++) {
    iterations = iteration;
    const residuals = y.map((v, i) => v - x[i]!.reduce((sum, z, j) => sum + z * coefficients[j]!, 0));
-   scale = robustScale(residuals, observationWeights, wtMethod, scaleEst, k2);
+   scale = robustScale(residuals, observationWeights, wtMethod, scaleEst, k2, p);
    if (!(scale > 0) || !Number.isFinite(scale)) {
      if (scale === 0) { converged = true; break; }
      throw new Error("robust scale is not positive and finite");
@@ -474,7 +481,7 @@ export function rlm(formula: string, data: DataFrame, options: RlmOptions = {}):
    workingWeights = effectiveObsWeights(residuals, scale);
    const next = weightedLeastSquares(x, y, workingWeights);
    const nextResiduals = y.map((v, i) => v - x[i]!.reduce((sum, z, j) => sum + z * next[j]!, 0));
-   const nextScale = robustScale(nextResiduals, observationWeights, wtMethod, scaleEst, k2);
+   const nextScale = robustScale(nextResiduals, observationWeights, wtMethod, scaleEst, k2, p);
    if (!(nextScale > 0) || !Number.isFinite(nextScale)) {
      if (nextScale === 0) { coefficients = next; scale = 0; converged = true; break; }
      throw new Error("robust scale is not positive and finite");
@@ -508,7 +515,7 @@ export function rlm(formula: string, data: DataFrame, options: RlmOptions = {}):
  }
  const fittedValues = x.map((row) => row.reduce((sum, v, j) => sum + v * coefficients[j]!, 0));
  const residuals = y.map((v, i) => v - fittedValues[i]!);
- scale = robustScale(residuals, observationWeights, wtMethod, scaleEst, k2);
+ scale = robustScale(residuals, observationWeights, wtMethod, scaleEst, k2, p);
  robustWeights = residuals.map((r, i) => {
    const u = (wtMethod === "inv" ? Math.sqrt(observationWeights[i]!) * r : r) / scale;
    return psiWeight(psi, u, model);
