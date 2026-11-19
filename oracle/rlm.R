@@ -311,6 +311,7 @@ run_fit <- function(spec) {
     tight_args <- args
     tight_args$acc <- 1e-15
     tight_args$maxit <- 2000L
+    if (!is.null(spec$seed)) set.seed(spec$seed)
     tight_result <- capture_raw(function() do.call(MASS::rlm, resolve_fit_args(tight_args)))
     tight_record <- list(fit = fit_record(tight_args),
                          fitResult = list(warnings = tight_result$warnings,
