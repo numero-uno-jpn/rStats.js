@@ -491,13 +491,18 @@ function fitCore(
         const roundingAllowance = 4 * Number.EPSILON * Math.max(
           current.objective, Number.EPSILON * responseSquared, Number.MIN_VALUE,
         );
-        if (trial.objective < current.objective
-          || (candidateStepNorm <= stepTolerance * 10 && trial.objective <= current.objective + roundingAllowance)) {
-          values = candidate; current = trial; accepted = true; break;
+        const objectiveStalled = trial.objective >= current.objective - roundingAllowance;
+        if (!objectiveStalled || candidateStepNorm <= stepTolerance * 10 || roundedStep) {
+          values = candidate;
+          current = trial;
+          accepted = true;
+          if (objectiveStalled) converged = true;
+          break;
         }
       } catch { /* A trial outside the function domain is rejected and the step is reduced. */ }
       alpha /= 2;
     }
+    if (converged) break;
     if (!accepted) {
       if (stepNorm <= stepTolerance * 10 || (roundedStep && scaledGradientNorm <= Math.sqrt(Number.EPSILON))) {
         converged = true; break;
