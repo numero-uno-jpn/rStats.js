@@ -783,20 +783,18 @@ function confintParameterIndices(names: readonly string[], parm: PolrConfintOpti
   });
 }
 
-function profileNegativeLogLikelihood(
-  fit: PolrResult, fixedIndex: number, fixedValue: number,
-): number {
+type ProfilePoint = { value: number; fixedScore: number; theta: number[] };
+
+function profileConstrainedFit(
+  fit: PolrResult, fixedIndex: number, fixedValue: number, startTheta: readonly number[],
+): ProfilePoint {
   const model = fit.model;
-  const fullStart = Array.from(model.theta);
-  fullStart[fixedIndex] = fixedValue;
-  const freeIndices = fullStart.map((_, i) => i).filter((i) => i !== fixedIndex);
-  const toFull = (free: number[]): number[] => {
-    const full = Array.from(fullStart);
-    for (let i = 0; i < freeIndices.length; i++) full[freeIndices[i]!] = free[i]!;
-    return full;
-  };
-  const evaluate = (free: number[]): PolrDerivatives => {
-    const full = toFull(free);
+  const theta = Array.from(startTheta);
+  theta[fixedIndex] = fixedValue;
+  const freeIndices = theta.map((_, i) => i).filter((i) => i !== fixedIndex);
+  const evaluate = (point: readonly number[]): PolrDerivatives => {
+    const full = Array.from(theta);
+    for (let i = 0; i < freeIndices.length; i++) full[freeIndices[i]!] = point[i]!;
     const d = polrDerivatives(model.x, model.y, model.weights, model.offset,
       model.responseLevels.length, model.method, full);
     return {
@@ -805,59 +803,91 @@ function profileNegativeLogLikelihood(
       hessian: freeIndices.map((i) => freeIndices.map((j) => d.hessian[i]![j]!)),
     };
   };
-  const objective = (free: number[]): number => evaluate(free).value;
-  const start = freeIndices.map((i) => fullStart[i]!);
-  const optimised = optim(start, objective, {
-    method: "BFGS",
-    gr: (free) => evaluate(free).gradient,
-    control: { maxit: 2000, reltol: 1e-14 },
-  });
-  const scoreTolerance = 1e-10 * Math.max(1, model.weights.reduce((sum, w) => sum + w, 0));
-  const polished = newtonPolish(optimised.par, evaluate, scoreTolerance);
-  if (!Number.isFinite(polished.value)) return NaN;
-  return polished.value;
+  let point = freeIndices.map((i) => theta[i]!);
+  let current = evaluate(point);
+  const scoreTolerance = 2e-11 * Math.max(1, model.weights.reduce((sum, w) => sum + w, 0));
+  for (let iteration = 0; iteration < 40 && maxAbs(current.gradient) > scoreTolerance; iteration++) {
+    let inverse: number[][];
+    try {
+      inverse = chol2inv(chol(current.hessian));
+    } catch {
+      break;
+    }
+    const direction = inverse.map((row) => -row.reduce((sum, value, j) => sum + value * current.gradient[j]!, 0));
+    const slope = direction.reduce((sum, value, j) => sum + value * current.gradient[j]!, 0);
+    if (!(slope < 0) || !Number.isFinite(slope)) break;
+    let step = 1;
+    let accepted = false;
+    for (let backtrack = 0; backtrack < 40; backtrack++, step *= 0.5) {
+      const candidate = point.map((value, j) => value + step * direction[j]!);
+      const trial = evaluate(candidate);
+      const allowance = 16 * Number.EPSILON * Math.max(1, Math.abs(current.value), Math.abs(trial.value));
+      if (Number.isFinite(trial.value)
+        && (trial.value <= current.value + 1e-4 * step * slope
+          || (maxAbs(trial.gradient) < maxAbs(current.gradient) && trial.value <= current.value + allowance))) {
+        point = candidate;
+        current = trial;
+        accepted = true;
+        break;
+      }
+    }
+    if (!accepted) break;
+  }
+  const full = Array.from(theta);
+  for (let i = 0; i < freeIndices.length; i++) full[freeIndices[i]!] = point[i]!;
+  const final = polrDerivatives(model.x, model.y, model.weights, model.offset,
+    model.responseLevels.length, model.method, full);
+  return { value: final.value, fixedScore: final.gradient[fixedIndex]!, theta: full };
 }
 
 function profileEndpoint(
   fit: PolrResult, parameterIndex: number, target: number, standardError: number,
 ): number {
   const estimate = Object.values(fit.coefficients)[parameterIndex]!;
-  const fixedIndex = parameterIndex;
   const centre = -fit.logLik;
-  const signedRoot = (value: number): number => {
-    const profile = profileNegativeLogLikelihood(fit, fixedIndex, value);
-    if (!Number.isFinite(profile)) return NaN;
-    const deviance = Math.max(0, 2 * (profile - centre));
-    return Math.sign(value - estimate) * Math.sqrt(deviance);
+  let warmTheta = Array.from(fit.model.theta);
+  const evaluate = (value: number): { x: number; g: number; r: number; score: number } | null => {
+    const point = profileConstrainedFit(fit, parameterIndex, value, warmTheta);
+    if (!Number.isFinite(point.value) || !Number.isFinite(point.fixedScore)) return null;
+    warmTheta = point.theta;
+    const r = Math.sign(value - estimate) * Math.sqrt(Math.max(0, 2 * (point.value - centre)));
+    return { x: value, g: r - target, r, score: point.fixedScore };
   };
-  let inside = estimate;
-  let outside = estimate + (target < 0 ? -1 : 1) * Math.max(standardError, 1e-6);
-  let outsideRoot = signedRoot(outside);
-  let bracketed = Number.isFinite(outsideRoot) && (target < 0 ? outsideRoot <= target : outsideRoot >= target);
-  for (let i = 0; i < 60 && !bracketed; i++) {
-    outside = estimate + 2 * (outside - estimate);
-    outsideRoot = signedRoot(outside);
-    bracketed = Number.isFinite(outsideRoot) && (target < 0 ? outsideRoot <= target : outsideRoot >= target);
-  }
-  if (!bracketed) return NaN;
 
-  let low = Math.min(inside, outside);
-  let high = Math.max(inside, outside);
-  for (let i = 0; i < 100; i++) {
-    const mid = low + (high - low) / 2;
-    if (mid === low || mid === high) return mid;
-    const root = signedRoot(mid);
-    if (!Number.isFinite(root)) return NaN;
-    if (target < 0 ? root > target : root < target) {
-      if (target < 0) high = mid;
-      else low = mid;
-    } else {
-      if (target < 0) low = mid;
-      else high = mid;
-    }
-    if (high - low <= 2e-12 * Math.max(1, Math.abs(mid))) return low + (high - low) / 2;
+  const centrePoint = evaluate(estimate);
+  if (centrePoint === null) return NaN;
+  let inside = centrePoint;
+  let outside = evaluate(estimate + Math.sign(target) * Math.max(standardError, 1e-6));
+  for (let i = 0; i < 50 && (outside === null || inside.g * outside.g > 0); i++) {
+    const nextValue = estimate + 2 * (outside === null ? (inside.x - estimate) : (outside.x - estimate));
+    outside = evaluate(nextValue);
   }
-  return low + (high - low) / 2;
+  if (outside === null || inside.g * outside.g > 0) return NaN;
+
+  let current = outside;
+  for (let iteration = 0; iteration < 35; iteration++) {
+    if (Math.abs(current.g) <= 2e-12) return current.x;
+    if (inside.g * current.g <= 0) outside = current;
+    else inside = current;
+
+    const derivative = current.r === 0 ? NaN : current.score / current.r;
+    let candidate = current.x - current.g / derivative;
+    const left = Math.min(inside.x, outside.x);
+    const right = Math.max(inside.x, outside.x);
+    if (!Number.isFinite(candidate) || candidate <= left || candidate >= right) {
+      candidate = inside.x - inside.g * (outside.x - inside.x) / (outside.g - inside.g);
+    }
+    if (!Number.isFinite(candidate) || candidate <= left || candidate >= right) {
+      candidate = left + (right - left) / 2;
+    }
+    if (candidate === current.x || candidate === inside.x || candidate === outside.x) {
+      return Math.abs(inside.g) < Math.abs(outside.g) ? inside.x : outside.x;
+    }
+    const next = evaluate(candidate);
+    if (next === null) return NaN;
+    current = next;
+  }
+  return Math.abs(inside.g) < Math.abs(outside.g) ? inside.x : outside.x;
 }
 
 /**
