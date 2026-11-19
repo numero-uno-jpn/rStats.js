@@ -376,28 +376,51 @@ function polrDerivatives(
     }
   }
 
-  // Map derivatives from (beta, cut-points) to (beta, alpha_1, log-gap_2, ...).
-  const jacobian: number[][] = Array.from({ length: n }, () => new Array<number>(n).fill(0));
-  for (let j = 0; j < p; j++) jacobian[j]![j] = 1;
-  for (let j = 0; j < levels - 1; j++) {
-    jacobian[p + j]![p] = 1;
-    for (let m = 1; m <= j; m++) jacobian[p + j]![p + m] = Math.exp(theta[p + m]!);
-  }
+  // Transform natural cut-point derivatives to the first cut-point and log-gaps.
+  // The cut-point Jacobian is lower triangular, so use suffix sums instead of
+  // multiplying four dense parameter-sized matrices on every likelihood evaluation.
+  const cutCount = levels - 1;
   const gradient = new Array<number>(n).fill(0);
   const hessian: number[][] = Array.from({ length: n }, () => new Array<number>(n).fill(0));
-  for (let a = 0; a < n; a++) {
-    for (let u = 0; u < n; u++) gradient[a] = gradient[a]! + jacobian[u]![a]! * gradientNatural[u]!;
-    for (let b = 0; b < n; b++) {
-      for (let u = 0; u < n; u++) for (let v = 0; v < n; v++) {
-        hessian[a]![b] = hessian[a]![b]! + jacobian[u]![a]! * hessianNatural[u]![v]! * jacobian[v]![b]!;
-      }
+  const cutGradientSuffix = new Array<number>(cutCount).fill(0);
+  for (let m = cutCount - 1; m >= 0; m--) {
+    cutGradientSuffix[m] = gradientNatural[p + m]! + (m + 1 < cutCount ? cutGradientSuffix[m + 1]! : 0);
+  }
+  const cutHessianSuffix: number[][] = Array.from({ length: cutCount }, () => new Array<number>(cutCount).fill(0));
+  for (let a = cutCount - 1; a >= 0; a--) {
+    for (let b = cutCount - 1; b >= 0; b--) {
+      cutHessianSuffix[a]![b] = hessianNatural[p + a]![p + b]!
+        + (a + 1 < cutCount ? cutHessianSuffix[a + 1]![b]! : 0)
+        + (b + 1 < cutCount ? cutHessianSuffix[a]![b + 1]! : 0)
+        - (a + 1 < cutCount && b + 1 < cutCount ? cutHessianSuffix[a + 1]![b + 1]! : 0);
     }
   }
-  for (let m = 1; m < levels - 1; m++) {
+  for (let a = 0; a < p; a++) {
+    gradient[a] = gradientNatural[a]!;
+    for (let b = 0; b < p; b++) hessian[a]![b] = hessianNatural[a]![b]!;
+    hessian[a]![p] = 0;
+    for (let j = 0; j < cutCount; j++) hessian[a]![p] = hessian[a]![p]! + hessianNatural[a]![p + j]!;
+    hessian[p]![a] = hessian[a]![p]!;
+    for (let m = 1; m < cutCount; m++) {
+      const gap = Math.exp(theta[p + m]!);
+      let suffix = 0;
+      for (let j = m; j < cutCount; j++) suffix += hessianNatural[a]![p + j]!;
+      hessian[a]![p + m] = gap * suffix;
+      hessian[p + m]![a] = hessian[a]![p + m]!;
+    }
+  }
+  gradient[p] = cutGradientSuffix[0]!;
+  hessian[p]![p] = cutHessianSuffix[0]![0]!;
+  for (let m = 1; m < cutCount; m++) {
     const gap = Math.exp(theta[p + m]!);
-    let contribution = 0;
-    for (let j = m; j < levels - 1; j++) contribution += gradientNatural[p + j]!;
-    hessian[p + m]![p + m] = hessian[p + m]![p + m]! + gap * contribution;
+    gradient[p + m] = gap * cutGradientSuffix[m]!;
+    hessian[p]![p + m] = gap * cutHessianSuffix[m]![0]!;
+    hessian[p + m]![p] = hessian[p]![p + m]!;
+    for (let q = 1; q < cutCount; q++) {
+      const otherGap = Math.exp(theta[p + q]!);
+      hessian[p + m]![p + q] = gap * otherGap * cutHessianSuffix[m]![q]!
+        + (m === q ? gap * cutGradientSuffix[m]! : 0);
+    }
   }
   return { value, gradient, hessian };
 }
