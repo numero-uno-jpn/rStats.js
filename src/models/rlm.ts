@@ -274,7 +274,7 @@ function weightedMedian(values: readonly number[], weights: readonly number[]): 
 }
 
 function psiWeight(psi: RlmPsi, u: number, options: RlmModel): number {
- if (psi === "huber") return psiHuber(u, { k: options.k }) as number;
+ if (psi === "huber") return Number(psiHuber(u, { k: options.k }));
  if (psi === "hampel") return psiHampel(u, { a: options.a, b: options.b, c: options.c }) as number;
  return psiBisquare(u, { c: options.c }) as number;
 }
