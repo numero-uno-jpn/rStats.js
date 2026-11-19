@@ -310,7 +310,7 @@ const predictionCalls = fixture.cases.flatMap((fixtureCase) =>
 
 describe("polrPredict: all prediction fixtures", () => {
   for (const { fixtureCase, call, index } of predictionCalls) {
-    it(`${fixtureCase.id} predict #${index + 1} (${call.args?.type ?? "class"})`, () => {
+    it(`${fixtureCase.id === "mtcars-offset" ? "choices 13: mtcars-offset" : fixtureCase.id} predict #${index + 1} (${call.args?.type ?? "class"})`, () => {
       const args = call.args;
       if (args === undefined || args.newdata === undefined) throw new Error("fixture prediction has no newdata");
       const { fit, expected, tight } = fitCase(fixtureCase.id);
@@ -341,7 +341,9 @@ describe("polrPredict: all prediction fixtures", () => {
           expect(actual.columns).toEqual(["3", "4", "5"]);
           for (let i = 0; i < manual.length; i++) {
             for (let j = 0; j < 3; j++) {
-              closeAbsolute(actual.values[i]![j]!, manual[i]![j]!,
+              const actualValue = actual.values[i]?.[j];
+              if (actualValue === null || actualValue === undefined) throw new Error(`missing rStats probability [${i},${j}]`);
+              closeAbsolute(actualValue, manual[i]![j]!,
                 tightPredictionTolerance(fit, tight, data, i), `choices 13: mtcars-offset hand probability [${i},${j}]`);
             }
           }
@@ -353,7 +355,9 @@ describe("polrPredict: all prediction fixtures", () => {
           expect(zeroOffset.columns).toEqual(expectedPrediction.cols);
           for (let i = 0; i < expectedPrediction.values.length; i++) {
             for (let j = 0; j < expectedPrediction.values[i]!.length; j++) {
-              closeAbsolute(zeroOffset.values[i]![j]!, expectedPrediction.values[i]![j]!,
+              const actualValue = zeroOffset.values[i]?.[j];
+              if (actualValue === null || actualValue === undefined) throw new Error(`missing zero-offset probability [${i},${j}]`);
+              closeAbsolute(actualValue, expectedPrediction.values[i]![j]!,
                 predictionStoppingTolerance(fit, expected, tight, zeroOffsetData, i),
                 `choices 13: mtcars-offset zero offset vs R fixture [${i},${j}]`);
             }
