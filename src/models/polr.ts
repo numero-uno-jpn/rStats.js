@@ -5,6 +5,7 @@
 import { pnorm, qnorm } from "../distributions/normal.js";
 import { qlogis } from "../distributions/logistic.js";
 import { qcauchy } from "../distributions/cauchy.js";
+import { pchisq } from "../distributions/chisq.js";
 import { chol, chol2inv } from "../linalg/chol.js";
 import { optim } from "../optim/optim.js";
 import { reported } from "../internal/warnings.js";
@@ -972,4 +973,109 @@ export function polrConfint(fit: PolrResult, options: PolrConfintOptions = {}): 
     values,
     warnings: [...new Set(warnings)],
   }, fit);
+}
+
+
+/** Sequential likelihood-ratio comparisons of nested ordinal-regression fits. */
+export interface PolrAnovaResult {
+  table: {
+    Model: string[];
+    "Resid. df": number[];
+    "Resid. Dev": number[];
+    Test: string[];
+    "   Df": (number | "NA")[];
+    "LR stat.": (number | "NA")[];
+    "Pr(Chi)": (number | "NA")[];
+  };
+  rows: string[];
+  heading: string[];
+  warnings: string[];
+}
+
+/**
+ * Equivalent to R's `anova.polr()`.
+ *
+ * @param fits Two or more nested fits, ordered from the smallest to the largest model.
+ * @returns The sequential likelihood-ratio chi-squared comparison table.
+ *
+ * @example
+ * ```ts
+ * const small = polr("rating ~ dose", data);
+ * const large = polr("rating ~ dose + treatment", data);
+ * polrAnova(small, large);
+ * ```
+ *
+ * @category Regression
+ */
+export function polrAnova(...fits: PolrResult[]): PolrAnovaResult {
+  checkOptions({}, [], "polrAnova");
+  if (fits.length === 1) throw new Error('anova is not implemented for a single "polr" object');
+  if (fits.length < 2) throw new Error("polrAnova requires at least two fits");
+
+  const first = fits[0]!;
+  const reference = first.model;
+  const warnings = [...new Set(fits.flatMap((fit) => fit.warnings))];
+  for (let index = 1; index < fits.length; index++) {
+    const previous = fits[index - 1]!;
+    const current = fits[index]!;
+    const a = previous.model;
+    const b = current.model;
+    if (a.response !== b.response || a.rows.length !== b.rows.length
+      || a.rows.some((row, i) => row !== b.rows[i])
+      || a.responseLevels.length !== b.responseLevels.length
+      || a.responseLevels.some((level, i) => level !== b.responseLevels[i])
+      || a.y.length !== b.y.length || a.y.some((value, i) => value !== b.y[i])
+      || a.method !== b.method
+      || a.weights.length !== b.weights.length || a.weights.some((value, i) => value !== b.weights[i])
+      || a.offset.length !== b.offset.length || a.offset.some((value, i) => value !== b.offset[i])) {
+      throw new Error("models were not all fitted to the same response, rows, link, weights and offset");
+    }
+
+    const previousColumns = new Map(a.columnNames.map((name, i) => [name, i]));
+    const currentColumns = new Map(b.columnNames.map((name, i) => [name, i]));
+    for (const [name, previousIndex] of previousColumns) {
+      const currentIndex = currentColumns.get(name);
+      if (currentIndex === undefined) {
+        throw new Error("models are not nested");
+      }
+      for (let row = 0; row < a.x.length; row++) {
+        if (a.x[row]![previousIndex] !== b.x[row]![currentIndex]) {
+          throw new Error("models are not nested");
+        }
+      }
+    }
+  }
+
+  const modelLabels = fits.map((fit) => {
+    const separator = fit.model.formula.indexOf("~");
+    return separator < 0 ? fit.model.formula : fit.model.formula.slice(separator + 1).trim().replace(/\\s+/g, " ");
+  });
+  const residualDf = fits.map((fit) => fit.nobs - fit.edf);
+  const residualDeviance = fits.map((fit) => fit.deviance);
+  const tests = fits.map((_, i) => i === 0 ? "" : `${i} vs ${i + 1}`);
+  const degrees: (number | "NA")[] = ["NA"];
+  const statistics: (number | "NA")[] = ["NA"];
+  const probabilities: (number | "NA")[] = ["NA"];
+  for (let i = 1; i < fits.length; i++) {
+    const df = fits[i]!.edf - fits[i - 1]!.edf;
+    if (df < 0) throw new Error("models are not nested");
+    const statistic = Math.max(0, fits[i - 1]!.deviance - fits[i]!.deviance);
+    degrees.push(df);
+    statistics.push(statistic);
+    probabilities.push(df === 0 ? 1 : pchisq(statistic, df, { lowerTail: false }) as number);
+  }
+  return reported("polrAnova", {
+    table: {
+      Model: modelLabels,
+      "Resid. df": residualDf,
+      "Resid. Dev": residualDeviance,
+      Test: tests,
+      "   Df": degrees,
+      "LR stat.": statistics,
+      "Pr(Chi)": probabilities,
+    },
+    rows: fits.map((_, i) => String(i + 1)),
+    heading: ["Likelihood ratio tests of ordinal regression models\\n", `Response: ${reference.response}`],
+    warnings,
+  }, ...fits);
 }
