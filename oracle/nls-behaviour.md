@@ -215,3 +215,45 @@ The following recommendations from `briefs/nls-1.7.ja.md` section 3 are adopted 
 No additional user decision is currently required. The supported formula function list, initial-value heuristics, profile algorithm, and bound-constrained optimizer are implementation details that can be refined against the public oracle and independent numerical checks without changing the requested API scope.
 
 ## rStats.js's choices
+
+Decided by the user on 2026-11-20, as recommended in `briefs/nls-1.7.ja.md` section 3. Checked by the coordinator
+against `test/fixtures/nls.json` with a temporary bundle of `src/entries/regression.ts`.
+
+1. **Convergence: iterate to the solution** (Decision 1). R's default relative-offset test stops early, so rStats.js
+   is compared with `fitTight` (R refitted from its own estimate with `tol = 1e-10`), not with R's default fit. For
+   every converging fixture case the coefficients agree with `fitTight` to a relative 1e-8 and the deviance to 1e-14;
+   R's default fit differs from `fitTight` by up to 7e-6. With `warnOnly` and a small `maxiter`, the iterate is that of
+   the same number of Gauss-Newton steps: `maxiter-warnOnly` (two iterations) equals R's default fit to 1e-9.
+2. **Derivatives: symbolic** (Decision 2). The path of iterations differs from R's numerical differences, but the
+   converged values do not (item 1). The self-starting models' values and gradients equal the fixture's `models`.
+3. **Self-starting models: rStats.js's own initial values** (Decision 3), built from the published model equations
+   (linearisations and transformed regressions). They are not R's `getInitial` values; the final estimates agree
+   with `fitTight` (item 1).
+4. **Standard errors** are $\hat\sigma^2 (J^\top W J)^{-1}$ at the solution (for `plinear` including `.lin`). They
+   agree with `fitTight`'s to a relative 5e-8 in every converging case.
+5. **Profile intervals are the exact roots, which R's are not** (a known difference). An endpoint is the value $c$ of
+   $\theta_j$ at which the deviance minimised over the other parameters exceeds the minimum by
+   $\hat\sigma^2 F_{1,\mathrm{df}}(\text{level})$. R interpolates a profile traced at a few points, and its endpoints
+   are off by up to a relative 4.7e-3 (`bod-exp`, $n = 6$); typically 1e-4. Checked independently of rStats.js's
+   profile code (`experiments/regression-nls-profile-check.mjs` and `.out.txt`: nuisance fits by a finite-difference
+   Levenberg-Marquardt, roots by bisection, for `bod-exp`, `loblolly-SSasymp`, `dnase-plinear-logistic`,
+   `puromycin-plinear` and `puromycin-default` at 95% and 90%): rStats.js's endpoints equal the independent roots to
+   2.6e-11, R's do not. A further sign that R's are approximate: R gives the same model's `K` different intervals
+   under the default algorithm and `plinear` (0.04692 to 0.08616 and 0.04711 to 0.08586); rStats.js gives both the
+   exact roots, 0.04692034 and 0.08615691. Tests check the root condition strictly and R's endpoints to a relative
+   1e-2.
+6. **An exact fit returns the estimates, with inference `NaN`** (Decision 5; a known difference). R stops at its
+   iteration limit with an error (`error-exact-fit`), because its convergence test divides by the residual sum of
+   squares. The estimates are well defined, but the residual variance is zero, so standard errors, t values, p
+   values and confidence intervals are `NaN` and the fit is marked exact. With `scaleOffset` (`exact-scaleOffset`,
+   data exactly $2 e^{0.3 x}$), R's `fitTight` and rStats.js both stop with coefficient errors near 2e-12 and residual
+   sums of squares near 3.5e-23; their difference there is rounding and is not compared.
+7. **Errors found before iterating** (Decision 5; a known difference in the message and the moment, not in the
+   outcome). Without `start` and without a self-starting model, R starts every parameter at 1 with a warning and
+   fails later (`error-no-start`, step factor below `minFactor`); rStats.js says that `start` must be supplied. With
+   no more observations than parameters, R iterates to its limit (`error-too-few-rows`); rStats.js says so at once.
+   The other `error-*` cases are errors in both, with rStats.js's own wording.
+8. **`port`: rStats.js's own bound-constrained Gauss-Newton** (an active set, projected steps and the KKT conditions
+   at the bounds), not the PORT library. It agrees with `fitTight` for the three `port` cases, including a solution
+   at a lower bound and a start at an upper bound.
+9. **`nlsAnova`** agrees with R's F test (`puromycin-anova`) to a relative 1e-9 in the F value and p value.
