@@ -220,7 +220,10 @@ function asymptoticRiseStart(x: number[], y: number[], shifted: boolean): { Asym
     }
     const c0 = intercept / -slope;
     if (shifted && (!Number.isFinite(c0) || c0 < 0 || c0 >= Math.min(...sx))) continue;
-    const candidate = { Asym, lrc: Math.log(-slope), ...(shifted ? { c0 } : {}), error };
+    const rate = -slope;
+    const error = selected.reduce((sum, point) =>
+      sum + (point.y - Asym * (1 - Math.exp(-rate * (point.x - c0)))) ** 2, 0);
+    const candidate = { Asym, lrc: Math.log(rate), ...(shifted ? { c0 } : {}), error };
     if (!best || candidate.error < best.error) best = candidate;
   }
   if (!best) return undefined;
@@ -240,7 +243,9 @@ function fourParameterLogisticStart(x: number[], y: number[]): { A: number; B: n
       if (!line || !(line.slope < 0)) continue;
       const scal = -1 / line.slope, xmid = line.intercept * scal;
       if (!(scal > 0) || !Number.isFinite(xmid)) continue;
-      if (!best || line.error < best.error) best = { A, B, xmid, scal, error: line.error };
+      const error = x.reduce((sum, value, i) =>
+        sum + (y[i]! - (A + (B - A) / (1 + Math.exp(line.intercept + line.slope * value)))) ** 2, 0);
+      if (!best || error < best.error) best = { A, B, xmid, scal, error };
     }
   }
   if (!best) return undefined;
@@ -267,7 +272,10 @@ function weibullRiseStart(x: number[], y: number[]): { Asym: number; Drop: numbe
       if (!valid) continue;
       const line = linearTrend(lx, ly);
       if (!line || !(line.slope > 0)) continue;
-      if (!best || line.error < best.error) best = { Asym, Drop, lrc: line.intercept, pwr: line.slope, error: line.error };
+      const rate = Math.exp(line.intercept);
+      const error = selected.reduce((sum, point) =>
+        sum + (point.y - (Asym - Drop * Math.exp(-rate * point.x ** line.slope))) ** 2, 0);
+      if (!best || error < best.error) best = { Asym, Drop, lrc: line.intercept, pwr: line.slope, error };
     }
   }
   if (!best) return undefined;
