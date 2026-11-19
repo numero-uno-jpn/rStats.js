@@ -9,6 +9,7 @@ import {
   nlsSummary,
   nlsVcov,
 } from "../src/entries/regression.js";
+import { qf } from "../src/distributions/f.js";
 import type { DataFrame } from "../src/models/modelFrame.js";
 
 interface PublicFit {
@@ -130,7 +131,11 @@ describe("nonlinear least-squares regression", () => {
 
 
   it("fits every successful fixture case against the tight reference", () => {
+    // fitTight is R refitted to its own solution, so the comparison is relative and strict: rStats.js agrees to
+    // about 1e-8 in the coefficients and 5e-8 in the standard errors (oracle/nls-behaviour.md, choices 1 and 4).
+    // R's default fit is further away (up to 4e-6), so its distance is no guide to the tolerance here.
     const cases = fixture.cases.filter(cs => cs.fitTight?.value !== undefined && cs.id !== "maxiter-warnOnly");
+    const relative = (a: number, b: number) => Math.abs(a - b) / Math.max(Math.abs(b), Number.MIN_VALUE);
     const mismatches: string[] = [];
     for (const cs of cases) {
       try {
@@ -139,31 +144,26 @@ describe("nonlinear least-squares regression", () => {
         for (const name of Object.keys(ref.coefficients)) {
           const actual = fit.coefficients[name];
           const expected = ref.coefficients[name]!;
-          if (actual === undefined || Math.abs(actual - expected) > 5e-7) {
+          if (actual === undefined || relative(actual, expected) > 1e-7) {
             mismatches.push(`${cs.id}: coefficient ${name} (${actual} vs ${expected})`);
-          }
-        }
-        if (Math.abs(fit.deviance - ref.deviance) > 5e-7) mismatches.push(`${cs.id}: deviance (${fit.deviance} vs ${ref.deviance})`);
-        if (Math.abs(fit.sigma - ref.sigma) > 5e-7) mismatches.push(`${cs.id}: sigma (${fit.sigma} vs ${ref.sigma})`);
-        const actualSummary = nlsSummary(fit).coefficients;
-        for (const name of Object.keys(ref.coefficients)) {
-          const actualRow = actualSummary.rows.indexOf(name);
-          const tightRow = ref.summary.rows.indexOf(name);
-          const defaultRow = cs.fit.value!.summary.rows.indexOf(name);
-          const actualSe = actualSummary.values[actualRow]![1]!;
-          const tightSe = ref.summary.values[tightRow]![1]!;
-          const defaultSe = cs.fit.value!.summary.values[defaultRow]![1]!;
-          const seTolerance = Math.max(5e-7, Math.abs(defaultSe - tightSe) * 1.05);
-          if (Math.abs(actualSe - tightSe) > seTolerance) {
-            mismatches.push(`${cs.id}: SE ${name} (${actualSe} vs ${tightSe}; allowed ${seTolerance})`);
           }
         }
         if (fit.dfResidual !== ref.dfResidual) mismatches.push(`${cs.id}: residual df`);
         if (fit.fitted.length !== ref.fitted.length) mismatches.push(`${cs.id}: fitted length`);
         for (let i = 0; i < ref.fitted.length; i++) {
-          if (Math.abs(fit.fitted[i]! - ref.fitted[i]!) > 5e-7) mismatches.push(`${cs.id}: fitted[${i}]`);
+          if (relative(fit.fitted[i]!, ref.fitted[i]!) > 1e-7) mismatches.push(`${cs.id}: fitted[${i}]`);
         }
-
+        // The data of exact-scaleOffset are exactly 2 exp(0.3 x): R's tight fit stops with a residual sum of squares
+        // near 4e-23, which is rounding, so its deviance, sigma and standard errors are not compared (choice 6).
+        if (cs.id === "exact-scaleOffset") continue;
+        if (relative(fit.deviance, ref.deviance) > 1e-10) mismatches.push(`${cs.id}: deviance (${fit.deviance} vs ${ref.deviance})`);
+        if (relative(fit.sigma, ref.sigma) > 1e-10) mismatches.push(`${cs.id}: sigma (${fit.sigma} vs ${ref.sigma})`);
+        const actualSummary = nlsSummary(fit).coefficients;
+        for (const name of Object.keys(ref.coefficients)) {
+          const actualSe = actualSummary.values[actualSummary.rows.indexOf(name)]![1]!;
+          const tightSe = ref.summary.values[ref.summary.rows.indexOf(name)]![1]!;
+          if (relative(actualSe, tightSe) > 2e-7) mismatches.push(`${cs.id}: SE ${name} (${actualSe} vs ${tightSe})`);
+        }
       } catch (error) {
         mismatches.push(`${cs.id}: threw ${error instanceof Error ? error.message : String(error)}`);
       }
@@ -191,30 +191,47 @@ describe("nonlinear least-squares regression", () => {
     expect(na.nobs).toBe(11);
   });
 
-  it("covers every fixture profile case and returns finite, ordered limits", () => {
+  it("finds the exact profile roots, which R's interpolated endpoints approximate", () => {
+    // An endpoint c of theta_j is where the deviance minimised over the other parameters exceeds the minimum by
+    // sigma^2 F(1, df). The constrained refit holds theta_j at c with equal port bounds; for plinear the linear
+    // coefficient becomes an ordinary parameter. R interpolates a traced profile, so its endpoints are only
+    // compared loosely (they are off by up to 4.7e-3; oracle/nls-behaviour.md, choice 5).
     const cases = fixture.cases.filter(cs => cs.confint?.profile95?.value !== undefined);
+    expect(cases.length).toBe(9);
+    const mismatches: string[] = [];
     for (const cs of cases) {
       const fit = fitCase(cs.id);
-      const names = Object.keys(fit.coefficients).filter(name => name !== ".lin");
+      const plinear = cs.args.algorithm === "plinear";
+      const [lhs, rhs] = cs.formula.split("~").map(part => part.trim());
+      const formula = plinear ? `${lhs} ~ linCoef * (${rhs})` : cs.formula;
+      const estimate: Record<string, number> = { ...fit.coefficients };
+      if (plinear) { estimate.linCoef = estimate[".lin"]!; delete estimate[".lin"]; }
       for (const level of ["profile95", "profile90"] as const) {
-        const expected = cs.confint?.[level]?.value;
-        if (!expected?.values) continue;
+        const expected = cs.confint![level]!.value!;
         const probability = level === "profile95" ? 0.95 : 0.9;
         const conf = nlsConfint(fit, { method: "profile", level: probability });
-        expect(conf.values).toHaveLength(names.length);
-        for (let i = 0; i < names.length; i++) {
-          const interval = conf.values[i]!;
-          expect(interval).toHaveLength(2);
-          expect(Number.isFinite(interval[0])).toBe(true);
-          expect(Number.isFinite(interval[1])).toBe(true);
-          expect(interval[0]).toBeLessThan(fit.coefficients[names[i]!]!);
-          expect(interval[1]).toBeGreaterThan(fit.coefficients[names[i]!]!);
+        const target = fit.sigma * fit.sigma * qf(probability, 1, fit.dfResidual);
+        for (let i = 0; i < conf.rows.length; i++) {
+          const name = conf.rows[i]!;
+          // R returns a named vector, not a matrix, for a single parameter.
+          const rRow = expected.cols === null ? expected.values!.map(v => v[0]!) : expected.values![expected.rows!.indexOf(name)]!;
+          for (const side of [0, 1]) {
+            const endpoint = conf.values[i]![side]!;
+            const label = `${cs.id} ${level} ${name} ${side ? "upper" : "lower"}`;
+            if (!Number.isFinite(endpoint)) { mismatches.push(`${label}: not finite`); continue; }
+            if (Math.abs(endpoint - rRow[side]!) > 1e-2 * Math.abs(rRow[side]!)) mismatches.push(`${label}: ${endpoint} vs R ${rRow[side]}`);
+            const bound = (value: number) => Object.fromEntries(Object.keys(estimate).map(k => [k, k === name ? endpoint : value]));
+            const refit = nls(formula, dataFrame(cs.data), {
+              start: { ...estimate, [name]: endpoint }, algorithm: "port", lower: bound(-Infinity), upper: bound(Infinity),
+              ...(cs.args.weights === undefined ? {} : { weights: cs.args.weights }),
+            });
+            const excess = (refit.deviance - fit.deviance) / target;
+            if (Math.abs(excess - 1) > 1e-6) mismatches.push(`${label}: deviance excess ${excess} of the target`);
+          }
         }
-        // The fixture endpoints are retained as the reference set; exact roots are checked
-        // independently by nlsConfint's endpoint re-fit, rather than matching R's spline interpolation.
-        expect(expected.values.flat().every(Number.isFinite)).toBe(true);
       }
     }
+    expect(mismatches).toEqual([]);
   });
 
   it("matches the nested-model ANOVA fixture", () => {
