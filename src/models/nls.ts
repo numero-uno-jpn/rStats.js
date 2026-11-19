@@ -519,7 +519,7 @@ export function nls(formula: string, data: DataFrame, options: NlsOptions = {}):
   }
   if (options.start && Object.values(options.start).some(v => !Number.isFinite(v))) throw new RangeError("starting values must be finite");
   let start = options.start ? parameterNames.map(name => options.start![name]!) : parameterNames.map(name => initialValue(name, rawY, column(data, variables.find(v => dataNames.has(v)) ?? parsed.response)));
-  if (!options.start && /\\bSSmicmen\\s*\\(/.test(formula)) {
+  if (!options.start && /\bSSmicmen\s*\(/.test(formula)) {
     const predictorName = variables.find(name => dataNames.has(name));
     if (predictorName) {
       const x = column(data, predictorName);
@@ -544,10 +544,10 @@ export function nls(formula: string, data: DataFrame, options: NlsOptions = {}):
     if (predictorName) {
       const x = column(data, predictorName);
       let improved: Record<string, number> | undefined;
-      if (/\\bSSasympOrig\\s*\\(/.test(formula)) improved = asymptoticRiseStart(x, rawY, false);
-      else if (/\\bSSasympOff\\s*\\(/.test(formula)) improved = asymptoticRiseStart(x, rawY, true);
-      else if (/\\bSSfpl\\s*\\(/.test(formula)) improved = fourParameterLogisticStart(x, rawY);
-      else if (/\\bSSweibull\\s*\\(/.test(formula)) improved = weibullRiseStart(x, rawY);
+      if (/\bSSasympOrig\s*\(/.test(formula)) improved = asymptoticRiseStart(x, rawY, false);
+      else if (/\bSSasympOff\s*\(/.test(formula)) improved = asymptoticRiseStart(x, rawY, true);
+      else if (/\bSSfpl\s*\(/.test(formula)) improved = fourParameterLogisticStart(x, rawY);
+      else if (/\bSSweibull\s*\(/.test(formula)) improved = weibullRiseStart(x, rawY);
       if (improved) for (let i = 0; i < parameterNames.length; i++) {
         const value = improved[parameterNames[i]!];
         if (value !== undefined && Number.isFinite(value)) start[i] = value;
