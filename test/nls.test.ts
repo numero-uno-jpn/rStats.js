@@ -332,17 +332,17 @@ describe("near-zero residual convergence", () => {
 describe("nonlinear response expressions", () => {
   it("fits log(y) without transforming the returned prediction back", () => {
     const x1 = Array.from({ length: 12 }, (_, i) => 1 + (i % 4));
-    const x2 = Array.from({ length: 12 }, (_, i) => 180 + 25 * Math.floor(i / 4));
-    const y = x1.map((value, i) => Math.exp(2.5 - 0.4 * value * Math.exp(0.05 * x2[i]!)));
+    const x2 = Array.from({ length: 12 }, (_, i) => 0.2 + 0.3 * Math.floor(i / 4));
+    const y = x1.map((value, i) => Math.exp(2.5 - 0.4 * value * Math.exp(0.5 * x2[i]!)));
     const data = { y, x1, x2 };
     const fit = nls("log(y) ~ b1 - b2*x1*exp(-b3*x2)", data, {
-      start: { b1: 2.4, b2: 0.3, b3: -0.04 },
+      start: { b1: 2.4, b2: 0.3, b3: -0.4 },
     });
     expect(fit.response).toBe("log(y)");
     expect(fit.converged).toBe(true);
     expect(fit.coefficients.b1).toBeCloseTo(2.5, 7);
     expect(fit.coefficients.b2).toBeCloseTo(0.4, 7);
-    expect(fit.coefficients.b3).toBeCloseTo(-0.05, 7);
+    expect(fit.coefficients.b3).toBeCloseTo(-0.5, 7);
     const predicted = nlsPredict(fit, { newdata: { x1, x2 } });
     for (let i = 0; i < y.length; i++) expect(predicted[i]).toBeCloseTo(Math.log(y[i]!), 10);
   });
