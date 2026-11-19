@@ -219,7 +219,8 @@ No additional user decision is currently required. The supported formula functio
 - The left-hand side may be a parameter-free expression. Its variables must resolve to data columns or the mathematical constant `pi`; parameter names are rejected. The response expression is evaluated once per row for fitting. Predictions remain on that transformed response scale (for example, `log(y) ~ ...` returns predictions for `log(y)`, without an automatic inverse transform).
 - `pi` is the mathematical constant when no data column named `pi` exists. A data column named `pi` takes precedence over both the constant and any same-named start entry; that start entry is not treated as a free parameter.
 - `atan`, `asin`, and `acos` are supported with analytic derivatives. A power with a parameter-independent exponent uses the constant-exponent derivative, avoiding an unnecessary `log(base)` term for negative bases.
-- Near-zero residual convergence uses a representable-step test relative to the parameter scale. `scaleOffset` can relax the scaled-gradient test but cannot replace the step-precision check. Exact-fit detection is relative to the response norm, so response rescaling does not turn a merely small residual into an exact fit.
+- Near-zero residual convergence uses a representable-step test relative to the parameter scale and also stops when the objective cannot decrease beyond a response-scale-relative rounding floor. `scaleOffset` can relax the scaled-gradient test but cannot replace the step/objective precision checks. Exact-fit detection is relative to the response norm, so response rescaling does not turn a merely small residual into an exact fit.
+- The Gauss-Newton system and final covariance inversion normalize Jacobian columns before solving/inverting, then transform covariance back to the original parameter units. This keeps singularity checks tied to column geometry rather than arbitrary units.
 
 ## rStats.js's choices
 
