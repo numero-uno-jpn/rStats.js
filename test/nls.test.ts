@@ -50,6 +50,9 @@ const stage3Fixture = JSON.parse(readFileSync(fileURLToPath(new URL("../test/fix
   thurber: { formula: string; data: Record<string, number[]>; start: Record<string, number>; certified: Record<string, number>; rss: number };
   roszman1: { formula: string; data: Record<string, number[]>; start: Record<string, number>; certified: Record<string, number>; rss: number };
   nelson: { formula: string; data: Record<string, number[]>; start: Record<string, number>; certified: Record<string, number>; rss: number };
+  eckerle4: { formula: string; data: Record<string, number[]>; start: Record<string, number>; certified: Record<string, number>; rss: number };
+  lanczos1: { formula: string; data: Record<string, number[]>; start: Record<string, number>; certified: Record<string, number>; rss: number };
+  misra1a: { formula: string; data: Record<string, number[]>; start: Record<string, number>; certified: Record<string, number>; rss: number };
 };
 const byId = (id: string): Case => {
   const found = fixture.cases.find(x => x.id === id);
@@ -379,5 +382,24 @@ describe("nonlinear response expressions", () => {
     expect(() => nls("log(y + a) ~ b*x", { y: [1, 2, 3], x: [1, 2, 3] }, {
       start: { a: 1, b: 1 },
     })).toThrow(/response expression must not contain parameters/);
+  });
+});
+
+
+describe("NIST StRD additional nonlinear cases", () => {
+  it.each([
+    ["Eckerle4", stage3Fixture.eckerle4, 7],
+    ["Lanczos1", stage3Fixture.lanczos1, 9],
+    ["Misra1a", stage3Fixture.misra1a, 7],
+  ] as const)("fits %s from Start 2 to the certified values", (label, cs, minimumLre) => {
+    const fit = nls(cs.formula, dataFrame(cs.data), { start: cs.start });
+    for (const [name, expected] of Object.entries(cs.certified)) {
+      const relativeError = Math.abs(fit.coefficients[name]! - expected) / Math.abs(expected);
+      const lre = relativeError === 0 ? Infinity : -Math.log10(relativeError);
+      expect(lre, label + " " + name + " LRE").toBeGreaterThanOrEqual(minimumLre);
+    }
+    const rssRelativeError = Math.abs(fit.deviance - cs.rss) / Math.max(Math.abs(cs.rss), Number.MIN_VALUE);
+    expect(rssRelativeError, label + " RSS").toBeLessThanOrEqual(1e-5);
+    expect(fit.converged, label + " converged").toBe(true);
   });
 });
