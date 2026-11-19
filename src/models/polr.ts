@@ -857,10 +857,11 @@ function profileEndpoint(
   const centrePoint = evaluate(estimate);
   if (centrePoint === null) return NaN;
   let inside = centrePoint;
-  let outside = evaluate(estimate + Math.sign(target) * Math.max(standardError, 1e-6));
+  let distance = Math.max(standardError, 1e-6);
+  let outside = evaluate(estimate + Math.sign(target) * distance);
   for (let i = 0; i < 50 && (outside === null || inside.g * outside.g > 0); i++) {
-    const nextValue = estimate + 2 * (outside === null ? (inside.x - estimate) : (outside.x - estimate));
-    outside = evaluate(nextValue);
+    distance *= 2;
+    outside = evaluate(estimate + Math.sign(target) * distance);
   }
   if (outside === null || inside.g * outside.g > 0) return NaN;
 
