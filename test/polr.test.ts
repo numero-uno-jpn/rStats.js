@@ -331,8 +331,9 @@ describe("polrPredict: all prediction fixtures", () => {
           const cut1 = numeric(tight.zeta["3|4"]);
           const cut2 = numeric(tight.zeta["4|5"]);
           const logistic = (value: number): number => 1 / (1 + Math.exp(-value));
-          const manual = wt.map((value, i) => {
-            const eta = tightBeta * Number(value) + Number(off[i]);
+          const offsetValues = Array.from(off);
+          const manual = Array.from(wt, (value, i) => {
+            const eta = tightBeta * Number(value) + Number(offsetValues[i]);
             const lower = logistic(cut1 - eta);
             const upper = logistic(cut2 - eta);
             return [lower, upper - lower, 1 - upper];
@@ -348,7 +349,7 @@ describe("polrPredict: all prediction fixtures", () => {
             }
           }
 
-          const zeroOffsetData: DataFrame = { ...data, off: off.map(() => 0) };
+          const zeroOffsetData: DataFrame = { ...data, off: Array.from(off, () => 0) };
           const zeroOffset = polrPredict(fit, { newdata: zeroOffsetData, rowNames, type: "probs" });
           if (Array.isArray(zeroOffset)) throw new Error("expected zero-offset probability matrix");
           expect(zeroOffset.rows).toEqual(expectedPrediction.rows);
