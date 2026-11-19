@@ -976,7 +976,10 @@ export function polrConfint(fit: PolrResult, options: PolrConfintOptions = {}): 
 }
 
 
-/** Sequential likelihood-ratio comparisons of nested ordinal-regression fits. */
+/** Result table from sequential likelihood-ratio comparisons of nested ordinal-regression fits.
+ *
+ * @category Regression
+ */
 export interface PolrAnovaResult {
   table: {
     Model: string[];
@@ -1000,6 +1003,26 @@ export interface PolrAnovaResult {
  *
  * @example
  * ```ts
+ * const data = {
+ *   rating: [
+ *     "low", "low", "low", "medium", "medium", "high",
+ *     "low", "low", "medium", "medium", "medium", "high",
+ *     "low", "medium", "medium", "medium", "high", "high",
+ *     "low", "low", "medium", "medium", "medium", "high",
+ *     "low", "medium", "medium", "medium", "high", "high",
+ *     "low", "medium", "medium", "high", "high", "high",
+ *   ],
+ *   dose: [
+ *     0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1,
+ *     2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0,
+ *     1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2,
+ *   ],
+ *   treatment: [
+ *     "A", "A", "A", "A", "A", "A", "A", "A", "A", "A", "A", "A",
+ *     "A", "A", "A", "A", "A", "A", "B", "B", "B", "B", "B", "B",
+ *     "B", "B", "B", "B", "B", "B", "B", "B", "B", "B", "B", "B",
+ *   ],
+ * };
  * const small = polr("rating ~ dose", data);
  * const large = polr("rating ~ dose + treatment", data);
  * polrAnova(small, large);
