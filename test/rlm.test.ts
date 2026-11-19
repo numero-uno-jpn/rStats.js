@@ -28,7 +28,7 @@ interface RobustReference {
 }
 interface ExactReference {
   kind: "S" | "lts";
-  reference: { crit?: number | string; scale?: number | string; residuals?: (string | number)[] };
+  reference: { crit?: number | string; scale?: number | string; coefficients?: Record<string, string | number>; residuals?: (string | number)[] };
 }
 interface RlmCase {
   id: string;
