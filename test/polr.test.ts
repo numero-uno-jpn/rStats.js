@@ -16,6 +16,7 @@ import {
 import type { DataFrame } from "../src/models/modelFrame.js";
 import { design } from "../src/models/modelMatrix.js";
 import { qnorm } from "../src/distributions/normal.js";
+import { pchisq } from "../src/distributions/chisq.js";
 
 type Raw = Record<string, unknown>;
 type PublicFit = {
@@ -698,7 +699,6 @@ describe("polrAnova: nested housing models", () => {
             expect(values[row]).toBe("NA");
           } else {
             const df = numeric(table["   Df"]![row]);
-            const defaultStatistic = numeric(table["LR stat."]![row]);
             const tightStatistic = numeric(fitted[row - 1]!.tight.deviance)
               - numeric(fitted[row]!.tight.deviance);
             const defaultP = numeric(target);
@@ -706,7 +706,6 @@ describe("polrAnova: nested housing models", () => {
             // Propagate the observed default-vs-tight LR displacement through the chi-square tail probability.
             closeAbsolute(values[row] as number, target, Math.abs(defaultP - tightP) + 1e-12,
               `housing ANOVA ${column} row ${row + 1}`);
-            void defaultStatistic;
           }
         }
       }
@@ -733,7 +732,7 @@ describe("polrAnova: model validation and user choices", () => {
       Object.entries(data).map(([name, values]) => [name, Array.from(values).slice(0, 71)]),
     );
     const other = polr(source.fit.formula, shortened, options);
-    expect(() => polrAnova(fit, other)).toThrow("models were not all fitted to the same response, rows, link, weights and offset");
+    expect(() => polrAnova(fit, other)).toThrow("models were not all fitted to the same size of dataset");
   });
 
   it("rejects a single fit as R does", () => {
