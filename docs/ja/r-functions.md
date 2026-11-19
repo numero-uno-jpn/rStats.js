@@ -8,16 +8,22 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 
 | R | rStats.js | 説明 |
 | --- | --- | --- |
+| `anova.nls()` | `nlsAnova` | 入れ子の非線形回帰の当てはめどうしの F 検定 |
 | `anova.polr()` | `polrAnova` | 入れ子の順序回帰の当てはめどうしの尤度比検定 |
+| `confint.nls()` | `nlsConfint` | 非線形回帰のパラメータのプロファイルまたは Wald の信頼区間 |
 | `confint.polr()` | `polrConfint` | 順序回帰の傾きのプロファイル尤度または Wald の信頼区間 |
+| `nls()` | `nls` | 非線形最小二乗法による回帰 (Gauss-Newton・部分線形の plinear・上下限つきの port、自己開始モデル) |
 | `MASS::polr()` | `polr` | 累積リンクの順序ロジスティック回帰 (と probit・cloglog・loglog・cauchit) の最尤推定 |
+| `predict.nls()` | `nlsPredict` | 非線形回帰の当てはめによる、新しいデータでの予測 |
 | `predict.polr()` | `polrPredict` | 順序回帰の当てはめによる、新しいデータの水準または各水準の確率の予測 |
 | `MASS::psi.bisquare()` | `psiBisquare` | Tukey の bisquare の psi 関数 (重み・値・微分) |
 | `MASS::psi.hampel()` | `psiHampel` | Hampel の 3 段の psi 関数 (重み・値・微分) |
 | `MASS::psi.huber()` | `psiHuber` | Huber の psi 関数 (重み・値・微分) |
 | `MASS::rlm()` | `rlm` | M 推定と MM 推定によるロバストな線形回帰 (反復重み付き最小二乗法) |
+| `summary.nls()` | `nlsSummary` | 非線形回帰のパラメータの推定値・標準誤差・t 値の表と残差の標準偏差 |
 | `summary.polr()` | `polrSummary` | 順序回帰の傾きとカットポイントの推定値・標準誤差・t 値の表 |
 | `summary.rlm()` | `rlmSummary` | ロバスト回帰の係数の推定値・標準誤差・t 値の表と残差の尺度 |
+| `vcov.nls()` | `nlsVcov` | 非線形回帰のパラメータの共分散行列 |
 | `vcov.polr()` | `polrVcov` | 順序回帰の傾きとカットポイントの共分散行列 (観測情報量から) |
 | `vcov.rlm()` | `rlmVcov` | ロバスト回帰の係数の共分散行列 (Huber の有限標本の補正つき) |
 

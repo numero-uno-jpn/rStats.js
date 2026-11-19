@@ -8,16 +8,22 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 
 | R | rStats.js | Description |
 | --- | --- | --- |
+| `anova.nls()` | `nlsAnova` | Analysis of variance for nested nonlinear least-squares fits. |
 | `anova.polr()` | `polrAnova` | Equivalent to R's `anova.polr()`. |
+| `confint.nls()` | `nlsConfint` | Wald or profile confidence intervals for nonlinear parameters. |
 | `confint.polr()` | `polrConfint` | Equivalent to R's `confint.polr()`. |
+| `nls()` | `nls` | Nonlinear least-squares regression. |
 | `MASS::polr()` | `polr` | Fit a cumulative-link ordinal regression. |
+| `predict.nls()` | `nlsPredict` | Predictions from a nonlinear least-squares fit. |
 | `predict.polr()` | `polrPredict` | Predict ordinal categories or their probabilities for new observations. |
 | `MASS::psi.bisquare()` | `psiBisquare` | Tukey's bisquare psi function. |
 | `MASS::psi.hampel()` | `psiHampel` | Hampel's three-part psi function. |
 | `MASS::psi.huber()` | `psiHuber` | Huber's psi function. |
 | `MASS::rlm()` | `rlm` | Robust M regression. |
+| `summary.nls()` | `nlsSummary` | Summary of a nonlinear least-squares fit. |
 | `summary.polr()` | `polrSummary` | Summary table of the slope and cut-point estimates. |
 | `summary.rlm()` | `rlmSummary` | Coefficient table of a robust fit. |
+| `vcov.nls()` | `nlsVcov` | Covariance matrix of a nonlinear least-squares fit. |
 | `vcov.polr()` | `polrVcov` | Covariance matrix of the slopes and cut-points. |
 | `vcov.rlm()` | `rlmVcov` | Covariance matrix of robust-regression coefficients. |
 
