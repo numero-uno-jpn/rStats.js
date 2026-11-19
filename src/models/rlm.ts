@@ -227,6 +227,7 @@ export interface RlmResult {
  model: RlmModel;
  initialization?: {
    method: "LTS" | "S";
+   coefficients: Record<string, number>;
    objective: number;
    candidatesEvaluated: number;
    candidateCount: string;
@@ -706,7 +707,9 @@ export function rlm(formula: string, data: DataFrame, options: RlmOptions = {}):
    coefficients = start.coefficients;
    fixedScale = start.objective;
    initialization = {
-     method: "S", objective: start.objective, candidatesEvaluated: start.evaluated,
+     method: "S",
+     coefficients: Object.fromEntries(model.columnNames.map((name, index) => [name, start.coefficients[index]!])),
+     objective: start.objective, candidatesEvaluated: start.evaluated,
      candidateCount: start.total.toString(), exhaustive: start.warning === undefined,
    };
    if (start.warning !== undefined) searchWarnings.push(start.warning);
@@ -714,7 +717,9 @@ export function rlm(formula: string, data: DataFrame, options: RlmOptions = {}):
    const start = ltsStart(x, y, observationWeights, wtMethod);
    coefficients = start.coefficients;
    initialization = {
-     method: "LTS", objective: start.objective, candidatesEvaluated: start.evaluated,
+     method: "LTS",
+     coefficients: Object.fromEntries(model.columnNames.map((name, index) => [name, start.coefficients[index]!])),
+     objective: start.objective, candidatesEvaluated: start.evaluated,
      candidateCount: start.total.toString(), exhaustive: start.warning === undefined,
    };
    if (start.warning !== undefined) searchWarnings.push(start.warning);
