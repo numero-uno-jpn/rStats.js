@@ -28,6 +28,7 @@ interface RobustReference {
 }
 interface ExactReference {
   kind: "S" | "lts";
+  args?: { formula?: string; data?: { columns?: Record<string, unknown> } };
   reference: { crit?: number | string; scale?: number | string; coefficients?: Record<string, string | number> };
 }
 interface RlmCase {
@@ -317,16 +318,34 @@ describe("deterministic S initialization for MM", () => {
       expect(fit.initialization!.objective, c.id + " S scale").toBeGreaterThanOrEqual(0);
       const exactScale = num(exact!.reference.scale!);
       const exactCoefficients = exact!.reference.coefficients!;
-      const exactBeta = fit.model.columnNames.map((name) => {
-        const value = exactCoefficients[name];
-        expect(value, c.id + " R exact coefficient " + name).toBeDefined();
-        return num(value!);
+      const exactFormula = exact!.args?.formula;
+      const exactColumns = exact!.args?.data?.columns;
+      if (typeof exactFormula !== "string" || !exactColumns) {
+        throw new TypeError(c.id + " exact S reference must include its original formula and fixture data");
+      }
+      const responseName = exactFormula.split("~")[0]?.trim();
+      if (!responseName || !Array.isArray(exactColumns[responseName])) {
+        throw new TypeError(c.id + " exact S response column is missing");
+      }
+      const exactData = numericData(exactColumns);
+      const response = exactData[responseName];
+      if (!response) throw new TypeError(c.id + " exact S response column is missing");
+      const predictorTerms = Object.entries(exactCoefficients)
+        .filter(([name]) => name !== "(Intercept)");
+      const exactResiduals = response.map((value, i) => {
+        let predicted = exactCoefficients["(Intercept)"] === undefined
+          ? 0
+          : num(exactCoefficients["(Intercept)"]);
+        for (const [name, coefficient] of predictorTerms) {
+          const column = exactData[name];
+          if (!column) throw new TypeError(c.id + " exact S predictor column is missing: " + name);
+          predicted += num(coefficient) * num(column[i] as string | number);
+        }
+        return num(value as string | number) - predicted;
       });
-      const exactResiduals = fit.model.y.map((value, i) =>
-        value - fit.model.x[i]!.reduce((sum, x, j) => sum + x * exactBeta[j]!, 0));
       const absolute = exactResiduals.map((r, i) =>
         Math.abs(fit.model.wtMethod === "inv" ? Math.sqrt(fit.model.observationWeights[i]!) * r : r));
-      const exactDivisor = absolute.length - exactBeta.length;
+      const exactDivisor = absolute.length - Object.keys(exactCoefficients).length;
       const rhoMean = (scale: number): number => absolute.reduce((sum, value) => {
         const u = value / (1.548 * scale);
         if (u >= 1) return sum + 1;
@@ -342,6 +361,10 @@ describe("deterministic S initialization for MM", () => {
         else hi = mid;
       }
       const exactCoefficientScale = (lo + hi) / 2;
+      if (c.id === "stackloss-mm") {
+        expect(exactCoefficientScale, "stackloss exact-coefficient S scale from fixture data")
+          .toBeCloseTo(1.91190717374, 10);
+      }
       expect(Math.abs(exactScale - exactCoefficientScale) / exactCoefficientScale, c.id + " R reported S scale at exact coefficients")
         .toBeLessThanOrEqual(1e-4);
       expect(fit.initialization!.objective, c.id + " rStats S scale no worse than R exact coefficients")
