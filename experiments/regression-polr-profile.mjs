@@ -48,5 +48,14 @@ const response = xx.map((v, i) => {
   return latent < -1 ? "a" : latent < 0 ? "b" : latent < 1.2 ? "c" : "d";
 });
 const group = xx.map((_, i) => "g" + (i % 150));
+const predictorMatrix = xx.map((value, i) => [
+  value,
+  ...Array.from({ length: 149 }, (_, j) => group[i] === "g" + (j + 1) ? 1 : 0),
+]);
+const responseIndex = response.map(value => ["a", "b", "c", "d"].indexOf(value));
+const cut4 = [-Math.log(3), 0, Math.log(3)];
+const theta2 = [ ...new Array(150).fill(0), cut4[0], Math.log(cut4[1] - cut4[0]), Math.log(cut4[2] - cut4[1]) ];
+timed("polrDerivatives only (150 predictor levels, n=300)", () =>
+  __polrDerivativesForTest(predictorMatrix, responseIndex, new Array(n2).fill(1), new Array(n2).fill(0), 4, "logistic", theta2), 5);
 timed("full polr (150 predictor levels, n=300)", () =>
   polr("y ~ x + g", { y: response, x: xx, g: group }, { levels: { y: ["a", "b", "c", "d"] } }), 3);
