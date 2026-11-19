@@ -496,29 +496,28 @@ Decided by the user on 2026-11-19.
    subset is examined while their number is small enough for about a second of work (tens of thousands; stackloss
    has 5985), without a warning; only above that is a fixed, documented set of candidates used, with a warning that a
    high-breakdown start is not certified. The same input always gives the same fit.
-   **The S scale is defined by choices 1 as**
-   $$
-   \frac{1}{n-p}\sum_i \rho\!\left(\frac{r_i}{1.548\,s}\right)=\frac12,
-   \qquad
-   \rho(u)=
-   \begin{cases}
-   1-(1-u^2)^3 & |u|<1,\\
-   1 & |u|\ge 1.
-   \end{cases}
-   $$
-   Here p is the number of fitted coefficients. Both the divisor n-p and c = 1.548 are binding user decisions.
-   The S coefficients and scale are compared with the public exact-subset S references. The scale comparison
-   allows relative 1e-4 because the reference does not solve its scale equation as tightly; rStats.js must satisfy
-   the displayed equation itself to near machine precision. The exact S reference coefficients are compared
-   directly as well. The earlier §6.7 formula with c = 1.547 and divisor n is obsolete. Dividing by n produced a
-   scale about half the exact reference and correspondingly understated MM standard errors.
-   **Comparison with R:** the exact-subset S references are deterministic and examine every subset, so the
-   exhaustive rStats.js S search is compared with the exact S coefficients and scale. The reference scale is
-   compared symmetrically with the stated tolerance, not treated as an upper bound. **rlm(method = "MM") does
-   not use nsamp = "exact"** (experiments/regression-rlm-mm-nsamp.R and .out.txt: after set.seed(1) the "exact"
-   MM equals the random MM of seed 1 to every digit, and it changes with the seed and between arm64 and x86_64),
-   so MASS's MM is never compared (a known difference). rStats.js's final MM step is checked independently:
-   the bisquare estimating equations (c = 4.685) at the fixed S scale, and the covariance by Huber's formula of item 2
+   **The S scale is that of MASS** (found from public outputs, `experiments/regression-rlm-sscale.R`, `.json` and
+   `.check.txt`): $s$ solves
+   $$\frac{1}{n-p}\sum_i \rho\!\left(\frac{r_i}{c\,s}\right) = \frac12,\qquad
+   \rho(u) = \begin{cases}1-(1-u^2)^3 & |u|<1\\ 1 & |u|\ge 1\end{cases},\qquad c = 1.548$$
+   ($c$ is `lqs`'s documented `k0`; MM's `s` is this scale). It reproduces MASS's reported `scale` to a relative
+   1.5e-5 to 6.6e-5 for stackloss, phones and three location samples, and for `k0` = 2 and 3; the remainder is taken
+   to be MASS solving the scale equation loosely (rStats.js solves it exactly). Dividing by $n$ instead (the first
+   implementation) gave about half MASS's scale and so about half its MM standard errors. `crit` is a different
+   quantity and is not used.
+   **Comparison with R:** MASS's `nsamp = "exact"` (documented in `?lqs`, passed through by `rlm`) examines every
+   subset and is deterministic, so rStats.js's exhaustive S search is compared with
+   `lqs(..., method = "S", nsamp = "exact")` **by the objective under the same definition** (amended 2026-11-19):
+   the S scale of MASS's exact coefficients, solved exactly from the equation above, is the reference, and rStats.js's
+   S scale must not be larger (beyond rounding). MASS's exact search compares the elemental fits without improving
+   them and rStats.js refines its best candidates, so rStats.js can reach a lower S scale with other coefficients
+   (stackloss: 1.9119071736 against 1.91190717374 at MASS's coefficients, intercepts −36.93 and −35.38); the S
+   coefficients are therefore not compared. MASS's reported `scale` agrees with the exact solution at its own
+   coefficients to a relative 1e-4 (its loose solution), which the test also checks. **`rlm(..., method = "MM")` does not use `nsamp = "exact"`**
+   (`experiments/regression-rlm-mm-nsamp.R` and `.out.txt`: after `set.seed(1)` the "exact" MM equals the random MM
+   of seed 1 to every digit, and it changes with the seed and between arm64 and x86_64), so MASS's MM is never
+   compared (a known difference). rStats.js's final MM step is checked independently: the bisquare estimating
+   equations ($c = 4.685$) at the fixed S scale, and the covariance by Huber's formula of item 2
 2. **Covariance: Huber's (1981) formula, which reproduces MASS's `summary`** (Decision 3). The covariance is
    $\texttt{stddev}^2 (X^\top X)^{-1}$ (`cov.unscaled` equals $(X^\top X)^{-1}$ to 8e-11 in `stackloss_huber`), with
    $$\texttt{stddev} = s\,\kappa\,\frac{\sqrt{\sum_i \psi(r_i/s)^2/(n-p)}}{\overline{\psi'}},\qquad
@@ -546,7 +545,9 @@ Decided by the user on 2026-11-19.
 10. **Result:** named coefficients, fitted values, residuals, robust scale, robust weights, convergence diagnostics;
     the covariance from `rlmVcov` (Decision 12)
 11. **`init = "lts"`: a deterministic least-trimmed-squares start** (decided 2026-11-19). Use
-    h = floor((n + p) / 2) and minimize the sum of the h smallest squared residuals, as in the LTS
+    $h = \lfloor n/2\rfloor + \lfloor (p+1)/2\rfloor$ (amended 2026-11-19; MASS's `crit` uses it:
+    `experiments/regression-rlm-lts-h.R` and `.out.txt` with $n = 20$, $p = 3$ give 12, where
+    $\lfloor (n+p)/2\rfloor$ would be 11) and minimize the sum of the h smallest squared residuals, as in the LTS
     criterion described by Rousseeuw & Leroy (1987). Generate the same deterministic elemental subsets and use
     the same candidate budget as item 1. Rank candidates by the LTS objective, refine the best 16 by C-steps
     (select the h smallest absolute residuals and refit least squares), and stop each refinement after 50
@@ -554,6 +555,8 @@ Decided by the user on 2026-11-19.
     choose(n,p) subset; do not claim that the high-breakdown start is certified in that case. No random
     numbers are used. A known difference from R, whose LTS start uses a random subset search. For Huber's psi
     the start does not change the solution; for the redescending Hampel and bisquare psi it can. Fits started
-    from LTS are therefore checked by the LTS objective (not larger than the smallest of the three recorded
-    LTS-reference objectives for the same data) and by the estimating equations of the M step, not against
-    MASS's coefficients
+    from LTS are therefore checked by the LTS objective and by the estimating equations of the M step, not
+    against MASS's coefficients. The objective is MASS's `crit` (the sum of the $h$ smallest squared residuals),
+    which reproduces MASS's exact `crit` from its coefficients to every digit; rStats.js's LTS objective must not be
+    larger than MASS's exact `crit`. With its refinement it is lower (stackloss 1.6371 against 1.6574, phones
+    3.4313 against 3.4503), so the coefficients differ (amended 2026-11-19)
