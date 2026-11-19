@@ -835,7 +835,7 @@ function profileEndpoint(fit: NlsResult, index: number, direction: -1 | 1, targe
   const endpoint = Number.isFinite(rootValue) ? rootValue : estimate + direction * ((innerT + outerT) / 2);
   // Independently verify the endpoint from the original fitted nuisance values.
   const checked = evaluateAt(endpoint, nuisanceNames.map(name => fit.coefficients[name]!));
-  if (Math.abs(checked.objective - target) > 2e-7 * Math.max(1, target)) return Number.NaN;
+  if (Math.abs(checked.objective - target) > 2e-8 * Math.max(1, target)) return Number.NaN;
   return endpoint;
 }
 
