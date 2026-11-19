@@ -157,13 +157,13 @@ export function psiBisquare(u: PsiInput, options: RlmPsiBisquareOptions = {}): n
 * @category Regression
 */
 export interface RlmOptions {
- /** Estimation method. Stage 1 implements M; MM is added with deterministic S estimation. Default "M". */
+ /** Estimation method. "MM" uses a deterministic S start and a fixed-scale redescending M step. Default "M". */
  method?: "M" | "MM";
  /** Score function. Default "huber". */
  psi?: RlmPsi;
  /** Scale estimator. "Huber" and "proposal 2" are equivalent. Default "MAD". */
  scaleEst?: "MAD" | "Huber" | "proposal 2";
- /** Least-squares start or initial coefficients. LTS is added in the deterministic-initialisation stage. */
+ /** Least-squares start, deterministic LTS start, or initial coefficients. Default "ls". */
  init?: "ls" | "lts" | Sample;
  /** Non-negative observation weights, or a column name. */
  weights?: Sample | string;
