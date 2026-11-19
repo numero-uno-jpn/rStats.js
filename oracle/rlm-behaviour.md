@@ -324,9 +324,9 @@ For an LTS start, let p be the number of fitted coefficients and n the number of
 finite-sample trimming count selected for this implementation is h = floor((n + p) / 2). For a coefficient
 vector b, write r_i(b) = y_i - x_i^T b; its objective is
 
-$
+$$
 L_h(b) = \sum_{i=1}^{h} (r^2)_{(i)}(b).
-$
+$$
 
 The implementation obtains elemental coefficient candidates from full-rank subsets of p rows. A C-step
 replaces the current subset by the h observations with the smallest absolute residuals, refits least squares,
@@ -337,10 +337,10 @@ For the S start, use the bounded Tukey biweight loss with cS = 1.547:
 rho(u) = u^2/2 - u^4/(2 cS^2) + u^6/(6 cS^4) for |u| < cS, and cS^2/6 otherwise.
 Its Gaussian consistency constant is beta = E[rho(Z)], Z ~ N(0,1). Its scale at b solves
 
-$
+$$
 \frac{1}{n}\sum_{i=1}^{n}\rho\left(\frac{r_i(b)}{s}\right)
 = E[\rho(Z)], \qquad Z\sim N(0,1),
-$
+$$
 
 and the S objective is the smallest such scale over coefficient vectors. The S refinement alternates between
 solving this scalar scale equation and weighted least squares with Tukey weights
@@ -351,9 +351,9 @@ The deterministic candidate set is defined without random numbers. If choose(n,p
 candidate budget, all elemental subsets are evaluated. Otherwise, the search evaluates evenly spaced
 lexicographic combinatorial ranks from the first through the last subset. The budget is
 
-$
+$$
 B(n)=\min\left(1024,\max\left(1,\left\lfloor\frac{250000}{n}\right\rfloor\right)\right).
-$
+$$
 
 All evaluated candidates are scored, and only the best 16 are refined (50 steps maximum each). When
 B(n) < choose(n,p), the fit carries a warning with the evaluated and total candidate counts and explicitly
@@ -363,9 +363,9 @@ it is not represented as a proof of the global optimum for a capped search.
 For MM, the selected S coefficients and S-scale are the initial estimate and fixed scale. The final regression
 coefficients solve
 
-$
+$$
 \sum_{i=1}^{n} x_i\,\psi\left(\frac{r_i(b)}{s_S}\right)=0,
-$
+$$
 
 using a redescending score (bisquare by default, c = 4.685). Redescending IRLS updates use a fixed half-step
 to prevent oscillation between distinct roots. The scale is held at sS throughout the
