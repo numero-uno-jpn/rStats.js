@@ -261,9 +261,14 @@ function weightedMedian(values: readonly number[], weights: readonly number[]): 
  pairs.sort((a, b) => a.value - b.value);
  const total = pairs.reduce((sum, p) => sum + p.weight, 0);
  let cumulative = 0;
- for (const p of pairs) {
+ for (let i = 0; i < pairs.length; i++) {
+   const p = pairs[i]!;
    cumulative += p.weight;
-   if (cumulative >= total / 2) return p.value;
+   if (cumulative > total / 2) return p.value;
+   if (cumulative === total / 2) {
+     const next = pairs[i + 1];
+     return next === undefined ? p.value : (p.value + next.value) / 2;
+   }
  }
  return pairs[pairs.length - 1]?.value ?? NaN;
 }
