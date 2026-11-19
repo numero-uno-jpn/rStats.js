@@ -331,36 +331,51 @@ $$
 The implementation obtains elemental coefficient candidates from full-rank subsets of p rows. A C-step
 replaces the current subset by the h observations with the smallest absolute residuals, refits least squares,
 and retains the step only when the objective does not increase. This monotone refinement is repeated until the
-coefficient vector stops changing or 50 steps have been taken.
+coefficient vector stops changing or 50 steps have been taken. For the exhaustive small-sample search, the
+resulting LTS criterion is compared directly with the public exact-subset reference criterion; it is not merely
+required to be below a stochastic reference.
 
-For the S start, use the bounded Tukey biweight loss with cS = 1.547:
-rho(u) = u^2/2 - u^4/(2 cS^2) + u^6/(6 cS^4) for |u| < cS, and cS^2/6 otherwise.
-Its Gaussian consistency constant is beta = E[rho(Z)], Z ~ N(0,1). Its scale at b solves
+For the S start, use the bounded Tukey biweight loss
 
 $$
-\frac{1}{n}\sum_{i=1}^{n}\rho\left(\frac{r_i(b)}{s}\right)
-= E[\rho(Z)], \qquad Z\sim N(0,1),
+\rho(u) =
+\begin{cases}
+1-(1-u^2)^3 & |u|<1,\\
+1 & |u|\ge 1,
+\end{cases}
 $$
 
-and the S objective is the smallest such scale over coefficient vectors. The S refinement alternates between
-solving this scalar scale equation and weighted least squares with Tukey weights
-(1 - (r_i/(cS s))^2)^2 inside the cutoff and zero outside; a step is retained only if the scale does not increase. This gives a deterministic finite candidate approximation to the
-scale-minimization problem in Rousseeuw & Yohai (1984).
+with the fixed consistency constant c = 1.548 and standardized residual u_i = r_i/(c s). At a
+coefficient vector b, the S scale s is the positive solution of
+
+$$
+\frac{1}{n-p}\sum_{i=1}^{n}\rho\left(\frac{r_i(b)}{c s}\right)
+= \frac12.
+$$
+
+The S objective is the smallest such scale over coefficient vectors. The denominator is n-p (not n);
+the value c = 1.548 and this divisor are the user's binding choice 1. The older c = 1.547 and n-divisor
+description is superseded and must not be used.
+
+The S refinement alternates between solving this scalar scale equation and weighted least squares with
+Tukey weights (1 - u_i^2)^2 inside |u_i|<1 and zero outside; a step is retained only if the scale does
+not increase. This gives a deterministic finite candidate approximation to the scale-minimization problem
+in Rousseeuw & Yohai (1984). The exact scale equation is solved numerically to near machine precision.
 
 The deterministic candidate set is defined without random numbers. If choose(n,p) is no larger than the
 candidate budget, all elemental subsets are evaluated. Otherwise, the search evaluates evenly spaced
 lexicographic combinatorial ranks from the first through the last subset. The budget is
 
 $$
-B(n,p)=\min\left(1024,\max\left(1,\left\lfloor\frac{250000}{np}\right\rfloor\right)\right).
+B(n,p)=\min\left(10000,\max\left(1,\left\lfloor\frac{750000}{np}\right\rfloor\right)\right).
 $$
 
 All evaluated candidates are scored, and only the best 16 are refined (50 steps maximum each). When
-B(n) < choose(n,p), the fit carries a warning with the evaluated and total candidate counts and explicitly
+B(n,p) < choose(n,p), the fit carries a warning with the evaluated and total candidate counts and explicitly
 states that a high-breakdown start is not certified. Thus the deterministic search is reproducible and bounded;
 it is not represented as a proof of the global optimum for a capped search.
 
-For MM, the selected S coefficients and S-scale are the initial estimate and fixed scale. The final regression
+For MM, the selected S coefficients and S scale are the initial estimate and fixed scale. The final regression
 coefficients solve
 
 $$
@@ -373,11 +388,12 @@ M step. This follows the three-stage construction in Yohai (1987): a high-breakd
 initial scale, and a more efficient redescending M estimate at that fixed scale. MM with case weights remains
 an explicit error; inverse-variance weights are handled by applying their square roots to residuals.
 
-The reference checks use public fixture values only: the LTS objective must be no larger than the smallest
-recorded ltsReferences[].reference.crit, the S scale must be no larger than the smallest recorded
-sReferences[].reference.scale, and the final M estimating equations must have normalized residual at most
-1e-8. Random-seed coefficients are not used as targets.
-
+The reference checks use the public exact-subset S references for the initial S coefficients and scale. The
+scale is allowed a relative tolerance of 1e-4 because the reference implementation does not solve its scale
+equation as tightly as rStats.js; rStats.js must independently satisfy the equation above to near machine
+precision. LTS crit is compared with the public exact-subset criterion (relative tolerance 1e-10). The final
+MM estimating equations must have normalized residual at most 1e-8. Random-seed MM coefficients are not
+used as targets.
 ## 7. Oracle coverage and unresolved reference behaviour
 
 The initial oracle covers:
@@ -480,23 +496,29 @@ Decided by the user on 2026-11-19.
    subset is examined while their number is small enough for about a second of work (tens of thousands; stackloss
    has 5985), without a warning; only above that is a fixed, documented set of candidates used, with a warning that a
    high-breakdown start is not certified. The same input always gives the same fit.
-   **The S scale is that of MASS** (found from public outputs, `experiments/regression-rlm-sscale.R`, `.json` and
-   `.check.txt`): $s$ solves
-   $$\frac{1}{n-p}\sum_i \rho\!\left(\frac{r_i}{c\,s}\right) = \frac12,\qquad
-   \rho(u) = \begin{cases}1-(1-u^2)^3 & |u|<1\\ 1 & |u|\ge 1\end{cases},\qquad c = 1.548$$
-   ($c$ is `lqs`'s documented `k0`; MM's `s` is this scale). It reproduces MASS's reported `scale` to a relative
-   1.5e-5 to 6.6e-5 for stackloss, phones and three location samples, and for `k0` = 2 and 3; the remainder is taken
-   to be MASS solving the scale equation loosely (rStats.js solves it exactly). Dividing by $n$ instead (the first
-   implementation) gave about half MASS's scale and so about half its MM standard errors. `crit` is a different
-   quantity and is not used.
-   **Comparison with R:** MASS's `nsamp = "exact"` (documented in `?lqs`, passed through by `rlm`) examines every
-   subset and is deterministic, so rStats.js's exhaustive S search is compared with
-   `lqs(..., method = "S", nsamp = "exact")`: the S coefficients agree and the S scale is not larger than MASS's
-   beyond MASS's loose solution of the scale equation. **`rlm(..., method = "MM")` does not use `nsamp = "exact"`**
-   (`experiments/regression-rlm-mm-nsamp.R` and `.out.txt`: after `set.seed(1)` the "exact" MM equals the random MM
-   of seed 1 to every digit, and it changes with the seed and between arm64 and x86_64), so MASS's MM is never
-   compared (a known difference). rStats.js's final MM step is checked independently: the bisquare estimating
-   equations ($c = 4.685$) at the fixed S scale, and the covariance by Huber's formula of item 2
+   **The S scale is defined by choices 1 as**
+   $$
+   \frac{1}{n-p}\sum_i \rho\!\left(\frac{r_i}{1.548\,s}\right)=\frac12,
+   \qquad
+   \rho(u)=
+   \begin{cases}
+   1-(1-u^2)^3 & |u|<1,\\
+   1 & |u|\ge 1.
+   \end{cases}
+   $$
+   Here p is the number of fitted coefficients. Both the divisor n-p and c = 1.548 are binding user decisions.
+   The S coefficients and scale are compared with the public exact-subset S references. The scale comparison
+   allows relative 1e-4 because the reference does not solve its scale equation as tightly; rStats.js must satisfy
+   the displayed equation itself to near machine precision. The exact S reference coefficients are compared
+   directly as well. The earlier §6.7 formula with c = 1.547 and divisor n is obsolete. Dividing by n produced a
+   scale about half the exact reference and correspondingly understated MM standard errors.
+   **Comparison with R:** the exact-subset S references are deterministic and examine every subset, so the
+   exhaustive rStats.js S search is compared with the exact S coefficients and scale. The reference scale is
+   compared symmetrically with the stated tolerance, not treated as an upper bound. **rlm(method = "MM") does
+   not use nsamp = "exact"** (experiments/regression-rlm-mm-nsamp.R and .out.txt: after set.seed(1) the "exact"
+   MM equals the random MM of seed 1 to every digit, and it changes with the seed and between arm64 and x86_64),
+   so MASS's MM is never compared (a known difference). rStats.js's final MM step is checked independently:
+   the bisquare estimating equations (c = 4.685) at the fixed S scale, and the covariance by Huber's formula of item 2
 2. **Covariance: Huber's (1981) formula, which reproduces MASS's `summary`** (Decision 3). The covariance is
    $\texttt{stddev}^2 (X^\top X)^{-1}$ (`cov.unscaled` equals $(X^\top X)^{-1}$ to 8e-11 in `stackloss_huber`), with
    $$\texttt{stddev} = s\,\kappa\,\frac{\sqrt{\sum_i \psi(r_i/s)^2/(n-p)}}{\overline{\psi'}},\qquad

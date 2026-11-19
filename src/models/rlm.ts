@@ -399,7 +399,7 @@ function covarianceScale(residuals: readonly number[], scale: number, weights: r
 }
 
 
-const S_RHO_C = 1.547;
+const S_RHO_C = 1.548;
 const MAX_SUBSET_CANDIDATES = 10_000;
 const MAX_CANDIDATE_ROW_EVALUATIONS = 750_000;
 
@@ -545,10 +545,10 @@ function sRhoValue(u: number): number {
  return 1 - remainder * remainder * remainder;
 }
 
-function sRhoScale(residuals: readonly number[], weights: readonly number[], wtMethod: "inv" | "case"): number {
+function sRhoScale(residuals: readonly number[], weights: readonly number[], wtMethod: "inv" | "case", p: number): number {
  const absolute = effectiveAbsoluteResiduals(residuals, weights, wtMethod);
  const n = absolute.length;
- const denominator = n;
+ const denominator = n - p;
  if (!(denominator > 0)) return NaN;
  const maximumMean = absolute.filter((value) => value > 0).length / denominator;
  if (maximumMean <= 0.5) return 0;
@@ -590,7 +590,7 @@ function sStart(
        indices.map((i) => y[i]!),
        indices.map((i) => observationWeights[i]!),
      );
-     const scale = sRhoScale(residualVector(x, y, beta), observationWeights, wtMethod);
+     const scale = sRhoScale(residualVector(x, y, beta), observationWeights, wtMethod, p);
      if (Number.isFinite(scale)) candidates.push({ coefficients: beta, objective: scale, rank });
    } catch {
      // A singular elemental subset cannot identify the regression coefficients.
@@ -616,7 +616,7 @@ function sStart(
      } catch {
        break;
      }
-     const nextScale = sRhoScale(residualVector(x, y, next), observationWeights, wtMethod);
+     const nextScale = sRhoScale(residualVector(x, y, next), observationWeights, wtMethod, p);
      if (!(nextScale >= 0) || nextScale > scale + 1e-12 * Math.max(1, scale)) break;
      const same = next.every((value, j) => Math.abs(value - beta[j]!) <= 1e-12 * Math.max(1, Math.abs(value)));
      beta = next;

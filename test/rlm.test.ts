@@ -26,11 +26,16 @@ interface FitRecord {
 interface RobustReference {
   reference: { crit: number | string; scale?: number | string };
 }
+interface ExactReference {
+  kind: "S" | "lts";
+  reference: { crit?: number | string; scale?: number | string; coefficients?: Record<string, string | number> };
+}
 interface RlmCase {
   id: string;
   fits: { main: FitRecord };
   ltsReferences?: RobustReference[];
   sReferences?: RobustReference[];
+  exactReferences?: ExactReference[];
 }
 interface Fixture {
   cases: RlmCase[];
@@ -230,13 +235,15 @@ describe("deterministic LTS starts", () => {
   for (const c of LTS_CASES) {
     it(c.id, () => {
       const fit = fitFrom(c.fits.main.fit);
-      const references = c.ltsReferences!;
-      const bestReference = Math.min(...references.map((entry) => num(entry.reference.crit)));
+      const exact = c.exactReferences?.find((entry) => entry.kind === "lts");
+      expect(exact, c.id + " exact LTS reference").toBeDefined();
       expect(fit.initialization?.method).toBe("LTS");
       const objective = fit.initialization?.objective;
       expect(objective, c.id + " LTS crit").toBeDefined();
       expect(objective!, c.id + " LTS crit").toBeGreaterThanOrEqual(0);
-      expect(objective!, c.id + " LTS crit").toBeLessThanOrEqual(bestReference + 1e-10 * Math.max(1, bestReference));
+      const exactCrit = num(exact!.reference.crit!);
+      expect(Math.abs(objective! - exactCrit) / Math.max(1, Math.abs(exactCrit)), c.id + " exact LTS crit")
+        .toBeLessThanOrEqual(1e-10);
       expect(fit.initialization?.exhaustive, c.id + " exhaustive subset search").toBe(true);
       expect(estimatingEquationResidual(fit), c.id + " M estimating equations").toBeLessThanOrEqual(1e-8);
       const n = fit.residuals.length;
@@ -253,13 +260,35 @@ describe("deterministic S initialization for MM", () => {
   for (const c of MM_CASES) {
     it(c.id, () => {
       const fit = fitFrom(c.fits.main.fit);
-      const references = c.sReferences!;
-      const bestReference = Math.min(...references.map((entry) => num(entry.reference.scale!)));
+      const exact = c.exactReferences?.find((entry) => entry.kind === "S");
+      expect(exact, c.id + " exact S reference").toBeDefined();
       expect(fit.initialization?.method).toBe("S");
       expect(fit.initialization?.objective, c.id + " S scale").toBeDefined();
       expect(fit.initialization!.objective, c.id + " S scale").toBeGreaterThanOrEqual(0);
-      expect(fit.initialization!.objective, c.id + " S scale")
-        .toBeLessThanOrEqual(bestReference + 1e-10 * Math.max(1, bestReference));
+      const exactScale = num(exact!.reference.scale!);
+      expect(Math.abs(fit.initialization!.objective - exactScale) / exactScale, c.id + " exact S scale")
+        .toBeLessThanOrEqual(1e-4);
+      const exactCoefficients = exact!.reference.coefficients!;
+      for (const [name, expected] of Object.entries(exactCoefficients)) {
+        const actual = fit.initialization!.coefficients[name];
+        expect(actual, c.id + " S coefficient " + name).toBeDefined();
+        expect(Math.abs(actual! - num(expected)) / Math.max(1, Math.abs(num(expected))), c.id + " exact S coefficient " + name)
+          .toBeLessThanOrEqual(1e-8);
+      }
+      const sResiduals = fit.model.y.map((value, i) =>
+        value - fit.model.x[i]!.reduce((sum, x, j) => sum + x * fit.initialization!.coefficients[fit.model.columnNames[j]!]!, 0));
+      const divisor = sResiduals.length - (fit.model.x[0]?.length ?? 0);
+      let rhoSum = 0;
+      for (let i = 0; i < sResiduals.length; i++) {
+        const weightedResidual = fit.model.wtMethod === "inv"
+          ? Math.sqrt(fit.model.observationWeights[i]!) * sResiduals[i]!
+          : sResiduals[i]!;
+        const u = weightedResidual / (1.548 * fit.initialization!.objective);
+        const square = u * u;
+        rhoSum += Math.abs(u) >= 1 ? 1 : 1 - (1 - square) ** 3;
+      }
+      expect(Math.abs(rhoSum / divisor - 0.5), c.id + " exact S scale equation (n-p divisor)")
+        .toBeLessThanOrEqual(2e-12);
       expect(fit.initialization?.exhaustive, c.id + " exhaustive subset search").toBe(true);
       expect(fit.scale).toBe(fit.initialization!.objective);
       expect(estimatingEquationResidual(fit), c.id + " MM estimating equations").toBeLessThanOrEqual(1e-8);
