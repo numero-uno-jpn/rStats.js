@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import {
   __polrDerivativesForTest,
   polr,
+  polrPredict,
   polrSummary,
   polrVcov,
   type PolrMethod,
@@ -27,6 +28,12 @@ type FitSpec = {
   weights?: string;
   start?: Record<string, unknown>;
 };
+type RawNewData = { rowNames?: string[]; columns: Record<string, unknown> };
+type FixtureCall = {
+  operation: string;
+  args?: { newdata?: RawNewData; type?: "class" | "probs" };
+  result: { value?: unknown; error?: string };
+};
 type FixtureCase = {
   id: string;
   fits: {
@@ -36,6 +43,7 @@ type FixtureCase = {
       fitTight?: { fitPublic?: PublicFit };
     };
   };
+  calls?: FixtureCall[];
 };
 type Fixture = { cases: FixtureCase[] };
 
@@ -217,4 +225,104 @@ describe("polr: standard cauchit reference", () => {
       closeAbsolute(fit.logLik, independent, 1e-10 * Math.max(1, fit.nobs), `${id} independent Cauchy log likelihood`);
     });
   }
+});
+
+
+function prepareNewData(raw: RawNewData): { data: DataFrame; rowNames: string[] } {
+  const data: DataFrame = {};
+  for (const [name, column] of Object.entries(raw.columns)) {
+    const objectColumn = Array.isArray(column) ? undefined : column as Raw;
+    const source = objectColumn !== undefined && Array.isArray(objectColumn.values)
+      ? objectColumn.values
+      : Array.isArray(column) ? column : [column];
+    const declaredLevels = objectColumn?.levels;
+    const numericColumn = !Array.isArray(declaredLevels)
+      && source.every((value) => value === null || (typeof value === "string" && value.trim() !== "" && Number.isFinite(Number(value))));
+    data[name] = numericColumn
+      ? source.map((value) => value === null ? null : numeric(value))
+      : source as (number | string | boolean | null)[];
+  }
+  const rowNames = raw.rowNames ?? Array.from(
+    { length: Object.values(data)[0]?.length ?? 0 }, (_, i) => String(i + 1),
+  );
+  return { data, rowNames };
+}
+
+const predictionCalls = fixture.cases.flatMap((fixtureCase) =>
+  (fixtureCase.calls ?? [])
+    .filter((call) => call.operation === "predict")
+    .map((call, index) => ({ fixtureCase, call, index })),
+);
+
+describe("polrPredict: all prediction fixtures", () => {
+  for (const { fixtureCase, call, index } of predictionCalls) {
+    it(`${fixtureCase.id} predict #${index + 1} (${call.args?.type ?? "class"})`, () => {
+      if (call.args?.newdata === undefined) throw new Error("fixture prediction has no newdata");
+      const { fit } = fitCase(fixtureCase.id);
+      const { data, rowNames } = prepareNewData(call.args.newdata);
+      const actual = polrPredict(fit, {
+        newdata: data,
+        rowNames,
+        ...(call.args.type === undefined ? {} : { type: call.args.type }),
+      });
+      if (call.args.type === "probs") {
+        if (Array.isArray(actual)) throw new Error("expected a probability matrix");
+        const expected = call.result.value as { rows: string[]; cols: string[]; values: unknown[][] };
+        expect(actual.rows).toEqual(expected.rows);
+        expect(actual.columns).toEqual(expected.cols);
+        expect(actual.values).toHaveLength(expected.values.length);
+        for (let i = 0; i < expected.values.length; i++) {
+          expect(actual.values[i]).toHaveLength(expected.values[i]!.length);
+          for (let j = 0; j < expected.values[i]!.length; j++) {
+            const target = numeric(expected.values[i]![j]);
+            closeAbsolute(actual.values[i]![j]!, target, 1e-12 * Math.max(1, Math.abs(target)),
+              `${fixtureCase.id} predict probs [${i},${j}]`);
+          }
+        }
+      } else {
+        expect(actual).toEqual(call.result.value);
+      }
+    });
+  }
+
+  const unknownCalls = fixture.cases.flatMap((fixtureCase) =>
+    (fixtureCase.calls ?? [])
+      .filter((call) => call.operation === "predict-unknown-level")
+      .map((call) => ({ fixtureCase, call })),
+  );
+  for (const { fixtureCase, call } of unknownCalls) {
+    it(`${fixtureCase.id} rejects a new factor level`, () => {
+      if (call.args?.newdata === undefined || call.result.error === undefined) {
+        throw new Error("invalid unknown-level fixture");
+      }
+      const { fit } = fitCase(fixtureCase.id);
+      const { data, rowNames } = prepareNewData(call.args.newdata);
+      expect(() => polrPredict(fit, {
+        newdata: data,
+        rowNames,
+        ...(call.args.type === undefined ? {} : { type: call.args.type }),
+      })).toThrow(call.result.error);
+    });
+  }
+});
+
+describe("polrPredict: missing rows", () => {
+  it("keeps missing observations as null rows in both prediction types", () => {
+    const { fit } = fitCase("housing-logistic");
+    const newdata: DataFrame = {
+      Infl: ["Low", null, "High"],
+      Type: ["Tower", "Tower", "Terrace"],
+      Cont: ["Low", "Low", "High"],
+    };
+    const rowNames = ["first", "missing", "last"];
+    const classes = polrPredict(fit, { newdata, rowNames, type: "class" });
+    expect(classes).toEqual(["Low", null, "High"]);
+    const probs = polrPredict(fit, { newdata, rowNames, type: "probs" });
+    if (Array.isArray(probs)) throw new Error("expected a probability matrix");
+    expect(probs.rows).toEqual(rowNames);
+    expect(probs.columns).toEqual(["Low", "Medium", "High"]);
+    expect(probs.values[1]).toBeNull();
+    expect(probs.values[0]).not.toBeNull();
+    expect(probs.values[2]).not.toBeNull();
+  });
 });
