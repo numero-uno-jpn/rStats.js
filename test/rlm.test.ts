@@ -95,8 +95,9 @@ function numericMatrix(actual: number[][], expected: (string | number)[][], labe
     for (let j = 0; j < expected[i]!.length; j++) {
       const e = num(expected[i]![j]!);
       const a = actual[i]![j]!;
-      // The covariance and summary entries are direct algebraic functions of the converged fit; 1e-9
-      // allows only accumulated double rounding, not the difference between R's default and tight stops.
+      // The default-stop comparisons use 3e-3 only because the observed R default-vs-fitTight scale
+      // difference reaches 0.25% (phones Huber). Tight refits are checked separately at 1e-8;
+      // cov.unscaled is checked at 1e-10 because it does not depend on the iterative scale estimate.
       const scale = Math.max(Math.abs(e), 1e-300);
       expect(Math.abs(a - e) / scale, `${label}[${i},${j}]`).toBeLessThanOrEqual(tolerance);
     }
