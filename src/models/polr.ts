@@ -878,39 +878,47 @@ function profileEndpoint(
     return { x: value, g: r - target, r, score: point.fixedScore };
   };
 
-  const centrePoint = evaluate(estimate);
-  if (centrePoint === null) return NaN;
-  let inside = centrePoint;
-  let distance = Math.max(standardError, 1e-6);
+  // The estimate itself has r=0, so start from the corresponding Wald endpoint,
+  // not from a Newton step at the singular point.
+  const centreValue = { x: estimate, g: -target, r: 0, score: 0 };
+  let inside = centreValue;
+  let distance = Math.max(Math.abs(target) * standardError, standardError, 1e-6);
   let outside = evaluate(estimate + Math.sign(target) * distance);
-  for (let i = 0; i < 50 && (outside === null || inside.g * outside.g > 0); i++) {
+  for (let iteration = 0; iteration < 60 && (outside === null || inside.g * outside.g > 0); iteration++) {
     distance *= 2;
     outside = evaluate(estimate + Math.sign(target) * distance);
   }
   if (outside === null || inside.g * outside.g > 0) return NaN;
 
+  let low = inside;
+  let high = outside;
+  if (low.x > high.x) [low, high] = [high, low];
   let current = outside;
-  for (let iteration = 0; iteration < 35; iteration++) {
-    if (Math.abs(current.g) <= 2e-12) return current.x;
-    if (inside.g * current.g <= 0) outside = current;
-    else inside = current;
+  for (let iteration = 0; iteration < 80; iteration++) {
+    if (Math.abs(current.g) <= 2e-10) return current.x;
+    if (low.g * current.g <= 0) high = current;
+    else low = current;
+    if (low.x > high.x) [low, high] = [high, low];
 
+    // The stored gradient is for negative log likelihood, hence dr/db = score/r.
+    // Newton is used only away from r=0 and only while it remains inside the bracket.
     const derivative = current.r === 0 ? NaN : current.score / current.r;
     let candidate = current.x - current.g / derivative;
-    const left = Math.min(inside.x, outside.x);
-    const right = Math.max(inside.x, outside.x);
-    if (!Number.isFinite(candidate) || candidate <= left || candidate >= right) {
-      candidate = inside.x - inside.g * (outside.x - inside.x) / (outside.g - inside.g);
+    const width = high.x - low.x;
+    const guard = 0.05 * width;
+    if (!Number.isFinite(candidate) || candidate <= low.x + guard || candidate >= high.x - guard) {
+      // A secant step is cheaper than a profile refit and is safe only inside the bracket.
+      candidate = low.x - low.g * (high.x - low.x) / (high.g - low.g);
     }
-    if (!Number.isFinite(candidate) || candidate <= left || candidate >= right
-      || candidate === current.x || candidate === inside.x || candidate === outside.x) {
-      return Math.abs(inside.g) < Math.abs(outside.g) ? inside.x : outside.x;
+    if (!Number.isFinite(candidate) || candidate <= low.x + guard || candidate >= high.x - guard) {
+      candidate = low.x + width / 2;
     }
+    if (candidate === low.x || candidate === high.x || candidate === current.x) return NaN;
     const next = evaluate(candidate);
     if (next === null) return NaN;
     current = next;
   }
-  return Math.abs(inside.g) < Math.abs(outside.g) ? inside.x : outside.x;
+  return NaN;
 }
 
 /**
