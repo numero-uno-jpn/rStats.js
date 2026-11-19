@@ -169,7 +169,7 @@ $$
 \qquad
 \chi(u)=\min(u^2,k_2^2),
 \qquad
-b=E\{\min(Z^2,k_2^2)\},\quad Z\sim N(0,1),
+b=E\{\min(Z^2,k_2^2)\},\quad Z\sim N(0,1).
 $
 
 where $p$ is the number of fitted coefficients. The denominator is established by the supplied 'stackloss-scale-huber' fitTight check: with $k_2=1.345$, the reported fit gives a scale-equation residual of $-1.1\times10^{-15}$ using $n-p$, but $-0.135$ using $n$. The rStats.js fit before the correction satisfies the $n$ equation to $2.2\times10^{-16}$ and has the different scale $2.30648597055$, whereas the R fitTight scale is $2.85513271974$. This is evidence for the $n-p$ divisor, not merely a preference for matching an iteration flag.
