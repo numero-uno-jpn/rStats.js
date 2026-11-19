@@ -353,6 +353,7 @@ describe("polrPredict: missing rows", () => {
     const rowNames = ["first", "missing", "last"];
     const classes = polrPredict(fit, { newdata, rowNames, type: "class" });
     expect(classes).toEqual(["Low", null, "High"]);
+    expect(polrPredict(fit, { newdata, rowNames })).toEqual(classes);
     const probs = polrPredict(fit, { newdata, rowNames, type: "probs" });
     if (Array.isArray(probs)) throw new Error("expected a probability matrix");
     expect(probs.rows).toEqual(rowNames);
