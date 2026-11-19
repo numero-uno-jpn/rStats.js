@@ -139,7 +139,7 @@ describe("nonlinear least-squares regression", () => {
         for (const name of Object.keys(ref.coefficients)) {
           const actual = fit.coefficients[name];
           const expected = ref.coefficients[name]!;
-          if (actual === undefined || Math.abs(actual - expected) > 1e-6 * Math.max(1, Math.abs(expected))) {
+          if (actual === undefined || Math.abs(actual - expected) > 5e-7) {
             mismatches.push(`${cs.id}: coefficient ${name} (${actual} vs ${expected})`);
           }
         }
@@ -155,7 +155,7 @@ describe("nonlinear least-squares regression", () => {
           mismatches.push(`${cs.id}: summary labels`);
         }
         for (let i = 0; i < ref.summary.values.length; i++) for (let j = 0; j < ref.summary.values[i]!.length; j++) {
-          if (Math.abs(summary.values[i]![j]! - ref.summary.values[i]![j]!) > 5e-7) mismatches.push(`${cs.id}: summary[${i},${j}]`);
+          if (Math.abs(summary.values[i]![j]! - ref.summary.values[i]![j]!) > (j === 3 ? 1e-10 * Math.max(1e-4, Math.abs(ref.summary.values[i]![j]!)) : 5e-7)) mismatches.push(`${cs.id}: summary[${i},${j}]`);
         }
       } catch (error) {
         mismatches.push(`${cs.id}: threw ${error instanceof Error ? error.message : String(error)}`);
