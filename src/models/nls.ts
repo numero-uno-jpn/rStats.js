@@ -426,6 +426,26 @@ export function nls(formula: string, data: DataFrame, options: NlsOptions = {}):
   }
   if (options.start && Object.values(options.start).some(v => !Number.isFinite(v))) throw new RangeError("starting values must be finite");
   let start = options.start ? parameterNames.map(name => options.start![name]!) : parameterNames.map(name => initialValue(name, rawY, column(data, variables.find(v => dataNames.has(v)) ?? parsed.response)));
+  if (!options.start && /\\bSSmicmen\\s*\\(/.test(formula)) {
+    const predictorName = variables.find(name => dataNames.has(name));
+    if (predictorName) {
+      const x = column(data, predictorName);
+      const pairs = rawY.map((value, i) => [x[i]!, value] as const)
+        .filter(([a, b]) => Number.isFinite(a) && Number.isFinite(b) && a > 0 && b > 0);
+      const u = pairs.map(([a]) => 1 / a), v = pairs.map(([, b]) => 1 / b);
+      const meanU = u.reduce((sum, value) => sum + value, 0) / u.length;
+      const meanV = v.reduce((sum, value) => sum + value, 0) / v.length;
+      const slope = u.reduce((sum, value, i) => sum + (value - meanU) * (v[i]! - meanV), 0)
+        / u.reduce((sum, value) => sum + (value - meanU) ** 2, 0);
+      const intercept = meanV - slope * meanU;
+      if (intercept > 0 && slope > 0) {
+        for (let i = 0; i < parameterNames.length; i++) {
+          if (parameterNames[i] === "Vm") start[i] = 1 / intercept;
+          if (parameterNames[i] === "K") start[i] = slope / intercept;
+        }
+      }
+    }
+  }
   if (start.some(v => !Number.isFinite(v))) throw new RangeError("could not obtain finite starting values");
 
   const weightRaw = typeof options.weights === "string"
