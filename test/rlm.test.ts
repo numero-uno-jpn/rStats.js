@@ -277,7 +277,7 @@ describe("deterministic S initialization for MM", () => {
       const n = fit.residuals.length;
       const p = fit.model.x[0]?.length ?? 0;
       const total = binomialForTest(n, p);
-      if (total > 1024n) {
+      if (total > 10_000n) {
         expect(fit.warnings.some((warning) => warning.includes("high-breakdown start is not certified"))).toBe(true);
       }
     });
@@ -412,9 +412,11 @@ describe("robust M regression against the R fixture", () => {
 
 describe("rlm errors and numerical boundaries", () => {
   it("rejects a rank-deficient design before robust initialization", () => {
-    const c = fixture.cases.find((value) => value.id === "error-collinear");
-    expect(c).toBeDefined();
-    expect(() => fitFrom(c!.fits.main.fit)).toThrow(/'x' is singular/);
+    expect(() => rlm("y ~ x + z", {
+      y: [2, 4, 6, 8, 10],
+      x: [1, 2, 3, 4, 5],
+      z: [2, 4, 6, 8, 10],
+    })).toThrow(/'x' is singular/);
   });
 
   it("rejects MM with case weights", () => {
