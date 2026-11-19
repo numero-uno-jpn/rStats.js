@@ -221,7 +221,7 @@ function asymptoticRiseStart(x: number[], y: number[], shifted: boolean): { Asym
     const c0 = intercept / -slope;
     if (shifted && (!Number.isFinite(c0) || c0 < 0 || c0 >= Math.min(...sx))) continue;
     const rate = -slope;
-    const error = selected.reduce((sum, point) =>
+    error = selected.reduce((sum, point) =>
       sum + (point.y - Asym * (1 - Math.exp(-rate * (point.x - c0)))) ** 2, 0);
     const candidate = { Asym, lrc: Math.log(rate), ...(shifted ? { c0 } : {}), error };
     if (!best || candidate.error < best.error) best = candidate;
