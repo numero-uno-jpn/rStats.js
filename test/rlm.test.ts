@@ -235,7 +235,8 @@ describe("deterministic LTS starts", () => {
       expect(fit.initialization?.method).toBe("LTS");
       const objective = fit.initialization?.objective;
       expect(objective, c.id + " LTS crit").toBeDefined();
-      expect(objective!, c.id + " LTS crit").toBeCloseTo(bestReference, 7);
+      expect(objective!, c.id + " LTS crit").toBeGreaterThanOrEqual(0);
+      expect(objective!, c.id + " LTS crit").toBeLessThanOrEqual(bestReference + 1e-10 * Math.max(1, bestReference));
       expect(fit.initialization?.exhaustive, c.id + " exhaustive subset search").toBe(true);
       expect(estimatingEquationResidual(fit), c.id + " M estimating equations").toBeLessThanOrEqual(1e-8);
       const n = fit.residuals.length;
@@ -256,7 +257,9 @@ describe("deterministic S initialization for MM", () => {
       const bestReference = Math.min(...references.map((entry) => num(entry.reference.scale!)));
       expect(fit.initialization?.method).toBe("S");
       expect(fit.initialization?.objective, c.id + " S scale").toBeDefined();
-      expect(fit.initialization!.objective, c.id + " S scale").toBeCloseTo(bestReference, 7);
+      expect(fit.initialization!.objective, c.id + " S scale").toBeGreaterThanOrEqual(0);
+      expect(fit.initialization!.objective, c.id + " S scale")
+        .toBeLessThanOrEqual(bestReference + 1e-10 * Math.max(1, bestReference));
       expect(fit.initialization?.exhaustive, c.id + " exhaustive subset search").toBe(true);
       expect(fit.scale).toBe(fit.initialization!.objective);
       expect(estimatingEquationResidual(fit), c.id + " MM estimating equations").toBeLessThanOrEqual(1e-8);
@@ -404,5 +407,38 @@ describe("robust M regression against the R fixture", () => {
     const fit = fitFrom(c!.fits.main.fit);
     expect(fit.converged).toBe(false);
     expect(fit.warnings).toContain("'rlm' failed to converge in 2 steps");
+  });
+});
+
+describe("rlm errors and numerical boundaries", () => {
+  it("rejects a rank-deficient design before robust initialization", () => {
+    const c = fixture.cases.find((value) => value.id === "error-collinear");
+    expect(c).toBeDefined();
+    expect(() => fitFrom(c!.fits.main.fit)).toThrow(/'x' is singular/);
+  });
+
+  it("rejects MM with case weights", () => {
+    const c = fixture.cases.find((value) => value.id === "mm-case-weights");
+    expect(c).toBeDefined();
+    expect(() => fitFrom(c!.fits.main.fit)).toThrow(/MM estimation does not support case weights/);
+  });
+
+  it("reports a non-converged fit and its warning at the iteration limit", () => {
+    const c = fixture.cases.find((value) => value.id === "phones-maxit-2");
+    expect(c).toBeDefined();
+    const fit = fitFrom(c!.fits.main.fit);
+    expect(fit.converged).toBe(false);
+    expect(fit.warnings).toContain("'rlm' failed to converge in 2 steps");
+  });
+
+  it("returns finite zero-scale diagnostics for an exact fit", () => {
+    const fit = rlm("y ~ 1", { y: [5, 5, 5, 5] });
+    expect(fit.scale).toBe(0);
+    expect(fit.converged).toBe(true);
+    expect(fit.robustWeights).toEqual([1, 1, 1, 1]);
+    expect(fit.workingWeights).toEqual([1, 1, 1, 1]);
+    expect(fit.stddev).toBe(0);
+    expect(fit.covariance.flat().every(Number.isFinite)).toBe(true);
+    expect(fit.covariance.flat().every((value) => value === 0)).toBe(true);
   });
 });

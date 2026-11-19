@@ -99,7 +99,7 @@ export function psiHuber(u: PsiInput, options: RlmPsiHuberOptions = {}): PsiResu
 *
 * @example
 * ```ts
-* psiHampel([-5, -2, 0, 5, 9]); // [0.6, 1, 1, 0.5, 0]
+* psiHampel([-5, -2, 0, 5, 9]); // [0.3, 1, 1, 0.3, 0]
 * ```
 *
 * @category Regression
@@ -399,7 +399,7 @@ function covarianceScale(residuals: readonly number[], scale: number, weights: r
 }
 
 
-const S_RHO_C = 1.548;
+const S_RHO_C = 1.547;
 const MAX_SUBSET_CANDIDATES = 10_000;
 const MAX_CANDIDATE_ROW_EVALUATIONS = 750_000;
 
@@ -545,10 +545,10 @@ function sRhoValue(u: number): number {
  return 1 - remainder * remainder * remainder;
 }
 
-function sRhoScale(residuals: readonly number[], weights: readonly number[], wtMethod: "inv" | "case", p: number): number {
+function sRhoScale(residuals: readonly number[], weights: readonly number[], wtMethod: "inv" | "case"): number {
  const absolute = effectiveAbsoluteResiduals(residuals, weights, wtMethod);
  const n = absolute.length;
- const denominator = n - p;
+ const denominator = n;
  if (!(denominator > 0)) return NaN;
  const maximumMean = absolute.filter((value) => value > 0).length / denominator;
  if (maximumMean <= 0.5) return 0;
@@ -590,7 +590,7 @@ function sStart(
        indices.map((i) => y[i]!),
        indices.map((i) => observationWeights[i]!),
      );
-     const scale = sRhoScale(residualVector(x, y, beta), observationWeights, wtMethod, p);
+     const scale = sRhoScale(residualVector(x, y, beta), observationWeights, wtMethod);
      if (Number.isFinite(scale)) candidates.push({ coefficients: beta, objective: scale, rank });
    } catch {
      // A singular elemental subset cannot identify the regression coefficients.
@@ -616,7 +616,7 @@ function sStart(
      } catch {
        break;
      }
-     const nextScale = sRhoScale(residualVector(x, y, next), observationWeights, wtMethod, p);
+     const nextScale = sRhoScale(residualVector(x, y, next), observationWeights, wtMethod);
      if (!(nextScale >= 0) || nextScale > scale + 1e-12 * Math.max(1, scale)) break;
      const same = next.every((value, j) => Math.abs(value - beta[j]!) <= 1e-12 * Math.max(1, Math.abs(value)));
      beta = next;
@@ -691,6 +691,8 @@ export function rlm(formula: string, data: DataFrame, options: RlmOptions = {}):
  if (!x.every((row) => row.every(Number.isFinite)) || !y.every(Number.isFinite)) throw new RangeError("NA/NaN/Inf in model matrix or response");
  const p = x[0]?.length ?? 0;
  if (p === 0) throw new Error("model has no coefficients");
+ // Reject an aliased design before any robust-start search can discard singular subsets.
+ const leastSquaresCoefficients = weightedLeastSquares(x, y, observationWeights);
  const model: RlmModel = {
    formula, x, y, columnNames: d.colNames, observationWeights, wtMethod, psi, scaleEst,
    k, a, b, c, k2, rows: d.frame.rows,
@@ -717,7 +719,7 @@ export function rlm(formula: string, data: DataFrame, options: RlmOptions = {}):
    };
    if (start.warning !== undefined) searchWarnings.push(start.warning);
  } else if (options.init === undefined || options.init === "ls") {
-   coefficients = weightedLeastSquares(x, y, observationWeights);
+   coefficients = leastSquaresCoefficients;
  } else if (typeof options.init === "string") {
    throw new RangeError("init must be 'ls', 'lts' or a numeric coefficient vector");
  } else {
@@ -740,7 +742,8 @@ export function rlm(formula: string, data: DataFrame, options: RlmOptions = {}):
    const residuals = residualVector(x, y, coefficients);
    scale = fixedScale ?? robustScale(residuals, observationWeights, wtMethod, scaleEst, k2, p);
    if (!(scale > 0) || !Number.isFinite(scale)) {
-     if (scale === 0) { converged = true; break; }
+     const exact = scale === 0 && residuals.every((r, i) => observationWeights[i]! === 0 || r === 0);
+     if (exact) { converged = true; break; }
      throw new Error("robust scale is not positive and finite");
    }
    robustWeights = residuals.map((r, i) => {
@@ -757,7 +760,8 @@ export function rlm(formula: string, data: DataFrame, options: RlmOptions = {}):
    const nextResiduals = residualVector(x, y, next);
    const nextScale = fixedScale ?? robustScale(nextResiduals, observationWeights, wtMethod, scaleEst, k2, p);
    if (!(nextScale > 0) || !Number.isFinite(nextScale)) {
-     if (nextScale === 0) { coefficients = next; scale = 0; converged = true; break; }
+     const exact = nextScale === 0 && nextResiduals.every((r, i) => observationWeights[i]! === 0 || r === 0);
+     if (exact) { coefficients = next; scale = 0; converged = true; break; }
      throw new Error("robust scale is not positive and finite");
    }
    let scoreNorm = 0;
@@ -784,12 +788,16 @@ export function rlm(formula: string, data: DataFrame, options: RlmOptions = {}):
  const fittedValues = x.map((row) => row.reduce((sum, v, j) => sum + v * coefficients[j]!, 0));
  const residuals = y.map((v, i) => v - fittedValues[i]!);
  scale = fixedScale ?? robustScale(residuals, observationWeights, wtMethod, scaleEst, k2, p);
- robustWeights = residuals.map((r, i) => {
+ const exactFit = scale === 0 && residuals.every((r, i) => observationWeights[i]! === 0 || r === 0);
+ if (scale === 0 && !exactFit) throw new Error("robust scale is zero but residuals are not all zero");
+ robustWeights = exactFit ? observationWeights.map((w) => w > 0 ? 1 : 0) : residuals.map((r, i) => {
    const u = (wtMethod === "inv" ? Math.sqrt(observationWeights[i]!) * r : r) / scale;
    return psiWeight(psi, u, model);
  });
- workingWeights = effectiveObsWeights(residuals, scale);
- const covariance = covarianceScale(residuals, scale, observationWeights, model, p);
+ workingWeights = exactFit ? observationWeights.slice() : effectiveObsWeights(residuals, scale);
+ const covariance = exactFit
+   ? { stddev: 0, covUnscaled: chol2inv(chol(crossProduct(x, observationWeights))) }
+   : covarianceScale(residuals, scale, observationWeights, model, p);
  const warnings = [...d.warnings, ...searchWarnings];
  if (!converged) warnings.push("'rlm' failed to converge in " + maxit + " steps");
  const result: RlmResult = {
