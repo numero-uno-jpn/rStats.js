@@ -25,7 +25,18 @@
   勾配の判定の尺度 $\sqrt{RSS} + \text{scaleOffset}$ (`src/models/nls.ts:449-451`) が原因。直ったら choices 6 の
   scaleOffset の文と、`test/nls.test.ts` の `exact-scaleOffset` の除外を私が書き直す
 
-### 次: 段階 3 の端の入力の点検 (下の「nls の後」の項目)。結果と上の不具合を ChatGPT への 1 つの依頼にまとめる
+### 段階 3 の端の入力の点検 (セッション 25 で済み)。ChatGPT に新しい会話で依頼した
+
+- 指示書 `work/regression` の `briefs/regression-1.7-stage3.ja.md` (`7f7e40b8`)。証拠は `experiments/regression-stage3-edge.*`、
+  `regression-nls-strd.*` (NIST StRD 26 題、データは NIST から取る)、`regression-polr-scale.*`、`regression-edge-r.*`
+- 直す 10 項目: nls の底が負の冪の微分 (`x^2` で x < 0 が落ちる、重い)、残差ほぼ 0 の収束判定 (scaleOffset の不具合と
+  Lanczos1)、rlm MM の S の尺度の絶対閾値 (y × 1e-8 から崩れる)、polr が R の 100〜300 倍遅い、rlm の直線上の点、
+  nls・polr の尺度への強さ、rlm MM の探索の予算、nls に atan・asin・acos・pi、nls の左辺の式
+- **ユーザーの決定 (2026-11-20):** rlm で過半数がまったく直線上 → 直線・尺度 0・収束の扱い・推論は NaN と警告。
+  nls に逆三角関数と左辺の式を足す。**この 2 つと nls の `scaleOffset` の直しは、報告が来たら私が choices に書く**
+  (rlm の choices と nls の choices 6 と 10 以降)
+- 報告が来たら: pull、型チェック、テスト、端の入力のスクリプトを流し直して前後を比べる、choices の差分を見出しから比べる、
+  生成物 (atan などでオプションは増えないはず)。次は「nls の後」の配線と文書
 
 ## 次のセッションで最初にやること: 1.7.0 の続き (セッション 24 → 25、2026-11-19 深夜に作成)
 
