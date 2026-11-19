@@ -191,7 +191,7 @@ describe("nonlinear least-squares regression", () => {
         const linear = numerator / denominator;
         return fit.weights.reduce((sum, weight, i) => sum + weight * (fit.y[i]! - linear * basis[fit.rows[i]!]!) ** 2, 0);
       }
-      const formula = cs.formula.replace(new RegExp(`\\\\b${name}\\\\b`, "g"), `(${value})`);
+      const formula = cs.formula.replace(new RegExp(`\\b${name}\\b`, "g"), `(${value})`);
       const start = Object.fromEntries(Object.entries(fit.coefficients).filter(([key]) => key !== name && key !== ".lin"));
       const constrained = nls(formula, dataFrame(cs.data), {
         start,
