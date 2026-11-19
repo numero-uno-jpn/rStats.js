@@ -402,7 +402,7 @@ function covarianceScale(residuals: readonly number[], scale: number, weights: r
 
 const S_RHO_C = 1.548;
 const MAX_SUBSET_CANDIDATES = 10_000;
-const MAX_CANDIDATE_ROW_EVALUATIONS = 750_000;
+const MAX_CANDIDATE_ROW_EVALUATIONS = 5_000_000;
 
 interface RobustStart {
  coefficients: number[];
