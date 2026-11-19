@@ -163,7 +163,12 @@ function initialValue(name: string, x: number[], y: number[]): number {
   if (name === "Asym" || name === "Vm" || name === "B") return ymax;
   if (name === "R0" || name === "A") return ymin;
   if (name === "Drop") return Math.max(ymax - ymin, 1e-3);
-  if (name === "K") return Math.max(Math.abs(x.reduce((a, b) => a + b, 0) / x.length), 1e-3);
+  if (name === "K") {
+    const target = (ymin + ymax) / 2;
+    let best = 0;
+    for (let i = 1; i < y.length; i++) if (Math.abs(y[i]! - target) < Math.abs(y[best]! - target)) best = i;
+    return Math.max(Math.abs(x[best]!), 1e-6);
+  }
   if (name === "xmid" || name === "c0") return (xMin + xMax) / 2;
   if (name === "scal") return range / 4;
   if (name === "b2") return 2;
@@ -321,8 +326,9 @@ function fitCore(
       Math.abs(value) / (Math.sqrt(Math.max(matrix[i]![i]!, Number.MIN_VALUE))
         * (Math.sqrt(current.objective) + control.scaleOffset + Number.EPSILON))));
     const stepNorm = Math.max(0, ...delta.map((v, i) => Math.abs(v) / (1 + Math.abs(values[i]!))));
-    if (scaledGradientNorm <= Math.sqrt(control.tol) * 2
-      && stepNorm <= Math.sqrt(control.tol) * 4) {
+    const stepTolerance = Math.max(1e-12, Math.sqrt(control.tol) * 0.001);
+    if (scaledGradientNorm <= Math.max(control.tol * 100, 1e-13)
+      && stepNorm <= stepTolerance) {
       converged = true; break;
     }
     let alpha = 1, accepted = false;
@@ -333,14 +339,17 @@ function fitCore(
         const trial = algorithm === "plinear"
           ? evaluateProfiled(expr, rows, y, weights, names, candidate)
           : evaluate(expr, rows, y, weights, names, candidate, algorithm);
-        if (trial.objective < current.objective) {
+        const candidateStepNorm = alpha * stepNorm;
+        const roundingAllowance = 4 * Number.EPSILON * Math.max(1, current.objective);
+        if (trial.objective < current.objective
+          || (candidateStepNorm <= stepTolerance * 10 && trial.objective <= current.objective + roundingAllowance)) {
           values = candidate; current = trial; accepted = true; break;
         }
       } catch { /* A trial outside the function domain is rejected and the step is reduced. */ }
       alpha /= 2;
     }
     if (!accepted) {
-      if (stepNorm <= Math.sqrt(control.tol) * 4) {
+      if (stepNorm <= stepTolerance * 10) {
         converged = true; break;
       }
       break;
