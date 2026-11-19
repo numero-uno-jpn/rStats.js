@@ -46,6 +46,9 @@ interface Fixture {
 }
 
 const fixture = JSON.parse(readFileSync(fileURLToPath(new URL("../test/fixtures/nls.json", import.meta.url)), "utf8")) as Fixture;
+const stage3Fixture = JSON.parse(readFileSync(fileURLToPath(new URL("../test/fixtures/nls-stage3.json", import.meta.url)), "utf8")) as {
+  thurber: { formula: string; data: Record<string, number[]>; start: Record<string, number>; certified: Record<string, number>; rss: number };
+};
 const byId = (id: string): Case => {
   const found = fixture.cases.find(x => x.id === id);
   if (!found) throw new Error("missing nls fixture: " + id);
@@ -287,5 +290,21 @@ describe("nonlinear expression derivatives and constants", () => {
     const expression = parseNlsFormula("y ~ x/pi").expression;
     expect(evaluateNlsExpression(expression, { x: 1 }, {})).toBeCloseTo(1 / Math.PI, 15);
     expect(evaluateNlsExpression(expression, { x: 1, pi: 2 }, {})).toBe(0.5);
+  });
+});
+
+
+describe("NIST StRD nonlinear regression edge cases", () => {
+  it("fits Thurber from Start 2 to at least seven certified digits", () => {
+    const cs = stage3Fixture.thurber;
+    const fit = nls(cs.formula, dataFrame(cs.data), { start: cs.start });
+    const lre: Record<string, number> = {};
+    for (const [name, expected] of Object.entries(cs.certified)) {
+      const relativeError = Math.abs(fit.coefficients[name]! - expected) / Math.abs(expected);
+      lre[name] = relativeError === 0 ? Infinity : -Math.log10(relativeError);
+      expect(lre[name], "Thurber " + name + " LRE").toBeGreaterThanOrEqual(7);
+    }
+    expect(fit.deviance).toBeCloseTo(cs.rss, 5);
+    expect(fit.converged).toBe(true);
   });
 });
