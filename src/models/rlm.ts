@@ -462,6 +462,13 @@ function effectiveAbsoluteResiduals(residuals: readonly number[], weights: reado
  return residuals.map((value, i) => Math.abs(wtMethod === "inv" ? Math.sqrt(weights[i]!) * value : value));
 }
 
+function majorityExactResiduals(x: readonly (readonly number[])[], y: readonly number[], coefficients: readonly number[]): boolean[] {
+ const fitted = x.map((row) => row.reduce((sum, value, j) => sum + value * coefficients[j]!, 0));
+ const magnitude = Math.max(...y.map(Math.abs), ...fitted.map(Math.abs), Number.MIN_VALUE);
+ const tolerance = 64 * Number.EPSILON * magnitude;
+ return y.map((value, i) => Math.abs(value - fitted[i]!) <= tolerance);
+}
+
 function ltsObjective(residuals: readonly number[], h: number, weights: readonly number[], wtMethod: "inv" | "case"): number {
  const squares = effectiveAbsoluteResiduals(residuals, weights, wtMethod).map((value) => value * value);
  squares.sort((a, b) => a - b);
@@ -736,8 +743,9 @@ export function rlm(formula: string, data: DataFrame, options: RlmOptions = {}):
  }
 
  const convergence: number[] = [];
- let converged = false;
- let scale = fixedScale ?? NaN;
+ const initialInliers = majorityExactResiduals(x, y, coefficients);
+ let converged = initialInliers.filter((inlier, i) => inlier && observationWeights[i]! > 0).length > y.length / 2;
+ let scale = converged ? 0 : (fixedScale ?? NaN);
  let robustWeights = new Array<number>(y.length).fill(1);
  let workingWeights = observationWeights.slice();
  let iterations = 0;
@@ -766,6 +774,13 @@ export function rlm(formula: string, data: DataFrame, options: RlmOptions = {}):
    const damping = psi === "huber" ? 1 : 0.5;
    const next = coefficients.map((value, j) => value + damping * (irls[j]! - value));
    const nextResiduals = residualVector(x, y, next);
+   const nextInliers = majorityExactResiduals(x, y, next);
+   if (nextInliers.filter((inlier, i) => inlier && observationWeights[i]! > 0).length > y.length / 2) {
+     coefficients = next;
+     scale = 0;
+     converged = true;
+     break;
+   }
    const nextScale = fixedScale ?? robustScale(nextResiduals, observationWeights, wtMethod, scaleEst, k2, p);
    if (!(nextScale > 0) || !Number.isFinite(nextScale)) {
      const exact = nextScale === 0 && nextResiduals.every((r, i) => observationWeights[i]! === 0 || r === 0);
@@ -796,17 +811,28 @@ export function rlm(formula: string, data: DataFrame, options: RlmOptions = {}):
  const fittedValues = x.map((row) => row.reduce((sum, v, j) => sum + v * coefficients[j]!, 0));
  const residuals = y.map((v, i) => v - fittedValues[i]!);
  scale = fixedScale ?? robustScale(residuals, observationWeights, wtMethod, scaleEst, k2, p);
+ const inlierMask = majorityExactResiduals(x, y, coefficients);
+ const majorityExactFit = scale === 0
+   && inlierMask.filter((inlier, i) => inlier && observationWeights[i]! > 0).length > y.length / 2;
  const exactFit = scale === 0 && residuals.every((r, i) => observationWeights[i]! === 0 || r === 0);
- if (scale === 0 && !exactFit) throw new Error("robust scale is zero but residuals are not all zero");
- robustWeights = exactFit ? observationWeights.map((w) => w > 0 ? 1 : 0) : residuals.map((r, i) => {
-   const u = (wtMethod === "inv" ? Math.sqrt(observationWeights[i]!) * r : r) / scale;
-   return psiWeight(psi, u, model);
- });
- workingWeights = exactFit ? observationWeights.slice() : effectiveObsWeights(residuals, scale);
- const covariance = exactFit
-   ? { stddev: 0, covUnscaled: chol2inv(chol(crossProduct(x, observationWeights))) }
-   : covarianceScale(residuals, scale, observationWeights, model, p);
+ if (scale === 0 && !exactFit && !majorityExactFit) throw new Error("robust scale is zero but fewer than half the observations lie on the fitted line");
+ robustWeights = majorityExactFit
+   ? inlierMask.map((inlier, i) => inlier && observationWeights[i]! > 0 ? 1 : 0)
+   : exactFit ? observationWeights.map((w) => w > 0 ? 1 : 0) : residuals.map((r, i) => {
+     const u = (wtMethod === "inv" ? Math.sqrt(observationWeights[i]!) * r : r) / scale;
+     return psiWeight(psi, u, model);
+   });
+ workingWeights = majorityExactFit
+   ? robustWeights.map((weight, i) => weight * observationWeights[i]!)
+   : exactFit ? observationWeights.slice() : effectiveObsWeights(residuals, scale);
+ const undefinedCovariance = () => Array.from({ length: p }, () => new Array<number>(p).fill(Number.NaN));
+ const covariance = majorityExactFit
+   ? { stddev: Number.NaN, covUnscaled: undefinedCovariance() }
+   : exactFit
+     ? { stddev: 0, covUnscaled: chol2inv(chol(crossProduct(x, observationWeights))) }
+     : covarianceScale(residuals, scale, observationWeights, model, p);
  const warnings = [...d.warnings, ...searchWarnings];
+ if (majorityExactFit) warnings.push("more than half of the observations lie exactly on the fitted line; scale and inference are undefined");
  if (!converged) warnings.push("'rlm' failed to converge in " + maxit + " steps");
  const result: RlmResult = {
    coefficients: Object.fromEntries(d.colNames.map((name, i) => [name, coefficients[i]!])),
