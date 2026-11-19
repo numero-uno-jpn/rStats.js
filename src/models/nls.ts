@@ -460,7 +460,10 @@ function fitCore(
     const scaledGradientNorm = Math.max(0, ...rhs.map((value, i) =>
       projectedDelta[i] === 0 ? 0 : Math.abs(value) / (Math.sqrt(Math.max(matrix[i]![i]!, Number.MIN_VALUE))
         * (Math.sqrt(current.objective) + control.scaleOffset + Number.EPSILON))));
-    const stepNorm = Math.max(0, ...projectedDelta.map((v, i) => Math.abs(v) / (1 + Math.abs(values[i]!)));
+    const stepNorm = Math.max(0, ...projectedDelta.map((v, i) => {
+      const scale = Math.max(Math.abs(values[i]!), Math.abs(start[i]!));
+      return Math.abs(v) / (scale > 0 ? scale : 1);
+    }));
     const stepTolerance = Math.max(8 * Number.EPSILON, control.tol * 0.001);
     const roundedStep = projectedDelta.every((value, i) => {
       const next = values[i]! + value;
