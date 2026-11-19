@@ -812,7 +812,7 @@ export function rlm(formula: string, data: DataFrame, options: RlmOptions = {}):
  const residuals = y.map((v, i) => v - fittedValues[i]!);
  scale = fixedScale ?? robustScale(residuals, observationWeights, wtMethod, scaleEst, k2, p);
  const inlierMask = majorityExactResiduals(x, y, coefficients);
- const majorityExactFit = scale === 0
+ const majorityExactFit = !exactFit && scale === 0
    && inlierMask.filter((inlier, i) => inlier && observationWeights[i]! > 0).length > y.length / 2;
  const exactFit = scale === 0 && residuals.every((r, i) => observationWeights[i]! === 0 || r === 0);
  if (scale === 0 && !exactFit && !majorityExactFit) throw new Error("robust scale is zero but fewer than half the observations lie on the fitted line");
