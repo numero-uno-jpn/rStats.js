@@ -896,9 +896,6 @@ function profileEndpoint(
   let current = outside;
   for (let iteration = 0; iteration < 80; iteration++) {
     if (Math.abs(current.g) <= 2e-10) return current.x;
-    if (low.g * current.g <= 0) high = current;
-    else low = current;
-    if (low.x > high.x) [low, high] = [high, low];
 
     // The stored gradient is for negative log likelihood, hence dr/db = score/r.
     // Newton is used only away from r=0 and only while it remains inside the bracket.
@@ -916,6 +913,9 @@ function profileEndpoint(
     if (candidate === low.x || candidate === high.x || candidate === current.x) return NaN;
     const next = evaluate(candidate);
     if (next === null) return NaN;
+    if (low.g * next.g <= 0) high = next;
+    else low = next;
+    if (low.x > high.x) [low, high] = [high, low];
     current = next;
   }
   return NaN;
