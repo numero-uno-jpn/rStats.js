@@ -420,6 +420,7 @@ function fitCore(
   let current = algorithm === "plinear"
     ? evaluateProfiled(expr, rows, y, weights, names, values)
     : evaluate(expr, rows, y, weights, names, values, algorithm);
+  const responseSquared = weights.reduce((sum, weight, i) => sum + weight * y[i]! * y[i]!, 0);
   let converged = false, iterations = 0;
   for (; iterations < control.maxiter; iterations++) {
     const { matrix, rhs } = normalEquations(current.jacobian, current.residuals, weights);
@@ -460,9 +461,12 @@ function fitCore(
     const scaledGradientNorm = Math.max(0, ...rhs.map((value, i) =>
       projectedDelta[i] === 0 ? 0 : Math.abs(value) / (Math.sqrt(Math.max(matrix[i]![i]!, Number.MIN_VALUE))
         * (Math.sqrt(current.objective) + control.scaleOffset + Number.EPSILON))));
-    const stepNorm = Math.max(0, ...projectedDelta.map((v, i) => Math.abs(v) / (1 + Math.abs(values[i]!))));
+    const stepNorm = Math.max(0, ...projectedDelta.map((v, i) => {
+      const scale = Math.max(Math.abs(values[i]!), Math.abs(start[i]!));
+      return Math.abs(v) / (scale > 0 ? scale : 1);
+    }));
     const stepTolerance = control.scaleOffset > 0
-      ? Math.max(8 * Number.EPSILON, control.tol * 0.0001)
+      ? 8 * Number.EPSILON
       : Math.max(1e-12, Math.sqrt(control.tol) * 0.001);
     const roundedStep = projectedDelta.every((value, i) => {
       const next = values[i]! + value;
@@ -484,10 +488,9 @@ function fitCore(
           ? evaluateProfiled(expr, rows, y, weights, names, candidate)
           : evaluate(expr, rows, y, weights, names, candidate, algorithm);
         const candidateStepNorm = alpha * stepNorm;
-        const responseSquared = weights.reduce((sum, weight, i) => sum + weight * y[i]! * y[i]!, 0);
-      const roundingAllowance = 4 * Number.EPSILON * Math.max(
-        current.objective, Number.EPSILON * responseSquared, Number.MIN_VALUE,
-      );
+        const roundingAllowance = 4 * Number.EPSILON * Math.max(
+          current.objective, Number.EPSILON * responseSquared, Number.MIN_VALUE,
+        );
         if (trial.objective < current.objective
           || (candidateStepNorm <= stepTolerance * 10 && trial.objective <= current.objective + roundingAllowance)) {
           values = candidate; current = trial; accepted = true; break;
