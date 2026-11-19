@@ -512,15 +512,17 @@ describe("rlm errors and numerical boundaries", () => {
     expect(fit.warnings).toContain("'rlm' failed to converge in 2 steps");
   });
 
-  it("returns finite zero-scale diagnostics for an exact fit", () => {
+  it("returns undefined inference for an exact zero-scale fit", () => {
     const fit = rlm("y ~ 1", { y: [5, 5, 5, 5] });
     expect(fit.scale).toBe(0);
     expect(fit.converged).toBe(true);
     expect(fit.robustWeights).toEqual([1, 1, 1, 1]);
     expect(fit.workingWeights).toEqual([1, 1, 1, 1]);
-    expect(fit.stddev).toBe(0);
-    expect(fit.covariance.flat().every(Number.isFinite)).toBe(true);
-    expect(fit.covariance.flat().every((value) => value === 0)).toBe(true);
+    expect(Number.isNaN(fit.stddev)).toBe(true);
+    expect(fit.covariance.flat().every(Number.isNaN)).toBe(true);
+    expect(fit.warnings).toContain("more than half of the observations lie exactly on the fitted line; scale and inference are undefined");
+    const summary = rlmSummary(fit);
+    expect(summary.values.every(row => Number.isNaN(row[1]) && Number.isNaN(row[2]))).toBe(true);
   });
 });
 
