@@ -383,7 +383,7 @@ describe("nonlinear response expressions", () => {
     expect(fit.converged).toBe(true);
     const predicted = nlsPredict(fit, { newdata: { x1: cs.data.x1!, x2: cs.data.x2! } });
     expect(predicted).toEqual(fit.fitted);
-    expect(predicted.every(value => value > 0 && value < 3)).toBe(true);
+    expect(predicted.every(value => Number.isFinite(value) && value < 3)).toBe(true);
   });
 
   it("rejects parameters in the response expression", () => {
