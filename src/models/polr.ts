@@ -878,10 +878,8 @@ function profileEndpoint(
     if (!Number.isFinite(candidate) || candidate <= left || candidate >= right) {
       candidate = inside.x - inside.g * (outside.x - inside.x) / (outside.g - inside.g);
     }
-    if (!Number.isFinite(candidate) || candidate <= left || candidate >= right) {
-      candidate = left + (right - left) / 2;
-    }
-    if (candidate === current.x || candidate === inside.x || candidate === outside.x) {
+    if (!Number.isFinite(candidate) || candidate <= left || candidate >= right
+      || candidate === current.x || candidate === inside.x || candidate === outside.x) {
       return Math.abs(inside.g) < Math.abs(outside.g) ? inside.x : outside.x;
     }
     const next = evaluate(candidate);
