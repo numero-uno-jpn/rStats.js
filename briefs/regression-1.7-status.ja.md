@@ -33,13 +33,13 @@
   CI が通ったことの確かめだけのために往復しない
 - 依頼文は短くなる。規則はこの文書の「クリーンルームの規則」が正本
 
-## 進み具合 (2026-11-19 夜、`754b03f3`)
+## 進み具合 (2026-11-19 夜)
 
-| 関数 | 段階 1 (仕様書・oracle) | 段階 2 (実装・テスト) |
-| --- | --- | --- |
-| `polr` | 済み | **済み** (`polr`・`polrSummary`・`polrVcov`・`polrPredict`・`polrConfint`・`polrAnova`、テスト 55 件が通る)。触らない |
-| `rlm` | 済み (`oracle/rlm-behaviour.md`、`oracle/rlm.R`、`test/fixtures/rlm.json`、choices 11 項目) | 区切り 1 (M 推定・psi・`rlmSummary`・`rlmVcov`) の途中。区切り 2 (決定的な LTS と MM)・3 (エラーと境界) はこれから |
-| `nls` | 未着手 | 未着手 |
+| 関数 | 状態 |
+| --- | --- |
+| `polr` | **完了** (6 関数)。触らない |
+| `rlm` | **完了** (`rlm`・`rlmSummary`・`rlmVcov`・`psiHuber`・`psiHampel`・`psiBisquare`、choices 11 項目)。触らない |
+| `nls` | **これから。指示書 `briefs/nls-1.7.ja.md` を読む。** oracle と fixture はこちらで用意済み |
 
 ## polr で分かったこと (rlm・nls でも同じことに気をつける)
 
@@ -65,25 +65,9 @@
 - psi の微分の区間の端は、内側の区間に含める (Hampel: $|u|=2$ で 1、$|u|=4$ で 0)。R の Huber の微分は論理値
 - `stackloss-bisquare-lts` は R の `fitTight` (`maxit = 2000`) でも収束しない (振動。仕様書 §6.6)
 
-## 手元の結果 (`754b03f3`、こちらで実行)
+## 次にやること
 
-- 型チェック: **`test/rlm.test.ts` に 2 件のエラー。** `test/rlm.test.ts(147,13)` と `(187,13)`: TS2451 `Cannot
-  redeclare block-scoped variable 'tightExpected'`。同じ範囲で `tightExpected` を 2 回宣言している。このため
-  `test/rlm.test.ts` はコンパイルできず、テストは 1 件も動いていない
-- 実装 (`src/models/rlm.ts`) は型チェックを通る
-- 全テストのうち、こちらが最後に作る生成物 (`test/unknownOptions.test.ts`、`docs/r-functions.md` の 2 件) と、Mac
-  だけで落ちる `test/issue179.test.ts`・`test/issue513.test.ts` は気にしない
-
-## 次にやること (この順。1 回の返答で 1 項目、push したら Issue #540 に数行で報告して止まる)
-
-1. `test/rlm.test.ts` の二重の宣言を直す。こちらがテストを流して結果を返す
-2. rlm の区切り 1 の残りの失敗を直す (こちらの結果を見て)
-3. rlm の区切り 2: 決定的な LTS の初期値 (choices 11) と、決定的な S 推定による MM (choices 1)
-4. rlm の区切り 3: エラーと境界 (共線はエラー、MM とケースの重みはエラー、収束しないときは `converged = false` と警告、
-   完全に当てはまるデータ)
-5. rlm の段階 2 の報告を Issue #540 に書いて止まる
-6. その後に `nls` の段階 1 (`oracle/nls-behaviour.md`・`oracle/nls.R`)。R の出力は `experiments/regression-nls.R`・
-   `.json` にある
+`briefs/nls-1.7.ja.md` の 6 節の順に、nls を仕様書から CI が通るまで進める。
 
 ## テストの書き方 (指示書 4 節の要点)
 
