@@ -17,7 +17,7 @@ type Token = { kind: "number" | "name" | "operator" | "end"; text: string };
 
 const FUNCTIONS: Record<string, number> = {
   exp: 1, log: 1, log10: 1, sqrt: 1, abs: 1, sin: 1, cos: 1, tan: 1,
-  sinh: 1, cosh: 1, tanh: 1, log1p: 1,
+  sinh: 1, cosh: 1, tanh: 1, log1p: 1, atan: 1, asin: 1, acos: 1,
 };
 const SELF_START: Record<string, { args: number; expression: string }> = {
   SSmicmen: { args: 3, expression: "p1*p0/(p2+p0)" },
@@ -157,7 +157,7 @@ const binary = (op: "+" | "-" | "*" | "/" | "^", left: NlsExpr, right: NlsExpr):
 const call = (name: string, ...args: NlsExpr[]): NlsExpr => ({ type: "call", name, args });
 
 /** Construct the symbolic derivative of an expression with respect to one parameter. */
-export function differentiateNls(expr: NlsExpr, parameter: string): NlsExpr {
+export function isZeroDerivative(expr: NlsExpr): boolean {\n  if (expr.type === "number") return expr.value === 0;\n  if (expr.type === "unary") return isZeroDerivative(expr.value);\n  if (expr.type === "binary" && (expr.op === "+" || expr.op === "-")) return isZeroDerivative(expr.left) && isZeroDerivative(expr.right);\n  if (expr.type === "binary" && expr.op === "*") return isZeroDerivative(expr.left) || isZeroDerivative(expr.right);\n  if (expr.type === "binary" && expr.op === "/") return isZeroDerivative(expr.left);\n  return false;\n}\n\nfunction differentiateNls(expr: NlsExpr, parameter: string): NlsExpr {
   switch (expr.type) {
     case "number": return num(0);
     case "variable": return num(expr.name === parameter ? 1 : 0);
@@ -169,7 +169,7 @@ export function differentiateNls(expr: NlsExpr, parameter: string): NlsExpr {
         case "-": return binary("-", du, dv);
         case "*": return binary("+", binary("*", du, v), binary("*", u, dv));
         case "/": return binary("/", binary("-", binary("*", du, v), binary("*", u, dv)), binary("^", v, num(2)));
-        case "^": return binary("*", binary("^", u, v), binary("+", binary("*", dv, call("log", u)), binary("/", binary("*", v, du), u)));
+        case "^": return isZeroDerivative(dv)\n          ? binary("*", binary("*", v, binary("^", u, binary("-", v, num(1)))), du)\n          : binary("*", binary("^", u, v), binary("+", binary("*", dv, call("log", u)), binary("/", binary("*", v, du), u)));
       }
     }
     case "call": {
@@ -187,7 +187,7 @@ export function differentiateNls(expr: NlsExpr, parameter: string): NlsExpr {
         case "tan": return binary("/", dx, binary("^", call("cos", x), num(2)));
         case "sinh": return binary("*", call("cosh", x), dx);
         case "cosh": return binary("*", call("sinh", x), dx);
-        case "tanh": return binary("/", dx, binary("^", call("cosh", x), num(2)));
+        case "tanh": return binary("/", dx, binary("^", call("cosh", x), num(2)));\n        case "atan": return binary("/", dx, binary("+", num(1), binary("^", x, num(2))));\n        case "asin": return binary("/", dx, call("sqrt", binary("-", num(1), binary("^", x, num(2)))));\n        case "acos": return { type: "unary", op: "-", value: binary("/", dx, call("sqrt", binary("-", num(1), binary("^", x, num(2))))) };
       }
     }
   }
@@ -236,7 +236,7 @@ export function evaluateNlsExpression(
         case "tan": return Math.tan(x);
         case "sinh": return Math.sinh(x);
         case "cosh": return Math.cosh(x);
-        case "tanh": return Math.tanh(x);
+        case "tanh": return Math.tanh(x);\n        case "atan": return Math.atan(x);\n        case "asin": return Math.asin(x);\n        case "acos": return Math.acos(x);
       }
     }
   }
