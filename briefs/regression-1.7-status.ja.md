@@ -20,7 +20,7 @@
 - **CI の結果は自分で読む。** draft の PR #541 (`work/regression` → main、マージしない) で、push のたびに CI が型チェックと
   全テストを流す。push したら PR #541 の Checks で結果を確かめ、型エラーとテストの失敗は自分で直してから報告する。
   CI は (Mac だけで落ちる `test/issue179.test.ts`・`test/issue513.test.ts` を除き) 全部通る状態にしてある
-  (`d4` 以降)。新しい関数やオプションを足すと、次の 3 つが落ちる。こちらがスクリプトで作り直すので、その 3 件だけは
+  (`0383203f` 以降)。新しい関数やオプションを足すと、次の 3 つが落ちる。こちらがスクリプトで作り直すので、その 3 件だけは
   直さなくてよい: `test/unknownOptions.test.ts` (生成のブロック。**手で `import { checkOptions }` や `*_KEYS` の定数を
   書かない**。前回、生成のブロックと二重になってファイルが読み込めなくなった)、`test/rIndexDoc.test.ts` の 2 件
   (`docs/r-functions.md` の英・日)
