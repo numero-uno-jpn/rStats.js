@@ -543,11 +543,22 @@ export function nls(formula: string, data: DataFrame, options: NlsOptions = {}):
   checkOptions(options, NLS_KEYS, "nls"); // generated: option-keys.mjs
   checkOptions(nestedOptions(options, "control"), NLS_CONTROL_KEYS, "nls", "control"); // generated: option-keys.mjs
   const parsed = parseNlsFormula(formula);
-  const rawY = column(data, parsed.response);
-  const n = rawY.length;
-  if (Object.values(data).some(col => col.length !== n)) throw new RangeError("all data columns must have the same length");
-  const variables = [...expressionVariables(parsed.expression)];
   const dataNames = new Set(Object.keys(data));
+  const inputColumns = Object.fromEntries([...dataNames].map(name => [name, column(data, name)]));
+  const firstColumn = Object.values(inputColumns)[0];
+  if (firstColumn === undefined) throw new RangeError("data must contain at least one column");
+  const n = firstColumn.length;
+  if (Object.values(inputColumns).some(col => col.length !== n)) throw new RangeError("all data columns must have the same length");
+  const responseVariables = [...expressionVariables(parsed.responseExpression)];
+  const nonDataResponseVariables = responseVariables.filter(name => name !== "pi" && !dataNames.has(name));
+  if (nonDataResponseVariables.length > 0) {
+    throw new SyntaxError("response expression must not contain parameters: " + nonDataResponseVariables.join(", "));
+  }
+  const rawY = Array.from({ length: n }, (_, i) => {
+    const row = Object.fromEntries(Object.entries(inputColumns).map(([name, values]) => [name, values[i]!]));
+    return evaluateNlsExpression(parsed.responseExpression, row, {});
+  });
+  const variables = [...expressionVariables(parsed.expression)];
   const startNames = options.start ? Object.keys(options.start) : [];
   const inferredNames = variables.filter(name => name !== "pi" && !dataNames.has(name));
   const parameterNames = options.start
