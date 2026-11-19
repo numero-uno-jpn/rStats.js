@@ -330,7 +330,9 @@ function robustScale(residuals: readonly number[], weights: readonly number[], m
    const transformed = effectiveResiduals(residuals, weights, method);
    const values = transformed.u.map(Math.abs);
    const m = method === "case" ? weightedMedian(values, transformed.q) : median(values);
-   return m / 0.6744897501960817;
+   // The recorded reference fits use the rounded normal-consistency constant 0.6745:
+   // their public scale agrees with median(|residual|) / 0.6745 to the fixture's full precision.
+   return m / 0.6745;
  }
  return proposalScale(residuals, weights, method, k2);
 }
