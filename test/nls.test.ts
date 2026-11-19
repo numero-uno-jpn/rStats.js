@@ -48,6 +48,7 @@ interface Fixture {
 const fixture = JSON.parse(readFileSync(fileURLToPath(new URL("../test/fixtures/nls.json", import.meta.url)), "utf8")) as Fixture;
 const stage3Fixture = JSON.parse(readFileSync(fileURLToPath(new URL("../test/fixtures/nls-stage3.json", import.meta.url)), "utf8")) as {
   thurber: { formula: string; data: Record<string, number[]>; start: Record<string, number>; certified: Record<string, number>; rss: number };
+  roszman1: { formula: string; data: Record<string, number[]>; start: Record<string, number>; certified: Record<string, number>; rss: number };
 };
 const byId = (id: string): Case => {
   const found = fixture.cases.find(x => x.id === id);
@@ -309,6 +310,18 @@ describe("NIST StRD nonlinear regression edge cases", () => {
       expect(lre[name], "Thurber " + name + " LRE").toBeGreaterThanOrEqual(7);
     }
     expect(fit.deviance).toBeCloseTo(cs.rss, 5);
+    expect(fit.converged).toBe(true);
+  });
+
+  it("fits Roszman1 with atan and pi to at least seven certified digits", () => {
+    const cs = stage3Fixture.roszman1;
+    const fit = nls(cs.formula, dataFrame(cs.data), { start: cs.start });
+    for (const [name, expected] of Object.entries(cs.certified)) {
+      const relativeError = Math.abs(fit.coefficients[name]! - expected) / Math.abs(expected);
+      const lre = relativeError === 0 ? Infinity : -Math.log10(relativeError);
+      expect(lre, "Roszman1 " + name + " LRE").toBeGreaterThanOrEqual(7);
+    }
+    expect(fit.deviance).toBeCloseTo(cs.rss, 7);
     expect(fit.converged).toBe(true);
   });
 });
