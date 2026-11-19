@@ -318,6 +318,63 @@ The `stackloss-bisquare-lts` case did not converge even in the strict `fitTight`
 
 A non-converged result must remain explicitly marked `converged = false` and retain its warning and convergence diagnostics. Increasing the iteration limit or tightening the tolerance must not be treated as evidence of convergence, and tests must not silently accept this case as a successful fit. The deterministic LTS implementation should be assessed by its own objective and the final M-step estimating equations, as specified in the selected choices, rather than by requiring this reference iteration to converge.
 
+### 6.7 Deterministic high-breakdown starts and MM refinement
+
+For an LTS start, let p be the number of fitted coefficients and n the number of usable rows. The
+finite-sample trimming count selected for this implementation is h = floor((n + p) / 2). For a coefficient
+vector b, write r_i(b) = y_i - x_i^T b; its objective is
+
+$
+L_h(b) = \sum_{i=1}^{h} (r^2)_{(i)}(b).
+$
+
+The implementation obtains elemental coefficient candidates from full-rank subsets of p rows. A C-step
+replaces the current subset by the h observations with the smallest absolute residuals, refits least squares,
+and retains the step only when the objective does not increase. This monotone refinement is repeated until the
+coefficient vector stops changing or 50 steps have been taken.
+
+For the S start, the bounded loss is rho(u) = min(u^2, cS^2), with cS = 1.547. Its scale at b solves
+
+$
+\frac{1}{n}\sum_{i=1}^{n}\min\left\{\left(\frac{r_i(b)}{s}\right)^2,c_S^2\right\}
+= E\left[\min\{Z^2,c_S^2\}\right], \qquad Z\sim N(0,1),
+$
+
+and the S objective is the smallest such scale over coefficient vectors. The S refinement alternates between
+solving this scalar scale equation and least squares on rows satisfying |r_i|/s < cS; a step is retained
+only if the scale does not increase. This gives a deterministic finite candidate approximation to the
+scale-minimization problem in Rousseeuw & Yohai (1984).
+
+The deterministic candidate set is defined without random numbers. If choose(n,p) is no larger than the
+candidate budget, all elemental subsets are evaluated. Otherwise, the search evaluates evenly spaced
+lexicographic combinatorial ranks from the first through the last subset. The budget is
+
+$
+B(n)=\min\left(1024,\max\left(1,\left\lfloor\frac{250000}{n}\right\rfloor\right)\right).
+$
+
+All evaluated candidates are scored, and only the best 16 are refined (50 steps maximum each). When
+B(n) < choose(n,p), the fit carries a warning with the evaluated and total candidate counts and explicitly
+states that a high-breakdown start is not certified. Thus the deterministic search is reproducible and bounded;
+it is not represented as a proof of the global optimum for a capped search.
+
+For MM, the selected S coefficients and S-scale are the initial estimate and fixed scale. The final regression
+coefficients solve
+
+$
+\sum_{i=1}^{n} x_i\,\psi\left(\frac{r_i(b)}{s_S}\right)=0,
+$
+
+using a redescending score (bisquare by default, c = 4.685). The scale is held at sS throughout the
+M step. This follows the three-stage construction in Yohai (1987): a high-breakdown initial estimate, a robust
+initial scale, and a more efficient redescending M estimate at that fixed scale. MM with case weights remains
+an explicit error; inverse-variance weights are handled by applying their square roots to residuals.
+
+The reference checks use public fixture values only: the LTS objective must be no larger than the smallest
+recorded ltsReferences[].reference.crit, the S scale must be no larger than the smallest recorded
+sReferences[].reference.scale, and the final M estimating equations must have normalized residual at most
+1e-8. Random-seed coefficients are not used as targets.
+
 ## 7. Oracle coverage and unresolved reference behaviour
 
 The initial oracle covers:
@@ -416,12 +473,27 @@ No additional R experiment is required for the covariance formula and weight con
 
 Decided by the user on 2026-11-19.
 
-1. **MM: a deterministic S-estimator** (Decisions 1 and 2). No random numbers: every subset for small data, a fixed,
-   documented set of candidates for larger data, with the effort limit and a warning when the search cannot establish
-   a reliable high-breakdown start. The same input always gives the same fit. This is a known difference from R, whose
-   MM coefficients depend on the seed (`stackloss_MM_seed*`). MM fits are therefore not compared with MASS's
-   coefficients; the tests check that rStats.js's S-scale is not larger than the scale of MASS's S-estimates for the
-   same data, and that the final M step solves its estimating equations at that scale
+1. **MM: a deterministic S-estimator** (Decisions 1 and 2). No random numbers. The S objective uses the
+   bounded capped-quadratic loss rho(u) = min(u^2, cS^2), with cS = 1.547, and its Gaussian consistency constant
+   beta = E[min(Z^2, cS^2)], Z ~ N(0,1). For each coefficient vector, its S-scale is the positive solution
+   of mean(rho(r_i / s)) = beta; the S estimate minimizes this scale. This is a concrete bounded S objective
+   within the scale-minimization framework of Rousseeuw & Yohai (1984).
+
+   Generate elemental subsets of p rows in lexicographic combinatorial order. If choose(n,p) is within the
+   search budget, evaluate every subset. Otherwise evaluate a fixed, evenly spaced set of combinatorial ranks,
+   including the first and last ranks. The candidate budget is
+   min(1024, max(1, floor(250000 / n))); score all evaluated candidates, refine the best 16 by repeatedly
+   refitting least squares to observations inside |r_i| / s < cS, and stop a refinement after 50 steps or
+   when the coefficients stop changing. The same input always gives the same candidates and fit.
+
+   When the budget does not cover all choose(n,p) subsets, add a warning stating the number examined and that
+   a high-breakdown start is not certified. This is a deliberate computational limit, not a claim of global
+   optimality. The bounded number of candidate-row evaluations keeps the search practical for larger data.
+   This is a known difference from R, whose MM coefficients depend on the seed (stackloss_MM_seed*). MM fits
+   are therefore not compared with MASS's coefficients; tests check that the S-scale is no larger than the
+   smallest of the three recorded S-reference scales for the same data, and that the final M step solves its
+   estimating equations at that fixed scale. The final MM step uses a redescending bisquare score (default
+   c = 4.685); the S-scale is not re-estimated during that step.
 2. **Covariance: Huber's (1981) formula, which reproduces MASS's `summary`** (Decision 3). The covariance is
    $\texttt{stddev}^2 (X^\top X)^{-1}$ (`cov.unscaled` equals $(X^\top X)^{-1}$ to 8e-11 in `stackloss_huber`), with
    $$\texttt{stddev} = s\,\kappa\,\frac{\sqrt{\sum_i \psi(r_i/s)^2/(n-p)}}{\overline{\psi'}},\qquad
@@ -448,8 +520,15 @@ Decided by the user on 2026-11-19.
    with $k_2 = 1.345$; the psi constant kept separate from the scale constant (Decision 11)
 10. **Result:** named coefficients, fitted values, residuals, robust scale, robust weights, convergence diagnostics;
     the covariance from `rlmVcov` (Decision 12)
-11. **`init = "lts"`: a deterministic least-trimmed-squares start** (decided 2026-11-19), by the same kind of search as
-    the S-estimator of item 1, without random numbers. A known difference from R, whose LTS start uses a random subset
-    search. For Huber's psi the start does not change the solution; for the redescending Hampel and bisquare psi it
-    can. Fits started from LTS are therefore checked by the LTS objective (not larger than that of R's LTS starts for
-    the same data) and by the estimating equations of the M step, not against MASS's coefficients
+11. **`init = "lts"`: a deterministic least-trimmed-squares start** (decided 2026-11-19). Use
+    h = floor((n + p) / 2) and minimize the sum of the h smallest squared residuals, as in the LTS
+    criterion described by Rousseeuw & Leroy (1987). Generate the same deterministic elemental subsets and use
+    the same candidate budget as item 1. Rank candidates by the LTS objective, refine the best 16 by C-steps
+    (select the h smallest absolute residuals and refit least squares), and stop each refinement after 50
+    steps or when the coefficients stop changing. Warn when the candidate budget does not cover every
+    choose(n,p) subset; do not claim that the high-breakdown start is certified in that case. No random
+    numbers are used. A known difference from R, whose LTS start uses a random subset search. For Huber's psi
+    the start does not change the solution; for the redescending Hampel and bisquare psi it can. Fits started
+    from LTS are therefore checked by the LTS objective (not larger than the smallest of the three recorded
+    LTS-reference objectives for the same data) and by the estimating equations of the M step, not against
+    MASS's coefficients
