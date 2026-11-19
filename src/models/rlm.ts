@@ -744,7 +744,12 @@ export function rlm(formula: string, data: DataFrame, options: RlmOptions = {}):
      return psiWeight(psi, u, model);
    });
    workingWeights = effectiveObsWeights(residuals, scale);
-   const next = weightedLeastSquares(x, y, workingWeights);
+   const irls = weightedLeastSquares(x, y, workingWeights);
+   // Redescending scores can make full IRLS updates oscillate between distinct roots.
+   // A fixed half-step is deterministic and keeps the iteration inside the basin of the
+   // robust start; monotone scores (Huber) retain the full update.
+   const damping = psi === "huber" ? 1 : 0.5;
+   const next = coefficients.map((value, j) => value + damping * (irls[j]! - value));
    const nextResiduals = residualVector(x, y, next);
    const nextScale = fixedScale ?? robustScale(nextResiduals, observationWeights, wtMethod, scaleEst, k2, p);
    if (!(nextScale > 0) || !Number.isFinite(nextScale)) {
