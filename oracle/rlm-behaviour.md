@@ -323,14 +323,64 @@ The initial oracle covers:
 - psi weights and derivatives on a signed grid;
 - public Huber location/scale estimates for an independent reference point.
 
+### 7.1 Covariance scale: verification for Hampel and observation weights
+
+The finite-sample scale formula selected in `rStats.js's choices` item 2 was checked against the recorded public outputs, using only the reported residuals, robust scale, observation weights, and the documented psi definitions. No fit internals or implementation source were used.
+
+For a case with $N$ effective observations and $p$ fitted coefficients, let $u_i$ be the standardized residual, $d_i=\psi'(u_i)$, and $q_i$ the multiplicity used in the covariance-scale calculation. Define
+
+$$
+\bar d=\frac{\sum_i q_i d_i}{N},\qquad
+\widehat{\operatorname{Var}}(d)=
+\frac{\sum_i q_i(d_i-\bar d)^2}{N-1},
+$$
+
+and
+
+$$
+\kappa=1+\frac{p}{N}
+\frac{\widehat{\operatorname{Var}}(d)}{\bar d^2}.
+$$
+
+Then
+
+$$
+\texttt{stddev}=
+s\,\kappa\,
+\frac{\sqrt{\sum_i q_i\psi(u_i)^2/(N-p)}}{\bar d}.
+$$
+
+The weight conventions that reproduce the oracle are:
+
+- **No observation weights:** $q_i=1$, $N=n$, and $u_i=r_i/s$.
+- **Inverse-variance weights** $v_i$: retain the original $n$ observations with $q_i=1$ and $N=n$, but use the working standardized residual $u_i=\sqrt{v_i}\,r_i/s$. The inverse-variance weights belong in the weighted design cross-product used for `cov.unscaled`; they are not frequency multiplicities in the scalar correction.
+- **Case/frequency weights** $a_i$: use $q_i=a_i$, $N=\sum_i a_i$, and $u_i=r_i/s$. This is equivalent to expanding each row into $a_i$ replicated observations. In particular, the sample variance of $d$ uses divisor $N-1$, not $n-1$.
+
+For both weighted conventions, the unscaled covariance is the inverse weighted design cross-product, $(X^\mathsf T QX)^{-1}$, with $Q$ containing the observation weights. The covariance matrix is then $\texttt{stddev}^2\,\texttt{cov.unscaled}$.
+
+The numerical checks are:
+
+| Oracle case | $N$ | Psi | Calculated `stddev` | Oracle `stddev` |
+| --- | ---: | --- | ---: | ---: |
+| `stackloss_huber` | 21 | Huber | 2.6739075698560018 | 2.673907569856 |
+| `stackloss_hampel` | 21 | Hampel | 3.2426031482154363 | 3.24260314821544 |
+| `phones_huber` | 24 | Huber | 14.579938134573222 | 14.5799381345732 |
+| `weights_inv` | 21 | Huber | 3.297309741387644 | 3.29730974138764 |
+| `weights_case` | 32 | Huber | 2.334238895843905 | 2.33423889584391 |
+
+The case-weight example uses 21 rows with weights 1 for the first 10 rows and 2 for the remaining 11 rows, so its effective frequency count is $N=32$. The inverse-variance example uses the same input weights but keeps $N=21$ and applies their square roots to the working residuals. Confusing these two conventions does not reproduce the reported `stddev`.
+
+The Hampel check uses its documented $(a,b,c)=(2,4,8)$ score and derivative. It confirms that the same finite-sample correction applies to this redescending psi; no Huber-specific assumption is needed in the formula. The `stackloss_hampel` result was computed from its reported raw residuals and $s=3.0883164084184$.
+
+Across these five checks, the calculated and oracle values agree to approximately $10^{-15}$ relative error. This closes the covariance-formula and weight-extension question for the tested public-output cases. It is numerical confirmation of the selected Huber (1981, section 7.6) convention, not a claim that arbitrary non-integer frequency weights or every possible weight design have separately been tested.
+
 The following details remain open for an implementation decision or a later focused experiment:
 
-1. The precise finite-sample correction underlying MASS's `cov.unscaled` and `stddev` should not be inferred from the numerical identity alone. The general sandwich estimator is statistically well-defined, but rStats.js must choose and document its exact convention.
-2. The exact one-sided derivative convention at the Hampel and Huber piecewise joins should be specified if tests call the derivative exactly at those breakpoints.
-3. The MM S-estimator is stochastic. Reproducing R's exact random-number consumption and subset-search path is a separate compatibility decision; matching the distribution of candidate subsets is not sufficient for bit-for-bit coefficient identity.
-4. The oracle includes a case with scale near machine precision, but does not map the transition from a tiny positive scale to a mathematically zero scale for every psi and initialization.
+1. The exact one-sided derivative convention at the Hampel and Huber piecewise joins should be specified if tests call the derivative exactly at those breakpoints.
+2. The MM S-estimator is stochastic in the reference. Reproducing R's exact random-number consumption and subset-search path is a separate compatibility decision; matching the distribution of candidate subsets is not sufficient for bit-for-bit coefficient identity.
+3. The oracle includes a case with scale near machine precision, but does not map the transition from a tiny positive scale to a mathematically zero scale for every psi and initialization.
 
-No additional R experiment is required to describe the current statistical scope. If the user wants exact MASS finite-sample covariance compatibility, a separate public-output-only experiment should be requested before making that a compatibility requirement.
+No additional R experiment is required for the covariance formula and weight conventions documented above. A broader check of non-integer case weights would be a separate question.
 
 ## Decisions for the user
 
