@@ -424,7 +424,7 @@ describe("nonlinear regression scale equivariance", () => {
     const baseSe = nlsSummary(base).coefficients;
     const relative = (actual: number, expected: number) =>
       Math.abs(actual - expected) / Math.max(Math.abs(expected), Number.MIN_VALUE);
-    for (const factor of [1e-20, 1e20]) {
+    for (const factor of [1e-100, 1e-20, 1e20, 1e100]) {
       const xFit = nls("rate ~ Vm*conc/(K+conc)", {
         rate, conc: conc.map(value => value * factor),
       }, { start: { Vm: 200, K: 0.05 * factor } });
