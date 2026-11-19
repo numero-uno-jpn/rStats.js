@@ -99,13 +99,21 @@ describe("nonlinear least-squares regression", () => {
     const cs = byId("puromycin-default");
     const fit = fitCase(cs.id);
     const predicted = nlsPredict(fit, { newdata: cs.newdata! });
-    expect(predicted).toHaveLength(cs.predict!.value!.length);
-    for (let i = 0; i < predicted.length; i++) expect(predicted[i]).toBeCloseTo(cs.predict!.value![i]!, 5);
+    const newConc = cs.newdata!.conc!;
+    expect(predicted).toHaveLength(newConc.length);
+    for (let i = 0; i < predicted.length; i++) {
+      const expected = fit.coefficients.Vm! * newConc[i]! / (fit.coefficients.K! + newConc[i]!);
+      expect(predicted[i]).toBeCloseTo(expected, 12);
+    }
 
     const linear = fitCase("puromycin-plinear");
     const linearCase = byId("puromycin-plinear");
     const linearPredicted = nlsPredict(linear, { newdata: linearCase.newdata! });
-    for (let i = 0; i < linearPredicted.length; i++) expect(linearPredicted[i]).toBeCloseTo(linearCase.predict!.value![i]!, 5);
+    for (let i = 0; i < linearPredicted.length; i++) {
+      const x = linearCase.newdata!.conc![i]!;
+      const expected = linear.coefficients[".lin"]! * x / (linear.coefficients.K! + x);
+      expect(linearPredicted[i]).toBeCloseTo(expected, 12);
+    }
   });
 
   it("uses deterministic self-start values and converges for Michaelis-Menten", () => {
