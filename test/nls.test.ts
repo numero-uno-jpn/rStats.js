@@ -428,8 +428,8 @@ describe("nonlinear regression scale equivariance", () => {
       const xFit = nls("rate ~ Vm*conc/(K+conc)", {
         rate, conc: conc.map(value => value * factor),
       }, { start: { Vm: 200, K: 0.05 * factor } });
-      expect(relative(xFit.coefficients.Vm, base.coefficients.Vm)).toBeLessThanOrEqual(1e-8);
-      expect(relative(xFit.coefficients.K / factor, base.coefficients.K)).toBeLessThanOrEqual(1e-8);
+      expect(relative(xFit.coefficients.Vm!, base.coefficients.Vm!)).toBeLessThanOrEqual(1e-8);
+      expect(relative(xFit.coefficients.K! / factor, base.coefficients.K!)).toBeLessThanOrEqual(1e-8);
       const xSe = nlsSummary(xFit).coefficients;
       expect(relative(xSe.values[0]![1]!, baseSe.values[0]![1]!)).toBeLessThanOrEqual(1e-8);
       expect(relative(xSe.values[1]![1]! / factor, baseSe.values[1]![1]!)).toBeLessThanOrEqual(1e-8);
@@ -437,8 +437,8 @@ describe("nonlinear regression scale equivariance", () => {
       const yFit = nls("rate ~ Vm*conc/(K+conc)", {
         rate: rate.map(value => value * factor), conc,
       }, { start: { Vm: 200 * factor, K: 0.05 } });
-      expect(relative(yFit.coefficients.Vm / factor, base.coefficients.Vm)).toBeLessThanOrEqual(1e-8);
-      expect(relative(yFit.coefficients.K, base.coefficients.K)).toBeLessThanOrEqual(1e-8);
+      expect(relative(yFit.coefficients.Vm! / factor, base.coefficients.Vm!)).toBeLessThanOrEqual(1e-8);
+      expect(relative(yFit.coefficients.K!, base.coefficients.K!)).toBeLessThanOrEqual(1e-8);
       const ySe = nlsSummary(yFit).coefficients;
       expect(relative(ySe.values[0]![1]! / factor, baseSe.values[0]![1]!)).toBeLessThanOrEqual(1e-8);
       expect(relative(ySe.values[1]![1]!, baseSe.values[1]![1]!)).toBeLessThanOrEqual(1e-8);
