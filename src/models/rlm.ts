@@ -3,9 +3,10 @@
 // equations in oracle/rlm-behaviour.md; no MASS or R implementation was used.
 
 import { chol, chol2inv } from "../linalg/chol.js";
+import { pnorm } from "../distributions/normal.js";
 import { qr, qrCoef } from "../linalg/qr.js";
 import { checkOptions } from "../internal/checkOptions.js";
-import { reported, Warnings } from "../internal/warnings.js";
+import { reported } from "../internal/warnings.js";
 import { parseFormula } from "./formula.js";
 import { design } from "./modelMatrix.js";
 import type { DataFrame } from "./modelFrame.js";
@@ -289,19 +290,9 @@ function effectiveResiduals(residuals: readonly number[], weights: readonly numb
 }
 
 function proposal2Constant(k: number): number {
- const density = Math.exp(-0.5 * k * k) / Math.sqrt(2 * Math.PI);
- const tail = 0.5 * (1 - erf(k / Math.SQRT2));
- return 1 - 2 * k * density + 2 * (k * k - 1) * tail;
-}
-
-function erf(x: number): number {
- // Abramowitz-Stegun 7.1.26; absolute error below 1.5e-7 is sufficient only for a start.
- // A high-accuracy normal-tail evaluation is used by the bisection stopping test below.
- const sign = x < 0 ? -1 : 1;
- const a = Math.abs(x);
- const t = 1 / (1 + 0.3275911 * a);
- const y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-a * a);
- return sign * y;
+  const upper = pnorm(k) as number;
+  const density = Math.exp(-0.5 * k * k) / Math.sqrt(2 * Math.PI);
+  return 2 * upper - 1 - 2 * k * density + 2 * k * k * (1 - upper);
 }
 
 function proposalScale(residuals: readonly number[], weights: readonly number[], method: "inv" | "case", k2: number): number {
