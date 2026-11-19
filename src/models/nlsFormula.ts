@@ -190,6 +190,7 @@ export function differentiateNls(expr: NlsExpr, parameter: string): NlsExpr {
       }
     }
   }
+  return num(Number.NaN);
 }
 
 /** Evaluate an expression for one row and one parameter vector. */
