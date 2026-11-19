@@ -18,7 +18,11 @@ num_json <- function(x) {
 # Scalar statistical summaries must stay JSON numbers/strings, never named objects.
 scalar_num <- function(x) {
   if (is.null(x) || length(x) == 0L) return(NULL)
-  unname(num_json(as.numeric(x))[1L])
+  z <- as.numeric(x)[1L]
+  if (is.na(z) && !is.nan(z)) return("NA")
+  if (is.nan(z)) return("NaN")
+  if (is.infinite(z)) return(if (z > 0) "Inf" else "-Inf")
+  unname(z)
 }
 
 json_value <- function(x) {
@@ -329,15 +333,9 @@ run_s_reference <- function(spec) {
 }
 
 rows <- lapply(cases, function(case) {
-  fits <- list()
   fit_rows <- lapply(names(case$fits), function(id) {
     spec <- case$fits[[id]]
-    record <- run_fit(spec)
-    if (is.null(record$fitResult$error)) {
-      # Keep the fitted object only in memory for the requested public summary calls.
-      fits[[id]] <<- attr(record, "fit_object")
-    }
-    record
+    run_fit(spec)
   })
   names(fit_rows) <- names(case$fits)
 
