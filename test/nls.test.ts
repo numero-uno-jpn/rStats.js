@@ -382,6 +382,9 @@ describe("nonlinear response expressions", () => {
     expect(() => nls("log(y + a) ~ b*x", { y: [1, 2, 3], x: [1, 2, 3] }, {
       start: { a: 1, b: 1 },
     })).toThrow(/response expression must not contain parameters/);
+    expect(() => nls("log(y + a) ~ b*x", { y: [1, 2, 3], a: [1, 1, 1], x: [1, 2, 3] }, {
+      start: { a: 1, b: 1 },
+    })).toThrow(/response expression must not contain parameters/);
   });
 });
 
