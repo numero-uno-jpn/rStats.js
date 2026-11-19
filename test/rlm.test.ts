@@ -292,7 +292,10 @@ describe("LTS trimming count when n is even and p is odd", () => {
     expect(h).toBe(12);
     const objective = fit.initialization?.objective;
     expect(objective, "LTS objective with h=12").toBeDefined();
-    const squares = fit.residuals.map((r, i) => {
+    const initial = fit.initialization!.coefficients;
+    const initialResiduals = fit.model.y.map((value, i) =>
+      value - fit.model.x[i]!.reduce((sum, x, j) => sum + x * initial[fit.model.columnNames[j]!]!, 0));
+    const squares = initialResiduals.map((r, i) => {
       const working = fit.model.wtMethod === "inv" ? Math.sqrt(fit.model.observationWeights[i]!) * r : r;
       return working * working;
     }).sort((a, b) => a - b);
