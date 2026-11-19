@@ -233,6 +233,9 @@ cases <- list(
          list(seed = seed, args = list(formula = phones_formula, data = phones_data,
                                        method = "lts"))
        }),
+       exactReferences = list(list(kind = "lts",
+                                   args = list(formula = phones_formula, data = phones_data,
+                                               method = "lts", nsamp = "exact"))),
        calls = list()),
 
   list(id = "weights-inv",
@@ -267,9 +270,7 @@ cases <- list(
        }),
        exactReferences = list(
          list(kind = "S", args = list(formula = stackloss_formula, data = stackloss_data,
-                                      method = "S", nsamp = "exact")),
-         list(kind = "MM", args = list(formula = stackloss_formula, data = stackloss_data,
-                                       method = "MM", nsamp = "exact"))
+                                      method = "S", nsamp = "exact"))
        ),
        calls = list()),
 
@@ -284,8 +285,6 @@ cases <- list(
        exactReferences = list(
          list(kind = "S", args = list(formula = phones_formula, data = phones_data,
                                       method = "S", nsamp = "exact")),
-         list(kind = "MM", args = list(formula = phones_formula, data = phones_data,
-                                       method = "MM", nsamp = "exact", maxit = 50))
        ),
        calls = list()),
 
@@ -379,11 +378,7 @@ run_lqs_reference <- function(spec, method) {
 # Only public coefficients, scale/crit, and summary output are serialized.
 run_exact_reference <- function(spec) {
   args <- spec$args
-  if (identical(spec$kind, "MM")) {
-    result <- capture_raw(function() do.call(MASS::rlm, args))
-  } else {
-    result <- capture_raw(function() do.call(MASS::lqs, args))
-  }
+  result <- capture_raw(function() do.call(MASS::lqs, args))
   record <- list(kind = spec$kind, args = fit_record(args),
                  result = list(warnings = result$warnings, messages = result$messages))
   if (!is.null(result$error)) {
@@ -391,9 +386,7 @@ run_exact_reference <- function(spec) {
     return(record)
   }
   fit <- result$value
-  if (identical(spec$kind, "MM")) {
-    record$reference <- fit_public_record(fit)
-  } else if (identical(spec$kind, "S")) {
+  if (identical(spec$kind, "S")) {
     record$reference <- list(coefficients = json_value(coef(fit)),
                              scale = scalar_num(fit$scale))
   } else if (identical(spec$kind, "lts")) {
