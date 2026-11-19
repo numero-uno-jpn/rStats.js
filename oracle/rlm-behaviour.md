@@ -85,7 +85,7 @@ k/|u|,& |u|>k.
 \end{cases}
 $$
 
-Away from the two corners, $\psi'(u)=1$ inside the central interval and $0$ outside. The default is $k=1.345$, conventionally chosen for approximately 95% asymptotic efficiency under Gaussian errors. The public oracle confirms the weight values on both signs of the tuning boundary and in the tails. The derivative is represented as a logical vector in the R output.
+Away from the two corners, $\psi'(u)=1$ inside the central interval and $0$ outside. At $|u|=k$, the recorded derivative is the inside value (logical true, numerically 1). The default is $k=1.345$, conventionally chosen for approximately 95% asymptotic efficiency under Gaussian errors. The public oracle confirms the weight values on both signs of the tuning boundary and in the tails. The derivative is represented as a logical vector in the R output.
 
 Huber's score is monotone and its loss is convex. It downweights arbitrarily large residuals but never gives them exactly zero weight.
 
@@ -103,7 +103,7 @@ $$
 
 The corresponding weight is $\psi(u)/u$, with value one at zero. The derivative is $1$ in the central region, $0$ in the constant-score region, $-a/(c-b)$ in the descending tail (on either side), and $0$ beyond the rejection point. Derivatives at the piecewise joins require an explicit one-sided convention.
 
-The defaults are $a=2$, $b=4$, and $c=8$. Thus observations with $|u|\geq8$ have zero score and zero IRLS weight for a fixed scale.
+At the recorded joins, the derivative takes the inner-interval value at $|u|=a$ (1) and $|u|=b$ (0); it is 0 at the rejection point $|u|=c$. The central interval includes $|u|=a$, and the constant-score interval includes $|u|=b$. The defaults are $a=2$, $b=4$, and $c=8$. Thus observations with $|u|\geq8$ have zero score and zero IRLS weight for a fixed scale.
 
 **Tukey bisquare (biweight).** With tuning constant $c$,
 
@@ -276,7 +276,7 @@ The `df.residual` component of an `rlm` fit is deliberately `NA`; it must not be
 
 ### 6.1 Convergence and warnings
 
-The default limit is 20 iterations and the default tolerance is $10^{-4}$. A fit that reaches its iteration limit without meeting the selected convergence criterion is returned with `converged = FALSE$, its convergence history, and a warning of the form:
+The implementation default is a 1000-iteration budget and a dimensionless tolerance of $10^{-10}$. It checks the normalized residual of each coefficient's standardized estimating equation and the relative change in the recomputed scale fixed point. The tolerance describes numerical solution accuracy, not the definition of the estimator. Callers may supply other iteration limits and tolerances. A fit that reaches its iteration limit without meeting both criteria is returned with `converged = FALSE$, its convergence history, and a warning of the form:
 
 `'rlm' failed to converge in N steps`
 
