@@ -218,7 +218,7 @@ function evaluate(
 function evaluateProfiled(
   expr: NlsExpr, rows: Record<string, number>[], y: number[], weights: number[],
   names: string[], values: number[],
-): { fitted: number[]; residuals: number[]; jacobian: number[][]; objective: number } {
+): { fitted: number[]; residuals: number[]; jacobian: number[][]; objective: number; linear: number } {
   const parameters: Record<string, number> = {};
   names.forEach((name, i) => { parameters[name] = values[i]!; });
   const basis: number[] = [], rawGradient: number[][] = [];
@@ -240,12 +240,10 @@ function evaluateProfiled(
     for (let i = 0; i < y.length; i++) sum += weights[i]! * basis[i]! * rawGradient[i]![j]!;
     return sum / denominator;
   });
-  const jacobian = rawGradient.map((gradient, i) => [
-    ...gradient.map((v, j) => linear * (v - basis[i]! * projection[j]!)),
-    basis[i]!,
-  ]);
+  const jacobian = rawGradient.map((gradient, i) =>
+    gradient.map((v, j) => linear * (v - basis[i]! * projection[j]!)));
   const objective = residuals.reduce((s, r, i) => s + weights[i]! * r * r, 0);
-  return { fitted, residuals, jacobian, objective };
+  return { fitted, residuals, jacobian, objective, linear };
 }
 
 function makeBounds(
@@ -267,7 +265,7 @@ function fitCore(
   expr: NlsExpr, rows: Record<string, number>[], y: number[], weights: number[],
   names: string[], start: number[], algorithm: NlsAlgorithm,
   lower: number[], upper: number[], control: Required<NlsControl>,
-): { values: number[]; fitted: number[]; residuals: number[]; jacobian: number[][]; objective: number; iterations: number; converged: boolean } {
+): { values: number[]; fitted: number[]; residuals: number[]; jacobian: number[][]; objective: number; iterations: number; converged: boolean; linear?: number } {
   let values = [...start];
   const warnings: string[] = [];
   let current = algorithm === "plinear"
@@ -395,9 +393,8 @@ export function nls(formula: string, data: DataFrame, options: NlsOptions = {}):
   const dataRows = rows.map(i => Object.fromEntries(predictorNames.map(name => [name, dataColumns[name]![i]!])) as Record<string, number>);
   const algorithm = options.algorithm ?? "default";
   if (algorithm !== "default" && algorithm !== "plinear" && algorithm !== "port") throw new Error("unsupported algorithm: " + String(algorithm));
-  if (algorithm === "plinear") start = [...start, 1];
-  const names = algorithm === "plinear" ? [...parameterNames, ".lin"] : parameterNames;
-  const lower = makeBounds(options.lower, names, algorithm === "port" ? -Infinity : -Infinity);
+  const names = parameterNames;
+  const lower = makeBounds(options.lower, names, -Infinity);
   const upper = makeBounds(options.upper, names, Infinity);
   if (algorithm !== "port" && (options.lower !== undefined || options.upper !== undefined)) {
     throw new Error("lower and upper bounds are supported only by algorithm 'port'");
@@ -421,12 +418,21 @@ export function nls(formula: string, data: DataFrame, options: NlsOptions = {}):
   const fitted = fitCore(parsed.expression, dataRows, y, weights, parameterNames, start, algorithm, lower, upper, control);
   const coefficientNames = algorithm === "plinear" ? [...parameterNames, ".lin"] : parameterNames;
   const coefficients: Record<string, number> = {};
-  coefficientNames.forEach((name, i) => { coefficients[name] = fitted.values[i]!; });
+  parameterNames.forEach((name, i) => { coefficients[name] = fitted.values[i]!; });
+  if (algorithm === "plinear") coefficients[".lin"] = fitted.linear!;
   const dfResidual = rows.length - coefficientNames.length;
   const sigma = Math.sqrt(fitted.objective / dfResidual);
   const exactFit = fitted.objective === 0;
+  let fullJacobian = fitted.jacobian;
+  if (algorithm === "plinear") {
+    const parameters = Object.fromEntries(parameterNames.map((name, i) => [name, fitted.values[i]!]));
+    fullJacobian = dataRows.map(row => {
+      const result = evaluateNlsWithGradient(parsed.expression, row, parameters, parameterNames);
+      return [...result.gradient.map(v => coefficients[".lin"]! * v), result.value];
+    });
+  }
   const covariance = exactFit ? coefficientNames.map(() => coefficientNames.map(() => Number.NaN))
-    : covarianceFromJacobian(fitted.jacobian, weights, sigma * sigma);
+    : covarianceFromJacobian(fullJacobian, weights, sigma * sigma);
   const warnings = fitted.converged ? [] : ["number of iterations exceeded; nonlinear fit did not converge"];
   return reported("nls", {
     formula, response: parsed.response, parameterNames: coefficientNames, coefficients,
