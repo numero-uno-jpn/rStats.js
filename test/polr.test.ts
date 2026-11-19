@@ -329,11 +329,8 @@ describe("polrPredict: all prediction fixtures", () => {
   );
   for (const { fixtureCase, call } of unknownCalls) {
     it(`${fixtureCase.id} rejects a new factor level`, () => {
-      if (call.args?.newdata === undefined || call.result.error === undefined) {
-        throw new Error("invalid unknown-level fixture");
-      }
       const args = call.args;
-      if (args?.newdata === undefined || call.result.error === undefined) {
+      if (args === undefined || args.newdata === undefined || call.result.error === undefined) {
         throw new Error("invalid unknown-level fixture");
       }
       const { fit } = fitCase(fixtureCase.id);
