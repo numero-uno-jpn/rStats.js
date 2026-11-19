@@ -157,7 +157,16 @@ const binary = (op: "+" | "-" | "*" | "/" | "^", left: NlsExpr, right: NlsExpr):
 const call = (name: string, ...args: NlsExpr[]): NlsExpr => ({ type: "call", name, args });
 
 /** Construct the symbolic derivative of an expression with respect to one parameter. */
-export function isZeroDerivative(expr: NlsExpr): boolean {\n  if (expr.type === "number") return expr.value === 0;\n  if (expr.type === "unary") return isZeroDerivative(expr.value);\n  if (expr.type === "binary" && (expr.op === "+" || expr.op === "-")) return isZeroDerivative(expr.left) && isZeroDerivative(expr.right);\n  if (expr.type === "binary" && expr.op === "*") return isZeroDerivative(expr.left) || isZeroDerivative(expr.right);\n  if (expr.type === "binary" && expr.op === "/") return isZeroDerivative(expr.left);\n  return false;\n}\n\nfunction differentiateNls(expr: NlsExpr, parameter: string): NlsExpr {
+export function isZeroDerivative(expr: NlsExpr): boolean {
+  if (expr.type === "number") return expr.value === 0;
+  if (expr.type === "unary") return isZeroDerivative(expr.value);
+  if (expr.type === "binary" && (expr.op === "+" || expr.op === "-")) return isZeroDerivative(expr.left) && isZeroDerivative(expr.right);
+  if (expr.type === "binary" && expr.op === "*") return isZeroDerivative(expr.left) || isZeroDerivative(expr.right);
+  if (expr.type === "binary" && expr.op === "/") return isZeroDerivative(expr.left);
+  return false;
+}
+
+export function differentiateNls(expr: NlsExpr, parameter: string): NlsExpr {
   switch (expr.type) {
     case "number": return num(0);
     case "variable": return num(expr.name === parameter ? 1 : 0);
@@ -169,7 +178,9 @@ export function isZeroDerivative(expr: NlsExpr): boolean {\n  if (expr.type === 
         case "-": return binary("-", du, dv);
         case "*": return binary("+", binary("*", du, v), binary("*", u, dv));
         case "/": return binary("/", binary("-", binary("*", du, v), binary("*", u, dv)), binary("^", v, num(2)));
-        case "^": return isZeroDerivative(dv)\n          ? binary("*", binary("*", v, binary("^", u, binary("-", v, num(1)))), du)\n          : binary("*", binary("^", u, v), binary("+", binary("*", dv, call("log", u)), binary("/", binary("*", v, du), u)));
+        case "^": return isZeroDerivative(dv)
+          ? binary("*", binary("*", v, binary("^", u, binary("-", v, num(1)))), du)
+          : binary("*", binary("^", u, v), binary("+", binary("*", dv, call("log", u)), binary("/", binary("*", v, du), u)));
       }
     }
     case "call": {
@@ -187,7 +198,10 @@ export function isZeroDerivative(expr: NlsExpr): boolean {\n  if (expr.type === 
         case "tan": return binary("/", dx, binary("^", call("cos", x), num(2)));
         case "sinh": return binary("*", call("cosh", x), dx);
         case "cosh": return binary("*", call("sinh", x), dx);
-        case "tanh": return binary("/", dx, binary("^", call("cosh", x), num(2)));\n        case "atan": return binary("/", dx, binary("+", num(1), binary("^", x, num(2))));\n        case "asin": return binary("/", dx, call("sqrt", binary("-", num(1), binary("^", x, num(2)))));\n        case "acos": return { type: "unary", op: "-", value: binary("/", dx, call("sqrt", binary("-", num(1), binary("^", x, num(2))))) };
+        case "tanh": return binary("/", dx, binary("^", call("cosh", x), num(2)));
+        case "atan": return binary("/", dx, binary("+", num(1), binary("^", x, num(2))));
+        case "asin": return binary("/", dx, call("sqrt", binary("-", num(1), binary("^", x, num(2)))));
+        case "acos": return { type: "unary", op: "-", value: binary("/", dx, call("sqrt", binary("-", num(1), binary("^", x, num(2))))) };
       }
     }
   }
@@ -204,8 +218,9 @@ export function evaluateNlsExpression(
     case "number": return expr.value;
     case "variable": {
       const value = Object.prototype.hasOwnProperty.call(parameters, expr.name) ? parameters[expr.name] : data[expr.name];
-      if (value === undefined) throw new Error("unknown variable in nonlinear formula: " + expr.name);
-      return value;
+      if (value !== undefined) return value;
+      if (expr.name === "pi") return Math.PI;
+      throw new Error("unknown variable in nonlinear formula: " + expr.name);
     }
     case "unary": {
       const value = evaluateNlsExpression(expr.value, data, parameters);
@@ -236,7 +251,10 @@ export function evaluateNlsExpression(
         case "tan": return Math.tan(x);
         case "sinh": return Math.sinh(x);
         case "cosh": return Math.cosh(x);
-        case "tanh": return Math.tanh(x);\n        case "atan": return Math.atan(x);\n        case "asin": return Math.asin(x);\n        case "acos": return Math.acos(x);
+        case "tanh": return Math.tanh(x);
+        case "atan": return Math.atan(x);
+        case "asin": return Math.asin(x);
+        case "acos": return Math.acos(x);
       }
     }
   }
