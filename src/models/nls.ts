@@ -467,13 +467,13 @@ function fitCore(
     }));
     const stepTolerance = control.scaleOffset > 0
       ? 8 * Number.EPSILON
-      : Math.max(1e-14, control.tol * 0.001);
+      : Math.max(1e-12, Math.sqrt(control.tol) * 0.001);
     const roundedStep = projectedDelta.every((value, i) => {
       const next = values[i]! + value;
       const ulp = Number.EPSILON * Math.max(Math.abs(values[i]!), Math.abs(next), Number.MIN_VALUE);
       return next === values[i] || Math.abs(value) <= 4 * ulp;
     });
-    const gradientTolerance = Math.max(control.tol * 10, 1e-13);
+    const gradientTolerance = Math.max(control.tol * 100, 1e-13);
     if ((scaledGradientNorm <= gradientTolerance
       && (algorithm === "port" || (control.scaleOffset > 0 ? roundedStep : stepNorm <= stepTolerance)))
       || (roundedStep && scaledGradientNorm <= Math.sqrt(Number.EPSILON))) {
@@ -492,7 +492,7 @@ function fitCore(
           current.objective, Number.EPSILON * responseSquared, Number.MIN_VALUE,
         );
         const objectiveStalled = trial.objective >= current.objective - roundingAllowance;
-        if (!objectiveStalled || candidateStepNorm <= stepTolerance * 4 || roundedStep) {
+        if (!objectiveStalled || candidateStepNorm <= stepTolerance * 10 || roundedStep) {
           values = candidate;
           current = trial;
           accepted = true;
