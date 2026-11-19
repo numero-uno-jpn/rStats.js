@@ -328,10 +328,17 @@ function fitCore(
     } catch (error) {
       throw new Error("singular gradient: " + (error instanceof Error ? error.message : String(error)));
     }
+    const projectedDelta = delta.map((value, i) => {
+      if (algorithm !== "port") return value;
+      const boundTolerance = 16 * Number.EPSILON * Math.max(1, Math.abs(values[i]!));
+      if (values[i]! <= lower[i]! + boundTolerance && value < 0) return 0;
+      if (values[i]! >= upper[i]! - boundTolerance && value > 0) return 0;
+      return value;
+    });
     const scaledGradientNorm = Math.max(0, ...rhs.map((value, i) =>
-      Math.abs(value) / (Math.sqrt(Math.max(matrix[i]![i]!, Number.MIN_VALUE))
+      projectedDelta[i] === 0 ? 0 : Math.abs(value) / (Math.sqrt(Math.max(matrix[i]![i]!, Number.MIN_VALUE))
         * (Math.sqrt(current.objective) + control.scaleOffset + Number.EPSILON))));
-    const stepNorm = Math.max(0, ...delta.map((v, i) => Math.abs(v) / (1 + Math.abs(values[i]!))));
+    const stepNorm = Math.max(0, ...projectedDelta.map((v, i) => Math.abs(v) / (1 + Math.abs(values[i]!))));
     const stepTolerance = Math.max(1e-12, Math.sqrt(control.tol) * 0.001);
     if (scaledGradientNorm <= Math.max(control.tol * 100, 1e-13)
       && stepNorm <= stepTolerance) {
