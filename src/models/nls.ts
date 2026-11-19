@@ -416,27 +416,33 @@ function fitCore(
   let converged = false, iterations = 0;
   for (; iterations < control.maxiter; iterations++) {
     const { matrix, rhs } = normalEquations(current.jacobian, current.residuals, weights);
-    let delta: number[];
+    const boundTolerance = values.map(value => 16 * Number.EPSILON * Math.max(1, Math.abs(value)));
+    const freeIndices = names.map((_, i) => i).filter(i => algorithm !== "port" || !(
+      (values[i]! <= lower[i]! + boundTolerance[i]! && rhs[i]! <= 0)
+      || (values[i]! >= upper[i]! - boundTolerance[i]! && rhs[i]! >= 0)
+    ));
+    if (freeIndices.length === 0) { converged = true; break; }
+    const reducedMatrix = freeIndices.map(i => freeIndices.map(j => matrix[i]![j]!));
+    const reducedRhs = freeIndices.map(i => rhs[i]!);
+    const scales = reducedMatrix.map((row, i) => Math.sqrt(Math.max(row[i]!, Number.MIN_VALUE)));
+    const scaledMatrix = reducedMatrix.map((row, i) => row.map((value, j) => value / (scales[i]! * scales[j]!)));
+    const scaledRhs = reducedRhs.map((value, i) => value / scales[i]!);
+    let reducedDelta: number[];
     try {
-      const scales = matrix.map((row, i) => Math.sqrt(Math.max(row[i]!, Number.MIN_VALUE)));
-      const scaledMatrix = matrix.map((row, i) => row.map((value, j) => value / (scales[i]! * scales[j]!)));
-      const scaledRhs = rhs.map((value, i) => value / scales[i]!);
-      delta = solve(scaledMatrix, scaledRhs).map((value, i) => value / scales[i]!);
+      reducedDelta = solve(scaledMatrix, scaledRhs).map((value, i) => value / scales[i]!);
     } catch (error) {
       throw new Error("singular gradient: " + (error instanceof Error ? error.message : String(error)));
     }
+    const delta = Array.from({ length: names.length }, () => 0);
+    for (let i = 0; i < freeIndices.length; i++) delta[freeIndices[i]!] = reducedDelta[i]!;
     const projectedDelta = delta.map((value, i) => {
       if (algorithm !== "port") return value;
-      const boundTolerance = 16 * Number.EPSILON * Math.max(1, Math.abs(values[i]!));
-      // At a lower bound, rhs <= 0 satisfies KKT; otherwise use a feasible inward gradient step.
-      if (values[i]! <= lower[i]! + boundTolerance) {
-        if (rhs[i]! <= 0) return 0;
-        return value > 0 ? value : rhs[i]! / Math.max(matrix[i]![i]!, Number.MIN_VALUE);
+      // If an active-bound parameter has an inward gradient, never take an infeasible Newton direction.
+      if (values[i]! <= lower[i]! + boundTolerance[i]!) {
+        return rhs[i]! > 0 && value < 0 ? rhs[i]! / Math.max(matrix[i]![i]!, Number.MIN_VALUE) : value;
       }
-      // At an upper bound, rhs >= 0 satisfies KKT; otherwise use a feasible inward gradient step.
-      if (values[i]! >= upper[i]! - boundTolerance) {
-        if (rhs[i]! >= 0) return 0;
-        return value < 0 ? value : rhs[i]! / Math.max(matrix[i]![i]!, Number.MIN_VALUE);
+      if (values[i]! >= upper[i]! - boundTolerance[i]!) {
+        return rhs[i]! < 0 && value > 0 ? rhs[i]! / Math.max(matrix[i]![i]!, Number.MIN_VALUE) : value;
       }
       return value;
     });
