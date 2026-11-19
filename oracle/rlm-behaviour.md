@@ -509,13 +509,14 @@ Decided by the user on 2026-11-19.
    quantity and is not used.
    **Comparison with R:** MASS's `nsamp = "exact"` (documented in `?lqs`, passed through by `rlm`) examines every
    subset and is deterministic, so rStats.js's exhaustive S search is compared with
-   `lqs(..., method = "S", nsamp = "exact")` **by the objective under the same definition** (amended 2026-11-19):
-   the S scale of MASS's exact coefficients, solved exactly from the equation above, is the reference, and rStats.js's
-   S scale must not be larger (beyond rounding). MASS's exact search compares the elemental fits without improving
-   them and rStats.js refines its best candidates, so rStats.js can reach a lower S scale with other coefficients
-   (stackloss: 1.9119071736 against 1.91190717374 at MASS's coefficients, intercepts −36.93 and −35.38); the S
-   coefficients are therefore not compared. MASS's reported `scale` agrees with the exact solution at its own
-   coefficients to a relative 1e-4 (its loose solution), which the test also checks. **`rlm(..., method = "MM")` does not use `nsamp = "exact"`**
+   `lqs(..., method = "S", nsamp = "exact")` (amended 2026-11-19). **MASS's exact S reports two different fits:**
+   its coefficients are those of the best elemental subset, but its residuals and `scale` belong to a refined fit
+   (`experiments/regression-rlm-sscale.residuals.txt`: the residuals differ from $y - X\hat\beta$ at the reported
+   coefficients by up to 0.62). That refined fit is rStats.js's S estimate: MASS's residuals differ from rStats.js's
+   by at most 2.0e-5 on stackloss, and the coefficients implied by MASS's residuals (−36.92530, 0.84957479, 0.43047554,
+   −0.07354065) agree with rStats.js's (−36.92542, 0.84957481, 0.43047391, −0.07353885) to MASS's loose refinement.
+   rStats.js is therefore compared with MASS's **residuals and `scale`** (to a relative 1e-4, MASS's loose solution of
+   the scale equation), not with MASS's reported coefficients. **`rlm(..., method = "MM")` does not use `nsamp = "exact"`**
    (`experiments/regression-rlm-mm-nsamp.R` and `.out.txt`: after `set.seed(1)` the "exact" MM equals the random MM
    of seed 1 to every digit, and it changes with the seed and between arm64 and x86_64), so MASS's MM is never
    compared (a known difference). rStats.js's final MM step is checked independently: the bisquare estimating
