@@ -25,7 +25,7 @@ type FitSpec = {
   data: { columns: Record<string, unknown> };
   method?: PolrMethod;
   weights?: string;
-  start?: unknown[];
+  start?: Record<string, unknown>;
 };
 type FixtureCase = {
   id: string;
@@ -62,7 +62,7 @@ function prepareFit(spec: FitSpec): { data: DataFrame; options: PolrOptions } {
   const options: PolrOptions = { levels };
   if (spec.method !== undefined) options.method = spec.method;
   if (spec.weights !== undefined) options.weights = spec.weights;
-  if (spec.start !== undefined) options.start = spec.start.map(numeric);
+  if (spec.start !== undefined) options.start = Object.values(spec.start).map(numeric);
   return { data, options };
 }
 
