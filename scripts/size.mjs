@@ -32,6 +32,14 @@ cases.push(["lmer, lmerSummary, lmerContest, lmerAnova (from /mixed)", "lmer, lm
 cases.push(["glmer (from /mixed)", "glmer", mixedEntry]);
 cases.push(["glmer, glmerSummary, glmerAnova, glmerPredict (from /mixed)", "glmer, glmerSummary, glmerAnova, glmerPredict", mixedEntry]);
 
+const regressionEntry = fileURLToPath(new URL("../dist/entries/regression.js", import.meta.url));
+cases.push(["polr (from /regression)", "polr", regressionEntry]);
+cases.push(["polr with all its methods (from /regression)", "polr, polrSummary, polrVcov, polrPredict, polrConfint, polrAnova", regressionEntry]);
+cases.push(["rlm (from /regression)", "rlm", regressionEntry]);
+cases.push(["rlm with all its methods (from /regression)", "rlm, rlmSummary, rlmVcov", regressionEntry]);
+cases.push(["nls (from /regression)", "nls", regressionEntry]);
+cases.push(["nls with all its methods (from /regression)", "nls, nlsSummary, nlsVcov, nlsPredict, nlsConfint, nlsAnova", regressionEntry]);
+
 const rows = [];
 for (const [label, names, from = dist] of cases) {
   const contents = names === "*" ? `export * from ${JSON.stringify(from)};` : `export { ${names} } from ${JSON.stringify(from)};`;
@@ -51,10 +59,3 @@ console.log("| import | minified | gzip |");
 console.log("|---|---|---|");
 for (const [label, min, gz] of rows) console.log(`| \`${label}\` | ${kb(min)} | ${kb(gz)} |`);
 
-const regressionEntry = fileURLToPath(new URL("../dist/entries/regression.js", import.meta.url));
-cases.push(["polr (from /regression)", "polr", regressionEntry]);
-cases.push(["polr with all its methods (from /regression)", "polr, polrSummary, polrVcov, polrPredict, polrConfint, polrAnova", regressionEntry]);
-cases.push(["rlm (from /regression)", "rlm", regressionEntry]);
-cases.push(["rlm with all its methods (from /regression)", "rlm, rlmSummary, rlmVcov", regressionEntry]);
-cases.push(["nls (from /regression)", "nls", regressionEntry]);
-cases.push(["nls with all its methods (from /regression)", "nls, nlsSummary, nlsVcov, nlsPredict, nlsConfint, nlsAnova", regressionEntry]);
