@@ -1,4 +1,5 @@
 # issue: 545
+# rerun after independent formula probes
 # batch rerun after reserved-token fix
 # batch rerun after clean-room script correction
 # Small deterministic GEE data for independent moment/covariance calculations.
@@ -20,4 +21,15 @@ for(cs in c("independence","exchangeable","ar1","unstructured")){
        tightDispersion=tab(st$dispersion),qic=unname(as.numeric(QIC(f))))
  })
 }
+out$jackknife<-run({
+ ans<-list()
+ for(st in c("jack","j1s","fij")){
+  f<-geeglm(y~x,id=id,waves=wave,data=d,family=gaussian,corstr="exchangeable",std.err=st)
+  ids<-sort(unique(d$id))
+  deleted<-lapply(ids,function(k)unname(coef(geeglm(y~x,id=id,waves=wave,
+       data=d[d$id!=k,],family=gaussian,corstr="exchangeable"))))
+  ans[[st]]<-list(coef=unname(coef(f)),vcov=tab(vcov(f)),deleted=tab(do.call(rbind,deleted)))
+ }
+ ans
+})
 cat(toJSON(out,digits=NA,auto_unbox=TRUE,null="null",na="string",pretty=FALSE))

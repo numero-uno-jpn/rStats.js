@@ -1,4 +1,5 @@
 # issue: 545
+# rerun after independent formula probes
 # rerun after stage1 formula verification
 # batch rerun after reserved-token fix
 # batch rerun after clean-room script correction
