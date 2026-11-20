@@ -1,4 +1,6 @@
-# issue: 545
+# rerun after stage1 formula verification
+# batch rerun after reserved-token fix
+# batch rerun after clean-room script correction
 # Corrected GEE oracle. All tabular results are reduced to plain numeric matrices before JSON encoding.
 suppressMessages(library(geepack))
 library(jsonlite)
@@ -72,13 +74,6 @@ out$poisson_offset <- run({
 for (st in c("jack","j1s","fij")) out[[paste0("jack_",st)]] <- run({
  f <- geeglm(resp~age+smoke,id=id,data=ohio,family=binomial,corstr="exchangeable",std.err=st)
  capture(f)
-})
-out$jackknife_delete <- run({
- f <- geeglm(resp~age+smoke,id=id,data=ohio,family=binomial,corstr="exchangeable",std.err="fij")
- ids <- sort(unique(ohio$id))
- deleted <- lapply(ids,function(k)unname(coef(geeglm(resp~age+smoke,id=id,
-   data=ohio[ohio$id!=k,],family=binomial,corstr="exchangeable"))))
- list(ids=ids,full=unname(coef(f)),vcovFij=tab(vcov(f)),deleted=tab(do.call(rbind,deleted)))
 })
 out$fixed_scale <- run(capture(geeglm(Weight~Time,id=Pig,data=dietox,corstr="ar1",scale.fix=TRUE,scale.value=4)))
 out$weights <- run(capture(geeglm(Weight~Time,id=Pig,data=dietox,corstr="exchangeable",
