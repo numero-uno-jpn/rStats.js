@@ -8,6 +8,8 @@ import { parseFormula } from "./formula.js";
 import { design, type DesignContrast } from "./modelMatrix.js";
 import type { DataFrame } from "./modelFrame.js";
 import type { Sample } from "../htest/types.js";
+import { pt, qt } from "../distributions/t.js";
+import { pf } from "../distributions/f.js";
 
 /** Algorithm used to fit a quantile-regression model.
  *
@@ -617,4 +619,173 @@ export function rqPredict(fit: RqResult, newdata: DataFrame): number[] | number[
   }));
   const values = coefs.map((beta) => matrix.map((row) => dot(row, beta)));
   return values.length === 1 ? values[0]! : values;
+}
+
+export interface RqSummaryOptions { se?: "nid" | "iid" | "rank" | "ker" | "boot"; covariance?: boolean; level?: number; }
+export interface RqCoefficientSummary { tau: number; term: string; estimate: number; stdError: number; statistic: number; pValue: number; }
+export interface RqSummaryResult { coefficients: RqCoefficientSummary[]; covariance?: number[][][]; se: string; warnings: string[]; }
+export interface RqPredictOptions { interval?: "none" | "confidence"; type?: "none" | "direct" | "percentile"; level?: number; }
+export interface RqPredictResult { fit: number[] | number[][]; lower?: number[] | number[][]; upper?: number[] | number[][]; level: number; type: string; }
+
+function rqInverse(a: readonly number[][]): number[][] {
+  const n = a.length;
+  const m = a.map((row, i) => [...row, ...Array.from({ length: n }, (_, j) => +(i === j))]);
+  for (let k = 0; k < n; k++) {
+    let pivot = k;
+    for (let i = k + 1; i < n; i++) if (Math.abs(m[i]![k]!) > Math.abs(m[pivot]![k]!)) pivot = i;
+    if (!(Math.abs(m[pivot]![k]!) > Number.EPSILON)) throw new RangeError("singular covariance matrix");
+    [m[k], m[pivot]] = [m[pivot]!, m[k]!];
+    const d = m[k]![k]!;
+    for (let j = 0; j < 2 * n; j++) m[k]![j]! /= d;
+    for (let i = 0; i < n; i++) if (i !== k) {
+      const v = m[i]![k]!;
+      for (let j = 0; j < 2 * n; j++) m[i]![j]! -= v * m[k]![j]!;
+    }
+  }
+  return m.map((row) => row.slice(n));
+}
+function rqMul(a: readonly number[][], b: readonly number[][]): number[][] {
+  return a.map((row) => b[0]!.map((_, j) => row.reduce((sum, v, k) => sum + v * b[k]![j]!, 0)));
+}
+function rqBandwidth(n: number, tau: number, level: number): number {
+  const z = qt(tau, 1e6) as number;
+  const critical = qt((1 + level) / 2, 1e6) as number;
+  const phi = Math.exp(-0.5 * z * z) / Math.sqrt(2 * Math.PI);
+  return Math.cbrt(1.5 * phi * phi * critical * critical / n);
+}
+function rqBread(model: RqModel, tau: number, level: number): number[][] {
+  const h = rqBandwidth(model.y.length, tau, level);
+  const minus = fitOne(model.x, model.y, model.weights, tau - h, model.method, 500, 1e-12).beta;
+  const plus = fitOne(model.x, model.y, model.weights, tau + h, model.method, 500, 1e-12).beta;
+  const p = model.columnNames.length;
+  const bread = Array.from({ length: p }, () => new Array<number>(p).fill(0));
+  for (let i = 0; i < model.y.length; i++) {
+    const row = model.x[i]!;
+    const density = 2 * h / (dot(row, plus) - dot(row, minus));
+    if (!(density > 0) || !Number.isFinite(density)) throw new RangeError("non-positive local density in nid covariance");
+    for (let j = 0; j < p; j++) for (let k = 0; k <= j; k++) bread[j]![k]! += model.weights[i]! * density * row[j]! * row[k]!;
+  }
+  for (let j = 0; j < p; j++) for (let k = 0; k < j; k++) bread[k]![j] = bread[j]![k]!;
+  return bread;
+}
+function rqMeat(model: RqModel): number[][] {
+  const p = model.columnNames.length;
+  const meat = Array.from({ length: p }, () => new Array<number>(p).fill(0));
+  for (let i = 0; i < model.y.length; i++) {
+    const row = model.x[i]!;
+    for (let j = 0; j < p; j++) for (let k = 0; k <= j; k++) meat[j]![k]! += model.weights[i]! ** 2 * row[j]! * row[k]!;
+  }
+  for (let j = 0; j < p; j++) for (let k = 0; k < j; k++) meat[k]![j] = meat[j]![k]!;
+  return meat;
+}
+function rqNidCovariance(model: RqModel, tau: number, level: number): number[][] {
+  const inv = rqInverse(rqBread(model, tau, level));
+  const middle = rqMul(rqMul(inv, rqMeat(model)), inv);
+  const scale = tau * (1 - tau);
+  return middle.map((row) => row.map((v) => v * scale));
+}
+
+/** Coefficient summary with Hall–Sheather bandwidth and the nid sandwich covariance. */
+export function rqSummary(fit: RqResult, options: RqSummaryOptions = {}): RqSummaryResult {
+  for (const key of Object.keys(options)) if (!["se", "covariance", "level"].includes(key)) throw new TypeError("unused argument (" + key + ")");
+  const se = options.se ?? "nid";
+  if (se !== "nid") throw new RangeError("rqSummary currently supports se = 'nid'; iid, rank, ker and boot remain unresolved");
+  const level = options.level ?? 0.95;
+  if (!(level > 0 && level < 1)) throw new RangeError("level must be between 0 and 1");
+  const model = fit.model;
+  const covariances = model.tau.map((tau) => rqNidCovariance(model, tau, level));
+  const coefficients: RqCoefficientSummary[] = [];
+  for (let k = 0; k < model.tau.length; k++) for (let j = 0; j < model.columnNames.length; j++) {
+    const term = model.columnNames[j]!;
+    const raw = fit.coefficients[term]!;
+    const estimate = Array.isArray(raw) ? raw[k]! : raw;
+    const stdError = Math.sqrt(covariances[k]![j]![j]!);
+    const statistic = estimate / stdError;
+    const pValue = 2 * (pt(-Math.abs(statistic), model.y.length - model.columnNames.length) as number);
+    coefficients.push({ tau: model.tau[k]!, term, estimate, stdError, statistic, pValue });
+  }
+  return { coefficients, ...(options.covariance ? { covariance: covariances } : {}), se, warnings: [...fit.warnings] };
+}
+
+/** Confidence intervals for conditional quantile predictions using nid or direct quantile refits. */
+export function rqPredictInterval(fit: RqResult, newdata: DataFrame, options: RqPredictOptions = {}): RqPredictResult {
+  for (const key of Object.keys(options)) if (!["interval", "type", "level"].includes(key)) throw new TypeError("unused argument (" + key + ")");
+  const interval = options.interval ?? "none";
+  const type = options.type ?? "none";
+  const level = options.level ?? 0.95;
+  if (!(level > 0 && level < 1)) throw new RangeError("level must be between 0 and 1");
+  const predicted = rqPredict(fit, newdata);
+  if (interval === "none") return { fit: predicted, level, type };
+  if (interval !== "confidence") throw new RangeError("interval must be 'none' or 'confidence'");
+  if (type === "percentile") throw new RangeError("percentile prediction intervals require bootstrap inference");
+  const model = fit.model;
+  if (model.tau.length !== 1) throw new RangeError("confidence intervals currently require a single tau");
+  const rhs = model.formula.slice(model.formula.indexOf("~") + 1);
+  const matrix = design(parseFormula("~ " + rhs), newdata, { anyResponse: true, dropUnusedLevels: true }).x;
+  const tau = model.tau[0]!;
+  let lower: number[];
+  let upper: number[];
+  if (type === "direct") {
+    const h = rqBandwidth(model.y.length, tau, level);
+    if (!(tau - h > 0 && tau + h < 1)) throw new RangeError("direct interval bandwidth leaves the unit interval");
+    const lo = fitOne(model.x, model.y, model.weights, tau - h, model.method, 500, 1e-12).beta;
+    const hi = fitOne(model.x, model.y, model.weights, tau + h, model.method, 500, 1e-12).beta;
+    lower = matrix.map((row) => dot(row, lo));
+    upper = matrix.map((row) => dot(row, hi));
+  } else if (type === "none") {
+    const cov = rqNidCovariance(model, tau, level);
+    const beta = model.columnNames.map((name) => fit.coefficients[name] as number);
+    const critical = qt((1 + level) / 2, model.y.length - model.columnNames.length) as number;
+    lower = [];
+    upper = [];
+    for (const row of matrix) {
+      const cv = cov.map((r) => dot(r, row));
+      const variance = dot(row, cv);
+      const center = dot(row, beta);
+      const half = critical * Math.sqrt(Math.max(0, variance));
+      lower.push(center - half);
+      upper.push(center + half);
+    }
+  } else throw new RangeError("type must be 'none', 'direct' or 'percentile'");
+  return { fit: predicted, lower, upper, level, type };
+}
+
+/** Wald test of equality of slopes across the quantiles in a multiple-tau fit. */
+export function rqAnova(fit: RqResult): { statistic: number; df: number; dfResidual: number; pValue: number; method: "Wald" } {
+  const model = fit.model;
+  const p = model.columnNames.length;
+  const m = model.tau.length;
+  if (m < 2) throw new RangeError("Wald anova requires a multiple-tau fit");
+  const restrictions: number[][] = [];
+  const difference: number[] = [];
+  for (let j = 1; j < p; j++) {
+    const raw = fit.coefficients[model.columnNames[j]!]!;
+    if (!Array.isArray(raw)) throw new RangeError("multiple-tau coefficients are required");
+    for (let k = 1; k < m; k++) {
+      const row = new Array<number>(p * m).fill(0);
+      row[k * p + j] = 1;
+      row[j] = -1;
+      restrictions.push(row);
+      difference.push(raw[k]! - raw[0]!);
+    }
+  }
+  const q = restrictions.length;
+  const bread = model.tau.map((tau) => rqInverse(rqBread(model, tau, 0.95)));
+  const meat = rqMeat(model);
+  const covariance = Array.from({ length: p * m }, () => new Array<number>(p * m).fill(0));
+  for (let a = 0; a < m; a++) for (let b = 0; b < m; b++) {
+    const block = rqMul(rqMul(bread[a]!, meat), bread[b]!);
+    const scale = Math.min(model.tau[a]!, model.tau[b]!) - model.tau[a]! * model.tau[b]!;
+    for (let j = 0; j < p; j++) for (let k = 0; k < p; k++) covariance[a * p + j]![b * p + k] = block[j]![k]! * scale;
+  }
+  const small = restrictions.map((r) => restrictions.map((c) => {
+    let value = 0;
+    for (let i = 0; i < r.length; i++) for (let j = 0; j < c.length; j++) value += r[i]! * covariance[i]![j]! * c[j]!;
+    return value;
+  }));
+  const inv = rqInverse(small);
+  const weighted = inv.map((row) => row.reduce((sum, v, i) => sum + v * difference[i]!, 0));
+  const statistic = difference.reduce((sum, v, i) => sum + v * weighted[i]!, 0);
+  const dfResidual = model.y.length - p * (m - 1);
+  return { statistic, df: q, dfResidual, pValue: pf(statistic / q, q, dfResidual, { lowerTail: false }) as number, method: "Wald" };
 }
