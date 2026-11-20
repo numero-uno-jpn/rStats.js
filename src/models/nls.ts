@@ -414,13 +414,14 @@ function fitCore(
   expr: NlsExpr, rows: Record<string, number>[], y: number[], weights: number[],
   names: string[], start: number[], algorithm: NlsAlgorithm,
   lower: number[], upper: number[], control: Required<NlsControl>,
-): { values: number[]; fitted: number[]; residuals: number[]; jacobian: number[][]; objective: number; iterations: number; converged: boolean; linear?: number } {
+): { values: number[]; fitted: number[]; residuals: number[]; jacobian: number[][]; objective: number; iterations: number; converged: boolean; failureReason?: string; linear?: number } {
   let values = [...start];
   const warnings: string[] = [];
   let current = algorithm === "plinear"
     ? evaluateProfiled(expr, rows, y, weights, names, values)
     : evaluate(expr, rows, y, weights, names, values, algorithm);
   let converged = false, iterations = 0;
+  let failureReason = "number of iterations exceeded; nonlinear fit did not converge";
   for (; iterations < control.maxiter; iterations++) {
     const { matrix, rhs } = normalEquations(current.jacobian, current.residuals, weights);
     const boundTolerance = values.map(value => Math.max(16 * Number.EPSILON, Math.sqrt(control.tol) * 0.1) * Math.max(1, Math.abs(value)));
@@ -457,6 +458,20 @@ function fitCore(
       projectedDelta[i] === 0 ? 0 : Math.abs(value) / (Math.sqrt(Math.max(matrix[i]![i]!, Number.MIN_VALUE))
         * (Math.sqrt(current.objective) + control.scaleOffset + Number.EPSILON))));
     const stepNorm = Math.max(0, ...projectedDelta.map((v, i) => Math.abs(v) / (1 + Math.abs(values[i]!))));
+    const fullCandidate = values.map((v, i) => Math.min(upper[i]!, Math.max(lower[i]!, v + projectedDelta[i]!)));
+    const fullStepIsRounded = fullCandidate.every((candidate, i) =>
+      Math.abs(candidate - values[i]!) <= 4 * Number.EPSILON
+        * Math.max(Math.abs(candidate), Math.abs(values[i]!), Number.MIN_VALUE));
+    if (fullStepIsRounded) { converged = true; break; }
+    try {
+      const fullTrial = algorithm === "plinear"
+        ? evaluateProfiled(expr, rows, y, weights, names, fullCandidate)
+        : evaluate(expr, rows, y, weights, names, fullCandidate, algorithm);
+      const roundingAllowance = 4 * Number.EPSILON * Math.max(1, current.objective);
+      if (current.objective - fullTrial.objective <= roundingAllowance) {
+        converged = true; break;
+      }
+    } catch { /* A full step outside the expression domain is handled by backtracking below. */ }
     const stepTolerance = Math.max(1e-12, Math.sqrt(control.tol) * 0.001);
     const gradientTolerance = Math.max(control.tol * 100, 1e-13);
     if (scaledGradientNorm <= gradientTolerance
@@ -484,15 +499,16 @@ function fitCore(
       if (stepNorm <= stepTolerance * 10) {
         converged = true; break;
       }
+      failureReason = "step factor reduced below minFactor";
       break;
     }
   }
   if (!converged && iterations >= control.maxiter) iterations = control.maxiter;
-  if (!converged && !control.warnOnly) throw new Error("number of iterations exceeded; nonlinear fit did not converge");
+  if (!converged && !control.warnOnly) throw new Error(failureReason);
   const final = algorithm === "plinear"
     ? evaluateProfiled(expr, rows, y, weights, names, values)
     : evaluate(expr, rows, y, weights, names, values, algorithm);
-  return { values, ...final, iterations, converged };
+  return { values, ...final, iterations, converged, ...(converged ? {} : { failureReason }) };
 }
 
 function covarianceFromJacobian(J: number[][], weights: number[], sigma2: number): number[][] {
@@ -679,7 +695,7 @@ export function nls(formula: string, data: DataFrame, options: NlsOptions = {}):
   }
   const covariance = exactFit ? coefficientNames.map(() => coefficientNames.map(() => Number.NaN))
     : covarianceFromJacobian(fullJacobian, weights, sigma * sigma);
-  const warnings = fitted.converged ? [] : ["number of iterations exceeded; nonlinear fit did not converge"];
+  const warnings = fitted.converged ? [] : [fitted.failureReason ?? "number of iterations exceeded; nonlinear fit did not converge"];
   return reported("nls", {
     formula, response: parsed.response, parameterNames: coefficientNames, coefficients,
     fitted: fitted.fitted, residuals: fitted.residuals, y, weights, rows, data: dataColumns,
