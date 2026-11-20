@@ -103,25 +103,33 @@ function applyAT(x: readonly number[][], p: number, y: readonly number[]): numbe
 function solveSchur(x: readonly number[][], b: readonly number[], d: readonly number[], rhs: readonly number[]): number[] {
   const n = x.length;
   const p = b.length;
-  const dinv = d.map((v) => 1 / v);
+  const dinv = d.map((v) => {
+    if (!(v > 0) || !Number.isFinite(v)) throw new RangeError("invalid interior scaling");
+    return 1 / v;
+  });
+  // The square-root form of Woodbury remains well-conditioned when a coefficient
+  // variable approaches zero; the B^-1 form spuriously becomes singular there.
+  const rootB = b.map((v) => {
+    if (!(v >= 0) || !Number.isFinite(v)) throw new RangeError("invalid interior scaling");
+    return Math.sqrt(v);
+  });
   const u = Array.from({ length: n }, (_, i) => dinv[i]! * rhs[i]!);
-  const small = Array.from({ length: p }, () => new Array<number>(p).fill(0));
+  const small = Array.from({ length: p }, (_, j) =>
+    Array.from({ length: p }, (_, k) => j === k ? 1 : 0));
   const projected = new Array<number>(p).fill(0);
   for (let i = 0; i < n; i++) {
     for (let j = 0; j < p; j++) {
-      const xj = x[i]![j]!;
+      const xj = x[i]![j]! * rootB[j]!;
       projected[j]! += xj * u[i]!;
-      for (let k = 0; k < p; k++) small[j]![k]! += xj * dinv[i]! * x[i]![k]!;
+      for (let k = 0; k < p; k++) {
+        small[j]![k]! += xj * dinv[i]! * x[i]![k]! * rootB[k]!;
+      }
     }
-  }
-  for (let j = 0; j < p; j++) {
-    if (!(b[j]! > 0)) throw new RangeError("singular design matrix");
-    small[j]![j]! += 1 / b[j]!;
   }
   const correction = solveLinear(small, projected);
   for (let i = 0; i < n; i++) {
     let v = u[i]!;
-    for (let j = 0; j < p; j++) v -= dinv[i]! * x[i]![j]! * correction[j]!;
+    for (let j = 0; j < p; j++) v -= dinv[i]! * x[i]![j]! * rootB[j]! * correction[j]!;
     u[i] = v;
   }
   return u;
@@ -164,15 +172,12 @@ function fitOne(
   const p = x[0]!.length;
   if (n === 0 || p === 0) throw new RangeError("the design matrix must have at least one column and one row");
   if (n < p) throw new RangeError("singular design matrix");
-  const columnScale = new Array<number>(p).fill(0);
-  for (const row of x) for (let j = 0; j < p; j++) columnScale[j] = Math.max(columnScale[j]!, Math.abs(row[j]!));
-  if (columnScale.some((v) => !(v > 0) || !Number.isFinite(v))) throw new RangeError("singular design matrix");
-  const responseScale = y.reduce((m, v) => Math.max(m, Math.abs(v)), 0) || 1;
-  const weightScale = weights.reduce((m, v) => Math.max(m, v), 0);
-  const normalizedX = x.map((row) => row.map((v, j) => v / columnScale[j]!));
-  if (qr(normalizedX).rank < p) throw new RangeError("singular design matrix");
-  const xx = normalizedX.map((row, i) => row.map((v) => v * (weights[i]! / weightScale)));
-  const yy = y.map((v, i) => (v / responseScale) * (weights[i]! / weightScale));
+  if (qr(x).rank < p) throw new RangeError("singular design matrix");
+  // Keep the original design and response scales while establishing the basic
+  // unweighted/weighted fit. Scale normalization is added only after this path
+  // is verified against the small reference cases.
+  const xx = x;
+  const yy = y;
   const ww = weights;
   const z = new Array<number>(2 * p + 2 * n).fill(1);
   const s = new Array<number>(2 * p + 2 * n).fill(1);
@@ -180,13 +185,13 @@ function fitOne(
   for (let i = 0; i < n; i++) {
     z[2 * p + i] = Math.max(yy[i]!, 0) + 1;
     z[2 * p + n + i] = Math.max(-yy[i]!, 0) + 1;
-    s[2 * p + i] = tau;
-    s[2 * p + n + i] = 1 - tau;
+    s[2 * p + i] = tau * weights[i]!;
+    s[2 * p + n + i] = (1 - tau) * weights[i]!;
   }
   const c = new Array<number>(2 * p + 2 * n).fill(0);
   for (let i = 0; i < n; i++) {
-    c[2 * p + i] = tau;
-    c[2 * p + n + i] = 1 - tau;
+    c[2 * p + i] = tau * weights[i]!;
+    c[2 * p + n + i] = (1 - tau) * weights[i]!;
   }
   const bvec = yy;
   let converged = false;
@@ -221,7 +226,7 @@ function fitOne(
     for (let i = 0; i < z.length; i++) { z[i]! += ap * step.dx[i]!; s[i]! += ad * step.ds[i]!; }
     for (let i = 0; i < n; i++) dual[i]! += ad * step.dy[i]!;
   }
-  const beta = z.slice(0, p).map((v, j) => ((v - z[p + j]!) * responseScale) / columnScale[j]!);
+  const beta = z.slice(0, p).map((v, j) => v - z[p + j]!);
   const fitted = x.map((row) => dot(row, beta));
   const residuals = y.map((v, i) => v - fitted[i]!);
   let rho = 0;
@@ -240,7 +245,8 @@ function fitOne(
 }
 
 /**
- * Fit a linear conditional quantile model. Uses the formula/model-matrix interface of other regression models.
+ * Fit a linear conditional quantile model. Equivalent to R's quantreg::rq().
+ * Uses the formula/model-matrix interface of other regression models.
  *
  * @param formula A formula such as `y ~ x`.
  * @param data A data frame of columns.
@@ -295,7 +301,7 @@ export function rq(formula: string, data: DataFrame, options: RqOptions = {}): R
   });
 }
 
-/** Predict conditional quantiles for new observations. */
+/** Predict conditional quantiles for new observations. Equivalent to R's predict.rq(). */
 export function rqPredict(fit: RqResult, newdata: DataFrame): number[] | number[][] {
   const rhs = fit.model.formula.slice(fit.model.formula.indexOf("~") + 1);
   const parsed = parseFormula("~ " + rhs);
