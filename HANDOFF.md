@@ -29,6 +29,11 @@
 
 ### 1.8.0 の計画 (ユーザーの決定 2026-11-20: rq・GEE・glmnet を**まとめて 1.8.0**)
 
+- **範囲 (ユーザーの決定 2026-11-20 夜、セッション 26):** 私の案より広く
+  - rq: 私の案 + **summary の boot** (R の乱数列まで合わせる)
+  - GEE: 私の案 + **ユーザー定義の作業相関 (`zcor`/`fixed`)・jackknife 分散** (「広く」)
+  - glmnet: 私の案 + **multinomial** (grouped を含む)。cox は後回し
+  - 置き場所: **`/regression` に足す**
 - **順:** rq → GEE → glmnet (私の推奨。rq は他に依存せず線形計画法の基盤を先に固める、GEE は `glm` の部品で進めやすい、
   glmnet は R との合わせ込みが一番重い)。**範囲は新しいセッションの最初にユーザーと決める。** 私の案:
   - rq: `br`・`fn`、複数の τ、`summary` の rank・iid・nid・ker、`predict`、`anova` (boot は乱数まで合わせるのが重く後回し)。

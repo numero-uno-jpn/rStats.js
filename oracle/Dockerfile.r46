@@ -110,3 +110,10 @@ RUN install2.r --error --skipinstalled metafor \
     && Rscript -e 'pk <- c("metafor", "metadat"); \
                    for (p in pk) suppressPackageStartupMessages(library(p, character.only = TRUE)); \
                    cat(sprintf("%s %s\n", pk, sapply(pk, function(p) as.character(packageVersion(p)))), sep = "")'
+
+# Regression continued (1.8.0), in a layer of their own: quantreg (rq), geepack (geeglm) and glmnet (glmnet,
+# cv.glmnet). Matrix (glmnet, quantreg) is one of R's recommended packages.
+RUN install2.r --error --skipinstalled quantreg geepack glmnet \
+    && Rscript -e 'pk <- c("quantreg", "SparseM", "geepack", "glmnet", "Matrix"); \
+                   for (p in pk) suppressPackageStartupMessages(library(p, character.only = TRUE)); \
+                   cat(sprintf("%s %s\n", pk, sapply(pk, function(p) as.character(packageVersion(p)))), sep = "")'

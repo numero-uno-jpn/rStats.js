@@ -57,3 +57,11 @@ RUN Rscript -e 'want <- c(MASS = "7.3.66"); \
                 got <- sapply(names(want), function(p) as.character(packageVersion(p))); \
                 cat(sprintf("%s %s\n", names(got), got), sep = ""); \
                 if (!identical(unname(got), unname(want))) quit(status = 1)'
+
+# Regression continued (1.8.0): quantreg, geepack and glmnet, in a layer of their own, at the versions of the fixtures
+RUN install2.r --error --skipinstalled quantreg geepack glmnet \
+    && Rscript -e 'want <- c(quantreg = "6.1", SparseM = "1.84.2", MatrixModels = "0.5.4", geepack = "1.3.13", \
+                            glmnet = "5.1", Matrix = "1.7.6"); \
+                   got <- sapply(names(want), function(p) as.character(packageVersion(p))); \
+                   cat(sprintf("%s %s\n", names(got), got), sep = ""); \
+                   if (!identical(unname(got), unname(want))) quit(status = 1)'

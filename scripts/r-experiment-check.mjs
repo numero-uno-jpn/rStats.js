@@ -19,7 +19,7 @@ import { readFileSync } from "node:fs";
 
 const ALLOWED_PACKAGES = new Set([
   "cmprsk", "survival", "epiR", "exact2x2", "clinfun", "powerSurvEpi", "metafor", "metadat", "lme4", "Matrix",
-  "MASS", "jsonlite", "stats", "utils", "base",
+  "MASS", "quantreg", "SparseM", "MatrixModels", "geepack", "glmnet", "jsonlite", "stats", "utils", "base",
 ]);
 
 /** Functions of the reference packages: they may only be called. */
@@ -139,6 +139,34 @@ const REFERENCE_FUNCTIONS = [
   "nls", "nls.control", "selfStart", "getInitial", "numericDeriv", "sortedXyData", "NLSstClosestX",
   "NLSstRtReplicate", "NLSstLfAsymptote", "NLSstAsymptotic", "SSasymp", "SSasympOff", "SSasympOrig", "SSbiexp",
   "SSfol", "SSfpl", "SSgompertz", "SSlogis", "SSmicmen", "SSweibull",
+  // quantreg, geepack and glmnet (regression, 1.8.0): their exported functions (geepack's re-exported %>% is left out)
+  "AIC.nlrq", "AIC.rq", "AIC.rqs", "AIC.rqss", "akj", "anova.rq", "anova.rqlist", "anova.rqs", "bandwidth.rq",
+  "boot.crq", "boot.rq", "boot.rq.mcmb", "boot.rq.pwxy", "boot.rq.pwy", "boot.rq.pxy", "boot.rq.spwy", "boot.rq.wxy",
+  "boot.rq.xy", "ChangeLog", "coef.crq", "coef.nlrq", "combos", "critval", "crq", "crq.fit.pen", "crq.fit.por",
+  "crq.fit.por2", "crq.fit.pow", "Curv", "deviance.nlrq", "dither", "dynrq", "end.dynrq", "extractAIC.nlrq",
+  "extractAIC.rq", "FAQ", "fitted.nlrq", "fitted.rqss", "formula.nlrq", "formula.rq", "Hill", "Hill.fit",
+  "index.dynrq", "KhmaladzeTest", "kselect", "kuantile", "kunique", "LassoLambdaHat", "latex", "latex.summary.rqs",
+  "latex.table", "latex.table.rq", "lm.fit.recursive", "logLik.nlrq", "logLik.rq", "logLik.rqs", "logLik.rqss",
+  "lprq", "Munge", "nlrq", "nlrq.control", "nlrqModel", "ParetoTest", "Pickands", "Pickands.fit", "plot.qss1",
+  "plot.qss2", "plot.rq.process", "plot.rqs", "plot.rqss", "plot.summary.crqs", "plot.summary.rqs",
+  "plot.summary.rqss", "plot.table.rq", "predict.crq", "predict.crqs", "predict.nlrq", "predict.qss1", "predict.qss2",
+  "predict.rq", "predict.rq.process", "predict.rqs", "predict.rqss", "print.anova.rq", "print.crq", "print.dynrq",
+  "print.dynrqs", "print.Hill", "print.nlrq", "print.Pickands", "print.rq", "print.rqs", "print.rqss",
+  "print.summary.crq", "print.summary.crqs", "print.summary.dynrq", "print.summary.dynrqs", "print.summary.Hill",
+  "print.summary.nlrq", "print.summary.Pickands", "print.summary.rq", "print.summary.rqs", "print.summary.rqss",
+  "q489", "qrisk", "qss", "qss1", "qss2", "QTECox", "qts1", "ranks", "rearrange", "resid.rqss", "residuals.nlrq",
+  "rq", "rq.fit", "rq.fit.br", "rq.fit.conquer", "rq.fit.fnb", "rq.fit.fnc", "rq.fit.hogg", "rq.fit.lasso",
+  "rq.fit.pfn", "rq.fit.pfnb", "rq.fit.ppro", "rq.fit.qfnb", "rq.fit.scad", "rq.fit.sfn", "rq.fit.sfnc",
+  "rq.test.anowar", "rq.test.rank", "rq.wfit", "rqProcess", "rqs.fit", "rqss", "rqss.fit", "sfn.control",
+  "sfnMessage", "srisk", "start.dynrq", "summary.crq", "summary.crqs", "summary.dynrqs", "summary.Hill",
+  "summary.nlrq", "summary.Pickands", "summary.rq", "summary.rqs", "summary.rqss", "table.rq", "tau.nlrq",
+  "triogram.fidelity", "triogram.penalty", "untangle.specials",
+  "compCoef", "fixed2Zcor", "geeglm", "geese", "geese.control", "geese.fit", "genZcor", "ordgee", "QIC", "relRisk",
+  "tidy",
+  "assess.glmnet", "bigGlm", "buildPredmat", "Cindex", "coef.glmnet", "coef.relaxed", "confusion.glmnet", "coxgrad",
+  "coxnet.deviance", "cv.glmnet", "glmnet", "glmnet.control", "glmnet.measures", "makeX", "na_sparse_fix",
+  "na.replace", "predict.glmnet", "predict.relaxed", "prepareX", "print.cv.glmnet", "relax.glmnet", "rmult",
+  "roc.glmnet", "stratifySurv",
 ];
 
 /** Names that reach code, namespaces, compiled routines, other programs or files: not allowed at all. */
@@ -221,8 +249,10 @@ function check(file) {
     }
     const callCode = refCode.replace(PSI_ARGUMENT, "psi = ");
     for (const name of REFERENCE_FUNCTIONS) {
-      // fit$cuminc-style element names are fine; a reference package's function that is not called is not
-      const re = new RegExp(`(?<![A-Za-z0-9._$@])(?:[A-Za-z][A-Za-z0-9.]*::)?${escape(name)}(?![A-Za-z0-9._])(?!\\s*\\()`);
+      // fit$cuminc-style element names and argument names (summary(fit, se = "nid")) are fine; a reference
+      // package's function that is not called is not
+      const re = new RegExp(
+        `(?<![A-Za-z0-9._$@])(?:[A-Za-z][A-Za-z0-9.]*::)?${escape(name)}(?![A-Za-z0-9._])(?!\\s*\\()(?!\\s*=(?!=))`);
       if (re.test(callCode)) problems.push(`${at}: '${name}' must be called, not referred to (that would print its source)`);
     }
     for (const s of strings) {
