@@ -59,6 +59,13 @@ for (st in c("jack","j1s","fij")) out[[paste0("jack_",st)]] <- run({
  f <- geeglm(resp~age+smoke,id=id,data=ohio,family=binomial,corstr="exchangeable",std.err=st)
  capture(f)
 })
+out$jackknife_delete <- run({
+ f <- geeglm(resp~age+smoke,id=id,data=ohio,family=binomial,corstr="exchangeable",std.err="fij")
+ ids <- sort(unique(ohio$id))
+ deleted <- lapply(ids,function(k)unname(coef(geeglm(resp~age+smoke,id=id,
+   data=ohio[ohio$id!=k,],family=binomial,corstr="exchangeable"))))
+ list(ids=ids,full=unname(coef(f)),vcovFij=tab(vcov(f)),deleted=tab(do.call(rbind,deleted)))
+})
 out$fixed_scale <- run(capture(geeglm(Weight~Time,id=Pig,data=dietox,corstr="ar1",scale.fix=TRUE,scale.value=4)))
 out$weights <- run(capture(geeglm(Weight~Time,id=Pig,data=dietox,corstr="exchangeable",
                                   weights=rep(c(1,2),length.out=nrow(dietox)))))

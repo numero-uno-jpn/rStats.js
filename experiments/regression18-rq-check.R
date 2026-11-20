@@ -12,12 +12,12 @@ for(bs in c("xy","pwy","mcmb","wxy")){
  z<-run(boot.rq(X,y,tau=tau,R=R,bsmethod=bs))
  seed1<-.Random.seed
  set.seed(1);sample.int(n,n*R,replace=TRUE);ss<-.Random.seed
- set.seed(1);rexp(n*R);se<-.Random.seed
+ set.seed(1);rexp(n*R);seedExp<-.Random.seed
  set.seed(1);runif(n*R);su<-.Random.seed
  set.seed(1);rbinom(n*R,1,tau);sb<-.Random.seed
  set.seed(1);rnorm(n*R);sn<-.Random.seed
  out$bootRuns[[bs]]<-list(seedBefore=sig(seed0),seedAfter=sig(seed1),
-   matches=list(sample=identical(seed1,ss),exponential=identical(seed1,se),uniform=identical(seed1,su),
+   matches=list(sample=identical(seed1,ss),exponential=identical(seed1,seedExp),uniform=identical(seed1,su),
                 bernoulli=identical(seed1,sb),normal=identical(seed1,sn)),
    result=if(!is.null(z$value))list(B=tab(z$value$B),U=tab(z$value$U)) else z)
 }

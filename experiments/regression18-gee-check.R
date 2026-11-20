@@ -4,8 +4,10 @@
 suppressMessages(library(geepack));library(jsonlite)
 run<-function(expr){w<-character();v<-withCallingHandlers(tryCatch(expr,error=function(e)structure(list(message=conditionMessage(e)),class="caught")),warning=function(x){w<<-c(w,conditionMessage(x));invokeRestart("muffleWarning")});if(inherits(v,"caught"))return(list(error=v$message,warnings=w));list(value=v,warnings=w)}
 tab<-function(x){z<-as.matrix(x);list(rows=rownames(z),cols=colnames(z),values=unname(z))}
-d<-data.frame(id=rep(1:6,each=3),wave=rep(1:3,6),x=rep(c(-1,0,1),6),
- y=c(2.1,2.8,3.4,1.5,2.3,3.1,3.2,3.9,4.7,2.4,3.0,3.8,1.1,2.0,2.7,2.8,3.5,4.2))
+d<-data.frame(id=rep(1:12,each=3),wave=rep(1:3,12),x=rep(c(-1,0,1),12),
+ y=c(1.7534,2.9203,2.5018,2.8479,3.1191,3.3040,1.9940,2.9519,3.3162,2.0370,3.1600,3.7074,
+ 2.1179,2.7573,3.5305,1.8430,2.5981,3.7241,2.0848,2.1128,3.2114,2.4783,2.6839,3.3756,
+ 2.4709,3.7123,3.0934,2.8241,2.1850,3.5375,1.5652,3.4757,3.8670,2.7189,2.3572,3.7923))
 out<-list(data=d,control=geese.control())
 for(cs in c("independence","exchangeable","ar1","unstructured")){
  out[[cs]]<-run({
