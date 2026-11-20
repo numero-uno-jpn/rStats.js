@@ -9,8 +9,16 @@ import { design, type DesignContrast } from "./modelMatrix.js";
 import type { DataFrame } from "./modelFrame.js";
 import type { Sample } from "../htest/types.js";
 
+/** Algorithm used to fit a quantile-regression model.
+ *
+ * @category Regression
+ */
 export type RqMethod = "br" | "fn";
 
+/** Options for {@link rq}.
+ *
+ * @category Regression
+ */
 export interface RqOptions {
   tau?: number | Sample;
   method?: RqMethod;
@@ -21,6 +29,10 @@ export interface RqOptions {
   eps?: number;
 }
 
+/** Model data retained by a quantile-regression fit.
+ *
+ * @category Regression
+ */
 export interface RqModel {
   formula: string;
   x: number[][];
@@ -32,6 +44,10 @@ export interface RqModel {
   method: RqMethod;
 }
 
+/** Result returned by {@link rq}.
+ *
+ * @category Regression
+ */
 export interface RqResult {
   coefficients: Record<string, number | number[]>;
   fittedValues: number[] | number[][];
@@ -135,6 +151,87 @@ function solveSchur(x: readonly number[][], b: readonly number[], d: readonly nu
   return u;
 }
 
+
+/** Exact vertex search for small quantile-regression problems. */
+function fitByVertices(
+  x: readonly number[][], y: readonly number[], weights: readonly number[], tau: number,
+): { beta: number[]; fitted: number[]; residuals: number[]; rho: number; converged: boolean; iterations: number } | undefined {
+  const n = y.length;
+  const p = x[0]!.length;
+  const finish = (beta: number[], iterations: number) => {
+    const fitted = x.map((row) => dot(row, beta));
+    const residuals = y.map((value, i) => value - fitted[i]!);
+    let rho = 0;
+    for (let i = 0; i < n; i++) rho += weights[i]! * residuals[i]! * (tau - (residuals[i]! < 0 ? 1 : 0));
+    return { beta, fitted, residuals, rho, converged: true, iterations };
+  };
+
+  // An intercept-only (or constant single-column) fit is a weighted empirical quantile.
+  if (p === 1 && x.every((row) => row[0] === x[0]![0])) {
+    const scale = x[0]![0]!;
+    const quantile = scale > 0 ? tau : 1 - tau;
+    const ordered = y.map((value, i) => ({ value: value / scale, weight: weights[i]! }))
+      .sort((a, b) => a.value - b.value);
+    let total = 0;
+    for (const item of ordered) total += item.weight;
+    const target = quantile * total;
+    let cumulative = 0;
+    let estimate = ordered[0]!.value;
+    for (const item of ordered) {
+      cumulative += item.weight;
+      estimate = item.value;
+      if (cumulative >= target) break;
+    }
+    return finish([estimate], ordered.length);
+  }
+
+  // A vertex is determined by p linearly independent zero residuals. Keep this
+  // exact search bounded; larger problems use the path-following solver below.
+  let combinations = 1;
+  for (let k = 1; k <= p; k++) {
+    combinations = combinations * (n - p + k) / k;
+    if (!Number.isFinite(combinations) || combinations * n > 30_000_000) return undefined;
+  }
+
+  let bestBeta: number[] | undefined;
+  let bestRho = Infinity;
+  let visited = 0;
+  const selected: number[] = [];
+  const visit = (start: number): void => {
+    if (selected.length === p) {
+      visited++;
+      const matrix = selected.map((i) => Array.from(x[i]!));
+      const response = selected.map((i) => y[i]!);
+      let beta: number[];
+      try {
+        beta = solveLinear(matrix, response);
+      } catch {
+        return;
+      }
+      if (!beta.every(Number.isFinite)) return;
+      let objective = 0;
+      for (let i = 0; i < n; i++) {
+        const residual = y[i]! - dot(x[i]!, beta);
+        objective += weights[i]! * residual * (tau - (residual < 0 ? 1 : 0));
+      }
+      const tolerance = 32 * Number.EPSILON * Math.max(1, Math.abs(bestRho), Math.abs(objective));
+      if (bestBeta === undefined || objective < bestRho - tolerance) {
+        bestBeta = beta;
+        bestRho = objective;
+      }
+      return;
+    }
+    const remaining = p - selected.length;
+    for (let i = start; i <= n - remaining; i++) {
+      selected.push(i);
+      visit(i + 1);
+      selected.pop();
+    }
+  };
+  visit(0);
+  return bestBeta === undefined ? undefined : finish(bestBeta, visited);
+}
+
 interface NewtonStep { dx: number[]; ds: number[]; dy: number[] }
 
 function direction(
@@ -173,9 +270,8 @@ function fitOne(
   if (n === 0 || p === 0) throw new RangeError("the design matrix must have at least one column and one row");
   if (n < p) throw new RangeError("singular design matrix");
   if (qr(x).rank < p) throw new RangeError("singular design matrix");
-  // Keep the original design and response scales while establishing the basic
-  // unweighted/weighted fit. Scale normalization is added only after this path
-  // is verified against the small reference cases.
+  const exact = fitByVertices(x, y, weights, tau);
+  if (exact !== undefined) return exact;
   const xx = x;
   const yy = y;
   const ww = weights;
@@ -245,7 +341,7 @@ function fitOne(
 }
 
 /**
- * Fit a linear conditional quantile model. Equivalent to R's quantreg::rq().
+ * Fit a linear conditional quantile model. Equivalent to `quantreg::rq()` in R.
  * Uses the formula/model-matrix interface of other regression models.
  *
  * @param formula A formula such as `y ~ x`.
@@ -301,7 +397,11 @@ export function rq(formula: string, data: DataFrame, options: RqOptions = {}): R
   });
 }
 
-/** Predict conditional quantiles for new observations. Equivalent to R's predict.rq(). */
+/**
+ * Predict conditional quantiles for new observations. Equivalent to `quantreg::predict.rq()` in R.
+ *
+ * @category Regression
+ */
 export function rqPredict(fit: RqResult, newdata: DataFrame): number[] | number[][] {
   const rhs = fit.model.formula.slice(fit.model.formula.indexOf("~") + 1);
   const parsed = parseFormula("~ " + rhs);
