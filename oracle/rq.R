@@ -11,7 +11,7 @@ run <- function(expr) {
   list(value=value, warnings=warns, messages=msgs)
 }
 tab <- function(m) list(rows=rownames(m), cols=colnames(m), values=unname(m))
-fitValues <- function(f) list(coefficients=coef(f), residuals=unname(residuals(f)), objective=sum(f$weights * (f$tau * pmax(residuals(f),0) + (1-f$tau) * pmax(-residuals(f),0))), tau=f$tau)
+fitValues <- function(f) list(coefficients=coef(f), residuals=unname(residuals(f)), objective=f$rho, tau=f$tau)
 out <- list()
 data(engel); data(stackloss)
 for (q in c(.1,.25,.5,.75,.9)) {
