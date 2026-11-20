@@ -67,16 +67,38 @@ out <- list(
     hs <- bandwidth.rq(0.5, length(y), hs = TRUE)
     fl <- rq(y ~ x, tau = 0.5 - hs, method = "br")
     fh <- rq(y ~ x, tau = 0.5 + hs, method = "br")
+    fl.fn <- rq(y ~ x, tau = 0.5 - hs, method = "fn")
+    fh.fn <- rq(y ~ x, tau = 0.5 + hs, method = "fn")
     si <- summary(f, se = "iid", covariance = TRUE)
+    si.b <- summary(f, se = "iid", covariance = TRUE, hs = FALSE)
+    rz <- residuals(f)
+    rn <- rz[abs(rz) > 1e-8]
+    d0 <- function(v, bw) {
+      z <- density(v, bw = bw)
+      approx(z$x, z$y, xout = 0)$y
+    }
     list(
       coef = coef(f),
-      residuals = residuals(f),
+      residuals = rz,
       bandwidth = hs,
       betaMinus = coef(fl),
       betaPlus = coef(fh),
+      meanSparsityBr = mean(fitted(fh) - fitted(fl)) / (2 * hs),
+      betaMinusFn = coef(fl.fn),
+      betaPlusFn = coef(fh.fn),
+      meanSparsityFn = mean(fitted(fh.fn) - fitted(fl.fn)) / (2 * hs),
       fittedMinus = fitted(fl),
       fittedPlus = fitted(fh),
-      iidCov = si$cov
+      iidCov = si$cov,
+      iidBofingerCov = si.b$cov,
+      nonzeroResidualCount = length(rn),
+      bwNrd = bw.nrd(rn),
+      bwNrd0 = bw.nrd0(rn),
+      densityNrdNonzero = d0(rn, "nrd"),
+      densityNrd0Nonzero = d0(rn, "nrd0"),
+      densityNrdAll = d0(rz, "nrd"),
+      densityNrd0All = d0(rz, "nrd0"),
+      residualQuantiles = lapply(1:9, function(type) quantile(rn, c(0.5 - hs, 0.5 + hs), type = type))
     )
   })
 )
