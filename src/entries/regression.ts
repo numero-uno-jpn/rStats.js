@@ -64,3 +64,14 @@ export {
   type NlsConfintResult,
   type NlsAnovaResult,
 } from "../models/nls.js";
+
+// Quantile regression (rStats.js/regression)
+
+export {
+  rq,
+  rqPredict,
+  type RqMethod,
+  type RqOptions,
+  type RqModel,
+  type RqResult,
+} from "../models/rq.js";
