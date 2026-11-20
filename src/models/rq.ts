@@ -3,7 +3,7 @@
 // This implementation is independently derived from those published equations and public numerical output.
 
 import { reported } from "../internal/warnings.js";
-import { qr } from "../linalg/qr.js";
+import { qr, qrCoef } from "../linalg/qr.js";
 import { parseFormula } from "./formula.js";
 import { design, type DesignContrast } from "./modelMatrix.js";
 import type { DataFrame } from "./modelFrame.js";
@@ -89,255 +89,390 @@ function dot(a: readonly number[], b: readonly number[]): number {
   return s;
 }
 
-function applyA(x: readonly number[][], p: number, z: readonly number[]): number[] {
-  const n = x.length;
-  const out = new Array<number>(n);
+function cholesky(a: readonly number[][]): number[][] {
+  const n = a.length;
+  const l = Array.from({ length: n }, () => new Array<number>(n).fill(0));
   for (let i = 0; i < n; i++) {
-    let v = z[2 * p + i]! - z[2 * p + n + i]!;
-    for (let j = 0; j < p; j++) v += x[i]![j]! * (z[j]! - z[p + j]!);
-    out[i] = v;
-  }
-  return out;
-}
-
-function applyAT(x: readonly number[][], p: number, y: readonly number[]): number[] {
-  const n = x.length;
-  const out = new Array<number>(2 * p + 2 * n).fill(0);
-  for (let i = 0; i < n; i++) {
-    for (let j = 0; j < p; j++) {
-      const v = x[i]![j]! * y[i]!;
-      out[j]! += v;
-      out[p + j]! -= v;
+    for (let j = 0; j <= i; j++) {
+      let value = a[i]![j]!;
+      for (let k = 0; k < j; k++) value -= l[i]![k]! * l[j]![k]!;
+      if (i === j) {
+        if (!(value > 0) || !Number.isFinite(value)) throw new RangeError("normal equations are not positive definite");
+        l[i]![j] = Math.sqrt(value);
+      } else {
+        l[i]![j] = value / l[j]![j]!;
+      }
     }
-    out[2 * p + i] = y[i]!;
-    out[2 * p + n + i] = -y[i]!;
   }
-  return out;
+  return l;
 }
 
-/** Solve (diag(d) + X diag(b) X')v = rhs using the p-dimensional Woodbury identity. */
-function solveSchur(x: readonly number[][], b: readonly number[], d: readonly number[], rhs: readonly number[]): number[] {
-  const n = x.length;
-  const p = b.length;
-  const dinv = d.map((v) => {
-    if (!(v > 0) || !Number.isFinite(v)) throw new RangeError("invalid interior scaling");
-    return 1 / v;
-  });
-  // The square-root form of Woodbury remains well-conditioned when a coefficient
-  // variable approaches zero; the B^-1 form spuriously becomes singular there.
-  const rootB = b.map((v) => {
-    if (!(v >= 0) || !Number.isFinite(v)) throw new RangeError("invalid interior scaling");
-    return Math.sqrt(v);
-  });
-  const u = Array.from({ length: n }, (_, i) => dinv[i]! * rhs[i]!);
-  const small = Array.from({ length: p }, (_, j) =>
-    Array.from({ length: p }, (_, k) => j === k ? 1 : 0));
+function solveCholesky(l: readonly number[][], rhs: readonly number[]): number[] {
+  const n = rhs.length;
+  const x = Array.from(rhs);
+  for (let i = 0; i < n; i++) {
+    for (let j = 0; j < i; j++) x[i]! -= l[i]![j]! * x[j]!;
+    x[i]! /= l[i]![i]!;
+  }
+  for (let i = n - 1; i >= 0; i--) {
+    for (let j = i + 1; j < n; j++) x[i]! -= l[j]![i]! * x[j]!;
+    x[i]! /= l[i]![i]!;
+  }
+  return x;
+}
+
+interface DualDirection {
+  db: number[];
+  dl: number[];
+  du: number[];
+  dbeta: number[];
+}
+
+function dualDirection(
+  x: readonly number[][],
+  b: readonly number[],
+  lower: readonly number[],
+  upper: readonly number[],
+  rp: readonly number[],
+  rd: readonly number[],
+  rcLower: readonly number[],
+  rcUpper: readonly number[],
+): DualDirection {
+  const n = b.length;
+  const p = x[0]!.length;
+  const inverseW = new Array<number>(n);
+  const rhs = new Array<number>(n);
+  for (let i = 0; i < n; i++) {
+    const bi = b[i]!;
+    const oneMinus = 1 - bi;
+    if (!(bi > 0 && oneMinus > 0 && lower[i]! > 0 && upper[i]! > 0)) {
+      throw new RangeError("invalid interior point in quantile regression");
+    }
+    const w = lower[i]! / bi + upper[i]! / oneMinus;
+    inverseW[i] = 1 / w;
+    rhs[i] = -rd[i]! - rcLower[i]! / bi + rcUpper[i]! / oneMinus;
+  }
+
+  const gram = Array.from({ length: p }, () => new Array<number>(p).fill(0));
   const projected = new Array<number>(p).fill(0);
   for (let i = 0; i < n; i++) {
+    const wi = inverseW[i]!;
     for (let j = 0; j < p; j++) {
-      const xj = x[i]![j]! * rootB[j]!;
-      projected[j]! += xj * u[i]!;
-      for (let k = 0; k < p; k++) {
-        small[j]![k]! += xj * dinv[i]! * x[i]![k]! * rootB[k]!;
-      }
+      const xj = x[i]![j]!;
+      projected[j]! += xj * wi * rhs[i]!;
+      for (let k = 0; k <= j; k++) gram[j]![k]! += xj * wi * x[i]![k]!;
     }
   }
-  const correction = solveLinear(small, projected);
+  for (let j = 0; j < p; j++) {
+    for (let k = 0; k < j; k++) gram[k]![j] = gram[j]![k]!;
+    projected[j]! += rp[j]!;
+  }
+  const dbeta = solveCholesky(cholesky(gram), projected);
+  const db = new Array<number>(n);
+  const dl = new Array<number>(n);
+  const du = new Array<number>(n);
   for (let i = 0; i < n; i++) {
-    let v = u[i]!;
-    for (let j = 0; j < p; j++) v -= dinv[i]! * x[i]![j]! * rootB[j]! * correction[j]!;
-    u[i] = v;
+    let value = rhs[i]!;
+    for (let j = 0; j < p; j++) value -= x[i]![j]! * dbeta[j]!;
+    db[i] = inverseW[i]! * value;
+    dl[i] = (-rcLower[i]! - lower[i]! * db[i]!) / b[i]!;
+    du[i] = (-rcUpper[i]! + upper[i]! * db[i]!) / (1 - b[i]!);
   }
-  return u;
+  return { db, dl, du, dbeta };
 }
 
+function maxBoxStep(b: readonly number[], db: readonly number[]): number {
+  let step = 1;
+  for (let i = 0; i < b.length; i++) {
+    if (db[i]! > 0) step = Math.min(step, (1 - b[i]!) / db[i]!);
+    else if (db[i]! < 0) step = Math.min(step, -b[i]! / db[i]!);
+  }
+  return step;
+}
 
-/** Exact vertex search for small quantile-regression problems. */
-function fitByVertices(
-  x: readonly number[][], y: readonly number[], weights: readonly number[], tau: number,
-): { beta: number[]; fitted: number[]; residuals: number[]; rho: number; converged: boolean; iterations: number } | undefined {
+function maxPositiveStep(v: readonly number[], dv: readonly number[]): number {
+  let step = 1;
+  for (let i = 0; i < v.length; i++) if (dv[i]! < 0) step = Math.min(step, -v[i]! / dv[i]!);
+  return step;
+}
+
+/** Mehrotra predictor-corrector for the box-constrained dual regression-quantile LP. */
+function fitFn(
+  x: readonly number[][], y: readonly number[], tau: number, maxit: number, eps: number,
+): { beta: number[]; iterations: number } {
   const n = y.length;
   const p = x[0]!.length;
-  const finish = (beta: number[], iterations: number) => {
-    const fitted = x.map((row) => dot(row, beta));
-    const residuals = y.map((value, i) => value - fitted[i]!);
-    let rho = 0;
-    for (let i = 0; i < n; i++) rho += weights[i]! * residuals[i]! * (tau - (residuals[i]! < 0 ? 1 : 0));
-    return { beta, fitted, residuals, rho, converged: true, iterations };
-  };
+  const b = new Array<number>(n).fill(1 - tau);
+  const lower = new Array<number>(n).fill(1);
+  const upper = new Array<number>(n).fill(1);
+  const beta = new Array<number>(p).fill(0);
+  const h = new Array<number>(p).fill(0);
+  for (let i = 0; i < n; i++) for (let j = 0; j < p; j++) h[j]! += (1 - tau) * x[i]![j]!;
+  let iterations = 0;
 
-  // An intercept-only (or constant single-column) fit is a weighted empirical quantile.
-  if (p === 1 && x.every((row) => row[0] === x[0]![0])) {
-    const scale = x[0]![0]!;
-    const quantile = scale > 0 ? tau : 1 - tau;
-    const ordered = y.map((value, i) => ({ value: value / scale, weight: weights[i]! }))
-      .sort((a, b) => a.value - b.value);
-    let total = 0;
-    for (const item of ordered) total += item.weight;
-    const target = quantile * total;
-    let cumulative = 0;
-    let estimate = ordered[0]!.value;
-    for (const item of ordered) {
-      cumulative += item.weight;
-      estimate = item.value;
-      if (cumulative >= target) break;
+  for (let it = 0; it < maxit; it++) {
+    iterations = it + 1;
+    const rp = new Array<number>(p).fill(0);
+    const rd = new Array<number>(n);
+    let rpScale = 1;
+    let rdScale = 1;
+    let gap = 0;
+    let primalObjective = 0;
+    let dualObjective = 0;
+    for (let i = 0; i < n; i++) {
+      dualObjective += y[i]! * b[i]!;
+      gap += b[i]! * lower[i]! + (1 - b[i]!) * upper[i]!;
+      for (let j = 0; j < p; j++) rp[j]! += x[i]![j]! * b[i]!;
+      let fitted = 0;
+      for (let j = 0; j < p; j++) fitted += x[i]![j]! * beta[j]!;
+      rd[i] = fitted - lower[i]! + upper[i]! - y[i]!;
     }
-    return finish([estimate], ordered.length);
+    for (let j = 0; j < p; j++) {
+      rp[j]! -= h[j]!;
+      rpScale = Math.max(rpScale, Math.abs(h[j]!));
+    }
+    for (let i = 0; i < n; i++) rdScale = Math.max(rdScale, Math.abs(y[i]!));
+    for (let i = 0; i < n; i++) {
+      const residual = y[i]!;
+      let fitted = 0;
+      for (let j = 0; j < p; j++) fitted += x[i]![j]! * beta[j]!;
+      const r = residual - fitted;
+      primalObjective += r * (tau - (r < 0 ? 1 : 0));
+    }
+    const equalityNorm = rp.reduce((m, v) => Math.max(m, Math.abs(v)), 0) / rpScale;
+    const stationarityNorm = rd.reduce((m, v) => Math.max(m, Math.abs(v)), 0) / rdScale;
+    const gapNorm = gap / Math.max(1, Math.abs(primalObjective), Math.abs(dualObjective));
+    if (Math.max(equalityNorm, stationarityNorm, gapNorm) <= eps) return { beta, iterations };
+
+    const rcLowerAffine = b.map((v, i) => v * lower[i]!);
+    const rcUpperAffine = b.map((v, i) => (1 - v) * upper[i]!);
+    const affine = dualDirection(x, b, lower, upper, rp, rd, rcLowerAffine, rcUpperAffine);
+    const alphaPAff = Math.min(1, maxBoxStep(b, affine.db));
+    const alphaDAff = Math.min(1, maxPositiveStep(lower, affine.dl), maxPositiveStep(upper, affine.du));
+    let gapAffine = 0;
+    for (let i = 0; i < n; i++) {
+      const ba = b[i]! + alphaPAff * affine.db[i]!;
+      const la = lower[i]! + alphaDAff * affine.dl[i]!;
+      const ua = upper[i]! + alphaDAff * affine.du[i]!;
+      gapAffine += ba * la + (1 - ba) * ua;
+    }
+    const mu = gap / (2 * n);
+    const muAffine = gapAffine / (2 * n);
+    const sigma = mu > 0 ? Math.max(0, Math.min(1, (muAffine / mu) ** 3)) : 0;
+    const rcLower = b.map((v, i) => v * lower[i]! + affine.db[i]! * affine.dl[i]! - sigma * mu);
+    const rcUpper = b.map((v, i) => (1 - v) * upper[i]! - affine.db[i]! * affine.du[i]! - sigma * mu);
+    const step = dualDirection(x, b, lower, upper, rp, rd, rcLower, rcUpper);
+    const alphaP = Math.min(1, 0.99995 * maxBoxStep(b, step.db));
+    const alphaD = Math.min(1, 0.99995 * maxPositiveStep(lower, step.dl), 0.99995 * maxPositiveStep(upper, step.du));
+    for (let i = 0; i < n; i++) {
+      b[i]! += alphaP * step.db[i]!;
+      lower[i]! += alphaD * step.dl[i]!;
+      upper[i]! += alphaD * step.du[i]!;
+    }
+    for (let j = 0; j < p; j++) beta[j]! += alphaD * step.dbeta[j]!;
   }
-
-  // A vertex is determined by p linearly independent zero residuals. Keep this
-  // exact search bounded; larger problems use the path-following solver below.
-  let combinations = 1;
-  for (let k = 1; k <= p; k++) {
-    combinations = combinations * (n - p + k) / k;
-    if (!Number.isFinite(combinations) || combinations * n > 30_000_000) return undefined;
-  }
-
-  let bestBeta: number[] | undefined;
-  let bestRho = Infinity;
-  let visited = 0;
-  const selected: number[] = [];
-  const visit = (start: number): void => {
-    if (selected.length === p) {
-      visited++;
-      const matrix = selected.map((i) => Array.from(x[i]!));
-      const response = selected.map((i) => y[i]!);
-      let beta: number[];
-      try {
-        beta = solveLinear(matrix, response);
-      } catch {
-        return;
-      }
-      if (!beta.every(Number.isFinite)) return;
-      let objective = 0;
-      for (let i = 0; i < n; i++) {
-        const residual = y[i]! - dot(x[i]!, beta);
-        objective += weights[i]! * residual * (tau - (residual < 0 ? 1 : 0));
-      }
-      const tolerance = 32 * Number.EPSILON * Math.max(1, Math.abs(bestRho), Math.abs(objective));
-      if (bestBeta === undefined || objective < bestRho - tolerance) {
-        bestBeta = beta;
-        bestRho = objective;
-      }
-      return;
-    }
-    const remaining = p - selected.length;
-    for (let i = start; i <= n - remaining; i++) {
-      selected.push(i);
-      visit(i + 1);
-      selected.pop();
-    }
-  };
-  visit(0);
-  return bestBeta === undefined ? undefined : finish(bestBeta, visited);
+  throw new Error("quantile regression interior-point method did not converge within maxit");
 }
 
-interface NewtonStep { dx: number[]; ds: number[]; dy: number[] }
+interface VertexDirection {
+  slope: number;
+  step: number;
+  entering: number;
+  direction: number[];
+  leaving: number;
+}
 
-function direction(
-  x: readonly number[][], y: readonly number[], tau: number, z: readonly number[], s: readonly number[],
-  dual: readonly number[], rp: readonly number[], rd: readonly number[], rc: readonly number[],
-): NewtonStep {
+function directionalEdge(
+  x: readonly number[][],
+  y: readonly number[],
+  weights: readonly number[],
+  tau: number,
+  beta: readonly number[],
+  basis: readonly number[],
+  leaving: number,
+  sign: number,
+): VertexDirection | undefined {
+  const p = basis.length;
+  const matrix = basis.map((i) => Array.from(x[i]!));
+  const unit = new Array<number>(p).fill(0);
+  unit[leaving] = sign;
+  const direction = solveLinear(matrix, unit);
+  const slopeTerms: Array<{ time: number; weight: number; index: number }> = [];
+  let slope = 0;
+  for (let i = 0; i < x.length; i++) {
+    let fitted = 0;
+    let movement = 0;
+    for (let j = 0; j < p; j++) {
+      fitted += x[i]![j]! * beta[j]!;
+      movement -= x[i]![j]! * direction[j]!;
+    }
+    const residual = y[i]! - fitted;
+    const scale = Math.max(1, Math.abs(y[i]!), Math.abs(fitted));
+    if (Math.abs(residual) <= 32 * Number.EPSILON * scale) {
+      if (movement > 0) slope += weights[i]! * tau * movement;
+      else if (movement < 0) slope += weights[i]! * (tau - 1) * movement;
+      continue;
+    }
+    slope += weights[i]! * movement * (tau - (residual < 0 ? 1 : 0));
+    if (movement !== 0) {
+      const time = -residual / movement;
+      if (time > 32 * Number.EPSILON * Math.max(1, Math.abs(time))) {
+        slopeTerms.push({ time, weight: weights[i]! * Math.abs(movement), index: i });
+      }
+    }
+  }
+  if (!(slope < 0) || slopeTerms.length === 0) return undefined;
+  slopeTerms.sort((a, b) => a.time - b.time || a.index - b.index);
+  let accumulated = 0;
+  const target = -slope;
+  let step = slopeTerms[slopeTerms.length - 1]!.time;
+  for (const term of slopeTerms) {
+    accumulated += term.weight;
+    if (accumulated >= target) {
+      step = term.time;
+      break;
+    }
+  }
+  const tolerance = 128 * Number.EPSILON * Math.max(1, Math.abs(step));
+  const tied = slopeTerms.filter((term) => Math.abs(term.time - step) <= tolerance);
+  for (const term of tied) {
+    const candidate = basis.filter((_, j) => j !== leaving).concat(term.index);
+    if (new Set(candidate).size !== p) continue;
+    if (qr(candidate.map((i) => x[i]!)).rank === p) {
+      return { slope, step, entering: term.index, direction, leaving };
+    }
+  }
+  return undefined;
+}
+
+/** Vertex-to-vertex edge descent for the weighted check-loss objective. */
+function fitBr(
+  x: readonly number[][], y: readonly number[], weights: readonly number[], tau: number, maxit: number,
+): { beta: number[]; iterations: number } {
   const n = y.length;
   const p = x[0]!.length;
-  const q = z.map((v, i) => (-rc[i]! + v * rd[i]!) / s[i]!);
-  const aq = applyA(x, p, q);
-  const ratio = z.map((v, i) => v / s[i]!);
-  const d = new Array<number>(n);
-  const b = new Array<number>(p);
-  for (let i = 0; i < n; i++) d[i] = ratio[2 * p + i]! + ratio[2 * p + n + i]!;
-  for (let j = 0; j < p; j++) b[j] = ratio[j]! + ratio[p + j]!;
-  const rhs = rp.map((v, i) => -v - aq[i]!);
-  const dy = solveSchur(x, b, d, rhs);
-  const at = applyAT(x, p, dy);
-  const dx = q.map((v, i) => v + ratio[i]! * at[i]!);
-  const ds = rd.map((v, i) => -v - at[i]!);
-  return { dx, ds, dy };
+  const leastSquares = qrCoef(qr(x), y);
+  const residuals = y.map((v, i) => v - dot(x[i]!, leastSquares));
+  const order = Array.from({ length: n }, (_, i) => i).sort((a, b) =>
+    Math.abs(residuals[a]!) - Math.abs(residuals[b]!) || a - b);
+  const basis: number[] = [];
+  for (const i of order) {
+    const trial = basis.concat(i);
+    if (qr(trial.map((row) => x[row]!)).rank === trial.length) basis.push(i);
+    if (basis.length === p) break;
+  }
+  if (basis.length !== p) throw new RangeError("could not construct a full-rank initial quantile-regression basis");
+  let beta = solveLinear(basis.map((i) => Array.from(x[i]!)), basis.map((i) => y[i]!));
+  const seen = new Set<string>();
+  for (let iteration = 0; iteration < maxit; iteration++) {
+    const key = basis.slice().sort((a, b) => a - b).join(",");
+    if (seen.has(key)) throw new Error("quantile regression vertex walk cycled");
+    seen.add(key);
+    let best: VertexDirection | undefined;
+    for (let j = 0; j < p; j++) {
+      for (const sign of [1, -1]) {
+        const edge = directionalEdge(x, y, weights, tau, beta, basis, j, sign);
+        if (edge !== undefined && (best === undefined || edge.slope < best.slope)) best = edge;
+      }
+    }
+    if (best === undefined) return { beta, iterations: iteration + 1 };
+    const nextBasis = basis.filter((_, j) => j !== best!.leaving).concat(best.entering);
+    const nextBeta = solveLinear(nextBasis.map((i) => Array.from(x[i]!)), nextBasis.map((i) => y[i]!));
+    const currentLoss = x.reduce((sum, row, i) => {
+      const r = y[i]! - dot(row, beta);
+      return sum + weights[i]! * r * (tau - (r < 0 ? 1 : 0));
+    }, 0);
+    const nextLoss = x.reduce((sum, row, i) => {
+      const r = y[i]! - dot(row, nextBeta);
+      return sum + weights[i]! * r * (tau - (r < 0 ? 1 : 0));
+    }, 0);
+    if (!(nextLoss < currentLoss - 64 * Number.EPSILON * Math.max(1, Math.abs(currentLoss)))) {
+      throw new Error("quantile regression vertex pivot did not decrease the objective");
+    }
+    basis.splice(0, basis.length, ...nextBasis);
+    beta = nextBeta;
+  }
+  throw new Error("quantile regression vertex walk did not converge within maxit");
 }
 
-function maxStep(v: readonly number[], dv: readonly number[]): number {
-  let a = 1;
-  for (let i = 0; i < v.length; i++) if (dv[i]! < 0) a = Math.min(a, -v[i]! / dv[i]!);
-  return a;
-}
-
-/** Weighted quantile regression by a primal-dual path-following LP solver. */
 function fitOne(
-  x: readonly number[][], y: readonly number[], weights: readonly number[], tau: number, maxit: number, eps: number,
+  x: readonly number[][], y: readonly number[], weights: readonly number[], tau: number,
+  method: RqMethod, maxit: number, eps: number,
 ): { beta: number[]; fitted: number[]; residuals: number[]; rho: number; converged: boolean; iterations: number } {
   const n = y.length;
   const p = x[0]!.length;
   if (n === 0 || p === 0) throw new RangeError("the design matrix must have at least one column and one row");
   if (n < p) throw new RangeError("singular design matrix");
   if (qr(x).rank < p) throw new RangeError("singular design matrix");
-  const exact = fitByVertices(x, y, weights, tau);
-  if (exact !== undefined) return exact;
-  const xx = x;
-  const yy = y;
-  const ww = weights;
-  const z = new Array<number>(2 * p + 2 * n).fill(1);
-  const s = new Array<number>(2 * p + 2 * n).fill(1);
-  const dual = new Array<number>(n).fill(0);
-  for (let i = 0; i < n; i++) {
-    z[2 * p + i] = Math.max(yy[i]!, 0) + 1;
-    z[2 * p + n + i] = Math.max(-yy[i]!, 0) + 1;
-    s[2 * p + i] = tau * weights[i]!;
-    s[2 * p + n + i] = (1 - tau) * weights[i]!;
+
+  const weightScale = weights.reduce((m, v) => Math.max(m, v), 0);
+  const yScale = y.reduce((m, v) => Math.max(m, Math.abs(v)), 0) || 1;
+  const columnScale = new Array<number>(p).fill(0);
+  for (const row of x) for (let j = 0; j < p; j++) columnScale[j] = Math.max(columnScale[j]!, Math.abs(row[j]!));
+  if (columnScale.some((v) => !(v > 0) || !Number.isFinite(v))) throw new RangeError("singular design matrix");
+  const normalizedX = x.map((row, i) => row.map((v, j) => (weights[i]! / weightScale) * (v / columnScale[j]!)));
+  const normalizedY = y.map((v, i) => (weights[i]! / weightScale) * (v / yScale));
+
+  let normalizedBeta: number[];
+  let iterations: number;
+  if (p === 1 && x.every((row) => row[0] === x[0]![0])) {
+    const scale = x[0]![0]!;
+    const quantile = scale > 0 ? tau : 1 - tau;
+    const ordered = y.map((value, i) => ({ value: value / scale, weight: weights[i]! }))
+      .sort((a, b) => a.value - b.value);
+    const total = ordered.reduce((sum, item) => sum + item.weight, 0);
+    let cumulative = 0;
+    let estimate = ordered[0]!.value;
+    for (const item of ordered) {
+      cumulative += item.weight;
+      estimate = item.value;
+      if (cumulative >= quantile * total) break;
+    }
+    normalizedBeta = [estimate * columnScale[0]! / yScale];
+    iterations = ordered.length;
+  } else if (method === "br") {
+    const fit = fitBr(normalizedX, normalizedY, weights, tau, maxit);
+    normalizedBeta = fit.beta;
+    iterations = fit.iterations;
+  } else {
+    const fit = fitFn(normalizedX, normalizedY, tau, maxit, eps);
+    normalizedBeta = fit.beta;
+    iterations = fit.iterations;
+    // Move the central-path estimate to a nearby vertex when its dual certificate
+    // verifies the same optimum. This is a bounded greedy basis selection, not enumeration.
+    const residual = normalizedY.map((v, i) => v - dot(normalizedX[i]!, normalizedBeta));
+    const ordered = Array.from({ length: n }, (_, i) => i).sort((a, b) =>
+      Math.abs(residual[a]!) - Math.abs(residual[b]!) || a - b);
+    const basis: number[] = [];
+    for (const i of ordered) {
+      const trial = basis.concat(i);
+      if (qr(trial.map((row) => normalizedX[row]!)).rank === trial.length) basis.push(i);
+      if (basis.length === p) break;
+    }
+    if (basis.length === p) {
+      try {
+        const candidate = solveLinear(basis.map((i) => Array.from(normalizedX[i]!)), basis.map((i) => normalizedY[i]!));
+        const oldLoss = normalizedX.reduce((sum, row, i) => {
+          const r = normalizedY[i]! - dot(row, normalizedBeta);
+          return sum + r * (tau - (r < 0 ? 1 : 0));
+        }, 0);
+        const newLoss = normalizedX.reduce((sum, row, i) => {
+          const r = normalizedY[i]! - dot(row, candidate);
+          return sum + r * (tau - (r < 0 ? 1 : 0));
+        }, 0);
+        if (newLoss <= oldLoss + 1e-12 * Math.max(1, Math.abs(oldLoss))) normalizedBeta = candidate;
+      } catch {
+        // Retain the converged central-path estimate if the nearby basis is numerically singular.
+      }
+    }
   }
-  const c = new Array<number>(2 * p + 2 * n).fill(0);
-  for (let i = 0; i < n; i++) {
-    c[2 * p + i] = tau * weights[i]!;
-    c[2 * p + n + i] = (1 - tau) * weights[i]!;
-  }
-  const bvec = yy;
-  let converged = false;
-  let iterations = 0;
-  for (let it = 0; it < maxit; it++) {
-    iterations = it + 1;
-    const az = applyA(xx, p, z);
-    const rp = az.map((v, i) => v - bvec[i]!);
-    const aty = applyAT(xx, p, dual);
-    const rd = aty.map((v, i) => v + s[i]! - c[i]!);
-    let mu = 0;
-    for (let i = 0; i < z.length; i++) mu += z[i]! * s[i]!;
-    mu /= z.length;
-    let primalMax = 0, dataMax = 1, dualMax = 0, costMax = 1;
-    for (let i = 0; i < rp.length; i++) { primalMax = Math.max(primalMax, Math.abs(rp[i]!)); dataMax = Math.max(dataMax, Math.abs(bvec[i]!)); }
-    for (let i = 0; i < rd.length; i++) { dualMax = Math.max(dualMax, Math.abs(rd[i]!)); costMax = Math.max(costMax, Math.abs(c[i]!)); }
-    const primalNorm = primalMax / dataMax;
-    const dualNorm = dualMax / costMax;
-    if (Math.max(primalNorm, dualNorm, mu) <= eps) { converged = true; break; }
-    const rcAff = z.map((v, i) => v * s[i]!);
-    const aff = direction(xx, yy, tau, z, s, dual, rp, rd, rcAff);
-    const alphaP = Math.min(1, maxStep(z, aff.dx));
-    const alphaD = Math.min(1, maxStep(s, aff.ds));
-    let muAff = 0;
-    for (let i = 0; i < z.length; i++) muAff += (z[i]! + alphaP * aff.dx[i]!) * (s[i]! + alphaD * aff.ds[i]!);
-    muAff /= z.length;
-    const sigma = Math.max(0, Math.min(1, (muAff / mu) ** 3));
-    const rc = z.map((v, i) => v * s[i]! + aff.dx[i]! * aff.ds[i]! - sigma * mu);
-    const step = direction(xx, yy, tau, z, s, dual, rp, rd, rc);
-    const ap = Math.min(1, 0.995 * maxStep(z, step.dx));
-    const ad = Math.min(1, 0.995 * maxStep(s, step.ds));
-    for (let i = 0; i < z.length; i++) { z[i]! += ap * step.dx[i]!; s[i]! += ad * step.ds[i]!; }
-    for (let i = 0; i < n; i++) dual[i]! += ad * step.dy[i]!;
-  }
-  const beta = z.slice(0, p).map((v, j) => v - z[p + j]!);
+
+  const beta = normalizedBeta.map((v, j) => v * yScale / columnScale[j]!);
   const fitted = x.map((row) => dot(row, beta));
   const residuals = y.map((v, i) => v - fitted[i]!);
   let rho = 0;
-  for (let i = 0; i < n; i++) rho += ww[i]! * residuals[i]! * (tau - (residuals[i]! < 0 ? 1 : 0));
-  if (!converged) {
-    const score = x[0]!.map((_, j) => {
-      let v = 0;
-      for (let i = 0; i < n; i++) v += weights[i]! * x[i]![j]! * (residuals[i]! < 0 ? tau - 1 : tau);
-      return Math.abs(v);
-    });
-    let norm = 0;
-    for (const value of score) norm = Math.max(norm, value);
-    if (norm <= 1e-7 * Math.max(1, Math.abs(rho))) converged = true;
-  }
-  return { beta, fitted, residuals, rho, converged, iterations };
+  for (let i = 0; i < n; i++) rho += weights[i]! * residuals[i]! * (tau - (residuals[i]! < 0 ? 1 : 0));
+  return { beta, fitted, residuals, rho, converged: true, iterations };
 }
 
 /**
@@ -380,7 +515,7 @@ export function rq(formula: string, data: DataFrame, options: RqOptions = {}): R
   if (x.some((row) => row.some((v) => !Number.isFinite(v))) || y.some((v) => !Number.isFinite(v))) {
     throw new RangeError("x and y must contain only finite values");
   }
-  const fits = tauValues.map((tau) => fitOne(x, y, w, tau, maxit, eps));
+  const fits = tauValues.map((tau) => fitOne(x, y, w, tau, method, maxit, eps));
   const coefficients: Record<string, number | number[]> = {};
   d.colNames.forEach((name, j) => {
     coefficients[name] = tauValues.length === 1 ? fits[0]!.beta[j]! : fits.map((fit) => fit.beta[j]!);
