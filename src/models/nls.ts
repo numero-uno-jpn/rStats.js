@@ -727,9 +727,15 @@ export function nls(formula: string, data: DataFrame, options: NlsOptions = {}):
   const dataColumns: Record<string, number[]> = {};
   for (const name of predictorNames) dataColumns[name] = column(data, name);
   const rows: number[] = [];
+  // Missing values (NaN) drop the row; an infinite value is an error, as in R (found 2026-11-20: rows with
+  // Infinity were dropped silently).
+  const infinite = (value: number): boolean => value === Infinity || value === -Infinity;
   for (let i = 0; i < n; i++) {
-    if (!Number.isFinite(rawY[i]!) || weightRaw[i] === 0) continue;
-    if (predictorNames.some(name => !Number.isFinite(dataColumns[name]![i]!))) continue;
+    if (infinite(rawY[i]!) || predictorNames.some(name => infinite(dataColumns[name]![i]!))) {
+      throw new RangeError("NA/NaN/Inf in the response or the predictors: row " + (i + 1) + " has an infinite value");
+    }
+    if (Number.isNaN(rawY[i]!) || weightRaw[i] === 0) continue;
+    if (predictorNames.some(name => Number.isNaN(dataColumns[name]![i]!))) continue;
     rows.push(i);
   }
   const p = parameterNames.length + (options.algorithm === "plinear" ? 1 : 0);

@@ -466,3 +466,14 @@ describe("long data columns", () => {
     expect(fit.coefficients.Vm).toBeCloseTo(210, 0);
   });
 });
+
+describe("infinite values (found 2026-11-20: they were dropped as if missing)", () => {
+  const x = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10], y = x.map((v, i) => 2 * Math.exp(0.3 * v) + Math.sin(i) * 0.05);
+  it("rejects Infinity in the response or a predictor and still drops NaN", () => {
+    for (const [yy, xx] of [[[...y.slice(0, 3), Infinity, ...y.slice(4)], x], [y, [...x.slice(0, 3), -Infinity, ...x.slice(4)]]] as const) {
+      expect(() => nls("y ~ a*exp(b*x)", dataFrame({ y: [...yy], x: [...xx] }), { start: { a: 1, b: 0.3 } })).toThrow(/infinite value/);
+    }
+    const missing = nls("y ~ a*exp(b*x)", dataFrame({ y: [...y.slice(0, 3), NaN, ...y.slice(4)], x }), { start: { a: 1, b: 0.3 } });
+    expect(missing.nobs).toBe(10);
+  });
+});
