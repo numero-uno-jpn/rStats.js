@@ -27,7 +27,7 @@
 ## 進め方
 
 - **作業ブランチ `work/regression-1.8` にだけ push する。main には push しない。**
-- **CI は自分で読む。** draft の PR #PR (`work/regression-1.8` → main、マージしない) で、push のたびに型チェックと全テストが
+- **CI は自分で読む。** draft の PR #546 (`work/regression-1.8` → main、マージしない) で、push のたびに型チェックと全テストが
   流れる。push したら PR の Checks を見て、型エラーとテストの失敗は自分で直してから報告する。Checks が見えないときは、
   Issue に「CI の確認の依頼」と書いて次の作業へ進む。CI は今、全部通る状態 (基準のコミット)
 - **push のたびに、そのファイルを GitHub 上で開き直して中身を確かめる** (1.7.0 で改行が文字どおりの `\n` になり、型
