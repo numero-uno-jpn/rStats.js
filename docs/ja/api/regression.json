@@ -702,352 +702,352 @@
   "PolrResult.warnings#summary": {
     "hash": "d71e04edc155",
     "en": "Distinct warnings in first-occurrence order.",
-    "ja": ""
+    "ja": "最初に発生した順に並べた、重複のない警告です。"
   },
   "PolrResult.zeta#summary": {
     "hash": "7c44b4c64439",
     "en": "Named ordered cut-points, separately from the slopes.",
-    "ja": ""
+    "ja": "傾きとは別に保持された、名前付きの順序付きカットポイントです。"
   },
   "PolrSummaryResult#summary": {
     "hash": "9a60fa47b297",
     "en": "Table of slope and cut-point estimates, standard errors and Wald statistics.",
-    "ja": ""
+    "ja": "傾きとカットポイントの推定値、標準誤差、Wald 統計量の表です。"
   },
   "PolrSummaryResult.columns#summary": {
     "hash": "928189c00b0c",
     "en": "Summary statistic column names.",
-    "ja": ""
+    "ja": "要約統計量の列名です。"
   },
   "PolrSummaryResult.rows#summary": {
     "hash": "1e382d59ed56",
     "en": "Coefficient and cut-point names.",
-    "ja": ""
+    "ja": "係数とカットポイントの名前です。"
   },
   "PolrSummaryResult.values#summary": {
     "hash": "70702cac4e4f",
     "en": "Rows of estimates, standard errors and test statistics.",
-    "ja": ""
+    "ja": "推定値、標準誤差、検定統計量の各行です。"
   },
   "PolrSummaryResult.warnings#summary": {
     "hash": "84caa396e699",
     "en": "Warnings produced while computing the summary.",
-    "ja": ""
+    "ja": "要約の計算中に発生した警告です。"
   },
   "PolrVcovResult#summary": {
     "hash": "232d2dcf0d0e",
     "en": "Covariance matrix of the slope and cut-point estimates in coefficient order.",
-    "ja": ""
+    "ja": "係数の順序に対応する、傾きとカットポイントの推定値の共分散行列です。"
   },
   "PolrVcovResult.columns#summary": {
     "hash": "e3b1e193d4b6",
     "en": "Parameter names in matrix column order.",
-    "ja": ""
+    "ja": "行列の列の順序に対応するパラメータ名です。"
   },
   "PolrVcovResult.rows#summary": {
     "hash": "386e6c1627f8",
     "en": "Parameter names in matrix row order.",
-    "ja": ""
+    "ja": "行列の行の順序に対応するパラメータ名です。"
   },
   "PolrVcovResult.values#summary": {
     "hash": "c70b16ac376a",
     "en": "Covariance matrix values.",
-    "ja": ""
+    "ja": "共分散行列の値です。"
   },
   "PolrVcovResult.warnings#summary": {
     "hash": "e62de7d35d70",
     "en": "Warnings produced while computing the covariance.",
-    "ja": ""
+    "ja": "共分散の計算中に発生した警告です。"
   },
   "PsiInput#summary": {
     "hash": "50143d2ac34a",
     "en": "Scalar or vector input accepted by the robust score functions.",
-    "ja": ""
+    "ja": "ロバストスコア関数が受け付けるスカラーまたはベクトルの入力です。"
   },
   "PsiOutput#summary": {
     "hash": "0850a26dc449",
     "en": "Scalar output returned by a robust score function.",
-    "ja": ""
+    "ja": "ロバストスコア関数が返すスカラーの出力です。"
   },
   "PsiResult#summary": {
     "hash": "ef935e4f3539",
     "en": "Scalar or vector output returned by the robust score functions.",
-    "ja": ""
+    "ja": "ロバストスコア関数が返すスカラーまたはベクトルの出力です。"
   },
   "RlmModel#summary": {
     "hash": "17e1a6df096a",
     "en": "Data and settings retained by an M fit.",
-    "ja": ""
+    "ja": "M 推定による当てはめで保持されるデータと設定です。"
   },
   "RlmModel.a#summary": {
     "hash": "b94d44fb0140",
     "en": "Hampel first tuning point.",
-    "ja": ""
+    "ja": "Hampel の第 1 調整点です。"
   },
   "RlmModel.b#summary": {
     "hash": "86405c7bb4ea",
     "en": "Hampel second tuning point.",
-    "ja": ""
+    "ja": "Hampel の第 2 調整点です。"
   },
   "RlmModel.c#summary": {
     "hash": "e381c2d6175f",
     "en": "Hampel rejection point or bisquare tuning constant.",
-    "ja": ""
+    "ja": "Hampel の棄却点、または bisquare の調整定数です。"
   },
   "RlmModel.columnNames#summary": {
     "hash": "bdfa9d363a38",
     "en": "Names of design-matrix columns.",
-    "ja": ""
+    "ja": "モデル行列の列名です。"
   },
   "RlmModel.formula#summary": {
     "hash": "fa221b20354f",
     "en": "Original model formula.",
-    "ja": ""
+    "ja": "元のモデル式です。"
   },
   "RlmModel.k#summary": {
     "hash": "8c342b7aa626",
     "en": "Huber tuning constant.",
-    "ja": ""
+    "ja": "Huber の調整定数です。"
   },
   "RlmModel.k2#summary": {
     "hash": "4197636d6104",
     "en": "Proposal 2 scale tuning constant.",
-    "ja": ""
+    "ja": "Proposal 2 の尺度調整定数です。"
   },
   "RlmModel.observationWeights#summary": {
     "hash": "578942b05ef2",
     "en": "Prior observation weights.",
-    "ja": ""
+    "ja": "観測値の事前の重みです。"
   },
   "RlmModel.psi#summary": {
     "hash": "42d97933dadd",
     "en": "Robust score function.",
-    "ja": ""
+    "ja": "ロバストスコア関数です。"
   },
   "RlmModel.rows#summary": {
     "hash": "9f01e412eafd",
     "en": "Original row indices retained after missing-value handling.",
-    "ja": ""
+    "ja": "欠測値の処理後に保持された元データの行インデックスです。"
   },
   "RlmModel.scaleEst#summary": {
     "hash": "81d7f3717cb6",
     "en": "Residual scale estimator.",
-    "ja": ""
+    "ja": "残差の尺度推定量です。"
   },
   "RlmModel.wtMethod#summary": {
     "hash": "9ddfa0167a5d",
     "en": "Interpretation of the observation weights.",
-    "ja": ""
+    "ja": "観測値の重みの解釈です。"
   },
   "RlmModel.x#summary": {
     "hash": "e605933e27ab",
     "en": "Retained design matrix.",
-    "ja": ""
+    "ja": "保持されたモデル行列です。"
   },
   "RlmModel.y#summary": {
     "hash": "72b36d244855",
     "en": "Retained response values.",
-    "ja": ""
+    "ja": "保持された応答値です。"
   },
   "RlmOptions#summary": {
     "hash": "9d838a1bbb2d",
     "en": "Options for `rlm`.",
-    "ja": ""
+    "ja": "`rlm` のオプションです。"
   },
   "RlmOptions.a#summary": {
     "hash": "37cb9387bdf5",
     "en": "Hampel first corner. Default 2.",
-    "ja": ""
+    "ja": "Hampel の第 1 折れ点です。既定は 2 です。"
   },
   "RlmOptions.acc#summary": {
     "hash": "efaf4d34fa12",
     "en": "Dimensionless estimating-equation and scale fixed-point tolerance. Default 1e-10.",
-    "ja": ""
+    "ja": "推定方程式と尺度の不動点に対する、無次元の許容誤差です。既定は 1e-10 です。"
   },
   "RlmOptions.b#summary": {
     "hash": "75f8f3d50a48",
     "en": "Hampel second corner. Default 4.",
-    "ja": ""
+    "ja": "Hampel の第 2 折れ点です。既定は 4 です。"
   },
   "RlmOptions.c#summary": {
     "hash": "91a58fe9f530",
     "en": "Hampel rejection point or bisquare tuning constant. Default 8 or 4.685.",
-    "ja": ""
+    "ja": "Hampel の棄却点、または bisquare の調整定数です。既定は 8 または 4.685 です。"
   },
   "RlmOptions.init#summary": {
     "hash": "515db0ea77aa",
     "en": "Least-squares start, deterministic LTS start, or initial coefficients. Default \"ls\".",
-    "ja": ""
+    "ja": "最小二乗法による初期値、決定的な LTS による初期値、または初期係数です。既定は \"ls\" です。"
   },
   "RlmOptions.k#summary": {
     "hash": "8e63154c7965",
     "en": "Huber tuning constant. Default 1.345.",
-    "ja": ""
+    "ja": "Huber の調整定数です。既定は 1.345 です。"
   },
   "RlmOptions.k2#summary": {
     "hash": "ca9dbe14d247",
     "en": "Proposal 2 scale tuning constant. Default 1.345.",
-    "ja": ""
+    "ja": "Proposal 2 の尺度調整定数です。既定は 1.345 です。"
   },
   "RlmOptions.maxit#summary": {
     "hash": "991ee72b7eb4",
     "en": "Maximum number of IRLS iterations. Default 1000, allowing the estimating equations to reach their solution.",
-    "ja": ""
+    "ja": "IRLS の最大反復回数です。既定は 1000 で、推定方程式が解に達するまで反復できる値です。"
   },
   "RlmOptions.method#summary": {
     "hash": "d425c61add39",
     "en": "Estimation method. \"MM\" uses a deterministic S start and a fixed-scale redescending M step. Default \"M\".",
-    "ja": ""
+    "ja": "推定方法です。\"MM\" は決定的な S 推定による初期値と、尺度を固定した redescending M ステップを使います。既定は \"M\" です。"
   },
   "RlmOptions.psi#summary": {
     "hash": "2630c44dd7e6",
     "en": "Score function. Default \"huber\".",
-    "ja": ""
+    "ja": "スコア関数です。既定は \"huber\" です。"
   },
   "RlmOptions.scaleEst#summary": {
     "hash": "ea0b6d5e4b26",
     "en": "Scale estimator. \"Huber\" and \"proposal 2\" are equivalent. Default \"MAD\".",
-    "ja": ""
+    "ja": "尺度推定量です。\"Huber\" と \"proposal 2\" は同等です。既定は \"MAD\" です。"
   },
   "RlmOptions.weights#summary": {
     "hash": "ecc54dbabff6",
     "en": "Non-negative observation weights, or a column name.",
-    "ja": ""
+    "ja": "0 以上の観測値の重み、または列名です。"
   },
   "RlmOptions.wtMethod#summary": {
     "hash": "28437f423122",
     "en": "Meaning of weights. \"inv\" uses inverse-variance weights; \"case\" uses frequency weights.",
-    "ja": ""
+    "ja": "重みの意味です。\"inv\" は逆分散重み、\"case\" は度数重みを使います。"
   },
   "RlmPsi#summary": {
     "hash": "b1fe387b9fcc",
     "en": "The score function used by robust regression.",
-    "ja": ""
+    "ja": "ロバスト回帰で使うスコア関数です。"
   },
   "RlmPsiBisquareOptions#summary": {
     "hash": "97833a30076c",
     "en": "Options for the bisquare psi function.",
-    "ja": ""
+    "ja": "bisquare の ψ 関数のオプションです。"
   },
   "RlmPsiBisquareOptions.c#summary": {
     "hash": "129254c7ae8e",
     "en": "Tuning constant. Default 4.685.",
-    "ja": ""
+    "ja": "調整定数です。既定は 4.685 です。"
   },
   "RlmPsiBisquareOptions.deriv#summary": {
     "hash": "c9f306e87517",
     "en": "Return the derivative of psi instead of psi(u)/u. Default 0.",
-    "ja": ""
+    "ja": "ψ(u)/u の代わりに ψ の導関数を返すかどうかです。既定は 0 です。"
   },
   "RlmPsiHampelOptions#summary": {
     "hash": "b1433dcfbae4",
     "en": "Options for the Hampel psi function.",
-    "ja": ""
+    "ja": "Hampel の ψ 関数のオプションです。"
   },
   "RlmPsiHampelOptions.a#summary": {
     "hash": "92907ce7dc2f",
     "en": "First corner. Default 2.",
-    "ja": ""
+    "ja": "第 1 折れ点です。既定は 2 です。"
   },
   "RlmPsiHampelOptions.b#summary": {
     "hash": "4b1c86b06b93",
     "en": "Second corner. Default 4.",
-    "ja": ""
+    "ja": "第 2 折れ点です。既定は 4 です。"
   },
   "RlmPsiHampelOptions.c#summary": {
     "hash": "b6f8fde60290",
     "en": "Rejection point. Default 8.",
-    "ja": ""
+    "ja": "棄却点です。既定は 8 です。"
   },
   "RlmPsiHampelOptions.deriv#summary": {
     "hash": "c9f306e87517",
     "en": "Return the derivative of psi instead of psi(u)/u. Default 0.",
-    "ja": ""
+    "ja": "ψ(u)/u の代わりに ψ の導関数を返すかどうかです。既定は 0 です。"
   },
   "RlmPsiHuberOptions#summary": {
     "hash": "8d4f1912a9c8",
     "en": "Options shared by the psi functions.",
-    "ja": ""
+    "ja": "ψ 関数に共通するオプションです。"
   },
   "RlmPsiHuberOptions.deriv#summary": {
     "hash": "c9f306e87517",
     "en": "Return the derivative of psi instead of psi(u)/u. Default 0.",
-    "ja": ""
+    "ja": "ψ(u)/u の代わりに ψ の導関数を返すかどうかです。既定は 0 です。"
   },
   "RlmPsiHuberOptions.k#summary": {
     "hash": "8e63154c7965",
     "en": "Huber tuning constant. Default 1.345.",
-    "ja": ""
+    "ja": "Huber の調整定数です。既定は 1.345 です。"
   },
   "RlmResult#summary": {
     "hash": "5171ec07004f",
     "en": "Result of `rlm`: robust coefficients, fitted values, scale and convergence diagnostics.",
-    "ja": ""
+    "ja": "`rlm` の結果です。ロバスト係数、当てはめ値、尺度、収束診断を含みます。"
   },
   "RlmResult.coefficients#summary": {
     "hash": "fcaa45cfceba",
     "en": "Named robust regression coefficients.",
-    "ja": ""
+    "ja": "名前付きのロバスト回帰係数です。"
   },
   "RlmResult.converged#summary": {
     "hash": "0446175e997a",
     "en": "Whether the estimating equations and scale iteration converged.",
-    "ja": ""
+    "ja": "推定方程式と尺度の反復が収束したかどうかです。"
   },
   "RlmResult.convergence#summary": {
     "hash": "4853ad52b38c",
     "en": "Convergence diagnostics for the estimating equations and scale.",
-    "ja": ""
+    "ja": "推定方程式と尺度の収束診断です。"
   },
   "RlmResult.covariance#summary": {
     "hash": "142491174bfa",
     "en": "Estimated coefficient covariance matrix.",
-    "ja": ""
+    "ja": "推定された係数共分散行列です。"
   },
   "RlmResult.covarianceUnscaled#summary": {
     "hash": "10fa3ca8bb34",
     "en": "Unscaled coefficient covariance matrix.",
-    "ja": ""
+    "ja": "尺度でスケーリングしていない係数共分散行列です。"
   },
   "RlmResult.fittedValues#summary": {
     "hash": "c8a6fdfb4aa5",
     "en": "Fitted response values.",
-    "ja": ""
+    "ja": "当てはめ値です。"
   },
   "RlmResult.initialization#summary": {
     "hash": "c99f03bd55f7",
     "en": "Details of the deterministic high-breakdown initial estimate.",
-    "ja": ""
+    "ja": "決定的な高破綻点初期推定の詳細です。"
   },
   "RlmResult.initialization.candidateCount#summary": {
     "hash": "24bf68110eb4",
     "en": "Total number of candidate subsets, as a decimal string.",
-    "ja": ""
+    "ja": "候補部分集合の総数です。10 進数の文字列で表します。"
   },
   "RlmResult.initialization.candidatesEvaluated#summary": {
     "hash": "e8c9b385fb8b",
     "en": "Number of candidate subsets evaluated.",
-    "ja": ""
+    "ja": "評価した候補部分集合の数です。"
   },
   "RlmResult.initialization.coefficients#summary": {
     "hash": "2a93ffd0bb48",
     "en": "Named coefficients from the initial estimate.",
-    "ja": ""
+    "ja": "初期推定による名前付き係数です。"
   },
   "RlmResult.initialization.exhaustive#summary": {
     "hash": "a188f075ef5c",
     "en": "Whether every candidate subset was evaluated.",
-    "ja": ""
+    "ja": "すべての候補部分集合を評価したかどうかです。"
   },
   "RlmResult.initialization.method#summary": {
     "hash": "dba4cbb515ee",
     "en": "Initial estimator used before the M step.",
-    "ja": ""
+    "ja": "M ステップの前に使った初期推定量です。"
   },
   "RlmResult.initialization.objective#summary": {
     "hash": "f7fce34f97cc",
     "en": "Objective value of the selected initial estimate.",
-    "ja": ""
+    "ja": "選択された初期推定値の目的関数値です。"
   },
   "RlmResult.iterations#summary": {
     "hash": "b5e9a31b4f60",
