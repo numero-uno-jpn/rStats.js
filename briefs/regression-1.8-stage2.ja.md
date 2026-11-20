@@ -15,6 +15,14 @@
 - oracle は Issue の 60000 バイトの上限に合わせて出力を削ってあるが、**fixture には上限がない。** テストに要る値 (全部の
   fitted・residuals、全 case の `fitTight`、glmnet の経路の全列など) は oracle に足してよい。oracle を直したら push して、
   Issue に「fixture の依頼」と書く (こちらが作って push する。それまでそのテストは落ちてよい)
+- **oracle に必ず足すもの (今の fixture に無い。`rq-behaviour.md` §7.8 の「covers」は今の `rq.R` と合っていない):**
+  - `rq.R`: boot の 4 方法 (`set.seed` つき)、Engel (n = 235) の br・fn、解が一意でない例、完全一致、共線、NA の行、
+    τ が範囲外のエラー、重み 0、`summary` の各 `se` の警告の case。`experiments/regression18-rq.R` の case が手本
+  - `glmnet.R`: `intercept = FALSE`、`lower.limits`/`upper.limits`、`dfmax`/`pmax`、`nlambda`・`lambda.min.ratio`、
+    与えた `lambda`、poisson の offset、`type` ごとの `predict`、端の case (定数の列、y が定数、p > n、1 列、分離、
+    x × 1e100、y × 1e-100、NA)。`experiments/regression18-glmnet.R` が手本
+  - `gee.R`: poisson の作業相関 4 種 (今は offset の 1 件だけ)
+  - 3 本とも、1 行に 1 文で書く (今は 1 行に詰めてあって読みにくい)。記録する引数と呼び出しを 1 つの一覧から作る
 
 ## 2. 実装の順と止まり方
 
