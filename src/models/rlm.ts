@@ -64,13 +64,22 @@ export interface RlmPsiBisquareOptions {
  c?: number;
 }
 
-/** Scalar output returned by a robust score function. */
+/** Scalar output returned by a robust score function.
+ *
+ * @category Regression
+ */
 export type PsiOutput = number | boolean;
 
-/** Scalar or vector input accepted by the robust score functions. */
+/** Scalar or vector input accepted by the robust score functions.
+ *
+ * @category Regression
+ */
 export type PsiInput = number | Sample;
 
-/** Scalar or vector output returned by the robust score functions. */
+/** Scalar or vector output returned by the robust score functions.
+ *
+ * @category Regression
+ */
 export type PsiResult = PsiOutput | PsiOutput[];
 
 /** Huber's psi function. Equivalent to R's `MASS::psi.huber()`.
