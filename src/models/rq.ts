@@ -372,7 +372,13 @@ function fitBr(
     for (let j = 0; j < p; j++) {
       for (const sign of [1, -1]) {
         const edge = directionalEdge(x, y, weights, tau, beta, basis, j, sign);
-        if (edge !== undefined && (best === undefined || edge.slope < best.slope)) best = edge;
+        if (edge === undefined) continue;
+        // Bland's deterministic entering/leaving order prevents cycling across
+        // zero-length pivots at degenerate vertices.
+        if (best === undefined || edge.entering < best.entering ||
+          (edge.entering === best.entering && basis[edge.leaving]! < basis[best.leaving]!)) {
+          best = edge;
+        }
       }
     }
     if (best === undefined) {
@@ -422,8 +428,9 @@ function fitBr(
       const r = y[i]! - dot(row, nextBeta);
       return sum + weights[i]! * r * (tau - (r < 0 ? 1 : 0));
     }, 0);
-    if (!(nextLoss < currentLoss - 64 * Number.EPSILON * Math.max(1, Math.abs(currentLoss)))) {
-      throw new Error("quantile regression vertex pivot did not decrease the objective");
+    const objectiveTolerance = 1e-12 * Math.max(1, Math.abs(currentLoss), Math.abs(nextLoss));
+    if (nextLoss > currentLoss + objectiveTolerance) {
+      throw new Error("quantile regression vertex pivot increased the objective beyond rounding tolerance");
     }
     basis.splice(0, basis.length, ...nextBasis);
     beta = nextBeta;
