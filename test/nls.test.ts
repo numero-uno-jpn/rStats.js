@@ -399,11 +399,14 @@ describe("nonlinear response expressions", () => {
 
 describe("NIST StRD additional nonlinear cases", () => {
   it.each([
-    ["Gauss1", stage3Fixture.gauss1, 7],
-    ["Eckerle4", stage3Fixture.eckerle4, 7],
-    ["Lanczos1", stage3Fixture.lanczos1, 9],
-    ["Misra1a", stage3Fixture.misra1a, 7],
-  ] as const)("fits %s from Start 2 to the certified values", (label, cs, minimumLre) => {
+    // Lanczos1's certified RSS (1.43e-25) is at the rounding level of double precision: each residual (about 1e-13)
+    // carries an error of about eps |y| (4e-16), so the RSS can only be reproduced to about 1e-2. Its coefficients
+    // are still required to nine digits.
+    ["Gauss1", stage3Fixture.gauss1, 7, 1e-5],
+    ["Eckerle4", stage3Fixture.eckerle4, 7, 1e-5],
+    ["Lanczos1", stage3Fixture.lanczos1, 9, 1e-2],
+    ["Misra1a", stage3Fixture.misra1a, 7, 1e-5],
+  ] as const)("fits %s from Start 2 to the certified values", (label, cs, minimumLre, rssTolerance) => {
     const fit = nls(cs.formula, dataFrame(cs.data), { start: cs.start });
     console.log("NIST " + label + " coefficients", JSON.stringify(fit.coefficients), "RSS", fit.deviance);
     const lreValues: Record<string, number> = {};
@@ -415,7 +418,7 @@ describe("NIST StRD additional nonlinear cases", () => {
     }
     console.log("NIST " + label + " Start 2 LRE", JSON.stringify(lreValues));
     const rssRelativeError = Math.abs(fit.deviance - cs.rss) / Math.max(Math.abs(cs.rss), Number.MIN_VALUE);
-    expect(rssRelativeError, label + " RSS").toBeLessThanOrEqual(1e-5);
+    expect(rssRelativeError, label + " RSS").toBeLessThanOrEqual(rssTolerance);
     expect(fit.converged, label + " converged").toBe(true);
   });
 });

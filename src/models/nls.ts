@@ -410,6 +410,20 @@ function makeBounds(
   return names.map(name => record[name] ?? fallback);
 }
 
+/**
+ * Rounding noise in the weighted residual sum of squares: each residual y - f carries an error of about
+ * eps |y|, so the sum carries about 2 eps sum w |r| |y| plus eps^2 sum w y^2 when the residuals are near zero.
+ * Relative to the data, so the convergence test does not depend on the units of y.
+ */
+function objectiveNoise(residuals: readonly number[], y: readonly number[], weights: readonly number[]): number {
+  let cross = 0, squares = 0;
+  for (let i = 0; i < residuals.length; i++) {
+    cross += weights[i]! * Math.abs(residuals[i]! * y[i]!);
+    squares += weights[i]! * y[i]! * y[i]!;
+  }
+  return 4 * Number.EPSILON * cross + 4 * Number.EPSILON * Number.EPSILON * squares;
+}
+
 function fitCore(
   expr: NlsExpr, rows: Record<string, number>[], y: number[], weights: number[],
   names: string[], start: number[], algorithm: NlsAlgorithm,
@@ -463,19 +477,24 @@ function fitCore(
       Math.abs(candidate - values[i]!) <= 4 * Number.EPSILON
         * Math.max(Math.abs(candidate), Math.abs(values[i]!), Number.MIN_VALUE));
     if (fullStepIsRounded) { converged = true; break; }
-    try {
-      const fullTrial = algorithm === "plinear"
-        ? evaluateProfiled(expr, rows, y, weights, names, fullCandidate)
-        : evaluate(expr, rows, y, weights, names, fullCandidate, algorithm);
-      const roundingAllowance = 4 * Number.EPSILON * Math.max(1, current.objective);
-      if (current.objective - fullTrial.objective <= roundingAllowance) {
-        converged = true; break;
-      }
-    } catch { /* A full step outside the expression domain is handled by backtracking below. */ }
     const stepTolerance = Math.max(1e-12, Math.sqrt(control.tol) * 0.001);
     const gradientTolerance = Math.max(control.tol * 100, 1e-13);
-    if (scaledGradientNorm <= gradientTolerance
-      && (algorithm === "port" || stepNorm <= stepTolerance)) {
+    // The Gauss-Newton model predicts that the full step lowers the objective by delta' J'Wr. When the residuals are
+    // near zero, sqrt(RSS) is tiny and the gradient test cannot be met; a small step whose predicted decrease is
+    // within the rounding noise of the objective is then the solution. The objective alone is not a stopping rule:
+    // its rounding noise allows coefficient errors of about sqrt(eps), so a small step is always required.
+    const noise = objectiveNoise(current.residuals, y, weights);
+    const predictedDecrease = projectedDelta.reduce((sum, value, i) => sum + value * rhs[i]!, 0);
+    const smallStep = algorithm === "port" || stepNorm <= stepTolerance;
+    if (smallStep && (scaledGradientNorm <= gradientTolerance || predictedDecrease <= noise)) {
+      // Take the final full step when it does not raise the objective: it costs one evaluation and removes the
+      // remaining error of order stepTolerance (quadratically small near a zero-residual solution).
+      try {
+        const polished = algorithm === "plinear"
+          ? evaluateProfiled(expr, rows, y, weights, names, fullCandidate)
+          : evaluate(expr, rows, y, weights, names, fullCandidate, algorithm);
+        if (polished.objective <= current.objective) { values = fullCandidate; current = polished; }
+      } catch { /* Keep the current point when the full step leaves the expression domain. */ }
       converged = true; break;
     }
     let alpha = 1, accepted = false;
@@ -487,9 +506,8 @@ function fitCore(
           ? evaluateProfiled(expr, rows, y, weights, names, candidate)
           : evaluate(expr, rows, y, weights, names, candidate, algorithm);
         const candidateStepNorm = alpha * stepNorm;
-        const roundingAllowance = 4 * Number.EPSILON * Math.max(1, current.objective);
         if (trial.objective < current.objective
-          || (candidateStepNorm <= stepTolerance * 10 && trial.objective <= current.objective + roundingAllowance)) {
+          || (candidateStepNorm <= stepTolerance * 10 && trial.objective <= current.objective + noise)) {
           values = candidate; current = trial; accepted = true; break;
         }
       } catch { /* A trial outside the function domain is rejected and the step is reduced. */ }
