@@ -59,7 +59,7 @@ out <- list(
     localSparsity = (f.hi - f.lo) / (2 * h.hs),
     residualQuantilesType1 = quantile(r, c(tau - h.hs, tau + h.hs), type = 1),
     residualQuantilesType7 = quantile(r, c(tau - h.hs, tau + h.hs), type = 7)
-  }),
+  ),
   small = capture({
     x <- -3:12
     y <- c(2, 1, 4, 2, 5, 3, 8, 5, 9, 7, 11, 8, 14, 10, 15, 13)
