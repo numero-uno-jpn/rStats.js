@@ -57,24 +57,43 @@ export interface PolrOptions {
  * @category Regression
  */
 export interface PolrModel {
+  /** Original model formula. */
   formula: string;
+  /** Parsed formula syntax tree; internal implementation detail. @internal */
   rhs: FormulaNode;
+  /** Predictor variable names in model-matrix order. */
   predictorVariables: string[];
+  /** Observed or declared levels for categorical predictors. */
   factorLevels: Record<string, readonly string[]>;
+  /** Contrast matrices used to construct the design; internal representation. @internal */
   contrasts: Record<string, DesignContrast>;
+  /** Name of the data column used as an offset, when supplied by name. */
   offsetColumn?: string;
+  /** Whether the offset was supplied separately from the formula. */
   externalOffset: boolean;
+  /** Response column name. */
   response: string;
+  /** Retained design matrix. */
   x: number[][];
+  /** Names of design-matrix columns. */
   columnNames: string[];
+  /** Response values encoded as ordered category indices. */
   y: number[];
+  /** Ordered response category labels. */
   responseLevels: string[];
+  /** Prior weights for retained observations. */
   weights: number[];
+  /** Offset values for retained observations. */
   offset: number[];
+  /** Original row indices retained after missing-value handling. */
   rows: number[];
+  /** Cumulative-link distribution. */
   method: PolrMethod;
+  /** Maximised log likelihood. */
   logLikelihood: number;
+  /** Internal unconstrained optimisation parameters. */
   theta: number[];
+  /** Observed Hessian in internal parameter coordinates. */
   rawHessian: number[][];
 }
 
@@ -119,9 +138,13 @@ export interface PolrResult {
  * @category Regression
  */
 export interface PolrSummaryResult {
+  /** Coefficient and cut-point names. */
   rows: string[];
+  /** Summary statistic column names. */
   columns: ["Value", "Std. Error", "t value"];
+  /** Rows of estimates, standard errors and test statistics. */
   values: number[][];
+  /** Warnings produced while computing the summary. */
   warnings: string[];
 }
 
@@ -130,9 +153,13 @@ export interface PolrSummaryResult {
  * @category Regression
  */
 export interface PolrVcovResult {
+  /** Parameter names in matrix row order. */
   rows: string[];
+  /** Parameter names in matrix column order. */
   columns: string[];
+  /** Covariance matrix values. */
   values: number[][];
+  /** Warnings produced while computing the covariance. */
   warnings: string[];
 }
 
@@ -156,9 +183,13 @@ export interface PolrConfintOptions {
  * @category Regression
  */
 export interface PolrConfintResult {
+  /** Parameter names for the intervals. */
   rows: string[];
+  /** Lower and upper confidence-limit labels. */
   columns: string[];
+  /** Confidence limits, one pair per parameter. */
   values: number[][];
+  /** Warnings produced while computing the intervals. */
   warnings: string[];
 }
 
@@ -182,9 +213,13 @@ export interface PolrPredictOptions {
  * @category Regression
  */
 export interface PolrPredictProbs {
+  /** Prediction row labels. */
   rows: string[];
+  /** Response category labels. */
   columns: string[];
+  /** Predicted category probabilities; null marks an unavailable value. */
   values: (number | null)[][];
+  /** Warnings produced while predicting. */
   warnings: string[];
 }
 
@@ -1020,8 +1055,11 @@ export interface PolrAnovaResult {
     "LR stat.": (number | "NA")[];
     "Pr(Chi)": (number | "NA")[];
   };
+  /** Model or term labels associated with the comparison. */
   rows: string[];
+  /** Heading describing the comparison. */
   heading: string[];
+  /** Warnings produced while comparing models. */
   warnings: string[];
 }
 
