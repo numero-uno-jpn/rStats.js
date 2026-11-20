@@ -7,6 +7,17 @@ While the version is 0.x, a minor release (0.y.0) may contain breaking changes;
 they are listed under **Breaking** for each release. From 1.0.0 the project follows
 [Semantic Versioning](https://semver.org/).
 
+## Unreleased
+
+### Added
+
+- **Regression models** in the separate `/regression` area (`dist/regression.js`): ordinal logistic regression
+  (`polr`, `polrSummary`, `polrVcov`, `polrPredict`, `polrConfint`, `polrAnova`); robust regression
+  (`rlm`, `rlmSummary`, `rlmVcov`, `psiHuber`, `psiHampel`, `psiBisquare`); and nonlinear least squares
+  (`nls`, `nlsSummary`, `nlsVcov`, `nlsPredict`, `nlsConfint`, `nlsAnova`), including ten self-starting
+  models. The area is not part of the root entry point or `dist/rstats.js`.
+  See [the documented differences from R](docs/differences-from-r.md#regression-polr-rlm-and-nls).
+
 ## 1.6.0 - 2026-11-19
 
 Mixed models continued (item 1 of the roadmap after 1.5.0): lme4's `confint` and `simulate` for `lmer` and `glmer`
