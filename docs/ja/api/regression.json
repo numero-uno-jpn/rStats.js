@@ -697,7 +697,7 @@
   "PolrResult.nobs#summary": {
     "hash": "3b08e3dc9369",
     "en": "Sum of the positive case weights.",
-    "ja": "正のケース重みの合計です。"
+    "ja": "正の観測値の重みの合計です。"
   },
   "PolrResult.warnings#summary": {
     "hash": "d71e04edc155",
