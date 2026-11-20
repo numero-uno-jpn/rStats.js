@@ -1,4 +1,5 @@
 # issue: 545
+# rerun after stage1 formula verification
 # batch rerun after reserved-token fix
 # batch rerun after clean-room script correction
 # Focused quantile-regression oracle, with public outputs and documented bandwidth helper.
@@ -11,7 +12,16 @@ out<-list(data=list(X=tab(X),y=d$y),bandwidth=list(hs=bandwidth.rq(c(.25,.5,.75)
 for(tau in c(.25,.5,.75)) for(method in c("br","fn")) out[[paste(method,tau,sep="_")]]<-run({
  f<-rq(y~x,data=d,tau=tau,method=method)
  ft<-if(method=="fn")rq(y~x,data=d,tau=tau,method=method,eps=1e-12) else f
- list(coef=unname(coef(f)),rho=unname(f$rho),residuals=unname(residuals(f)),
+ h<-bandwidth.rq(tau,n,hs=TRUE)
+ fm<-rq(y~x,data=d,tau=tau-h,method=method)
+ fp<-rq(y~x,data=d,tau=tau+h,method=method)
+ sparsity<-as.vector(X%*%(coef(fp)-coef(fm))/(2*h))
+ rr<-residuals(f)
+ list(coef=unname(coef(f)),rho=unname(f$rho),residuals=unname(rr),
+      bandwidth=h,coefMinus=unname(coef(fm)),coefPlus=unname(coef(fp)),
+      conditionalSparsity=sparsity,conditionalDensity=1/sparsity,
+      residualSparsity=list(type1=diff(quantile(rr,c(tau-h,tau+h),type=1,names=FALSE))/(2*h),
+                            type7=diff(quantile(rr,c(tau-h,tau+h),type=7,names=FALSE))/(2*h)),
       tightCoef=unname(coef(ft)),tightRho=unname(ft$rho),
       iid=tab(coef(summary(f,se="iid"))),nid=tab(coef(summary(f,se="nid"))),
       nidBofinger=tab(coef(summary(f,se="nid",hs=FALSE))),

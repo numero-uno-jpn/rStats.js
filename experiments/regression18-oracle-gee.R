@@ -1,4 +1,5 @@
 # issue: 545
+# rerun after stage1 formula verification
 # batch rerun after reserved-token fix
 # batch rerun after clean-room script correction
 # Corrected GEE oracle. All tabular results are reduced to plain numeric matrices before JSON encoding.

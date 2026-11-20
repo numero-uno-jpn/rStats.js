@@ -1,4 +1,5 @@
 # issue: 545
+# rerun after stage1 formula verification
 # batch rerun after reserved-token fix
 # batch rerun after clean-room script correction
 # Focused glmnet path oracle with fixed inputs and public fit components.
@@ -33,6 +34,7 @@ out$cv<-run({f<-cv.glmnet(X,y,foldid=foldid,nlambda=8);g<-cv.glmnet(X,y,foldid=f
 Xcv<-cbind(a=seq(-2,2,length.out=60),b=sin(seq_len(60)),c=cos(seq_len(60)))
 yg<-1+.5*Xcv[,1]-.3*Xcv[,2]+sin(seq_len(60)*1.7)*.2
 yb<-rep(0:1,30);fid<-rep(1:5,12)
+out$cvData<-list(X=tab(Xcv),yGaussian=yg,yBinomial=yb,foldid=fid)
 out$cvGaussian<-run({
  a<-cv.glmnet(Xcv,yg,foldid=fid,type.measure="mse",nlambda=8,keep=TRUE)
  b<-cv.glmnet(Xcv,yg,foldid=fid,type.measure="mse",nlambda=8,grouped=FALSE,keep=TRUE)

@@ -1,4 +1,5 @@
 # issue: 545
+# rerun after stage1 formula verification
 # batch rerun after reserved-token fix
 # batch rerun after clean-room script correction
 # Seed-consumption and documented bootstrap-output experiment; no implementation inspection.
@@ -24,4 +25,18 @@ for(bs in c("xy","pwy","mcmb","wxy")){
 }
 out$summarySeed<-run({set.seed(1);f<-rq(foodexp~income,tau=tau,data=d);s<-summary(f,se="boot",bsmethod="xy",R=R);list(table=tab(coef(s)),seed=sig(.Random.seed))})
 out$xyRepeated<-run({set.seed(1);b1<-boot.rq(X,y,tau=tau,R=R,bsmethod="xy");set.seed(1);b2<-boot.rq(X,y,tau=tau,R=R,bsmethod="xy");list(identical=identical(b1$B,b2$B),B=tab(b1$B),U=tab(b1$U))})
+out$seedProbe<-run({
+ R2<-13;t2<-.25;z<-list()
+ for(bs in c("xy","pwy","mcmb","wxy")){
+  set.seed(7);b<-boot.rq(X,y,tau=t2,R=R2,bsmethod=bs);after<-.Random.seed
+  set.seed(7);sample.int(n,n*R2,replace=TRUE);seedSample<-.Random.seed
+  set.seed(7);runif(n*R2);seedUniform<-.Random.seed
+  set.seed(7);rnorm(n*R2);seedNormal<-.Random.seed
+  set.seed(7);rexp(n*R2);seedExp<-.Random.seed
+  z[[bs]]<-list(matches=list(sample=identical(after,seedSample),uniform=identical(after,seedUniform),
+      normal=identical(after,seedNormal),exponential=identical(after,seedExp)),
+      B=tab(b$B),U=tab(b$U))
+ }
+ z
+})
 cat(toJSON(out,digits=NA,auto_unbox=TRUE,null="null",na="string",pretty=FALSE))
