@@ -258,12 +258,19 @@ export interface RlmResult {
  warnings: string[];
  /** Model data and settings retained for companion methods. */
  model: RlmModel;
+ /** Details of the deterministic high-breakdown initial estimate. */
  initialization?: {
+   /** Initial estimator used before the M step. */
    method: "LTS" | "S";
+   /** Named coefficients from the initial estimate. */
    coefficients: Record<string, number>;
+   /** Objective value of the selected initial estimate. */
    objective: number;
+   /** Number of candidate subsets evaluated. */
    candidatesEvaluated: number;
+   /** Total number of candidate subsets, as a decimal string. */
    candidateCount: string;
+   /** Whether every candidate subset was evaluated. */
    exhaustive: boolean;
  };
 }
