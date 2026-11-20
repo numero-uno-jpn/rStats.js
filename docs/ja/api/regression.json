@@ -1,0 +1,1557 @@
+{
+  "NlsAlgorithm#summary": {
+    "hash": "5186605eace4",
+    "en": "Algorithm used to fit a nonlinear least-squares model.",
+    "ja": ""
+  },
+  "NlsAnovaResult#summary": {
+    "hash": "acc44a15e342",
+    "en": "Result returned by {@link nlsAnova}.",
+    "ja": ""
+  },
+  "NlsAnovaResult.table#summary": {
+    "hash": "0b62654d1f33",
+    "en": "Sequential analysis-of-variance table.",
+    "ja": ""
+  },
+  "NlsAnovaResult.table.Df#summary": {
+    "hash": "25cb85aaa86c",
+    "en": "Difference in residual degrees of freedom for each comparison.",
+    "ja": ""
+  },
+  "NlsAnovaResult.table.F value#summary": {
+    "hash": "14a63932dbc5",
+    "en": "F statistic for each comparison.",
+    "ja": ""
+  },
+  "NlsAnovaResult.table.Model#summary": {
+    "hash": "21de7909566e",
+    "en": "Formula for each fitted model.",
+    "ja": ""
+  },
+  "NlsAnovaResult.table.Pr(>F)#summary": {
+    "hash": "29edb6b59d60",
+    "en": "Upper-tail F-test probability for each comparison.",
+    "ja": ""
+  },
+  "NlsAnovaResult.table.Res.Df#summary": {
+    "hash": "6addc6cd81ab",
+    "en": "Residual degrees of freedom for each model.",
+    "ja": ""
+  },
+  "NlsAnovaResult.table.Res.Sum Sq#summary": {
+    "hash": "0f5905b554c9",
+    "en": "Residual sum of squares for each model.",
+    "ja": ""
+  },
+  "NlsAnovaResult.table.Sum Sq#summary": {
+    "hash": "d0cff2b38306",
+    "en": "Difference in residual sum of squares for each comparison.",
+    "ja": ""
+  },
+  "NlsAnovaResult.warnings#summary": {
+    "hash": "9ed95f9e4976",
+    "en": "Warnings produced while comparing models.",
+    "ja": ""
+  },
+  "NlsConfintOptions#summary": {
+    "hash": "999c3b7c92a4",
+    "en": "Options for {@link nlsConfint}.",
+    "ja": ""
+  },
+  "NlsConfintOptions.level#summary": {
+    "hash": "c03dfaa11c1f",
+    "en": "Confidence level between zero and one.",
+    "ja": ""
+  },
+  "NlsConfintOptions.method#summary": {
+    "hash": "2f5a20e1ee51",
+    "en": "Confidence-interval method; profile by default.",
+    "ja": ""
+  },
+  "NlsConfintOptions.parm#summary": {
+    "hash": "dd87a1c7c26d",
+    "en": "Parameter names for which to compute intervals; omitted means all estimable parameters.",
+    "ja": ""
+  },
+  "NlsConfintResult#summary": {
+    "hash": "4964b049e38a",
+    "en": "Result returned by {@link nlsConfint}.",
+    "ja": ""
+  },
+  "NlsConfintResult.cols#summary": {
+    "hash": "25952dfad96c",
+    "en": "Lower and upper confidence-limit labels.",
+    "ja": ""
+  },
+  "NlsConfintResult.rows#summary": {
+    "hash": "412885a90c22",
+    "en": "Parameter names for the intervals.",
+    "ja": ""
+  },
+  "NlsConfintResult.values#summary": {
+    "hash": "07a0a977723b",
+    "en": "Lower and upper confidence limits, one pair per parameter.",
+    "ja": ""
+  },
+  "NlsConfintResult.warnings#summary": {
+    "hash": "40da84f6acb0",
+    "en": "Warnings produced while computing the intervals.",
+    "ja": ""
+  },
+  "NlsControl#summary": {
+    "hash": "e2bc182c1bf0",
+    "en": "Convergence controls for nonlinear least squares.",
+    "ja": ""
+  },
+  "NlsControl.maxiter#summary": {
+    "hash": "0e46ee9c032f",
+    "en": "Maximum number of iterations.",
+    "ja": ""
+  },
+  "NlsControl.minFactor#summary": {
+    "hash": "2a2ab958bcbd",
+    "en": "Minimum step-length factor used by the line search.",
+    "ja": ""
+  },
+  "NlsControl.scaleOffset#summary": {
+    "hash": "a8bc81d25940",
+    "en": "Positive offset used in the convergence scaling criterion.",
+    "ja": ""
+  },
+  "NlsControl.tol#summary": {
+    "hash": "80499540d6da",
+    "en": "Relative convergence tolerance.",
+    "ja": ""
+  },
+  "NlsControl.warnOnly#summary": {
+    "hash": "3f3a494fafef",
+    "en": "Whether non-convergence is reported as a warning instead of an error.",
+    "ja": ""
+  },
+  "NlsModel#summary": {
+    "hash": "8e04dffad580",
+    "en": "Internal and public fitted-model quantities.",
+    "ja": ""
+  },
+  "NlsModel.algorithm#summary": {
+    "hash": "4b817a321c21",
+    "en": "Algorithm used for fitting.",
+    "ja": ""
+  },
+  "NlsModel.coefficients#summary": {
+    "hash": "d9445237bb96",
+    "en": "Named parameter estimates.",
+    "ja": ""
+  },
+  "NlsModel.converged#summary": {
+    "hash": "6eef6ac14f46",
+    "en": "Whether the convergence criterion was met.",
+    "ja": ""
+  },
+  "NlsModel.correlation#summary": {
+    "hash": "30b92b988427",
+    "en": "Estimated parameter correlation matrix.",
+    "ja": ""
+  },
+  "NlsModel.covariance#summary": {
+    "hash": "f991066ceed4",
+    "en": "Estimated parameter covariance matrix.",
+    "ja": ""
+  },
+  "NlsModel.data#summary": {
+    "hash": "09039327bae1",
+    "en": "Numeric data columns retained for prediction and profiling.",
+    "ja": ""
+  },
+  "NlsModel.deviance#summary": {
+    "hash": "7f7ba20c6cdb",
+    "en": "Weighted residual sum of squares.",
+    "ja": ""
+  },
+  "NlsModel.dfResidual#summary": {
+    "hash": "82eecb8e1b30",
+    "en": "Residual degrees of freedom.",
+    "ja": ""
+  },
+  "NlsModel.exactFit#summary": {
+    "hash": "cb8442683c94",
+    "en": "Whether the residual sum of squares is exactly zero.",
+    "ja": ""
+  },
+  "NlsModel.fitted#summary": {
+    "hash": "c8a6fdfb4aa5",
+    "en": "Fitted response values.",
+    "ja": ""
+  },
+  "NlsModel.formula#summary": {
+    "hash": "fa221b20354f",
+    "en": "Original model formula.",
+    "ja": ""
+  },
+  "NlsModel.iterations#summary": {
+    "hash": "b5e9a31b4f60",
+    "en": "Number of iterations performed.",
+    "ja": ""
+  },
+  "NlsModel.nobs#summary": {
+    "hash": "b65dc401f939",
+    "en": "Number of observations used in fitting.",
+    "ja": ""
+  },
+  "NlsModel.parameterNames#summary": {
+    "hash": "5a4dbafa1f75",
+    "en": "Parameter names in coefficient order.",
+    "ja": ""
+  },
+  "NlsModel.residuals#summary": {
+    "hash": "10143a09ccbe",
+    "en": "Observed minus fitted response values.",
+    "ja": ""
+  },
+  "NlsModel.response#summary": {
+    "hash": "3fae14b744b4",
+    "en": "Response expression label.",
+    "ja": ""
+  },
+  "NlsModel.rows#summary": {
+    "hash": "9f01e412eafd",
+    "en": "Original row indices retained after missing-value handling.",
+    "ja": ""
+  },
+  "NlsModel.sigma#summary": {
+    "hash": "05ff49764b05",
+    "en": "Residual standard error estimate.",
+    "ja": ""
+  },
+  "NlsModel.warnings#summary": {
+    "hash": "c5d038e4266e",
+    "en": "Warnings produced during fitting.",
+    "ja": ""
+  },
+  "NlsModel.weights#summary": {
+    "hash": "85e3f2a193fb",
+    "en": "Observation weights used in fitting.",
+    "ja": ""
+  },
+  "NlsModel.y#summary": {
+    "hash": "ba019fc2d709",
+    "en": "Response values used in fitting.",
+    "ja": ""
+  },
+  "NlsOptions#summary": {
+    "hash": "54e6bec3184f",
+    "en": "Options for {@link nls}.",
+    "ja": ""
+  },
+  "NlsOptions.algorithm#summary": {
+    "hash": "44fee412a664",
+    "en": "Nonlinear least-squares algorithm.",
+    "ja": ""
+  },
+  "NlsOptions.control#summary": {
+    "hash": "789ad3e0364f",
+    "en": "Convergence controls.",
+    "ja": ""
+  },
+  "NlsOptions.lower#summary": {
+    "hash": "b750e80650c6",
+    "en": "Lower parameter bounds for the bounded algorithm.",
+    "ja": ""
+  },
+  "NlsOptions.start#summary": {
+    "hash": "c2660bbe5522",
+    "en": "Named initial parameter values.",
+    "ja": ""
+  },
+  "NlsOptions.upper#summary": {
+    "hash": "796e8b12e069",
+    "en": "Upper parameter bounds for the bounded algorithm.",
+    "ja": ""
+  },
+  "NlsOptions.weights#summary": {
+    "hash": "aa7ec49f6268",
+    "en": "Non-negative observation weights, or the name of a data column.",
+    "ja": ""
+  },
+  "NlsPredictOptions#summary": {
+    "hash": "cb5b1547e06e",
+    "en": "Options for {@link nlsPredict}.",
+    "ja": ""
+  },
+  "NlsPredictOptions.newdata#summary": {
+    "hash": "8723ce645999",
+    "en": "New data columns at which to evaluate the fitted expression.",
+    "ja": ""
+  },
+  "NlsResult#summary": {
+    "hash": "8e166ca74e61",
+    "en": "Result returned by {@link nls}.",
+    "ja": ""
+  },
+  "NlsSummaryResult#summary": {
+    "hash": "15d8447eeffb",
+    "en": "Result returned by {@link nlsSummary}.",
+    "ja": ""
+  },
+  "NlsSummaryResult.coefficients#summary": {
+    "hash": "3cc37954f3e1",
+    "en": "Coefficient table with estimates, standard errors and test statistics.",
+    "ja": ""
+  },
+  "NlsSummaryResult.coefficients.cols#summary": {
+    "hash": "928189c00b0c",
+    "en": "Summary statistic column names.",
+    "ja": ""
+  },
+  "NlsSummaryResult.coefficients.rows#summary": {
+    "hash": "1bd5fa83a583",
+    "en": "Coefficient names in row order.",
+    "ja": ""
+  },
+  "NlsSummaryResult.coefficients.values#summary": {
+    "hash": "cc3ef2f7a5b4",
+    "en": "Rows of coefficient estimates, standard errors and test statistics.",
+    "ja": ""
+  },
+  "NlsSummaryResult.deviance#summary": {
+    "hash": "7f7ba20c6cdb",
+    "en": "Weighted residual sum of squares.",
+    "ja": ""
+  },
+  "NlsSummaryResult.df#summary": {
+    "hash": "83626f88665e",
+    "en": "Residual and model degrees of freedom.",
+    "ja": ""
+  },
+  "NlsSummaryResult.nobs#summary": {
+    "hash": "b65dc401f939",
+    "en": "Number of observations used in fitting.",
+    "ja": ""
+  },
+  "NlsSummaryResult.sigma#summary": {
+    "hash": "05ff49764b05",
+    "en": "Residual standard error estimate.",
+    "ja": ""
+  },
+  "NlsSummaryResult.warnings#summary": {
+    "hash": "84caa396e699",
+    "en": "Warnings produced while computing the summary.",
+    "ja": ""
+  },
+  "PolrAnovaResult#summary": {
+    "hash": "ace099e9fd64",
+    "en": "Result table from sequential likelihood-ratio comparisons of nested ordinal-regression fits.",
+    "ja": ""
+  },
+  "PolrAnovaResult.heading#summary": {
+    "hash": "7f8ab3e75c0a",
+    "en": "Heading describing the comparison.",
+    "ja": ""
+  },
+  "PolrAnovaResult.rows#summary": {
+    "hash": "ddfab36c7578",
+    "en": "Model or term labels associated with the comparison.",
+    "ja": ""
+  },
+  "PolrAnovaResult.table#summary": {
+    "hash": "2df95132017b",
+    "en": "Likelihood-ratio analysis-of-deviance table.",
+    "ja": ""
+  },
+  "PolrAnovaResult.table.   Df#summary": {
+    "hash": "804b76a656b6",
+    "en": "Degrees of freedom for each likelihood-ratio test.",
+    "ja": ""
+  },
+  "PolrAnovaResult.table.LR stat.#summary": {
+    "hash": "c75e86b211e3",
+    "en": "Likelihood-ratio statistic for each comparison.",
+    "ja": ""
+  },
+  "PolrAnovaResult.table.Model#summary": {
+    "hash": "0f77f6335dd0",
+    "en": "Formula or term label for each fitted model.",
+    "ja": ""
+  },
+  "PolrAnovaResult.table.Pr(Chi)#summary": {
+    "hash": "f0d5946f2145",
+    "en": "Chi-squared tail probability for each comparison.",
+    "ja": ""
+  },
+  "PolrAnovaResult.table.Resid. Dev#summary": {
+    "hash": "b5d847d266cd",
+    "en": "Residual deviance for each model.",
+    "ja": ""
+  },
+  "PolrAnovaResult.table.Resid. df#summary": {
+    "hash": "6addc6cd81ab",
+    "en": "Residual degrees of freedom for each model.",
+    "ja": ""
+  },
+  "PolrAnovaResult.table.Test#summary": {
+    "hash": "1dc0e8e4f739",
+    "en": "Label of each sequential model comparison.",
+    "ja": ""
+  },
+  "PolrAnovaResult.warnings#summary": {
+    "hash": "9ed95f9e4976",
+    "en": "Warnings produced while comparing models.",
+    "ja": ""
+  },
+  "PolrConfintOptions#summary": {
+    "hash": "0ee8e2ebfa09",
+    "en": "Options for {@link polrConfint}.",
+    "ja": ""
+  },
+  "PolrConfintOptions.level#summary": {
+    "hash": "f18f020efba3",
+    "en": "Confidence level. Default 0.95.",
+    "ja": ""
+  },
+  "PolrConfintOptions.method#summary": {
+    "hash": "5df979089ac6",
+    "en": "Interval method. Default \"profile\".",
+    "ja": ""
+  },
+  "PolrConfintOptions.parm#summary": {
+    "hash": "d2e998b6264b",
+    "en": "Slope names or 1-based slope positions. Omitted means all slopes.",
+    "ja": ""
+  },
+  "PolrConfintResult#summary": {
+    "hash": "212f1892f3aa",
+    "en": "Confidence intervals for ordinal-regression slopes.",
+    "ja": ""
+  },
+  "PolrConfintResult.columns#summary": {
+    "hash": "25952dfad96c",
+    "en": "Lower and upper confidence-limit labels.",
+    "ja": ""
+  },
+  "PolrConfintResult.rows#summary": {
+    "hash": "412885a90c22",
+    "en": "Parameter names for the intervals.",
+    "ja": ""
+  },
+  "PolrConfintResult.values#summary": {
+    "hash": "5c3039ba403c",
+    "en": "Confidence limits, one pair per parameter.",
+    "ja": ""
+  },
+  "PolrConfintResult.warnings#summary": {
+    "hash": "40da84f6acb0",
+    "en": "Warnings produced while computing the intervals.",
+    "ja": ""
+  },
+  "PolrMethod#summary": {
+    "hash": "88ff286218b1",
+    "en": "Name of the cumulative distribution used by an ordinal regression.",
+    "ja": ""
+  },
+  "PolrModel#summary": {
+    "hash": "a17e4e4902e8",
+    "en": "Stored formula, design metadata and observations needed by prediction and model comparison.",
+    "ja": ""
+  },
+  "PolrModel.columnNames#summary": {
+    "hash": "bdfa9d363a38",
+    "en": "Names of design-matrix columns.",
+    "ja": ""
+  },
+  "PolrModel.externalOffset#summary": {
+    "hash": "3c0c922d5596",
+    "en": "Whether the offset was supplied separately from the formula.",
+    "ja": ""
+  },
+  "PolrModel.factorLevels#summary": {
+    "hash": "8d9bfed1b7b2",
+    "en": "Observed or declared levels for categorical predictors.",
+    "ja": ""
+  },
+  "PolrModel.formula#summary": {
+    "hash": "fa221b20354f",
+    "en": "Original model formula.",
+    "ja": ""
+  },
+  "PolrModel.logLikelihood#summary": {
+    "hash": "0e4254b95963",
+    "en": "Maximised log likelihood.",
+    "ja": ""
+  },
+  "PolrModel.method#summary": {
+    "hash": "8ea210fbc57b",
+    "en": "Cumulative-link distribution.",
+    "ja": ""
+  },
+  "PolrModel.offset#summary": {
+    "hash": "f39267a06284",
+    "en": "Offset values for retained observations.",
+    "ja": ""
+  },
+  "PolrModel.offsetColumn#summary": {
+    "hash": "a9a77cf7f136",
+    "en": "Name of the data column used as an offset, when supplied by name.",
+    "ja": ""
+  },
+  "PolrModel.predictorVariables#summary": {
+    "hash": "9ece59790d87",
+    "en": "Predictor variable names in model-matrix order.",
+    "ja": ""
+  },
+  "PolrModel.rawHessian#summary": {
+    "hash": "507edb3e404a",
+    "en": "Observed Hessian in internal parameter coordinates.",
+    "ja": ""
+  },
+  "PolrModel.response#summary": {
+    "hash": "8e16303cb54e",
+    "en": "Response column name.",
+    "ja": ""
+  },
+  "PolrModel.responseLevels#summary": {
+    "hash": "9abfa28cfb21",
+    "en": "Ordered response category labels.",
+    "ja": ""
+  },
+  "PolrModel.rows#summary": {
+    "hash": "9f01e412eafd",
+    "en": "Original row indices retained after missing-value handling.",
+    "ja": ""
+  },
+  "PolrModel.theta#summary": {
+    "hash": "2eb76c693163",
+    "en": "Internal unconstrained optimisation parameters.",
+    "ja": ""
+  },
+  "PolrModel.weights#summary": {
+    "hash": "55484eab8f1c",
+    "en": "Prior weights for retained observations.",
+    "ja": ""
+  },
+  "PolrModel.x#summary": {
+    "hash": "e605933e27ab",
+    "en": "Retained design matrix.",
+    "ja": ""
+  },
+  "PolrModel.y#summary": {
+    "hash": "ac538a0b4956",
+    "en": "Response values encoded as ordered category indices.",
+    "ja": ""
+  },
+  "PolrOptions#summary": {
+    "hash": "8550468e6b45",
+    "en": "Options for {@link polr}.",
+    "ja": ""
+  },
+  "PolrOptions.contrasts#summary": {
+    "hash": "356dcd3b67ad",
+    "en": "Contrasts for categorical predictors.",
+    "ja": ""
+  },
+  "PolrOptions.levels#summary": {
+    "hash": "e336491ef964",
+    "en": "Explicit response and predictor levels.",
+    "ja": ""
+  },
+  "PolrOptions.maxit#summary": {
+    "hash": "a2971c5e1e9a",
+    "en": "Maximum optimisation iterations. Default `1000`.",
+    "ja": ""
+  },
+  "PolrOptions.method#summary": {
+    "hash": "aab36f9c6edf",
+    "en": "Cumulative link. Default `\"logistic\"`.",
+    "ja": ""
+  },
+  "PolrOptions.offset#summary": {
+    "hash": "edbff844543b",
+    "en": "Offset added to the linear predictor.",
+    "ja": ""
+  },
+  "PolrOptions.reltol#summary": {
+    "hash": "5a17ad04a3b5",
+    "en": "Relative optimisation tolerance. Default `1e-12`.",
+    "ja": ""
+  },
+  "PolrOptions.start#summary": {
+    "hash": "f964aa8c8009",
+    "en": "Initial slopes followed by the ordered cut-points.",
+    "ja": ""
+  },
+  "PolrOptions.weights#summary": {
+    "hash": "76066f4eda32",
+    "en": "Non-negative prior weights, or the name of a data column.",
+    "ja": ""
+  },
+  "PolrPredictOptions#summary": {
+    "hash": "94d29e07f7be",
+    "en": "Options for {@link polrPredict}.",
+    "ja": ""
+  },
+  "PolrPredictOptions.newdata#summary": {
+    "hash": "ff3fbbb3d3b0",
+    "en": "New predictor columns; omitted to return predictions for the fitted observations.",
+    "ja": ""
+  },
+  "PolrPredictOptions.rowNames#summary": {
+    "hash": "aa0efe3c8afb",
+    "en": "Row labels for a new data frame (default: \"1\", \"2\", ...).",
+    "ja": ""
+  },
+  "PolrPredictOptions.type#summary": {
+    "hash": "b458958e9334",
+    "en": "Return the most likely category (default) or the category probabilities.",
+    "ja": ""
+  },
+  "PolrPredictProbs#summary": {
+    "hash": "39cb1f9e26c5",
+    "en": "Probability matrix returned when {@link PolrPredictOptions.type} is \"probs\".",
+    "ja": ""
+  },
+  "PolrPredictProbs.columns#summary": {
+    "hash": "c87b4f85795b",
+    "en": "Response category labels.",
+    "ja": ""
+  },
+  "PolrPredictProbs.rows#summary": {
+    "hash": "898e9d35b298",
+    "en": "Prediction row labels.",
+    "ja": ""
+  },
+  "PolrPredictProbs.values#summary": {
+    "hash": "7e25ca69d513",
+    "en": "Predicted category probabilities; null marks an unavailable value.",
+    "ja": ""
+  },
+  "PolrPredictProbs.warnings#summary": {
+    "hash": "b9acdaf3eb2b",
+    "en": "Warnings produced while predicting.",
+    "ja": ""
+  },
+  "PolrPredictResult#summary": {
+    "hash": "e610b9b99952",
+    "en": "Predicted categories, or a probability matrix when type is \"probs\".",
+    "ja": ""
+  },
+  "PolrResult#summary": {
+    "hash": "6f4918b5d454",
+    "en": "Result of {@link polr}: cumulative-link estimates and their observed-information covariance.",
+    "ja": ""
+  },
+  "PolrResult.aic#summary": {
+    "hash": "5b4facc7bdb9",
+    "en": "Akaike information criterion.",
+    "ja": ""
+  },
+  "PolrResult.bic#summary": {
+    "hash": "be1e6b573af8",
+    "en": "Bayesian information criterion.",
+    "ja": ""
+  },
+  "PolrResult.coefficients#summary": {
+    "hash": "6c24b046a6df",
+    "en": "Named slope estimates, excluding the cut-points.",
+    "ja": ""
+  },
+  "PolrResult.converged#summary": {
+    "hash": "836c8f14d972",
+    "en": "Whether the numerical optimisation converged.",
+    "ja": ""
+  },
+  "PolrResult.convergence#summary": {
+    "hash": "5a612371cd81",
+    "en": "Optimiser convergence code.",
+    "ja": ""
+  },
+  "PolrResult.deviance#summary": {
+    "hash": "6c2da1951cd7",
+    "en": "Residual deviance, `-2 logLik`.",
+    "ja": ""
+  },
+  "PolrResult.edf#summary": {
+    "hash": "11ca003fe818",
+    "en": "Number of estimated slopes and cut-points.",
+    "ja": ""
+  },
+  "PolrResult.fittedValues#summary": {
+    "hash": "081604dbcde2",
+    "en": "Fitted category probabilities, one row per retained observation.",
+    "ja": ""
+  },
+  "PolrResult.linearPredictors#summary": {
+    "hash": "372306edb2ac",
+    "en": "Linear predictors, offset included.",
+    "ja": ""
+  },
+  "PolrResult.logLik#summary": {
+    "hash": "0e4254b95963",
+    "en": "Maximised log likelihood.",
+    "ja": ""
+  },
+  "PolrResult.model#summary": {
+    "hash": "d864cad821e9",
+    "en": "Data and numerical state retained for the companion methods.",
+    "ja": ""
+  },
+  "PolrResult.nobs#summary": {
+    "hash": "3b08e3dc9369",
+    "en": "Sum of the positive case weights.",
+    "ja": ""
+  },
+  "PolrResult.warnings#summary": {
+    "hash": "d71e04edc155",
+    "en": "Distinct warnings in first-occurrence order.",
+    "ja": ""
+  },
+  "PolrResult.zeta#summary": {
+    "hash": "7c44b4c64439",
+    "en": "Named ordered cut-points, separately from the slopes.",
+    "ja": ""
+  },
+  "PolrSummaryResult#summary": {
+    "hash": "9a60fa47b297",
+    "en": "Table of slope and cut-point estimates, standard errors and Wald statistics.",
+    "ja": ""
+  },
+  "PolrSummaryResult.columns#summary": {
+    "hash": "928189c00b0c",
+    "en": "Summary statistic column names.",
+    "ja": ""
+  },
+  "PolrSummaryResult.rows#summary": {
+    "hash": "1e382d59ed56",
+    "en": "Coefficient and cut-point names.",
+    "ja": ""
+  },
+  "PolrSummaryResult.values#summary": {
+    "hash": "70702cac4e4f",
+    "en": "Rows of estimates, standard errors and test statistics.",
+    "ja": ""
+  },
+  "PolrSummaryResult.warnings#summary": {
+    "hash": "84caa396e699",
+    "en": "Warnings produced while computing the summary.",
+    "ja": ""
+  },
+  "PolrVcovResult#summary": {
+    "hash": "232d2dcf0d0e",
+    "en": "Covariance matrix of the slope and cut-point estimates in coefficient order.",
+    "ja": ""
+  },
+  "PolrVcovResult.columns#summary": {
+    "hash": "e3b1e193d4b6",
+    "en": "Parameter names in matrix column order.",
+    "ja": ""
+  },
+  "PolrVcovResult.rows#summary": {
+    "hash": "386e6c1627f8",
+    "en": "Parameter names in matrix row order.",
+    "ja": ""
+  },
+  "PolrVcovResult.values#summary": {
+    "hash": "c70b16ac376a",
+    "en": "Covariance matrix values.",
+    "ja": ""
+  },
+  "PolrVcovResult.warnings#summary": {
+    "hash": "e62de7d35d70",
+    "en": "Warnings produced while computing the covariance.",
+    "ja": ""
+  },
+  "PsiInput#summary": {
+    "hash": "50143d2ac34a",
+    "en": "Scalar or vector input accepted by the robust score functions.",
+    "ja": ""
+  },
+  "PsiOutput#summary": {
+    "hash": "0850a26dc449",
+    "en": "Scalar output returned by a robust score function.",
+    "ja": ""
+  },
+  "PsiResult#summary": {
+    "hash": "ef935e4f3539",
+    "en": "Scalar or vector output returned by the robust score functions.",
+    "ja": ""
+  },
+  "RlmModel#summary": {
+    "hash": "17e1a6df096a",
+    "en": "Data and settings retained by an M fit.",
+    "ja": ""
+  },
+  "RlmModel.a#summary": {
+    "hash": "b94d44fb0140",
+    "en": "Hampel first tuning point.",
+    "ja": ""
+  },
+  "RlmModel.b#summary": {
+    "hash": "86405c7bb4ea",
+    "en": "Hampel second tuning point.",
+    "ja": ""
+  },
+  "RlmModel.c#summary": {
+    "hash": "e381c2d6175f",
+    "en": "Hampel rejection point or bisquare tuning constant.",
+    "ja": ""
+  },
+  "RlmModel.columnNames#summary": {
+    "hash": "bdfa9d363a38",
+    "en": "Names of design-matrix columns.",
+    "ja": ""
+  },
+  "RlmModel.formula#summary": {
+    "hash": "fa221b20354f",
+    "en": "Original model formula.",
+    "ja": ""
+  },
+  "RlmModel.k#summary": {
+    "hash": "8c342b7aa626",
+    "en": "Huber tuning constant.",
+    "ja": ""
+  },
+  "RlmModel.k2#summary": {
+    "hash": "4197636d6104",
+    "en": "Proposal 2 scale tuning constant.",
+    "ja": ""
+  },
+  "RlmModel.observationWeights#summary": {
+    "hash": "578942b05ef2",
+    "en": "Prior observation weights.",
+    "ja": ""
+  },
+  "RlmModel.psi#summary": {
+    "hash": "42d97933dadd",
+    "en": "Robust score function.",
+    "ja": ""
+  },
+  "RlmModel.rows#summary": {
+    "hash": "9f01e412eafd",
+    "en": "Original row indices retained after missing-value handling.",
+    "ja": ""
+  },
+  "RlmModel.scaleEst#summary": {
+    "hash": "81d7f3717cb6",
+    "en": "Residual scale estimator.",
+    "ja": ""
+  },
+  "RlmModel.wtMethod#summary": {
+    "hash": "9ddfa0167a5d",
+    "en": "Interpretation of the observation weights.",
+    "ja": ""
+  },
+  "RlmModel.x#summary": {
+    "hash": "e605933e27ab",
+    "en": "Retained design matrix.",
+    "ja": ""
+  },
+  "RlmModel.y#summary": {
+    "hash": "72b36d244855",
+    "en": "Retained response values.",
+    "ja": ""
+  },
+  "RlmOptions#summary": {
+    "hash": "9d838a1bbb2d",
+    "en": "Options for `rlm`.",
+    "ja": ""
+  },
+  "RlmOptions.a#summary": {
+    "hash": "37cb9387bdf5",
+    "en": "Hampel first corner. Default 2.",
+    "ja": ""
+  },
+  "RlmOptions.acc#summary": {
+    "hash": "efaf4d34fa12",
+    "en": "Dimensionless estimating-equation and scale fixed-point tolerance. Default 1e-10.",
+    "ja": ""
+  },
+  "RlmOptions.b#summary": {
+    "hash": "75f8f3d50a48",
+    "en": "Hampel second corner. Default 4.",
+    "ja": ""
+  },
+  "RlmOptions.c#summary": {
+    "hash": "91a58fe9f530",
+    "en": "Hampel rejection point or bisquare tuning constant. Default 8 or 4.685.",
+    "ja": ""
+  },
+  "RlmOptions.init#summary": {
+    "hash": "515db0ea77aa",
+    "en": "Least-squares start, deterministic LTS start, or initial coefficients. Default \"ls\".",
+    "ja": ""
+  },
+  "RlmOptions.k#summary": {
+    "hash": "8e63154c7965",
+    "en": "Huber tuning constant. Default 1.345.",
+    "ja": ""
+  },
+  "RlmOptions.k2#summary": {
+    "hash": "ca9dbe14d247",
+    "en": "Proposal 2 scale tuning constant. Default 1.345.",
+    "ja": ""
+  },
+  "RlmOptions.maxit#summary": {
+    "hash": "991ee72b7eb4",
+    "en": "Maximum number of IRLS iterations. Default 1000, allowing the estimating equations to reach their solution.",
+    "ja": ""
+  },
+  "RlmOptions.method#summary": {
+    "hash": "d425c61add39",
+    "en": "Estimation method. \"MM\" uses a deterministic S start and a fixed-scale redescending M step. Default \"M\".",
+    "ja": ""
+  },
+  "RlmOptions.psi#summary": {
+    "hash": "2630c44dd7e6",
+    "en": "Score function. Default \"huber\".",
+    "ja": ""
+  },
+  "RlmOptions.scaleEst#summary": {
+    "hash": "ea0b6d5e4b26",
+    "en": "Scale estimator. \"Huber\" and \"proposal 2\" are equivalent. Default \"MAD\".",
+    "ja": ""
+  },
+  "RlmOptions.weights#summary": {
+    "hash": "ecc54dbabff6",
+    "en": "Non-negative observation weights, or a column name.",
+    "ja": ""
+  },
+  "RlmOptions.wtMethod#summary": {
+    "hash": "28437f423122",
+    "en": "Meaning of weights. \"inv\" uses inverse-variance weights; \"case\" uses frequency weights.",
+    "ja": ""
+  },
+  "RlmPsi#summary": {
+    "hash": "b1fe387b9fcc",
+    "en": "The score function used by robust regression.",
+    "ja": ""
+  },
+  "RlmPsiBisquareOptions#summary": {
+    "hash": "97833a30076c",
+    "en": "Options for the bisquare psi function.",
+    "ja": ""
+  },
+  "RlmPsiBisquareOptions.c#summary": {
+    "hash": "129254c7ae8e",
+    "en": "Tuning constant. Default 4.685.",
+    "ja": ""
+  },
+  "RlmPsiBisquareOptions.deriv#summary": {
+    "hash": "c9f306e87517",
+    "en": "Return the derivative of psi instead of psi(u)/u. Default 0.",
+    "ja": ""
+  },
+  "RlmPsiHampelOptions#summary": {
+    "hash": "b1433dcfbae4",
+    "en": "Options for the Hampel psi function.",
+    "ja": ""
+  },
+  "RlmPsiHampelOptions.a#summary": {
+    "hash": "92907ce7dc2f",
+    "en": "First corner. Default 2.",
+    "ja": ""
+  },
+  "RlmPsiHampelOptions.b#summary": {
+    "hash": "4b1c86b06b93",
+    "en": "Second corner. Default 4.",
+    "ja": ""
+  },
+  "RlmPsiHampelOptions.c#summary": {
+    "hash": "b6f8fde60290",
+    "en": "Rejection point. Default 8.",
+    "ja": ""
+  },
+  "RlmPsiHampelOptions.deriv#summary": {
+    "hash": "c9f306e87517",
+    "en": "Return the derivative of psi instead of psi(u)/u. Default 0.",
+    "ja": ""
+  },
+  "RlmPsiHuberOptions#summary": {
+    "hash": "8d4f1912a9c8",
+    "en": "Options shared by the psi functions.",
+    "ja": ""
+  },
+  "RlmPsiHuberOptions.deriv#summary": {
+    "hash": "c9f306e87517",
+    "en": "Return the derivative of psi instead of psi(u)/u. Default 0.",
+    "ja": ""
+  },
+  "RlmPsiHuberOptions.k#summary": {
+    "hash": "8e63154c7965",
+    "en": "Huber tuning constant. Default 1.345.",
+    "ja": ""
+  },
+  "RlmResult#summary": {
+    "hash": "5171ec07004f",
+    "en": "Result of `rlm`: robust coefficients, fitted values, scale and convergence diagnostics.",
+    "ja": ""
+  },
+  "RlmResult.coefficients#summary": {
+    "hash": "fcaa45cfceba",
+    "en": "Named robust regression coefficients.",
+    "ja": ""
+  },
+  "RlmResult.converged#summary": {
+    "hash": "0446175e997a",
+    "en": "Whether the estimating equations and scale iteration converged.",
+    "ja": ""
+  },
+  "RlmResult.convergence#summary": {
+    "hash": "4853ad52b38c",
+    "en": "Convergence diagnostics for the estimating equations and scale.",
+    "ja": ""
+  },
+  "RlmResult.covariance#summary": {
+    "hash": "142491174bfa",
+    "en": "Estimated coefficient covariance matrix.",
+    "ja": ""
+  },
+  "RlmResult.covarianceUnscaled#summary": {
+    "hash": "10fa3ca8bb34",
+    "en": "Unscaled coefficient covariance matrix.",
+    "ja": ""
+  },
+  "RlmResult.fittedValues#summary": {
+    "hash": "c8a6fdfb4aa5",
+    "en": "Fitted response values.",
+    "ja": ""
+  },
+  "RlmResult.initialization#summary": {
+    "hash": "c99f03bd55f7",
+    "en": "Details of the deterministic high-breakdown initial estimate.",
+    "ja": ""
+  },
+  "RlmResult.initialization.candidateCount#summary": {
+    "hash": "24bf68110eb4",
+    "en": "Total number of candidate subsets, as a decimal string.",
+    "ja": ""
+  },
+  "RlmResult.initialization.candidatesEvaluated#summary": {
+    "hash": "e8c9b385fb8b",
+    "en": "Number of candidate subsets evaluated.",
+    "ja": ""
+  },
+  "RlmResult.initialization.coefficients#summary": {
+    "hash": "2a93ffd0bb48",
+    "en": "Named coefficients from the initial estimate.",
+    "ja": ""
+  },
+  "RlmResult.initialization.exhaustive#summary": {
+    "hash": "a188f075ef5c",
+    "en": "Whether every candidate subset was evaluated.",
+    "ja": ""
+  },
+  "RlmResult.initialization.method#summary": {
+    "hash": "dba4cbb515ee",
+    "en": "Initial estimator used before the M step.",
+    "ja": ""
+  },
+  "RlmResult.initialization.objective#summary": {
+    "hash": "f7fce34f97cc",
+    "en": "Objective value of the selected initial estimate.",
+    "ja": ""
+  },
+  "RlmResult.iterations#summary": {
+    "hash": "b5e9a31b4f60",
+    "en": "Number of iterations performed.",
+    "ja": ""
+  },
+  "RlmResult.model#summary": {
+    "hash": "f92e035c5468",
+    "en": "Model data and settings retained for companion methods.",
+    "ja": ""
+  },
+  "RlmResult.residuals#summary": {
+    "hash": "10143a09ccbe",
+    "en": "Observed minus fitted response values.",
+    "ja": ""
+  },
+  "RlmResult.robustWeights#summary": {
+    "hash": "ea3f35ac61b8",
+    "en": "Robust weights from the selected score function.",
+    "ja": ""
+  },
+  "RlmResult.scale#summary": {
+    "hash": "2de2b2b16b3d",
+    "en": "Estimated robust residual scale.",
+    "ja": ""
+  },
+  "RlmResult.stddev#summary": {
+    "hash": "5a506fa2a64c",
+    "en": "Residual standard deviation estimate.",
+    "ja": ""
+  },
+  "RlmResult.warnings#summary": {
+    "hash": "c5d038e4266e",
+    "en": "Warnings produced during fitting.",
+    "ja": ""
+  },
+  "RlmResult.workingWeights#summary": {
+    "hash": "91d8860b1fb8",
+    "en": "Combined weights used in weighted least-squares steps.",
+    "ja": ""
+  },
+  "RlmSummaryResult#summary": {
+    "hash": "f2d382226507",
+    "en": "Coefficient table returned by {@link rlmSummary}.",
+    "ja": ""
+  },
+  "RlmSummaryResult.columns#summary": {
+    "hash": "928189c00b0c",
+    "en": "Summary statistic column names.",
+    "ja": ""
+  },
+  "RlmSummaryResult.rows#summary": {
+    "hash": "0885a27cd1a8",
+    "en": "Coefficient names.",
+    "ja": ""
+  },
+  "RlmSummaryResult.values#summary": {
+    "hash": "70702cac4e4f",
+    "en": "Rows of estimates, standard errors and test statistics.",
+    "ja": ""
+  },
+  "RlmSummaryResult.warnings#summary": {
+    "hash": "84caa396e699",
+    "en": "Warnings produced while computing the summary.",
+    "ja": ""
+  },
+  "RlmVcovResult#summary": {
+    "hash": "599421eb5004",
+    "en": "Covariance matrix returned by {@link rlmVcov}.",
+    "ja": ""
+  },
+  "RlmVcovResult.columns#summary": {
+    "hash": "7bae3daeb0eb",
+    "en": "Coefficient names in matrix column order.",
+    "ja": ""
+  },
+  "RlmVcovResult.rows#summary": {
+    "hash": "41ef6c470bef",
+    "en": "Coefficient names in matrix row order.",
+    "ja": ""
+  },
+  "RlmVcovResult.values#summary": {
+    "hash": "c70b16ac376a",
+    "en": "Covariance matrix values.",
+    "ja": ""
+  },
+  "RlmVcovResult.warnings#summary": {
+    "hash": "e62de7d35d70",
+    "en": "Warnings produced while computing the covariance.",
+    "ja": ""
+  },
+  "nls#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "nls#@param data": {
+    "hash": "66e13dc105c0",
+    "en": "Numeric data columns.",
+    "ja": ""
+  },
+  "nls#@param formula": {
+    "hash": "fa7221988dc1",
+    "en": "Response and nonlinear mean expression.",
+    "ja": ""
+  },
+  "nls#@param options": {
+    "hash": "a3146ca96cd1",
+    "en": "Starting values, algorithm, weights, and convergence controls.",
+    "ja": ""
+  },
+  "nls#@returns": {
+    "hash": "8256e941cc65",
+    "en": "The fitted coefficients, residuals, covariance, and convergence diagnostics.",
+    "ja": ""
+  },
+  "nls#summary": {
+    "hash": "e76f7f25dcf3",
+    "en": "Nonlinear least-squares regression. Equivalent to R's `nls()`.\n\nFits a user-specified nonlinear mean function by Gauss-Newton, variable projection, or bound-constrained\nleast squares. Formula expressions are parsed safely and differentiated symbolically.",
+    "ja": ""
+  },
+  "nlsAnova#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "nlsAnova#@param fits": {
+    "hash": "2c6c7d0a35b9",
+    "en": "Two or more nested fits to the same observations.",
+    "ja": ""
+  },
+  "nlsAnova#@returns": {
+    "hash": "cc7feb657d1f",
+    "en": "The sequential F-test table.",
+    "ja": ""
+  },
+  "nlsAnova#summary": {
+    "hash": "51324bb2615b",
+    "en": "Analysis of variance for nested nonlinear least-squares fits. Equivalent to R's `anova.nls()`.",
+    "ja": ""
+  },
+  "nlsConfint#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "nlsConfint#@param fit": {
+    "hash": "74a5799e03f1",
+    "en": "A fitted nonlinear model.",
+    "ja": ""
+  },
+  "nlsConfint#@param options": {
+    "hash": "0c648381bd08",
+    "en": "Interval method, confidence level, and parameter names.",
+    "ja": ""
+  },
+  "nlsConfint#@returns": {
+    "hash": "edcb37853056",
+    "en": "A two-column confidence interval matrix.",
+    "ja": ""
+  },
+  "nlsConfint#summary": {
+    "hash": "0b48d2e3dfbb",
+    "en": "Wald or profile confidence intervals for nonlinear parameters. Equivalent to R's `confint.nls()`.",
+    "ja": ""
+  },
+  "nlsPredict#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "nlsPredict#@param fit": {
+    "hash": "74a5799e03f1",
+    "en": "A fitted nonlinear model.",
+    "ja": ""
+  },
+  "nlsPredict#@param options": {
+    "hash": "4dbd6e1cfe63",
+    "en": "New predictor data.",
+    "ja": ""
+  },
+  "nlsPredict#@returns": {
+    "hash": "5965caf499e4",
+    "en": "One fitted mean per row of new data.",
+    "ja": ""
+  },
+  "nlsPredict#summary": {
+    "hash": "f727e5d26246",
+    "en": "Predictions from a nonlinear least-squares fit. Equivalent to R's `predict.nls()`.",
+    "ja": ""
+  },
+  "nlsSummary#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "nlsSummary#@param fit": {
+    "hash": "74a5799e03f1",
+    "en": "A fitted nonlinear model.",
+    "ja": ""
+  },
+  "nlsSummary#@returns": {
+    "hash": "7d3920b0bde3",
+    "en": "The coefficient table, residual scale, and residual degrees of freedom.",
+    "ja": ""
+  },
+  "nlsSummary#summary": {
+    "hash": "30696a2655f8",
+    "en": "Summary of a nonlinear least-squares fit. Equivalent to R's `summary.nls()`.",
+    "ja": ""
+  },
+  "nlsVcov#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "nlsVcov#@param fit": {
+    "hash": "74a5799e03f1",
+    "en": "A fitted nonlinear model.",
+    "ja": ""
+  },
+  "nlsVcov#@returns": {
+    "hash": "11841e7ac9f6",
+    "en": "The covariance matrix in coefficient order.",
+    "ja": ""
+  },
+  "nlsVcov#summary": {
+    "hash": "ca1c3b6f7877",
+    "en": "Covariance matrix of a nonlinear least-squares fit. Equivalent to R's `vcov.nls()`.",
+    "ja": ""
+  },
+  "polr#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "polr#@param data": {
+    "hash": "804617eb5ffd",
+    "en": "The data frame: an object of columns.",
+    "ja": ""
+  },
+  "polr#@param formula": {
+    "hash": "2701c260d05c",
+    "en": "A formula such as `\"rating ~ treatment + age\"`.",
+    "ja": ""
+  },
+  "polr#@param options": {
+    "hash": "603a6c0c5247",
+    "en": "The link, weights, offset, starts, contrasts and optimisation controls.",
+    "ja": ""
+  },
+  "polr#@returns": {
+    "hash": "f51912ed8f75",
+    "en": "The fitted slopes, cut-points, fitted probabilities and likelihood statistics.",
+    "ja": ""
+  },
+  "polr#summary": {
+    "hash": "8c09d1a9d963",
+    "en": "Fit a cumulative-link ordinal regression. Equivalent to R's `MASS::polr()`.",
+    "ja": ""
+  },
+  "polrAnova#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "polrAnova#@param fits": {
+    "hash": "49ee5b18708f",
+    "en": "Two or more nested fits, ordered from the smallest to the largest model.",
+    "ja": ""
+  },
+  "polrAnova#@returns": {
+    "hash": "7b3c303e293e",
+    "en": "The sequential likelihood-ratio chi-squared comparison table.",
+    "ja": ""
+  },
+  "polrAnova#summary": {
+    "hash": "dd846dc79a86",
+    "en": "Equivalent to R's `anova.polr()`.",
+    "ja": ""
+  },
+  "polrConfint#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "polrConfint#@param fit": {
+    "hash": "7d1b29563eff",
+    "en": "A fit returned by {@link polr}.",
+    "ja": ""
+  },
+  "polrConfint#@param options": {
+    "hash": "a719d50c1a58",
+    "en": "The interval method, confidence level and selected slope parameters.",
+    "ja": ""
+  },
+  "polrConfint#@returns": {
+    "hash": "ea48813e0ceb",
+    "en": "A table of lower and upper confidence limits; cut-points are not included.",
+    "ja": ""
+  },
+  "polrConfint#summary": {
+    "hash": "0ff7799f5c55",
+    "en": "Equivalent to R's `confint.polr()`.",
+    "ja": ""
+  },
+  "polrPredict#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "polrPredict#@param fit": {
+    "hash": "7d1b29563eff",
+    "en": "A fit returned by {@link polr}.",
+    "ja": ""
+  },
+  "polrPredict#@param options": {
+    "hash": "589e83cae77b",
+    "en": "New predictor columns, optional row labels, and the prediction type.",
+    "ja": ""
+  },
+  "polrPredict#@returns": {
+    "hash": "442f0ee74398",
+    "en": "Predicted category labels, or a matrix with one probability column per response level.",
+    "ja": ""
+  },
+  "polrPredict#summary": {
+    "hash": "1756c1f9d4c2",
+    "en": "Predict ordinal categories or their probabilities for new observations. Equivalent to R's `predict.polr()`.",
+    "ja": ""
+  },
+  "polrSummary#@param fit": {
+    "hash": "7d1b29563eff",
+    "en": "A fit returned by {@link polr}.",
+    "ja": ""
+  },
+  "polrSummary#@returns": {
+    "hash": "e144eebdcd31",
+    "en": "Estimates, standard errors and Wald t statistics.",
+    "ja": ""
+  },
+  "polrSummary#summary": {
+    "hash": "b3b60e7744f6",
+    "en": "Summary table of the slope and cut-point estimates. Equivalent to R's `summary.polr()`.",
+    "ja": ""
+  },
+  "polrVcov#@param fit": {
+    "hash": "7d1b29563eff",
+    "en": "A fit returned by {@link polr}.",
+    "ja": ""
+  },
+  "polrVcov#@returns": {
+    "hash": "feeb10548d3b",
+    "en": "The covariance matrix in slope-then-cut-point order.",
+    "ja": ""
+  },
+  "polrVcov#summary": {
+    "hash": "a1d859dcbfc2",
+    "en": "Covariance matrix of the slopes and cut-points. Equivalent to R's `vcov.polr()`.",
+    "ja": ""
+  },
+  "psiBisquare#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "psiBisquare#@param options": {
+    "hash": "d3fdc3ffe507",
+    "en": "Tuning constant and output selection.",
+    "ja": ""
+  },
+  "psiBisquare#@param u": {
+    "hash": "55bc6b88bc62",
+    "en": "Standardised residuals.",
+    "ja": ""
+  },
+  "psiBisquare#@returns": {
+    "hash": "7c8b5214c94a",
+    "en": "The IRLS weight psi(u)/u, or psi'(u) when deriv is 1.",
+    "ja": ""
+  },
+  "psiBisquare#summary": {
+    "hash": "f673bbe4c95d",
+    "en": "Tukey's bisquare psi function. Equivalent to R's `MASS::psi.bisquare()`.",
+    "ja": ""
+  },
+  "psiHampel#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "psiHampel#@param options": {
+    "hash": "06054c5b0d20",
+    "en": "Three tuning points and output selection.",
+    "ja": ""
+  },
+  "psiHampel#@param u": {
+    "hash": "55bc6b88bc62",
+    "en": "Standardised residuals.",
+    "ja": ""
+  },
+  "psiHampel#@returns": {
+    "hash": "7c8b5214c94a",
+    "en": "The IRLS weight psi(u)/u, or psi'(u) when deriv is 1.",
+    "ja": ""
+  },
+  "psiHampel#summary": {
+    "hash": "ed8e7daedea9",
+    "en": "Hampel's three-part psi function. Equivalent to R's `MASS::psi.hampel()`.",
+    "ja": ""
+  },
+  "psiHuber#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "psiHuber#@param options": {
+    "hash": "d3fdc3ffe507",
+    "en": "Tuning constant and output selection.",
+    "ja": ""
+  },
+  "psiHuber#@param u": {
+    "hash": "55bc6b88bc62",
+    "en": "Standardised residuals.",
+    "ja": ""
+  },
+  "psiHuber#@returns": {
+    "hash": "7c8b5214c94a",
+    "en": "The IRLS weight psi(u)/u, or psi'(u) when deriv is 1.",
+    "ja": ""
+  },
+  "psiHuber#summary": {
+    "hash": "fedcdbdc44f8",
+    "en": "Huber's psi function. Equivalent to R's `MASS::psi.huber()`.",
+    "ja": ""
+  },
+  "rlm#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "rlm#@param data": {
+    "hash": "a2d1df8756e6",
+    "en": "Columns of equal-length observations.",
+    "ja": ""
+  },
+  "rlm#@param formula": {
+    "hash": "6727449b9ae5",
+    "en": "A formula such as `\"y ~ x1 + x2\"`.",
+    "ja": ""
+  },
+  "rlm#@param options": {
+    "hash": "9d1be1235acc",
+    "en": "Psi, scale, initial values, observation weights and iteration controls.",
+    "ja": ""
+  },
+  "rlm#@returns": {
+    "hash": "09235d1742d7",
+    "en": "Coefficients, fitted values, residuals, robust weights, scale and covariance diagnostics.",
+    "ja": ""
+  },
+  "rlm#summary": {
+    "hash": "fe83c375ae03",
+    "en": "Robust M regression. Equivalent to R's `MASS::rlm()`.",
+    "ja": ""
+  },
+  "rlmSummary#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "rlmSummary#@param fit": {
+    "hash": "767bc025798b",
+    "en": "A fit returned by {@link rlm}.",
+    "ja": ""
+  },
+  "rlmSummary#@returns": {
+    "hash": "2cc715d3cbe9",
+    "en": "Coefficients, standard errors and t statistics.",
+    "ja": ""
+  },
+  "rlmSummary#summary": {
+    "hash": "994cc824296e",
+    "en": "Coefficient table of a robust fit. Equivalent to R's `summary.rlm()`.",
+    "ja": ""
+  },
+  "rlmVcov#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "rlmVcov#@param fit": {
+    "hash": "767bc025798b",
+    "en": "A fit returned by {@link rlm}.",
+    "ja": ""
+  },
+  "rlmVcov#@returns": {
+    "hash": "11841e7ac9f6",
+    "en": "The covariance matrix in coefficient order.",
+    "ja": ""
+  },
+  "rlmVcov#summary": {
+    "hash": "2c052cb7fae7",
+    "en": "Covariance matrix of robust-regression coefficients. Equivalent to R's `vcov.rlm()`.",
+    "ja": ""
+  }
+}
