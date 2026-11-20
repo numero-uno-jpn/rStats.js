@@ -48,7 +48,9 @@ function solveLinear(a: number[][], b: number[]): number[] {
   for (let k = 0; k < n; k++) {
     let pivot = k;
     for (let i = k + 1; i < n; i++) if (Math.abs(m[i]![k]!) > Math.abs(m[pivot]![k]!)) pivot = i;
-    if (!(Math.abs(m[pivot]![k]!) > Number.EPSILON * Math.max(1, ...m[pivot]!.slice(0, n).map(Math.abs)))) {
+    let rowScale = 1;
+    for (let j = 0; j < n; j++) rowScale = Math.max(rowScale, Math.abs(m[pivot]![j]!));
+    if (!(Math.abs(m[pivot]![k]!) > Number.EPSILON * rowScale)) {
       throw new RangeError("singular design matrix");
     }
     [m[k], m[pivot]] = [m[pivot]!, m[k]!];
@@ -281,13 +283,14 @@ export function rq(formula: string, data: DataFrame, options: RqOptions = {}): R
   const rho = tauValues.length === 1 ? fits[0]!.rho : fits.map((fit) => fit.rho);
   return reported("rq", {
     coefficients, fittedValues, residuals, rho, converged: fits.every((fit) => fit.converged),
-    iterations: Math.max(...fits.map((fit) => fit.iterations)), warnings, model,
+    iterations: fits.reduce((m, fit) => Math.max(m, fit.iterations), 0), warnings, model,
   });
 }
 
 /** Predict conditional quantiles for new observations. */
 export function rqPredict(fit: RqResult, newdata: DataFrame): number[] | number[][] {
-  const parsed = parseFormula(fit.model.formula);
+  const rhs = fit.model.formula.slice(fit.model.formula.indexOf("~") + 1);
+  const parsed = parseFormula("~ " + rhs);
   const d = design(parsed, newdata, { anyResponse: true, dropUnusedLevels: true });
   const matrix = d.x;
   const coefs = fit.model.tau.map((_, k) => fit.model.columnNames.map((name) => {
