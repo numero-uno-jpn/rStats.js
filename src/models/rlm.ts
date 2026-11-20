@@ -64,9 +64,14 @@ export interface RlmPsiBisquareOptions {
  c?: number;
 }
 
-type PsiOutput = number | boolean;
-type PsiInput = number | Sample;
-type PsiResult = PsiOutput | PsiOutput[];
+/** Scalar output returned by a robust score function. */
+export type PsiOutput = number | boolean;
+
+/** Scalar or vector input accepted by the robust score functions. */
+export type PsiInput = number | Sample;
+
+/** Scalar or vector output returned by the robust score functions. */
+export type PsiResult = PsiOutput | PsiOutput[];
 
 /** Huber's psi function. Equivalent to R's `MASS::psi.huber()`.
 *
@@ -190,19 +195,33 @@ export interface RlmOptions {
 * @category Regression
 */
 export interface RlmModel {
+ /** Original model formula. */
  formula: string;
+ /** Retained design matrix. */
  x: number[][];
+ /** Retained response values. */
  y: number[];
+ /** Names of design-matrix columns. */
  columnNames: string[];
+ /** Prior observation weights. */
  observationWeights: number[];
+ /** Interpretation of the observation weights. */
  wtMethod: "inv" | "case";
+ /** Robust score function. */
  psi: RlmPsi;
+ /** Residual scale estimator. */
  scaleEst: "MAD" | "Huber" | "proposal 2";
+ /** Huber tuning constant. */
  k: number;
+ /** Hampel first tuning point. */
  a: number;
+ /** Hampel second tuning point. */
  b: number;
+ /** Hampel rejection point or bisquare tuning constant. */
  c: number;
+ /** Proposal 2 scale tuning constant. */
  k2: number;
+ /** Original row indices retained after missing-value handling. */
  rows: number[];
 }
 
@@ -211,19 +230,33 @@ export interface RlmModel {
 * @category Regression
 */
 export interface RlmResult {
+ /** Named robust regression coefficients. */
  coefficients: Record<string, number>;
+ /** Fitted response values. */
  fittedValues: number[];
+ /** Observed minus fitted response values. */
  residuals: number[];
+ /** Robust weights from the selected score function. */
  robustWeights: number[];
+ /** Combined weights used in weighted least-squares steps. */
  workingWeights: number[];
+ /** Estimated robust residual scale. */
  scale: number;
+ /** Residual standard deviation estimate. */
  stddev: number;
+ /** Estimated coefficient covariance matrix. */
  covariance: number[][];
+ /** Unscaled coefficient covariance matrix. */
  covarianceUnscaled: number[][];
+ /** Whether the estimating equations and scale iteration converged. */
  converged: boolean;
+ /** Number of iterations performed. */
  iterations: number;
+ /** Convergence diagnostics for the estimating equations and scale. */
  convergence: number[];
+ /** Warnings produced during fitting. */
  warnings: string[];
+ /** Model data and settings retained for companion methods. */
  model: RlmModel;
  initialization?: {
    method: "LTS" | "S";
@@ -240,9 +273,13 @@ export interface RlmResult {
 * @category Regression
 */
 export interface RlmSummaryResult {
+ /** Coefficient names. */
  rows: string[];
+ /** Summary statistic column names. */
  columns: ["Value", "Std. Error", "t value"];
+ /** Rows of estimates, standard errors and test statistics. */
  values: number[][];
+ /** Warnings produced while computing the summary. */
  warnings: string[];
 }
 
@@ -251,9 +288,13 @@ export interface RlmSummaryResult {
 * @category Regression
 */
 export interface RlmVcovResult {
+ /** Coefficient names in matrix row order. */
  rows: string[];
+ /** Coefficient names in matrix column order. */
  columns: string[];
+ /** Covariance matrix values. */
  values: number[][];
+ /** Warnings produced while computing the covariance. */
  warnings: string[];
 }
 
