@@ -55,7 +55,7 @@ out$jackknifeBinomial<-run({
  eta<--2.8+.04*db$age+.9*db$smoke+.15*db$wave
  db$resp<-rbinom(nrow(db),1,plogis(eta))
  ids0<-1:20
- deleted<-lapply(ids0,function(k)unname(coef(geeglm(resp~age+smoke,id=id,data=db[db$id!=k,],
+ deleted<-lapply(ids0,function(k)unname(coef(geeglm(resp~age+smoke,id=id,waves=wave,data=db[db$id!=k,],
       family=binomial,corstr="exchangeable"))))
  ans<-list(data=db,ids=ids0,clusterSizes=as.integer(table(db$id)),deleted=tab(do.call(rbind,deleted)))
  for(st in c("jack","j1s","fij")){
