@@ -199,7 +199,7 @@ function maxPositiveStep(v: readonly number[], dv: readonly number[]): number {
 /** Mehrotra predictor-corrector for the box-constrained dual regression-quantile LP. */
 function fitFn(
   x: readonly number[][], y: readonly number[], tau: number, maxit: number, eps: number,
-): { beta: number[]; iterations: number } {
+): { beta: number[]; dual: number[]; iterations: number } {
   const n = y.length;
   const p = x[0]!.length;
   const b = new Array<number>(n).fill(1 - tau);
@@ -242,7 +242,7 @@ function fitFn(
     const equalityNorm = rp.reduce((m, v) => Math.max(m, Math.abs(v)), 0) / rpScale;
     const stationarityNorm = rd.reduce((m, v) => Math.max(m, Math.abs(v)), 0) / rdScale;
     const gapNorm = gap / Math.max(1, Math.abs(primalObjective), Math.abs(dualObjective));
-    if (Math.max(equalityNorm, stationarityNorm, gapNorm) <= eps) return { beta, iterations };
+    if (Math.max(equalityNorm, stationarityNorm, gapNorm) <= eps) return { beta, dual: b, iterations };
 
     const rcLowerAffine = b.map((v, i) => v * lower[i]!);
     const rcUpperAffine = b.map((v, i) => (1 - v) * upper[i]!);
@@ -431,7 +431,7 @@ function fitOne(
     normalizedBeta = [estimate * columnScale[0]! / yScale];
     iterations = ordered.length;
   } else if (method === "br") {
-    const fit = fitBr(normalizedX, normalizedY, weights, tau, maxit);
+    const fit = fitBr(normalizedX, normalizedY, new Array<number>(n).fill(1), tau, maxit);
     normalizedBeta = fit.beta;
     iterations = fit.iterations;
   } else {
@@ -456,11 +456,30 @@ function fitOne(
           const r = normalizedY[i]! - dot(row, normalizedBeta);
           return sum + r * (tau - (r < 0 ? 1 : 0));
         }, 0);
-        const newLoss = normalizedX.reduce((sum, row, i) => {
-          const r = normalizedY[i]! - dot(row, candidate);
-          return sum + r * (tau - (r < 0 ? 1 : 0));
-        }, 0);
-        if (newLoss <= oldLoss + 1e-12 * Math.max(1, Math.abs(oldLoss))) normalizedBeta = candidate;
+        const candidateResidual = normalizedY.map((v, i) => v - dot(normalizedX[i]!, candidate));
+        const newLoss = candidateResidual.reduce((sum, r) => sum + r * (tau - (r < 0 ? 1 : 0)), 0);
+        let dualEquality = 0;
+        let dualObjective = 0;
+        let signCompatible = true;
+        const residualScale = Math.max(1, ...candidateResidual.map(Math.abs));
+        for (let i = 0; i < n; i++) {
+          const ai = fit.dual[i]!;
+          dualObjective += normalizedY[i]! * ai;
+          for (let j = 0; j < p; j++) dualEquality += 0; // accumulated columnwise below
+          if (candidateResidual[i]! > 1e-8 * residualScale && ai < 1 - 1e-7) signCompatible = false;
+          if (candidateResidual[i]! < -1e-8 * residualScale && ai > 1e-7) signCompatible = false;
+        }
+        const equalityResidual = new Array<number>(p).fill(0);
+        for (let i = 0; i < n; i++) for (let j = 0; j < p; j++) {
+          equalityResidual[j]! += normalizedX[i]![j]! * (fit.dual[i]! - (1 - tau));
+        }
+        dualEquality = equalityResidual.reduce((m, v) => Math.max(m, Math.abs(v)), 0);
+        const certificate = signCompatible &&
+          dualEquality <= 1e-8 * Math.max(1, ...normalizedX[0]!.map((_, j) => Math.abs(
+            normalizedX.reduce((sum, row) => sum + row[j]!, 0),
+          ))) &&
+          Math.abs(newLoss - dualObjective) <= 1e-8 * Math.max(1, Math.abs(newLoss), Math.abs(dualObjective));
+        if (certificate && newLoss <= oldLoss + 1e-12 * Math.max(1, Math.abs(oldLoss))) normalizedBeta = candidate;
       } catch {
         // Retain the converged central-path estimate if the nearby basis is numerically singular.
       }
