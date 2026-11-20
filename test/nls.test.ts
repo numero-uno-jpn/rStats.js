@@ -323,7 +323,7 @@ describe("NIST StRD nonlinear regression edge cases", () => {
 
   it("fits Roszman1 with atan and pi to at least seven certified digits", () => {
     const cs = stage3Fixture.roszman1;
-    const fit = nls(cs.formula, dataFrame(cs.data), { start: cs.start, control: { tol: 1e-14 } });
+    const fit = nls(cs.formula, dataFrame(cs.data), { start: cs.start });
     console.log("NIST Roszman1 coefficients", JSON.stringify(fit.coefficients), "RSS", fit.deviance);
     for (const [name, expected] of Object.entries(cs.certified)) {
       const relativeError = Math.abs(fit.coefficients[name]! - expected) / Math.abs(expected);
@@ -404,10 +404,7 @@ describe("NIST StRD additional nonlinear cases", () => {
     ["Lanczos1", stage3Fixture.lanczos1, 9],
     ["Misra1a", stage3Fixture.misra1a, 7],
   ] as const)("fits %s from Start 2 to the certified values", (label, cs, minimumLre) => {
-    const fit = nls(cs.formula, dataFrame(cs.data), {
-      start: cs.start,
-      ...(label === "Lanczos1" ? { control: { tol: 1e-14 } } : {}),
-    });
+    const fit = nls(cs.formula, dataFrame(cs.data), { start: cs.start });
     console.log("NIST " + label + " coefficients", JSON.stringify(fit.coefficients), "RSS", fit.deviance);
     const lreValues: Record<string, number> = {};
     for (const [name, expected] of Object.entries(cs.certified)) {
