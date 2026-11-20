@@ -1,10 +1,31 @@
 # 引継ぎ: rStats.js (外部レビュー対応 2026-10-30〜11-04、1.0.0 への準備 11-04〜)
 
-最終更新: 2026-11-20 夕 (セッション 25 の終わり、Mac mini: **1.7.0 を公開** (回帰 polr・rlm・nls、`/regression`)。次の作業は未定 (ROADMAP の 2 = 1.8.0)。以前: 2026-11-20 昼 (セッション 25、Mac mini: 段階 3 の端の入力の直しも済み (最後は私が引き継いだ)。次は「nls の後」の配線と文書)。以前: 2026-11-19 深夜 (セッション 24、polr・rlm は完了、nls を ChatGPT に依頼)。以前: 2026-11-19 (セッション 23、1.6.0 を公開 (混合モデルの confint と simulate))。以前: 2026-11-17 (セッション 22、1.5.0 を公開)。その前: 2026-11-16 (セッション 21、Mac mini: 1.4.0 を公開、同時刻の Gray の検定を ChatGPT がクリーンルームで修正 (1.4.1 に入る、未公開)、外注用の R の実験の仕組みを作った。次は ROADMAP の 1 番)
+最終更新: 2026-11-20 夜 (セッション 26、Mac mini: 1.8.0 の範囲を決め、準備をして ChatGPT への段階 1 の依頼まで)。以前: 2026-11-20 夕 (セッション 25 の終わり、Mac mini: **1.7.0 を公開** (回帰 polr・rlm・nls、`/regression`)。次の作業は未定 (ROADMAP の 2 = 1.8.0)。以前: 2026-11-20 昼 (セッション 25、Mac mini: 段階 3 の端の入力の直しも済み (最後は私が引き継いだ)。次は「nls の後」の配線と文書)。以前: 2026-11-19 深夜 (セッション 24、polr・rlm は完了、nls を ChatGPT に依頼)。以前: 2026-11-19 (セッション 23、1.6.0 を公開 (混合モデルの confint と simulate))。以前: 2026-11-17 (セッション 22、1.5.0 を公開)。その前: 2026-11-16 (セッション 21、Mac mini: 1.4.0 を公開、同時刻の Gray の検定を ChatGPT がクリーンルームで修正 (1.4.1 に入る、未公開)、外注用の R の実験の仕組みを作った。次は ROADMAP の 1 番)
 
 ## まず読むこと (セッション 16 から)
 
-## 次のセッションで最初にやること: 1.8.0 の始め (セッション 25 → 26、2026-11-20 夕に作成)
+## 次のセッションで最初にやること: 1.8.0 段階 1 の報告を待つ (セッション 26、2026-11-20 夜に作成)
+
+### セッション 26 でしたこと (2026-11-20 夜)
+
+- **範囲をユーザーが決めた** (下の「1.8.0 の計画」の「範囲」。rq に boot、GEE に userdefined/fixed と jackknife、glmnet に
+  multinomial、置き場所は `/regression`)
+- **準備 (main `f689659a`):** `oracle/Dockerfile.r46` と `oracle/Dockerfile.experiments` に quantreg 6.1・geepack 1.3.13・
+  glmnet 5.1 (SparseM 1.84.2・MatrixModels 0.5.4) の層、手元の `rstats-oracle:4.6.2` と `rstats-experiments:4.6.2` は
+  作り直し済み。`scripts/r-experiment-check.mjs` に 3 パッケージの export を足し、**引数名 (`se = "nid"`) を関数の参照と
+  誤判定していたのを直した** (metafor の `se` 以来の誤検出)
+- **作業ブランチ `work/regression-1.8`** (`d41e2029`)、**Issue #545**、**draft PR #546** (マージしない)。指示書
+  `briefs/regression-1.8.ja.md` と入口 `briefs/regression-1.8-status.ja.md`、私が流した R の出力 `experiments/regression18-{rq,gee,glmnet}.{R,json}`
+- **1.7.0 からの変更:** R の実験は ChatGPT が `r-experiments.yml` で自分で流す (`# issue: 545`。私の往復を減らす。x86_64
+  なので boot の乱数も見られる)。仕様書 3 つを 1 回の報告に。段階 2 は 1 パッケージごとに止まらず進み、私が並行して点検。
+  端の入力は指示書 5 節で最初から合格の条件
+- **R で見つけたこと:** geeglm の `corstr = "fixed"` で `anova(fit)` が 40 秒以上終わらない。`scale.fix = TRUE,
+  scale.value = 4` がエラー (`variable lengths differ`)。glmnet 5.1 は `thresh` を直接渡すと非推奨の警告 (`control = list(...)`)。
+  rq の nonunique の警告は `summary` が出す
+- 次: ユーザーが ChatGPT に依頼文を貼る → 段階 1 の報告 (仕様書 3 つ + Decisions) を Issue #545 で点検 → Decisions を
+  ユーザーに聞いて choices を書く → fixture を作る
+
+## 1.8.0 の始め (セッション 25 → 26、2026-11-20 夕に作成)
 
 ### 1.7.0 を公開した (2026-11-20)
 
