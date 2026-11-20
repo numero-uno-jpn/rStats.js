@@ -1,4 +1,5 @@
 # issue: 545
+# extend formula checks and public-output coverage
 # rerun after independent formula probes
 # RQ public-output oracle. Numerical inference inputs are emitted for independent formula checks.
 suppressMessages(library(quantreg));library(jsonlite)
@@ -33,13 +34,32 @@ for(tau in c(.25,.5,.75)) for(method in c("br","fn")) out[[paste(method,tau,sep=
   ans$residualSparsity<-list(type1=diff(quantile(rr,c(tau-h,tau+h),type=1,names=FALSE))/(2*h),
                              type7=diff(quantile(rr,c(tau-h,tau+h),type=7,names=FALSE))/(2*h))
   ans$iid<-tab(coef(si));ans$iidCov<-tab(si$cov)
+  ak<-akj(sort(rr),z=0)
+  ans$iidDensity<-list(density=ak$dens,sparsity=1/ak$dens,bandwidth=ak$h)
   ans$nid<-tab(coef(sn));ans$nidCov<-tab(sn$cov);ans$nidHinv<-tab(sn$Hinv);ans$nidJ<-tab(sn$J)
   ans$nidBofinger<-tab(coef(snB));ans$nidBofingerCov<-tab(snB$cov)
   ans$ker<-tab(coef(sk));ans$kerCov<-tab(sk$cov);ans$kerHinv<-tab(sk$Hinv);ans$kerJ<-tab(sk$J)
   ans$rank<-tab(coef(sr))
+  ans$rankNonIid<-tab(coef(summary(f,se="rank",iid=FALSE)))
   ans$prediction<-unname(predict(f,newdata=data.frame(x=c(-2,0,5))))
  }
  ans
+})
+out$defaultSEswitch<-run({
+ ans<-list()
+ for(n0 in c(1000,1001)){
+  xx<-sin(seq_len(n0)*.17); yy<-1+2*xx+cos(seq_len(n0)*.31)
+  ff<-rq(yy~xx,tau=.5)
+  ans[[as.character(n0)]]<-list(default=tab(coef(summary(ff))),
+    rank=tab(coef(summary(ff,se="rank"))),nid=tab(coef(summary(ff,se="nid"))))
+ }
+ ans
+})
+out$stacklossNid<-run({
+ data(stackloss)
+ f<-rq(stack.loss~.,data=stackloss,tau=.5)
+ s<-summary(f,se="nid")
+ list(coef=tab(coef(s)))
 })
 out$weighted<-run({w<-seq(.5,2,length.out=n);f<-rq(y~x,data=d,tau=.5,weights=w);list(weights=w,coef=unname(coef(f)),rho=unname(f$rho),residuals=unname(residuals(f)),nid=tab(coef(summary(f,se="nid"))))})
 out$rankTests<-run({f<-rq(y~x,data=d,tau=.5);list(rank=tab(coef(summary(f,se="rank",alpha=.1))),rank95=tab(coef(summary(f,se="rank",alpha=.05))))})

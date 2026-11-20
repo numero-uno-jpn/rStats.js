@@ -1,4 +1,5 @@
 # issue: 545
+# extend formula checks and public-output coverage
 # rerun after output-size and seed-stream corrections
 # rerun after independent formula probes
 # batch rerun after reserved-token fix
@@ -29,7 +30,33 @@ out$jackknife<-run({
  ans<-list(ids=ids,deleted=tab(do.call(rbind,deleted)))
  for(st in c("jack","j1s","fij")){
   f<-geeglm(y~x,id=id,waves=wave,data=d,family=gaussian,corstr="exchangeable",std.err=st)
-  ans[[st]]<-list(coef=unname(coef(f)),summary=tab(coef(summary(f))),vcov=tab(vcov(f)))
+  ans[[st]]<-list(coef=unname(coef(f)),summary=tab(coef(summary(f))),vcov=tab(vcov(f)),alphaCov=tab(f$geese$valpha),gammaCov=tab(f$geese$vgamma))
+ }
+ ans
+})
+out$userdefinedToeplitz<-run({
+ Z<-matrix(rep(c(1,0,0,1,1,0),12),ncol=2,byrow=TRUE)
+ f<-geeglm(y~x,id=id,waves=wave,data=d,family=gaussian,corstr="userdefined",zcor=Z)
+ list(Z=tab(Z),coef=unname(coef(f)),corr=tab(summary(f)$corr),residuals=unname(residuals(f,type="pearson")),dispersion=tab(summary(f)$dispersion))
+})
+out$wavesGap<-run({
+ dg<-d[!(d$id<=6 & d$wave==2),]
+ a<-geeglm(y~x,id=id,data=dg,family=gaussian,corstr="ar1",waves=wave)
+ b<-geeglm(y~x,id=id,data=dg,family=gaussian,corstr="ar1")
+ list(clusterSizes=as.integer(table(dg$id)),withWaves=list(coef=unname(coef(a)),corr=tab(summary(a)$corr)),
+      defaultWaves=list(coef=unname(coef(b)),corr=tab(summary(b)$corr)))
+})
+out$jackknifeOhio<-run({
+ data(ohio)
+ ids0<-sort(unique(ohio$id))[1:12]
+ dd<-ohio[ohio$id%in%ids0,];dd<-dd[order(dd$id),]
+ deleted<-lapply(ids0,function(k)unname(coef(geeglm(resp~age+smoke,id=id,data=dd[dd$id!=k,],
+      family=binomial,corstr="exchangeable"))))
+ ans<-list(ids=as.character(ids0),clusterSizes=as.integer(table(dd$id)),deleted=tab(do.call(rbind,deleted)))
+ for(st in c("jack","j1s","fij")){
+  f<-geeglm(resp~age+smoke,id=id,data=dd,family=binomial,corstr="exchangeable",std.err=st)
+  ans[[st]]<-list(coef=unname(coef(f)),summary=tab(coef(summary(f))),
+      alphaCov=tab(f$geese$valpha),gammaCov=tab(f$geese$vgamma))
  }
  ans
 })

@@ -1,4 +1,5 @@
 # issue: 545
+# extend formula checks and public-output coverage
 # rerun after independent formula probes
 # rerun after stage1 formula verification
 # batch rerun after reserved-token fix
@@ -22,6 +23,7 @@ out$noStandardize<-run({f<-glmnet(X,y,standardize=FALSE,nlambda=6);list(lambda=f
 out$binomial<-run({yb<-c(0,0,1,0,1,0,1,0,1,1,1,1);f<-glmnet(X,yb,family="binomial",nlambda=6);list(lambda=f$lambda,a0=f$a0,beta=tab(f$beta),df=f$df,devRatio=f$dev.ratio,nullDev=f$nulldev)})
 out$poisson<-run({yp<-c(1,2,1,3,2,4,1,3,2,5,4,6);f<-glmnet(X,yp,family="poisson",offset=log(seq(1,2,length.out=12)),nlambda=6);list(lambda=f$lambda,a0=f$a0,beta=tab(f$beta),df=f$df,devRatio=f$dev.ratio,nullDev=f$nulldev)})
 Xi<-as.matrix(iris[,1:4]);yi<-iris$Species
+out$multinomialData<-list(X=tab(Xi),y=as.character(yi))
 for(tm in c("ungrouped","grouped"))out[[paste0("multinomial_",tm)]]<-run({
  f<-glmnet(Xi,yi,family="multinomial",type.multinomial=tm,nlambda=6)
  list(lambda=f$lambda,a0=tab(f$a0),beta=lapply(f$beta,tab),dfmat=tab(f$dfmat),
@@ -36,6 +38,8 @@ Xcv<-cbind(a=seq(-2,2,length.out=60),b=sin(seq_len(60)),c=cos(seq_len(60)))
 yg<-1+.5*Xcv[,1]-.3*Xcv[,2]+sin(seq_len(60)*1.7)*.2
 yb<-rep(0:1,30);fid<-rep(1:5,12)
 out$cvData<-list(X=tab(Xcv),yGaussian=yg,yBinomial=yb,foldid=fid)
+out$cvMultinomial<-run({a<-cv.glmnet(Xi,yi,family="multinomial",foldid=rep(1:5,30),nlambda=6);list(lambda=a$lambda,cvm=a$cvm,cvsd=a$cvsd,lambdaMin=a$lambda.min,lambda1se=a$lambda.1se,nzero=a$nzero)})
+out$cvGaussianMAE<-run({a<-cv.glmnet(Xcv,yg,foldid=fid,type.measure="mae",nlambda=8);list(lambda=a$lambda,cvm=a$cvm,cvsd=a$cvsd,lambdaMin=a$lambda.min,lambda1se=a$lambda.1se)})
 out$cvGaussian<-run({
  a<-cv.glmnet(Xcv,yg,foldid=fid,type.measure="mse",nlambda=8,keep=TRUE)
  b<-cv.glmnet(Xcv,yg,foldid=fid,type.measure="mse",nlambda=8,grouped=FALSE,keep=TRUE)
@@ -46,5 +50,9 @@ out$cvGaussian<-run({
 for(tm in c("deviance","class","auc"))out[[paste0("cvBinomial_",tm)]]<-run({
  a<-cv.glmnet(Xcv,yb,family="binomial",foldid=fid,type.measure=tm,nlambda=8)
  list(lambda=a$lambda,cvm=a$cvm,cvsd=a$cvsd,lambdaMin=a$lambda.min,lambda1se=a$lambda.1se)
+})
+out$penaltyFactor<-run({
+ f<-glmnet(X,y,penalty.factor=c(0,1,4),lower.limits=c(-.5,0,-1),upper.limits=c(.5,0,1),dfmax=2,pmax=3,nlambda=8)
+ list(lambda=f$lambda,a0=f$a0,beta=tab(f$beta),df=f$df,devRatio=f$dev.ratio)
 })
 cat(toJSON(out,digits=NA,auto_unbox=TRUE,null="null",na="string",pretty=FALSE))

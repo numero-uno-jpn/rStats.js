@@ -1,3 +1,4 @@
+# rerun after independent formula probes
 # rerun after stage1 formula verification
 # batch rerun after reserved-token fix
 # batch rerun after clean-room script correction
@@ -34,7 +35,8 @@ plain <- function(x) {
 capture <- function(f,includeQIC=TRUE) {
   s <- summary(f)
   ans <- list(coefficients=unname(coef(f)),vcov=tab(vcov(f)),
-              corr=tab(s$corr),dispersion=tab(s$dispersion))
+              corr=tab(s$corr),dispersion=tab(s$dispersion),
+              alphaCov=tab(f$geese$valpha),gammaCov=tab(f$geese$vgamma))
   if (includeQIC) ans$qic <- unname(as.numeric(QIC(f)))
   ans
 }
@@ -102,7 +104,7 @@ out$predict <- run({
 })
 out$unsorted_id <- run(capture(geeglm(Weight~Time,id=Pig,data=dietox[order(dietox$Time,-dietox$Pig),],corstr="exchangeable")))
 out$singletons <- run(capture(geeglm(mpg~wt,id=seq_len(nrow(mtcars)),data=mtcars,corstr="exchangeable")))
-out$missing <- run(geeglm(Weight~Time,id=Pig,data=transform(dietox,Weight=replace(Weight,c(3,50),NA)),corstr="ar1"))
+out$missing <- run(capture(geeglm(Weight~Time,id=Pig,data=transform(dietox,Weight=replace(Weight,c(3,50),NA)),corstr="ar1")))
 out$separation <- run(capture(geeglm(y~x,id=g,family=binomial,corstr="exchangeable",
  data=data.frame(x=1:12,y=rep(0:1,each=6),g=rep(1:4,3)))))
 cat(toJSON(plain(out),digits=NA,auto_unbox=TRUE,null="null",na="string",pretty=FALSE))
