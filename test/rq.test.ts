@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { rq, rqPredict } from "../src/models/rq.js";
+import { rq, rqPredict, rqSummary, rqPredictInterval, rqAnova } from "../src/models/rq.js";
 
 
 function solveSmall(a: number[][], b: number[]): number[] {
@@ -241,4 +241,51 @@ describe("quantile regression", () => {
       expect((scaled.coefficients[name] as number) / 1e100).toBeCloseTo(fit.coefficients[name] as number, 8);
     }
   });
+
+  it("matches the Hall-Sheather nid covariance from the public oracle", () => {
+    const data = { x: oracle.data.X.values.map((row) => row[1]!), y: oracle.data.y };
+    const fit = rq("y ~ x", data, { tau: 0.5, method: "br" });
+    const summary = rqSummary(fit, { se: "nid", covariance: true });
+    expect(summary.coefficients).toHaveLength(2);
+    expect(summary.covariance![0]![0]![0]).toBeCloseTo(0.415407811808214, 11);
+    expect(summary.covariance![0]![0]![1]).toBeCloseTo(-0.0376121265902385, 11);
+    expect(summary.covariance![0]![1]![1]).toBeCloseTo(0.0200055184586616, 11);
+  });
+
+  it("returns none and direct confidence prediction intervals", () => {
+    const data = { x: [0, 1, 2, 3, 4, 5, 6, 7], y: [2, 3, 3, 5, 5, 7, 8, 9] };
+    const fit = rq("y ~ x", data, { tau: 0.5 });
+    const none = rqPredictInterval(fit, { x: [1, 3, 5] }, { interval: "confidence", type: "none" });
+    const direct = rqPredictInterval(fit, { x: [1, 3, 5] }, { interval: "confidence", type: "direct" });
+    expect(none.fit).toHaveLength(3);
+    expect(none.lower).toHaveLength(3);
+    expect(none.upper).toHaveLength(3);
+    expect(direct.lower).toHaveLength(3);
+    expect(direct.upper).toHaveLength(3);
+    for (let i = 0; i < 3; i++) {
+      expect(none.lower![i]!).toBeLessThanOrEqual(none.fit[i] as number);
+      expect(none.upper![i]!).toBeGreaterThanOrEqual(none.fit[i] as number);
+      expect(direct.lower![i]!).toBeLessThanOrEqual(direct.upper![i]!);
+    }
+  });
+
+  it("computes a Wald test for equality of slopes across quantiles", () => {
+    const data = {
+      x: Array.from({ length: 50 }, (_, i) => i / 10),
+      y: Array.from({ length: 50 }, (_, i) => 1 + 0.8 * (i / 10) + ((i * 17) % 11 - 5) / 10),
+    };
+    const fit = rq("y ~ x", data, { tau: [0.25, 0.5, 0.75], method: "fn", eps: 1e-12 });
+    const result = rqAnova(fit);
+    expect(result.method).toBe("Wald");
+    expect(result.df).toBe(2);
+    expect(result.dfResidual).toBe(46);
+    expect(result.pValue).toBeGreaterThanOrEqual(0);
+    expect(result.pValue).toBeLessThanOrEqual(1);
+  });
+
+  it.todo("iid density estimator is unresolved pending the user's independent review");
+  it.todo("rank interval endpoints are unresolved pending the user's independent review");
+  it.todo("ker bandwidth and local density are unresolved pending R-output comparison");
+  it.todo("bootstrap pwy, mcmb and wxy perturbation maps are unresolved pending the user's independent review");
+
 });
