@@ -2,352 +2,352 @@
   "NlsAlgorithm#summary": {
     "hash": "5186605eace4",
     "en": "Algorithm used to fit a nonlinear least-squares model.",
-    "ja": ""
+    "ja": "非線形最小二乗モデルの当てはめに使うアルゴリズムです。"
   },
   "NlsAnovaResult#summary": {
     "hash": "acc44a15e342",
     "en": "Result returned by {@link nlsAnova}.",
-    "ja": ""
+    "ja": "{@link nlsAnova} が返す結果です。"
   },
   "NlsAnovaResult.table#summary": {
     "hash": "0b62654d1f33",
     "en": "Sequential analysis-of-variance table.",
-    "ja": ""
+    "ja": "逐次分散分析表です。"
   },
   "NlsAnovaResult.table.Df#summary": {
     "hash": "25cb85aaa86c",
     "en": "Difference in residual degrees of freedom for each comparison.",
-    "ja": ""
+    "ja": "各比較における残差自由度の差です。"
   },
   "NlsAnovaResult.table.F value#summary": {
     "hash": "14a63932dbc5",
     "en": "F statistic for each comparison.",
-    "ja": ""
+    "ja": "各比較の F 統計量です。"
   },
   "NlsAnovaResult.table.Model#summary": {
     "hash": "21de7909566e",
     "en": "Formula for each fitted model.",
-    "ja": ""
+    "ja": "当てはめた各モデルの式です。"
   },
   "NlsAnovaResult.table.Pr(>F)#summary": {
     "hash": "29edb6b59d60",
     "en": "Upper-tail F-test probability for each comparison.",
-    "ja": ""
+    "ja": "各比較に対する F 検定の上側確率です。"
   },
   "NlsAnovaResult.table.Res.Df#summary": {
     "hash": "6addc6cd81ab",
     "en": "Residual degrees of freedom for each model.",
-    "ja": ""
+    "ja": "各モデルの残差自由度です。"
   },
   "NlsAnovaResult.table.Res.Sum Sq#summary": {
     "hash": "0f5905b554c9",
     "en": "Residual sum of squares for each model.",
-    "ja": ""
+    "ja": "各モデルの残差平方和です。"
   },
   "NlsAnovaResult.table.Sum Sq#summary": {
     "hash": "d0cff2b38306",
     "en": "Difference in residual sum of squares for each comparison.",
-    "ja": ""
+    "ja": "各比較における残差平方和の差です。"
   },
   "NlsAnovaResult.warnings#summary": {
     "hash": "9ed95f9e4976",
     "en": "Warnings produced while comparing models.",
-    "ja": ""
+    "ja": "モデルの比較中に発生した警告です。"
   },
   "NlsConfintOptions#summary": {
     "hash": "999c3b7c92a4",
     "en": "Options for {@link nlsConfint}.",
-    "ja": ""
+    "ja": "{@link nlsConfint} のオプションです。"
   },
   "NlsConfintOptions.level#summary": {
     "hash": "c03dfaa11c1f",
     "en": "Confidence level between zero and one.",
-    "ja": ""
+    "ja": "0 から 1 までの信頼水準です。"
   },
   "NlsConfintOptions.method#summary": {
     "hash": "2f5a20e1ee51",
     "en": "Confidence-interval method; profile by default.",
-    "ja": ""
+    "ja": "信頼区間の方法です。既定は profile です。"
   },
   "NlsConfintOptions.parm#summary": {
     "hash": "dd87a1c7c26d",
     "en": "Parameter names for which to compute intervals; omitted means all estimable parameters.",
-    "ja": ""
+    "ja": "区間を計算するパラメータ名です。省略すると、推定可能なすべてのパラメータが対象になります。"
   },
   "NlsConfintResult#summary": {
     "hash": "4964b049e38a",
     "en": "Result returned by {@link nlsConfint}.",
-    "ja": ""
+    "ja": "{@link nlsConfint} が返す結果です。"
   },
   "NlsConfintResult.cols#summary": {
     "hash": "25952dfad96c",
     "en": "Lower and upper confidence-limit labels.",
-    "ja": ""
+    "ja": "信頼限界の下限と上限の列ラベルです。"
   },
   "NlsConfintResult.rows#summary": {
     "hash": "412885a90c22",
     "en": "Parameter names for the intervals.",
-    "ja": ""
+    "ja": "区間の対象となるパラメータ名です。"
   },
   "NlsConfintResult.values#summary": {
     "hash": "07a0a977723b",
     "en": "Lower and upper confidence limits, one pair per parameter.",
-    "ja": ""
+    "ja": "パラメータごとに 1 組の下限と上限の信頼限界です。"
   },
   "NlsConfintResult.warnings#summary": {
     "hash": "40da84f6acb0",
     "en": "Warnings produced while computing the intervals.",
-    "ja": ""
+    "ja": "区間の計算中に発生した警告です。"
   },
   "NlsControl#summary": {
     "hash": "e2bc182c1bf0",
     "en": "Convergence controls for nonlinear least squares.",
-    "ja": ""
+    "ja": "非線形最小二乗法の収束制御です。"
   },
   "NlsControl.maxiter#summary": {
     "hash": "0e46ee9c032f",
     "en": "Maximum number of iterations.",
-    "ja": ""
+    "ja": "反復の最大回数です。"
   },
   "NlsControl.minFactor#summary": {
     "hash": "2a2ab958bcbd",
     "en": "Minimum step-length factor used by the line search.",
-    "ja": ""
+    "ja": "直線探索で使うステップ長係数の最小値です。"
   },
   "NlsControl.scaleOffset#summary": {
     "hash": "a8bc81d25940",
     "en": "Positive offset used in the convergence scaling criterion.",
-    "ja": ""
+    "ja": "収束判定のスケーリング基準に使う正のオフセットです。"
   },
   "NlsControl.tol#summary": {
     "hash": "80499540d6da",
     "en": "Relative convergence tolerance.",
-    "ja": ""
+    "ja": "相対収束許容誤差です。"
   },
   "NlsControl.warnOnly#summary": {
     "hash": "3f3a494fafef",
     "en": "Whether non-convergence is reported as a warning instead of an error.",
-    "ja": ""
+    "ja": "収束しない場合にエラーではなく警告を報告するかどうかです。"
   },
   "NlsModel#summary": {
     "hash": "8e04dffad580",
     "en": "Internal and public fitted-model quantities.",
-    "ja": ""
+    "ja": "当てはめモデルの内部および公開用の量です。"
   },
   "NlsModel.algorithm#summary": {
     "hash": "4b817a321c21",
     "en": "Algorithm used for fitting.",
-    "ja": ""
+    "ja": "当てはめに使ったアルゴリズムです。"
   },
   "NlsModel.coefficients#summary": {
     "hash": "d9445237bb96",
     "en": "Named parameter estimates.",
-    "ja": ""
+    "ja": "名前付きのパラメータ推定値です。"
   },
   "NlsModel.converged#summary": {
     "hash": "6eef6ac14f46",
     "en": "Whether the convergence criterion was met.",
-    "ja": ""
+    "ja": "収束基準を満たしたかどうかです。"
   },
   "NlsModel.correlation#summary": {
     "hash": "30b92b988427",
     "en": "Estimated parameter correlation matrix.",
-    "ja": ""
+    "ja": "推定されたパラメータ相関行列です。"
   },
   "NlsModel.covariance#summary": {
     "hash": "f991066ceed4",
     "en": "Estimated parameter covariance matrix.",
-    "ja": ""
+    "ja": "推定されたパラメータ共分散行列です。"
   },
   "NlsModel.data#summary": {
     "hash": "09039327bae1",
     "en": "Numeric data columns retained for prediction and profiling.",
-    "ja": ""
+    "ja": "予測とプロファイル計算のために保持される数値データ列です。"
   },
   "NlsModel.deviance#summary": {
     "hash": "7f7ba20c6cdb",
     "en": "Weighted residual sum of squares.",
-    "ja": ""
+    "ja": "重み付き残差平方和です。"
   },
   "NlsModel.dfResidual#summary": {
     "hash": "82eecb8e1b30",
     "en": "Residual degrees of freedom.",
-    "ja": ""
+    "ja": "残差自由度です。"
   },
   "NlsModel.exactFit#summary": {
     "hash": "cb8442683c94",
     "en": "Whether the residual sum of squares is exactly zero.",
-    "ja": ""
+    "ja": "残差平方和が厳密に 0 かどうかです。"
   },
   "NlsModel.fitted#summary": {
     "hash": "c8a6fdfb4aa5",
     "en": "Fitted response values.",
-    "ja": ""
+    "ja": "当てはめ値です。"
   },
   "NlsModel.formula#summary": {
     "hash": "fa221b20354f",
     "en": "Original model formula.",
-    "ja": ""
+    "ja": "元のモデル式です。"
   },
   "NlsModel.iterations#summary": {
     "hash": "b5e9a31b4f60",
     "en": "Number of iterations performed.",
-    "ja": ""
+    "ja": "実行した反復回数です。"
   },
   "NlsModel.nobs#summary": {
     "hash": "b65dc401f939",
     "en": "Number of observations used in fitting.",
-    "ja": ""
+    "ja": "当てはめに使用した観測値の数です。"
   },
   "NlsModel.parameterNames#summary": {
     "hash": "5a4dbafa1f75",
     "en": "Parameter names in coefficient order.",
-    "ja": ""
+    "ja": "係数の順序に対応するパラメータ名です。"
   },
   "NlsModel.residuals#summary": {
     "hash": "10143a09ccbe",
     "en": "Observed minus fitted response values.",
-    "ja": ""
+    "ja": "観測応答値から当てはめ応答値を引いた値です。"
   },
   "NlsModel.response#summary": {
     "hash": "3fae14b744b4",
     "en": "Response expression label.",
-    "ja": ""
+    "ja": "応答式のラベルです。"
   },
   "NlsModel.rows#summary": {
     "hash": "9f01e412eafd",
     "en": "Original row indices retained after missing-value handling.",
-    "ja": ""
+    "ja": "欠測値の処理後に保持された元データの行インデックスです。"
   },
   "NlsModel.sigma#summary": {
     "hash": "05ff49764b05",
     "en": "Residual standard error estimate.",
-    "ja": ""
+    "ja": "残差標準誤差の推定値です。"
   },
   "NlsModel.warnings#summary": {
     "hash": "c5d038e4266e",
     "en": "Warnings produced during fitting.",
-    "ja": ""
+    "ja": "当てはめ中に発生した警告です。"
   },
   "NlsModel.weights#summary": {
     "hash": "85e3f2a193fb",
     "en": "Observation weights used in fitting.",
-    "ja": ""
+    "ja": "当てはめに使用した観測値の重みです。"
   },
   "NlsModel.y#summary": {
     "hash": "ba019fc2d709",
     "en": "Response values used in fitting.",
-    "ja": ""
+    "ja": "当てはめに使用した応答値です。"
   },
   "NlsOptions#summary": {
     "hash": "54e6bec3184f",
     "en": "Options for {@link nls}.",
-    "ja": ""
+    "ja": "{@link nls} のオプションです。"
   },
   "NlsOptions.algorithm#summary": {
     "hash": "44fee412a664",
     "en": "Nonlinear least-squares algorithm.",
-    "ja": ""
+    "ja": "非線形最小二乗法のアルゴリズムです。"
   },
   "NlsOptions.control#summary": {
     "hash": "789ad3e0364f",
     "en": "Convergence controls.",
-    "ja": ""
+    "ja": "収束制御です。"
   },
   "NlsOptions.lower#summary": {
     "hash": "b750e80650c6",
     "en": "Lower parameter bounds for the bounded algorithm.",
-    "ja": ""
+    "ja": "境界付きアルゴリズムで使うパラメータの下限です。"
   },
   "NlsOptions.start#summary": {
     "hash": "c2660bbe5522",
     "en": "Named initial parameter values.",
-    "ja": ""
+    "ja": "名前付きのパラメータ初期値です。"
   },
   "NlsOptions.upper#summary": {
     "hash": "796e8b12e069",
     "en": "Upper parameter bounds for the bounded algorithm.",
-    "ja": ""
+    "ja": "境界付きアルゴリズムで使うパラメータの上限です。"
   },
   "NlsOptions.weights#summary": {
     "hash": "aa7ec49f6268",
     "en": "Non-negative observation weights, or the name of a data column.",
-    "ja": ""
+    "ja": "0 以上の観測値の重み、またはデータ列の名前です。"
   },
   "NlsPredictOptions#summary": {
     "hash": "cb5b1547e06e",
     "en": "Options for {@link nlsPredict}.",
-    "ja": ""
+    "ja": "{@link nlsPredict} のオプションです。"
   },
   "NlsPredictOptions.newdata#summary": {
     "hash": "8723ce645999",
     "en": "New data columns at which to evaluate the fitted expression.",
-    "ja": ""
+    "ja": "当てはめた式を評価する新しいデータ列です。"
   },
   "NlsResult#summary": {
     "hash": "8e166ca74e61",
     "en": "Result returned by {@link nls}.",
-    "ja": ""
+    "ja": "{@link nls} が返す結果です。"
   },
   "NlsSummaryResult#summary": {
     "hash": "15d8447eeffb",
     "en": "Result returned by {@link nlsSummary}.",
-    "ja": ""
+    "ja": "{@link nlsSummary} が返す結果です。"
   },
   "NlsSummaryResult.coefficients#summary": {
     "hash": "3cc37954f3e1",
     "en": "Coefficient table with estimates, standard errors and test statistics.",
-    "ja": ""
+    "ja": "推定値、標準誤差、検定統計量を含む係数表です。"
   },
   "NlsSummaryResult.coefficients.cols#summary": {
     "hash": "928189c00b0c",
     "en": "Summary statistic column names.",
-    "ja": ""
+    "ja": "要約統計量の列名です。"
   },
   "NlsSummaryResult.coefficients.rows#summary": {
     "hash": "1bd5fa83a583",
     "en": "Coefficient names in row order.",
-    "ja": ""
+    "ja": "行の順序に対応する係数名です。"
   },
   "NlsSummaryResult.coefficients.values#summary": {
     "hash": "cc3ef2f7a5b4",
     "en": "Rows of coefficient estimates, standard errors and test statistics.",
-    "ja": ""
+    "ja": "係数の推定値、標準誤差、検定統計量の各行です。"
   },
   "NlsSummaryResult.deviance#summary": {
     "hash": "7f7ba20c6cdb",
     "en": "Weighted residual sum of squares.",
-    "ja": ""
+    "ja": "重み付き残差平方和です。"
   },
   "NlsSummaryResult.df#summary": {
     "hash": "83626f88665e",
     "en": "Residual and model degrees of freedom.",
-    "ja": ""
+    "ja": "残差自由度とモデル自由度です。"
   },
   "NlsSummaryResult.nobs#summary": {
     "hash": "b65dc401f939",
     "en": "Number of observations used in fitting.",
-    "ja": ""
+    "ja": "当てはめに使用した観測値の数です。"
   },
   "NlsSummaryResult.sigma#summary": {
     "hash": "05ff49764b05",
     "en": "Residual standard error estimate.",
-    "ja": ""
+    "ja": "残差標準誤差の推定値です。"
   },
   "NlsSummaryResult.warnings#summary": {
     "hash": "84caa396e699",
     "en": "Warnings produced while computing the summary.",
-    "ja": ""
+    "ja": "要約の計算中に発生した警告です。"
   },
   "PolrAnovaResult#summary": {
     "hash": "ace099e9fd64",
     "en": "Result table from sequential likelihood-ratio comparisons of nested ordinal-regression fits.",
-    "ja": ""
+    "ja": "入れ子の順序回帰モデルの当てはめを逐次的に尤度比で比較した結果表です。"
   },
   "PolrAnovaResult.heading#summary": {
     "hash": "7f8ab3e75c0a",
     "en": "Heading describing the comparison.",
-    "ja": ""
+    "ja": "比較の内容を示す見出しです。"
   },
   "PolrAnovaResult.rows#summary": {
     "hash": "ddfab36c7578",
