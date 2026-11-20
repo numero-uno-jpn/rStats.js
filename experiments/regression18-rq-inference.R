@@ -92,12 +92,13 @@ out <- list(
       fittedMinus = fitted(fl),
       fittedPlus = fitted(fh),
       iidCov = si$cov,
+      iidResiduals = si$residuals,
       iidScale = si$scale,
       iidNames = names(si),
       iidBofingerCov = si.b$cov,
       iidBofingerScale = si.b$scale,
-      nid = list(table = coef(sn), cov = sn$cov, Hinv = sn$Hinv, J = sn$J, scale = sn$scale, names = names(sn)),
-      ker = list(table = coef(sk), cov = sk$cov, Hinv = sk$Hinv, J = sk$J, scale = sk$scale, names = names(sk)),
+      nid = list(table = coef(sn), cov = sn$cov, Hinv = sn$Hinv, J = sn$J, scale = sn$scale, residuals = sn$residuals, names = names(sn)),
+      ker = list(table = coef(sk), cov = sk$cov, Hinv = sk$Hinv, J = sk$J, scale = sk$scale, residuals = sk$residuals, names = names(sk)),
       nonzeroResidualCount = length(rn),
       bwNrd = bw.nrd(rn),
       bwNrd0 = bw.nrd0(rn),
@@ -111,11 +112,18 @@ out <- list(
 )
 
 X <- cbind(1, engel$income)
+out$data <- list(income = engel$income, foodexp = engel$foodexp)
 for (method in c("xy", "pwy", "mcmb", "wxy")) {
-  set.seed(1)
+  if (method == "mcmb") {
+    set.seed(1)
+    mcmbZ <- matrix(rnorm(n * 2), nrow = n, ncol = 2)
+    set.seed(1)
+  } else {
+    set.seed(1)
+  }
   out[[paste0("boot_", method)]] <- capture({
     z <- boot.rq(X, engel$foodexp, tau = tau, R = 2, bsmethod = method)
-    list(B = z$B, U = z$U, seedIndex = .Random.seed[1])
+    list(B = z$B, U = z$U, Z = if (method == "mcmb") mcmbZ else NULL, seedIndex = .Random.seed[1])
   })
 }
 
