@@ -352,352 +352,352 @@
   "PolrAnovaResult.rows#summary": {
     "hash": "ddfab36c7578",
     "en": "Model or term labels associated with the comparison.",
-    "ja": ""
+    "ja": "比較に対応するモデルまたは項のラベルです。"
   },
   "PolrAnovaResult.table#summary": {
     "hash": "2df95132017b",
     "en": "Likelihood-ratio analysis-of-deviance table.",
-    "ja": ""
+    "ja": "尤度比による逸脱度分析表です。"
   },
   "PolrAnovaResult.table.   Df#summary": {
     "hash": "804b76a656b6",
     "en": "Degrees of freedom for each likelihood-ratio test.",
-    "ja": ""
+    "ja": "各尤度比検定の自由度です。"
   },
   "PolrAnovaResult.table.LR stat.#summary": {
     "hash": "c75e86b211e3",
     "en": "Likelihood-ratio statistic for each comparison.",
-    "ja": ""
+    "ja": "各比較の尤度比統計量です。"
   },
   "PolrAnovaResult.table.Model#summary": {
     "hash": "0f77f6335dd0",
     "en": "Formula or term label for each fitted model.",
-    "ja": ""
+    "ja": "当てはめた各モデルの式または項のラベルです。"
   },
   "PolrAnovaResult.table.Pr(Chi)#summary": {
     "hash": "f0d5946f2145",
     "en": "Chi-squared tail probability for each comparison.",
-    "ja": ""
+    "ja": "各比較に対するカイ二乗分布の上側確率です。"
   },
   "PolrAnovaResult.table.Resid. Dev#summary": {
     "hash": "b5d847d266cd",
     "en": "Residual deviance for each model.",
-    "ja": ""
+    "ja": "各モデルの残差逸脱度です。"
   },
   "PolrAnovaResult.table.Resid. df#summary": {
     "hash": "6addc6cd81ab",
     "en": "Residual degrees of freedom for each model.",
-    "ja": ""
+    "ja": "各モデルの残差自由度です。"
   },
   "PolrAnovaResult.table.Test#summary": {
     "hash": "1dc0e8e4f739",
     "en": "Label of each sequential model comparison.",
-    "ja": ""
+    "ja": "各逐次モデル比較のラベルです。"
   },
   "PolrAnovaResult.warnings#summary": {
     "hash": "9ed95f9e4976",
     "en": "Warnings produced while comparing models.",
-    "ja": ""
+    "ja": "モデルの比較中に発生した警告です。"
   },
   "PolrConfintOptions#summary": {
     "hash": "0ee8e2ebfa09",
     "en": "Options for {@link polrConfint}.",
-    "ja": ""
+    "ja": "{@link polrConfint} のオプションです。"
   },
   "PolrConfintOptions.level#summary": {
     "hash": "f18f020efba3",
     "en": "Confidence level. Default 0.95.",
-    "ja": ""
+    "ja": "信頼水準です。既定は 0.95 です。"
   },
   "PolrConfintOptions.method#summary": {
     "hash": "5df979089ac6",
     "en": "Interval method. Default \"profile\".",
-    "ja": ""
+    "ja": "区間の方法です。既定は \"profile\" です。"
   },
   "PolrConfintOptions.parm#summary": {
     "hash": "d2e998b6264b",
     "en": "Slope names or 1-based slope positions. Omitted means all slopes.",
-    "ja": ""
+    "ja": "傾きの名前、または 1 始まりの傾きの位置です。省略すると、すべての傾きが対象になります。"
   },
   "PolrConfintResult#summary": {
     "hash": "212f1892f3aa",
     "en": "Confidence intervals for ordinal-regression slopes.",
-    "ja": ""
+    "ja": "順序回帰の傾きの信頼区間です。"
   },
   "PolrConfintResult.columns#summary": {
     "hash": "25952dfad96c",
     "en": "Lower and upper confidence-limit labels.",
-    "ja": ""
+    "ja": "信頼限界の下限と上限の列ラベルです。"
   },
   "PolrConfintResult.rows#summary": {
     "hash": "412885a90c22",
     "en": "Parameter names for the intervals.",
-    "ja": ""
+    "ja": "区間の対象となるパラメータ名です。"
   },
   "PolrConfintResult.values#summary": {
     "hash": "5c3039ba403c",
     "en": "Confidence limits, one pair per parameter.",
-    "ja": ""
+    "ja": "パラメータごとに 1 組の信頼限界です。"
   },
   "PolrConfintResult.warnings#summary": {
     "hash": "40da84f6acb0",
     "en": "Warnings produced while computing the intervals.",
-    "ja": ""
+    "ja": "区間の計算中に発生した警告です。"
   },
   "PolrMethod#summary": {
     "hash": "88ff286218b1",
     "en": "Name of the cumulative distribution used by an ordinal regression.",
-    "ja": ""
+    "ja": "順序回帰で使う累積分布の名前です。"
   },
   "PolrModel#summary": {
     "hash": "a17e4e4902e8",
     "en": "Stored formula, design metadata and observations needed by prediction and model comparison.",
-    "ja": ""
+    "ja": "予測とモデル比較に必要な式、モデル行列のメタデータ、観測値を保持します。"
   },
   "PolrModel.columnNames#summary": {
     "hash": "bdfa9d363a38",
     "en": "Names of design-matrix columns.",
-    "ja": ""
+    "ja": "モデル行列の列名です。"
   },
   "PolrModel.externalOffset#summary": {
     "hash": "3c0c922d5596",
     "en": "Whether the offset was supplied separately from the formula.",
-    "ja": ""
+    "ja": "offset が式とは別に指定されたかどうかです。"
   },
   "PolrModel.factorLevels#summary": {
     "hash": "8d9bfed1b7b2",
     "en": "Observed or declared levels for categorical predictors.",
-    "ja": ""
+    "ja": "カテゴリ説明変数について、観測された水準または指定された水準です。"
   },
   "PolrModel.formula#summary": {
     "hash": "fa221b20354f",
     "en": "Original model formula.",
-    "ja": ""
+    "ja": "元のモデル式です。"
   },
   "PolrModel.logLikelihood#summary": {
     "hash": "0e4254b95963",
     "en": "Maximised log likelihood.",
-    "ja": ""
+    "ja": "最大化された対数尤度です。"
   },
   "PolrModel.method#summary": {
     "hash": "8ea210fbc57b",
     "en": "Cumulative-link distribution.",
-    "ja": ""
+    "ja": "累積リンク分布です。"
   },
   "PolrModel.offset#summary": {
     "hash": "f39267a06284",
     "en": "Offset values for retained observations.",
-    "ja": ""
+    "ja": "保持された観測値のオフセットです。"
   },
   "PolrModel.offsetColumn#summary": {
     "hash": "a9a77cf7f136",
     "en": "Name of the data column used as an offset, when supplied by name.",
-    "ja": ""
+    "ja": "オフセットが名前で指定された場合に使うデータ列の名前です。"
   },
   "PolrModel.predictorVariables#summary": {
     "hash": "9ece59790d87",
     "en": "Predictor variable names in model-matrix order.",
-    "ja": ""
+    "ja": "モデル行列の順序に対応する説明変数名です。"
   },
   "PolrModel.rawHessian#summary": {
     "hash": "507edb3e404a",
     "en": "Observed Hessian in internal parameter coordinates.",
-    "ja": ""
+    "ja": "内部パラメータ座標での観測ヘッセ行列です。"
   },
   "PolrModel.response#summary": {
     "hash": "8e16303cb54e",
     "en": "Response column name.",
-    "ja": ""
+    "ja": "応答列の名前です。"
   },
   "PolrModel.responseLevels#summary": {
     "hash": "9abfa28cfb21",
     "en": "Ordered response category labels.",
-    "ja": ""
+    "ja": "順序付き応答カテゴリのラベルです。"
   },
   "PolrModel.rows#summary": {
     "hash": "9f01e412eafd",
     "en": "Original row indices retained after missing-value handling.",
-    "ja": ""
+    "ja": "欠測値の処理後に保持された元データの行インデックスです。"
   },
   "PolrModel.theta#summary": {
     "hash": "2eb76c693163",
     "en": "Internal unconstrained optimisation parameters.",
-    "ja": ""
+    "ja": "内部の制約なし最適化パラメータです。"
   },
   "PolrModel.weights#summary": {
     "hash": "55484eab8f1c",
     "en": "Prior weights for retained observations.",
-    "ja": ""
+    "ja": "保持された観測値の事前の重みです。"
   },
   "PolrModel.x#summary": {
     "hash": "e605933e27ab",
     "en": "Retained design matrix.",
-    "ja": ""
+    "ja": "保持されたモデル行列です。"
   },
   "PolrModel.y#summary": {
     "hash": "ac538a0b4956",
     "en": "Response values encoded as ordered category indices.",
-    "ja": ""
+    "ja": "順序付きカテゴリのインデックスとして符号化された応答値です。"
   },
   "PolrOptions#summary": {
     "hash": "8550468e6b45",
     "en": "Options for {@link polr}.",
-    "ja": ""
+    "ja": "{@link polr} のオプションです。"
   },
   "PolrOptions.contrasts#summary": {
     "hash": "356dcd3b67ad",
     "en": "Contrasts for categorical predictors.",
-    "ja": ""
+    "ja": "カテゴリ説明変数の対比です。"
   },
   "PolrOptions.levels#summary": {
     "hash": "e336491ef964",
     "en": "Explicit response and predictor levels.",
-    "ja": ""
+    "ja": "応答変数と説明変数の水準の明示的な指定です。"
   },
   "PolrOptions.maxit#summary": {
     "hash": "a2971c5e1e9a",
     "en": "Maximum optimisation iterations. Default `1000`.",
-    "ja": ""
+    "ja": "最適化の最大反復回数です。既定は `1000` です。"
   },
   "PolrOptions.method#summary": {
     "hash": "aab36f9c6edf",
     "en": "Cumulative link. Default `\"logistic\"`.",
-    "ja": ""
+    "ja": "累積リンクです。既定は `\"logistic\"` です。"
   },
   "PolrOptions.offset#summary": {
     "hash": "edbff844543b",
     "en": "Offset added to the linear predictor.",
-    "ja": ""
+    "ja": "線形予測子に加えるオフセットです。"
   },
   "PolrOptions.reltol#summary": {
     "hash": "5a17ad04a3b5",
     "en": "Relative optimisation tolerance. Default `1e-12`.",
-    "ja": ""
+    "ja": "相対最適化許容誤差です。既定は `1e-12` です。"
   },
   "PolrOptions.start#summary": {
     "hash": "f964aa8c8009",
     "en": "Initial slopes followed by the ordered cut-points.",
-    "ja": ""
+    "ja": "傾きの初期値に続けて、順序付きカットポイントを指定します。"
   },
   "PolrOptions.weights#summary": {
     "hash": "76066f4eda32",
     "en": "Non-negative prior weights, or the name of a data column.",
-    "ja": ""
+    "ja": "0 以上の事前の重み、またはデータ列の名前です。"
   },
   "PolrPredictOptions#summary": {
     "hash": "94d29e07f7be",
     "en": "Options for {@link polrPredict}.",
-    "ja": ""
+    "ja": "{@link polrPredict} のオプションです。"
   },
   "PolrPredictOptions.newdata#summary": {
     "hash": "ff3fbbb3d3b0",
     "en": "New predictor columns; omitted to return predictions for the fitted observations.",
-    "ja": ""
+    "ja": "新しい説明変数の列です。省略すると、当てはめに使用した観測値の予測値を返します。"
   },
   "PolrPredictOptions.rowNames#summary": {
     "hash": "aa0efe3c8afb",
     "en": "Row labels for a new data frame (default: \"1\", \"2\", ...).",
-    "ja": ""
+    "ja": "新しいデータフレームの行ラベルです (既定: \"1\"、\"2\"、...)。"
   },
   "PolrPredictOptions.type#summary": {
     "hash": "b458958e9334",
     "en": "Return the most likely category (default) or the category probabilities.",
-    "ja": ""
+    "ja": "最も可能性の高いカテゴリ (既定) またはカテゴリの確率を返します。"
   },
   "PolrPredictProbs#summary": {
     "hash": "39cb1f9e26c5",
     "en": "Probability matrix returned when {@link PolrPredictOptions.type} is \"probs\".",
-    "ja": ""
+    "ja": "{@link PolrPredictOptions.type} が \"probs\" の場合に返す確率行列です。"
   },
   "PolrPredictProbs.columns#summary": {
     "hash": "c87b4f85795b",
     "en": "Response category labels.",
-    "ja": ""
+    "ja": "応答カテゴリのラベルです。"
   },
   "PolrPredictProbs.rows#summary": {
     "hash": "898e9d35b298",
     "en": "Prediction row labels.",
-    "ja": ""
+    "ja": "予測対象の行ラベルです。"
   },
   "PolrPredictProbs.values#summary": {
     "hash": "7e25ca69d513",
     "en": "Predicted category probabilities; null marks an unavailable value.",
-    "ja": ""
+    "ja": "予測されたカテゴリ確率です。利用できない値は null で示します。"
   },
   "PolrPredictProbs.warnings#summary": {
     "hash": "b9acdaf3eb2b",
     "en": "Warnings produced while predicting.",
-    "ja": ""
+    "ja": "予測中に発生した警告です。"
   },
   "PolrPredictResult#summary": {
     "hash": "e610b9b99952",
     "en": "Predicted categories, or a probability matrix when type is \"probs\".",
-    "ja": ""
+    "ja": "予測されたカテゴリです。または、type が \"probs\" の場合は確率行列です。"
   },
   "PolrResult#summary": {
     "hash": "6f4918b5d454",
     "en": "Result of {@link polr}: cumulative-link estimates and their observed-information covariance.",
-    "ja": ""
+    "ja": "{@link polr} の結果です。累積リンクの推定値と、観測情報に基づく共分散を含みます。"
   },
   "PolrResult.aic#summary": {
     "hash": "5b4facc7bdb9",
     "en": "Akaike information criterion.",
-    "ja": ""
+    "ja": "赤池情報量規準です。"
   },
   "PolrResult.bic#summary": {
     "hash": "be1e6b573af8",
     "en": "Bayesian information criterion.",
-    "ja": ""
+    "ja": "ベイズ情報量規準です。"
   },
   "PolrResult.coefficients#summary": {
     "hash": "6c24b046a6df",
     "en": "Named slope estimates, excluding the cut-points.",
-    "ja": ""
+    "ja": "名前付きの傾きの推定値です。カットポイントは含みません。"
   },
   "PolrResult.converged#summary": {
     "hash": "836c8f14d972",
     "en": "Whether the numerical optimisation converged.",
-    "ja": ""
+    "ja": "数値最適化が収束したかどうかです。"
   },
   "PolrResult.convergence#summary": {
     "hash": "5a612371cd81",
     "en": "Optimiser convergence code.",
-    "ja": ""
+    "ja": "最適化器の収束コードです。"
   },
   "PolrResult.deviance#summary": {
     "hash": "6c2da1951cd7",
     "en": "Residual deviance, `-2 logLik`.",
-    "ja": ""
+    "ja": "残差逸脱度です (`-2 logLik`)。"
   },
   "PolrResult.edf#summary": {
     "hash": "11ca003fe818",
     "en": "Number of estimated slopes and cut-points.",
-    "ja": ""
+    "ja": "推定した傾きとカットポイントの数です。"
   },
   "PolrResult.fittedValues#summary": {
     "hash": "081604dbcde2",
     "en": "Fitted category probabilities, one row per retained observation.",
-    "ja": ""
+    "ja": "当てはめたカテゴリ確率です。保持された観測値ごとに 1 行あります。"
   },
   "PolrResult.linearPredictors#summary": {
     "hash": "372306edb2ac",
     "en": "Linear predictors, offset included.",
-    "ja": ""
+    "ja": "オフセットを含む線形予測子です。"
   },
   "PolrResult.logLik#summary": {
     "hash": "0e4254b95963",
     "en": "Maximised log likelihood.",
-    "ja": ""
+    "ja": "最大化された対数尤度です。"
   },
   "PolrResult.model#summary": {
     "hash": "d864cad821e9",
     "en": "Data and numerical state retained for the companion methods.",
-    "ja": ""
+    "ja": "関連するメソッドで使うために保持されたデータと数値計算の状態です。"
   },
   "PolrResult.nobs#summary": {
     "hash": "3b08e3dc9369",
     "en": "Sum of the positive case weights.",
-    "ja": ""
+    "ja": "正のケース重みの合計です。"
   },
   "PolrResult.warnings#summary": {
     "hash": "d71e04edc155",
