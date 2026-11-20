@@ -1,4 +1,5 @@
 # issue: 545
+# refine edge-case evidence and cluster diagnostics
 # final targeted rerun for independent formula checks
 # extend formula checks and public-output coverage
 # rerun after output-size and seed-stream corrections
@@ -40,7 +41,7 @@ capture <- function(f,includeQIC=TRUE) {
   s <- summary(f)
   ans <- list(coefficients=unname(coef(f)),vcov=tab(vcov(f)),
               corr=tab(s$corr),dispersion=tab(s$dispersion),
-              alphaVar=as.numeric(diag(f$geese$valpha)),gammaVar=as.numeric(diag(f$geese$vgamma)))
+              alphaVar=as.numeric(diag(f$geese$valpha)),gammaVar=as.numeric(diag(f$geese$vgamma)),clusterSizes=as.integer(f$geese$clusz))
   if (includeQIC) ans$qic <- unname(as.numeric(QIC(f)))
   ans
 }

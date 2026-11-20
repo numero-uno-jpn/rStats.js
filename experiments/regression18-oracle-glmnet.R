@@ -1,4 +1,5 @@
 # issue: 545
+# refine edge-case evidence and cluster diagnostics
 # final targeted rerun for independent formula checks
 # extend formula checks and public-output coverage
 # rerun after independent formula probes
@@ -51,6 +52,20 @@ out$cvGaussian<-run({
 for(tm in c("deviance","class","auc"))out[[paste0("cvBinomial_",tm)]]<-run({
  a<-cv.glmnet(Xcv,yb,family="binomial",foldid=fid,type.measure=tm,nlambda=8)
  list(lambda=a$lambda,cvm=a$cvm,cvsd=a$cvsd,lambdaMin=a$lambda.min,lambda1se=a$lambda.1se)
+})
+out$penaltyFactorOnly<-run({
+ f<-glmnet(X,y,penalty.factor=c(0,1,4),nlambda=8,lambda.min.ratio=.01)
+ list(lambda=f$lambda,a0=f$a0,beta=tab(f$beta),df=f$df)
+})
+out$interceptFalse<-run({
+ f<-glmnet(X,y,intercept=FALSE,nlambda=8,lambda.min.ratio=.01)
+ list(lambda=f$lambda,a0=f$a0,beta=tab(f$beta),df=f$df)
+})
+out$lambdaDefaultRatio<-run({
+ set.seed(1);Z<-matrix(rnorm(20*50),20,50);yz<-Z[,1]-2*Z[,2]+rnorm(20)
+ fN<-glmnet(Xcv,yg,nlambda=8);fP<-glmnet(Z,yz,nlambda=8)
+ list(nGtP=list(n=60,p=3,lambda=fN$lambda,ratio=tail(fN$lambda,1)/fN$lambda[1]),
+      pGtN=list(n=20,p=50,lambda=fP$lambda,ratio=tail(fP$lambda,1)/fP$lambda[1]))
 })
 out$penaltyFactor<-run({
  f<-glmnet(X,y,penalty.factor=c(0,1,4),lower.limits=c(-.5,0,-1),upper.limits=c(.5,0,1),dfmax=2,pmax=3,nlambda=8)

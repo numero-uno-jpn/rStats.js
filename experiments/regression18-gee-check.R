@@ -1,4 +1,5 @@
 # issue: 545
+# refine edge-case evidence and cluster diagnostics
 # final targeted rerun for independent formula checks
 # extend formula checks and public-output coverage
 # rerun after output-size and seed-stream corrections

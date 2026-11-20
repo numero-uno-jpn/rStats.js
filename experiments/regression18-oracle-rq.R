@@ -1,4 +1,5 @@
 # issue: 545
+# refine edge-case evidence and cluster diagnostics
 # final targeted rerun for independent formula checks
 # extend formula checks and public-output coverage
 # rerun after independent formula probes
@@ -58,7 +59,7 @@ out$defaultSEswitch<-run({
 })
 out$stacklossNid<-run({
  data(stackloss)
- f<-rq(stack.loss~.,data=stackloss,tau=.5,weights=rep(c(1,2,3),length.out=nrow(stackloss)))
+ f<-rq(stack.loss~.,data=stackloss,tau=.3,weights=rep(c(1,2,3),length.out=nrow(stackloss)))
  s<-summary(f,se="nid")
  list(coef=tab(coef(s)))
 })

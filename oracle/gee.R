@@ -1,3 +1,4 @@
+# extend formula checks and public-output coverage
 # rerun after output-size and seed-stream corrections
 # rerun after independent formula probes
 # rerun after stage1 formula verification
