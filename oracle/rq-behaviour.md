@@ -102,7 +102,7 @@ The br, tau=.5 public covariance is
 -0.200163398692810&0.0444807552650689
 \end{pmatrix}.
 \]
-The emitted design has \(X^\mathsf TX=((16,72),(72,664))\). Solving the common density from the four covariance entries gives \(\widehat f_0=0.128571428571429\) (sparsity 7.77777777777778); substitution reproduces all four entries to 14 significant digits. The separately exposed adaptive-kernel diagnostic density is 0.151672956703647 and is not the density used in this iid covariance.
+The emitted design has \(X^\mathsf TX=((16,72),(72,664))\). Solving the common density from the four covariance entries gives \(\widehat f_0=0.128571428571429\) (sparsity 7.77777777777778); substitution reproduces all four entries to 14 significant digits. The separately exposed adaptive-kernel diagnostic density is 0.151672956703647 and is not the density used in this iid covariance. The public output does not expose the exact intermediate estimator that supplies the summary's \(\widehat f_0\); it is therefore unsafe to identify it with the adaptive-kernel diagnostic or a residual quantile-spacing estimate.
 
 ### 7.3 Hall–Sheather, Bofinger, and nid
 
@@ -180,6 +180,7 @@ The defaultSEswitch experiment confirms rank at n=1000 and nid at n=1001; theref
 
 1. The score definition and all public rank endpoints are recorded, but independent numerical reconstruction of the nuisance-profiled inversion endpoints has not been completed. The alpha=.05, alpha=.1, and iid=FALSE public intervals were compared and retained above; no endpoint is claimed to have passed an independent root-by-root check.
 2. The RNG call, dimensions, orientation, and final seed states are verified for all bootstrap methods. The finite-sample perturbation mapping from the generated pwy, mcmb, and wxy variates into each replicate is not fully reconstructed from the compact public output; that remaining detail must be derived from the cited methods papers, not inferred from package internals.
+3. The exact intermediate estimator of the iid summary sparsity \(1/\widehat f_0\) is not exposed by the public return values. The covariance formula was inverted using all four covariance entries and gives \(\widehat f_0=0.128571428571429\), while the separately exposed adaptive-kernel diagnostic gives 0.151672956703647 and residual quantile spacings give different values. This discrepancy was explicitly checked; no estimator formula is asserted until it can be established from the permitted literature/help.
 
 ## Decisions for the user
 
