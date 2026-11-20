@@ -375,7 +375,43 @@ function fitBr(
         if (edge !== undefined && (best === undefined || edge.slope < best.slope)) best = edge;
       }
     }
-    if (best === undefined) return { beta, iterations: iteration + 1 };
+    if (best === undefined) {
+      const fitted = x.map((row) => dot(row, beta));
+      const residual = y.map((value, i) => value - fitted[i]!);
+      const zeroRows = residual.map((value, i) => ({
+        index: i,
+        zero: Math.abs(value) <= 64 * Number.EPSILON * Math.max(1, Math.abs(y[i]!), Math.abs(fitted[i]!)),
+      })).filter((item) => item.zero && !basis.includes(item.index)).map((item) => item.index);
+      if (zeroRows.length === 0 || residual.every((value, i) =>
+        Math.abs(value) <= 64 * Number.EPSILON * Math.max(1, Math.abs(y[i]!), Math.abs(fitted[i]!)))) {
+        return { beta, iterations: iteration + 1 };
+      }
+
+      // Degenerate pivot: exchange an additional exact-fit observation into the
+      // basis without moving beta. This exposes descent edges hidden by tied zeros.
+      let swap: { basis: number[]; beta: number[]; slope: number } | undefined;
+      for (let leaving = 0; leaving < p; leaving++) {
+        for (const entering of zeroRows) {
+          const candidateBasis = basis.filter((_, j) => j !== leaving).concat(entering);
+          if (new Set(candidateBasis).size !== p) continue;
+          const candidateKey = candidateBasis.slice().sort((a, b) => a - b).join(",");
+          if (seen.has(candidateKey) || qr(candidateBasis.map((i) => x[i]!)).rank !== p) continue;
+          const candidateBeta = solveLinear(candidateBasis.map((i) => Array.from(x[i]!)), candidateBasis.map((i) => y[i]!));
+          let candidateSlope = Infinity;
+          for (let j = 0; j < p; j++) for (const sign of [1, -1]) {
+            const edge = directionalEdge(x, y, weights, tau, candidateBeta, candidateBasis, j, sign);
+            if (edge !== undefined) candidateSlope = Math.min(candidateSlope, edge.slope);
+          }
+          if (candidateSlope < 0 && (swap === undefined || candidateSlope < swap.slope)) {
+            swap = { basis: candidateBasis, beta: candidateBeta, slope: candidateSlope };
+          }
+        }
+      }
+      if (swap === undefined) return { beta, iterations: iteration + 1 };
+      basis.splice(0, basis.length, ...swap.basis);
+      beta = swap.beta;
+      continue;
+    }
     const nextBasis = basis.filter((_, j) => j !== best!.leaving).concat(best.entering);
     const nextBeta = solveLinear(nextBasis.map((i) => Array.from(x[i]!)), nextBasis.map((i) => y[i]!));
     const currentLoss = x.reduce((sum, row, i) => {
