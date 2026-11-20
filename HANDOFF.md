@@ -1,8 +1,30 @@
 # 引継ぎ: rStats.js (外部レビュー対応 2026-10-30〜11-04、1.0.0 への準備 11-04〜)
 
-最終更新: 2026-11-20 昼 (セッション 25、Mac mini: 段階 3 の端の入力の直しも済み (最後は私が引き継いだ)。次は「nls の後」の配線と文書)。以前: 2026-11-19 深夜 (セッション 24、polr・rlm は完了、nls を ChatGPT に依頼)。以前: 2026-11-19 (セッション 23、1.6.0 を公開 (混合モデルの confint と simulate))。以前: 2026-11-17 (セッション 22、1.5.0 を公開)。その前: 2026-11-16 (セッション 21、Mac mini: 1.4.0 を公開、同時刻の Gray の検定を ChatGPT がクリーンルームで修正 (1.4.1 に入る、未公開)、外注用の R の実験の仕組みを作った。次は ROADMAP の 1 番)
+最終更新: 2026-11-20 夕 (セッション 25 の終わり、Mac mini: **1.7.0 を公開** (回帰 polr・rlm・nls、`/regression`)。次の作業は未定 (ROADMAP の 2 = 1.8.0)。以前: 2026-11-20 昼 (セッション 25、Mac mini: 段階 3 の端の入力の直しも済み (最後は私が引き継いだ)。次は「nls の後」の配線と文書)。以前: 2026-11-19 深夜 (セッション 24、polr・rlm は完了、nls を ChatGPT に依頼)。以前: 2026-11-19 (セッション 23、1.6.0 を公開 (混合モデルの confint と simulate))。以前: 2026-11-17 (セッション 22、1.5.0 を公開)。その前: 2026-11-16 (セッション 21、Mac mini: 1.4.0 を公開、同時刻の Gray の検定を ChatGPT がクリーンルームで修正 (1.4.1 に入る、未公開)、外注用の R の実験の仕組みを作った。次は ROADMAP の 1 番)
 
 ## まず読むこと (セッション 16 から)
+
+## 次のセッションで最初にやること: 1.8.0 の始め (セッション 25 → 26、2026-11-20 夕に作成)
+
+### 1.7.0 を公開した (2026-11-20)
+
+- npm latest = **1.7.0** (stage id `2ed4f176-...` をユーザーが `npm stage approve` で承認)。tag `v1.7.0` = `4dca465d`
+  (release がビルドの結果入りに付け替えた)、main = `bd5b29c8` (#544)。確かめたもの: jsDelivr の `dist/rstats.js`・
+  `dist/regression.js` (18 関数を export)・`dist/mixed.js`、デモ v1.7.0、`/api/` と `/ja/api/` の nls・polr・rlm の
+  ページ (日本語の訳つき)
+- 取り込みの順: #542 (回帰の本体、`experiments/regression-*` 33 ファイルを含む。テストが 1 つ読むため、ユーザーの決定)、
+  #543 (公開前の数値の点検の直し)、#544 (版)。作業ブランチ `work/regression`・`release/1.7.0-regression`・
+  `fix/regression-numerics`・`release/1.7.0` は残してある (**消す前にユーザーに聞く**)。PR #541 は閉じた
+- **公開前の数値の点検** (`experiments/regression-numerics-*`): polr の縮退 (choices 10 は決めてあったのに未実装だった)・
+  重みの定数倍で係数がずれる (スコアの許容に 1 の下限)・Infinity のエラー、nls の Infinity を黙って除いていた、を直した。
+  polr の確率は 5 つのリンクで ±800 まで 1e-13 以内。**点検の教訓:** 参照の式の側の桁落ち (cauchit の 0.5 + atan) と、
+  分離に近いつもりで完全に分離した例を作った、の 2 回、私の側の誤りがあった。不具合と言う前に参照を疑う
+- **MASS の `predict.polr` が newdata の offset を落とす件:** 当てはめは offset を使い、lm・glm は newdata の offset を
+  使うので、MASS の不具合と判断 (`experiments/regression-polr-offset-predict.*`、polr choices 13、differences-from-r)。
+  報告はユーザーが自分でする (Gmail の下書きは断られた)
+- **ChatGPT の使い方の文書** (汎用、他の repo にも): Claude Docs の「ChatGPT を外注先に使う開発の進め方」
+  https://claude.ai/artifact/XeAnCSwZUrejZhzx5a7BxV 。1.8.0 の外注もこれに沿う
+- 次: ROADMAP の 2 (1.8.0: quantreg の `rq`・geepack・glmnet)。範囲と順をユーザーと決めるところから
 
 ## 次のセッションで最初にやること: 1.7.0 の段階 3 (セッション 25 → 26、2026-11-20 朝に作成)
 
