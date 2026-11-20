@@ -1,7 +1,30 @@
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { rq, rqPredict } from "../src/models/rq.js";
 
+const oracle = JSON.parse(readFileSync(fileURLToPath(new URL("./fixtures/rq.json", import.meta.url)), "utf8")) as {
+  data: { X: { values: number[][] }; y: number[] };
+  br_0_25?: { value?: { coef: number[]; rho: number } };
+};
+
 describe("quantile regression", () => {
+  it("matches the pinned R public-output cases for br", () => {
+    const data = { x: oracle.data.X.values.map((row) => row[1]!), y: oracle.data.y };
+    const expected = [
+      { tau: 0.25, coef: [2, 0.8], rho: 8.05 },
+      { tau: 0.5, coef: [4.2, 0.733333333333333], rho: 12.4333333333333 },
+      { tau: 0.75, coef: [4.78571428571429, 0.928571428571428], rho: 8.03571428571429 },
+    ];
+    for (const item of expected) {
+      const fit = rq("y ~ x", data, { tau: item.tau, method: "br", eps: 1e-10 });
+      expect(fit.coefficients["(Intercept)"]).toBeCloseTo(item.coef[0]!, 7);
+      expect(fit.coefficients.x).toBeCloseTo(item.coef[1]!, 7);
+      expect(fit.rho).toBeCloseTo(item.rho, 7);
+      expect(fit.converged).toBe(true);
+    }
+  });
+
   it("fits a one-column median and upper quantile", () => {
     const data = { y: [0, 0, 1] };
     const median = rq("y ~ 1", data, { tau: 0.5 });
@@ -9,7 +32,7 @@ describe("quantile regression", () => {
     expect(median.coefficients["(Intercept)"]).toBeCloseTo(0, 8);
     expect(upper.coefficients["(Intercept)"]).toBeCloseTo(1, 8);
     expect(median.rho).toBeCloseTo(0.5, 8);
-    expect(upper.rho).toBeCloseTo(0.25, 8);
+    expect(upper.rho).toBeCloseTo(0.5, 8);
     expect(median.converged).toBe(true);
     expect(upper.converged).toBe(true);
   });
