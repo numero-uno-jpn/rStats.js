@@ -33,10 +33,15 @@ export type NlsAlgorithm = "default" | "plinear" | "port";
  * @category Regression
  */
 export interface NlsControl {
+  /** Maximum number of iterations. */
   maxiter?: number;
+  /** Relative convergence tolerance. */
   tol?: number;
+  /** Minimum step-length factor used by the line search. */
   minFactor?: number;
+  /** Whether non-convergence is reported as a warning instead of an error. */
   warnOnly?: boolean;
+  /** Positive offset used in the convergence scaling criterion. */
   scaleOffset?: number;
 }
 
@@ -45,11 +50,17 @@ export interface NlsControl {
  * @category Regression
  */
 export interface NlsOptions {
+  /** Named initial parameter values. */
   start?: Record<string, number>;
+  /** Nonlinear least-squares algorithm. */
   algorithm?: NlsAlgorithm;
+  /** Non-negative observation weights, or the name of a data column. */
   weights?: Sample | string;
+  /** Lower parameter bounds for the bounded algorithm. */
   lower?: number | readonly number[] | Record<string, number>;
+  /** Upper parameter bounds for the bounded algorithm. */
   upper?: number | readonly number[] | Record<string, number>;
+  /** Convergence controls. */
   control?: NlsControl;
 }
 
@@ -58,27 +69,49 @@ export interface NlsOptions {
  * @category Regression
  */
 export interface NlsModel {
+  /** Original model formula. */
   formula: string;
+  /** Response expression label. */
   response: string;
+  /** Parameter names in coefficient order. */
   parameterNames: string[];
+  /** Named parameter estimates. */
   coefficients: Record<string, number>;
+  /** Fitted response values. */
   fitted: number[];
+  /** Observed minus fitted response values. */
   residuals: number[];
+  /** Response values used in fitting. */
   y: number[];
+  /** Observation weights used in fitting. */
   weights: number[];
+  /** Original row indices retained after missing-value handling. */
   rows: number[];
+  /** Numeric data columns retained for prediction and profiling. */
   data: Record<string, number[]>;
+  /** Parsed expression tree used internally. @internal */
   expression: NlsExpr;
+  /** Weighted residual sum of squares. */
   deviance: number;
+  /** Residual standard error estimate. */
   sigma: number;
+  /** Residual degrees of freedom. */
   dfResidual: number;
+  /** Number of observations used in fitting. */
   nobs: number;
+  /** Estimated parameter covariance matrix. */
   covariance: number[][];
+  /** Estimated parameter correlation matrix. */
   correlation: number[][];
+  /** Whether the convergence criterion was met. */
   converged: boolean;
+  /** Number of iterations performed. */
   iterations: number;
+  /** Algorithm used for fitting. */
   algorithm: NlsAlgorithm;
+  /** Warnings produced during fitting. */
   warnings: string[];
+  /** Whether the residual sum of squares is exactly zero. */
   exactFit: boolean;
 }
 
@@ -93,11 +126,17 @@ export interface NlsResult extends NlsModel {}
  * @category Regression
  */
 export interface NlsSummaryResult {
+  /** Coefficient table with estimates, standard errors and test statistics. */
   coefficients: { rows: string[]; cols: string[]; values: number[][] };
+  /** Residual standard error estimate. */
   sigma: number;
+  /** Residual and model degrees of freedom. */
   df: [number, number];
+  /** Weighted residual sum of squares. */
   deviance: number;
+  /** Number of observations used in fitting. */
   nobs: number;
+  /** Warnings produced while computing the summary. */
   warnings: string[];
 }
 
@@ -106,6 +145,7 @@ export interface NlsSummaryResult {
  * @category Regression
  */
 export interface NlsPredictOptions {
+  /** New data columns at which to evaluate the fitted expression. */
   newdata: DataFrame;
 }
 
@@ -114,8 +154,11 @@ export interface NlsPredictOptions {
  * @category Regression
  */
 export interface NlsConfintOptions {
+  /** Confidence-interval method; profile by default. */
   method?: "profile" | "wald";
+  /** Confidence level between zero and one. */
   level?: number;
+  /** Parameter names for which to compute intervals; omitted means all estimable parameters. */
   parm?: readonly string[];
 }
 
@@ -124,9 +167,13 @@ export interface NlsConfintOptions {
  * @category Regression
  */
 export interface NlsConfintResult {
+  /** Parameter names for the intervals. */
   rows: string[];
+  /** Lower and upper confidence-limit labels. */
   cols: [string, string];
+  /** Lower and upper confidence limits, one pair per parameter. */
   values: [number, number][];
+  /** Warnings produced while computing the intervals. */
   warnings: string[];
 }
 
@@ -144,6 +191,7 @@ export interface NlsAnovaResult {
     "F value": (number | "NA")[];
     "Pr(>F)": (number | "NA")[];
   };
+  /** Warnings produced while comparing models. */
   warnings: string[];
 }
 
