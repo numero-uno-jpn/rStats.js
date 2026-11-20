@@ -7,7 +7,7 @@ While the version is 0.x, a minor release (0.y.0) may contain breaking changes;
 they are listed under **Breaking** for each release. From 1.0.0 the project follows
 [Semantic Versioning](https://semver.org/).
 
-## Unreleased
+## 1.7.0 - 2026-11-20
 
 ### Added
 
@@ -17,6 +17,10 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   (`nls`, `nlsSummary`, `nlsVcov`, `nlsPredict`, `nlsConfint`, `nlsAnova`), including ten self-starting
   models. The area is not part of the root entry point or `dist/rstats.js`.
   See [the documented differences from R](docs/differences-from-r.md#regression-polr-rlm-and-nls).
+  Checked against R and MASS, the NIST StRD nonlinear regression problems (every problem R's `nls` solves, to at
+  least 8.6 certified digits) and independent computations (exact profile limits, scale equivariance, extreme
+  linear predictors, NaN and Infinity, rank deficiency). The bundle of everything except `/mixed` and
+  `/regression` is still 322 KB gzipped; `/regression` is 84 KB.
 
 ## 1.6.0 - 2026-11-19
 

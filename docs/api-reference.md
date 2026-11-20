@@ -35,7 +35,7 @@ import { lmer, glmer } from "@numero-uno-jpn/rstats/mixed";        // mixed mode
 import { polr, rlm, nls } from "@numero-uno-jpn/rstats/regression"; // regression: only from this area
 ```
 
-Without a bundler, `https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@1.6.0/dist/rstats.js` is one ES module with
+Without a bundler, `https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@1.7.0/dist/rstats.js` is one ES module with
 every function except mixed models and regression, which are in `dist/mixed.js` and `dist/regression.js`. Keep a version in the URL (an exact one, or a
 major version such as `@1` from 1.0.0 on): a URL without one follows every new release, breaking changes included.
 Use either `dist/rstats.js` or the per-area bundles (`dist/tests.js`, `dist/mixed.js`, `dist/regression.js`, ...) on one page: mixing them
