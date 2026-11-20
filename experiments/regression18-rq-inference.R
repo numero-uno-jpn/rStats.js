@@ -71,6 +71,8 @@ out <- list(
     fh.fn <- rq(y ~ x, tau = 0.5 + hs, method = "fn")
     si <- summary(f, se = "iid", covariance = TRUE)
     si.b <- summary(f, se = "iid", covariance = TRUE, hs = FALSE)
+    sn <- summary(f, se = "nid", covariance = TRUE)
+    sk <- summary(f, se = "ker", covariance = TRUE)
     rz <- residuals(f)
     rn <- rz[abs(rz) > 1e-8]
     d0 <- function(v, bw) {
@@ -91,6 +93,8 @@ out <- list(
       fittedPlus = fitted(fh),
       iidCov = si$cov,
       iidBofingerCov = si.b$cov,
+      nid = list(table = coef(sn), cov = sn$cov, Hinv = sn$Hinv, J = sn$J),
+      ker = list(table = coef(sk), cov = sk$cov, Hinv = sk$Hinv, J = sk$J, names = names(sk)),
       nonzeroResidualCount = length(rn),
       bwNrd = bw.nrd(rn),
       bwNrd0 = bw.nrd0(rn),
