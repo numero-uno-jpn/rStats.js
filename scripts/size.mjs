@@ -36,7 +36,7 @@ const regressionEntry = fileURLToPath(new URL("../dist/entries/regression.js", i
 cases.push(["polr (from /regression)", "polr", regressionEntry]);
 cases.push(["polr with all its methods (from /regression)", "polr, polrSummary, polrVcov, polrPredict, polrConfint, polrAnova", regressionEntry]);
 cases.push(["rlm (from /regression)", "rlm", regressionEntry]);
-cases.push(["rlm with all its methods (from /regression)", "rlm, rlmSummary, rlmVcov", regressionEntry]);
+cases.push(["rlm with all its methods (from /regression)", "rlm, rlmSummary, rlmVcov, psiHuber, psiHampel, psiBisquare", regressionEntry]);
 cases.push(["nls (from /regression)", "nls", regressionEntry]);
 cases.push(["nls with all its methods (from /regression)", "nls, nlsSummary, nlsVcov, nlsPredict, nlsConfint, nlsAnova", regressionEntry]);
 
