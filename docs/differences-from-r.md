@@ -1221,7 +1221,8 @@ The reference decisions are recorded in [polr](../oracle/polr-behaviour.md), [rl
 [nls](../oracle/nls-behaviour.md).
 
 - **Ordinal regression:** `polr` uses the standard Cauchy distribution for `method: "cauchit"`; MASS 7.3-66's
-  `cauchit` link does not fit that standard model. Predictions on new data include the formula offset, unlike MASS.
+  `cauchit` link does not fit that standard model. Predictions on new data include the formula offset, as `lm` and
+  `glm` do; MASS 7.3-66's `predict(fit, newdata)` drops it although its fit uses it, which looks like a fault in MASS.
   A response level with no observations (or only zero weights), and comparisons of non-nested fits, are errors here;
   MASS returns finite but meaningless estimates for the former and a negative likelihood-ratio statistic for the latter.
 - **Robust regression:** MM uses a deterministic S-estimator start, and `init: "lts"` uses a deterministic subset search;

@@ -1,0 +1,34 @@
+== lm: y ~ wt + offset(off)
+predict: 24.7724678650 19.4599044105 26.7724678650 22.4599044105 
+by hand with the newdata offset: 24.7724678650 19.4599044105 26.7724678650 22.4599044105 
+== glm (poisson): carb ~ wt + offset(off)
+predict: -1.119831099012 -0.851313018928  0.880168900988  2.148686981072 
+by hand with the newdata offset: -1.119831099012 -0.851313018928  0.880168900988  2.148686981072 
+== polr (MASS): gearO ~ wt + offset(off)
+predict (rows of probabilities):
+          3         4          5
+1 0.4106897 0.4906734 0.09863689
+2 0.8054428 0.1764690 0.01808816
+3 0.4106897 0.4906734 0.09863689
+4 0.8054428 0.1764690 0.01808816
+by hand with the newdata offset:
+           [,1]      [,2]       [,3]
+[1,] 0.41068967 0.4906734 0.09863689
+[2,] 0.80544284 0.1764690 0.01808816
+[3,] 0.08618633 0.4667305 0.44708319
+[4,] 0.17088986 0.5590356 0.27007459
+by hand with offset 0:
+          [,1]      [,2]       [,3]
+[1,] 0.4106897 0.4906734 0.09863689
+[2,] 0.8054428 0.1764690 0.01808816
+[3,] 0.4106897 0.4906734 0.09863689
+[4,] 0.8054428 0.1764690 0.01808816
+max |predict - by hand with the newdata offset|: 0.635 
+max |predict - by hand with offset 0|: 0 
+predict for the rows (wt = 2, off = 0) and (wt = 2, off = 2) equal: TRUE 
+== does the polr fit itself use the offset? fitted probabilities against hand computation on the training rows
+max |fitted - by hand with the training offset|: 0 
+max |fitted - by hand with offset 0|: 0.49 
+coefficient of wt with the offset: -1.781781302  without: -1.831391879 
+predict(fit) without newdata equals fitted(fit): TRUE 
+MASS version: 7.3.66 

@@ -300,4 +300,10 @@ in `experiments/regression-polr-2.R` and `.json` on `work/regression`):
     offset(off)`, new rows `wt = 2, 3` and `off = 2, 3`) MASS's probabilities equal, to every digit, those computed by
     hand with the offset set to 0. rStats.js adds the new rows' offset to the linear predictor, as `glm`'s prediction
     does. The test checks rStats.js against the probabilities computed by hand with the offset, and that setting the
-    new offset to 0 gives MASS's values
+    new offset to 0 gives MASS's values.
+    **MASS's behaviour is taken to be a fault** (amended 2026-11-20, `experiments/regression-polr-offset-predict.R` and
+    `.out.txt`, public functions only): MASS's fit uses the offset (its fitted probabilities equal those computed by
+    hand with the training offset, and the coefficient of `wt` changes from −1.8314 to −1.7818), and `predict(fit)`
+    without new data equals `fitted(fit)`; only `predict(fit, newdata)` drops it, giving the same probabilities for
+    rows that differ only in the offset. `lm` and `glm` with the same formula offset use the offset of the new data.
+    To be reported to MASS's maintainers
