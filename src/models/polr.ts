@@ -1046,6 +1046,7 @@ export function polrConfint(fit: PolrResult, options: PolrConfintOptions = {}): 
  * @category Regression
  */
 export interface PolrAnovaResult {
+  /** Likelihood-ratio analysis-of-deviance table. */
   table: {
     /** Formula or term label for each fitted model. */
     Model: string[];
