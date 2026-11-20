@@ -30,7 +30,7 @@ await build({
 });
 
 /** The areas, as in src/entries/ (also the package's subpath exports) */
-export const AREAS = ["distributions", "tests", "linalg", "descriptive", "numerics", "special", "mixed"];
+export const AREAS = ["distributions", "tests", "linalg", "descriptive", "numerics", "special", "mixed", "regression"];
 
 await build({
   ...common,
