@@ -297,17 +297,19 @@ removed. Approximate sizes after minification and gzip:
 | `glm` and `glmSummary` / `glm` with all its methods | 35.1 / 51.4 KB |
 | `lmer` (from `/mixed`) / with `lmerSummary`, `lmerContest`, `lmerAnova` | 19.4 / 70.0 KB |
 | `glmer` (from `/mixed`) / with `glmerSummary`, `glmerAnova`, `glmerPredict` | 47.2 / 66.1 KB |
-| everything (except `/mixed`) | 322.2 KB |
+| `polr` / `rlm` / `nls` (from `/regression`) | 24.6 / 14.6 / 7.9 KB |
+| everything (except `/mixed` and `/regression`) | 322.2 KB |
 
 (`npm run size` measures these.)
 
 Each area is also a subpath export, for importing one area without the rest:
 `@numero-uno-jpn/rstats/distributions`, `/tests` (hypothesis tests, `lm`, `confint` and
-`predict`, and `glm` with its methods), `/linalg`, `/descriptive`, `/numerics`, `/special` and `/mixed`
-(`lmer`, `glmer` and their methods; this area is only available this way, not from the main entry point).
+`predict`, and `glm` with its methods), `/linalg`, `/descriptive`, `/numerics`, `/special`, `/mixed`
+(`lmer`, `glmer` and their methods) and `/regression` (`polr`, `rlm`, `nls` and their methods); these last two
+areas are only available this way, not from the main entry point.
 
 Without a bundler, load the single-file build `dist/rstats.js` (one minified ES module with every
-function except those of `/mixed`, 322 KB gzipped) from jsDelivr, which serves each npm release:
+function except those of `/mixed` and `/regression`, 322 KB gzipped) from jsDelivr, which serves each npm release:
 
 ```html
 <script type="module">
@@ -324,14 +326,14 @@ loaded either way. Nothing is added to `window`: to use the functions from other
 browser console, assign `window.rs = rs` yourself.
 
 A page that needs only some areas can load the per-area bundles instead: `dist/distributions.js`,
-`dist/tests.js`, `dist/linalg.js`, `dist/descriptive.js`, `dist/numerics.js`, `dist/special.js` and
-`dist/mixed.js` export the same functions as the subpaths above, and share their common code through
+`dist/tests.js`, `dist/linalg.js`, `dist/descriptive.js`, `dist/numerics.js`, `dist/special.js`,
+`dist/mixed.js` and `dist/regression.js` export the same functions as the subpaths above, and share their common code through
 `dist/chunks/`, so loading two areas does not load that code twice. With its chunks, one area
 transfers 39 KB (`special`) to 288 KB (`tests`) gzipped.
 
 Use either `dist/rstats.js` or the per-area bundles on one page, not both: they are separate sets of modules, so a
 page that mixes them loads the common code twice and has two random number states (`setSeed` from one does not seed
-the generators of the other). The same holds for `dist/rstats.js` with `dist/mixed.js`, which brings its own copy
+the generators of the other). The same holds for `dist/rstats.js` with `dist/mixed.js` or `dist/regression.js`, which bring their own copy
 of the common code.
 
 Other npm-based CDNs work as well, for example `https://esm.sh/@numero-uno-jpn/rstats`. Release tags also contain

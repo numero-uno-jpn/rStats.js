@@ -298,16 +298,17 @@ double-double 演算で計算しているためです。詳しくは [docs/ja/ac
 | `glm` と `glmSummary` / `glm` とそのすべての関数 | 35.1 / 51.4 KB |
 | `lmer` (`/mixed` から) / `lmerSummary`・`lmerContest`・`lmerAnova` も | 19.4 / 70.0 KB |
 | `glmer` (`/mixed` から) / `glmerSummary`・`glmerAnova`・`glmerPredict` も | 47.2 / 66.1 KB |
-| すべて (`/mixed` を除く) | 322.2 KB |
+| `polr` / `rlm` / `nls` (`/regression` から) | 24.6 / 14.6 / 7.9 KB |
+| すべて (`/mixed` と `/regression` を除く) | 322.2 KB |
 
 (`npm run size` で測れます。)
 
 分野ごとにサブパスからも export しているので、1 つの分野だけを import することもできます。
 `@numero-uno-jpn/rstats/distributions`、`/tests` (検定、`lm`・`confint`・`predict`、`glm` とその関数)、`/linalg`、
-`/descriptive`、`/numerics`、`/special`、`/mixed` です (`/mixed` の `lmer`・`glmer` とその関数は、この方法でしか import
-できません。メインの入口には含めていません)。
+`/descriptive`、`/numerics`、`/special`、`/mixed`、`/regression` です (`/mixed` の `lmer`・`glmer` とその関数と、
+`/regression` の `polr`・`rlm`・`nls` とその関数は、この方法でしか import できません。メインの入口には含めていません)。
 
-バンドラを使わない場合は、1 ファイルにまとめたビルド `dist/rstats.js` (`/mixed` 以外のすべての関数を含む
+バンドラを使わない場合は、1 ファイルにまとめたビルド `dist/rstats.js` (`/mixed` と `/regression` 以外のすべての関数を含む
 minify 済みの ES モジュール、gzip で 322 KB) を jsDelivr から読み込めます。jsDelivr は、npm のリリースを
 そのまま配信します。
 
@@ -327,14 +328,14 @@ minify 済みの ES モジュール、gzip で 322 KB) を jsDelivr から読み
 
 一部の分野だけを使うページでは、代わりに分野ごとのバンドルを読み込めます。`dist/distributions.js`、
 `dist/tests.js`、`dist/linalg.js`、`dist/descriptive.js`、`dist/numerics.js`、`dist/special.js`、
-`dist/mixed.js` は上のサブパスと同じ関数を export し、共通のコードを `dist/chunks/` で共有します。そのため、
+`dist/mixed.js`、`dist/regression.js` は上のサブパスと同じ関数を export し、共通のコードを `dist/chunks/` で共有します。そのため、
 2 つの分野を読み込んでも共通部分は 1 回しか読み込まれません。chunk を含めた 1 分野の転送量は、gzip で
 39 KB (`special`) から 288 KB (`tests`) です。
 
 1 つのページでは、`dist/rstats.js` か分野ごとのバンドルのどちらか一方だけを使ってください。両者は別々の
 モジュールの集まりなので、混ぜると共通のコードが 2 回読み込まれ、乱数の状態も 2 つになります (一方の `setSeed`
-は他方の乱数に効きません)。`dist/rstats.js` と `dist/mixed.js` を一緒に読み込む場合も、`dist/mixed.js` は
-共通のコードを別に持ち込みます。
+は他方の乱数に効きません)。`dist/rstats.js` と `dist/mixed.js` や `dist/regression.js` を一緒に読み込む場合も、
+`dist/mixed.js` と `dist/regression.js` は共通のコードを別に持ち込みます。
 
 npm を元にしたほかの CDN も使えます。たとえば `https://esm.sh/@numero-uno-jpn/rstats` です。ビルド結果
 (`dist/`) は main ブランチにはなく、リリースのタグにも入っていますが、jsDelivr の GitHub 経由の配信
