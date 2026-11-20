@@ -1167,7 +1167,7 @@
   "nls#summary": {
     "hash": "e76f7f25dcf3",
     "en": "Nonlinear least-squares regression. Equivalent to R's `nls()`.\n\nFits a user-specified nonlinear mean function by Gauss-Newton, variable projection, or bound-constrained\nleast squares. Formula expressions are parsed safely and differentiated symbolically.",
-    "ja": "非線形最小二乗回帰です。R の `nls()` と同等です。\n\nユーザーが指定した非線形平均関数を、Gauss-Newton 法、変数射影法、または境界付き最小二乗法で当てはめます。式の表現は安全に解析され、記号微分されます。"
+    "ja": "非線形最小二乗回帰です。R の `nls()` と同等です。\n\nユーザーが指定した非線形平均関数を、Gauss-Newton 法、変数射影法、または境界付き最小二乗法で当てはめます。\n式の表現は安全に解析され、記号微分されます。"
   },
   "nlsAnova#@example": {
     "hash": "f2167be5edf2",
