@@ -189,6 +189,7 @@ export interface NlsConfintResult {
  * @category Regression
  */
 export interface NlsAnovaResult {
+  /** Sequential analysis-of-variance table. */
   table: {
     /** Formula for each fitted model. */
     Model: string[];
