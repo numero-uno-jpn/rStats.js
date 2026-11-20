@@ -474,7 +474,7 @@ examples <- list(
   list(id = "nls-self-starting-michaelis-menten", title = "Nonlinear least squares with a self-starting Michaelis-Menten model (stats)",
        value = function() { d <- data.frame(conc = c(0.02,0.06,0.11,0.22,0.56,1.1), rate = c(76,97,123,159,191,207)); f <- stats::nls(rate ~ SSmicmen(conc, Vm, K), data = d); s <- summary(f)$coefficients; v <- vcov(f); p <- predict(f, newdata = data.frame(conc = c(0.1,0.5))); q <- qt(0.975, df.residual(f)); ci <- cbind(coef(f) - q * s[,2], coef(f) + q * s[,2]); c(coef(f), as.vector(t(s)), as.vector(t(v)), p, as.vector(t(ci))) }),
   list(id = "nls-nested-model-comparison", title = "Nonlinear least squares: F-test for nested Michaelis-Menten models (stats)",
-       value = function() { d <- data.frame(conc = c(0.02,0.06,0.11,0.22,0.56,1.1), rate = c(76,97,123,159,191,207)); a <- stats::nls(rate ~ Vm * conc / (K + conc), data = d, start = list(Vm = 200, K = 0.05)); b <- stats::nls(rate ~ Vm * conc / (K + conc) + c, data = d, start = list(Vm = 200, K = 0.05, c = 0)); z <- anova(a, b); c(z[2, "F value"], z[2, "Pr(>F)"], coef(b)) })
+       value = function() { d <- data.frame(conc = c(0.02,0.06,0.11,0.22,0.56,1.1), rate = c(76,97,123,159,191,207)); a <- stats::nls(rate ~ Vm * conc / (K + conc), data = d, start = list(Vm = 200, K = 0.05)); b <- stats::nls(rate ~ Vm * conc / (K + conc) + baseline, data = d, start = list(Vm = 200, K = 0.05, baseline = 0)); z <- anova(a, b); c(z[2, "F value"], z[2, "Pr(>F)"], coef(b)) })
 )
 
 if (!exists(".rstats_oracle")) {
