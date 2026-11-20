@@ -10,14 +10,14 @@ run <- function(expr) {
   if(inherits(value,"caught")) return(list(error=value$message,warnings=warns,messages=msgs))
   list(value=value,warnings=warns,messages=msgs)
 }
-tab<-function(m) list(rows=rownames(m),cols=colnames(m),values=unname(m))
+tab<-function(m) { z<-as.matrix(m); list(rows=rownames(z),cols=colnames(z),values=unname(z)) }
 capture<-function(f) {
  s<-summary(f)
  list(coefficients=coef(f),vcov=tab(vcov(f)),summary=tab(coef(s)),
       corr=run(tab(as.matrix(s$corr))),dispersion=run(tab(as.matrix(s$dispersion))),
       fitted=unname(fitted(f))[seq_len(min(10,length(fitted(f))))],
       residuals=unname(residuals(f,type="pearson"))[seq_len(min(10,length(residuals(f,type="pearson"))))],
-      qic=run(QIC(f)))
+      qic=run(unname(as.numeric(QIC(f)))))
 }
 out<-list()
 data(dietox);data(ohio);data(seizure);data(respiratory);dietox$Cu<-factor(dietox$Cu)
@@ -26,7 +26,7 @@ for(corr in c("independence","exchangeable","ar1","unstructured")) {
   f<-geeglm(Weight~Time+Cu,id=Pig,data=dietox,corstr=corr)
   ft<-geeglm(Weight~Time+Cu,id=Pig,data=dietox,corstr=corr,control=geese.control(epsilon=1e-10,maxit=200))
   list(default=capture(f),fitTight=list(coefficients=coef(ft),vcov=tab(vcov(ft)),summary=tab(coef(summary(ft)))),
-       anova=run(as.list(anova(f))))
+       anova=run(tab(anova(f))))
  })
  out[[paste0("ohio_binomial_",corr)]]<-run({
   f<-geeglm(resp~age+smoke,id=id,data=ohio,family=binomial,corstr=corr)
@@ -61,7 +61,7 @@ out$fixed<-run({
  f<-geeglm(resp~age+smoke,id=id,data=ohio,family=binomial,corstr="fixed",zcor=z)
  list(default=capture(f),fitTight=coef(geeglm(resp~age+smoke,id=id,data=ohio,family=binomial,corstr="fixed",zcor=z,control=geese.control(epsilon=1e-10,maxit=200))))
 })
-out$nested_anova<-run({a<-geeglm(resp~age,id=id,data=ohio,family=binomial,corstr="exchangeable");b<-geeglm(resp~age+smoke+age:smoke,id=id,data=ohio,family=binomial,corstr="exchangeable");as.list(anova(b,a))})
+out$nested_anova<-run({a<-geeglm(resp~age,id=id,data=ohio,family=binomial,corstr="exchangeable");b<-geeglm(resp~age+smoke+age:smoke,id=id,data=ohio,family=binomial,corstr="exchangeable");tab(anova(b,a))})
 out$predict<-run({f<-geeglm(resp~age+smoke,id=id,data=ohio,family=binomial,corstr="ar1");nd<-data.frame(age=c(-2,0,1),smoke=c(0,1,1));list(link=predict(f,newdata=nd),response=predict(f,newdata=nd,type="response"))})
 out$unsorted_id<-run({d<-dietox[order(dietox$Time,-dietox$Pig),];capture(geeglm(Weight~Time,id=Pig,data=d,corstr="exchangeable"))})
 out$singletons<-run(capture(geeglm(mpg~wt,id=seq_len(nrow(mtcars)),data=mtcars,corstr="exchangeable")))
