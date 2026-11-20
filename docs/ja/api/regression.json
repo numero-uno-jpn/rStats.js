@@ -1402,156 +1402,156 @@
   "polrVcov#@returns": {
     "hash": "feeb10548d3b",
     "en": "The covariance matrix in slope-then-cut-point order.",
-    "ja": ""
+    "ja": "傾き、次にカットポイントの順序に対応する共分散行列を返します。"
   },
   "polrVcov#summary": {
     "hash": "a1d859dcbfc2",
     "en": "Covariance matrix of the slopes and cut-points. Equivalent to R's `vcov.polr()`.",
-    "ja": ""
+    "ja": "傾きとカットポイントの共分散行列です。R の `vcov.polr()` と同等です。"
   },
   "psiBisquare#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "psiBisquare#@param options": {
     "hash": "d3fdc3ffe507",
     "en": "Tuning constant and output selection.",
-    "ja": ""
+    "ja": "調整定数と出力の選択です。"
   },
   "psiBisquare#@param u": {
     "hash": "55bc6b88bc62",
     "en": "Standardised residuals.",
-    "ja": ""
+    "ja": "標準化残差です。"
   },
   "psiBisquare#@returns": {
     "hash": "7c8b5214c94a",
     "en": "The IRLS weight psi(u)/u, or psi'(u) when deriv is 1.",
-    "ja": ""
+    "ja": "IRLS 重み ψ(u)/u、または deriv が 1 の場合は ψ'(u) を返します。"
   },
   "psiBisquare#summary": {
     "hash": "f673bbe4c95d",
     "en": "Tukey's bisquare psi function. Equivalent to R's `MASS::psi.bisquare()`.",
-    "ja": ""
+    "ja": "Tukey の bisquare ψ 関数です。R の `MASS::psi.bisquare()` と同等です。"
   },
   "psiHampel#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "psiHampel#@param options": {
     "hash": "06054c5b0d20",
     "en": "Three tuning points and output selection.",
-    "ja": ""
+    "ja": "3 つの調整点と出力の選択です。"
   },
   "psiHampel#@param u": {
     "hash": "55bc6b88bc62",
     "en": "Standardised residuals.",
-    "ja": ""
+    "ja": "標準化残差です。"
   },
   "psiHampel#@returns": {
     "hash": "7c8b5214c94a",
     "en": "The IRLS weight psi(u)/u, or psi'(u) when deriv is 1.",
-    "ja": ""
+    "ja": "IRLS 重み ψ(u)/u、または deriv が 1 の場合は ψ'(u) を返します。"
   },
   "psiHampel#summary": {
     "hash": "ed8e7daedea9",
     "en": "Hampel's three-part psi function. Equivalent to R's `MASS::psi.hampel()`.",
-    "ja": ""
+    "ja": "Hampel の 3 区分 ψ 関数です。R の `MASS::psi.hampel()` と同等です。"
   },
   "psiHuber#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "psiHuber#@param options": {
     "hash": "d3fdc3ffe507",
     "en": "Tuning constant and output selection.",
-    "ja": ""
+    "ja": "調整定数と出力の選択です。"
   },
   "psiHuber#@param u": {
     "hash": "55bc6b88bc62",
     "en": "Standardised residuals.",
-    "ja": ""
+    "ja": "標準化残差です。"
   },
   "psiHuber#@returns": {
     "hash": "7c8b5214c94a",
     "en": "The IRLS weight psi(u)/u, or psi'(u) when deriv is 1.",
-    "ja": ""
+    "ja": "IRLS 重み ψ(u)/u、または deriv が 1 の場合は ψ'(u) を返します。"
   },
   "psiHuber#summary": {
     "hash": "fedcdbdc44f8",
     "en": "Huber's psi function. Equivalent to R's `MASS::psi.huber()`.",
-    "ja": ""
+    "ja": "Huber の ψ 関数です。R の `MASS::psi.huber()` と同等です。"
   },
   "rlm#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "rlm#@param data": {
     "hash": "a2d1df8756e6",
     "en": "Columns of equal-length observations.",
-    "ja": ""
+    "ja": "同じ長さの観測値からなる列です。"
   },
   "rlm#@param formula": {
     "hash": "6727449b9ae5",
     "en": "A formula such as `\"y ~ x1 + x2\"`.",
-    "ja": ""
+    "ja": "`\"y ~ x1 + x2\"` のような式です。"
   },
   "rlm#@param options": {
     "hash": "9d1be1235acc",
     "en": "Psi, scale, initial values, observation weights and iteration controls.",
-    "ja": ""
+    "ja": "ψ 関数、尺度、初期値、観測値の重み、反復制御です。"
   },
   "rlm#@returns": {
     "hash": "09235d1742d7",
     "en": "Coefficients, fitted values, residuals, robust weights, scale and covariance diagnostics.",
-    "ja": ""
+    "ja": "係数、当てはめ値、残差、ロバスト重み、尺度、共分散の診断情報を返します。"
   },
   "rlm#summary": {
     "hash": "fe83c375ae03",
     "en": "Robust M regression. Equivalent to R's `MASS::rlm()`.",
-    "ja": ""
+    "ja": "ロバスト M 回帰です。R の `MASS::rlm()` と同等です。"
   },
   "rlmSummary#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "rlmSummary#@param fit": {
     "hash": "767bc025798b",
     "en": "A fit returned by {@link rlm}.",
-    "ja": ""
+    "ja": "{@link rlm} が返した当てはめです。"
   },
   "rlmSummary#@returns": {
     "hash": "2cc715d3cbe9",
     "en": "Coefficients, standard errors and t statistics.",
-    "ja": ""
+    "ja": "係数、標準誤差、t 統計量を返します。"
   },
   "rlmSummary#summary": {
     "hash": "994cc824296e",
     "en": "Coefficient table of a robust fit. Equivalent to R's `summary.rlm()`.",
-    "ja": ""
+    "ja": "ロバスト回帰の係数表です。R の `summary.rlm()` と同等です。"
   },
   "rlmVcov#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "rlmVcov#@param fit": {
     "hash": "767bc025798b",
     "en": "A fit returned by {@link rlm}.",
-    "ja": ""
+    "ja": "{@link rlm} が返した当てはめです。"
   },
   "rlmVcov#@returns": {
     "hash": "11841e7ac9f6",
     "en": "The covariance matrix in coefficient order.",
-    "ja": ""
+    "ja": "係数の順序に対応する共分散行列を返します。"
   },
   "rlmVcov#summary": {
     "hash": "2c052cb7fae7",
     "en": "Covariance matrix of robust-regression coefficients. Equivalent to R's `vcov.rlm()`.",
-    "ja": ""
+    "ja": "ロバスト回帰係数の共分散行列です。R の `vcov.rlm()` と同等です。"
   }
 }
