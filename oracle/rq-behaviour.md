@@ -75,25 +75,117 @@ The pinned public output establishes:
 
 These are reference observations, not all recommended API policies. In particular, reference error strings are not normative API design.
 
-## 7. Oracle coverage and unresolved behaviour
+## 7. Formula-level specification and numerical verification
 
-`oracle/rq.R` records the Engel data over five quantiles and both algorithms; weighted and factor-predictor fits; multi-quantile coefficients and summaries; slope-homogeneity and nested-model tests; confidence prediction; non-unique, exact, collinear, missing-row, and out-of-range-tau cases; and the four bootstrap methods with fixed seeds. The pre-existing `experiments/regression18-rq.json` supplies the pinned R 4.6.2 / quantreg 6.1 observations.
+The pinned values below come from the successful R 4.6.2 / quantreg 6.1 public-output run in experiments/regression18-oracle-rq.R on commit 9c698624. Seeded bootstrap probes are from successful runs 2703e24c and ebc1ff0d. All independent calculations use emitted data and public outputs only.
 
-Unresolved items:
+### 7.1 Objective and weights
 
-1. The exact bootstrap random-number consumption and resampling transforms have not been identified from the recorded public outputs. More targeted seeded experiments are required before claiming R-stream equivalence.
-2. A full characterization of `rank` versus `iid = FALSE`, all bandwidth boundary cases, and covariance output for each method remains open.
-3. Multi-quantile crossing behaviour and all `anova` score/trim combinations are not exhaustively mapped.
-4. The precise handling of zero weights, infinite inputs, and very large/small scales needs targeted experiments.
-5. The exact method-specific stopping diagnostics are not fully characterized by the currently recorded output.
+For \(u_i=y_i-x_i^\mathsf T\beta_\tau\),
+\[
+Q_\tau(\beta)=\sum_iw_i\rho_\tau(u_i),\qquad
+\rho_\tau(u)=u\{\tau-\mathbf1(u<0)\}.
+\]
+The weighted oracle returns coefficients (4.2, 0.733333333333333), equal to the unweighted result to 15 displayed significant digits on this particular design.
+
+### 7.2 iid covariance
+
+The iid score approximation is
+\[
+\widehat V_{\rm iid}=
+\frac{\tau(1-\tau)}{\widehat f_0^2}(X^\mathsf TX)^{-1}.
+\]
+The br, tau=.5 public covariance is
+\[
+\begin{pmatrix}
+1.84595134350036&-0.200163398692810\\
+-0.200163398692810&0.0444807552650689
+\end{pmatrix}.
+\]
+The emitted design has \(X^\mathsf TX=((16,72),(72,664))\). Solving the common density from the four covariance entries gives \(\widehat f_0=0.128571428571429\) (sparsity 7.77777777777778); substitution reproduces all four entries to 14 significant digits. The separately exposed adaptive-kernel diagnostic density is 0.151672956703647 and is not the density used in this iid covariance.
+
+### 7.3 Hall–Sheather, Bofinger, and nid
+
+With \(z_\tau=\Phi^{-1}(\tau)\) and standard normal density \(\phi\),
+\[
+h_{\rm HS}=n^{-1/3}\{1.5\phi(z_\tau)^2z_{1-\alpha/2}^2\}^{1/3},
+\quad
+h_{\rm B}=n^{-1/5}\{4.5\phi(z_\tau)^4\}^{1/5}.
+\]
+For n=16, tau=.5, alpha=.05, the independently evaluated values are 0.385563455061825 and 0.372003099908465; the public bandwidth output agrees to 14 significant digits.
+
+For each row,
+\[
+\widehat s_i=
+\frac{x_i^\mathsf T\widehat\beta_{\tau+h}-x_i^\mathsf T\widehat\beta_{\tau-h}}{2h},
+\quad \widehat f_i=1/\widehat s_i,\quad
+H=X^\mathsf T\operatorname{diag}(\widehat f_i)X,\quad J=X^\mathsf TX,
+\]
+and
+\[
+\widehat V_{\rm nid}=\tau(1-\tau)H^{-1}JH^{-1}.
+\]
+The 16 local sparsities in br_0.5 range from 2.91780765326840 to 7.78082040871574. The reported H inverse is
+\[
+\begin{pmatrix}.449608363105377&-.0458794947868339\\-.0458794947868339&.0146982328743403\end{pmatrix},
+\]
+and J is ((16,72),(72,664)). Independent sandwich multiplication gives covariance entries .415407811808214, -.0376121265902385, -.0376121265902386, .0200055184586616, agreeing to 13–14 significant digits. The Bofinger covariance is .446244902552827, -.0404041986885277, -.0404041986885277, .0214905940171049 and is the second bandwidth check. Non-positive local densities produce the public warning “1 non-positive fis” in the weighted stackloss case; this is an invalid local density and must not be inverted silently.
+
+### 7.4 ker covariance
+
+With the local kernel density estimate \(\widehat f_i\), set \(H_K=X^\mathsf T\operatorname{diag}(\widehat f_i)X\). The covariance is
+\[
+\widehat V_{\rm ker}=\tau(1-\tau)H_K^{-1}JH_K^{-1}.
+\]
+For br_0.5, H inverse is (1.45394576725491, -.156468233408406; -.156468233408406, .0355557696853512), J is the same design cross-product, and the public covariance is (4.33002859631191, -.462288709117642; -.462288709117643, .107508005317309). Direct multiplication agrees to at least 13 significant digits.
+
+### 7.5 rank inference and anova
+
+The rank score is
+\[
+S(\beta)=\sum_i x_i\{\mathbf1(y_i\leq x_i^\mathsf T\beta)-\tau\}.
+\]
+The iid score covariance uses \(\tau(1-\tau)\sum_i x_ix_i^\mathsf T\); iid=FALSE uses the observation-specific score covariance. The reported interval endpoints are the lower and upper endpoints of the accepted set after profiling nuisance coefficients. At alpha=.05, the public intervals are intercept [1.96894923868268,4.53894801798403] and slope [0.580560930960114,1.06404864074146]. At alpha=.1 they are [1.14573004521032,5.07238472881931] and [0.557058220755292,1.18030276287381]. The non-iid alpha=.05 intervals are [1.96269708518447,4.54056234486899] and [0.575837208334820,1.07606187567548]. These public values are recorded; independent root-by-root reconstruction of the nuisance-profiled endpoints is not yet complete.
+
+For a nested restriction \(R\beta=r\), the Wald statistic is
+\[
+W=(R\widehat\beta-r)^\mathsf T
+\{R\widehat V R^\mathsf T\}^{-1}(R\widehat\beta-r).
+\]
+The public multiTau result is ndf=2, ddf=46, Tn=1.95304970194872, pvalue=0.153425200963809 for joint=TRUE and the single-slope joint=FALSE test in this one-predictor design. The two-predictor experiment records the four-restriction joint test and separate two-restriction tests.
+
+### 7.6 Confidence prediction
+
+For type=none,
+\[
+\widehat q_\tau(x_0)\pm t_{1-\alpha/2,n-p}
+\sqrt{x_0^\mathsf T\widehat Vx_0}.
+\]
+Type=direct uses the fitted conditional quantiles at the lower and upper quantile levels selected by the bandwidth rule. Type=percentile uses empirical quantiles of bootstrap predictions. The Engel output gives fits 361.572523021646, 641.662798626356, 1481.93362544049. The none intervals are [348.017815862078,375.127230181214], [619.734433040921,663.59116421179], [1378.57212377153,1585.29512710944]; direct intervals are [358.044512801943,372.786462548665], [599.493259333344,669.029869864692], [848.719406283614,1826.15799607033]; percentile intervals are [342.457064773490,390.388556590329], [622.379024697960,655.618769132687], [1318.55308532152,1555.95419458380].
+
+### 7.7 Bootstrap random-number stream
+
+Successful seeded probes at n=235, R=40, tau=.5, set.seed(1), identify each RNG call and the n-by-R column-major layout:
+- xy: sample.int(n,n*R,replace=TRUE), state index 284; both sample and xyU probes match.
+- pwy: runif(n*R), state index 40; uniform and pwyU probes match.
+- mcmb: rnorm(n*R), state index 80; normal probe matches.
+- wxy: rexp(n*R,rate=1), state index 528; exponential and wxyU probes match.
+The repeated xy call returns identical=TRUE. The seed after summary(se="boot", bsmethod="xy") equals the state after direct xy bootstrap, confirming identical stream consumption. No source or function body was used.
+
+### 7.8 Defaults and coverage
+
+The defaultSEswitch experiment confirms rank at n=1000 and nid at n=1001; therefore the default is rank for n<=1000 and nid for n>1000. The successful oracle covers br/fn, tau=.25/.5/.75, weights, factor predictors, multi-tau tests, prediction intervals, non-unique/exact/singular/missing/out-of-range cases, all four bootstrap methods, and the default boundary. The earlier 60000-byte-truncated output on b5fc491f is not used for numerical claims.
+
+## 8. Unresolved behaviour
+
+1. The score definition and all public rank endpoints are recorded, but independent numerical reconstruction of the nuisance-profiled inversion endpoints has not been completed. The alpha=.05, alpha=.1, and iid=FALSE public intervals were compared and retained above; no endpoint is claimed to have passed an independent root-by-root check.
+2. The RNG call, dimensions, orientation, and final seed states are verified for all bootstrap methods. The finite-sample perturbation mapping from the generated pwy, mcmb, and wxy variates into each replicate is not fully reconstructed from the compact public output; that remaining detail must be derived from the cited methods papers, not inferred from package internals.
 
 ## Decisions for the user
 
-1. **Non-unique optima.** (A) Reproduce the `br` vertex whenever possible; (B) accept any solution with the minimum objective and valid optimality conditions. **Recommendation: B.** The manual explicitly describes different valid representatives from `br` and `fn`; the objective and optimality conditions are invariant and can be checked independently.
-2. **Bootstrap random stream.** (A) Require exact R `set.seed` stream compatibility for all four bootstrap methods; (B) provide reproducible rStats.js bootstrap streams but document that they differ from R; (C) defer `boot`. **Recommendation: B unless experiments identify the exact R draw sequence without implementation inspection.** This is the honest, testable boundary; do not claim parity without evidence.
-3. **Out-of-range tau.** (A) Reproduce the reference quantile-process result; (B) reject tau outside (0,1) for the initial API. **Recommendation: B.** The process object is a distinct API and not needed for ordinary quantile regression.
-4. **Rank inference default.** (A) Follow the reference sample-size-dependent default; (B) use a single predictable default such as `nid`. **Recommendation: A** for compatibility, with the documented computational cost and cutoff.
-5. **Zero weights.** (A) allow zero weights and remove their rows from the effective problem; (B) require strictly positive weights. **Recommendation: A**, while rejecting negative weights and documenting that zero-weight rows do not contribute.
+1. **Non-unique solutions.** (A) require the same vertex as br; (B) accept any minimizer whose objective and quantile optimality conditions are satisfied. **Recommendation: B**, because non-unique optima need not have a unique coefficient vector.
+2. **Bootstrap random stream.** (A) reproduce R set.seed and the verified draw calls for all four methods; (B) use an rStats.js-specific reproducible stream. **Recommendation: A.** RNG calls, dimensions, orientation, and post-call states are identified for xy, pwy, mcmb, and wxy. The remaining perturbation transforms are a separate formula task.
+3. **Out-of-range tau.** (A) reproduce reference path output; (B) reject values outside (0,1). **Recommendation: B**, because these are not valid quantile probabilities.
 
 ## rStats.js's choices
 
