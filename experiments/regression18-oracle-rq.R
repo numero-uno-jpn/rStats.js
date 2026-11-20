@@ -1,4 +1,5 @@
 # issue: 545
+# batch rerun after reserved-token fix
 # batch rerun after clean-room script correction
 # Focused quantile-regression oracle, with public outputs and documented bandwidth helper.
 suppressMessages(library(quantreg));library(jsonlite)

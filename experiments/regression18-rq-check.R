@@ -1,4 +1,5 @@
 # issue: 545
+# batch rerun after reserved-token fix
 # batch rerun after clean-room script correction
 # Seed-consumption and documented bootstrap-output experiment; no implementation inspection.
 suppressMessages(library(quantreg));library(jsonlite)

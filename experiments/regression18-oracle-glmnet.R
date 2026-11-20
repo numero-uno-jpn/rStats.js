@@ -1,4 +1,5 @@
 # issue: 545
+# batch rerun after reserved-token fix
 # batch rerun after clean-room script correction
 # Focused glmnet path oracle with fixed inputs and public fit components.
 suppressMessages(library(glmnet));library(jsonlite)

@@ -1,4 +1,5 @@
 # issue: 545
+# batch rerun after reserved-token fix
 # batch rerun after clean-room script correction
 # Small deterministic GEE data for independent moment/covariance calculations.
 suppressMessages(library(geepack));library(jsonlite)
