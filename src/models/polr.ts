@@ -1047,12 +1047,19 @@ export function polrConfint(fit: PolrResult, options: PolrConfintOptions = {}): 
  */
 export interface PolrAnovaResult {
   table: {
+    /** Formula or term label for each fitted model. */
     Model: string[];
+    /** Residual degrees of freedom for each model. */
     "Resid. df": number[];
+    /** Residual deviance for each model. */
     "Resid. Dev": number[];
+    /** Label of each sequential model comparison. */
     Test: string[];
+    /** Degrees of freedom for each likelihood-ratio test. */
     "   Df": (number | "NA")[];
+    /** Likelihood-ratio statistic for each comparison. */
     "LR stat.": (number | "NA")[];
+    /** Chi-squared tail probability for each comparison. */
     "Pr(Chi)": (number | "NA")[];
   };
   /** Model or term labels associated with the comparison. */
