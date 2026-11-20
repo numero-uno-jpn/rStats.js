@@ -985,8 +985,8 @@
       "tol": 0.0001 },
     { "id": "nls-nested-model-comparison", "tab": "tests",
       "title": {"en":"Nonlinear least squares: F-test for nested Michaelis-Menten models (stats)","ja":"非線形最小二乗法: 入れ子の Michaelis-Menten モデルの F 検定 (stats)"},
-      "js": "(() => { const d = { conc: [0.02,0.06,0.11,0.22,0.56,1.1], rate: [76,97,123,159,191,207] }; const a = nls(\"rate ~ Vm * conc / (K + conc)\", d, { start: { Vm: 200, K: 0.05 } }); const b = nls(\"rate ~ Vm * conc / (K + conc) + c\", d, { start: { Vm: 200, K: 0.05, c: 0 } }); const z = nlsAnova(a, b).table; return [z[\"F value\"][1], z[\"Pr(>F)\"][1], ...Object.values(b.coefficients)]; })()",
-      "r": "{ d <- data.frame(conc = c(0.02,0.06,0.11,0.22,0.56,1.1), rate = c(76,97,123,159,191,207)); a <- stats::nls(rate ~ Vm * conc / (K + conc), data = d, start = list(Vm = 200, K = 0.05)); b <- stats::nls(rate ~ Vm * conc / (K + conc) + c, data = d, start = list(Vm = 200, K = 0.05, c = 0)); z <- anova(a, b); c(z[2, \"F value\"], z[2, \"Pr(>F)\"], coef(b)) }",
+      "js": "(() => { const d = { conc: [0.02,0.06,0.11,0.22,0.56,1.1], rate: [76,97,123,159,191,207] }; const a = nls(\"rate ~ Vm * conc / (K + conc)\", d, { start: { Vm: 200, K: 0.05 } }); const b = nls(\"rate ~ Vm * conc / (K + conc) + baseline\", d, { start: { Vm: 200, K: 0.05, baseline: 0 } }); const z = nlsAnova(a, b).table; return [z[\"F value\"][1], z[\"Pr(>F)\"][1], ...Object.values(b.coefficients)]; })()",
+      "r": "{ d <- data.frame(conc = c(0.02,0.06,0.11,0.22,0.56,1.1), rate = c(76,97,123,159,191,207)); a <- stats::nls(rate ~ Vm * conc / (K + conc), data = d, start = list(Vm = 200, K = 0.05)); b <- stats::nls(rate ~ Vm * conc / (K + conc) + baseline, data = d, start = list(Vm = 200, K = 0.05, baseline = 0)); z <- anova(a, b); c(z[2, \"F value\"], z[2, \"Pr(>F)\"], coef(b)) }",
       "tol": 0.0001 }
   ]
 }
