@@ -127,7 +127,14 @@ export interface NlsResult extends NlsModel {}
  */
 export interface NlsSummaryResult {
   /** Coefficient table with estimates, standard errors and test statistics. */
-  coefficients: { rows: string[]; cols: string[]; values: number[][] };
+  coefficients: {
+    /** Coefficient names in row order. */
+    rows: string[];
+    /** Summary statistic column names. */
+    cols: string[];
+    /** Rows of coefficient estimates, standard errors and test statistics. */
+    values: number[][];
+  };
   /** Residual standard error estimate. */
   sigma: number;
   /** Residual and model degrees of freedom. */
