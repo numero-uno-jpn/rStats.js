@@ -52,7 +52,7 @@ describe("quantile regression", () => {
   });
 
 
-  it("matches the Engel public-output fixture with the dual interior-point method", () => {
+  it("matches the fixture with the dual interior-point method", () => {
     const data = { x: oracle.data.X.values.map((row) => row[1]!), y: oracle.data.y };
     const fit = rq("y ~ x", data, { tau: 0.5, method: "fn", eps: 1e-12, maxit: 200 });
     expect(fit.coefficients["(Intercept)"]).toBeCloseTo(4.2, 7);
