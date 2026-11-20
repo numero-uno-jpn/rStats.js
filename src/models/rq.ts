@@ -161,9 +161,9 @@ function fitOne(
   const p = x[0]!.length;
   if (n === 0 || p === 0) throw new RangeError("the design matrix must have at least one column and one row");
   if (n < p) throw new RangeError("singular design matrix");
-  const xx = x.map((row, i) => row.map((v) => v * Math.sqrt(weights[i]!)));
-  const yy = y.map((v, i) => v * Math.sqrt(weights[i]!));
-  const ww = weights.map((v) => v);
+  const xx = x.map((row, i) => row.map((v) => v * weights[i]!));
+  const yy = y.map((v, i) => v * weights[i]!);
+  const ww = weights;
   const z = new Array<number>(2 * p + 2 * n).fill(1);
   const s = new Array<number>(2 * p + 2 * n).fill(1);
   const dual = new Array<number>(n).fill(0);
@@ -190,8 +190,11 @@ function fitOne(
     let mu = 0;
     for (let i = 0; i < z.length; i++) mu += z[i]! * s[i]!;
     mu /= z.length;
-    const primalNorm = Math.max(...rp.map(Math.abs)) / Math.max(1, ...bvec.map(Math.abs));
-    const dualNorm = Math.max(...rd.map(Math.abs)) / Math.max(1, ...c.map(Math.abs));
+    let primalMax = 0, dataMax = 1, dualMax = 0, costMax = 1;
+    for (let i = 0; i < rp.length; i++) { primalMax = Math.max(primalMax, Math.abs(rp[i]!)); dataMax = Math.max(dataMax, Math.abs(bvec[i]!)); }
+    for (let i = 0; i < rd.length; i++) { dualMax = Math.max(dualMax, Math.abs(rd[i]!)); costMax = Math.max(costMax, Math.abs(c[i]!)); }
+    const primalNorm = primalMax / dataMax;
+    const dualNorm = dualMax / costMax;
     if (Math.max(primalNorm, dualNorm, mu) <= eps) { converged = true; break; }
     const rcAff = z.map((v, i) => v * s[i]!);
     const aff = direction(xx, yy, tau, z, s, dual, rp, rd, rcAff);
@@ -219,7 +222,8 @@ function fitOne(
       for (let i = 0; i < n; i++) v += weights[i]! * x[i]![j]! * (residuals[i]! < 0 ? tau - 1 : tau);
       return Math.abs(v);
     });
-    const norm = Math.max(...score);
+    let norm = 0;
+    for (const value of score) norm = Math.max(norm, value);
     if (norm <= 1e-7 * Math.max(1, Math.abs(rho))) converged = true;
   }
   return { beta, fitted, residuals, rho, converged, iterations };
