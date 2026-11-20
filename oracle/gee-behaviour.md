@@ -199,6 +199,7 @@ The public geese.control values are trace=0, jack=0, j1s=0, fij=0, maxit=25, eps
 1. scale.fix=TRUE, scale.value=4 still returns “variable lengths differ (found for '(scale.value)')” in the pinned fixed_scale call. The exact call was rerun and fails reproducibly; this is treated as a reference defect, not a target formula.
 2. Single-fit anova for the fixed working-correlation structure did not finish within 40 seconds in the earlier ohio_fixed run. The fixed fit and zcor construction are recorded; no further time was spent on this slow path.
 3. The validation matrix for arbitrary user-defined zcor, unequal cluster sizes, and all missing-wave patterns is not exhaustive. userdefinedToeplitz and wavesGap verify the basic cases; unsupported layouts should be rejected until specified.
+4. The public summary reports standard errors for working-correlation and scale parameters, and the oracle captures the corresponding alphaVar/gammaVar and dispersion tables. Their nuisance-parameter estimating-equation sandwich has not yet been independently reconstructed entry-by-entry. The 12-cluster Gaussian and 20-cluster binomial public values are retained; no unsupported closed-form shortcut is claimed.
 
 ## Decisions for the user
 
