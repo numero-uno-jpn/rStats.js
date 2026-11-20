@@ -1,0 +1,5 @@
+n = 20, p = 3, crit = 1.65740740740738
+sum of the 10 smallest squared residuals = 0.766975308641961
+sum of the 11 smallest squared residuals = 1.17515432098764
+sum of the 12 smallest squared residuals = 1.6574074074074
+sum of the 13 smallest squared residuals = 3.36188271604941

@@ -35,6 +35,7 @@ against R and are not a priority.
 | Random numbers | R's default Mersenne-Twister with `set.seed()`-compatible streams, and `RNGkind` with `"L'Ecuyer-CMRG"` (with `parallel`'s `nextRNGStream` and `nextRNGSubStream`) and `sample.kind = "Rounding"`; 26 `r*` functions including `rmultinom` (extraDistr's streams for the extra distributions), `sample`, `sampleInt`, `r2dtable` |
 | Descriptive statistics | R's summaries (`mean`, `variance`, `quantile` with all nine types, `rank`, `cov`/`cor` matrices, `table`, `cut`, `hist`, `ecdf`, `scale`, ...) and e1071's and DescTools' (`skewness`, `kurtosis`, `geometricMean`, `modes`, `meanAD`, `cv`) |
 | Hypothesis tests | R's `htest` functions: `tTest`, `chisqTest` (including simulated p-values and two factor vectors), `fisherTest` (including r × c and simulated p-values), `wilcoxTest`, `corTest`, `binomTest`, `poissonTest`, `propTest`, `mcnemarTest`, `varTest`, `bartlettTest`, `kruskalTest`, `friedmanTest`, `quadeTest`, `flignerTest`, `moodTest`, `onewayTest`, `shapiroTest`, `mantelhaenTest`, `ansariTest` (with its confidence interval), `ksTest`, the `pairwise*` helpers, `pAdjust`; `aov` (one way), `TukeyHSD`, `zTest` (BSDA), `brunnerMunzelTest` (lawstat) |
+| Regression | Ordinal logistic regression (`polr`), robust regression (`rlm`) and nonlinear least squares (`nls`), with their summaries, covariance, prediction, confidence intervals and model comparisons; ten self-starting models. Separate `/regression` area. |
 | Linear models | `lm` with a matrix interface and `summary.lm`'s quantities, `confint`, `predict`; `glm` with a matrix interface (every family and link of R's `stats`), `summary.glm`, the four kinds of residuals, `hatvalues`, `rstandard`, `cooks.distance`, `predict` with standard errors, profile likelihood `confint` (exact limits) and `anova`; robust covariances: sandwich's `vcovHC` (HC0 to HC5) and `vcovCL` (one-way and multi-way clustered, HC0 to HC3) and lmtest's `coeftest` and `coefci`, for modified Poisson regression (risk ratios), weighted regression after inverse probability weighting and difference-in-differences |
 | Analysis of variance | `aov`, `lm` and `modelMatrix` from formulas (several factors, interactions, covariates, `Error()` strata), `anova` (sequential and model comparison), car's `Anova` (types II and III), afex's `aov_ez` as `aovEz` (repeated measures, Greenhouse-Geisser and Huynh-Feldt, generalized eta squared), `mauchly.test` |
 | Effect sizes and power | effectsize's `cohens_d`, `hedges_g`, `eta_squared`, `omega_squared`, `epsilon_squared` (from `anova` and `Anova` tables, exact confidence limits); `power.t.test`, `power.prop.test`, `power.anova.test` and the power functions of `pwr` |
@@ -61,12 +62,6 @@ and effect measures with their confidence intervals, not only p-values. The list
 a statistics web application for medical and psychological research (2026-11-06). In order of priority; the R
 function or package that each item is checked against is given in brackets.
 
-1. **Regression for 1.7.0** (decided 2026-11-19): ordinal logistic regression [MASS `polr`: the logistic, probit,
-   cloglog, loglog and cauchit links, with `summary`, `predict`, profile-likelihood `confint` and `anova`],
-   nonlinear regression [`nls` with the default, `plinear` and `port` algorithms and the self-starting models, with
-   `summary`, `predict` and profile `confint`] and robust regression [MASS `rlm`: Huber, Hampel and bisquare psi
-   functions, M and MM estimation, with `summary`], in a new `regression` area. These extend maximum likelihood and
-   iteratively reweighted least squares, which `glm` already has, and are checked against R and MASS alone.
 2. **Regression for 1.8.0:** quantile regression [quantreg `rq`], GEE [geepack] and regularised regression [glmnet].
    They need linear programming, working correlations and coordinate descent, and matching R takes more work.
 3. **Later, in no particular order:** MANOVA [`manova`], discriminant analysis [MASS `lda`], canonical correlation

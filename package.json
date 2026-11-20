@@ -67,6 +67,11 @@
       "import": "./dist/entries/mixed.js",
       "default": "./dist/entries/mixed.js"
     },
+    "./regression": {
+      "types": "./dist/entries/regression.d.ts",
+      "import": "./dist/entries/regression.js",
+      "default": "./dist/entries/regression.js"
+    },
     "./package.json": "./package.json"
   },
   "types": "./dist/index.d.ts",

@@ -115,7 +115,7 @@ it. Tree-shaking keeps only the imported functions and their dependencies.
 | `qbeta` | 98.4 KB | 43.9 KB |
 | `pt`, `qt` | 89.7 KB | 40.4 KB |
 | `glm`, `glmSummary` / `glm` with all its methods | 85.2 / 122.3 KB | 35.1 / 51.4 KB |
-| everything (except `/mixed`) | 860.9 KB | 322.2 KB |
+| everything (except `/mixed` and `/regression`) | 860.9 KB | 322.2 KB |
 | `@numero-uno-jpn/rstats/distributions` (all of it) | 241.8 KB | 95.6 KB |
 | `@numero-uno-jpn/rstats/tests` (all of it) | 687.9 KB | 262.4 KB |
 | `@numero-uno-jpn/rstats/linalg` (all of it) | 65.6 KB | 24.1 KB |
@@ -125,6 +125,10 @@ it. Tree-shaking keeps only the imported functions and their dependencies.
 | `@numero-uno-jpn/rstats/mixed`: `lmer` alone / with lmerTest's tests | 50.1 / 164.6 KB | 19.4 / 70.0 KB |
 | `@numero-uno-jpn/rstats/mixed`: `glmer` alone / with `glmerSummary`, `glmerAnova`, `glmerPredict` | 116.9 / 160.4 KB | 47.2 / 66.1 KB |
 | `@numero-uno-jpn/rstats/mixed` (all of it) | 250.2 KB | 101.5 KB |
+| `@numero-uno-jpn/rstats/regression`: `polr` alone / with all its methods | 60.7 / 120.3 KB | 24.6 / 52.4 KB |
+| `@numero-uno-jpn/rstats/regression`: `rlm` alone / with all its methods | 38.0 / 38.4 KB | 14.6 / 14.7 KB |
+| `@numero-uno-jpn/rstats/regression`: `nls` alone / with all its methods | 21.4 / 107.4 KB | 7.9 / 45.7 KB |
+| `@numero-uno-jpn/rstats/regression` (all of it) | 201.6 KB | 83.6 KB |
 
 The subpath rows are an area bundled on its own. The per-area CDN files (`dist/<area>.js`) share code between areas
 through `dist/chunks/`, so one area loaded from them transfers more: 39 KB (`special`) to 288 KB (`tests`) gzipped,

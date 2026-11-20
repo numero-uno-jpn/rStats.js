@@ -24,6 +24,7 @@ const CATEGORIES = [
   "Linear models and ANOVA",
   "Generalized linear models",
   "Mixed models",
+  "Regression",
   "Survival analysis",
   "Agreement, reliability and factor analysis",
   "Linear algebra",

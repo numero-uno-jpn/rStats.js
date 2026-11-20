@@ -111,7 +111,7 @@ rStats.js は精度を最優先にしています。分布関数は遠い裾で�
 | `qbeta` | 98.4 KB | 43.9 KB |
 | `pt`、`qt` | 89.7 KB | 40.4 KB |
 | `glm`、`glmSummary` / `glm` とすべてのメソッド | 85.2 / 122.3 KB | 35.1 / 51.4 KB |
-| すべて (`/mixed` を除く) | 860.9 KB | 322.2 KB |
+| すべて (`/mixed` と `/regression` を除く) | 860.9 KB | 322.2 KB |
 | `@numero-uno-jpn/rstats/distributions` (全体) | 241.8 KB | 95.6 KB |
 | `@numero-uno-jpn/rstats/tests` (全体) | 687.9 KB | 262.4 KB |
 | `@numero-uno-jpn/rstats/linalg` (全体) | 65.6 KB | 24.1 KB |
@@ -121,6 +121,10 @@ rStats.js は精度を最優先にしています。分布関数は遠い裾で�
 | `@numero-uno-jpn/rstats/mixed`: `lmer` だけ / lmerTest の検定も | 50.1 / 164.6 KB | 19.4 / 70.0 KB |
 | `@numero-uno-jpn/rstats/mixed`: `glmer` だけ / `glmerSummary`・`glmerAnova`・`glmerPredict` も | 116.9 / 160.4 KB | 47.2 / 66.1 KB |
 | `@numero-uno-jpn/rstats/mixed` (全体) | 250.2 KB | 101.5 KB |
+| `@numero-uno-jpn/rstats/regression`: `polr` だけ / その関数をすべて | 60.7 / 120.3 KB | 24.6 / 52.4 KB |
+| `@numero-uno-jpn/rstats/regression`: `rlm` だけ / その関数をすべて | 38.0 / 38.4 KB | 14.6 / 14.7 KB |
+| `@numero-uno-jpn/rstats/regression`: `nls` だけ / その関数をすべて | 21.4 / 107.4 KB | 7.9 / 45.7 KB |
+| `@numero-uno-jpn/rstats/regression` (全体) | 201.6 KB | 83.6 KB |
 
 サブパスの行は、その分野だけをバンドルした大きさです。CDN 向けの分野ごとのファイル (`dist/<area>.js`) は分野の間でコードを
 `dist/chunks/` で共有するため、そこから 1 分野を読み込むと転送量はこれより多くなります。chunk を含めて gzip で 39 KB

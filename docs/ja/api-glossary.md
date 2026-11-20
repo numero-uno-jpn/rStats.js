@@ -915,3 +915,14 @@
 | superiority | 優越性 | 新規 (1.5.0)。試験デザイン |
 | equality (`type: "equality"`) | 等値性 | 新規 (1.5.0)。epiR の `type`。「同等性」(equivalence) と区別 |
 | allocation ratio | 割付比 | 新規 (1.5.0)。epiR の `r` |
+| cumulative link / cumulative-link distribution | 累積リンク / 累積リンク分布 | 新規 (1.7.0)。順序回帰 (`polr`) |
+| cut-point | カットポイント | 新規 (1.7.0)。順序回帰のカテゴリの境界。因子の「水準」と区別 |
+| variable projection | 変数射影法 | 新規 (1.7.0)。`nls` の `algorithm: "plinear"` |
+| bound-constrained least squares | 境界付き最小二乗法 | 新規 (1.7.0)。`nls` の `algorithm: "port"` |
+| redescending (psi function) | 再下降型 (ψ 関数) | 新規 (1.7.0)。ロバスト推定 |
+| high-breakdown | 高破綻点 | 新規 (1.7.0)。ロバスト推定。breakdown point は「破綻点」 |
+| estimating equation | 推定方程式 | 新規 (1.7.0)。`docs/ja` で使用 |
+| fixed-point tolerance | 不動点許容誤差 | 新規 (1.7.0)。尺度の不動点反復 |
+| frequency weights | 度数重み | 新規 (1.7.0)。`rlm` の `wtMethod: "case"`。case weights は「観測値の重み」 |
+| Proposal 2 (scale) | Proposal 2 (尺度) | 新規 (1.7.0)。Huber の尺度推定の名前は英字のまま |
+| IRLS weight | IRLS 重み | 新規 (1.7.0)。反復重み付き最小二乗法の重み |
