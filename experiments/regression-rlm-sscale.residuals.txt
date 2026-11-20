@@ -1,0 +1,5 @@
+max |R reported residuals - (y - X b_R)| 6.184e-1
+max |R reported residuals - (y - X b_rStats)| 2.031e-5
+coefficients implied by R's residuals -36.92530309, 0.8495747895, 0.4304755448, -0.07354065085
+rStats S coefficients                 -36.92542292, 0.8495748075, 0.4304739059, -0.07353884860
+R reported coefficients               -35.37610619, 0.8252212389, 0.4424778761, -0.07964601770

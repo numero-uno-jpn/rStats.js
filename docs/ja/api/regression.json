@@ -1,0 +1,1557 @@
+{
+  "NlsAlgorithm#summary": {
+    "hash": "5186605eace4",
+    "en": "Algorithm used to fit a nonlinear least-squares model.",
+    "ja": "非線形最小二乗モデルの当てはめに使うアルゴリズムです。"
+  },
+  "NlsAnovaResult#summary": {
+    "hash": "acc44a15e342",
+    "en": "Result returned by {@link nlsAnova}.",
+    "ja": "{@link nlsAnova} が返す結果です。"
+  },
+  "NlsAnovaResult.table#summary": {
+    "hash": "0b62654d1f33",
+    "en": "Sequential analysis-of-variance table.",
+    "ja": "逐次分散分析表です。"
+  },
+  "NlsAnovaResult.table.Df#summary": {
+    "hash": "25cb85aaa86c",
+    "en": "Difference in residual degrees of freedom for each comparison.",
+    "ja": "各比較における残差自由度の差です。"
+  },
+  "NlsAnovaResult.table.F value#summary": {
+    "hash": "14a63932dbc5",
+    "en": "F statistic for each comparison.",
+    "ja": "各比較の F 統計量です。"
+  },
+  "NlsAnovaResult.table.Model#summary": {
+    "hash": "21de7909566e",
+    "en": "Formula for each fitted model.",
+    "ja": "当てはめた各モデルの式です。"
+  },
+  "NlsAnovaResult.table.Pr(>F)#summary": {
+    "hash": "29edb6b59d60",
+    "en": "Upper-tail F-test probability for each comparison.",
+    "ja": "各比較に対する F 検定の上側確率です。"
+  },
+  "NlsAnovaResult.table.Res.Df#summary": {
+    "hash": "6addc6cd81ab",
+    "en": "Residual degrees of freedom for each model.",
+    "ja": "各モデルの残差自由度です。"
+  },
+  "NlsAnovaResult.table.Res.Sum Sq#summary": {
+    "hash": "0f5905b554c9",
+    "en": "Residual sum of squares for each model.",
+    "ja": "各モデルの残差平方和です。"
+  },
+  "NlsAnovaResult.table.Sum Sq#summary": {
+    "hash": "d0cff2b38306",
+    "en": "Difference in residual sum of squares for each comparison.",
+    "ja": "各比較における残差平方和の差です。"
+  },
+  "NlsAnovaResult.warnings#summary": {
+    "hash": "9ed95f9e4976",
+    "en": "Warnings produced while comparing models.",
+    "ja": "モデルの比較中に発生した警告です。"
+  },
+  "NlsConfintOptions#summary": {
+    "hash": "999c3b7c92a4",
+    "en": "Options for {@link nlsConfint}.",
+    "ja": "{@link nlsConfint} のオプションです。"
+  },
+  "NlsConfintOptions.level#summary": {
+    "hash": "c03dfaa11c1f",
+    "en": "Confidence level between zero and one.",
+    "ja": "0 から 1 までの信頼水準です。"
+  },
+  "NlsConfintOptions.method#summary": {
+    "hash": "2f5a20e1ee51",
+    "en": "Confidence-interval method; profile by default.",
+    "ja": "信頼区間の方法です。既定は profile です。"
+  },
+  "NlsConfintOptions.parm#summary": {
+    "hash": "dd87a1c7c26d",
+    "en": "Parameter names for which to compute intervals; omitted means all estimable parameters.",
+    "ja": "区間を計算するパラメータ名です。省略すると、推定可能なすべてのパラメータが対象になります。"
+  },
+  "NlsConfintResult#summary": {
+    "hash": "4964b049e38a",
+    "en": "Result returned by {@link nlsConfint}.",
+    "ja": "{@link nlsConfint} が返す結果です。"
+  },
+  "NlsConfintResult.cols#summary": {
+    "hash": "25952dfad96c",
+    "en": "Lower and upper confidence-limit labels.",
+    "ja": "信頼限界の下限と上限の列ラベルです。"
+  },
+  "NlsConfintResult.rows#summary": {
+    "hash": "412885a90c22",
+    "en": "Parameter names for the intervals.",
+    "ja": "区間の対象となるパラメータ名です。"
+  },
+  "NlsConfintResult.values#summary": {
+    "hash": "07a0a977723b",
+    "en": "Lower and upper confidence limits, one pair per parameter.",
+    "ja": "パラメータごとに 1 組の下限と上限の信頼限界です。"
+  },
+  "NlsConfintResult.warnings#summary": {
+    "hash": "40da84f6acb0",
+    "en": "Warnings produced while computing the intervals.",
+    "ja": "区間の計算中に発生した警告です。"
+  },
+  "NlsControl#summary": {
+    "hash": "e2bc182c1bf0",
+    "en": "Convergence controls for nonlinear least squares.",
+    "ja": "非線形最小二乗法の収束制御です。"
+  },
+  "NlsControl.maxiter#summary": {
+    "hash": "0e46ee9c032f",
+    "en": "Maximum number of iterations.",
+    "ja": "反復の最大回数です。"
+  },
+  "NlsControl.minFactor#summary": {
+    "hash": "2a2ab958bcbd",
+    "en": "Minimum step-length factor used by the line search.",
+    "ja": "直線探索で使うステップ長係数の最小値です。"
+  },
+  "NlsControl.scaleOffset#summary": {
+    "hash": "a8bc81d25940",
+    "en": "Positive offset used in the convergence scaling criterion.",
+    "ja": "収束判定のスケーリング基準に使う正のオフセットです。"
+  },
+  "NlsControl.tol#summary": {
+    "hash": "80499540d6da",
+    "en": "Relative convergence tolerance.",
+    "ja": "相対収束許容誤差です。"
+  },
+  "NlsControl.warnOnly#summary": {
+    "hash": "3f3a494fafef",
+    "en": "Whether non-convergence is reported as a warning instead of an error.",
+    "ja": "収束しない場合にエラーではなく警告を報告するかどうかです。"
+  },
+  "NlsModel#summary": {
+    "hash": "8e04dffad580",
+    "en": "Internal and public fitted-model quantities.",
+    "ja": "当てはめモデルの内部および公開用の量です。"
+  },
+  "NlsModel.algorithm#summary": {
+    "hash": "4b817a321c21",
+    "en": "Algorithm used for fitting.",
+    "ja": "当てはめに使ったアルゴリズムです。"
+  },
+  "NlsModel.coefficients#summary": {
+    "hash": "d9445237bb96",
+    "en": "Named parameter estimates.",
+    "ja": "名前付きのパラメータ推定値です。"
+  },
+  "NlsModel.converged#summary": {
+    "hash": "6eef6ac14f46",
+    "en": "Whether the convergence criterion was met.",
+    "ja": "収束基準を満たしたかどうかです。"
+  },
+  "NlsModel.correlation#summary": {
+    "hash": "30b92b988427",
+    "en": "Estimated parameter correlation matrix.",
+    "ja": "推定されたパラメータ相関行列です。"
+  },
+  "NlsModel.covariance#summary": {
+    "hash": "f991066ceed4",
+    "en": "Estimated parameter covariance matrix.",
+    "ja": "推定されたパラメータ共分散行列です。"
+  },
+  "NlsModel.data#summary": {
+    "hash": "09039327bae1",
+    "en": "Numeric data columns retained for prediction and profiling.",
+    "ja": "予測とプロファイル計算のために保持される数値データ列です。"
+  },
+  "NlsModel.deviance#summary": {
+    "hash": "7f7ba20c6cdb",
+    "en": "Weighted residual sum of squares.",
+    "ja": "重み付き残差平方和です。"
+  },
+  "NlsModel.dfResidual#summary": {
+    "hash": "82eecb8e1b30",
+    "en": "Residual degrees of freedom.",
+    "ja": "残差自由度です。"
+  },
+  "NlsModel.exactFit#summary": {
+    "hash": "cb8442683c94",
+    "en": "Whether the residual sum of squares is exactly zero.",
+    "ja": "残差平方和が厳密に 0 かどうかです。"
+  },
+  "NlsModel.fitted#summary": {
+    "hash": "c8a6fdfb4aa5",
+    "en": "Fitted response values.",
+    "ja": "当てはめ値です。"
+  },
+  "NlsModel.formula#summary": {
+    "hash": "fa221b20354f",
+    "en": "Original model formula.",
+    "ja": "元のモデル式です。"
+  },
+  "NlsModel.iterations#summary": {
+    "hash": "b5e9a31b4f60",
+    "en": "Number of iterations performed.",
+    "ja": "実行した反復回数です。"
+  },
+  "NlsModel.nobs#summary": {
+    "hash": "b65dc401f939",
+    "en": "Number of observations used in fitting.",
+    "ja": "当てはめに使用した観測値の数です。"
+  },
+  "NlsModel.parameterNames#summary": {
+    "hash": "5a4dbafa1f75",
+    "en": "Parameter names in coefficient order.",
+    "ja": "係数の順序に対応するパラメータ名です。"
+  },
+  "NlsModel.residuals#summary": {
+    "hash": "10143a09ccbe",
+    "en": "Observed minus fitted response values.",
+    "ja": "観測応答値から当てはめ応答値を引いた値です。"
+  },
+  "NlsModel.response#summary": {
+    "hash": "3fae14b744b4",
+    "en": "Response expression label.",
+    "ja": "応答式のラベルです。"
+  },
+  "NlsModel.rows#summary": {
+    "hash": "9f01e412eafd",
+    "en": "Original row indices retained after missing-value handling.",
+    "ja": "欠測値の処理後に保持された元データの行インデックスです。"
+  },
+  "NlsModel.sigma#summary": {
+    "hash": "05ff49764b05",
+    "en": "Residual standard error estimate.",
+    "ja": "残差標準誤差の推定値です。"
+  },
+  "NlsModel.warnings#summary": {
+    "hash": "c5d038e4266e",
+    "en": "Warnings produced during fitting.",
+    "ja": "当てはめ中に発生した警告です。"
+  },
+  "NlsModel.weights#summary": {
+    "hash": "85e3f2a193fb",
+    "en": "Observation weights used in fitting.",
+    "ja": "当てはめに使用した観測値の重みです。"
+  },
+  "NlsModel.y#summary": {
+    "hash": "ba019fc2d709",
+    "en": "Response values used in fitting.",
+    "ja": "当てはめに使用した応答値です。"
+  },
+  "NlsOptions#summary": {
+    "hash": "54e6bec3184f",
+    "en": "Options for {@link nls}.",
+    "ja": "{@link nls} のオプションです。"
+  },
+  "NlsOptions.algorithm#summary": {
+    "hash": "44fee412a664",
+    "en": "Nonlinear least-squares algorithm.",
+    "ja": "非線形最小二乗法のアルゴリズムです。"
+  },
+  "NlsOptions.control#summary": {
+    "hash": "789ad3e0364f",
+    "en": "Convergence controls.",
+    "ja": "収束制御です。"
+  },
+  "NlsOptions.lower#summary": {
+    "hash": "b750e80650c6",
+    "en": "Lower parameter bounds for the bounded algorithm.",
+    "ja": "境界付きアルゴリズムで使うパラメータの下限です。"
+  },
+  "NlsOptions.start#summary": {
+    "hash": "c2660bbe5522",
+    "en": "Named initial parameter values.",
+    "ja": "名前付きのパラメータ初期値です。"
+  },
+  "NlsOptions.upper#summary": {
+    "hash": "796e8b12e069",
+    "en": "Upper parameter bounds for the bounded algorithm.",
+    "ja": "境界付きアルゴリズムで使うパラメータの上限です。"
+  },
+  "NlsOptions.weights#summary": {
+    "hash": "aa7ec49f6268",
+    "en": "Non-negative observation weights, or the name of a data column.",
+    "ja": "0 以上の観測値の重み、またはデータ列の名前です。"
+  },
+  "NlsPredictOptions#summary": {
+    "hash": "cb5b1547e06e",
+    "en": "Options for {@link nlsPredict}.",
+    "ja": "{@link nlsPredict} のオプションです。"
+  },
+  "NlsPredictOptions.newdata#summary": {
+    "hash": "8723ce645999",
+    "en": "New data columns at which to evaluate the fitted expression.",
+    "ja": "当てはめた式を評価する新しいデータ列です。"
+  },
+  "NlsResult#summary": {
+    "hash": "8e166ca74e61",
+    "en": "Result returned by {@link nls}.",
+    "ja": "{@link nls} が返す結果です。"
+  },
+  "NlsSummaryResult#summary": {
+    "hash": "15d8447eeffb",
+    "en": "Result returned by {@link nlsSummary}.",
+    "ja": "{@link nlsSummary} が返す結果です。"
+  },
+  "NlsSummaryResult.coefficients#summary": {
+    "hash": "3cc37954f3e1",
+    "en": "Coefficient table with estimates, standard errors and test statistics.",
+    "ja": "推定値、標準誤差、検定統計量を含む係数表です。"
+  },
+  "NlsSummaryResult.coefficients.cols#summary": {
+    "hash": "928189c00b0c",
+    "en": "Summary statistic column names.",
+    "ja": "要約統計量の列名です。"
+  },
+  "NlsSummaryResult.coefficients.rows#summary": {
+    "hash": "1bd5fa83a583",
+    "en": "Coefficient names in row order.",
+    "ja": "行の順序に対応する係数名です。"
+  },
+  "NlsSummaryResult.coefficients.values#summary": {
+    "hash": "cc3ef2f7a5b4",
+    "en": "Rows of coefficient estimates, standard errors and test statistics.",
+    "ja": "係数の推定値、標準誤差、検定統計量の各行です。"
+  },
+  "NlsSummaryResult.deviance#summary": {
+    "hash": "7f7ba20c6cdb",
+    "en": "Weighted residual sum of squares.",
+    "ja": "重み付き残差平方和です。"
+  },
+  "NlsSummaryResult.df#summary": {
+    "hash": "83626f88665e",
+    "en": "Residual and model degrees of freedom.",
+    "ja": "残差自由度とモデル自由度です。"
+  },
+  "NlsSummaryResult.nobs#summary": {
+    "hash": "b65dc401f939",
+    "en": "Number of observations used in fitting.",
+    "ja": "当てはめに使用した観測値の数です。"
+  },
+  "NlsSummaryResult.sigma#summary": {
+    "hash": "05ff49764b05",
+    "en": "Residual standard error estimate.",
+    "ja": "残差標準誤差の推定値です。"
+  },
+  "NlsSummaryResult.warnings#summary": {
+    "hash": "84caa396e699",
+    "en": "Warnings produced while computing the summary.",
+    "ja": "要約の計算中に発生した警告です。"
+  },
+  "PolrAnovaResult#summary": {
+    "hash": "ace099e9fd64",
+    "en": "Result table from sequential likelihood-ratio comparisons of nested ordinal-regression fits.",
+    "ja": "入れ子の順序回帰モデルの当てはめを逐次的に尤度比で比較した結果表です。"
+  },
+  "PolrAnovaResult.heading#summary": {
+    "hash": "7f8ab3e75c0a",
+    "en": "Heading describing the comparison.",
+    "ja": "比較の内容を示す見出しです。"
+  },
+  "PolrAnovaResult.rows#summary": {
+    "hash": "ddfab36c7578",
+    "en": "Model or term labels associated with the comparison.",
+    "ja": "比較に対応するモデルまたは項のラベルです。"
+  },
+  "PolrAnovaResult.table#summary": {
+    "hash": "2df95132017b",
+    "en": "Likelihood-ratio analysis-of-deviance table.",
+    "ja": "尤度比による逸脱度分析表です。"
+  },
+  "PolrAnovaResult.table.   Df#summary": {
+    "hash": "804b76a656b6",
+    "en": "Degrees of freedom for each likelihood-ratio test.",
+    "ja": "各尤度比検定の自由度です。"
+  },
+  "PolrAnovaResult.table.LR stat.#summary": {
+    "hash": "c75e86b211e3",
+    "en": "Likelihood-ratio statistic for each comparison.",
+    "ja": "各比較の尤度比統計量です。"
+  },
+  "PolrAnovaResult.table.Model#summary": {
+    "hash": "0f77f6335dd0",
+    "en": "Formula or term label for each fitted model.",
+    "ja": "当てはめた各モデルの式または項のラベルです。"
+  },
+  "PolrAnovaResult.table.Pr(Chi)#summary": {
+    "hash": "f0d5946f2145",
+    "en": "Chi-squared tail probability for each comparison.",
+    "ja": "各比較に対するカイ二乗分布の上側確率です。"
+  },
+  "PolrAnovaResult.table.Resid. Dev#summary": {
+    "hash": "b5d847d266cd",
+    "en": "Residual deviance for each model.",
+    "ja": "各モデルの残差逸脱度です。"
+  },
+  "PolrAnovaResult.table.Resid. df#summary": {
+    "hash": "6addc6cd81ab",
+    "en": "Residual degrees of freedom for each model.",
+    "ja": "各モデルの残差自由度です。"
+  },
+  "PolrAnovaResult.table.Test#summary": {
+    "hash": "1dc0e8e4f739",
+    "en": "Label of each sequential model comparison.",
+    "ja": "各逐次モデル比較のラベルです。"
+  },
+  "PolrAnovaResult.warnings#summary": {
+    "hash": "9ed95f9e4976",
+    "en": "Warnings produced while comparing models.",
+    "ja": "モデルの比較中に発生した警告です。"
+  },
+  "PolrConfintOptions#summary": {
+    "hash": "0ee8e2ebfa09",
+    "en": "Options for {@link polrConfint}.",
+    "ja": "{@link polrConfint} のオプションです。"
+  },
+  "PolrConfintOptions.level#summary": {
+    "hash": "f18f020efba3",
+    "en": "Confidence level. Default 0.95.",
+    "ja": "信頼水準です。既定は 0.95 です。"
+  },
+  "PolrConfintOptions.method#summary": {
+    "hash": "5df979089ac6",
+    "en": "Interval method. Default \"profile\".",
+    "ja": "区間の方法です。既定は \"profile\" です。"
+  },
+  "PolrConfintOptions.parm#summary": {
+    "hash": "d2e998b6264b",
+    "en": "Slope names or 1-based slope positions. Omitted means all slopes.",
+    "ja": "傾きの名前、または 1 始まりの傾きの位置です。省略すると、すべての傾きが対象になります。"
+  },
+  "PolrConfintResult#summary": {
+    "hash": "212f1892f3aa",
+    "en": "Confidence intervals for ordinal-regression slopes.",
+    "ja": "順序回帰の傾きの信頼区間です。"
+  },
+  "PolrConfintResult.columns#summary": {
+    "hash": "25952dfad96c",
+    "en": "Lower and upper confidence-limit labels.",
+    "ja": "信頼限界の下限と上限の列ラベルです。"
+  },
+  "PolrConfintResult.rows#summary": {
+    "hash": "412885a90c22",
+    "en": "Parameter names for the intervals.",
+    "ja": "区間の対象となるパラメータ名です。"
+  },
+  "PolrConfintResult.values#summary": {
+    "hash": "5c3039ba403c",
+    "en": "Confidence limits, one pair per parameter.",
+    "ja": "パラメータごとに 1 組の信頼限界です。"
+  },
+  "PolrConfintResult.warnings#summary": {
+    "hash": "40da84f6acb0",
+    "en": "Warnings produced while computing the intervals.",
+    "ja": "区間の計算中に発生した警告です。"
+  },
+  "PolrMethod#summary": {
+    "hash": "88ff286218b1",
+    "en": "Name of the cumulative distribution used by an ordinal regression.",
+    "ja": "順序回帰で使う累積分布の名前です。"
+  },
+  "PolrModel#summary": {
+    "hash": "a17e4e4902e8",
+    "en": "Stored formula, design metadata and observations needed by prediction and model comparison.",
+    "ja": "予測とモデル比較に必要な式、モデル行列のメタデータ、観測値を保持します。"
+  },
+  "PolrModel.columnNames#summary": {
+    "hash": "bdfa9d363a38",
+    "en": "Names of design-matrix columns.",
+    "ja": "モデル行列の列名です。"
+  },
+  "PolrModel.externalOffset#summary": {
+    "hash": "3c0c922d5596",
+    "en": "Whether the offset was supplied separately from the formula.",
+    "ja": "offset が式とは別に指定されたかどうかです。"
+  },
+  "PolrModel.factorLevels#summary": {
+    "hash": "8d9bfed1b7b2",
+    "en": "Observed or declared levels for categorical predictors.",
+    "ja": "カテゴリ説明変数について、観測された水準または指定された水準です。"
+  },
+  "PolrModel.formula#summary": {
+    "hash": "fa221b20354f",
+    "en": "Original model formula.",
+    "ja": "元のモデル式です。"
+  },
+  "PolrModel.logLikelihood#summary": {
+    "hash": "0e4254b95963",
+    "en": "Maximised log likelihood.",
+    "ja": "最大化された対数尤度です。"
+  },
+  "PolrModel.method#summary": {
+    "hash": "8ea210fbc57b",
+    "en": "Cumulative-link distribution.",
+    "ja": "累積リンク分布です。"
+  },
+  "PolrModel.offset#summary": {
+    "hash": "f39267a06284",
+    "en": "Offset values for retained observations.",
+    "ja": "保持された観測値のオフセットです。"
+  },
+  "PolrModel.offsetColumn#summary": {
+    "hash": "a9a77cf7f136",
+    "en": "Name of the data column used as an offset, when supplied by name.",
+    "ja": "オフセットが名前で指定された場合に使うデータ列の名前です。"
+  },
+  "PolrModel.predictorVariables#summary": {
+    "hash": "9ece59790d87",
+    "en": "Predictor variable names in model-matrix order.",
+    "ja": "モデル行列の順序に対応する説明変数名です。"
+  },
+  "PolrModel.rawHessian#summary": {
+    "hash": "507edb3e404a",
+    "en": "Observed Hessian in internal parameter coordinates.",
+    "ja": "内部パラメータ座標での観測ヘッセ行列です。"
+  },
+  "PolrModel.response#summary": {
+    "hash": "8e16303cb54e",
+    "en": "Response column name.",
+    "ja": "応答列の名前です。"
+  },
+  "PolrModel.responseLevels#summary": {
+    "hash": "9abfa28cfb21",
+    "en": "Ordered response category labels.",
+    "ja": "順序付き応答カテゴリのラベルです。"
+  },
+  "PolrModel.rows#summary": {
+    "hash": "9f01e412eafd",
+    "en": "Original row indices retained after missing-value handling.",
+    "ja": "欠測値の処理後に保持された元データの行インデックスです。"
+  },
+  "PolrModel.theta#summary": {
+    "hash": "2eb76c693163",
+    "en": "Internal unconstrained optimisation parameters.",
+    "ja": "内部の制約なし最適化パラメータです。"
+  },
+  "PolrModel.weights#summary": {
+    "hash": "55484eab8f1c",
+    "en": "Prior weights for retained observations.",
+    "ja": "保持された観測値の事前の重みです。"
+  },
+  "PolrModel.x#summary": {
+    "hash": "e605933e27ab",
+    "en": "Retained design matrix.",
+    "ja": "保持されたモデル行列です。"
+  },
+  "PolrModel.y#summary": {
+    "hash": "ac538a0b4956",
+    "en": "Response values encoded as ordered category indices.",
+    "ja": "順序付きカテゴリのインデックスとして符号化された応答値です。"
+  },
+  "PolrOptions#summary": {
+    "hash": "8550468e6b45",
+    "en": "Options for {@link polr}.",
+    "ja": "{@link polr} のオプションです。"
+  },
+  "PolrOptions.contrasts#summary": {
+    "hash": "356dcd3b67ad",
+    "en": "Contrasts for categorical predictors.",
+    "ja": "カテゴリ説明変数の対比です。"
+  },
+  "PolrOptions.levels#summary": {
+    "hash": "e336491ef964",
+    "en": "Explicit response and predictor levels.",
+    "ja": "応答変数と説明変数の水準の明示的な指定です。"
+  },
+  "PolrOptions.maxit#summary": {
+    "hash": "a2971c5e1e9a",
+    "en": "Maximum optimisation iterations. Default `1000`.",
+    "ja": "最適化の最大反復回数です。既定は `1000` です。"
+  },
+  "PolrOptions.method#summary": {
+    "hash": "aab36f9c6edf",
+    "en": "Cumulative link. Default `\"logistic\"`.",
+    "ja": "累積リンクです。既定は `\"logistic\"` です。"
+  },
+  "PolrOptions.offset#summary": {
+    "hash": "edbff844543b",
+    "en": "Offset added to the linear predictor.",
+    "ja": "線形予測子に加えるオフセットです。"
+  },
+  "PolrOptions.reltol#summary": {
+    "hash": "5a17ad04a3b5",
+    "en": "Relative optimisation tolerance. Default `1e-12`.",
+    "ja": "相対最適化許容誤差です。既定は `1e-12` です。"
+  },
+  "PolrOptions.start#summary": {
+    "hash": "f964aa8c8009",
+    "en": "Initial slopes followed by the ordered cut-points.",
+    "ja": "傾きの初期値に続けて、順序付きカットポイントを指定します。"
+  },
+  "PolrOptions.weights#summary": {
+    "hash": "76066f4eda32",
+    "en": "Non-negative prior weights, or the name of a data column.",
+    "ja": "0 以上の事前の重み、またはデータ列の名前です。"
+  },
+  "PolrPredictOptions#summary": {
+    "hash": "94d29e07f7be",
+    "en": "Options for {@link polrPredict}.",
+    "ja": "{@link polrPredict} のオプションです。"
+  },
+  "PolrPredictOptions.newdata#summary": {
+    "hash": "ff3fbbb3d3b0",
+    "en": "New predictor columns; omitted to return predictions for the fitted observations.",
+    "ja": "新しい説明変数の列です。省略すると、当てはめに使用した観測値の予測値を返します。"
+  },
+  "PolrPredictOptions.rowNames#summary": {
+    "hash": "aa0efe3c8afb",
+    "en": "Row labels for a new data frame (default: \"1\", \"2\", ...).",
+    "ja": "新しいデータフレームの行ラベルです (既定: \"1\"、\"2\"、...)。"
+  },
+  "PolrPredictOptions.type#summary": {
+    "hash": "b458958e9334",
+    "en": "Return the most likely category (default) or the category probabilities.",
+    "ja": "最も可能性の高いカテゴリ (既定) またはカテゴリの確率を返します。"
+  },
+  "PolrPredictProbs#summary": {
+    "hash": "39cb1f9e26c5",
+    "en": "Probability matrix returned when {@link PolrPredictOptions.type} is \"probs\".",
+    "ja": "{@link PolrPredictOptions.type} が \"probs\" の場合に返す確率行列です。"
+  },
+  "PolrPredictProbs.columns#summary": {
+    "hash": "c87b4f85795b",
+    "en": "Response category labels.",
+    "ja": "応答カテゴリのラベルです。"
+  },
+  "PolrPredictProbs.rows#summary": {
+    "hash": "898e9d35b298",
+    "en": "Prediction row labels.",
+    "ja": "予測対象の行ラベルです。"
+  },
+  "PolrPredictProbs.values#summary": {
+    "hash": "7e25ca69d513",
+    "en": "Predicted category probabilities; null marks an unavailable value.",
+    "ja": "予測されたカテゴリ確率です。利用できない値は null で示します。"
+  },
+  "PolrPredictProbs.warnings#summary": {
+    "hash": "b9acdaf3eb2b",
+    "en": "Warnings produced while predicting.",
+    "ja": "予測中に発生した警告です。"
+  },
+  "PolrPredictResult#summary": {
+    "hash": "e610b9b99952",
+    "en": "Predicted categories, or a probability matrix when type is \"probs\".",
+    "ja": "予測されたカテゴリです。または、type が \"probs\" の場合は確率行列です。"
+  },
+  "PolrResult#summary": {
+    "hash": "6f4918b5d454",
+    "en": "Result of {@link polr}: cumulative-link estimates and their observed-information covariance.",
+    "ja": "{@link polr} の結果です。累積リンクの推定値と、観測情報に基づく共分散を含みます。"
+  },
+  "PolrResult.aic#summary": {
+    "hash": "5b4facc7bdb9",
+    "en": "Akaike information criterion.",
+    "ja": "赤池情報量規準です。"
+  },
+  "PolrResult.bic#summary": {
+    "hash": "be1e6b573af8",
+    "en": "Bayesian information criterion.",
+    "ja": "ベイズ情報量規準です。"
+  },
+  "PolrResult.coefficients#summary": {
+    "hash": "6c24b046a6df",
+    "en": "Named slope estimates, excluding the cut-points.",
+    "ja": "名前付きの傾きの推定値です。カットポイントは含みません。"
+  },
+  "PolrResult.converged#summary": {
+    "hash": "836c8f14d972",
+    "en": "Whether the numerical optimisation converged.",
+    "ja": "数値最適化が収束したかどうかです。"
+  },
+  "PolrResult.convergence#summary": {
+    "hash": "5a612371cd81",
+    "en": "Optimiser convergence code.",
+    "ja": "最適化器の収束コードです。"
+  },
+  "PolrResult.deviance#summary": {
+    "hash": "6c2da1951cd7",
+    "en": "Residual deviance, `-2 logLik`.",
+    "ja": "残差逸脱度です (`-2 logLik`)。"
+  },
+  "PolrResult.edf#summary": {
+    "hash": "11ca003fe818",
+    "en": "Number of estimated slopes and cut-points.",
+    "ja": "推定した傾きとカットポイントの数です。"
+  },
+  "PolrResult.fittedValues#summary": {
+    "hash": "081604dbcde2",
+    "en": "Fitted category probabilities, one row per retained observation.",
+    "ja": "当てはめたカテゴリ確率です。保持された観測値ごとに 1 行あります。"
+  },
+  "PolrResult.linearPredictors#summary": {
+    "hash": "372306edb2ac",
+    "en": "Linear predictors, offset included.",
+    "ja": "オフセットを含む線形予測子です。"
+  },
+  "PolrResult.logLik#summary": {
+    "hash": "0e4254b95963",
+    "en": "Maximised log likelihood.",
+    "ja": "最大化された対数尤度です。"
+  },
+  "PolrResult.model#summary": {
+    "hash": "d864cad821e9",
+    "en": "Data and numerical state retained for the companion methods.",
+    "ja": "関連するメソッドで使うために保持されたデータと数値計算の状態です。"
+  },
+  "PolrResult.nobs#summary": {
+    "hash": "3b08e3dc9369",
+    "en": "Sum of the positive case weights.",
+    "ja": "正の観測値の重みの合計です。"
+  },
+  "PolrResult.warnings#summary": {
+    "hash": "d71e04edc155",
+    "en": "Distinct warnings in first-occurrence order.",
+    "ja": "最初に発生した順に並べた、重複のない警告です。"
+  },
+  "PolrResult.zeta#summary": {
+    "hash": "7c44b4c64439",
+    "en": "Named ordered cut-points, separately from the slopes.",
+    "ja": "傾きとは別に保持された、名前付きの順序付きカットポイントです。"
+  },
+  "PolrSummaryResult#summary": {
+    "hash": "9a60fa47b297",
+    "en": "Table of slope and cut-point estimates, standard errors and Wald statistics.",
+    "ja": "傾きとカットポイントの推定値、標準誤差、Wald 統計量の表です。"
+  },
+  "PolrSummaryResult.columns#summary": {
+    "hash": "928189c00b0c",
+    "en": "Summary statistic column names.",
+    "ja": "要約統計量の列名です。"
+  },
+  "PolrSummaryResult.rows#summary": {
+    "hash": "1e382d59ed56",
+    "en": "Coefficient and cut-point names.",
+    "ja": "係数とカットポイントの名前です。"
+  },
+  "PolrSummaryResult.values#summary": {
+    "hash": "70702cac4e4f",
+    "en": "Rows of estimates, standard errors and test statistics.",
+    "ja": "推定値、標準誤差、検定統計量の各行です。"
+  },
+  "PolrSummaryResult.warnings#summary": {
+    "hash": "84caa396e699",
+    "en": "Warnings produced while computing the summary.",
+    "ja": "要約の計算中に発生した警告です。"
+  },
+  "PolrVcovResult#summary": {
+    "hash": "232d2dcf0d0e",
+    "en": "Covariance matrix of the slope and cut-point estimates in coefficient order.",
+    "ja": "係数の順序に対応する、傾きとカットポイントの推定値の共分散行列です。"
+  },
+  "PolrVcovResult.columns#summary": {
+    "hash": "e3b1e193d4b6",
+    "en": "Parameter names in matrix column order.",
+    "ja": "行列の列の順序に対応するパラメータ名です。"
+  },
+  "PolrVcovResult.rows#summary": {
+    "hash": "386e6c1627f8",
+    "en": "Parameter names in matrix row order.",
+    "ja": "行列の行の順序に対応するパラメータ名です。"
+  },
+  "PolrVcovResult.values#summary": {
+    "hash": "c70b16ac376a",
+    "en": "Covariance matrix values.",
+    "ja": "共分散行列の値です。"
+  },
+  "PolrVcovResult.warnings#summary": {
+    "hash": "e62de7d35d70",
+    "en": "Warnings produced while computing the covariance.",
+    "ja": "共分散の計算中に発生した警告です。"
+  },
+  "PsiInput#summary": {
+    "hash": "50143d2ac34a",
+    "en": "Scalar or vector input accepted by the robust score functions.",
+    "ja": "ロバストスコア関数が受け付けるスカラーまたはベクトルの入力です。"
+  },
+  "PsiOutput#summary": {
+    "hash": "0850a26dc449",
+    "en": "Scalar output returned by a robust score function.",
+    "ja": "ロバストスコア関数が返すスカラーの出力です。"
+  },
+  "PsiResult#summary": {
+    "hash": "ef935e4f3539",
+    "en": "Scalar or vector output returned by the robust score functions.",
+    "ja": "ロバストスコア関数が返すスカラーまたはベクトルの出力です。"
+  },
+  "RlmModel#summary": {
+    "hash": "17e1a6df096a",
+    "en": "Data and settings retained by an M fit.",
+    "ja": "M 推定による当てはめで保持されるデータと設定です。"
+  },
+  "RlmModel.a#summary": {
+    "hash": "b94d44fb0140",
+    "en": "Hampel first tuning point.",
+    "ja": "Hampel の第 1 調整点です。"
+  },
+  "RlmModel.b#summary": {
+    "hash": "86405c7bb4ea",
+    "en": "Hampel second tuning point.",
+    "ja": "Hampel の第 2 調整点です。"
+  },
+  "RlmModel.c#summary": {
+    "hash": "e381c2d6175f",
+    "en": "Hampel rejection point or bisquare tuning constant.",
+    "ja": "Hampel の棄却点、または bisquare の調整定数です。"
+  },
+  "RlmModel.columnNames#summary": {
+    "hash": "bdfa9d363a38",
+    "en": "Names of design-matrix columns.",
+    "ja": "モデル行列の列名です。"
+  },
+  "RlmModel.formula#summary": {
+    "hash": "fa221b20354f",
+    "en": "Original model formula.",
+    "ja": "元のモデル式です。"
+  },
+  "RlmModel.k#summary": {
+    "hash": "8c342b7aa626",
+    "en": "Huber tuning constant.",
+    "ja": "Huber の調整定数です。"
+  },
+  "RlmModel.k2#summary": {
+    "hash": "4197636d6104",
+    "en": "Proposal 2 scale tuning constant.",
+    "ja": "Proposal 2 の尺度調整定数です。"
+  },
+  "RlmModel.observationWeights#summary": {
+    "hash": "578942b05ef2",
+    "en": "Prior observation weights.",
+    "ja": "観測値の事前の重みです。"
+  },
+  "RlmModel.psi#summary": {
+    "hash": "42d97933dadd",
+    "en": "Robust score function.",
+    "ja": "ロバストスコア関数です。"
+  },
+  "RlmModel.rows#summary": {
+    "hash": "9f01e412eafd",
+    "en": "Original row indices retained after missing-value handling.",
+    "ja": "欠測値の処理後に保持された元データの行インデックスです。"
+  },
+  "RlmModel.scaleEst#summary": {
+    "hash": "81d7f3717cb6",
+    "en": "Residual scale estimator.",
+    "ja": "残差の尺度推定量です。"
+  },
+  "RlmModel.wtMethod#summary": {
+    "hash": "9ddfa0167a5d",
+    "en": "Interpretation of the observation weights.",
+    "ja": "観測値の重みの解釈です。"
+  },
+  "RlmModel.x#summary": {
+    "hash": "e605933e27ab",
+    "en": "Retained design matrix.",
+    "ja": "保持されたモデル行列です。"
+  },
+  "RlmModel.y#summary": {
+    "hash": "72b36d244855",
+    "en": "Retained response values.",
+    "ja": "保持された応答値です。"
+  },
+  "RlmOptions#summary": {
+    "hash": "9d838a1bbb2d",
+    "en": "Options for `rlm`.",
+    "ja": "`rlm` のオプションです。"
+  },
+  "RlmOptions.a#summary": {
+    "hash": "37cb9387bdf5",
+    "en": "Hampel first corner. Default 2.",
+    "ja": "Hampel の第 1 折れ点です。既定は 2 です。"
+  },
+  "RlmOptions.acc#summary": {
+    "hash": "efaf4d34fa12",
+    "en": "Dimensionless estimating-equation and scale fixed-point tolerance. Default 1e-10.",
+    "ja": "推定方程式と尺度の不動点に対する、無次元の許容誤差です。既定は 1e-10 です。"
+  },
+  "RlmOptions.b#summary": {
+    "hash": "75f8f3d50a48",
+    "en": "Hampel second corner. Default 4.",
+    "ja": "Hampel の第 2 折れ点です。既定は 4 です。"
+  },
+  "RlmOptions.c#summary": {
+    "hash": "91a58fe9f530",
+    "en": "Hampel rejection point or bisquare tuning constant. Default 8 or 4.685.",
+    "ja": "Hampel の棄却点、または bisquare の調整定数です。既定は 8 または 4.685 です。"
+  },
+  "RlmOptions.init#summary": {
+    "hash": "515db0ea77aa",
+    "en": "Least-squares start, deterministic LTS start, or initial coefficients. Default \"ls\".",
+    "ja": "最小二乗法による初期値、決定的な LTS による初期値、または初期係数です。既定は \"ls\" です。"
+  },
+  "RlmOptions.k#summary": {
+    "hash": "8e63154c7965",
+    "en": "Huber tuning constant. Default 1.345.",
+    "ja": "Huber の調整定数です。既定は 1.345 です。"
+  },
+  "RlmOptions.k2#summary": {
+    "hash": "ca9dbe14d247",
+    "en": "Proposal 2 scale tuning constant. Default 1.345.",
+    "ja": "Proposal 2 の尺度調整定数です。既定は 1.345 です。"
+  },
+  "RlmOptions.maxit#summary": {
+    "hash": "991ee72b7eb4",
+    "en": "Maximum number of IRLS iterations. Default 1000, allowing the estimating equations to reach their solution.",
+    "ja": "IRLS の最大反復回数です。既定は 1000 で、推定方程式が解に達するまで反復できる値です。"
+  },
+  "RlmOptions.method#summary": {
+    "hash": "d425c61add39",
+    "en": "Estimation method. \"MM\" uses a deterministic S start and a fixed-scale redescending M step. Default \"M\".",
+    "ja": "推定方法です。\"MM\" は決定的な S 推定による初期値と、尺度を固定した再下降型 M ステップを使います。既定は \"M\" です。"
+  },
+  "RlmOptions.psi#summary": {
+    "hash": "2630c44dd7e6",
+    "en": "Score function. Default \"huber\".",
+    "ja": "スコア関数です。既定は \"huber\" です。"
+  },
+  "RlmOptions.scaleEst#summary": {
+    "hash": "ea0b6d5e4b26",
+    "en": "Scale estimator. \"Huber\" and \"proposal 2\" are equivalent. Default \"MAD\".",
+    "ja": "尺度推定量です。\"Huber\" と \"proposal 2\" は同等です。既定は \"MAD\" です。"
+  },
+  "RlmOptions.weights#summary": {
+    "hash": "ecc54dbabff6",
+    "en": "Non-negative observation weights, or a column name.",
+    "ja": "0 以上の観測値の重み、または列名です。"
+  },
+  "RlmOptions.wtMethod#summary": {
+    "hash": "28437f423122",
+    "en": "Meaning of weights. \"inv\" uses inverse-variance weights; \"case\" uses frequency weights.",
+    "ja": "重みの意味です。\"inv\" は逆分散重み、\"case\" は度数重みを使います。"
+  },
+  "RlmPsi#summary": {
+    "hash": "b1fe387b9fcc",
+    "en": "The score function used by robust regression.",
+    "ja": "ロバスト回帰で使うスコア関数です。"
+  },
+  "RlmPsiBisquareOptions#summary": {
+    "hash": "97833a30076c",
+    "en": "Options for the bisquare psi function.",
+    "ja": "bisquare の ψ 関数のオプションです。"
+  },
+  "RlmPsiBisquareOptions.c#summary": {
+    "hash": "129254c7ae8e",
+    "en": "Tuning constant. Default 4.685.",
+    "ja": "調整定数です。既定は 4.685 です。"
+  },
+  "RlmPsiBisquareOptions.deriv#summary": {
+    "hash": "c9f306e87517",
+    "en": "Return the derivative of psi instead of psi(u)/u. Default 0.",
+    "ja": "ψ(u)/u の代わりに ψ の導関数を返すかどうかです。既定は 0 です。"
+  },
+  "RlmPsiHampelOptions#summary": {
+    "hash": "b1433dcfbae4",
+    "en": "Options for the Hampel psi function.",
+    "ja": "Hampel の ψ 関数のオプションです。"
+  },
+  "RlmPsiHampelOptions.a#summary": {
+    "hash": "92907ce7dc2f",
+    "en": "First corner. Default 2.",
+    "ja": "第 1 折れ点です。既定は 2 です。"
+  },
+  "RlmPsiHampelOptions.b#summary": {
+    "hash": "4b1c86b06b93",
+    "en": "Second corner. Default 4.",
+    "ja": "第 2 折れ点です。既定は 4 です。"
+  },
+  "RlmPsiHampelOptions.c#summary": {
+    "hash": "b6f8fde60290",
+    "en": "Rejection point. Default 8.",
+    "ja": "棄却点です。既定は 8 です。"
+  },
+  "RlmPsiHampelOptions.deriv#summary": {
+    "hash": "c9f306e87517",
+    "en": "Return the derivative of psi instead of psi(u)/u. Default 0.",
+    "ja": "ψ(u)/u の代わりに ψ の導関数を返すかどうかです。既定は 0 です。"
+  },
+  "RlmPsiHuberOptions#summary": {
+    "hash": "8d4f1912a9c8",
+    "en": "Options shared by the psi functions.",
+    "ja": "ψ 関数に共通するオプションです。"
+  },
+  "RlmPsiHuberOptions.deriv#summary": {
+    "hash": "c9f306e87517",
+    "en": "Return the derivative of psi instead of psi(u)/u. Default 0.",
+    "ja": "ψ(u)/u の代わりに ψ の導関数を返すかどうかです。既定は 0 です。"
+  },
+  "RlmPsiHuberOptions.k#summary": {
+    "hash": "8e63154c7965",
+    "en": "Huber tuning constant. Default 1.345.",
+    "ja": "Huber の調整定数です。既定は 1.345 です。"
+  },
+  "RlmResult#summary": {
+    "hash": "5171ec07004f",
+    "en": "Result of `rlm`: robust coefficients, fitted values, scale and convergence diagnostics.",
+    "ja": "`rlm` の結果です。ロバスト係数、当てはめ値、尺度、収束診断を含みます。"
+  },
+  "RlmResult.coefficients#summary": {
+    "hash": "fcaa45cfceba",
+    "en": "Named robust regression coefficients.",
+    "ja": "名前付きのロバスト回帰係数です。"
+  },
+  "RlmResult.converged#summary": {
+    "hash": "0446175e997a",
+    "en": "Whether the estimating equations and scale iteration converged.",
+    "ja": "推定方程式と尺度の反復が収束したかどうかです。"
+  },
+  "RlmResult.convergence#summary": {
+    "hash": "4853ad52b38c",
+    "en": "Convergence diagnostics for the estimating equations and scale.",
+    "ja": "推定方程式と尺度の収束診断です。"
+  },
+  "RlmResult.covariance#summary": {
+    "hash": "142491174bfa",
+    "en": "Estimated coefficient covariance matrix.",
+    "ja": "推定された係数共分散行列です。"
+  },
+  "RlmResult.covarianceUnscaled#summary": {
+    "hash": "10fa3ca8bb34",
+    "en": "Unscaled coefficient covariance matrix.",
+    "ja": "尺度でスケーリングしていない係数共分散行列です。"
+  },
+  "RlmResult.fittedValues#summary": {
+    "hash": "c8a6fdfb4aa5",
+    "en": "Fitted response values.",
+    "ja": "当てはめ値です。"
+  },
+  "RlmResult.initialization#summary": {
+    "hash": "c99f03bd55f7",
+    "en": "Details of the deterministic high-breakdown initial estimate.",
+    "ja": "決定的な高破綻点初期推定の詳細です。"
+  },
+  "RlmResult.initialization.candidateCount#summary": {
+    "hash": "24bf68110eb4",
+    "en": "Total number of candidate subsets, as a decimal string.",
+    "ja": "候補部分集合の総数です。10 進数の文字列で表します。"
+  },
+  "RlmResult.initialization.candidatesEvaluated#summary": {
+    "hash": "e8c9b385fb8b",
+    "en": "Number of candidate subsets evaluated.",
+    "ja": "評価した候補部分集合の数です。"
+  },
+  "RlmResult.initialization.coefficients#summary": {
+    "hash": "2a93ffd0bb48",
+    "en": "Named coefficients from the initial estimate.",
+    "ja": "初期推定による名前付き係数です。"
+  },
+  "RlmResult.initialization.exhaustive#summary": {
+    "hash": "a188f075ef5c",
+    "en": "Whether every candidate subset was evaluated.",
+    "ja": "すべての候補部分集合を評価したかどうかです。"
+  },
+  "RlmResult.initialization.method#summary": {
+    "hash": "dba4cbb515ee",
+    "en": "Initial estimator used before the M step.",
+    "ja": "M ステップの前に使った初期推定量です。"
+  },
+  "RlmResult.initialization.objective#summary": {
+    "hash": "f7fce34f97cc",
+    "en": "Objective value of the selected initial estimate.",
+    "ja": "選択された初期推定値の目的関数値です。"
+  },
+  "RlmResult.iterations#summary": {
+    "hash": "b5e9a31b4f60",
+    "en": "Number of iterations performed.",
+    "ja": "実行した反復回数です。"
+  },
+  "RlmResult.model#summary": {
+    "hash": "f92e035c5468",
+    "en": "Model data and settings retained for companion methods.",
+    "ja": "関連するメソッドで使うために保持されたモデルデータと設定です。"
+  },
+  "RlmResult.residuals#summary": {
+    "hash": "10143a09ccbe",
+    "en": "Observed minus fitted response values.",
+    "ja": "観測応答値から当てはめ応答値を引いた値です。"
+  },
+  "RlmResult.robustWeights#summary": {
+    "hash": "ea3f35ac61b8",
+    "en": "Robust weights from the selected score function.",
+    "ja": "選択したスコア関数によるロバスト重みです。"
+  },
+  "RlmResult.scale#summary": {
+    "hash": "2de2b2b16b3d",
+    "en": "Estimated robust residual scale.",
+    "ja": "ロバスト残差尺度の推定値です。"
+  },
+  "RlmResult.stddev#summary": {
+    "hash": "5a506fa2a64c",
+    "en": "Residual standard deviation estimate.",
+    "ja": "残差標準偏差の推定値です。"
+  },
+  "RlmResult.warnings#summary": {
+    "hash": "c5d038e4266e",
+    "en": "Warnings produced during fitting.",
+    "ja": "当てはめ中に発生した警告です。"
+  },
+  "RlmResult.workingWeights#summary": {
+    "hash": "91d8860b1fb8",
+    "en": "Combined weights used in weighted least-squares steps.",
+    "ja": "重み付き最小二乗ステップで使う合成重みです。"
+  },
+  "RlmSummaryResult#summary": {
+    "hash": "f2d382226507",
+    "en": "Coefficient table returned by {@link rlmSummary}.",
+    "ja": "{@link rlmSummary} が返す係数表です。"
+  },
+  "RlmSummaryResult.columns#summary": {
+    "hash": "928189c00b0c",
+    "en": "Summary statistic column names.",
+    "ja": "要約統計量の列名です。"
+  },
+  "RlmSummaryResult.rows#summary": {
+    "hash": "0885a27cd1a8",
+    "en": "Coefficient names.",
+    "ja": "係数名です。"
+  },
+  "RlmSummaryResult.values#summary": {
+    "hash": "70702cac4e4f",
+    "en": "Rows of estimates, standard errors and test statistics.",
+    "ja": "推定値、標準誤差、検定統計量の各行です。"
+  },
+  "RlmSummaryResult.warnings#summary": {
+    "hash": "84caa396e699",
+    "en": "Warnings produced while computing the summary.",
+    "ja": "要約の計算中に発生した警告です。"
+  },
+  "RlmVcovResult#summary": {
+    "hash": "599421eb5004",
+    "en": "Covariance matrix returned by {@link rlmVcov}.",
+    "ja": "{@link rlmVcov} が返す共分散行列です。"
+  },
+  "RlmVcovResult.columns#summary": {
+    "hash": "7bae3daeb0eb",
+    "en": "Coefficient names in matrix column order.",
+    "ja": "行列の列の順序に対応する係数名です。"
+  },
+  "RlmVcovResult.rows#summary": {
+    "hash": "41ef6c470bef",
+    "en": "Coefficient names in matrix row order.",
+    "ja": "行列の行の順序に対応する係数名です。"
+  },
+  "RlmVcovResult.values#summary": {
+    "hash": "c70b16ac376a",
+    "en": "Covariance matrix values.",
+    "ja": "共分散行列の値です。"
+  },
+  "RlmVcovResult.warnings#summary": {
+    "hash": "e62de7d35d70",
+    "en": "Warnings produced while computing the covariance.",
+    "ja": "共分散の計算中に発生した警告です。"
+  },
+  "nls#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": "⟦code1⟧"
+  },
+  "nls#@param data": {
+    "hash": "66e13dc105c0",
+    "en": "Numeric data columns.",
+    "ja": "数値データの列です。"
+  },
+  "nls#@param formula": {
+    "hash": "fa7221988dc1",
+    "en": "Response and nonlinear mean expression.",
+    "ja": "応答と非線形平均式です。"
+  },
+  "nls#@param options": {
+    "hash": "a3146ca96cd1",
+    "en": "Starting values, algorithm, weights, and convergence controls.",
+    "ja": "初期値、アルゴリズム、重み、収束制御です。"
+  },
+  "nls#@returns": {
+    "hash": "8256e941cc65",
+    "en": "The fitted coefficients, residuals, covariance, and convergence diagnostics.",
+    "ja": "当てはめた係数、残差、共分散、収束診断を返します。"
+  },
+  "nls#summary": {
+    "hash": "e76f7f25dcf3",
+    "en": "Nonlinear least-squares regression. Equivalent to R's `nls()`.\n\nFits a user-specified nonlinear mean function by Gauss-Newton, variable projection, or bound-constrained\nleast squares. Formula expressions are parsed safely and differentiated symbolically.",
+    "ja": "非線形最小二乗回帰です。R の `nls()` と同等です。\n\nユーザーが指定した非線形平均関数を、Gauss-Newton 法、変数射影法、または境界付き最小二乗法で当てはめます。\n式の表現は安全に解析され、記号微分されます。"
+  },
+  "nlsAnova#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": "⟦code1⟧"
+  },
+  "nlsAnova#@param fits": {
+    "hash": "2c6c7d0a35b9",
+    "en": "Two or more nested fits to the same observations.",
+    "ja": "同じ観測値に対する、2 つ以上の入れ子の当てはめです。"
+  },
+  "nlsAnova#@returns": {
+    "hash": "cc7feb657d1f",
+    "en": "The sequential F-test table.",
+    "ja": "逐次 F 検定の表を返します。"
+  },
+  "nlsAnova#summary": {
+    "hash": "51324bb2615b",
+    "en": "Analysis of variance for nested nonlinear least-squares fits. Equivalent to R's `anova.nls()`.",
+    "ja": "入れ子の非線形最小二乗当てはめの分散分析です。R の `anova.nls()` と同等です。"
+  },
+  "nlsConfint#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": "⟦code1⟧"
+  },
+  "nlsConfint#@param fit": {
+    "hash": "74a5799e03f1",
+    "en": "A fitted nonlinear model.",
+    "ja": "当てはめた非線形モデルです。"
+  },
+  "nlsConfint#@param options": {
+    "hash": "0c648381bd08",
+    "en": "Interval method, confidence level, and parameter names.",
+    "ja": "区間の方法、信頼水準、パラメータ名です。"
+  },
+  "nlsConfint#@returns": {
+    "hash": "edcb37853056",
+    "en": "A two-column confidence interval matrix.",
+    "ja": "2 列の信頼区間行列を返します。"
+  },
+  "nlsConfint#summary": {
+    "hash": "0b48d2e3dfbb",
+    "en": "Wald or profile confidence intervals for nonlinear parameters. Equivalent to R's `confint.nls()`.",
+    "ja": "非線形パラメータの Wald 信頼区間またはプロファイル信頼区間です。R の `confint.nls()` と同等です。"
+  },
+  "nlsPredict#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": "⟦code1⟧"
+  },
+  "nlsPredict#@param fit": {
+    "hash": "74a5799e03f1",
+    "en": "A fitted nonlinear model.",
+    "ja": "当てはめた非線形モデルです。"
+  },
+  "nlsPredict#@param options": {
+    "hash": "4dbd6e1cfe63",
+    "en": "New predictor data.",
+    "ja": "新しい説明変数データです。"
+  },
+  "nlsPredict#@returns": {
+    "hash": "5965caf499e4",
+    "en": "One fitted mean per row of new data.",
+    "ja": "新しいデータの各行について、当てはめた平均値を 1 つ返します。"
+  },
+  "nlsPredict#summary": {
+    "hash": "f727e5d26246",
+    "en": "Predictions from a nonlinear least-squares fit. Equivalent to R's `predict.nls()`.",
+    "ja": "非線形最小二乗当てはめからの予測値です。R の `predict.nls()` と同等です。"
+  },
+  "nlsSummary#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": "⟦code1⟧"
+  },
+  "nlsSummary#@param fit": {
+    "hash": "74a5799e03f1",
+    "en": "A fitted nonlinear model.",
+    "ja": "当てはめた非線形モデルです。"
+  },
+  "nlsSummary#@returns": {
+    "hash": "7d3920b0bde3",
+    "en": "The coefficient table, residual scale, and residual degrees of freedom.",
+    "ja": "係数表、残差尺度、残差自由度を返します。"
+  },
+  "nlsSummary#summary": {
+    "hash": "30696a2655f8",
+    "en": "Summary of a nonlinear least-squares fit. Equivalent to R's `summary.nls()`.",
+    "ja": "非線形最小二乗当てはめの要約です。R の `summary.nls()` と同等です。"
+  },
+  "nlsVcov#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": "⟦code1⟧"
+  },
+  "nlsVcov#@param fit": {
+    "hash": "74a5799e03f1",
+    "en": "A fitted nonlinear model.",
+    "ja": "当てはめた非線形モデルです。"
+  },
+  "nlsVcov#@returns": {
+    "hash": "11841e7ac9f6",
+    "en": "The covariance matrix in coefficient order.",
+    "ja": "係数の順序に対応する共分散行列を返します。"
+  },
+  "nlsVcov#summary": {
+    "hash": "ca1c3b6f7877",
+    "en": "Covariance matrix of a nonlinear least-squares fit. Equivalent to R's `vcov.nls()`.",
+    "ja": "非線形最小二乗当てはめの共分散行列です。R の `vcov.nls()` と同等です。"
+  },
+  "polr#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": "⟦code1⟧"
+  },
+  "polr#@param data": {
+    "hash": "804617eb5ffd",
+    "en": "The data frame: an object of columns.",
+    "ja": "データフレームです。列からなるオブジェクトです。"
+  },
+  "polr#@param formula": {
+    "hash": "2701c260d05c",
+    "en": "A formula such as `\"rating ~ treatment + age\"`.",
+    "ja": "`\"rating ~ treatment + age\"` のような式です。"
+  },
+  "polr#@param options": {
+    "hash": "603a6c0c5247",
+    "en": "The link, weights, offset, starts, contrasts and optimisation controls.",
+    "ja": "リンク、重み、オフセット、初期値、対比、最適化制御です。"
+  },
+  "polr#@returns": {
+    "hash": "f51912ed8f75",
+    "en": "The fitted slopes, cut-points, fitted probabilities and likelihood statistics.",
+    "ja": "当てはめた傾き、カットポイント、当てはめ確率、尤度統計量を返します。"
+  },
+  "polr#summary": {
+    "hash": "8c09d1a9d963",
+    "en": "Fit a cumulative-link ordinal regression. Equivalent to R's `MASS::polr()`.",
+    "ja": "累積リンクによる順序回帰を当てはめます。R の `MASS::polr()` と同等です。"
+  },
+  "polrAnova#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": "⟦code1⟧"
+  },
+  "polrAnova#@param fits": {
+    "hash": "49ee5b18708f",
+    "en": "Two or more nested fits, ordered from the smallest to the largest model.",
+    "ja": "最小モデルから最大モデルの順に並べた、2 つ以上の入れ子の当てはめです。"
+  },
+  "polrAnova#@returns": {
+    "hash": "7b3c303e293e",
+    "en": "The sequential likelihood-ratio chi-squared comparison table.",
+    "ja": "逐次的な尤度比カイ二乗比較表を返します。"
+  },
+  "polrAnova#summary": {
+    "hash": "dd846dc79a86",
+    "en": "Equivalent to R's `anova.polr()`.",
+    "ja": "R の `anova.polr()` と同等です。"
+  },
+  "polrConfint#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": "⟦code1⟧"
+  },
+  "polrConfint#@param fit": {
+    "hash": "7d1b29563eff",
+    "en": "A fit returned by {@link polr}.",
+    "ja": "{@link polr} が返した当てはめです。"
+  },
+  "polrConfint#@param options": {
+    "hash": "a719d50c1a58",
+    "en": "The interval method, confidence level and selected slope parameters.",
+    "ja": "区間の方法、信頼水準、対象とする傾きパラメータです。"
+  },
+  "polrConfint#@returns": {
+    "hash": "ea48813e0ceb",
+    "en": "A table of lower and upper confidence limits; cut-points are not included.",
+    "ja": "信頼限界の下限と上限の表を返します。カットポイントは含みません。"
+  },
+  "polrConfint#summary": {
+    "hash": "0ff7799f5c55",
+    "en": "Equivalent to R's `confint.polr()`.",
+    "ja": "R の `confint.polr()` と同等です。"
+  },
+  "polrPredict#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": "⟦code1⟧"
+  },
+  "polrPredict#@param fit": {
+    "hash": "7d1b29563eff",
+    "en": "A fit returned by {@link polr}.",
+    "ja": "{@link polr} が返した当てはめです。"
+  },
+  "polrPredict#@param options": {
+    "hash": "589e83cae77b",
+    "en": "New predictor columns, optional row labels, and the prediction type.",
+    "ja": "新しい説明変数の列、省略可能な行ラベル、予測の種類です。"
+  },
+  "polrPredict#@returns": {
+    "hash": "442f0ee74398",
+    "en": "Predicted category labels, or a matrix with one probability column per response level.",
+    "ja": "予測されたカテゴリラベル、または応答水準ごとに 1 列の確率行列を返します。"
+  },
+  "polrPredict#summary": {
+    "hash": "1756c1f9d4c2",
+    "en": "Predict ordinal categories or their probabilities for new observations. Equivalent to R's `predict.polr()`.",
+    "ja": "新しい観測値について、順序カテゴリまたはその確率を予測します。R の `predict.polr()` と同等です。"
+  },
+  "polrSummary#@param fit": {
+    "hash": "7d1b29563eff",
+    "en": "A fit returned by {@link polr}.",
+    "ja": "{@link polr} が返した当てはめです。"
+  },
+  "polrSummary#@returns": {
+    "hash": "e144eebdcd31",
+    "en": "Estimates, standard errors and Wald t statistics.",
+    "ja": "推定値、標準誤差、Wald t 統計量を返します。"
+  },
+  "polrSummary#summary": {
+    "hash": "b3b60e7744f6",
+    "en": "Summary table of the slope and cut-point estimates. Equivalent to R's `summary.polr()`.",
+    "ja": "傾きとカットポイントの推定値の要約表です。R の `summary.polr()` と同等です。"
+  },
+  "polrVcov#@param fit": {
+    "hash": "7d1b29563eff",
+    "en": "A fit returned by {@link polr}.",
+    "ja": "{@link polr} が返した当てはめです。"
+  },
+  "polrVcov#@returns": {
+    "hash": "feeb10548d3b",
+    "en": "The covariance matrix in slope-then-cut-point order.",
+    "ja": "傾き、次にカットポイントの順序に対応する共分散行列を返します。"
+  },
+  "polrVcov#summary": {
+    "hash": "a1d859dcbfc2",
+    "en": "Covariance matrix of the slopes and cut-points. Equivalent to R's `vcov.polr()`.",
+    "ja": "傾きとカットポイントの共分散行列です。R の `vcov.polr()` と同等です。"
+  },
+  "psiBisquare#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": "⟦code1⟧"
+  },
+  "psiBisquare#@param options": {
+    "hash": "d3fdc3ffe507",
+    "en": "Tuning constant and output selection.",
+    "ja": "調整定数と出力の選択です。"
+  },
+  "psiBisquare#@param u": {
+    "hash": "55bc6b88bc62",
+    "en": "Standardised residuals.",
+    "ja": "標準化残差です。"
+  },
+  "psiBisquare#@returns": {
+    "hash": "7c8b5214c94a",
+    "en": "The IRLS weight psi(u)/u, or psi'(u) when deriv is 1.",
+    "ja": "IRLS 重み ψ(u)/u、または deriv が 1 の場合は ψ'(u) を返します。"
+  },
+  "psiBisquare#summary": {
+    "hash": "f673bbe4c95d",
+    "en": "Tukey's bisquare psi function. Equivalent to R's `MASS::psi.bisquare()`.",
+    "ja": "Tukey の bisquare ψ 関数です。R の `MASS::psi.bisquare()` と同等です。"
+  },
+  "psiHampel#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": "⟦code1⟧"
+  },
+  "psiHampel#@param options": {
+    "hash": "06054c5b0d20",
+    "en": "Three tuning points and output selection.",
+    "ja": "3 つの調整点と出力の選択です。"
+  },
+  "psiHampel#@param u": {
+    "hash": "55bc6b88bc62",
+    "en": "Standardised residuals.",
+    "ja": "標準化残差です。"
+  },
+  "psiHampel#@returns": {
+    "hash": "7c8b5214c94a",
+    "en": "The IRLS weight psi(u)/u, or psi'(u) when deriv is 1.",
+    "ja": "IRLS 重み ψ(u)/u、または deriv が 1 の場合は ψ'(u) を返します。"
+  },
+  "psiHampel#summary": {
+    "hash": "ed8e7daedea9",
+    "en": "Hampel's three-part psi function. Equivalent to R's `MASS::psi.hampel()`.",
+    "ja": "Hampel の 3 区分 ψ 関数です。R の `MASS::psi.hampel()` と同等です。"
+  },
+  "psiHuber#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": "⟦code1⟧"
+  },
+  "psiHuber#@param options": {
+    "hash": "d3fdc3ffe507",
+    "en": "Tuning constant and output selection.",
+    "ja": "調整定数と出力の選択です。"
+  },
+  "psiHuber#@param u": {
+    "hash": "55bc6b88bc62",
+    "en": "Standardised residuals.",
+    "ja": "標準化残差です。"
+  },
+  "psiHuber#@returns": {
+    "hash": "7c8b5214c94a",
+    "en": "The IRLS weight psi(u)/u, or psi'(u) when deriv is 1.",
+    "ja": "IRLS 重み ψ(u)/u、または deriv が 1 の場合は ψ'(u) を返します。"
+  },
+  "psiHuber#summary": {
+    "hash": "fedcdbdc44f8",
+    "en": "Huber's psi function. Equivalent to R's `MASS::psi.huber()`.",
+    "ja": "Huber の ψ 関数です。R の `MASS::psi.huber()` と同等です。"
+  },
+  "rlm#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": "⟦code1⟧"
+  },
+  "rlm#@param data": {
+    "hash": "a2d1df8756e6",
+    "en": "Columns of equal-length observations.",
+    "ja": "同じ長さの観測値からなる列です。"
+  },
+  "rlm#@param formula": {
+    "hash": "6727449b9ae5",
+    "en": "A formula such as `\"y ~ x1 + x2\"`.",
+    "ja": "`\"y ~ x1 + x2\"` のような式です。"
+  },
+  "rlm#@param options": {
+    "hash": "9d1be1235acc",
+    "en": "Psi, scale, initial values, observation weights and iteration controls.",
+    "ja": "ψ 関数、尺度、初期値、観測値の重み、反復制御です。"
+  },
+  "rlm#@returns": {
+    "hash": "09235d1742d7",
+    "en": "Coefficients, fitted values, residuals, robust weights, scale and covariance diagnostics.",
+    "ja": "係数、当てはめ値、残差、ロバスト重み、尺度、共分散の診断情報を返します。"
+  },
+  "rlm#summary": {
+    "hash": "fe83c375ae03",
+    "en": "Robust M regression. Equivalent to R's `MASS::rlm()`.",
+    "ja": "ロバスト M 回帰です。R の `MASS::rlm()` と同等です。"
+  },
+  "rlmSummary#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": "⟦code1⟧"
+  },
+  "rlmSummary#@param fit": {
+    "hash": "767bc025798b",
+    "en": "A fit returned by {@link rlm}.",
+    "ja": "{@link rlm} が返した当てはめです。"
+  },
+  "rlmSummary#@returns": {
+    "hash": "2cc715d3cbe9",
+    "en": "Coefficients, standard errors and t statistics.",
+    "ja": "係数、標準誤差、t 統計量を返します。"
+  },
+  "rlmSummary#summary": {
+    "hash": "994cc824296e",
+    "en": "Coefficient table of a robust fit. Equivalent to R's `summary.rlm()`.",
+    "ja": "ロバスト回帰の係数表です。R の `summary.rlm()` と同等です。"
+  },
+  "rlmVcov#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": "⟦code1⟧"
+  },
+  "rlmVcov#@param fit": {
+    "hash": "767bc025798b",
+    "en": "A fit returned by {@link rlm}.",
+    "ja": "{@link rlm} が返した当てはめです。"
+  },
+  "rlmVcov#@returns": {
+    "hash": "11841e7ac9f6",
+    "en": "The covariance matrix in coefficient order.",
+    "ja": "係数の順序に対応する共分散行列を返します。"
+  },
+  "rlmVcov#summary": {
+    "hash": "2c052cb7fae7",
+    "en": "Covariance matrix of robust-regression coefficients. Equivalent to R's `vcov.rlm()`.",
+    "ja": "ロバスト回帰係数の共分散行列です。R の `vcov.rlm()` と同等です。"
+  }
+}

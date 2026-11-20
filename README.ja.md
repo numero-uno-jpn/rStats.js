@@ -225,6 +225,7 @@ eigen([[2, 1], [1, 3]]).values;     // ≈ [3.618033989, 1.381966011]
 | 試験デザインの標本サイズと検出力 | `epiSsequb`・`epiSsequc`・`epiSsninfb`・`epiSsninfc`・`epiSssupb`・`epiSssupc` (epiR: 比率と平均の同等性・非劣性・優越性)、`powerPaired2x2` (対応のある 2 × 2 表の正確な McNemar 検定の検出力)、`ssizeCT`・`powerCT`・`ssizeEpi`・`powerEpi`・`numDEpi` (生存時間の標本サイズと検出力)、`ph2simon` (Simon の 2 段階デザイン) |
 | メタアナリシス | `escalc` (効果量と標本分散)、`rma` (等効果・ランダム効果のメタアナリシスとメタ回帰)、`confintRma`・`predictRma`・`regtest` (metafor) |
 | 線形モデル | `lm` (formula とデータフレーム、または行列で渡す。`summary` の値も返す), `modelMatrix` (`model.matrix`), `confint`, `predict`。`glm` (行列で渡す形。R の `stats` のすべての族とリンク) と `glmSummary` (`summary.glm`)、`glmResiduals` (4 種類)、`glmHatvalues`、`glmRstandard`、`glmCooksDistance`、`glmPredict` (標準誤差つき)、`glmConfint` (プロファイル尤度、厳密な限界)、`glmAnova` (`anova.glm`)。`vcovHC`、`vcovCL` (sandwich: HC0〜HC5、一元と多元のクラスター)、`coeftest`、`coefci` (lmtest) |
+| 回帰 | `polr`・`polrSummary`・`polrVcov`・`polrPredict`・`polrConfint`・`polrAnova` (MASS: logistic・probit・cloglog・loglog・cauchit のリンクによる順序ロジスティック回帰)、`rlm`・`rlmSummary`・`rlmVcov`・`psiHuber`・`psiHampel`・`psiBisquare` (MASS: M 推定と MM 推定によるロバスト回帰)、`nls`・`nlsSummary`・`nlsVcov`・`nlsPredict`・`nlsConfint`・`nlsAnova` (非線形最小二乗法: 既定・`plinear`・`port` のアルゴリズムと 10 個の自己開始モデル)。`@numero-uno-jpn/rstats/regression` から import します |
 | 混合モデル | `lmer` (lme4: REML と最尤法、相関のある変量効果と相関のない変量効果、交差と入れ子の群。`fixef`、`vcov`、`VarCorr`、`ranef`、`logLik`、`AIC`、`BIC`、`REMLcrit`、`isSingular`)、`lmerSummary`・`lmerContest`・`lmerAnova` (lmerTest: Satterthwaite の t 検定と F 検定、Type I/II/III の分散分析表。当てはめどうしの尤度比検定)、`glmer` (lme4: glm のすべての族、ラプラス近似と適応的 Gauss-Hermite 求積)、`glmerSummary`・`glmerAnova`・`glmerPredict`・`lmerPredict`・`confintLmer`・`confintGlmer`・`simulateLmer`・`simulateGlmer`。
 `@numero-uno-jpn/rstats/mixed` から import する |
 | ほかの検定 | `leveneTest`、`propTrendTest` (`prop.trend.test`)、`jonckheereTest`、`cochranQTest`、`adTest`、`lillieTest`、`cvmTest`、`sfTest`、`pearsonTest` (car、DescTools、clinfun、nortest)。`tTOST`、`tsumTOST` (TOSTER: 平均の同等性検定と最小効果検定) |
@@ -297,16 +298,17 @@ double-double 演算で計算しているためです。詳しくは [docs/ja/ac
 | `glm` と `glmSummary` / `glm` とそのすべての関数 | 35.1 / 51.4 KB |
 | `lmer` (`/mixed` から) / `lmerSummary`・`lmerContest`・`lmerAnova` も | 19.4 / 70.0 KB |
 | `glmer` (`/mixed` から) / `glmerSummary`・`glmerAnova`・`glmerPredict` も | 47.2 / 66.1 KB |
-| すべて (`/mixed` を除く) | 322.2 KB |
+| `polr` / `rlm` / `nls` (`/regression` から) | 24.6 / 14.6 / 7.9 KB |
+| すべて (`/mixed` と `/regression` を除く) | 322.2 KB |
 
 (`npm run size` で測れます。)
 
 分野ごとにサブパスからも export しているので、1 つの分野だけを import することもできます。
 `@numero-uno-jpn/rstats/distributions`、`/tests` (検定、`lm`・`confint`・`predict`、`glm` とその関数)、`/linalg`、
-`/descriptive`、`/numerics`、`/special`、`/mixed` です (`/mixed` の `lmer`・`glmer` とその関数は、この方法でしか import
-できません。メインの入口には含めていません)。
+`/descriptive`、`/numerics`、`/special`、`/mixed`、`/regression` です (`/mixed` の `lmer`・`glmer` とその関数と、
+`/regression` の `polr`・`rlm`・`nls` とその関数は、この方法でしか import できません。メインの入口には含めていません)。
 
-バンドラを使わない場合は、1 ファイルにまとめたビルド `dist/rstats.js` (`/mixed` 以外のすべての関数を含む
+バンドラを使わない場合は、1 ファイルにまとめたビルド `dist/rstats.js` (`/mixed` と `/regression` 以外のすべての関数を含む
 minify 済みの ES モジュール、gzip で 322 KB) を jsDelivr から読み込めます。jsDelivr は、npm のリリースを
 そのまま配信します。
 
@@ -326,14 +328,14 @@ minify 済みの ES モジュール、gzip で 322 KB) を jsDelivr から読み
 
 一部の分野だけを使うページでは、代わりに分野ごとのバンドルを読み込めます。`dist/distributions.js`、
 `dist/tests.js`、`dist/linalg.js`、`dist/descriptive.js`、`dist/numerics.js`、`dist/special.js`、
-`dist/mixed.js` は上のサブパスと同じ関数を export し、共通のコードを `dist/chunks/` で共有します。そのため、
+`dist/mixed.js`、`dist/regression.js` は上のサブパスと同じ関数を export し、共通のコードを `dist/chunks/` で共有します。そのため、
 2 つの分野を読み込んでも共通部分は 1 回しか読み込まれません。chunk を含めた 1 分野の転送量は、gzip で
 39 KB (`special`) から 288 KB (`tests`) です。
 
 1 つのページでは、`dist/rstats.js` か分野ごとのバンドルのどちらか一方だけを使ってください。両者は別々の
 モジュールの集まりなので、混ぜると共通のコードが 2 回読み込まれ、乱数の状態も 2 つになります (一方の `setSeed`
-は他方の乱数に効きません)。`dist/rstats.js` と `dist/mixed.js` を一緒に読み込む場合も、`dist/mixed.js` は
-共通のコードを別に持ち込みます。
+は他方の乱数に効きません)。`dist/rstats.js` と `dist/mixed.js` や `dist/regression.js` を一緒に読み込む場合も、
+`dist/mixed.js` と `dist/regression.js` は共通のコードを別に持ち込みます。
 
 npm を元にしたほかの CDN も使えます。たとえば `https://esm.sh/@numero-uno-jpn/rstats` です。ビルド結果
 (`dist/`) は main ブランチにはなく、リリースのタグにも入っていますが、jsDelivr の GitHub 経由の配信

@@ -24,13 +24,21 @@ const cases = [
   ["everything", "*"],
 ];
 
-const areas = ["distributions", "tests", "linalg", "descriptive", "numerics", "special", "mixed"];
+const areas = ["distributions", "tests", "linalg", "descriptive", "numerics", "special", "mixed", "regression"];
 for (const a of areas) cases.push([`rStats.js/${a} (all of it)`, "*", fileURLToPath(new URL(`../dist/entries/${a}.js`, import.meta.url))]);
 const mixedEntry = fileURLToPath(new URL("../dist/entries/mixed.js", import.meta.url));
 cases.push(["lmer (from /mixed)", "lmer", mixedEntry]);
 cases.push(["lmer, lmerSummary, lmerContest, lmerAnova (from /mixed)", "lmer, lmerSummary, lmerContest, lmerAnova", mixedEntry]);
 cases.push(["glmer (from /mixed)", "glmer", mixedEntry]);
 cases.push(["glmer, glmerSummary, glmerAnova, glmerPredict (from /mixed)", "glmer, glmerSummary, glmerAnova, glmerPredict", mixedEntry]);
+
+const regressionEntry = fileURLToPath(new URL("../dist/entries/regression.js", import.meta.url));
+cases.push(["polr (from /regression)", "polr", regressionEntry]);
+cases.push(["polr with all its methods (from /regression)", "polr, polrSummary, polrVcov, polrPredict, polrConfint, polrAnova", regressionEntry]);
+cases.push(["rlm (from /regression)", "rlm", regressionEntry]);
+cases.push(["rlm with all its methods (from /regression)", "rlm, rlmSummary, rlmVcov, psiHuber, psiHampel, psiBisquare", regressionEntry]);
+cases.push(["nls (from /regression)", "nls", regressionEntry]);
+cases.push(["nls with all its methods (from /regression)", "nls, nlsSummary, nlsVcov, nlsPredict, nlsConfint, nlsAnova", regressionEntry]);
 
 const rows = [];
 for (const [label, names, from = dist] of cases) {
@@ -50,3 +58,4 @@ const kb = (n) => `${(n / 1024).toFixed(1)} KB`;
 console.log("| import | minified | gzip |");
 console.log("|---|---|---|");
 for (const [label, min, gz] of rows) console.log(`| \`${label}\` | ${kb(min)} | ${kb(gz)} |`);
+

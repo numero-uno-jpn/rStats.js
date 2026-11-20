@@ -1,0 +1,10 @@
+== rstats-oracle:4.6.2
+direct: 1.98266166303 
+direct after set.seed(1): 1.98266178071 
+random seed 1: 1.98266178071 
+exact after set.seed(5): 1.91195472954 
+== rstats-oracle-amd64:4.6.2
+direct: 1.91195124981 
+direct after set.seed(1): 1.98266178071 
+random seed 1: 1.98266178071 
+exact after set.seed(5): 1.91195472954 

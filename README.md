@@ -223,6 +223,7 @@ eigen([[2, 1], [1, 3]]).values;     // ≈ [3.618033989, 1.381966011]
 | Sample size and power for trial designs | `epiSsequb`, `epiSsequc`, `epiSsninfb`, `epiSsninfc`, `epiSssupb`, `epiSssupc` (epiR: equivalence, non-inferiority and superiority for proportions and means), `powerPaired2x2` (exact paired McNemar power), `ssizeCT`, `powerCT`, `ssizeEpi`, `powerEpi`, `numDEpi` (survival sample size and power), `ph2simon` (Simon two-stage designs) |
 | Meta-analysis | `escalc` (effect sizes and sampling variances), `rma` (equal- and random-effects meta-analysis and meta-regression), `confintRma`, `predictRma`, `regtest` (metafor) |
 | Linear models | `lm` (a formula and a data frame, or a matrix, with the `summary` quantities), `modelMatrix` (`model.matrix`), `confint`, `predict`; `glm` (matrix interface, every family and link of R's `stats`) with `glmSummary` (`summary.glm`), `glmResiduals` (the four kinds), `glmHatvalues`, `glmRstandard`, `glmCooksDistance`, `glmPredict` (with standard errors), `glmConfint` (profile likelihood, exact limits), `glmAnova` (`anova.glm`); `vcovHC`, `vcovCL` (sandwich: HC0 to HC5, one-way and multi-way clustered), `coeftest`, `coefci` (lmtest) |
+| Regression | `polr`, `polrSummary`, `polrVcov`, `polrPredict`, `polrConfint`, `polrAnova` (MASS: ordinal logistic regression with logistic, probit, cloglog, loglog and cauchit links); `rlm`, `rlmSummary`, `rlmVcov`, `psiHuber`, `psiHampel`, `psiBisquare` (MASS: robust M and MM regression); `nls`, `nlsSummary`, `nlsVcov`, `nlsPredict`, `nlsConfint`, `nlsAnova` (nonlinear least squares: default, `plinear` and `port` algorithms, and 10 self-starting models), from `@numero-uno-jpn/rstats/regression` |
 | Mixed models | `lmer` (lme4: REML and ML, correlated and uncorrelated random effects, crossed and nested grouping factors; `fixef`, `vcov`, `VarCorr`, `ranef`, `logLik`, `AIC`, `BIC`, `REMLcrit`, `isSingular`), `lmerSummary`, `lmerContest` and `lmerAnova` (lmerTest: Satterthwaite's t- and F-tests, Type I/II/III ANOVA tables; likelihood-ratio comparison of fits), `glmer` (lme4: all glm families, Laplace approximation and adaptive Gauss-Hermite quadrature), `glmerSummary`, `glmerAnova`, `glmerPredict`, `lmerPredict`, `confintLmer`, `confintGlmer`, `simulateLmer` and
 `simulateGlmer`, from `@numero-uno-jpn/rstats/mixed` |
 | More tests | `leveneTest`, `propTrendTest` (`prop.trend.test`), `jonckheereTest`, `cochranQTest`, `adTest`, `lillieTest`, `cvmTest`, `sfTest`, `pearsonTest` (car, DescTools, clinfun, nortest); `tTOST`, `tsumTOST` (TOSTER: equivalence and minimal-effect t tests) |
@@ -296,17 +297,19 @@ removed. Approximate sizes after minification and gzip:
 | `glm` and `glmSummary` / `glm` with all its methods | 35.1 / 51.4 KB |
 | `lmer` (from `/mixed`) / with `lmerSummary`, `lmerContest`, `lmerAnova` | 19.4 / 70.0 KB |
 | `glmer` (from `/mixed`) / with `glmerSummary`, `glmerAnova`, `glmerPredict` | 47.2 / 66.1 KB |
-| everything (except `/mixed`) | 322.2 KB |
+| `polr` / `rlm` / `nls` (from `/regression`) | 24.6 / 14.6 / 7.9 KB |
+| everything (except `/mixed` and `/regression`) | 322.2 KB |
 
 (`npm run size` measures these.)
 
 Each area is also a subpath export, for importing one area without the rest:
 `@numero-uno-jpn/rstats/distributions`, `/tests` (hypothesis tests, `lm`, `confint` and
-`predict`, and `glm` with its methods), `/linalg`, `/descriptive`, `/numerics`, `/special` and `/mixed`
-(`lmer`, `glmer` and their methods; this area is only available this way, not from the main entry point).
+`predict`, and `glm` with its methods), `/linalg`, `/descriptive`, `/numerics`, `/special`, `/mixed`
+(`lmer`, `glmer` and their methods) and `/regression` (`polr`, `rlm`, `nls` and their methods); these last two
+areas are only available this way, not from the main entry point.
 
 Without a bundler, load the single-file build `dist/rstats.js` (one minified ES module with every
-function except those of `/mixed`, 322 KB gzipped) from jsDelivr, which serves each npm release:
+function except those of `/mixed` and `/regression`, 322 KB gzipped) from jsDelivr, which serves each npm release:
 
 ```html
 <script type="module">
@@ -323,14 +326,14 @@ loaded either way. Nothing is added to `window`: to use the functions from other
 browser console, assign `window.rs = rs` yourself.
 
 A page that needs only some areas can load the per-area bundles instead: `dist/distributions.js`,
-`dist/tests.js`, `dist/linalg.js`, `dist/descriptive.js`, `dist/numerics.js`, `dist/special.js` and
-`dist/mixed.js` export the same functions as the subpaths above, and share their common code through
+`dist/tests.js`, `dist/linalg.js`, `dist/descriptive.js`, `dist/numerics.js`, `dist/special.js`,
+`dist/mixed.js` and `dist/regression.js` export the same functions as the subpaths above, and share their common code through
 `dist/chunks/`, so loading two areas does not load that code twice. With its chunks, one area
 transfers 39 KB (`special`) to 288 KB (`tests`) gzipped.
 
 Use either `dist/rstats.js` or the per-area bundles on one page, not both: they are separate sets of modules, so a
 page that mixes them loads the common code twice and has two random number states (`setSeed` from one does not seed
-the generators of the other). The same holds for `dist/rstats.js` with `dist/mixed.js`, which brings its own copy
+the generators of the other). The same holds for `dist/rstats.js` with `dist/mixed.js` or `dist/regression.js`, which bring their own copy
 of the common code.
 
 Other npm-based CDNs work as well, for example `https://esm.sh/@numero-uno-jpn/rstats`. Release tags also contain

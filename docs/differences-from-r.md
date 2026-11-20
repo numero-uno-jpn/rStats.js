@@ -1215,6 +1215,25 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
 - **Ill-conditioned model matrices:** the values carry the rounding of the fit's own QR decomposition, as R's
   (for a model matrix with condition number 2e12 both are up to about 1e-3 from the exact value).
 
+### Regression: polr, rlm and nls
+
+The reference decisions are recorded in [polr](../oracle/polr-behaviour.md), [rlm](../oracle/rlm-behaviour.md) and
+[nls](../oracle/nls-behaviour.md).
+
+- **Ordinal regression:** `polr` uses the standard Cauchy distribution for `method: "cauchit"`; MASS 7.3-66's
+  `cauchit` link does not fit that standard model. Predictions on new data include the formula offset, unlike MASS.
+  A response level with no observations (or only zero weights), and comparisons of non-nested fits, are errors here;
+  MASS returns finite but meaningless estimates for the former and a negative likelihood-ratio statistic for the latter.
+- **Robust regression:** MM uses a deterministic S-estimator start, and `init: "lts"` uses a deterministic subset search;
+  MASS's MM start and LTS search depend on random sampling. MM with case weights is rejected here. If more than half
+  the observations lie exactly on a line, the fit has scale 0 and inference is NaN with a warning; MASS reports a
+  rounding-size scale and computes standard errors from it.
+- **Nonlinear regression:** the default iteration continues to the solution; R's default stopping rule can stop early.
+  Profile confidence limits are exact roots, whereas R interpolates a profile grid (differences can reach 0.47%).
+  An exact fit returns its estimates with inference NaN; R stops with an error. Missing starts and too few observations
+  are rejected before iteration. The `port` algorithm is an independently implemented bound-constrained Gauss-Newton
+  method, not the PORT library.
+
 ### Mixed models
 
 - **`lmer` returns the exact optimum** of the REML criterion (or the ML deviance), found by Newton's method with
