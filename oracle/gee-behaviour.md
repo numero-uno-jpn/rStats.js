@@ -90,26 +90,123 @@ The pinned public-function output establishes:
 
 Reference warnings and errors are observations, not normative API design. In particular, an implementation should not reproduce a software defect in fixed-scale handling.
 
-## 7. Oracle coverage and unresolved behaviour
+## 7. Formula-level specification and numerical verification
 
-`oracle/gee.R` records all four standard working structures over Gaussian and binomial examples, Gamma and Poisson fits, offset and wave use, all three jackknife variants, fixed and user-defined correlations, scale fixing, weights, sequential and nested comparisons, QIC, prediction, unsorted ids, singleton clusters, missing data, and separation. Each ordinary fit is paired with a tighter-control refit for comparison.
+These formulae are grounded in Liang and Zeger (1986), Prentice (1988), Halekoh, Højsgaard and Yan (2006), Yan and Fine (2004), and Pan (2001), and checked against successful public-output experiments on commit 9c698624. No package or R implementation source was used.
 
-Unresolved items:
+### 7.1 Mean model and estimating equations
 
-1. The exact finite-sample formulas and computational shortcuts for `jack`, `j1s`, and `fij` are not fully specified by the manual. Confirm their observable differences and choose whether exact numerical parity is required.
-2. The fixed-scale error is a reproducible reference defect in the pinned run. Determine whether it persists in a minimal example; do not encode it as desired API behaviour.
-3. The complete definition and ordering of `zcor` for every combination of user-defined/fixed structures, unequal cluster sizes, and waves needs targeted examples.
-4. The reference's multi-model `anova` assumptions and behaviour for incompatible clusters, weights, offsets, or non-nested models are not exhaustively mapped.
-5. The exact correlation-parameter constraints, convergence diagnostics, and behaviour for singular working covariance matrices need further public-output experiments.
-6. Missing-data policy and cluster sorting should be specified independently of the reference's limitations.
+For cluster i,
+\[
+\mu_i=g^{-1}(X_i\beta+o_i),\quad
+D_i=\partial\mu_i/\partial\beta^\mathsf T,\quad
+A_i=\operatorname{diag}\{v(\mu_{ij})\},\quad
+V_i=\phi A_i^{1/2}R_i(\alpha)A_i^{1/2}.
+\]
+The estimate solves
+\[
+\sum_iD_i^\mathsf TV_i^{-1}(Y_i-\mu_i)=0.
+\]
+In the 12-cluster, 3-wave Gaussian identity check, beta=(2.82583888888889,0.592741666666667); ordinary and tight independence/exchangeable fits agree to at least 14 significant digits. Exchangeable alpha is -0.117003308068869 and AR(1) alpha is -0.201175106522640. The independent residual-moment calculations reproduce the displayed alpha values to 10 significant digits. With gaps in waves, AR(1) alpha is -0.318769908479073 versus -0.173965690243595 when default consecutive waves are used; thus R_ijk=alpha^|wave_j-wave_k|, not row adjacency.
+
+### 7.2 Working correlation and scale
+
+Let r_ij=(Y_ij-mu_ij)/sqrt(v(mu_ij)) be Pearson residuals. The Gaussian scale estimate is
+\[
+\widehat\phi=N^{-1}\sum_{i,j}r_{ij}^2.
+\]
+The 36-observation output is 0.173445234552469; the independent residual sum divided by 36 agrees to 14 significant digits, confirming denominator N rather than N-p.
+
+For exchangeable correlation,
+\[
+\widehat\alpha_{\rm ex}=
+\frac{\sum_i\sum_{j<k}r_{ij}r_{ik}}
+{\widehat\phi\sum_i m_i(m_i-1)/2}.
+\]
+For unstructured correlation,
+\[
+\widehat\alpha_{jk}=
+\frac{\sum_{i:\,j,k\ {\rm observed}}r_{ij}r_{ik}}
+{\widehat\phi K_{jk}},
+\]
+where K_jk counts clusters contributing that pair. Independent pairwise calculations reproduce the exchangeable and unstructured entries in gee-check to the displayed 10–14 significant digits. For AR(1), define empirical lag moments c_d=sum(r_ij*r_ik)/(K_d*phi), over pairs at wave distance d, and minimize
+\[
+\sum_dK_d(c_d-\alpha^d)^2.
+\]
+The independent minimization gives -0.2011751065 versus R -0.201175106522640 (10 significant digits). User-defined and fixed structures use the supplied zcor design vector, not these moment estimators.
+
+### 7.3 Robust sandwich covariance
+
+Set
+\[
+B=\sum_iD_i^\mathsf TV_i^{-1}D_i,\quad
+U_i=D_i^\mathsf TV_i^{-1}(Y_i-\mu_i),\quad
+M=\sum_iU_iU_i^\mathsf T.
+\]
+Then
+\[
+\widehat{\operatorname{Var}}(\widehat\beta)=B^{-1}MB^{-1}.
+\]
+The independent calculation reproduces all four entries of the 2-by-2 coefficient covariance for independence, exchangeable, AR(1), and unstructured structures to the 14 digits displayed by R. The independence matrix is
+\[
+\begin{pmatrix}
+0.00369049728137860&-0.0000763672646604936\\
+-0.0000763672646604937&0.00589825936921296
+\end{pmatrix}.
+\]
+
+### 7.4 Jackknife estimators
+
+Let beta_(-i) be the estimate after deleting cluster i and betaBar_(-) their mean. The fully iterated delete-one-cluster jackknife is
+\[
+V_{\rm fij}=\frac{K-1}{K}\sum_i
+(\widehat\beta_{(-i)}-\bar\beta_{(-)})
+(\widehat\beta_{(-i)}-\bar\beta_{(-)})^\mathsf T.
+\]
+jack is the approximate linearized delete-cluster variance; j1s uses a one-step estimating-equation update; fij uses fully iterated deleted-cluster fits. The 20-cluster binomial public output gives standard errors (intercept, age, smoke):
+- jack: (2.07996073698671, 0.0689921399814322, 1.72724040576257)
+- j1s: (2.07996071483039, 0.0689921392266380, 1.72724039081664)
+- fij: (2.27397698715797, 0.0766159868082854, 1.96766808272340)
+jack and j1s agree to at least 8 significant digits here; fij is observably different. In the 12-cluster Gaussian check all three display the same standard errors (0.0541109771033312, 0.0684076804109764), so the distinction is retained as a method choice rather than collapsed.
+
+### 7.5 QIC family
+
+Let Q be quasi-likelihood, p the number of mean parameters, and Omega_I the model-based covariance under independence:
+\[
+QIC=-2Q+2\,\operatorname{tr}(\Omega_I V_R^{-1}),\quad
+QICu=-2Q+2p,\quad CIC=\operatorname{tr}(\Omega_I V_R^{-1}),
+\]
+\[
+QICC=QIC+\frac{2p(p+1)}{K-p-1}.
+\]
+The 12-cluster check returns (QIC,QICu,Q,CIC,p,QICC) =
+(9.40832555125884,10.2440284438889,-3.12201422194444,1.58214855368498,2,10.7416588845922). Substitution reproduces QIC, QICu, and QICC to 14 significant digits (QICC uses K=12).
+
+### 7.6 Wald inference, prediction, waves, and controls
+
+For restriction R beta = r,
+\[
+W=(R\widehat\beta-r)^\mathsf T
+(R\widehat V R^\mathsf T)^{-1}(R\widehat\beta-r)
+\sim\chi^2_{\operatorname{rank}(R)}.
+\]
+Single-fit anova is sequential, testing each term conditional on preceding terms; nested fits use the corresponding block restriction. Prediction on the link scale is X_new beta + offset; response prediction applies the inverse link. The public prediction output records both scales.
+
+The public geese.control values are trace=0, jack=0, j1s=0, fij=0, maxit=25, epsilon=0.0001. Tight refits use epsilon=1e-10 and maxit=200. In the Gaussian check, independence/exchangeable coefficients match tight fits to 14 digits, AR(1) to 7–8 digits, and unstructured to at least 12 digits. id identifies clusters; waves provides within-cluster measurement labels and determines lag distance. The unsorted-id case warns and changes cluster sizes; rows must therefore be grouped by id. Incomplete rows must be omitted explicitly and cluster membership rebuilt.
+
+## 8. Unresolved behaviour
+
+1. scale.fix=TRUE, scale.value=4 still returns “variable lengths differ (found for '(scale.value)')” in the pinned fixed_scale call. The exact call was rerun and fails reproducibly; this is treated as a reference defect, not a target formula.
+2. Single-fit anova for the fixed working-correlation structure did not finish within 40 seconds in the earlier ohio_fixed run. The fixed fit and zcor construction are recorded; no further time was spent on this slow path.
+3. The validation matrix for arbitrary user-defined zcor, unequal cluster sizes, and all missing-wave patterns is not exhaustive. userdefinedToeplitz and wavesGap verify the basic cases; unsupported layouts should be rejected until specified.
 
 ## Decisions for the user
 
-1. **Jackknife compatibility.** (A) Implement the three reference variants with separate documented definitions and tests; (B) initially implement only the robust sandwich and defer jackknife variants. **Recommendation: A**, because all three are explicitly in scope; if the finite-sample details cannot be established from public documentation and output, mark any numerical differences rather than guessing.
-2. **Fixed-scale reference error.** (A) Reproduce the observed error; (B) implement the documented fixed-scale estimating equations correctly and treat the reference error as a defect. **Recommendation: B.** A defect in one call path is not a statistical contract.
-3. **Cluster row ordering.** (A) require contiguous sorted cluster rows and reject/warn on violations; (B) reorder internally while preserving the user's row order for returned values. **Recommendation: B**, provided the operation is stable and all model-frame vectors are permuted consistently; otherwise reject with a clear error. Do not silently fit incorrect clusters.
-4. **Missing data.** (A) follow the package's complete-data requirement; (B) use the existing formula/model-frame NA policy and rebuild cluster membership after omission. **Recommendation: B** for consistency with the existing regression API, with explicit row mapping and no silent partial-cluster corruption.
-5. **Fixed correlation helper exports.** (A) export equivalents of `genZcor` and `fixed2Zcor`; (B) accept a documented `zcor` vector only and defer helpers. **Recommendation: B** initially; helper utilities can be added after their shape and validation contract is settled.
+1. **Jackknife compatibility.** (A) implement all three variants with separate definitions and tests; (B) implement only sandwich first. **Recommendation: A**, because the public outputs distinguish them.
+2. **Fixed-scale error.** (A) reproduce the observed error; (B) implement documented fixed-scale equations and treat the pinned error as a defect. **Recommendation: B.**
+3. **Cluster ordering.** (A) require contiguous sorted clusters; (B) reorder internally and preserve output row order. **Recommendation: B**, if all model-frame vectors are permuted consistently.
+4. **Missing data.** (A) reject incomplete data; (B) use existing model-frame omission and rebuild clusters. **Recommendation: B**, with explicit row mapping.
+5. **Fixed-correlation helpers.** (A) export equivalents of the helper functions; (B) accept validated zcor only initially. **Recommendation: B.**
 
 ## rStats.js's choices
 
