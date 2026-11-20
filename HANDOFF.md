@@ -25,7 +25,16 @@
 - **段階 1 の 1 回目 (`312d9169`、2026-11-21) は差し戻し:** 仕様書が各 100 行ほどで式がない、R の実験を 1 本も流して
   いない、`oracle/gee.R` が `No method asJSON S3 class: lm` で止まる、rq の boot の推奨がユーザーの決定と違う。
   差し戻しの中身は作業ブランチの `briefs/regression-1.8-stage1-review.ja.md` (`6c52d520`)
-- 次: ユーザーが ChatGPT に依頼文を貼る → 段階 1 の報告 (仕様書 3 つ + Decisions) を Issue #545 で点検 → Decisions を
+- **段階 1 のやり直しは済み (`9013bd5a`):** 式を R の出力と独立の計算で突き合わせた (rq の iid・nid・ker の共分散と帯域、
+  boot の乱数の引き方 4 種、GEE の共分散・相関・尺度 (分母 N)・QIC、glmnet の gaussian の λ_max と経路)。残りの未解明
+  (rq の iid の $\hat f_0$・rank の端点・boot の変換、GEE の jack・j1s、glmnet の binomial などの λ_max) は段階 2 で R と
+  合わせながら決める。検索結果にソースの抜粋が 3 回出た (quantreg・geepack・statsmodels)。ChatGPT は使わずに隔離したと報告
+- **Decisions はユーザーが全部推奨どおりに決めた (2026-11-21)。** choices は私が書いた。fixture `rq` (x86_64、
+  `rstats-oracle-amd64:4.6.2` も作り直した)・`gee`・`glmnet` を作った。oracle の出力先を `/out/<名前>.json` に直した。
+  作業ブランチ `a183864d`。段階 2 の指示は `briefs/regression-1.8-stage2.ja.md` (oracle に足す case の一覧つき)
+- 次: ChatGPT が段階 2 (rq → geeglm → glmnet)。fixture の依頼が Issue に来たら `npm run oracle -- <名前>` で作って push。
+  1 つずつ CI 緑の報告が来たら、私が数値を独立に点検する
+- (以前) 次: ユーザーが ChatGPT に依頼文を貼る → 段階 1 の報告 (仕様書 3 つ + Decisions) を Issue #545 で点検 → Decisions を
   ユーザーに聞いて choices を書く → fixture を作る
 
 ## 1.8.0 の始め (セッション 25 → 26、2026-11-20 夕に作成)
