@@ -587,3 +587,15 @@ describe("deterministic robust-start search budget", () => {
     expect(fit.initialization?.exhaustive).toBe(true);
   });
 });
+
+describe("long data columns", () => {
+  // Spreading a column into Math.max overflowed the call stack at about 1e5 observations (found 2026-11-20).
+  it("fits 150000 observations without spreading the columns into a call", () => {
+    const n = 150000;
+    const x = Array.from({ length: n }, (_, i) => Math.sin(i) * 3);
+    const y = x.map((v, i) => 1 + 2 * v + Math.cos(7 * i));
+    const fit = rlm("y ~ x", { y, x } as DataFrame);
+    expect(fit.converged).toBe(true);
+    expect(fit.coefficients.x).toBeCloseTo(2, 2);
+  });
+});

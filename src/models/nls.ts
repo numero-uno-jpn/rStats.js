@@ -164,7 +164,7 @@ function expressionVariables(expr: NlsExpr, out = new Set<string>()): Set<string
 }
 
 function initialValue(name: string, x: number[], y: number[]): number {
-  const ymin = Math.min(...y), ymax = Math.max(...y), xMin = Math.min(...x), xMax = Math.max(...x);
+  const ymin = minOf(y), ymax = maxOf(y), xMin = minOf(x), xMax = maxOf(x);
   const range = Math.max(xMax - xMin, 1);
   const lower = name.toLowerCase();
   if (name === "Asym" || name === "Vm" || name === "B") return ymax;
@@ -203,7 +203,7 @@ function linearTrend(x: number[], y: number[]): { intercept: number; slope: numb
 }
 
 function asymptoticRiseStart(x: number[], y: number[], shifted: boolean): { Asym: number; lrc: number; c0?: number } | undefined {
-  const ymax = Math.max(...y), ymin = Math.min(...y), range = Math.max(ymax - ymin, Number.EPSILON);
+  const ymax = maxOf(y), ymin = minOf(y), range = Math.max(ymax - ymin, Number.EPSILON);
   let best: { Asym: number; lrc: number; c0?: number; error: number } | undefined;
   for (let k = 0; k <= 180; k++) {
     const Asym = shifted
@@ -226,7 +226,7 @@ function asymptoticRiseStart(x: number[], y: number[], shifted: boolean): { Asym
       error = sx.reduce((sum, value, i) => sum + (z[i]! - slope * value) ** 2, 0);
     }
     const c0 = intercept / -slope;
-    if (shifted && (!Number.isFinite(c0) || c0 < 0 || c0 >= Math.min(...sx))) continue;
+    if (shifted && (!Number.isFinite(c0) || c0 < 0 || c0 >= minOf(sx))) continue;
     const rate = -slope;
     error = selected.reduce((sum, point) =>
       sum + (point.y - Asym * (1 - Math.exp(-rate * (point.x - c0)))) ** 2, 0);
@@ -238,7 +238,7 @@ function asymptoticRiseStart(x: number[], y: number[], shifted: boolean): { Asym
   return result;
 }
 function fourParameterLogisticStart(x: number[], y: number[]): { A: number; B: number; xmid: number; scal: number } | undefined {
-  const ymin = Math.min(...y), ymax = Math.max(...y), range = Math.max(ymax - ymin, Number.EPSILON);
+  const ymin = minOf(y), ymax = maxOf(y), range = Math.max(ymax - ymin, Number.EPSILON);
   let best: { A: number; B: number; xmid: number; scal: number; error: number } | undefined;
   for (let ia = 0; ia <= 120; ia++) {
     const A = ymin - range * 10 ** (-3 + ia * 0.025);
@@ -261,7 +261,7 @@ function fourParameterLogisticStart(x: number[], y: number[]): { A: number; B: n
 }
 
 function weibullRiseStart(x: number[], y: number[]): { Asym: number; Drop: number; lrc: number; pwr: number } | undefined {
-  const ymin = Math.min(...y), ymax = Math.max(...y), range = Math.max(ymax - ymin, Number.EPSILON);
+  const ymin = minOf(y), ymax = maxOf(y), range = Math.max(ymax - ymin, Number.EPSILON);
   let best: { Asym: number; Drop: number; lrc: number; pwr: number; error: number } | undefined;
   for (let ia = 0; ia <= 180; ia++) {
     const Asym = ymax - 0.04 * range + ia * (0.10 * range / 180);
@@ -409,6 +409,10 @@ function makeBounds(
   const record = bound as Record<string, number>;
   return names.map(name => record[name] ?? fallback);
 }
+
+// Spreading a data column into Math.min/Math.max overflows the call stack for long columns (about 1e5 values).
+const minOf = (values: readonly number[]): number => values.reduce((m, v) => Math.min(m, v), Infinity);
+const maxOf = (values: readonly number[]): number => values.reduce((m, v) => Math.max(m, v), -Infinity);
 
 /**
  * Rounding noise in the weighted residual sum of squares: each residual y - f carries an error of about

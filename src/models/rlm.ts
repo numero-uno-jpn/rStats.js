@@ -464,7 +464,7 @@ function effectiveAbsoluteResiduals(residuals: readonly number[], weights: reado
 
 function majorityExactResiduals(x: readonly (readonly number[])[], y: readonly number[], coefficients: readonly number[]): boolean[] {
  const fitted = x.map((row) => row.reduce((sum, value, j) => sum + value * coefficients[j]!, 0));
- const magnitude = Math.max(...y.map(Math.abs), ...fitted.map(Math.abs), Number.MIN_VALUE);
+ const magnitude = [...y, ...fitted].reduce((m, v) => Math.max(m, Math.abs(v)), Number.MIN_VALUE);
  const tolerance = 64 * Number.EPSILON * magnitude;
  return y.map((value, i) => Math.abs(value - fitted[i]!) <= tolerance);
 }
@@ -566,7 +566,7 @@ function sRhoScale(residuals: readonly number[], weights: readonly number[], wtM
    return sum / denominator - 0.5;
  };
  let lo = 0;
- let hi = Math.max(...absolute);
+ let hi = absolute.reduce((m, v) => Math.max(m, v), 0);
  if (hi === 0) return 0;
  while (equation(hi) > 0 && hi < Number.MAX_VALUE / 4) hi *= 2;
  if (!Number.isFinite(hi)) return NaN;

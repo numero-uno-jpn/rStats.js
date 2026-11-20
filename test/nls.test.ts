@@ -454,3 +454,15 @@ describe("nonlinear regression scale equivariance", () => {
     }
   });
 });
+
+describe("long data columns", () => {
+  // Self-start values took Math.min/Math.max of spread columns, which overflows the call stack at about 1e5 values.
+  it("starts and fits a self-starting model on 150000 observations", () => {
+    const n = 150000;
+    const conc = Array.from({ length: n }, (_, i) => 0.02 + (i % 1000) / 1000);
+    const rate = conc.map((c, i) => 210 * c / (0.06 + c) + Math.sin(i));
+    const fit = nls("rate ~ SSmicmen(conc, Vm, K)", dataFrame({ rate, conc }));
+    expect(fit.converged).toBe(true);
+    expect(fit.coefficients.Vm).toBeCloseTo(210, 0);
+  });
+});
