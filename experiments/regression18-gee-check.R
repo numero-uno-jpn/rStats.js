@@ -1,4 +1,5 @@
 # issue: 545
+# batch rerun after clean-room script correction
 # Small deterministic GEE data for independent moment/covariance calculations.
 suppressMessages(library(geepack));library(jsonlite)
 run<-function(expr){w<-character();v<-withCallingHandlers(tryCatch(expr,error=function(e)structure(list(message=conditionMessage(e)),class="caught")),warning=function(x){w<<-c(w,conditionMessage(x));invokeRestart("muffleWarning")});if(inherits(v,"caught"))return(list(error=v$message,warnings=w));list(value=v,warnings=w)}

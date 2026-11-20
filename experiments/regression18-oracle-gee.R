@@ -1,4 +1,5 @@
 # issue: 545
+# batch rerun after clean-room script correction
 # Corrected GEE oracle. All tabular results are reduced to plain numeric matrices before JSON encoding.
 suppressMessages(library(geepack))
 library(jsonlite)

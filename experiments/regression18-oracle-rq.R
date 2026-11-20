@@ -1,4 +1,5 @@
 # issue: 545
+# batch rerun after clean-room script correction
 # Focused quantile-regression oracle, with public outputs and documented bandwidth helper.
 suppressMessages(library(quantreg));library(jsonlite)
 run<-function(expr){w<-character();m<-character();v<-withCallingHandlers(tryCatch(expr,error=function(e)structure(list(message=conditionMessage(e)),class="caught")),warning=function(x){w<<-c(w,conditionMessage(x));invokeRestart("muffleWarning")},message=function(x){m<<-c(m,conditionMessage(x));invokeRestart("muffleMessage")});if(inherits(v,"caught"))return(list(error=v$message,warnings=w,messages=m));list(value=v,warnings=w,messages=m)}
