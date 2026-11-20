@@ -3,6 +3,7 @@
 // This implementation is independently derived from those published equations and public numerical output.
 
 import { reported } from "../internal/warnings.js";
+import { qr } from "../linalg/qr.js";
 import { parseFormula } from "./formula.js";
 import { design, type DesignContrast } from "./modelMatrix.js";
 import type { DataFrame } from "./modelFrame.js";
@@ -163,8 +164,15 @@ function fitOne(
   const p = x[0]!.length;
   if (n === 0 || p === 0) throw new RangeError("the design matrix must have at least one column and one row");
   if (n < p) throw new RangeError("singular design matrix");
-  const xx = x.map((row, i) => row.map((v) => v * weights[i]!));
-  const yy = y.map((v, i) => v * weights[i]!);
+  const columnScale = new Array<number>(p).fill(0);
+  for (const row of x) for (let j = 0; j < p; j++) columnScale[j] = Math.max(columnScale[j]!, Math.abs(row[j]!));
+  if (columnScale.some((v) => !(v > 0) || !Number.isFinite(v))) throw new RangeError("singular design matrix");
+  const responseScale = y.reduce((m, v) => Math.max(m, Math.abs(v)), 0) || 1;
+  const weightScale = weights.reduce((m, v) => Math.max(m, v), 0);
+  const normalizedX = x.map((row) => row.map((v, j) => v / columnScale[j]!));
+  if (qr(normalizedX).rank < p) throw new RangeError("singular design matrix");
+  const xx = normalizedX.map((row, i) => row.map((v) => v * (weights[i]! / weightScale)));
+  const yy = y.map((v, i) => (v / responseScale) * (weights[i]! / weightScale));
   const ww = weights;
   const z = new Array<number>(2 * p + 2 * n).fill(1);
   const s = new Array<number>(2 * p + 2 * n).fill(1);
@@ -213,7 +221,7 @@ function fitOne(
     for (let i = 0; i < z.length; i++) { z[i]! += ap * step.dx[i]!; s[i]! += ad * step.ds[i]!; }
     for (let i = 0; i < n; i++) dual[i]! += ad * step.dy[i]!;
   }
-  const beta = z.slice(0, p).map((v, j) => (v - z[p + j]!) / Math.sqrt(1));
+  const beta = z.slice(0, p).map((v, j) => ((v - z[p + j]!) * responseScale) / columnScale[j]!);
   const fitted = x.map((row) => dot(row, beta));
   const residuals = y.map((v, i) => v - fitted[i]!);
   let rho = 0;
