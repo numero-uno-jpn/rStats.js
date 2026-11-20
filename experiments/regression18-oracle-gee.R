@@ -14,7 +14,22 @@ run <- function(expr) {
 }
 tab <- function(m) {
   z <- as.matrix(m)
-  list(rows=rownames(z),cols=colnames(z),values=unname(z))
+  list(rows=as.character(rownames(z)),cols=as.character(colnames(z)),
+       nrow=nrow(z),ncol=ncol(z),values=as.numeric(z))
+}
+anovaTable <- function(a) {
+  d <- as.data.frame(a)
+  list(rows=as.character(rownames(d)),columns=lapply(d,function(z)as.numeric(z)))
+}
+plain <- function(x) {
+  if (is.null(x)) return(NULL)
+  if (inherits(x,"lm")) return(NULL)
+  if (is.data.frame(x)) return(lapply(x,plain))
+  if (is.matrix(x)) return(list(nrow=nrow(x),ncol=ncol(x),values=as.vector(x)))
+  if (is.list(x)) return(lapply(x,plain))
+  if (is.factor(x)) return(as.character(x))
+  if (is.atomic(x)) return(as.vector(x))
+  NULL
 }
 capture <- function(f) {
   s <- summary(f)
@@ -98,4 +113,4 @@ out$singletons <- run(capture(geeglm(mpg~wt,id=seq_len(nrow(mtcars)),data=mtcars
 out$missing <- run(geeglm(Weight~Time,id=Pig,data=transform(dietox,Weight=replace(Weight,c(3,50),NA)),corstr="ar1"))
 out$separation <- run(capture(geeglm(y~x,id=g,family=binomial,corstr="exchangeable",
  data=data.frame(x=1:12,y=rep(0:1,each=6),g=rep(1:4,3)))))
-cat(toJSON(out,digits=NA,auto_unbox=TRUE,null="null",na="string",pretty=FALSE))
+cat(toJSON(plain(out),digits=NA,auto_unbox=TRUE,null="null",na="string",pretty=FALSE))
