@@ -253,9 +253,12 @@ against `test/fixtures/nls.json` with a temporary bundle of `src/entries/regress
 6. **An exact fit returns the estimates, with inference `NaN`** (Decision 5; a known difference). R stops at its
    iteration limit with an error (`error-exact-fit`), because its convergence test divides by the residual sum of
    squares. The estimates are well defined, but the residual variance is zero, so standard errors, t values, p
-   values and confidence intervals are `NaN` and the fit is marked exact. With `scaleOffset` (`exact-scaleOffset`,
-   data exactly $2 e^{0.3 x}$), R's `fitTight` and rStats.js both stop with coefficient errors near 2e-12 and residual
-   sums of squares near 3.5e-23; their difference there is rounding and is not compared.
+   values and confidence intervals are `NaN` and the fit is marked exact. `scaleOffset` changes only the gradient
+   test, never the answer (amended 2026-11-20): `exact-scaleOffset` (`scaleOffset = 1`) and `error-exact-fit` are the
+   same data, exactly $2 e^{0.3 x}$, and both reach $a = 2$, $b = 0.3$ to rounding (residual sum of squares 7.8e-29)
+   and are marked exact. R's `fitTight` for `exact-scaleOffset` stops earlier (coefficient errors near 2e-12, residual
+   sum of squares 3.9e-23, standard errors near 1e-12); that difference is rounding and is not compared. The first
+   implementation stopped there too, because `scaleOffset` loosened its stopping rule (found 2026-11-20)
 7. **Errors found before iterating** (Decision 5; a known difference in the message and the moment, not in the
    outcome). Without `start` and without a self-starting model, R starts every parameter at 1 with a warning and
    fails later (`error-no-start`, step factor below `minFactor`); rStats.js says that `start` must be supplied. With
@@ -265,3 +268,20 @@ against `test/fixtures/nls.json` with a temporary bundle of `src/entries/regress
    at the bounds), not the PORT library. It agrees with `fitTight` for the three `port` cases, including a solution
    at a lower bound and a start at an upper bound.
 9. **`nlsAnova`** agrees with R's F test (`puromycin-anova`) to a relative 1e-9 in the F value and p value.
+10. **Near-zero residuals: converge on a small step whose predicted decrease is rounding** (added 2026-11-20). The
+    gradient test of item 1 is scaled by $\sqrt{\mathrm{RSS}}$, which cannot be met when the residuals are at the
+    rounding level (NIST StRD Lanczos1, residual sum of squares 1.4e-25; R also fails there without `scaleOffset`).
+    A small step ($\le \max(10^{-12}, 10^{-3}\sqrt{\texttt{tol}})$ relative) is then accepted as convergence when the
+    Gauss-Newton model's predicted decrease $\delta^\top J^\top W r$ is within the rounding noise of the objective,
+    $4\varepsilon \sum w |r||y| + 4\varepsilon^2 \sum w y^2$ (relative to the data, so independent of the units of
+    $y$). The objective alone is never a stopping rule: its rounding noise allows coefficient errors of about
+    $\sqrt{\varepsilon}$. On stopping, the final full step is taken when it does not raise the objective. With this,
+    every NIST StRD problem that R's `nls` solves is fitted from the default control to at least 8.6 certified
+    digits, including Lanczos1 (10.6) (`experiments/regression-nls-strd.mjs`; the problems R also fails from Start 1,
+    BoxBOD, Eckerle4, MGH09, MGH10, MGH17 and Rat43, fail in rStats.js too)
+11. **Formula language: `atan`, `asin`, `acos` and the constant `pi`; a response expression** (decided by the user on
+    2026-11-20). Inverse trigonometric functions have symbolic derivatives. `pi` is the constant unless a data column
+    is named `pi`. The left-hand side may be an expression of data columns (`log(y) ~ ...`), evaluated row by row;
+    a parameter there is an error. Fitted values, residuals and `nlsPredict` are on the scale of that expression, as
+    in R. Checked on NIST StRD Roszman1 (`atan`, `pi`) and Nelson (`log(y)`)
+

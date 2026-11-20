@@ -569,3 +569,11 @@ Decided by the user on 2026-11-19.
     which reproduces MASS's exact `crit` from its coefficients to every digit; rStats.js's LTS objective must not be
     larger than MASS's exact `crit`. With its refinement it is lower (stackloss 1.6371 against 1.6574, phones
     3.4313 against 3.4503), so the coefficients differ (amended 2026-11-19)
+12. **Most observations exactly on a line: the line, with scale 0 and inference `NaN`** (decided by the user on
+    2026-11-20). When more than half of the observations lie exactly on the fitted line (MM's S start finds it), or
+    all of them do, the robust scale is 0. rStats.js returns that line, scale 0, `converged = true`, `NaN` standard
+    errors and t values, and a warning; the same as `nls` for an exact fit. MASS returns the line with a scale at the
+    rounding level (about 1e-16) and standard errors computed from it (`experiments/regression-edge-r.R` and
+    `.out.txt`); its MM fails when every observation is on the line. A known difference. Before this, rStats.js's MM
+    stopped with an error and its M warned that it had not converged although its coefficients were exact
+

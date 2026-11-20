@@ -163,7 +163,8 @@ describe("nonlinear least-squares regression", () => {
         for (let i = 0; i < ref.fitted.length; i++) {
           if (relative(fit.fitted[i]!, ref.fitted[i]!) > 1e-7) mismatches.push(`${cs.id}: fitted[${i}]`);
         }
-        // The data of exact-scaleOffset are exactly 2 exp(0.3 x): R's tight fit stops with a residual sum of squares
+        // The data of exact-scaleOffset are exactly 2 exp(0.3 x): rStats.js reaches the exact fit (inference NaN), while
+        // R's tight fit stops with a residual sum of squares
         // near 4e-23, which is rounding, so its deviance, sigma and standard errors are not compared (choice 6).
         if (cs.id === "exact-scaleOffset") continue;
         if (relative(fit.deviance, ref.deviance) > 1e-10) mismatches.push(`${cs.id}: deviance (${fit.deviance} vs ${ref.deviance})`);
