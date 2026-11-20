@@ -190,3 +190,15 @@ The defaultSEswitch experiment confirms rank at n=1000 and nid at n=1001; theref
 
 ## rStats.js's choices
 
+Decided by the user on 2026-11-21 (Issue #545), on the recommendations above. These choices take precedence over every
+other section of this file.
+
+1. **Non-unique solutions:** any minimiser is accepted. The tests check that the objective equals R's (relative 1e-12)
+   and that the subgradient optimality conditions hold; coefficients are compared with R only where the solution is
+   unique. rStats.js does not try to return `br`'s vertex.
+2. **Bootstrap:** the same random numbers as R. After `setSeed(s)`, `se = "boot"` with each of `xy`, `pwy`, `mcmb` and
+   `wxy` draws exactly as R does after `set.seed(s)` (section 7.7), and the standard errors equal R's.
+3. **`tau` outside (0, 1):** an error. R's quantile-process result is not provided (a known difference from R).
+4. **The default `se` of the summary:** as R: `"rank"` for n <= 1000 and `"nid"` for n > 1000 (section 7.8).
+5. **Weights:** zero weights are allowed and their rows do not contribute; negative, NaN or infinite weights are an
+   error.

@@ -52,4 +52,4 @@ out$penaltyFactor<-run({
  f<-glmnet(X,y,penalty.factor=c(0,1,4),lower.limits=c(-.5,0,-1),upper.limits=c(.5,0,1),dfmax=2,pmax=3,nlambda=8)
  list(lambda=f$lambda,a0=f$a0,beta=tab(f$beta),df=f$df,devRatio=f$dev.ratio)
 })
-cat(toJSON(out,digits=NA,auto_unbox=TRUE,null="null",na="string",pretty=FALSE))
+writeLines(toJSON(out,digits=NA,auto_unbox=TRUE,null="null",na="string",pretty=FALSE),file.path("/out","glmnet.json"))

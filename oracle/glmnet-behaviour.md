@@ -181,3 +181,16 @@ The public control output records fdev=1e-5, eps=1e-6, mnlam=5, devmax=.999, thr
 
 ## rStats.js's choices
 
+Decided by the user on 2026-11-21 (Issue #545), on the recommendations above. These choices take precedence over every
+other section of this file.
+
+1. **Convergence:** every lambda is solved to the true optimum (checked by the KKT conditions), not glmnet's default
+   stopping (`thresh = 1e-7`). The tests compare with R's `fitTight` (`control = list(thresh = 1e-14)`) tightly and
+   with R's default fit within the difference between the two.
+2. **Lambda path:** made as R makes it (lambda max, the geometric sequence, the default `lambda.min.ratio`, the early
+   end of the path). Where the tests show that a part cannot be reproduced, the actual lambdas are returned and the
+   difference is recorded as a known difference from R.
+3. **`s` off the path:** interpolation only, as R's `exact = FALSE`. R's exact refit (`exact = TRUE`) is not provided.
+4. **Cross-validation:** `foldid` is required (no random folds in 1.8.0).
+5. **`grouped`:** both `TRUE` and `FALSE`.
+6. **Multinomial:** both `type.multinomial = "ungrouped"` and `"grouped"`.

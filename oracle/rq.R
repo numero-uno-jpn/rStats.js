@@ -1,3 +1,4 @@
+# oracle-platform: amd64
 # extend formula checks and public-output coverage
 # rerun after independent formula probes
 # RQ public-output oracle. Numerical inference inputs are emitted for independent formula checks.
@@ -79,4 +80,4 @@ out$multiTauTwoPredictors<-run({
  f<-rq(y~x+z,data=d2,tau=c(.25,.5,.75))
  list(coef=tab(coef(f)),joint=tab(anova(f,joint=TRUE)$table),separate=tab(anova(f,joint=FALSE)$table))
 })
-cat(toJSON(out,digits=NA,auto_unbox=TRUE,null="null",na="string",pretty=FALSE))
+writeLines(toJSON(out,digits=NA,auto_unbox=TRUE,null="null",na="string",pretty=FALSE),file.path("/out","rq.json"))

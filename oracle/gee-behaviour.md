@@ -211,3 +211,16 @@ The public geese.control values are trace=0, jack=0, j1s=0, fij=0, maxit=25, eps
 
 ## rStats.js's choices
 
+Decided by the user on 2026-11-21 (Issue #545), on the recommendations above. These choices take precedence over every
+other section of this file.
+
+1. **Jackknife:** all three (`jack`, `j1s`, `fij`), each with its own definition and tests against R.
+2. **Fixed scale:** `scale.fix` with a given scale value fits the documented equations with the scale held at that
+   value. R 4.6.2 / geepack 1.3.13 fails on this call (section 8, item 1): a fault in geepack, recorded as a known
+   difference from R; the tests use an independent calculation.
+3. **Cluster order:** rows of a cluster need not be contiguous. rStats.js groups them internally (a stable reordering)
+   and returns fitted values, residuals and the like in the user's row order. R treats each contiguous run of an id as
+   its own cluster (a known difference from R).
+4. **Missing values:** the existing model-frame rule of the regression functions (rows with NA are dropped); the
+   clusters, waves and working correlations are built from the remaining rows.
+5. **`zcor`:** accepted as a validated design matrix (or vector); no helpers like `genZcor` or `fixed2Zcor` in 1.8.0.

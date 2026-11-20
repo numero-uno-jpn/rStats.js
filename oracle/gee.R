@@ -109,4 +109,4 @@ out$singletons <- run(capture(geeglm(mpg~wt,id=seq_len(nrow(mtcars)),data=mtcars
 out$missing <- run(capture(geeglm(Weight~Time,id=Pig,data=transform(dietox,Weight=replace(Weight,c(3,50),NA)),corstr="ar1")))
 out$separation <- run(capture(geeglm(y~x,id=g,family=binomial,corstr="exchangeable",
  data=data.frame(x=1:12,y=rep(0:1,each=6),g=rep(1:4,3)))))
-cat(toJSON(plain(out),digits=NA,auto_unbox=TRUE,null="null",na="string",pretty=FALSE))
+writeLines(toJSON(plain(out),digits=NA,auto_unbox=TRUE,null="null",na="string",pretty=FALSE),file.path("/out","gee.json"))
