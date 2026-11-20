@@ -472,6 +472,7 @@ function fitOne(
           equalityResidual[j]! += normalizedX[i]![j]! * (fit.dual[i]! - (1 - tau));
         }
         const dualEquality = equalityResidual.reduce((m, v) => Math.max(m, Math.abs(v)), 0);
+        dualObjective -= (1 - tau) * normalizedY.reduce((sum, value) => sum + value, 0);
         const certificate = signCompatible &&
           dualEquality <= 1e-8 * Math.max(1, ...normalizedX[0]!.map((_, j) => Math.abs(
             normalizedX.reduce((sum, row) => sum + row[j]!, 0),
@@ -513,7 +514,7 @@ export function rq(formula: string, data: DataFrame, options: RqOptions = {}): R
   const method = options.method ?? "br";
   if (method !== "br" && method !== "fn") throw new RangeError("method must be 'br' or 'fn'");
   const maxit = options.maxit ?? 100;
-  const eps = options.eps ?? 1e-10;
+  const eps = options.eps ?? 1e-12;
   if (!Number.isInteger(maxit) || maxit < 1) throw new RangeError("maxit must be a positive integer");
   if (!(eps > 0) || !Number.isFinite(eps)) throw new RangeError("eps must be positive and finite");
   const d = design(parseFormula(formula), data, {
