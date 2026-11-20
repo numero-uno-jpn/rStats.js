@@ -51,6 +51,32 @@ describe("quantile regression", () => {
     expect((predicted as number[][])[0]!.length).toBe(2);
   });
 
+
+  it("matches the Engel public-output fixture with the dual interior-point method", () => {
+    const data = { x: oracle.data.X.values.map((row) => row[1]!), y: oracle.data.y };
+    const fit = rq("y ~ x", data, { tau: 0.5, method: "fn", eps: 1e-12, maxit: 200 });
+    expect(fit.coefficients["(Intercept)"]).toBeCloseTo(4.2, 7);
+    expect(fit.coefficients.x).toBeCloseTo(0.733333333333333, 7);
+    expect(fit.rho).toBeCloseTo(12.4333333333333, 8);
+    expect(fit.converged).toBe(true);
+  });
+
+  it("agrees between vertex descent and the dual solver on a weighted two-predictor problem", () => {
+    const data = {
+      x: [0, 1, 2, 3, 4, 5, 6, 7],
+      z: [0, 1, 0, 1, 0, 1, 0, 1],
+      y: [2, 1, 5, 2, 7, 4, 9, 6],
+    };
+    const weights = [1, 2, 1, 3, 2, 1, 4, 2];
+    for (const tau of [0.1, 0.5, 0.9]) {
+      const br = rq("y ~ x + z", data, { tau, method: "br", weights, maxit: 500 });
+      const fn = rq("y ~ x + z", data, { tau, method: "fn", weights, eps: 1e-12, maxit: 200 });
+      expect(br.rho).toBeCloseTo(fn.rho as number, 9);
+      expect(br.converged).toBe(true);
+      expect(fn.converged).toBe(true);
+    }
+  });
+
   it("rejects tau outside the open unit interval and invalid weights", () => {
     expect(() => rq("y ~ 1", { y: [1, 2, 3] }, { tau: 1 })).toThrow(/tau/);
     expect(() => rq("y ~ 1", { y: [1, 2, 3] }, { weights: [1, -1, 1] })).toThrow(/weights/);
