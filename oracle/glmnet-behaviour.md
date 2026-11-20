@@ -75,27 +75,109 @@ The pinned public output and task notes establish:
 
 The exact text of warnings and the length of a truncated path are reference-version observations, not statistical guarantees.
 
-## 7. Oracle coverage and unresolved behaviour
+## 7. Formula-level specification and numerical verification
 
-`oracle/glmnet.R` records Gaussian, binomial, Poisson, and multinomial fits; alpha values 0, 0.5, and 1; default and tight paths; standardization and intercept switches; weights, offsets, penalty factors, coefficient limits, explicit and automatic lambda sequences, active-set limits; coefficient and prediction interpolation; fixed-fold CV for supported measures; grouped multinomial fitting; `grouped` and `keep`; and the principal boundary cases. The pinned 5.1 output is in `experiments/regression18-glmnet.json`.
+The successful R 4.6.2 / glmnet 5.1 public-output run in experiments/regression18-oracle-glmnet.R on commit 9c698624 is complete and parses successfully. The emitted design, responses, weights, fold ids, and public fit components are the numerical evidence.
 
-Unresolved items:
+### 7.1 Objective, weights, and standardization
 
-1. The precise 5.1 lambda-max calculation and path endpoint in degenerate, weighted, offset, and unpenalized-predictor cases should be checked from public outputs, not inferred from newer documentation.
-2. The exact stopping rule and KKT/optimality residual needed to declare convergence independently of glmnet's tolerance remain to be specified.
-3. Interpolation for every family and multinomial class parameterization needs broader off-path tests.
-4. CV standard-error aggregation, the meaning of `grouped = FALSE`, and the exact fallback rules for small or single-class folds need more targeted outputs.
-5. Behaviour at $\alpha=0$, zero penalty factors, pmax/dfmax truncation, and boundary coefficient limits requires additional validation.
-6. The reference's one-column rejection, constant response handling, and NA policy should be translated into deliberate API validation rather than copied error strings.
+For family loss L,
+\[
+\frac1nL(\beta_0,\beta;X,y,w,o)+
+\lambda\sum_{j=1}^pv_j^*
+\{\alpha|\beta_j|+(1-\alpha)\beta_j^2/2\},
+\quad \beta_0\ {\rm unpenalized},
+\]
+where \(w_i^*=nw_i/\sum_iw_i\) and \(v_j^*=pv_j/\sum_jv_j\). Gaussian loss is one half the weighted squared residual sum, divided by n; offsets enter the linear predictor and are not penalized. Binomial, Poisson, and multinomial use their family negative log-likelihoods. Predictors are centered and scaled by weighted means and weighted standard deviations with divisor n after weight normalization. Gaussian response is also scaled for path construction and transformed back for returned coefficients. standardize=FALSE disables predictor scaling; intercept=FALSE removes the intercept.
+
+The penalty-factor-only output for v=(0,1,4) starts at lambda=1.01352271569708, versus 0.647290715250188 without the altered factors, consistent with rescaling penalty factors to sum to p. The weighted case starts at 0.607659750969885.
+
+### 7.2 Lambda maximum and geometric path
+
+For alpha>0, after standardization and null-model adjustment, the all-zero penalized-slope KKT boundary is
+\[
+\lambda_{\max}=
+\max_{j:v_j^*>0}
+\frac{|n^{-1}\sum_iw_i^*\widetilde x_{ij}\widetilde r_i|}
+{\alpha v_j^*}.
+\]
+Zero-penalty predictors are fitted in the null model rather than divided by zero. At alpha=0 the lasso threshold is infinite; the pinned reference uses the finite ridge convention equivalent to effective alpha=0.001.
+
+The automatic path is geometric:
+\[
+\lambda_k=\lambda_{\max}
+(\lambda_{\min}/\lambda_{\max})^{(k-1)/(L-1)},\quad
+\lambda_{\min}=\lambda_{\max}\,\texttt{lambda.min.ratio}.
+\]
+The default ratio is 1e-4 when n>p and 1e-2 when n<p. A supplied decreasing lambda vector replaces the automatic path. The path may stop early on deviance-fraction or convergence/active-set limits.
+
+The Gaussian fixed-design starts are 0.647290715250188 for alpha=1, 1.29458143050038 for alpha=.5, and 647.290715250188 for alpha=0; the latter is 1000 times the lasso start and verifies the effective alpha=.001 convention. For n=20,p=50, the default path ratio is exactly .01. For n=60,p=3, the path ends at ratio .000372759372031494, above the nominal 1e-4, showing early stopping rather than a different default. The eight-point path with lambda.min.ratio=.01 has constant successive ratios to at least 14 significant digits. Ordinary and thresh=1e-14 fits return identical lambda vectors to all 15 displayed digits.
+
+### 7.3 Degrees of freedom and deviance
+
+df is the number of nonzero predictor coefficients at each lambda (intercept excluded; nonzero unpenalized predictors are included). For Gaussian,
+\[
+nulldev=\sum_iw_i^*(y_i-\bar y_w)^2,\qquad
+dev.ratio=1-\frac{deviance(\widehat\beta_\lambda)}{nulldev}.
+\]
+For binomial, Poisson, and multinomial, nulldev is the null-model deviance under the same response/weight/offset convention, and dev.ratio is the fraction removed by the fitted model. The Gaussian output has nulldev=98; at the second lambda dev.ratio=.0588477262271477, so residual deviance is 98(1-.0588477262271477). Binomial and Poisson nulldev are 16.3006383837966 and 6.18196332758927. Gaussian df begins [0,2,2,3,...], excluding the intercept.
+
+### 7.4 Multinomial grouped penalty
+
+For class coefficients beta_jk, ungrouped penalty is
+\[
+\lambda\sum_jv_j^*\sum_k\{\alpha|\beta_{jk}|+(1-\alpha)\beta_{jk}^2/2\}.
+\]
+Grouped penalty is
+\[
+\lambda\sum_jv_j^*\{\alpha\|\beta_{j\cdot}\|_2+
+(1-\alpha)\|\beta_{j\cdot}\|_2^2/2\}.
+\]
+The ungrouped and grouped starts are 0.434995773978776 and 0.560170128638723; their deviance-ratio sequences differ as expected. The grouped path fails at its sixth lambda and returns the converged prefix.
+
+### 7.5 Off-path interpolation
+
+For s between adjacent stored lambdas,
+\[
+t=\frac{\log s-\log\lambda_k}{\log\lambda_{k+1}-\log\lambda_k},
+\quad
+\widehat\beta(s)=(1-t)\widehat\beta(\lambda_k)+t\widehat\beta(\lambda_{k+1}).
+\]
+The offPath output requests s=.75 and .30 from (2,1,.5,.25,.125) and records coefficient and prediction matrices. The public help states log-lambda interpolation. The compact output does not contain the full neighboring coefficient columns for this custom path, so an independent reconstruction is not claimed.
+
+### 7.6 Cross-validation
+
+For fixed folds F_k, let E_k(lambda) be the held-out loss. For grouped=TRUE,
+\[
+cvm(\lambda)=K^{-1}\sum_kE_k(\lambda),\qquad
+cvsd(\lambda)=sd(E_1,\ldots,E_K)/\sqrt K.
+\]
+For grouped=FALSE, predictions are pooled at the observation level before computing the CV loss and its uncertainty; cvm can agree while cvsd differs. lambda.min minimizes cvm; lambda.1se is the largest lambda satisfying
+\[
+cvm(\lambda)\leq \min_{\lambda'}cvm(\lambda')+cvsd(\lambda_{\min}).
+\]
+MSE and MAE are mean squared and absolute errors; class is misclassification proportion; binomial AUC is the loss 1-AUC; deviance is family deviance per held-out observation.
+
+The fixed-fold Gaussian MSE output begins cvm=9.44621930369904 and cvsd=1.81870626086261. grouped=FALSE has the same first cvm and cvsd=2.82299348396042. For MAE, the minimum is 0.131398384219135 at lambda=.00305154195233708; lambda.1se is .0113749086188093, whose error .131503101496899 is below the one-SE cutoff. The binomial class and AUC sequences are recorded in full; AUC errors around .43 confirm the reported measure is a loss.
+
+### 7.7 Convergence and controls
+
+The public control output records fdev=1e-5, eps=1e-6, mnlam=5, devmax=.999, thresh=1e-7, maxit=100000, plus the remaining control fields. A nonconverged lambda returns the converged prefix and warning; the grouped multinomial case fails at lambda six. The project target remains a strict independently checked optimum, not reproduction of a default early stop.
+
+## 8. Unresolved behaviour
+
+1. The log-lambda interpolation rule is documented and the requested public values are recorded, but the custom-path output omits the neighboring coefficient columns. Independent reconstruction of the two off-path coefficient vectors is therefore not claimed.
+2. The exact stopping boundary for fdev, devmax, and active-set limits has not been isolated numerically. The n<p example reaches .01 exactly; the n>p example stops at .000372759372031494. The control defaults and both outcomes are recorded.
+3. Full class-centering/identifiability behaviour for every multinomial class-count and grouped-penalty corner case is not established by the compact output. Both grouped and ungrouped public paths and class probabilities were recorded; no unsupported parameterization detail is asserted.
 
 ## Decisions for the user
 
-1. **Convergence target.** (A) reproduce glmnet's default early-stopping path; (B) solve each lambda to a strict, independently checked optimum and treat the reference's default path as a comparison band. **Recommendation: B**, consistent with the rStats.js policy for earlier regressions. Keep the default reference and tight reference outputs separate.
-2. **Lambda path.** (A) reproduce the exact 5.1 data-derived path, including its alpha-zero convention; (B) use a mathematically equivalent deterministic path with explicit documented differences. **Recommendation: A where the public outputs identify the path; otherwise B with the exact actual lambda sequence exposed and tested.**
-3. **Off-path coefficient requests.** (A) implement log-lambda interpolation only; (B) also refit exactly when original data are supplied. **Recommendation: A initially**, because exact refitting expands the API and is not needed for the core path.
-4. **Cross-validation folds.** (A) generate random folds internally; (B) require `foldid` for the R-compatibility mode. **Recommendation: B**, matching the project's fixed-fold test contract; optional internal fold generation can be a later convenience.
-5. **CV grouped semantics.** (A) implement both `grouped = TRUE/FALSE` exactly; (B) initially support only the default grouped calculation. **Recommendation: A** because both are explicit public options and materially change the estimate of CV error.
-6. **Multinomial grouped penalty.** (A) support both grouped and ungrouped penalties; (B) defer grouped. **Recommendation: A**, as explicitly requested in scope.
+1. **Convergence target.** (A) reproduce default early stopping; (B) solve each lambda to a strict independently checked optimum. **Recommendation: B**, consistent with numerical-correctness policy.
+2. **Lambda path.** (A) reproduce pinned data-derived paths where public KKT outputs identify them; (B) use an equivalent deterministic path with explicit differences otherwise. **Recommendation: A where verified, otherwise B with actual lambda exposed.**
+3. **Off-path requests.** (A) log-lambda interpolation only; (B) also refit exactly with original data. **Recommendation: A initially.**
+4. **CV folds.** (A) generate folds internally; (B) require foldid for comparison mode. **Recommendation: B**, for deterministic comparisons.
+5. **CV grouped semantics.** (A) implement both grouped modes; (B) grouped only. **Recommendation: A**, because both affect uncertainty.
+6. **Multinomial grouped penalty.** (A) support grouped and ungrouped; (B) defer grouped. **Recommendation: A**, as both are in scope.
 
 ## rStats.js's choices
 
