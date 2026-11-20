@@ -117,9 +117,11 @@ out$na_rows <- run({
        residuals = unname(residuals(fit)), fitted = unname(fitted(fit)))
 })
 
+# R returns its quantile process (class rq.process, not JSON-encodable) for tau outside (0, 1); rStats.js errors
+# (choices 3), so only the class is recorded
 out$tau_out_of_range <- run({
   data(engel)
-  rq(foodexp ~ income, data = engel, tau = 1.5)
+  class(rq(foodexp ~ income, data = engel, tau = 1.5))
 })
 
 out$zero_weights <- run({
@@ -136,12 +138,15 @@ out$summary_se_warnings <- run({
   ans <- list()
   for (seMethod in c("rank", "iid", "nid", "ker", "boot")) {
     ans[[seMethod]] <- run({
-      if (seMethod == "boot") {
+      # the coefficient table and (when there is one) the covariance: a summary.rq object is not JSON-encodable
+      s <- if (seMethod == "boot") {
         set.seed(1)
         summary(fit, se = seMethod, R = 40)
       } else {
         summary(fit, se = seMethod, covariance = TRUE)
       }
+      list(coefficients = list(rows = rownames(coef(s)), cols = colnames(coef(s)), values = unname(coef(s))),
+           cov = if (is.null(s$cov)) NULL else unname(s$cov))
     })
   }
   ans
