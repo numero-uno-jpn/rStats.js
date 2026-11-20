@@ -3,6 +3,54 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { rq, rqPredict } from "../src/models/rq.js";
 
+
+function solveSmall(a: number[][], b: number[]): number[] {
+  const n = b.length;
+  const m = a.map((row, i) => [...row, b[i]!]);
+  for (let k = 0; k < n; k++) {
+    let pivot = k;
+    for (let i = k + 1; i < n; i++) if (Math.abs(m[i]![k]!) > Math.abs(m[pivot]![k]!)) pivot = i;
+    [m[k], m[pivot]] = [m[pivot]!, m[k]!];
+    const d = m[k]![k]!;
+    if (Math.abs(d) < 1e-12) throw new RangeError("singular");
+    for (let j = k; j <= n; j++) m[k]![j]! /= d;
+    for (let i = 0; i < n; i++) if (i !== k) {
+      const f = m[i]![k]!;
+      for (let j = k; j <= n; j++) m[i]![j]! -= f * m[k]![j]!;
+    }
+  }
+  return m.map((row) => row[n]!);
+}
+
+function bruteObjective(x: number[][], y: number[], weights: number[], tau: number): number {
+  const p = x[0]!.length;
+  let best = Infinity;
+  const chosen: number[] = [];
+  const visit = (start: number): void => {
+    if (chosen.length === p) {
+      try {
+        const beta = solveSmall(chosen.map((i) => x[i]!), chosen.map((i) => y[i]!));
+        let loss = 0;
+        for (let i = 0; i < y.length; i++) {
+          const residual = y[i]! - x[i]!.reduce((sum, value, j) => sum + value * beta[j]!, 0);
+          loss += weights[i]! * residual * (tau - (residual < 0 ? 1 : 0));
+        }
+        best = Math.min(best, loss);
+      } catch {
+        // A singular subset is not a vertex.
+      }
+      return;
+    }
+    for (let i = start; i <= y.length - (p - chosen.length); i++) {
+      chosen.push(i);
+      visit(i + 1);
+      chosen.pop();
+    }
+  };
+  visit(0);
+  return best;
+}
+
 const oracle = JSON.parse(readFileSync(fileURLToPath(new URL("./fixtures/rq.json", import.meta.url)), "utf8")) as {
   data: { X: { values: number[][] }; y: number[] };
   br_0_25?: { value?: { coef: number[]; rho: number } };
@@ -75,6 +123,109 @@ describe("quantile regression", () => {
       expect(br.converged).toBe(true);
       expect(fn.converged).toBe(true);
     }
+  });
+
+
+  it("matches an independent vertex enumeration on a small tied weighted problem", () => {
+    const data = {
+      x: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+      z: [0, 1, 0, 1, 1, 0, 1, 0, 1, 0],
+      y: [1, 2, 2, 4, 3, 5, 5, 6, 7, 7],
+    };
+    const matrix = data.x.map((value, i) => [1, value, data.z[i]!]);
+    const weights = [1, 2, 1, 3, 2, 1, 4, 2, 1, 3];
+    for (const tau of [0.1, 0.5, 0.9]) {
+      const expected = bruteObjective(matrix, data.y, weights, tau);
+      for (const method of ["br", "fn"] as const) {
+        const fit = rq("y ~ x + z", data, { tau, method, weights, maxit: 1000, eps: 1e-12 });
+        expect(Math.abs((fit.rho as number) - expected) / Math.max(1, Math.abs(expected))).toBeLessThanOrEqual(1e-12);
+      }
+    }
+  });
+
+  it("agrees across random sizes, dimensions, quantiles, weights, and tied responses", () => {
+    const cases = [
+      { n: 20, p: 2, weighted: true, seed: 17 },
+      { n: 200, p: 4, weighted: false, seed: 29 },
+      { n: 2000, p: 8, weighted: true, seed: 43 },
+    ];
+    for (const item of cases) {
+      let state = item.seed;
+      const random = (): number => {
+        state = (Math.imul(1664525, state) + 1013904223) >>> 0;
+        return state / 4294967296;
+      };
+      const data: Record<string, number[]> = { y: [] };
+      const predictors = Array.from({ length: item.p - 1 }, (_, j) => {
+        const name = "x" + (j + 1);
+        data[name] = [];
+        return name;
+      });
+      const weights = new Array<number>(item.n);
+      for (let i = 0; i < item.n; i++) {
+        let response = 1.25;
+        for (let j = 0; j < predictors.length; j++) {
+          const value = random() * 2 - 1;
+          data[predictors[j]!]!.push(value);
+          response += (j + 1) * 0.12 * value;
+        }
+        data.y!.push(Math.round((response + (Math.floor(random() * 9) - 4) * 0.2) * 5) / 5);
+        weights[i] = item.weighted ? 0.5 + random() * 2.5 : 1;
+      }
+      const formula = predictors.length === 0 ? "y ~ 1" : "y ~ " + predictors.join(" + ");
+      for (const tau of [0.1, 0.5, 0.9]) {
+        const br = rq(formula, data, { tau, method: "br", weights, maxit: 1000 });
+        const fn = rq(formula, data, { tau, method: "fn", weights, maxit: 200, eps: 1e-12 });
+        expect(Math.abs((br.rho as number) - (fn.rho as number)) /
+          Math.max(1, Math.abs(br.rho as number), Math.abs(fn.rho as number))).toBeLessThanOrEqual(1e-12);
+      }
+    }
+  });
+
+  it("is equivariant to predictor columns scaled by 1e100 and 1e-100", () => {
+    const data = { x: [0, 1, 2, 3, 4, 5], y: [0, 1, 1, 3, 4, 7] };
+    const base = rq("y ~ x", data, { tau: 0.5, method: "fn" });
+    for (const scale of [1e100, 1e-100]) {
+      const fit = rq("y ~ x", { x: data.x.map((v) => v * scale), y: data.y }, { tau: 0.5, method: "fn" });
+      expect(fit.coefficients["(Intercept)"]).toBeCloseTo(base.coefficients["(Intercept)"] as number, 8);
+      expect((fit.coefficients.x as number) * scale).toBeCloseTo(base.coefficients.x as number, 8);
+    }
+  });
+
+  it("fits 100000 rows with fn and records its elapsed time", () => {
+    const n = 100000;
+    const x1 = new Array<number>(n);
+    const x2 = new Array<number>(n);
+    const y = new Array<number>(n);
+    for (let i = 0; i < n; i++) {
+      x1[i] = ((i * 37) % 1009) / 1009;
+      x2[i] = ((i * 73) % 1013) / 1013;
+      y[i] = 1.5 + 0.8 * x1[i]! - 0.4 * x2[i]! + 0.2 * (((i * 97) % 101) - 50) / 50;
+    }
+    const start = Date.now();
+    const fit = rq("y ~ x1 + x2", { x1, x2, y }, { tau: 0.5, method: "fn", maxit: 200, eps: 1e-10 });
+    const elapsed = Date.now() - start;
+    console.log("rq fn 100000 x 3: " + elapsed + " ms");
+    expect(fit.converged).toBe(true);
+    expect(Number.isFinite(fit.rho as number)).toBe(true);
+  });
+
+  it("fits 10000 rows with br and records its elapsed time", () => {
+    const n = 10000;
+    const x1 = new Array<number>(n);
+    const x2 = new Array<number>(n);
+    const y = new Array<number>(n);
+    for (let i = 0; i < n; i++) {
+      x1[i] = ((i * 37) % 1009) / 1009;
+      x2[i] = ((i * 73) % 1013) / 1013;
+      y[i] = 1.5 + 0.8 * x1[i]! - 0.4 * x2[i]! + 0.2 * (((i * 97) % 101) - 50) / 50;
+    }
+    const start = Date.now();
+    const fit = rq("y ~ x1 + x2", { x1, x2, y }, { tau: 0.5, method: "br", maxit: 1000 });
+    const elapsed = Date.now() - start;
+    console.log("rq br 10000 x 3: " + elapsed + " ms");
+    expect(fit.converged).toBe(true);
+    expect(Number.isFinite(fit.rho as number)).toBe(true);
   });
 
   it("rejects tau outside the open unit interval and invalid weights", () => {
