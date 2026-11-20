@@ -22,6 +22,9 @@
 - **R で見つけたこと:** geeglm の `corstr = "fixed"` で `anova(fit)` が 40 秒以上終わらない。`scale.fix = TRUE,
   scale.value = 4` がエラー (`variable lengths differ`)。glmnet 5.1 は `thresh` を直接渡すと非推奨の警告 (`control = list(...)`)。
   rq の nonunique の警告は `summary` が出す
+- **段階 1 の 1 回目 (`312d9169`、2026-11-21) は差し戻し:** 仕様書が各 100 行ほどで式がない、R の実験を 1 本も流して
+  いない、`oracle/gee.R` が `No method asJSON S3 class: lm` で止まる、rq の boot の推奨がユーザーの決定と違う。
+  差し戻しの中身は作業ブランチの `briefs/regression-1.8-stage1-review.ja.md` (`6c52d520`)
 - 次: ユーザーが ChatGPT に依頼文を貼る → 段階 1 の報告 (仕様書 3 つ + Decisions) を Issue #545 で点検 → Decisions を
   ユーザーに聞いて choices を書く → fixture を作る
 
