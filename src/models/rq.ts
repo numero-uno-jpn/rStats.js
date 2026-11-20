@@ -458,22 +458,20 @@ function fitOne(
         }, 0);
         const candidateResidual = normalizedY.map((v, i) => v - dot(normalizedX[i]!, candidate));
         const newLoss = candidateResidual.reduce((sum, r) => sum + r * (tau - (r < 0 ? 1 : 0)), 0);
-        let dualEquality = 0;
         let dualObjective = 0;
         let signCompatible = true;
-        const residualScale = Math.max(1, ...candidateResidual.map(Math.abs));
+        const residualScale = candidateResidual.reduce((m, v) => Math.max(m, Math.abs(v)), 1);
         for (let i = 0; i < n; i++) {
           const ai = fit.dual[i]!;
           dualObjective += normalizedY[i]! * ai;
-          for (let j = 0; j < p; j++) dualEquality += 0; // accumulated columnwise below
-          if (candidateResidual[i]! > 1e-8 * residualScale && ai < 1 - 1e-7) signCompatible = false;
+           if (candidateResidual[i]! > 1e-8 * residualScale && ai < 1 - 1e-7) signCompatible = false;
           if (candidateResidual[i]! < -1e-8 * residualScale && ai > 1e-7) signCompatible = false;
         }
         const equalityResidual = new Array<number>(p).fill(0);
         for (let i = 0; i < n; i++) for (let j = 0; j < p; j++) {
           equalityResidual[j]! += normalizedX[i]![j]! * (fit.dual[i]! - (1 - tau));
         }
-        dualEquality = equalityResidual.reduce((m, v) => Math.max(m, Math.abs(v)), 0);
+        const dualEquality = equalityResidual.reduce((m, v) => Math.max(m, Math.abs(v)), 0);
         const certificate = signCompatible &&
           dualEquality <= 1e-8 * Math.max(1, ...normalizedX[0]!.map((_, j) => Math.abs(
             normalizedX.reduce((sum, row) => sum + row[j]!, 0),
