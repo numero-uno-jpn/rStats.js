@@ -14,7 +14,8 @@
   ページ (日本語の訳つき)
 - 取り込みの順: #542 (回帰の本体、`experiments/regression-*` 33 ファイルを含む。テストが 1 つ読むため、ユーザーの決定)、
   #543 (公開前の数値の点検の直し)、#544 (版)。作業ブランチ `work/regression`・`release/1.7.0-regression`・
-  `fix/regression-numerics`・`release/1.7.0` は残してある (**消す前にユーザーに聞く**)。PR #541 は閉じた
+  `fix/regression-numerics`・`release/1.7.0` は、中身が main と同じことを確かめてユーザーの指示で消した (手元と GitHub)。
+  PR #541 は閉じた
 - **公開前の数値の点検** (`experiments/regression-numerics-*`): polr の縮退 (choices 10 は決めてあったのに未実装だった)・
   重みの定数倍で係数がずれる (スコアの許容に 1 の下限)・Infinity のエラー、nls の Infinity を黙って除いていた、を直した。
   polr の確率は 5 つのリンクで ±800 まで 1e-13 以内。**点検の教訓:** 参照の式の側の桁落ち (cauchit の 0.5 + atan) と、
@@ -24,7 +25,27 @@
   報告はユーザーが自分でする (Gmail の下書きは断られた)
 - **ChatGPT の使い方の文書** (汎用、他の repo にも): Claude Docs の「ChatGPT を外注先に使う開発の進め方」
   https://claude.ai/artifact/XeAnCSwZUrejZhzx5a7BxV 。1.8.0 の外注もこれに沿う
-- 次: ROADMAP の 2 (1.8.0: quantreg の `rq`・geepack・glmnet)。範囲と順をユーザーと決めるところから
+- 次: ROADMAP の 2 (1.8.0: quantreg の `rq`・geepack・glmnet)
+
+### 1.8.0 の計画 (ユーザーの決定 2026-11-20: rq・GEE・glmnet を**まとめて 1.8.0**)
+
+- **順:** rq → GEE → glmnet (私の推奨。rq は他に依存せず線形計画法の基盤を先に固める、GEE は `glm` の部品で進めやすい、
+  glmnet は R との合わせ込みが一番重い)。**範囲は新しいセッションの最初にユーザーと決める。** 私の案:
+  - rq: `br`・`fn`、複数の τ、`summary` の rank・iid・nid・ker、`predict`、`anova` (boot は乱数まで合わせるのが重く後回し)。
+    解が一意でない場合にどの解を返すかを決める
+  - GEE (`geeglm`): gaussian・binomial・poisson・Gamma、作業相関 4 種 (独立・交換可能・AR(1)・無構造)、サンドイッチ分散、
+    `summary`・`anova` (Wald)・`predict`
+  - glmnet: gaussian・binomial・poisson (multinomial・cox は後回し)、λ の経路、`coef`・`predict`、`cv.glmnet` は `foldid`
+    固定で比べる。既定の収束がゆるい (1e-7) ので fitTight と同じ工夫
+  - 3 つとも GPL: これまでどおりクリーンルーム (公開の論文 (Koenker、Liang と Zeger、Friedman ら 2010) と出力だけ)
+- **進め方** (1.7.0 の経験と Claude Docs の「ChatGPT を外注先に使う開発の進め方」に沿う):
+  1. 準備 (私): `oracle/Dockerfile.experiments` に quantreg・geepack・glmnet、`scripts/r-experiment-check.mjs` に関数の
+     一覧。R の実験・oracle・fixture を先に多めに作る。指示書に推奨つきの決定
+  2. 実装 (ChatGPT、1 パッケージずつ): 仕様書 → 実装 → CI 緑。数値の点検は私が独立の計算で
+  3. **端の入力と桁落ちの点検を最初から指示書の受け入れの条件に入れる** (尺度 1e±100、10 万件、NaN と Infinity、縮退、
+     重みの定数倍、配列を引数に展開しない)。1.7.0 では最後にまとめてやって不具合が 4 つ見つかった
+  4. 文書・デモ・日本語の訳 (ChatGPT)、取り込みと公開 (私)。1.7.0 と同じ
+- 分野は `/regression` に足すか新しい分野にするかも、最初に決める (私の案: `/regression` に足す)
 
 ## 次のセッションで最初にやること: 1.7.0 の段階 3 (セッション 25 → 26、2026-11-20 朝に作成)
 
