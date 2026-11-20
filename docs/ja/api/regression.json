@@ -897,7 +897,7 @@
   "RlmOptions.method#summary": {
     "hash": "d425c61add39",
     "en": "Estimation method. \"MM\" uses a deterministic S start and a fixed-scale redescending M step. Default \"M\".",
-    "ja": "推定方法です。\"MM\" は決定的な S 推定による初期値と、尺度を固定した redescending M ステップを使います。既定は \"M\" です。"
+    "ja": "推定方法です。\"MM\" は決定的な S 推定による初期値と、尺度を固定した再下降型 M ステップを使います。既定は \"M\" です。"
   },
   "RlmOptions.psi#summary": {
     "hash": "2630c44dd7e6",
