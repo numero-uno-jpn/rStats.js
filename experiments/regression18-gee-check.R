@@ -1,4 +1,5 @@
 # issue: 545
+# rerun after output-size and seed-stream corrections
 # rerun after independent formula probes
 # batch rerun after reserved-token fix
 # batch rerun after clean-room script correction
@@ -22,13 +23,13 @@ for(cs in c("independence","exchangeable","ar1","unstructured")){
  })
 }
 out$jackknife<-run({
- ans<-list()
+ ids<-sort(unique(d$id))
+ deleted<-lapply(ids,function(k)unname(coef(geeglm(y~x,id=id,waves=wave,
+      data=d[d$id!=k,],family=gaussian,corstr="exchangeable"))))
+ ans<-list(ids=ids,deleted=tab(do.call(rbind,deleted)))
  for(st in c("jack","j1s","fij")){
   f<-geeglm(y~x,id=id,waves=wave,data=d,family=gaussian,corstr="exchangeable",std.err=st)
-  ids<-sort(unique(d$id))
-  deleted<-lapply(ids,function(k)unname(coef(geeglm(y~x,id=id,waves=wave,
-       data=d[d$id!=k,],family=gaussian,corstr="exchangeable"))))
-  ans[[st]]<-list(coef=unname(coef(f)),vcov=tab(vcov(f)),deleted=tab(do.call(rbind,deleted)))
+  ans[[st]]<-list(coef=unname(coef(f)),summary=tab(coef(summary(f))),vcov=tab(vcov(f)))
  }
  ans
 })

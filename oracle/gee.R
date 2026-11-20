@@ -31,13 +31,12 @@ plain <- function(x) {
   if (is.atomic(x)) return(as.vector(x))
   NULL
 }
-capture <- function(f) {
+capture <- function(f,includeQIC=TRUE) {
   s <- summary(f)
-  list(coefficients=unname(coef(f)),vcov=tab(vcov(f)),summary=tab(coef(s)),
-       corr=tab(s$corr),dispersion=tab(s$dispersion),
-       fitted=unname(fitted(f))[seq_len(min(10,length(fitted(f))))],
-       pearson=unname(residuals(f,type="pearson"))[seq_len(min(10,length(residuals(f,type="pearson"))))],
-       qic=unname(as.numeric(QIC(f))))
+  ans <- list(coefficients=unname(coef(f)),vcov=tab(vcov(f)),
+              corr=tab(s$corr),dispersion=tab(s$dispersion))
+  if (includeQIC) ans$qic <- unname(as.numeric(QIC(f)))
+  ans
 }
 out <- list(control_default=geese.control())
 data(dietox);data(ohio);data(seizure);data(respiratory)
@@ -48,20 +47,20 @@ for (cs in c("independence","exchangeable","ar1","unstructured")) {
     ft <- geeglm(Weight~Time+Cu,id=Pig,data=dietox,corstr=cs,
                  control=geese.control(epsilon=1e-10,maxit=200))
     a <- anova(f)
-    list(default=capture(f),tight=capture(ft),anova=anovaTable(a))
+    list(default=capture(f),tight=capture(ft,FALSE),anova=anovaTable(a))
   })
   out[[paste0("ohio_",cs)]] <- run({
     f <- geeglm(resp~age+smoke,id=id,data=ohio,family=binomial,corstr=cs)
     ft <- geeglm(resp~age+smoke,id=id,data=ohio,family=binomial,corstr=cs,
                  control=geese.control(epsilon=1e-10,maxit=200))
-    list(default=capture(f),tight=capture(ft))
+    list(default=capture(f),tight=capture(ft,FALSE))
   })
 }
 for (cs in c("independence","exchangeable","ar1")) out[[paste0("gamma_",cs)]] <- run({
   f <- geeglm(Weight~Time+Cu,id=Pig,data=dietox,family=Gamma(link="log"),corstr=cs)
   ft <- geeglm(Weight~Time+Cu,id=Pig,data=dietox,family=Gamma(link="log"),corstr=cs,
                control=geese.control(epsilon=1e-10,maxit=200))
-  list(default=capture(f),tight=capture(ft))
+  list(default=capture(f),tight=capture(ft,FALSE))
 })
 sz <- reshape(seizure,varying=list(c("base","y1","y2","y3","y4")),v.names="y",times=0:4,direction="long")
 sz <- sz[order(sz$id,sz$time),];sz$t <- ifelse(sz$time==0,8,2);sz$x <- ifelse(sz$time==0,0,1)
@@ -69,7 +68,7 @@ out$poisson_offset <- run({
  f <- geeglm(y~offset(log(t))+x+trt+x:trt,id=id,data=sz,family=poisson,corstr="exchangeable")
  ft <- geeglm(y~offset(log(t))+x+trt+x:trt,id=id,data=sz,family=poisson,corstr="exchangeable",
               control=geese.control(epsilon=1e-10,maxit=200))
- list(default=capture(f),tight=capture(ft))
+ list(default=capture(f),tight=capture(ft,FALSE))
 })
 for (st in c("jack","j1s","fij")) out[[paste0("jack_",st)]] <- run({
  f <- geeglm(resp~age+smoke,id=id,data=ohio,family=binomial,corstr="exchangeable",std.err=st)

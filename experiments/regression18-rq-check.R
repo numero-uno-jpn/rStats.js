@@ -1,4 +1,5 @@
 # issue: 545
+# rerun after output-size and seed-stream corrections
 # rerun after independent formula probes
 # rerun after stage1 formula verification
 # batch rerun after reserved-token fix
@@ -17,7 +18,7 @@ for(bs in c("xy","pwy","mcmb","wxy")){
  set.seed(1);sample.int(n,n*R,replace=TRUE);ss<-.Random.seed
  set.seed(1);Uxy<-matrix(sample.int(n,n*R,replace=TRUE),nrow=n)
  set.seed(1);Upwy<-matrix(runif(n*R),nrow=n)
- set.seed(1);Uwxy<-matrix(rexp(n*R),nrow=n
+ set.seed(1);Uwxy<-matrix(rexp(n*R),nrow=n)
  set.seed(1);rexp(n*R);seedExp<-.Random.seed
  set.seed(1);runif(n*R);su<-.Random.seed
  set.seed(1);rbinom(n*R,1,tau);sb<-.Random.seed
@@ -36,7 +37,7 @@ out$seedProbe<-run({
   set.seed(7);sample.int(n,n*R2,replace=TRUE);seedSample<-.Random.seed
   set.seed(7);Uxy<-matrix(sample.int(n,n*R2,replace=TRUE),nrow=n)
   set.seed(7);Upwy<-matrix(runif(n*R2),nrow=n)
-  set.seed(7);Uwxy<-matrix(rexp(n*R2),nrow=n
+  set.seed(7);Uwxy<-matrix(rexp(n*R2),nrow=n)
   set.seed(7);runif(n*R2);seedUniform<-.Random.seed
   set.seed(7);rnorm(n*R2);seedNormal<-.Random.seed
   set.seed(7);rexp(n*R2);seedExp<-.Random.seed
