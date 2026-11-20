@@ -35,11 +35,11 @@ out <- list(
   bandwidth = list(hs = h.hs, bofinger = h.bofinger),
   iid = capture({
     s <- summary(fit, se = "iid", covariance = TRUE)
-    list(table = tab(coef(s)), cov = s$cov)
+    list(table = tab(coef(s)), cov = s$cov, scale = s$scale, names = names(s))
   }),
   nid = capture({
     s <- summary(fit, se = "nid", covariance = TRUE)
-    list(table = tab(coef(s)), cov = s$cov, Hinv = s$Hinv, J = s$J)
+    list(table = tab(coef(s)), cov = s$cov, Hinv = s$Hinv, J = s$J, scale = s$scale, names = names(s))
   }),
   ker = capture({
     s <- summary(fit, se = "ker", covariance = TRUE)
@@ -92,9 +92,12 @@ out <- list(
       fittedMinus = fitted(fl),
       fittedPlus = fitted(fh),
       iidCov = si$cov,
+      iidScale = si$scale,
+      iidNames = names(si),
       iidBofingerCov = si.b$cov,
-      nid = list(table = coef(sn), cov = sn$cov, Hinv = sn$Hinv, J = sn$J),
-      ker = list(table = coef(sk), cov = sk$cov, Hinv = sk$Hinv, J = sk$J, names = names(sk)),
+      iidBofingerScale = si.b$scale,
+      nid = list(table = coef(sn), cov = sn$cov, Hinv = sn$Hinv, J = sn$J, scale = sn$scale, names = names(sn)),
+      ker = list(table = coef(sk), cov = sk$cov, Hinv = sk$Hinv, J = sk$J, scale = sk$scale, names = names(sk)),
       nonzeroResidualCount = length(rn),
       bwNrd = bw.nrd(rn),
       bwNrd0 = bw.nrd0(rn),
