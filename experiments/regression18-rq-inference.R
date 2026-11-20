@@ -112,6 +112,24 @@ out <- list(
 )
 
 X <- cbind(1, engel$income)
+out$iidRowOrder <- capture({
+  d <- data.frame(x = -3:12, y = c(2, 1, 4, 2, 5, 3, 8, 5, 9, 7, 11, 8, 14, 10, 15, 13))
+  hs <- bandwidth.rq(0.5, nrow(d), hs = TRUE)
+  probe <- function(dd) {
+    f <- rq(y ~ x, data = dd, tau = 0.5, method = "br")
+    lo <- rq(y ~ x, data = dd, tau = 0.5 - hs, method = "br")
+    hi <- rq(y ~ x, data = dd, tau = 0.5 + hs, method = "br")
+    s <- summary(f, se = "iid", covariance = TRUE)
+    dfit <- fitted(hi) - fitted(lo)
+    list(scale = s$scale, coef = coef(f), betaMinus = coef(lo), betaPlus = coef(hi),
+      meanSparsity = mean(dfit) / (2 * hs), firstSparsity = dfit[1] / (2 * hs),
+      lastSparsity = dfit[length(dfit)] / (2 * hs), n = nrow(dd))
+  }
+  set.seed(1)
+  ord <- sample.int(nrow(d))
+  list(original = probe(d), reversed = probe(d[nrow(d):1, ]),
+    permuted = probe(d[ord, ]), permutation = ord)
+})
 out$data <- list(income = engel$income, foodexp = engel$foodexp)
 for (method in c("xy", "pwy", "mcmb", "wxy")) {
   if (method == "mcmb") {
