@@ -19,6 +19,11 @@ for(tau in c(.25,.5,.75)) for(method in c("br","fn")) out[[paste(method,tau,sep=
       rank=tab(coef(summary(f,se="rank"))),rankNonIid=tab(coef(summary(f,se="rank",iid=FALSE))))
 })
 out$weighted<-run({w<-seq(.5,2,length.out=n);f<-rq(y~x,data=d,tau=.5,weights=w);list(weights=w,coef=coef(f),rho=f$rho,residuals=unname(residuals(f)),nid=tab(coef(summary(f,se="nid"))))})
-out$rankTests<-run({f<-rq(y~x,data=d,tau=.5);list(rank=tab(coef(summary(f,se="rank",alpha=.1))),rank95=tab(coef(summary(f,se="rank",alpha=.05)))})
+out$rankTests<-run({
+ f<-rq(y~x,data=d,tau=.5)
+ r1<-coef(summary(f,se="rank",alpha=.1))
+ r2<-coef(summary(f,se="rank",alpha=.05))
+ list(rank=tab(r1),rank95=tab(r2))
+})
 out$multiTau<-run({f<-rq(y~x,data=d,tau=c(.25,.5,.75));list(coef=tab(coef(f)),joint=tab(anova(f)$table),separate=tab(anova(f,joint=FALSE)$table))})
 cat(toJSON(out,digits=NA,auto_unbox=TRUE,null="null",na="string",pretty=FALSE))

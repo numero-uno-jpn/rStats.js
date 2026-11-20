@@ -33,7 +33,7 @@ for (cs in c("independence","exchangeable","ar1","unstructured")) {
     ft <- geeglm(Weight~Time+Cu,id=Pig,data=dietox,corstr=cs,
                  control=geese.control(epsilon=1e-10,maxit=200))
     a <- anova(f)
-    list(default=capture(f),tight=capture(ft),anova=tab(a))
+    list(default=capture(f),tight=capture(ft),anova=anovaTable(a))
   })
   out[[paste0("ohio_",cs)]] <- run({
     f <- geeglm(resp~age+smoke,id=id,data=ohio,family=binomial,corstr=cs)
@@ -86,7 +86,7 @@ out$fixed <- run({
 out$nested_anova <- run({
  a <- geeglm(resp~age,id=id,data=ohio,family=binomial,corstr="exchangeable")
  b <- geeglm(resp~age+smoke+age:smoke,id=id,data=ohio,family=binomial,corstr="exchangeable")
- tab(anova(b,a))
+ anovaTable(anova(b,a))
 })
 out$predict <- run({
  f <- geeglm(resp~age+smoke,id=id,data=ohio,family=binomial,corstr="ar1")

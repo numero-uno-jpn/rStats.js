@@ -34,14 +34,14 @@ Xcv<-cbind(a=seq(-2,2,length.out=60),b=sin(seq_len(60)),c=cos(seq_len(60)))
 yg<-1+.5*Xcv[,1]-.3*Xcv[,2]+sin(seq_len(60)*1.7)*.2
 yb<-rep(0:1,30);fid<-rep(1:5,12)
 out$cvGaussian<-run({
- a<-cv.glmnet(Xcv,yg,foldid=fid,type.measure="mse",keep=TRUE)
- b<-cv.glmnet(Xcv,yg,foldid=fid,type.measure="mse",grouped=FALSE,keep=TRUE)
+ a<-cv.glmnet(Xcv,yg,foldid=fid,type.measure="mse",nlambda=8,keep=TRUE)
+ b<-cv.glmnet(Xcv,yg,foldid=fid,type.measure="mse",nlambda=8,grouped=FALSE,keep=TRUE)
  list(lambda=a$lambda,cvm=a$cvm,cvsd=a$cvsd,cvup=a$cvup,cvlo=a$cvlo,
       lambdaMin=a$lambda.min,lambda1se=a$lambda.1se,preval=tab(a$fit.preval),
       groupedFalse=list(cvm=b$cvm,cvsd=b$cvsd,preval=tab(b$fit.preval)))
 })
 for(tm in c("deviance","class","auc"))out[[paste0("cvBinomial_",tm)]]<-run({
- a<-cv.glmnet(Xcv,yb,family="binomial",foldid=fid,type.measure=tm)
+ a<-cv.glmnet(Xcv,yb,family="binomial",foldid=fid,type.measure=tm,nlambda=8)
  list(lambda=a$lambda,cvm=a$cvm,cvsd=a$cvsd,lambdaMin=a$lambda.min,lambda1se=a$lambda.1se)
 })
 cat(toJSON(out,digits=NA,auto_unbox=TRUE,null="null",na="string",pretty=FALSE))
