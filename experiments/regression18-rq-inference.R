@@ -55,20 +55,38 @@ out <- list(
     tauPlus = tau + h.hs,
     betaMinus = coef(fit.lo),
     betaPlus = coef(fit.hi),
-    fittedMinus = f.lo,
-    fittedPlus = f.hi,
+    meanSparsity = mean((f.hi - f.lo) / (2 * h.hs)),
+    localSparsity = (f.hi - f.lo) / (2 * h.hs),
     residualQuantilesType1 = quantile(r, c(tau - h.hs, tau + h.hs), type = 1),
-    residualQuantilesType7 = quantile(r, c(tau - h.hs, tau + h.hs), type = 7),
-    residuals = r
-  )
+    residualQuantilesType7 = quantile(r, c(tau - h.hs, tau + h.hs), type = 7)
+  }),
+  small = capture({
+    x <- -3:12
+    y <- c(2, 1, 4, 2, 5, 3, 8, 5, 9, 7, 11, 8, 14, 10, 15, 13)
+    f <- rq(y ~ x, tau = 0.5, method = "br")
+    hs <- bandwidth.rq(0.5, length(y), hs = TRUE)
+    fl <- rq(y ~ x, tau = 0.5 - hs, method = "br")
+    fh <- rq(y ~ x, tau = 0.5 + hs, method = "br")
+    si <- summary(f, se = "iid", covariance = TRUE)
+    list(
+      coef = coef(f),
+      residuals = residuals(f),
+      bandwidth = hs,
+      betaMinus = coef(fl),
+      betaPlus = coef(fh),
+      fittedMinus = fitted(fl),
+      fittedPlus = fitted(fh),
+      iidCov = si$cov
+    )
+  })
 )
 
 X <- cbind(1, engel$income)
 for (method in c("xy", "pwy", "mcmb", "wxy")) {
   set.seed(1)
   out[[paste0("boot_", method)]] <- capture({
-    z <- boot.rq(X, engel$foodexp, tau = tau, R = 5, bsmethod = method)
-    list(B = z$B, U = z$U)
+    z <- boot.rq(X, engel$foodexp, tau = tau, R = 2, bsmethod = method)
+    list(B = z$B, U = z$U, seedIndex = .Random.seed[1])
   })
 }
 
