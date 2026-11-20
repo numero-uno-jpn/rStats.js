@@ -1052,352 +1052,352 @@
   "RlmResult.iterations#summary": {
     "hash": "b5e9a31b4f60",
     "en": "Number of iterations performed.",
-    "ja": ""
+    "ja": "実行した反復回数です。"
   },
   "RlmResult.model#summary": {
     "hash": "f92e035c5468",
     "en": "Model data and settings retained for companion methods.",
-    "ja": ""
+    "ja": "関連するメソッドで使うために保持されたモデルデータと設定です。"
   },
   "RlmResult.residuals#summary": {
     "hash": "10143a09ccbe",
     "en": "Observed minus fitted response values.",
-    "ja": ""
+    "ja": "観測応答値から当てはめ応答値を引いた値です。"
   },
   "RlmResult.robustWeights#summary": {
     "hash": "ea3f35ac61b8",
     "en": "Robust weights from the selected score function.",
-    "ja": ""
+    "ja": "選択したスコア関数によるロバスト重みです。"
   },
   "RlmResult.scale#summary": {
     "hash": "2de2b2b16b3d",
     "en": "Estimated robust residual scale.",
-    "ja": ""
+    "ja": "ロバスト残差尺度の推定値です。"
   },
   "RlmResult.stddev#summary": {
     "hash": "5a506fa2a64c",
     "en": "Residual standard deviation estimate.",
-    "ja": ""
+    "ja": "残差標準偏差の推定値です。"
   },
   "RlmResult.warnings#summary": {
     "hash": "c5d038e4266e",
     "en": "Warnings produced during fitting.",
-    "ja": ""
+    "ja": "当てはめ中に発生した警告です。"
   },
   "RlmResult.workingWeights#summary": {
     "hash": "91d8860b1fb8",
     "en": "Combined weights used in weighted least-squares steps.",
-    "ja": ""
+    "ja": "重み付き最小二乗ステップで使う合成重みです。"
   },
   "RlmSummaryResult#summary": {
     "hash": "f2d382226507",
     "en": "Coefficient table returned by {@link rlmSummary}.",
-    "ja": ""
+    "ja": "{@link rlmSummary} が返す係数表です。"
   },
   "RlmSummaryResult.columns#summary": {
     "hash": "928189c00b0c",
     "en": "Summary statistic column names.",
-    "ja": ""
+    "ja": "要約統計量の列名です。"
   },
   "RlmSummaryResult.rows#summary": {
     "hash": "0885a27cd1a8",
     "en": "Coefficient names.",
-    "ja": ""
+    "ja": "係数名です。"
   },
   "RlmSummaryResult.values#summary": {
     "hash": "70702cac4e4f",
     "en": "Rows of estimates, standard errors and test statistics.",
-    "ja": ""
+    "ja": "推定値、標準誤差、検定統計量の各行です。"
   },
   "RlmSummaryResult.warnings#summary": {
     "hash": "84caa396e699",
     "en": "Warnings produced while computing the summary.",
-    "ja": ""
+    "ja": "要約の計算中に発生した警告です。"
   },
   "RlmVcovResult#summary": {
     "hash": "599421eb5004",
     "en": "Covariance matrix returned by {@link rlmVcov}.",
-    "ja": ""
+    "ja": "{@link rlmVcov} が返す共分散行列です。"
   },
   "RlmVcovResult.columns#summary": {
     "hash": "7bae3daeb0eb",
     "en": "Coefficient names in matrix column order.",
-    "ja": ""
+    "ja": "行列の列の順序に対応する係数名です。"
   },
   "RlmVcovResult.rows#summary": {
     "hash": "41ef6c470bef",
     "en": "Coefficient names in matrix row order.",
-    "ja": ""
+    "ja": "行列の行の順序に対応する係数名です。"
   },
   "RlmVcovResult.values#summary": {
     "hash": "c70b16ac376a",
     "en": "Covariance matrix values.",
-    "ja": ""
+    "ja": "共分散行列の値です。"
   },
   "RlmVcovResult.warnings#summary": {
     "hash": "e62de7d35d70",
     "en": "Warnings produced while computing the covariance.",
-    "ja": ""
+    "ja": "共分散の計算中に発生した警告です。"
   },
   "nls#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "nls#@param data": {
     "hash": "66e13dc105c0",
     "en": "Numeric data columns.",
-    "ja": ""
+    "ja": "数値データの列です。"
   },
   "nls#@param formula": {
     "hash": "fa7221988dc1",
     "en": "Response and nonlinear mean expression.",
-    "ja": ""
+    "ja": "応答と非線形平均式です。"
   },
   "nls#@param options": {
     "hash": "a3146ca96cd1",
     "en": "Starting values, algorithm, weights, and convergence controls.",
-    "ja": ""
+    "ja": "初期値、アルゴリズム、重み、収束制御です。"
   },
   "nls#@returns": {
     "hash": "8256e941cc65",
     "en": "The fitted coefficients, residuals, covariance, and convergence diagnostics.",
-    "ja": ""
+    "ja": "当てはめた係数、残差、共分散、収束診断を返します。"
   },
   "nls#summary": {
     "hash": "e76f7f25dcf3",
     "en": "Nonlinear least-squares regression. Equivalent to R's `nls()`.\n\nFits a user-specified nonlinear mean function by Gauss-Newton, variable projection, or bound-constrained\nleast squares. Formula expressions are parsed safely and differentiated symbolically.",
-    "ja": ""
+    "ja": "非線形最小二乗回帰です。R の `nls()` と同等です。\n\nユーザーが指定した非線形平均関数を、Gauss-Newton 法、変数射影法、または境界付き最小二乗法で当てはめます。式の表現は安全に解析され、記号微分されます。"
   },
   "nlsAnova#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "nlsAnova#@param fits": {
     "hash": "2c6c7d0a35b9",
     "en": "Two or more nested fits to the same observations.",
-    "ja": ""
+    "ja": "同じ観測値に対する、2 つ以上の入れ子の当てはめです。"
   },
   "nlsAnova#@returns": {
     "hash": "cc7feb657d1f",
     "en": "The sequential F-test table.",
-    "ja": ""
+    "ja": "逐次 F 検定の表を返します。"
   },
   "nlsAnova#summary": {
     "hash": "51324bb2615b",
     "en": "Analysis of variance for nested nonlinear least-squares fits. Equivalent to R's `anova.nls()`.",
-    "ja": ""
+    "ja": "入れ子の非線形最小二乗当てはめの分散分析です。R の `anova.nls()` と同等です。"
   },
   "nlsConfint#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "nlsConfint#@param fit": {
     "hash": "74a5799e03f1",
     "en": "A fitted nonlinear model.",
-    "ja": ""
+    "ja": "当てはめた非線形モデルです。"
   },
   "nlsConfint#@param options": {
     "hash": "0c648381bd08",
     "en": "Interval method, confidence level, and parameter names.",
-    "ja": ""
+    "ja": "区間の方法、信頼水準、パラメータ名です。"
   },
   "nlsConfint#@returns": {
     "hash": "edcb37853056",
     "en": "A two-column confidence interval matrix.",
-    "ja": ""
+    "ja": "2 列の信頼区間行列を返します。"
   },
   "nlsConfint#summary": {
     "hash": "0b48d2e3dfbb",
     "en": "Wald or profile confidence intervals for nonlinear parameters. Equivalent to R's `confint.nls()`.",
-    "ja": ""
+    "ja": "非線形パラメータの Wald 信頼区間またはプロファイル信頼区間です。R の `confint.nls()` と同等です。"
   },
   "nlsPredict#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "nlsPredict#@param fit": {
     "hash": "74a5799e03f1",
     "en": "A fitted nonlinear model.",
-    "ja": ""
+    "ja": "当てはめた非線形モデルです。"
   },
   "nlsPredict#@param options": {
     "hash": "4dbd6e1cfe63",
     "en": "New predictor data.",
-    "ja": ""
+    "ja": "新しい説明変数データです。"
   },
   "nlsPredict#@returns": {
     "hash": "5965caf499e4",
     "en": "One fitted mean per row of new data.",
-    "ja": ""
+    "ja": "新しいデータの各行について、当てはめた平均値を 1 つ返します。"
   },
   "nlsPredict#summary": {
     "hash": "f727e5d26246",
     "en": "Predictions from a nonlinear least-squares fit. Equivalent to R's `predict.nls()`.",
-    "ja": ""
+    "ja": "非線形最小二乗当てはめからの予測値です。R の `predict.nls()` と同等です。"
   },
   "nlsSummary#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "nlsSummary#@param fit": {
     "hash": "74a5799e03f1",
     "en": "A fitted nonlinear model.",
-    "ja": ""
+    "ja": "当てはめた非線形モデルです。"
   },
   "nlsSummary#@returns": {
     "hash": "7d3920b0bde3",
     "en": "The coefficient table, residual scale, and residual degrees of freedom.",
-    "ja": ""
+    "ja": "係数表、残差尺度、残差自由度を返します。"
   },
   "nlsSummary#summary": {
     "hash": "30696a2655f8",
     "en": "Summary of a nonlinear least-squares fit. Equivalent to R's `summary.nls()`.",
-    "ja": ""
+    "ja": "非線形最小二乗当てはめの要約です。R の `summary.nls()` と同等です。"
   },
   "nlsVcov#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "nlsVcov#@param fit": {
     "hash": "74a5799e03f1",
     "en": "A fitted nonlinear model.",
-    "ja": ""
+    "ja": "当てはめた非線形モデルです。"
   },
   "nlsVcov#@returns": {
     "hash": "11841e7ac9f6",
     "en": "The covariance matrix in coefficient order.",
-    "ja": ""
+    "ja": "係数の順序に対応する共分散行列を返します。"
   },
   "nlsVcov#summary": {
     "hash": "ca1c3b6f7877",
     "en": "Covariance matrix of a nonlinear least-squares fit. Equivalent to R's `vcov.nls()`.",
-    "ja": ""
+    "ja": "非線形最小二乗当てはめの共分散行列です。R の `vcov.nls()` と同等です。"
   },
   "polr#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "polr#@param data": {
     "hash": "804617eb5ffd",
     "en": "The data frame: an object of columns.",
-    "ja": ""
+    "ja": "データフレームです。列からなるオブジェクトです。"
   },
   "polr#@param formula": {
     "hash": "2701c260d05c",
     "en": "A formula such as `\"rating ~ treatment + age\"`.",
-    "ja": ""
+    "ja": "`\"rating ~ treatment + age\"` のような式です。"
   },
   "polr#@param options": {
     "hash": "603a6c0c5247",
     "en": "The link, weights, offset, starts, contrasts and optimisation controls.",
-    "ja": ""
+    "ja": "リンク、重み、オフセット、初期値、対比、最適化制御です。"
   },
   "polr#@returns": {
     "hash": "f51912ed8f75",
     "en": "The fitted slopes, cut-points, fitted probabilities and likelihood statistics.",
-    "ja": ""
+    "ja": "当てはめた傾き、カットポイント、当てはめ確率、尤度統計量を返します。"
   },
   "polr#summary": {
     "hash": "8c09d1a9d963",
     "en": "Fit a cumulative-link ordinal regression. Equivalent to R's `MASS::polr()`.",
-    "ja": ""
+    "ja": "累積リンクによる順序回帰を当てはめます。R の `MASS::polr()` と同等です。"
   },
   "polrAnova#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "polrAnova#@param fits": {
     "hash": "49ee5b18708f",
     "en": "Two or more nested fits, ordered from the smallest to the largest model.",
-    "ja": ""
+    "ja": "最小モデルから最大モデルの順に並べた、2 つ以上の入れ子の当てはめです。"
   },
   "polrAnova#@returns": {
     "hash": "7b3c303e293e",
     "en": "The sequential likelihood-ratio chi-squared comparison table.",
-    "ja": ""
+    "ja": "逐次的な尤度比カイ二乗比較表を返します。"
   },
   "polrAnova#summary": {
     "hash": "dd846dc79a86",
     "en": "Equivalent to R's `anova.polr()`.",
-    "ja": ""
+    "ja": "R の `anova.polr()` と同等です。"
   },
   "polrConfint#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "polrConfint#@param fit": {
     "hash": "7d1b29563eff",
     "en": "A fit returned by {@link polr}.",
-    "ja": ""
+    "ja": "{@link polr} が返した当てはめです。"
   },
   "polrConfint#@param options": {
     "hash": "a719d50c1a58",
     "en": "The interval method, confidence level and selected slope parameters.",
-    "ja": ""
+    "ja": "区間の方法、信頼水準、対象とする傾きパラメータです。"
   },
   "polrConfint#@returns": {
     "hash": "ea48813e0ceb",
     "en": "A table of lower and upper confidence limits; cut-points are not included.",
-    "ja": ""
+    "ja": "信頼限界の下限と上限の表を返します。カットポイントは含みません。"
   },
   "polrConfint#summary": {
     "hash": "0ff7799f5c55",
     "en": "Equivalent to R's `confint.polr()`.",
-    "ja": ""
+    "ja": "R の `confint.polr()` と同等です。"
   },
   "polrPredict#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "polrPredict#@param fit": {
     "hash": "7d1b29563eff",
     "en": "A fit returned by {@link polr}.",
-    "ja": ""
+    "ja": "{@link polr} が返した当てはめです。"
   },
   "polrPredict#@param options": {
     "hash": "589e83cae77b",
     "en": "New predictor columns, optional row labels, and the prediction type.",
-    "ja": ""
+    "ja": "新しい説明変数の列、省略可能な行ラベル、予測の種類です。"
   },
   "polrPredict#@returns": {
     "hash": "442f0ee74398",
     "en": "Predicted category labels, or a matrix with one probability column per response level.",
-    "ja": ""
+    "ja": "予測されたカテゴリラベル、または応答水準ごとに 1 列の確率行列を返します。"
   },
   "polrPredict#summary": {
     "hash": "1756c1f9d4c2",
     "en": "Predict ordinal categories or their probabilities for new observations. Equivalent to R's `predict.polr()`.",
-    "ja": ""
+    "ja": "新しい観測値について、順序カテゴリまたはその確率を予測します。R の `predict.polr()` と同等です。"
   },
   "polrSummary#@param fit": {
     "hash": "7d1b29563eff",
     "en": "A fit returned by {@link polr}.",
-    "ja": ""
+    "ja": "{@link polr} が返した当てはめです。"
   },
   "polrSummary#@returns": {
     "hash": "e144eebdcd31",
     "en": "Estimates, standard errors and Wald t statistics.",
-    "ja": ""
+    "ja": "推定値、標準誤差、Wald t 統計量を返します。"
   },
   "polrSummary#summary": {
     "hash": "b3b60e7744f6",
     "en": "Summary table of the slope and cut-point estimates. Equivalent to R's `summary.polr()`.",
-    "ja": ""
+    "ja": "傾きとカットポイントの推定値の要約表です。R の `summary.polr()` と同等です。"
   },
   "polrVcov#@param fit": {
     "hash": "7d1b29563eff",
     "en": "A fit returned by {@link polr}.",
-    "ja": ""
+    "ja": "{@link polr} が返した当てはめです。"
   },
   "polrVcov#@returns": {
     "hash": "feeb10548d3b",
