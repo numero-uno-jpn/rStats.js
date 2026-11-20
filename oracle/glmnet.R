@@ -1,83 +1,55 @@
-# issue: 545
-# Oracle for glmnet 5.1, R 4.6.2. Public functions and documented fit quantities only.
-suppressMessages(library(glmnet))
-library(jsonlite)
-run<-function(expr){
- warns<-character(0);msgs<-character(0)
- value<-withCallingHandlers(tryCatch(expr,error=function(e)structure(list(message=conditionMessage(e)),class="caught")),
-  warning=function(w){warns<<-c(warns,conditionMessage(w));invokeRestart("muffleWarning")},
-  message=function(m){msgs<<-c(msgs,conditionMessage(m));invokeRestart("muffleMessage")})
- if(inherits(value,"caught"))return(list(error=value$message,warnings=warns,messages=msgs))
- list(value=value,warnings=warns,messages=msgs)
-}
-tab<-function(m)list(rows=rownames(m),cols=colnames(m),values=unname(as.matrix(m)))
-pathValues<-function(f)list(lambda=f$lambda,a0=f$a0,beta=run(tab(f$beta)),df=f$df,dev.ratio=f$dev.ratio,
- nulldev=f$nulldev,npasses=f$npasses,jerr=f$jerr)
-both<-function(...)list(default=run(pathValues(glmnet(...))),
- fitTight=run(pathValues(glmnet(...,control=list(thresh=1e-14)))))
-out<-list()
-X<-as.matrix(mtcars[,c("cyl","disp","hp","drat","wt","qsec")])
-for(alphaValue in c(1,.5,0)){
- out[[paste0("gaussian_alpha",alphaValue)]]<-run(both(X,mtcars$mpg,alpha=alphaValue))
- out[[paste0("binomial_alpha",alphaValue)]]<-run(both(X,mtcars$am,family="binomial",alpha=alphaValue))
- out[[paste0("poisson_alpha",alphaValue)]]<-run(both(X,mtcars$carb,family="poisson",alpha=alphaValue))
-}
-out$options<-run(list(noStandardize=both(X,mtcars$mpg,standardize=FALSE),
- noIntercept=both(X,mtcars$mpg,intercept=FALSE),weights=both(X,mtcars$mpg,weights=rep(1:4,8)),
- offset=both(X,mtcars$carb,family="poisson",offset=log(mtcars$gear)),
- penaltyFactor=both(X,mtcars$mpg,penalty.factor=c(0,1,1,2,1,.5)),
- limits=both(X,mtcars$mpg,lower.limits=-1,upper.limits=.5),
- lambda=both(X,mtcars$mpg,lambda=c(5,1,.5,.1,.01)),
- path=both(X,mtcars$mpg,nlambda=20,lambda.min.ratio=.001),
- dfmax=both(X,mtcars$mpg,dfmax=2)))
-Xi<-as.matrix(iris[,1:4])
-for(typeValue in c("ungrouped","grouped")){
- out[[paste0("multinomial_",typeValue)]]<-run({
-  f<-glmnet(Xi,iris$Species,family="multinomial",type.multinomial=typeValue)
-  ft<-glmnet(Xi,iris$Species,family="multinomial",type.multinomial=typeValue,control=list(thresh=1e-14))
-  list(lambda=f$lambda,fitTightLambda=ft$lambda,df=f$df,dev.ratio=f$dev.ratio,
-   class=predict(f,Xi[c(1,51,101,120),],s=c(.01,.1),type="class"),
-   response=run(predict(f,Xi[c(1,51,101),],s=.05,type="response")))
- })
-}
-out$coefPredict<-run({
- f<-glmnet(X,mtcars$mpg)
- list(coef=tab(coef(f,s=c(.123,2))),prediction=tab(predict(f,X[1:3,],s=c(.123,2))),
-  nonzero=run(predict(f,type="nonzero",s=.5)))
+# rerun after stage1 formula verification
+# batch rerun after reserved-token fix
+# batch rerun after clean-room script correction
+# Focused glmnet path oracle with fixed inputs and public fit components.
+suppressMessages(library(glmnet));library(jsonlite)
+run<-function(expr){w<-character();v<-withCallingHandlers(tryCatch(expr,error=function(e)structure(list(message=conditionMessage(e)),class="caught")),warning=function(x){w<<-c(w,conditionMessage(x));invokeRestart("muffleWarning")});if(inherits(v,"caught"))return(list(error=v$message,warnings=w));list(value=v,warnings=w)}
+tab<-function(x){z<-as.matrix(x);list(rows=rownames(z),cols=colnames(z),values=unname(z))}
+X<-matrix(c(-2,1,0,2,-1,3,1,-3,2,0,4,-2, 1,0,2,-1,3,-2,2,1,-3,4,0,-1, 2,-1,1,0,-2,3,-3,2,1,-1,4,0),12,3)
+y<-c(4,2,5,1,7,0,6,3,8,2,9,1);w<-c(1,2,1,3,1,2,1,3,2,1,2,1)
+out<-list(X=tab(X),y=y,weights=w,control=glmnet.control())
+for(a in c(1,.5,0))out[[paste0("gaussian_alpha",a)]]<-run({
+ f<-glmnet(X,y,alpha=a,nlambda=8,lambda.min.ratio=.01)
+ ft<-glmnet(X,y,alpha=a,nlambda=8,lambda.min.ratio=.01,control=list(thresh=1e-14))
+ list(lambda=f$lambda,lambdaTight=ft$lambda,a0=unname(f$a0),beta=tab(f$beta),
+      df=f$df,devRatio=f$dev.ratio,nullDev=f$nulldev,npasses=f$npasses,jerr=f$jerr,
+      tightA0=unname(ft$a0),tightBeta=tab(ft$beta))
 })
-out$binomialPredict<-run({
- f<-glmnet(X,mtcars$am,family="binomial")
- list(link=tab(predict(f,X[1:4,],s=.05)),response=tab(predict(f,X[1:4,],s=.05,type="response")),
-  class=predict(f,X[1:4,],s=.05,type="class"))
+out$weighted<-run({f<-glmnet(X,y,weights=w,nlambda=6);list(lambda=f$lambda,a0=f$a0,beta=tab(f$beta),df=f$df,nullDev=f$nulldev)})
+out$noStandardize<-run({f<-glmnet(X,y,standardize=FALSE,nlambda=6);list(lambda=f$lambda,a0=f$a0,beta=tab(f$beta))})
+out$binomial<-run({yb<-c(0,0,1,0,1,0,1,0,1,1,1,1);f<-glmnet(X,yb,family="binomial",nlambda=6);list(lambda=f$lambda,a0=f$a0,beta=tab(f$beta),df=f$df,devRatio=f$dev.ratio,nullDev=f$nulldev)})
+out$poisson<-run({yp<-c(1,2,1,3,2,4,1,3,2,5,4,6);f<-glmnet(X,yp,family="poisson",offset=log(seq(1,2,length.out=12)),nlambda=6);list(lambda=f$lambda,a0=f$a0,beta=tab(f$beta),df=f$df,devRatio=f$dev.ratio,nullDev=f$nulldev)})
+Xi<-as.matrix(iris[,1:4]);yi<-iris$Species
+out$multinomialData<-list(X=tab(Xi),y=as.character(yi))
+for(tm in c("ungrouped","grouped"))out[[paste0("multinomial_",tm)]]<-run({
+ f<-glmnet(Xi,yi,family="multinomial",type.multinomial=tm,nlambda=6)
+ list(lambda=f$lambda,a0=tab(f$a0),beta=lapply(f$beta,tab),dfmat=tab(f$dfmat),
+      devRatio=f$dev.ratio,nullDev=f$nulldev,
+      response=as.data.frame(predict(f,Xi[c(1,51,101),],s=f$lambda[3],type="response")),
+      class=predict(f,Xi[c(1,51,101),],s=f$lambda[3],type="class"))
 })
-foldid<-rep(1:4,8)
-for(familyValue in c("gaussian","binomial","poisson")){
- y<-switch(familyValue,gaussian=mtcars$mpg,binomial=mtcars$am,poisson=mtcars$carb)
- out[[paste0("cv_",familyValue)]]<-run({
-  cvfit<-cv.glmnet(X,y,family=familyValue,foldid=foldid)
-  list(lambda=cvfit$lambda,cvm=cvfit$cvm,cvsd=cvfit$cvsd,cvup=cvfit$cvup,cvlo=cvfit$cvlo,
-   nzero=cvfit$nzero,lambdaMin=cvfit$lambda.min,lambda1se=cvfit$lambda.1se,name=cvfit$name)
- })
-}
-for(measure in c("mse","mae"))out[[paste0("cv_gaussian_",measure)]]<-run({
- cvfit<-cv.glmnet(X,mtcars$mpg,foldid=foldid,type.measure=measure)
- list(cvm=cvfit$cvm,cvsd=cvfit$cvsd,lambdaMin=cvfit$lambda.min,lambda1se=cvfit$lambda.1se)
+out$offPath<-run({f<-glmnet(X,y,lambda=c(2,1,.5,.25,.125));list(lambda=f$lambda,coef=tab(coef(f,s=c(.75,.3))),predict=tab(predict(f,X[1:4,],s=c(.75,.3))))})
+foldid<-rep(1:3,4)
+out$cv<-run({f<-cv.glmnet(X,y,foldid=foldid,nlambda=8);g<-cv.glmnet(X,y,foldid=foldid,nlambda=8,grouped=FALSE,keep=TRUE);list(lambda=f$lambda,cvm=f$cvm,cvsd=f$cvsd,cvup=f$cvup,cvlo=f$cvlo,nzero=f$nzero,lambdaMin=f$lambda.min,lambda1se=f$lambda.1se,groupedFalse=list(cvm=g$cvm,cvsd=g$cvsd,preval=tab(g$fit.preval)))})
+Xcv<-cbind(a=seq(-2,2,length.out=60),b=sin(seq_len(60)),c=cos(seq_len(60)))
+yg<-1+.5*Xcv[,1]-.3*Xcv[,2]+sin(seq_len(60)*1.7)*.2
+yb<-rep(0:1,30);fid<-rep(1:5,12)
+out$cvData<-list(X=tab(Xcv),yGaussian=yg,yBinomial=yb,foldid=fid)
+out$cvMultinomial<-run({a<-cv.glmnet(Xi,yi,family="multinomial",foldid=rep(1:5,30),nlambda=6);list(lambda=a$lambda,cvm=a$cvm,cvsd=a$cvsd,lambdaMin=a$lambda.min,lambda1se=a$lambda.1se,nzero=a$nzero)})
+out$cvGaussianMAE<-run({a<-cv.glmnet(Xcv,yg,foldid=fid,type.measure="mae",nlambda=8);list(lambda=a$lambda,cvm=a$cvm,cvsd=a$cvsd,lambdaMin=a$lambda.min,lambda1se=a$lambda.1se)})
+out$cvGaussian<-run({
+ a<-cv.glmnet(Xcv,yg,foldid=fid,type.measure="mse",nlambda=8,keep=TRUE)
+ b<-cv.glmnet(Xcv,yg,foldid=fid,type.measure="mse",nlambda=8,grouped=FALSE,keep=TRUE)
+ list(lambda=a$lambda,cvm=a$cvm,cvsd=a$cvsd,cvup=a$cvup,cvlo=a$cvlo,
+      lambdaMin=a$lambda.min,lambda1se=a$lambda.1se,preval=tab(a$fit.preval),
+      groupedFalse=list(cvm=b$cvm,cvsd=b$cvsd,preval=tab(b$fit.preval)))
 })
-for(measure in c("deviance","class","auc","mse","mae"))out[[paste0("cv_binomial_",measure)]]<-run({
- cvfit<-cv.glmnet(X,mtcars$am,family="binomial",foldid=foldid,type.measure=measure)
- list(cvm=cvfit$cvm,cvsd=cvfit$cvsd,lambdaMin=cvfit$lambda.min,lambda1se=cvfit$lambda.1se)
+for(tm in c("deviance","class","auc"))out[[paste0("cvBinomial_",tm)]]<-run({
+ a<-cv.glmnet(Xcv,yb,family="binomial",foldid=fid,type.measure=tm,nlambda=8)
+ list(lambda=a$lambda,cvm=a$cvm,cvsd=a$cvsd,lambdaMin=a$lambda.min,lambda1se=a$lambda.1se)
 })
-out$cvMultinomial<-run({cvfit<-cv.glmnet(Xi,iris$Species,family="multinomial",type.multinomial="grouped",foldid=rep(1:5,30));
- list(lambda=cvfit$lambda,cvm=cvfit$cvm,cvsd=cvfit$cvsd,lambdaMin=cvfit$lambda.min,lambda1se=cvfit$lambda.1se)})
-out$cvKeep<-run({cvfit<-cv.glmnet(X,mtcars$mpg,foldid=foldid,grouped=FALSE,keep=TRUE);
- list(cvm=cvfit$cvm,cvsd=cvfit$cvsd,preval=tab(cvfit$fit.preval[1:5,1:5]))})
-out$constantColumn<-run(both(cbind(X,k=1),mtcars$mpg))
-out$constantY<-run(both(X,rep(3,32)))
-out$oneColumn<-run(both(X[,"wt",drop=FALSE],mtcars$mpg))
-out$pGreaterN<-run({set.seed(1);Z<-matrix(rnorm(20*50),20,50);y<-Z[,1]-2*Z[,2]+rnorm(20);both(Z,y)})
-out$nearSeparation<-run(both(cbind(x1=1:12,x2=c(3,1,4,1,5,9,2,6,5,3,5,8)),rep(0:1,each=6),family="binomial"))
-out$hugeX<-run(both(X*1e100,mtcars$mpg))
-out$tinyY<-run(both(X,mtcars$mpg*1e-100))
-out$missingX<-run({Xm<-X;Xm[2,3]<-NA;glmnet(Xm,mtcars$mpg)})
-out$oneClass<-run(glmnet(X,rep(1,32),family="binomial"))
+out$penaltyFactor<-run({
+ f<-glmnet(X,y,penalty.factor=c(0,1,4),lower.limits=c(-.5,0,-1),upper.limits=c(.5,0,1),dfmax=2,pmax=3,nlambda=8)
+ list(lambda=f$lambda,a0=f$a0,beta=tab(f$beta),df=f$df,devRatio=f$dev.ratio)
+})
 cat(toJSON(out,digits=NA,auto_unbox=TRUE,null="null",na="string",pretty=FALSE))

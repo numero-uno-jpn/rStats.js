@@ -1,4 +1,5 @@
 # issue: 545
+# final targeted rerun for independent formula checks
 # extend formula checks and public-output coverage
 # rerun after output-size and seed-stream corrections
 # rerun after independent formula probes
@@ -46,17 +47,21 @@ out$wavesGap<-run({
  list(clusterSizes=as.integer(table(dg$id)),withWaves=list(coef=unname(coef(a)),corr=tab(summary(a)$corr)),
       defaultWaves=list(coef=unname(coef(b)),corr=tab(summary(b)$corr)))
 })
-out$jackknifeOhio<-run({
- data(ohio)
- ids0<-sort(unique(ohio$id))[1:12]
- dd<-ohio[ohio$id%in%ids0,];dd<-dd[order(dd$id),]
- deleted<-lapply(ids0,function(k)unname(coef(geeglm(resp~age+smoke,id=id,data=dd[dd$id!=k,],
+out$jackknifeBinomial<-run({
+ set.seed(1729)
+ db<-data.frame(id=rep(1:20,each=3),wave=rep(1:3,20),
+  age=rep(seq(20,58,length.out=20),each=3)+rep(c(-1,0,1),20),
+  smoke=rep(rep(c(0,1),each=10),each=3))
+ eta<--2.8+.04*db$age+.9*db$smoke+.15*db$wave
+ db$resp<-rbinom(nrow(db),1,plogis(eta))
+ ids0<-1:20
+ deleted<-lapply(ids0,function(k)unname(coef(geeglm(resp~age+smoke,id=id,data=db[db$id!=k,],
       family=binomial,corstr="exchangeable"))))
- ans<-list(ids=as.character(ids0),clusterSizes=as.integer(table(dd$id)),deleted=tab(do.call(rbind,deleted)))
+ ans<-list(data=db,ids=ids0,clusterSizes=as.integer(table(db$id)),deleted=tab(do.call(rbind,deleted)))
  for(st in c("jack","j1s","fij")){
-  f<-geeglm(resp~age+smoke,id=id,data=dd,family=binomial,corstr="exchangeable",std.err=st)
+  f<-geeglm(resp~age+smoke,id=id,waves=wave,data=db,family=binomial,corstr="exchangeable",std.err=st)
   ans[[st]]<-list(coef=unname(coef(f)),summary=tab(coef(summary(f))),
-      alphaCov=tab(f$geese$valpha),gammaCov=tab(f$geese$vgamma))
+      alphaVar=as.numeric(diag(f$geese$valpha)),gammaVar=as.numeric(diag(f$geese$vgamma)))
  }
  ans
 })

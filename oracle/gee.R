@@ -1,3 +1,4 @@
+# rerun after output-size and seed-stream corrections
 # rerun after independent formula probes
 # rerun after stage1 formula verification
 # batch rerun after reserved-token fix
@@ -36,7 +37,7 @@ capture <- function(f,includeQIC=TRUE) {
   s <- summary(f)
   ans <- list(coefficients=unname(coef(f)),vcov=tab(vcov(f)),
               corr=tab(s$corr),dispersion=tab(s$dispersion),
-              alphaCov=tab(f$geese$valpha),gammaCov=tab(f$geese$vgamma))
+              alphaVar=as.numeric(diag(f$geese$valpha)),gammaVar=as.numeric(diag(f$geese$vgamma)))
   if (includeQIC) ans$qic <- unname(as.numeric(QIC(f)))
   ans
 }

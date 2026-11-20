@@ -1,4 +1,5 @@
 # issue: 545
+# final targeted rerun for independent formula checks
 # extend formula checks and public-output coverage
 # rerun after independent formula probes
 # rerun after stage1 formula verification

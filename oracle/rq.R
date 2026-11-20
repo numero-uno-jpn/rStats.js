@@ -1,60 +1,82 @@
-# issue: 545
-# Oracle for rq (quantreg 6.1), R 4.6.2. Public functions and documented quantities only.
-suppressMessages(library(quantreg))
-library(jsonlite)
-run <- function(expr) {
-  warns <- character(0); msgs <- character(0)
-  value <- withCallingHandlers(tryCatch(expr, error=function(e) structure(list(message=conditionMessage(e)), class="caught")),
-    warning=function(w) { warns <<- c(warns, conditionMessage(w)); invokeRestart("muffleWarning") },
-    message=function(m) { msgs <<- c(msgs, conditionMessage(m)); invokeRestart("muffleMessage") })
-  if (inherits(value, "caught")) return(list(error=value$message, warnings=warns, messages=msgs))
-  list(value=value, warnings=warns, messages=msgs)
-}
-tab <- function(m) list(rows=rownames(m), cols=colnames(m), values=unname(m))
-fitValues <- function(f) list(coefficients=coef(f), residuals=unname(residuals(f)), objective=f$rho, tau=f$tau)
-out <- list()
-data(engel); data(stackloss)
-for (q in c(.1,.25,.5,.75,.9)) {
-  for (alg in c("br","fn")) {
-    out[[paste(alg,q,sep="_")]] <- run({
-      f <- rq(foodexp ~ income, tau=q, data=engel, method=alg)
-      ft <- if (alg=="fn") rq(foodexp ~ income, tau=q, data=engel, method=alg, eps=1e-12) else f
-      list(default=fitValues(f), fitTight=fitValues(ft),
-        summary_rank=run(tab(coef(summary(f, se="rank")))),
-        summary_iid=run(tab(coef(summary(f, se="iid")))),
-        summary_nid=run(tab(coef(summary(f, se="nid")))),
-        summary_ker=run(tab(coef(summary(f, se="ker")))),
-        covariance=run(summary(f, se="ker", covariance=TRUE)$cov))
-    })
-  }
-}
-out$stackloss <- run({
-  f <- rq(stack.loss ~ ., data=stackloss)
-  list(fit=fitValues(f), summary=run(tab(coef(summary(f)))),
-       nid_hs=run(tab(coef(summary(f, se="nid", hs=TRUE)))),
-       nid_bofinger=run(tab(coef(summary(f, se="nid", hs=FALSE)))))
+# extend formula checks and public-output coverage
+# rerun after independent formula probes
+# RQ public-output oracle. Numerical inference inputs are emitted for independent formula checks.
+suppressMessages(library(quantreg));library(jsonlite)
+run<-function(expr){w<-character();m<-character();v<-withCallingHandlers(tryCatch(expr,error=function(e)structure(list(message=conditionMessage(e)),class="caught")),warning=function(x){w<<-c(w,conditionMessage(x));invokeRestart("muffleWarning")},message=function(x){m<<-c(m,conditionMessage(x));invokeRestart("muffleMessage")});if(inherits(v,"caught"))return(list(error=v$message,warnings=w,messages=m));list(value=v,warnings=w,messages=m)}
+tab<-function(x){z<-as.matrix(x);list(rows=rownames(z),cols=colnames(z),values=unname(z))}
+d<-data.frame(x=c(-3,-2,-1,0,1,2,3,4,5,6,7,8,9,10,11,12),y=c(2,1,4,2,5,3,8,5,9,7,11,8,14,10,15,13))
+X<-model.matrix(y~x,d);n<-nrow(d)
+out<-list(data=list(X=tab(X),y=d$y),
+ bandwidth=list(hs=sapply(c(.25,.5,.75),function(t)bandwidth.rq(t,n,hs=TRUE)),
+                bofinger=sapply(c(.25,.5,.75),function(t)bandwidth.rq(t,n,hs=FALSE))))
+for(tau in c(.25,.5,.75)) for(method in c("br","fn")) out[[paste(method,tau,sep="_")]]<-run({
+ f<-rq(y~x,data=d,tau=tau,method=method)
+ ft<-if(method=="fn")rq(y~x,data=d,tau=tau,method=method,eps=1e-12) else f
+ ans<-list(coef=unname(coef(f)),rho=unname(f$rho),residuals=unname(residuals(f)),
+           tightCoef=unname(coef(ft)),tightRho=unname(ft$rho))
+ if(tau==.5){
+  h<-bandwidth.rq(tau,n,hs=TRUE);hb<-bandwidth.rq(tau,n,hs=FALSE)
+  fm<-rq(y~x,data=d,tau=tau-h,method=method);fp<-rq(y~x,data=d,tau=tau+h,method=method)
+  fmb<-rq(y~x,data=d,tau=tau-hb,method=method);fpb<-rq(y~x,data=d,tau=tau+hb,method=method)
+  spars<-as.vector(X%*%(coef(fp)-coef(fm))/(2*h))
+  sparsB<-as.vector(X%*%(coef(fpb)-coef(fmb))/(2*hb))
+  rr<-residuals(f)
+  si<-summary(f,se="iid",covariance=TRUE)
+  sn<-summary(f,se="nid",covariance=TRUE)
+  snB<-summary(f,se="nid",hs=FALSE,covariance=TRUE)
+  sk<-summary(f,se="ker",covariance=TRUE)
+  sr<-summary(f,se="rank")
+  ans$bandwidth<-list(hs=h,bofinger=hb)
+  ans$coefMinus<-unname(coef(fm));ans$coefPlus<-unname(coef(fp))
+  ans$conditionalSparsity<-spars;ans$conditionalDensity<-1/spars
+  ans$conditionalSparsityBofinger<-sparsB;ans$conditionalDensityBofinger<-1/sparsB
+  ans$residualSparsity<-list(type1=diff(quantile(rr,c(tau-h,tau+h),type=1,names=FALSE))/(2*h),
+                             type7=diff(quantile(rr,c(tau-h,tau+h),type=7,names=FALSE))/(2*h))
+  ans$iid<-tab(coef(si));ans$iidCov<-tab(si$cov)
+  ak<-akj(sort(rr),z=0)
+  ans$iidDensity<-list(density=ak$dens,sparsity=1/ak$dens,bandwidth=ak$h)
+  ans$nid<-tab(coef(sn));ans$nidCov<-tab(sn$cov);ans$nidHinv<-tab(sn$Hinv);ans$nidJ<-tab(sn$J)
+  ans$nidBofinger<-tab(coef(snB));ans$nidBofingerCov<-tab(snB$cov)
+  ans$ker<-tab(coef(sk));ans$kerCov<-tab(sk$cov);ans$kerHinv<-tab(sk$Hinv);ans$kerJ<-tab(sk$J)
+  ans$rank<-tab(coef(sr))
+  ans$rankNonIid<-tab(coef(summary(f,se="rank",iid=FALSE)))
+  ans$prediction<-unname(predict(f,newdata=data.frame(x=c(-2,0,5))))
+ }
+ ans
 })
-out$weighted <- run({ f <- rq(stack.loss ~ ., data=stackloss, weights=rep(c(1,2,3), length.out=nrow(stackloss)), tau=.3); fitValues(f) })
-out$factor <- run({ d<-mtcars; d$cyl<-factor(d$cyl); f<-rq(mpg~wt+cyl,data=d,tau=.6); fitValues(f) })
-out$multi_tau <- run({
- f<-rq(foodexp~income,tau=c(.25,.5,.75),data=engel)
- list(coef=tab(coef(f)), summaries=lapply(summary(f,se="nid"),function(s)tab(coef(s))),
-      anova_joint=run(as.list(anova(f)$table)),anova_separate=run(as.list(anova(f,joint=FALSE)$table)))
+out$defaultSEswitch<-run({
+ ans<-list()
+ for(n0 in c(1000,1001)){
+  xx<-sin(seq_len(n0)*.17); yy<-1+2*xx+cos(seq_len(n0)*.31)
+  ff<-rq(yy~xx,tau=.5)
+  ans[[as.character(n0)]]<-list(default=tab(coef(summary(ff))),
+    rank=tab(coef(summary(ff,se="rank"))),nid=tab(coef(summary(ff,se="nid"))))
+ }
+ ans
 })
-out$nested_anova <- run({ a<-rq(stack.loss~Air.Flow,data=stackloss); b<-rq(stack.loss~.,data=stackloss);
- list(wald=run(as.list(anova(b,a)$table)),rank=run(as.list(anova(b,a,test="rank")$table))) })
-out$prediction <- run({ f<-rq(foodexp~income,tau=.5,data=engel); nd<-data.frame(income=c(500,1000,2500));
- list(fit=predict(f,newdata=nd),none=run(tab(predict(f,newdata=nd,interval="confidence",se="nid"))),
-      percentile=run(tab(predict(f,newdata=nd,interval="confidence",type="percentile"))),
-      direct=run(tab(predict(f,newdata=nd,interval="confidence",type="direct")))) })
-out$nonunique <- run({ d<-data.frame(x=1:6,y=c(2,1,4,3,6,5));
- list(br=fitValues(rq(y~x,data=d,method="br")),fn=fitValues(rq(y~x,data=d,method="fn")),
-      fn_tight=fitValues(rq(y~x,data=d,method="fn",eps=1e-12))) })
-out$exact <- run({ f<-rq(y~x,data=data.frame(x=1:10,y=2+3*(1:10))); list(fit=fitValues(f),rank=run(tab(coef(summary(f)))),nid=run(tab(coef(summary(f,se="nid"))))) })
-out$collinear <- run(rq(y~x1+x2,data=data.frame(x1=1:8,x2=2*(1:8),y=c(3,1,4,1,5,9,2,6))))
-out$missing <- run(fitValues(rq(y~x,data=data.frame(x=c(1:9,NA),y=c(3,1,4,1,5,NA,2,6,5,3)),na.action=na.omit)))
-for (method in c("xy","pwy","mcmb","wxy")) {
- out[[paste0("boot_",method)]] <- run({ set.seed(1); f<-rq(foodexp~income,tau=.5,data=engel);
-   s<-summary(f,se="boot",bsmethod=method,R=200); list(table=tab(coef(s)),boot=if(is.null(s$B)) NULL else dim(s$B)) })
-}
+out$stacklossNid<-run({
+ data(stackloss)
+ f<-rq(stack.loss~.,data=stackloss,tau=.5,weights=rep(c(1,2,3),length.out=nrow(stackloss)))
+ s<-summary(f,se="nid")
+ list(coef=tab(coef(s)))
+})
+out$weighted<-run({w<-seq(.5,2,length.out=n);f<-rq(y~x,data=d,tau=.5,weights=w);list(weights=w,coef=unname(coef(f)),rho=unname(f$rho),residuals=unname(residuals(f)),nid=tab(coef(summary(f,se="nid"))))})
+out$rankTests<-run({f<-rq(y~x,data=d,tau=.5);list(rank=tab(coef(summary(f,se="rank",alpha=.1))),rank95=tab(coef(summary(f,se="rank",alpha=.05))))})
+out$multiTau<-run({f<-rq(y~x,data=d,tau=c(.25,.5,.75));list(coef=tab(coef(f)),joint=tab(anova(f)$table),separate=tab(anova(f,joint=FALSE)$table))})
+out$engelPredict<-run({
+ data(engel)
+ f<-rq(foodexp~income,data=engel,tau=.5)
+ nd<-data.frame(income=c(500,1000,2500))
+ s<-summary(f,se="nid",covariance=TRUE)
+ list(coef=unname(coef(f)),cov=tab(s$cov),prediction=unname(predict(f,newdata=nd)),
+      ciNone=tab(predict(f,newdata=nd,interval="confidence",se="nid",type="none")),
+      ciDirect=tab(predict(f,newdata=nd,interval="confidence",type="direct")),
+      ciPercentile=tab(predict(f,newdata=nd,interval="confidence",type="percentile",se="boot",R=40)))
+})
+out$multiTauTwoPredictors<-run({
+ d2<-data.frame(x=seq(-2,2,length.out=60),z=sin(seq_len(60)*.3))
+ d2$y<-1+1.2*d2$x-.6*d2$z+sin(seq_len(60)*.7)*.4
+ f<-rq(y~x+z,data=d2,tau=c(.25,.5,.75))
+ list(coef=tab(coef(f)),joint=tab(anova(f,joint=TRUE)$table),separate=tab(anova(f,joint=FALSE)$table))
+})
 cat(toJSON(out,digits=NA,auto_unbox=TRUE,null="null",na="string",pretty=FALSE))

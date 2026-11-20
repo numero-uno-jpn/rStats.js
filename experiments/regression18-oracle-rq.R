@@ -1,4 +1,5 @@
 # issue: 545
+# final targeted rerun for independent formula checks
 # extend formula checks and public-output coverage
 # rerun after independent formula probes
 # RQ public-output oracle. Numerical inference inputs are emitted for independent formula checks.
@@ -57,11 +58,27 @@ out$defaultSEswitch<-run({
 })
 out$stacklossNid<-run({
  data(stackloss)
- f<-rq(stack.loss~.,data=stackloss,tau=.5)
+ f<-rq(stack.loss~.,data=stackloss,tau=.5,weights=rep(c(1,2,3),length.out=nrow(stackloss)))
  s<-summary(f,se="nid")
  list(coef=tab(coef(s)))
 })
 out$weighted<-run({w<-seq(.5,2,length.out=n);f<-rq(y~x,data=d,tau=.5,weights=w);list(weights=w,coef=unname(coef(f)),rho=unname(f$rho),residuals=unname(residuals(f)),nid=tab(coef(summary(f,se="nid"))))})
 out$rankTests<-run({f<-rq(y~x,data=d,tau=.5);list(rank=tab(coef(summary(f,se="rank",alpha=.1))),rank95=tab(coef(summary(f,se="rank",alpha=.05))))})
 out$multiTau<-run({f<-rq(y~x,data=d,tau=c(.25,.5,.75));list(coef=tab(coef(f)),joint=tab(anova(f)$table),separate=tab(anova(f,joint=FALSE)$table))})
+out$engelPredict<-run({
+ data(engel)
+ f<-rq(foodexp~income,data=engel,tau=.5)
+ nd<-data.frame(income=c(500,1000,2500))
+ s<-summary(f,se="nid",covariance=TRUE)
+ list(coef=unname(coef(f)),cov=tab(s$cov),prediction=unname(predict(f,newdata=nd)),
+      ciNone=tab(predict(f,newdata=nd,interval="confidence",se="nid",type="none")),
+      ciDirect=tab(predict(f,newdata=nd,interval="confidence",type="direct")),
+      ciPercentile=tab(predict(f,newdata=nd,interval="confidence",type="percentile",se="boot",R=40)))
+})
+out$multiTauTwoPredictors<-run({
+ d2<-data.frame(x=seq(-2,2,length.out=60),z=sin(seq_len(60)*.3))
+ d2$y<-1+1.2*d2$x-.6*d2$z+sin(seq_len(60)*.7)*.4
+ f<-rq(y~x+z,data=d2,tau=c(.25,.5,.75))
+ list(coef=tab(coef(f)),joint=tab(anova(f,joint=TRUE)$table),separate=tab(anova(f,joint=FALSE)$table))
+})
 cat(toJSON(out,digits=NA,auto_unbox=TRUE,null="null",na="string",pretty=FALSE))
