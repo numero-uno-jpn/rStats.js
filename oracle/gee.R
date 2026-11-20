@@ -19,11 +19,6 @@ capture<-function(f) {
       residuals=unname(residuals(f,type="pearson"))[seq_len(min(10,length(residuals(f,type="pearson"))))],
       qic=run(QIC(f)))
 }
-compareFit<-function(expr) {
- f<-eval.parent(substitute(expr))
- tight<-eval.parent(substitute(expr))
- list(default=capture(f),fitTight=list(coefficients=coef(tight),vcov=tab(vcov(tight)),summary=tab(coef(summary(tight)))))
-}
 out<-list()
 data(dietox);data(ohio);data(seizure);data(respiratory);dietox$Cu<-factor(dietox$Cu)
 for(corr in c("independence","exchangeable","ar1","unstructured")) {
