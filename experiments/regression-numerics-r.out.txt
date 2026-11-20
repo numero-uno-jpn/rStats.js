@@ -1,0 +1,19 @@
+rlm M, one outlier 1e+10 : coef 3798.7603036 -513.6835555 
+rlm M, one outlier 1e+20 : coef 37977672608632 -5156830096687 
+rlm M, one outlier 1e+100 : coef  3.797767261e+93 -5.156830097e+92 
+rlm M, one outlier 1e+300 : coef ERROR missing value where TRUE/FALSE needed 
+polr x: coef 1.402253854 
+  warning: design appears to be rank-deficient, so dropping some coefs 
+polr constant predictor: coef 1.402253854 
+  warning: design appears to be rank-deficient, so dropping some coefs 
+polr collinear predictors: coef 1.402253854 
+polr weights all 1e-06 : coef 1.258981241 
+polr weights all 1e-10 : coef 1.237834199 
+polr weights all 1e-20 : coef 0.8192097678 
+nls Inf in y: coef ERROR NA/NaN/Inf in foreign function call (arg 5) 
+Error in polr(yy ~ xx, Hess = TRUE) : 
+  attempt to find suitable starting values failed
+In addition: Warning messages:
+1: glm.fit: algorithm did not converge 
+2: glm.fit: fitted probabilities numerically 0 or 1 occurred 
+Execution halted

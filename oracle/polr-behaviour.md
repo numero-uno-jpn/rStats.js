@@ -283,9 +283,18 @@ in `experiments/regression-polr-2.R` and `.json` on `work/regression`):
    negative statistic with p = 1, `anova_not_nested`)
 9. **Optimisation:** a small typed set of options (`method`, `weights`, `offset`, `start`, `contrasts`, `maxit`,
    `reltol` or similar). The initial values are deterministic and robust to the scale; R's preliminary
-   starting-value path is not reproduced, so rStats.js may fit where R's start fails (housing with `cauchit`)
+   starting-value path is not reproduced, so rStats.js may fit where R's start fails (housing with `cauchit`).
+   The score tolerance is proportional to the total weight (amended 2026-11-20), so weights multiplied by any
+   constant give the same fit to about 1e-9; it had a floor of 1, and weights of 1e-6 moved the slope by 3e-5.
+   R's `polr` is not invariant either: with every weight 1e-6 its slope moves by 10%
+   (`experiments/regression-numerics-r.R` and `.out.txt`)
 10. **Warnings and rank deficiency:** distinct warnings in first-occurrence order; aliased columns dropped with a
-    warning naming them; complete separation and a non-finite or indefinite information matrix are errors
+    warning naming them; complete separation and a non-finite or indefinite information matrix are errors.
+    Implemented 2026-11-20 (the first implementation returned a meaningless slope for a constant column and failed to
+    converge on a collinear one): a column in the span of the constant (the cut-points act as the intercept) and the
+    earlier columns, by Gram-Schmidt with R's QR tolerance 1e-7, is dropped with "design appears to be rank-deficient,
+    so dropping some coefs: <names>" (R's text, which does not name them); prediction on new data takes the kept
+    columns by name. An infinite predictor is an error, "NA/NaN/Inf in model matrix or response", as in `rlm`
 11. **Names:** R's model-matrix names for the slopes and R's `Low|Medium` labels for the cut-points, in `zeta`
 12. **The cauchit link is the standard Cauchy distribution,** $F(t) = 1/2 + \arctan(t)/\pi$ (decided 2026-11-19; a
     known difference from R). MASS 7.3-66's `cauchit` does not fit that model:

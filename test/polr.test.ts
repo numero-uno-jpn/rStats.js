@@ -782,3 +782,38 @@ describe("ordinal regression predictor scale equivariance", () => {
     }
   });
 });
+
+describe("numerical edge cases (found 2026-11-20)", () => {
+  const xs = [-3, -2.5, -2, -1.5, -1, -0.5, 0, 0.5, 1, 1.5, 2, 2.5, 3, -2.8, -1.2, 0.2, 1.8, 2.9, -0.3, 0.7, 1.1, -1.7, 2.2, -2.2];
+  const ys = xs.map((v, i) => ["a", "b", "c", "d"][Math.min(3, Math.max(0, Math.round(v * 0.6 + 1.5 + Math.sin(i * 7) * 1.1)))]!);
+  const levels = { y: ["a", "b", "c", "d"] };
+
+  it("gives the same fit when every weight is multiplied by a constant", () => {
+    // The score tolerance was floored at 1, so small weights stopped the fit early (1e-6: 3e-5 off).
+    const base = polr("y ~ x", { y: ys, x: xs }, { levels });
+    for (const c of [1e-6, 1e-100, 1e100]) {
+      const fit = polr("y ~ x", { y: ys, x: xs }, { levels, weights: xs.map(() => c) });
+      expect(Math.abs(fit.coefficients.x! - base.coefficients.x!) / base.coefficients.x!).toBeLessThan(1e-7);
+      for (const [name, value] of Object.entries(base.zeta)) expect(fit.zeta[name]).toBeCloseTo(value, 7);
+    }
+  });
+
+  it("drops a constant or collinear column with R's warning, and predicts from the remaining columns", () => {
+    const base = polr("y ~ x", { y: ys, x: xs }, { levels });
+    for (const extra of [xs.map(() => 3), xs.map((v) => 2 * v - 1)]) {
+      const fit = polr("y ~ x + k", { y: ys, x: xs, k: extra }, { levels });
+      expect(Object.keys(fit.coefficients)).toEqual(["x"]);
+      expect(fit.coefficients.x).toBeCloseTo(base.coefficients.x!, 8);
+      expect(fit.warnings).toContain("design appears to be rank-deficient, so dropping some coefs: k");
+      type Probs = { values: (number | null)[][] };
+      const probs = polrPredict(fit, { type: "probs", newdata: { x: [-1, 2], k: [3, 3] } }) as Probs;
+      const baseProbs = polrPredict(base, { type: "probs", newdata: { x: [-1, 2] } }) as Probs;
+      probs.values.flat().forEach((v, i) => expect(v).toBeCloseTo(baseProbs.values.flat()[i]!, 8));
+    }
+  });
+
+  it("rejects an infinite predictor with the reason", () => {
+    const x = [...xs]; x[2] = Infinity;
+    expect(() => polr("y ~ x", { y: ys, x }, { levels })).toThrow(/NA\/NaN\/Inf in model matrix/);
+  });
+});

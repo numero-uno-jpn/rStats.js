@@ -515,6 +515,42 @@ function newtonPolish(
   return { ...current, theta };
 }
 
+/**
+ * Indices of the columns of x that are not in the span of a constant column and the earlier kept columns:
+ * modified Gram-Schmidt, twice for stability, with R's QR tolerance 1e-7 relative to the column's norm.
+ */
+// A loop, not Math.hypot(...v): spreading a column overflows the call stack for long data.
+function euclidean(v: readonly number[]): number {
+  let scale = 0;
+  for (const value of v) scale = Math.max(scale, Math.abs(value));
+  if (!(scale > 0) || !Number.isFinite(scale)) return scale;
+  let sum = 0;
+  for (const value of v) sum += (value / scale) ** 2;
+  return scale * Math.sqrt(sum);
+}
+
+function estimableColumns(x: readonly (readonly number[])[]): number[] {
+  const n = x.length, p = x[0]?.length ?? 0;
+  const basis: number[][] = n > 0 ? [new Array<number>(n).fill(1 / Math.sqrt(n))] : [];
+  const kept: number[] = [];
+  for (let j = 0; j < p; j++) {
+    const v = x.map((row) => row[j]!);
+    const norm0 = euclidean(v);
+    for (let pass = 0; pass < 2; pass++) {
+      for (const b of basis) {
+        let dot = 0;
+        for (let i = 0; i < n; i++) dot += b[i]! * v[i]!;
+        for (let i = 0; i < n; i++) v[i] = v[i]! - dot * b[i]!;
+      }
+    }
+    const norm = euclidean(v);
+    if (!(norm0 > 0) || !(norm > 1e-7 * norm0)) continue;
+    basis.push(v.map((value) => value / norm));
+    kept.push(j);
+  }
+  return kept;
+}
+
 function rowPredictors(x: readonly (readonly number[])[], beta: readonly number[], offset: readonly number[]): number[] {
   return x.map((row, i) => {
     let value = offset[i]!;
@@ -600,11 +636,25 @@ export function polr(formula: string, data: DataFrame, options: PolrOptions = {}
     }
   }
   if (weights.some((w) => !Number.isFinite(w) || w < 0)) throw new RangeError("weights must be finite and non-negative");
-  const x = d.x.map((row) => row.slice(d.terms.intercept ? 1 : 0));
-  const columnNames = d.colNames.slice(d.terms.intercept ? 1 : 0);
+  const designX = d.x.map((row) => row.slice(d.terms.intercept ? 1 : 0));
+  if (designX.some((row) => row.some((value) => !Number.isFinite(value)))) {
+    throw new RangeError("NA/NaN/Inf in model matrix or response");
+  }
+  // The cut-points play the part of an intercept, so a column in the span of the constant and the earlier columns
+  // has no estimable coefficient. R drops such columns with a warning; so does rStats.js (decided 2026-11-20).
+  const kept = estimableColumns(designX);
+  const designNames = d.colNames.slice(d.terms.intercept ? 1 : 0);
+  const dropped = designNames.filter((_, j) => !kept.includes(j));
+  const rankWarnings = dropped.length > 0
+    ? [`design appears to be rank-deficient, so dropping some coefs: ${dropped.join(", ")}`] : [];
+  if (rankWarnings.length > 0 && options.start !== undefined) {
+    throw new RangeError("start cannot be given for a rank-deficient design; remove the aliased columns");
+  }
+  const x = designX.map((row) => kept.map((j) => row[j]!));
+  const columnNames = kept.map((j) => d.colNames[j + (d.terms.intercept ? 1 : 0)]!);
   const p = columnNames.length;
   const columnScales = Array.from({ length: p }, (_, j) => {
-    const scale = Math.max(0, ...x.map(row => Math.abs(row[j]!)));
+    const scale = x.reduce((m, row) => Math.max(m, Math.abs(row[j]!)), 0);
     return scale > 0 && Number.isFinite(scale) ? scale : 1;
   });
   const scaledX = x.map(row => row.map((value, j) => value / columnScales[j]!));
@@ -641,8 +691,10 @@ export function polr(formula: string, data: DataFrame, options: PolrOptions = {}
   // BFGS supplies a robust starting point; the exact score and observed Hessian finish the fit.
   // Its iteration-limit code is not decisive if the Newton refinement reaches the score tolerance.
   // The score is a sum of weighted row contributions, so its absolute scale
-  // grows linearly with total prior weight. Use a per-unit-weight tolerance.
-  const scoreTolerance = 1e-9 * Math.max(1, weights.reduce((sum, weight) => sum + weight, 0));
+  // grows linearly with total prior weight. Use a per-unit-weight tolerance: proportional to the total weight with
+  // no absolute floor, so that weights scaled by any constant give the same fit (found 2026-11-20: with a floor
+  // of 1, weights of 1e-6 stopped the fit early and moved the coefficients by 3e-5).
+  const scoreTolerance = 1e-9 * weights.reduce((sum, weight) => sum + weight, 0);
   const polished = newtonPolish(fit.par, evaluate, scoreTolerance);
   if (maxAbs(polished.gradient) > scoreTolerance) {
     throw new Error(`ordinal regression score did not converge (max |score| = ${maxAbs(polished.gradient)})`);
@@ -663,7 +715,7 @@ export function polr(formula: string, data: DataFrame, options: PolrOptions = {}
   const logLik = -polished.value;
   const edf = p + k - 1;
   const nobs = weights.reduce((a, b) => a + b, 0);
-  const warnings = [...d.warnings, ...fit.warnings];
+  const warnings = [...d.warnings, ...rankWarnings, ...fit.warnings];
   const factorLevels: Record<string, readonly string[]> = {};
   for (let i = 1; i < d.terms.variables.length; i++) {
     const variable = d.frame.variables[i];
@@ -752,10 +804,10 @@ export function polrPredict(fit: PolrResult, options: PolrPredictOptions = {}): 
     const d = design({ response: undefined, rhs: model.rhs }, data, designOptions);
     const first = d.terms.intercept ? 1 : 0;
     const names = d.colNames.slice(first);
-    if (names.length !== model.columnNames.length || names.some((name, i) => name !== model.columnNames[i])) {
-      throw new RangeError("newdata does not produce the fitted model matrix columns");
-    }
-    x = d.x.map((row) => row.slice(first));
+    // The fit may have dropped aliased columns, so take the fitted columns by name.
+    const columns = model.columnNames.map((name) => names.indexOf(name));
+    if (columns.some((j) => j < 0)) throw new RangeError("newdata does not produce the fitted model matrix columns");
+    x = d.x.map((row) => columns.map((j) => row[first + j]!));
     rowIndices = d.frame.rows;
     offsets = model.offsetColumn === undefined
       ? new Array<number>(rowIndices.length).fill(0)

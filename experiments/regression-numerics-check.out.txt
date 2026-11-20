@@ -1,0 +1,92 @@
+polr logistic predict eta=10                               sum-1 0.0e+0 min 2.88e-6 maxRelErrVsExact 1.8e-15 nonfinite false
+polr logistic predict eta=40                               sum-1 0.0e+0 min 2.70e-19 maxRelErrVsExact 2.9e-15 nonfinite false
+polr logistic predict eta=200                              sum-1 0.0e+0 min 8.79e-89 maxRelErrVsExact 1.3e-14 nonfinite false
+polr logistic predict eta=800                              sum-1 0.0e+0 min 0.00e+0 maxRelErrVsExact 0.0e+0 nonfinite false
+polr logistic predict eta=-10                              sum-1 0.0e+0 min 9.32e-6 maxRelErrVsExact 5.5e-16 nonfinite false
+polr logistic predict eta=-40                              sum-1 0.0e+0 min 8.72e-19 maxRelErrVsExact 3.0e-15 nonfinite false
+polr logistic predict eta=-200                             sum-1 0.0e+0 min 2.84e-88 maxRelErrVsExact 1.3e-14 nonfinite false
+polr logistic predict eta=-800                             sum-1 0.0e+0 min 0.00e+0 maxRelErrVsExact 0.0e+0 nonfinite false
+polr probit predict eta=10                                 sum-1 0.0e+0 min 3.14e-31 maxRelErrVsExact 1.7e-14 nonfinite false
+polr probit predict eta=40                                 sum-1 0.0e+0 min 0.00e+0 maxRelErrVsExact 0.0e+0 nonfinite false
+polr probit predict eta=200                                sum-1 0.0e+0 min 0.00e+0 maxRelErrVsExact 0.0e+0 nonfinite false
+polr probit predict eta=800                                sum-1 0.0e+0 min 0.00e+0 maxRelErrVsExact 0.0e+0 nonfinite false
+polr probit predict eta=-10                                sum-1 0.0e+0 min 4.47e-28 maxRelErrVsExact 1.2e-14 nonfinite false
+polr probit predict eta=-40                                sum-1 0.0e+0 min 0.00e+0 maxRelErrVsExact 0.0e+0 nonfinite false
+polr probit predict eta=-200                               sum-1 0.0e+0 min 0.00e+0 maxRelErrVsExact 0.0e+0 nonfinite false
+polr probit predict eta=-800                               sum-1 0.0e+0 min 0.00e+0 maxRelErrVsExact 0.0e+0 nonfinite false
+polr cloglog predict eta=10                                sum-1 0.0e+0 min 4.22e-6 maxRelErrVsExact 1.7e-15 nonfinite false
+polr cloglog predict eta=40                                sum-1 0.0e+0 min 3.95e-19 maxRelErrVsExact 3.5e-15 nonfinite false
+polr cloglog predict eta=200                               sum-1 0.0e+0 min 1.29e-88 maxRelErrVsExact 7.1e-15 nonfinite false
+polr cloglog predict eta=800                               sum-1 0.0e+0 min 0.00e+0 maxRelErrVsExact 0.0e+0 nonfinite false
+polr cloglog predict eta=-10                               sum-1 0.0e+0 min 0.00e+0 maxRelErrVsExact 0.0e+0 nonfinite false
+polr cloglog predict eta=-40                               sum-1 0.0e+0 min 0.00e+0 maxRelErrVsExact 0.0e+0 nonfinite false
+polr cloglog predict eta=-200                              sum-1 0.0e+0 min 0.00e+0 maxRelErrVsExact 0.0e+0 nonfinite false
+polr cloglog predict eta=-800                              sum-1 0.0e+0 min 0.00e+0 maxRelErrVsExact 0.0e+0 nonfinite false
+polr loglog predict eta=10                                 sum-1 0.0e+0 min 0.00e+0 maxRelErrVsExact 0.0e+0 nonfinite false
+polr loglog predict eta=40                                 sum-1 0.0e+0 min 0.00e+0 maxRelErrVsExact 0.0e+0 nonfinite false
+polr loglog predict eta=200                                sum-1 0.0e+0 min 0.00e+0 maxRelErrVsExact 0.0e+0 nonfinite false
+polr loglog predict eta=800                                sum-1 0.0e+0 min 0.00e+0 maxRelErrVsExact 0.0e+0 nonfinite false
+polr loglog predict eta=-10                                sum-1 0.0e+0 min 1.07e-5 maxRelErrVsExact 6.8e-16 nonfinite false
+polr loglog predict eta=-40                                sum-1 0.0e+0 min 1.00e-18 maxRelErrVsExact 1.9e-15 nonfinite false
+polr loglog predict eta=-200                               sum-1 0.0e+0 min 3.27e-88 maxRelErrVsExact 1.3e-14 nonfinite false
+polr loglog predict eta=-800                               sum-1 0.0e+0 min 0.00e+0 maxRelErrVsExact 0.0e+0 nonfinite false
+polr cauchit predict eta=10                                sum-1 0.0e+0 min 6.67e-3 maxRelErrVsExact 1.9e-15 nonfinite false
+polr cauchit predict eta=40                                sum-1 0.0e+0 min 3.64e-4 maxRelErrVsExact 2.6e-15 nonfinite false
+polr cauchit predict eta=200                               sum-1 0.0e+0 min 1.41e-5 maxRelErrVsExact 7.9e-14 nonfinite false
+polr cauchit predict eta=800                               sum-1 0.0e+0 min 8.74e-7 maxRelErrVsExact 1.1e-13 nonfinite false
+polr cauchit predict eta=-10                               sum-1 0.0e+0 min 4.72e-3 maxRelErrVsExact 1.1e-15 nonfinite false
+polr cauchit predict eta=-40                               sum-1 0.0e+0 min 3.34e-4 maxRelErrVsExact 2.3e-15 nonfinite false
+polr cauchit predict eta=-200                              sum-1 0.0e+0 min 1.38e-5 maxRelErrVsExact 1.6e-14 nonfinite false
+polr cauchit predict eta=-800                              sum-1 0.0e+0 min 8.70e-7 maxRelErrVsExact 4.4e-14 nonfinite false
+polr logistic fit, eta range ±60                           coef 0.649070 logLik -19.723328 finite true
+polr probit fit, eta range ±60                             coef 0.345061 logLik -20.123086 finite true
+polr cloglog fit, eta range ±60                            coef 0.375215 logLik -20.727091 finite true
+polr loglog fit, eta range ±60                             coef 0.367413 logLik -21.097889 finite true
+polr cauchit fit, eta range ±60                            coef 1.86518 logLik -18.274759 finite true
+polr weights *1e-300 vs *1 (coef rel)                      1.3e-9
+polr weights *1e300                                        coef 1.4022484326372109 logLik -2.0551827341992524e+301
+polr weights mixed 1e-200 and 1                            coef 1.52734 finite true
+polr constant predictor                                    {"x":1.402248434398903} W:design appears to be rank-deficient, so dropping some coefs: k
+polr collinear predictors                                  {"x":1.402248434398903} W:design appears to be rank-deficient, so dropping some coefs: z
+polr NaN in x                                              nobs 23 coef 1.42465
+polr Infinity in x                                         ERROR NA/NaN/Inf in model matrix or response
+polr null/undefined response                               nobs 23
+polr predict newdata x=Infinity                            [[0,0,0,1],[1,0,0,0],[null,null,null,null]]
+polr confint near-separation                               ERROR ordinal regression score did not converge (max |score| = 0.000002125570352872219)
+psiHuber weights                                           [1,1,1,1,1,1,1,0.287086,1.345e-300,1.345e-300,0,0,null]
+psiHuber deriv                                             [true,true,true,true,true,true,false,false,false,false,false,false,false]
+psiHampel weights                                          [1,1,1,1,1,1,1,0.353789,0,0,0,0,0]
+psiHampel deriv                                            [1,1,1,1,1,1,1,-0.5,0,0,0,0,0]
+psiBisquare weights                                        [1,1,1,1,0.910956,0.841956,0.841956,0,0,0,0,0,0]
+psiBisquare deriv                                          [1,1,1,1,0.73702,0.539452,0.539452,0,0,0,0,0,0]
+rlm M one outlier 1e300                                    coef {"(Intercept)":9.344257094030317e+285,"x":-1.2688177940785875e+285} scale 4.762e+285 w5 6.40422947635027e-15
+rlm M one outlier 1e308 and one -1e308                     coef {"(Intercept)":1.0342379278976888e+293,"x":-2.0480235421350895e+292} scale 7.591e+292
+rlm M Infinity in y                                        ERROR NA/NaN/Inf in model matrix or response
+rlm M NaN in y                                             n 29 coef {"(Intercept)":0.9901119655567161,"x":1.9998114230315487}
+rlm M constant predictor                                   ERROR 'x' is singular: singular fits are not implemented in 'rlm'
+rlm M collinear predictors                                 ERROR 'x' is singular: singular fits are not implemented in 'rlm'
+rlm M y constant                                           coef {"(Intercept)":5.000000000000002,"x":-9.415652043078383e-17} scale 1.975192927428003e-15 conv true
+rlm MM one outlier 1e300                                   coef {"(Intercept)":0.9901119655567161,"x":1.9998114230315487} scale 2.711e+280 w5 0
+rlm MM one outlier 1e308 and one -1e308                    ERROR robust scale is not positive and finite
+rlm MM Infinity in y                                       ERROR NA/NaN/Inf in model matrix or response
+rlm MM NaN in y                                            n 29 coef {"(Intercept)":0.9883399888331299,"x":1.9999558947959537}
+rlm MM constant predictor                                  ERROR 'x' is singular: singular fits are not implemented in 'rlm'
+rlm MM collinear predictors                                ERROR 'x' is singular: singular fits are not implemented in 'rlm'
+rlm MM y constant                                          coef {"(Intercept)":5,"x":0} scale 0 conv true W:more than half of the observations lie exactly on the fitted line; scale and inf
+rlm weights *1e-300 vs *1 (coef rel)                       1.1e-16 scale rel 1.0e+0
+rlm weights *1e300 vs *1 (coef rel)                        4.4e-16 scale rel 1.0e+150
+rlm n = p (exact)                                          {"(Intercept)":1.0000000000000002,"x":2}
+nls exp overflow at start (b=100)                          ERROR non-finite model value or gradient; check the formula domain and starting values
+nls start that overshoots (b=1.5)                          {"a":2.004095093877951,"b":0.2997869767632249}
+nls start a=1e-300                                         ERROR singular gradient: singular gradient matrix; parameters are not locally identifiable
+nls log domain: y ~ a*log(b*x), start b tiny               {"a":3.0035693547649904,"b":1.9957604481068205}
+nls pole: y ~ a/(x - b), start b inside data               ERROR number of iterations exceeded; nonlinear fit did not converge
+nls pole: start b = -0.6 (near truth -0.5)                 {"a":4.988211668593325,"b":-0.4950081983239379}
+nls sqrt of negative at start                              ERROR non-finite model value or gradient; check the formula domain and starting values
+nls Infinity in y                                          ERROR NA/NaN/Inf in the response or the predictors: row 4 has an infinite value
+nls NaN in y                                               nobs 10 {"a":2.0040865109687145,"b":0.2997874405185881}
+nls weights *1e-300 vs *1                                  coef rel 0.0e+0 SE rel 1.7e-14
+nls weights *1e300 vs *1                                   coef rel 1.9e-16 SE rel 1.2e-14
+nls predict newdata overflow (x=1e4)                       [null,0,null]
+nls non-identifiable a*b*x                                 ERROR singular gradient: singular gradient matrix; parameters are not locally identifiable
+nls constant x for SSlogis                                 ERROR singular gradient: singular gradient matrix; parameters are not locally identifiable
