@@ -1,8 +1,8 @@
 // End-to-end test of the demo (demo/) in headless Chromium (Playwright).
 //
 // The repository is served on a fake origin (http://rstats.test/) through page.route, and the jsDelivr URL of
-// the library (dist/rstats.js, dist/mixed.js and the chunks the latter imports) is intercepted and answered with the
-// local dist/, so the real CDN code path is tested.
+// the library (dist/rstats.js, dist/mixed.js, dist/regression.js and the chunks the latter two import) is
+// intercepted and answered with the local dist/, so the real CDN code path is tested.
 // Every form operation is driven through the UI: every distribution with d/p/q, every r* function, every test
 // and every linear algebra operation. The page must not throw, and no error message may be shown (except where
 // an error is the expected outcome). The "Compare with R" tab must report all examples as passing.
@@ -521,11 +521,11 @@ try {
     const { context, page, errors } = await openDemo(browser);
     await page.waitForSelector(`${tid("status")}[data-state="ready"]`, { timeout: 20000 });
     check("status shows the CDN source", (await page.getAttribute(tid("status"), "data-source")) === "cdn");
-    // the demo loads dist/rstats.js and the mixed-models area dist/mixed.js
+    // the demo loads dist/rstats.js and the areas that are not in it, dist/mixed.js and dist/regression.js
     // names exported by both files (setWarningHandler) count once, as in the demo's merged library
     const exportCount = new Set(
       (
-        await Promise.all(["rstats.js", "mixed.js"].map((f) => import(new URL(`../../dist/${f}`, import.meta.url).href)))
+        await Promise.all(["rstats.js", "mixed.js", "regression.js"].map((f) => import(new URL(`../../dist/${f}`, import.meta.url).href)))
       ).flatMap((m) => Object.keys(m)),
     ).size;
     check(`status mentions ${exportCount} functions`, (await page.textContent(tid("status"))).includes(String(exportCount)));
