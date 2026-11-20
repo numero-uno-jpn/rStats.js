@@ -183,12 +183,19 @@ export interface NlsConfintResult {
  */
 export interface NlsAnovaResult {
   table: {
+    /** Formula for each fitted model. */
     Model: string[];
+    /** Residual degrees of freedom for each model. */
     "Res.Df": number[];
+    /** Residual sum of squares for each model. */
     "Res.Sum Sq": number[];
+    /** Difference in residual degrees of freedom for each comparison. */
     "Df": (number | "NA")[];
+    /** Difference in residual sum of squares for each comparison. */
     "Sum Sq": (number | "NA")[];
+    /** F statistic for each comparison. */
     "F value": (number | "NA")[];
+    /** Upper-tail F-test probability for each comparison. */
     "Pr(>F)": (number | "NA")[];
   };
   /** Warnings produced while comparing models. */
