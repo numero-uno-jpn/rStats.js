@@ -196,41 +196,46 @@ describe("elastic-net generalized linear models", () => {
     expect(mismatches).toEqual([]);
   });
 
-  // Unresolved: fixing the fold lambda sequence worsened grouped cvm[0] to 9.2948486185 vs 9.4462193037.
-  it.todo("matches grouped and ungrouped Gaussian CV summaries from the fixed-fold oracle");
-
-  /* it("matches grouped and ungrouped Gaussian CV summaries from the fixed-fold oracle", () => {
+  it("matches Gaussian cross-validation summaries against the tight fixed-fold oracle", () => {
     const fixture = glmnetFixture as unknown as {
       X: { values: number[][] };
       y: number[];
-      cv: { value: { lambda: number[]; cvm: number[]; cvsd: number[]; lambdaMin: number; lambda1se: number;
-        groupedFalse: { cvm: number[]; cvsd: number[]; preval: { values: number[][] } } } };
+      cv: { value: {
+        lambda: number[]; lambdaTight: number[]; cvm: number[]; cvsd: number[];
+        cvmTight: number[]; cvsdTight: number[];
+        groupedFalse: { cvm: number[]; cvsd: number[]; preval: { values: number[][] } };
+      } };
     };
     const foldid = Array.from({ length: fixture.y.length }, (_, i) => i % 3 + 1);
+    const expected = fixture.cv.value;
     const grouped = cvGlmnet(fixture.X.values, fixture.y, { foldid, nlambda: 8, keep: true, thresh: 1e-12 });
-    const ungrouped = cvGlmnet(fixture.X.values, fixture.y, { foldid, nlambda: 8, grouped: false, keep: true, thresh: 1e-12 });
-    const common = Math.min(grouped.lambda.length, fixture.cv.value.lambda.length);
-    for (let k = 0; k < common; k++) expect(grouped.lambda[k]).toBeCloseTo(fixture.cv.value.lambda[k]!, 11);
-    expect(grouped.cvm[0]).toBeCloseTo(fixture.cv.value.cvm[0]!, 7);
-    expect(grouped.cvsd[0]).toBeCloseTo(fixture.cv.value.cvsd[0]!, 7);
+    const groupedLength = Math.min(grouped.lambda.length, expected.lambdaTight.length);
+    expect(groupedLength).toBe(expected.lambdaTight.length);
+    for (let k = 0; k < groupedLength; k++) {
+      expect(grouped.lambda[k]).toBeCloseTo(expected.lambdaTight[k]!, 11);
+      expect(grouped.cvm[k]).toBeCloseTo(expected.cvmTight[k]!, 7);
+      expect(grouped.cvsd[k]).toBeCloseTo(expected.cvsdTight[k]!, 7);
+    }
     expect(grouped.lambdaMin).toBeGreaterThan(0);
     expect(grouped.lambda1se).toBeGreaterThanOrEqual(grouped.lambdaMin);
     expect(grouped.lambda).toContain(grouped.lambdaMin);
     expect(grouped.lambda).toContain(grouped.lambda1se);
+    const ungrouped = cvGlmnet(fixture.X.values, fixture.y, {
+      foldid, nlambda: 8, grouped: false, keep: true, thresh: 1e-12,
+    });
+    const ungroupedLength = Math.min(ungrouped.lambda.length, expected.lambda.length);
+    expect(ungroupedLength).toBe(expected.lambda.length);
+    for (let k = 0; k < ungroupedLength; k++) {
+      expect(ungrouped.lambda[k]).toBeCloseTo(expected.lambda[k]!, 11);
+      expect(ungrouped.cvm[k]).toBeCloseTo(expected.groupedFalse.cvm[k]!, 7);
+      expect(ungrouped.cvsd[k]).toBeCloseTo(expected.groupedFalse.cvsd[k]!, 7);
+    }
     const prevalence = ungrouped.fitPreval as number[][];
-    const expectedPrevalence = fixture.cv.value.groupedFalse.preval.values;
-    let maxPrevalenceDifference = 0;
-    for (let i = 0; i < prevalence.length; i++) for (let k = 0; k < prevalence[i]!.length; k++)
-      maxPrevalenceDifference = Math.max(maxPrevalenceDifference,
-        Math.abs(prevalence[i]![k]! - expectedPrevalence[i]![k]!));
-    console.log("CV diagnostics", grouped.cvm[0], ungrouped.cvm[0], maxPrevalenceDifference);
-    expect(maxPrevalenceDifference).toBeLessThan(1e-7);
-    expect(prevalence[0]![0]).toBeCloseTo(expectedPrevalence[0]![0]!, 7);
-    expect(ungrouped.cvm[0]).toBeCloseTo(fixture.cv.value.groupedFalse.cvm[0]!, 7);
-    expect(ungrouped.cvsd[0]).toBeCloseTo(fixture.cv.value.groupedFalse.cvsd[0]!, 7);
+    const expectedPrevalence = expected.groupedFalse.preval.values;
+    expect(prevalence).toHaveLength(expectedPrevalence.length);
+    for (let i = 0; i < prevalence.length; i++) for (let k = 0; k < expectedPrevalence[i]!.length; k++)
+      expect(prevalence[i]![k]).toBeCloseTo(expectedPrevalence[i]![k]!, 7);
   });
-
-  */
 
   it("cross-validates multinomial probabilities on fixed folds", () => {
     const fixture = glmnetFixture as unknown as { multinomialData: { X: { values: number[][] }; y: string[] } };
