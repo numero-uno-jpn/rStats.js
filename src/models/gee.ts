@@ -13,15 +13,24 @@ import { parseFormula } from "./formula.js";
 import type { DataFrame } from "./modelFrame.js";
 import type { Sample } from "../htest/types.js";
 
-const GEE_KEYS = ["id", "waves", "family", "link", "corstr", "std.err", "zcor", "weights", "offset", "scale.fix", "scale.value", "epsilon", "maxit"] as const;
-const GEE_SUMMARY_KEYS = [] as const;
-const GEE_PREDICT_KEYS = ["newdata", "type", "newoffset"] as const;
-const GEE_ANOVA_KEYS = ["test"] as const;
-
+/** Working-correlation structures supported by geeglm.
+ * @category Regression
+ */
 export type GeeCorrelation = "independence" | "exchangeable" | "ar1" | "unstructured" | "userdefined" | "fixed";
+
+/** Cluster identifiers may be numeric, character, or logical.
+ * @category Regression
+ */
 export type GeeId = readonly (number | string | boolean)[];
+
+/** Coefficient covariance estimators.
+ * @category Regression
+ */
 export type GeeStdErr = "san.se" | "jack" | "j1s" | "fij";
 
+/** Options for a marginal generalized estimating equation fit.
+ * @category Regression
+ */
 export interface GeeOptions {
   id: string | GeeId;
   waves?: string | Sample;
@@ -56,6 +65,9 @@ function splitOffsets(formula: string): { meanFormula: string; terms: GeeOffsetT
   return { meanFormula, terms };
 }
 
+/** A fitted generalized estimating equation model.
+ * @category Regression
+ */
 export interface GeeResult {
   coefficients: number[];
   fittedValues: number[];
@@ -106,6 +118,9 @@ export interface GeeResult {
   };
 }
 
+/** Coefficient and nuisance-parameter summary of a GEE fit.
+ * @category Regression
+ */
 export interface GeeSummaryResult {
   rows: string[];
   columns: ["Estimate", "Std. Error", "Wald", "Pr(>|W|)"];
@@ -115,18 +130,27 @@ export interface GeeSummaryResult {
   warnings: string[];
 }
 
+/** A GEE coefficient covariance matrix.
+ * @category Regression
+ */
 export interface GeeVcovResult {
   rows: string[];
   columns: string[];
   values: number[][];
 }
 
+/** Prediction options for a GEE fit.
+ * @category Regression
+ */
 export interface GeePredictOptions {
   newdata?: DataFrame;
   type?: "link" | "response";
   newoffset?: Sample;
 }
 
+/** Wald comparison table for GEE models.
+ * @category Regression
+ */
 export interface GeeAnovaResult {
   rows: string[];
   columns: ["Df", "X2", "Pr(>Chi)"];
@@ -390,8 +414,13 @@ function oneStepJackknife(
 }
 
 /** Fit a marginal generalized estimating equation model. */
+/**
+ * Fit a marginal generalized estimating equation model.
+ * Equivalent to `geepack::geeglm()` in R.
+ * @category Regression
+ */
 export function geeglm(formula: string, data: DataFrame, options: GeeOptions): GeeResult {
-  checkOptions(options, GEE_KEYS, "geeglm"); // generated: option-keys.mjs
+  checkOptions(options, ["id", "waves", "family", "link", "corstr", "std.err", "zcor", "weights", "offset", "scale.fix", "scale.value", "epsilon", "maxit"], "geeglm"); // generated: option-keys.mjs
   if (options.id === undefined) throw new TypeError("id is required");
   const corstr = options.corstr ?? "independence";
   if (!["independence", "exchangeable", "ar1", "unstructured", "userdefined", "fixed"].includes(corstr)) throw new RangeError("unknown working correlation");
@@ -571,16 +600,24 @@ export function geeglm(formula: string, data: DataFrame, options: GeeOptions): G
   });
 }
 
-/** Robust or model-based coefficient covariance. */
+/**
+ * Return robust or model-based coefficient covariance.
+ * Equivalent to R's `vcov()`.
+ * @category Regression
+ */
 export function geeVcov(fit: GeeResult, options: { type?: "robust" | "naive" } = {}): GeeVcovResult {
-  checkOptions(options, ["type"], "geeVcov");
+  checkOptions(options, ["type"], "geeVcov"); // generated: option-keys.mjs
   const a = options.type === "naive" ? fit.modelCovariance : fit.covariance;
   return { rows: fit.columnNames, columns: fit.columnNames, values: a.map((r) => r.slice()) };
 }
 
-/** Wald coefficient table. */
+/**
+ * Summarize the coefficient estimates of a GEE fit.
+ * Equivalent to R's `summary.geeglm()`.
+ * @category Regression
+ */
 export function geeSummary(fit: GeeResult, options: Record<string, never> = {}): GeeSummaryResult {
-  checkOptions(options, GEE_SUMMARY_KEYS, "geeSummary");
+  checkOptions(options, [], "geeSummary"); // generated: option-keys.mjs
   const values = fit.coefficients.map((estimate, i) => {
     const se = Math.sqrt(fit.covariance[i]![i]!);
     const z = estimate / se;
@@ -591,20 +628,29 @@ export function geeSummary(fit: GeeResult, options: Record<string, never> = {}):
     warnings: fit.warnings.slice() }, fit);
 }
 
-/** Marginal mean predictions on the link or response scale. */
+/**
+ * Predict marginal means on the link or response scale.
+ * Equivalent to R's `predict.geeglm()`.
+ * @category Regression
+ */
 export function geePredict(fit: GeeResult, options: GeePredictOptions = {}): number[] {
-  checkOptions(options, GEE_PREDICT_KEYS, "geePredict");
+  checkOptions(options, ["newdata", "type", "newoffset"], "geePredict"); // generated: option-keys.mjs
   if (options.newdata === undefined && options.newoffset === undefined) {
     return options.type === "response" ? fit.fittedValues.slice() : fit.linearPredictors.slice();
   }
   const newdata = options.newdata ?? fit.model.data;
-  const d = design(parseFormula(fit.model.meanFormula), newdata, { extraVariables: [...fit.model.offsetTerms.map((t) => t.variable), ...(fit.model.offsetOptionColumn === undefined ? [] : [fit.model.offsetOptionColumn])] });
+  const predictionData = { ...newdata } as unknown as Record<string, unknown>;
+  const predictionLength = Object.values(newdata)[0]?.length ?? 0;
+  if (!(fit.model.responseVariable in predictionData)) predictionData[fit.model.responseVariable] = new Array<number>(predictionLength).fill(0);
+  const d = design(parseFormula(fit.model.meanFormula), predictionData as DataFrame, {
+    extraVariables: [...fit.model.offsetTerms.map((t) => t.variable), ...(fit.model.offsetOptionColumn === undefined ? [] : [fit.model.offsetOptionColumn])],
+  });
   const family = makeFamily(fit.model.family, fit.model.link);
   const n = d.x.length;
   const offset = options.newoffset === undefined ? new Array<number>(n).fill(0) : Array.from(options.newoffset);
   if (offset.length !== n) throw new RangeError("newoffset must have one value per retained row");
   for (const term of fit.model.offsetTerms) {
-    const raw = getColumn(newdata, term.variable);
+    const raw = getColumn(predictionData as DataFrame, term.variable);
     for (let i = 0; i < n; i++) {
       const v = raw[d.frame.rows[i]!];
       if (typeof v !== "number" || !Number.isFinite(v)) throw new RangeError("offset variable must contain finite numbers");
@@ -612,7 +658,7 @@ export function geePredict(fit: GeeResult, options: GeePredictOptions = {}): num
     }
   }
   if (fit.model.offsetOptionColumn !== undefined) {
-    const raw = getColumn(newdata, fit.model.offsetOptionColumn);
+    const raw = getColumn(predictionData as DataFrame, fit.model.offsetOptionColumn);
     for (let i = 0; i < n; i++) {
       const v = raw[d.frame.rows[i]!];
       if (typeof v !== "number" || !Number.isFinite(v)) throw new RangeError("offset variable must contain finite numbers");
@@ -652,7 +698,11 @@ function refitForAnova(fit: GeeResult, formula: string): GeeResult {
   return geeglm(formula, data, options);
 }
 
-/** Sequential Wald tests for terms, or a nested-model Wald comparison. */
+/**
+ * Compare GEE terms or nested models using Wald tests.
+ * Equivalent to R's `anova()`.
+ * @category Regression
+ */
 export function geeAnova(fit: GeeResult, optionsOrCompare: { test?: "Wald" } | GeeResult = {}): GeeAnovaResult {
   if (isGeeResult(optionsOrCompare)) {
     const reduced = optionsOrCompare;
@@ -671,7 +721,7 @@ export function geeAnova(fit: GeeResult, optionsOrCompare: { test?: "Wald" } | G
     return reported("geeAnova", { rows: [fit.model.formula], columns: ["Df", "X2", "Pr(>Chi)"] as ["Df", "X2", "Pr(>Chi)"],
       values: [[test.df, test.statistic, test.p]], warnings: [] }, fit, reduced);
   }
-  checkOptions(optionsOrCompare, GEE_ANOVA_KEYS, "geeAnova");
+  checkOptions(optionsOrCompare, ["test"], "geeAnova"); // generated: option-keys.mjs
   if (optionsOrCompare.test !== undefined && optionsOrCompare.test !== "Wald") throw new RangeError("only Wald tests are available");
   const labels = fit.model.termLabels;
   if (labels.length === 0) {
@@ -693,7 +743,11 @@ export function geeAnova(fit: GeeResult, optionsOrCompare: { test?: "Wald" } | G
   return reported("geeAnova", { rows, columns: ["Df", "X2", "Pr(>Chi)"] as ["Df", "X2", "Pr(>Chi)"], values, warnings: [] }, fit);
 }
 
-/** Quasi-likelihood information criteria (Pan, 2001). */
+/**
+ * Calculate quasi-likelihood information criteria for a GEE fit (Pan, 2001).
+ * Equivalent to `geepack::QIC()` in R.
+ * @category Regression
+ */
 export function geeQIC(fit: GeeResult): { QIC: number; QICu: number; Q: number; CIC: number; params: number; QICC: number } {
   const family = makeFamily(fit.model.family, fit.model.link);
   let q = 0;
