@@ -604,7 +604,7 @@ export function glmnet(x: readonly (readonly number[])[], y: readonly (number | 
   return glmnetScalar(x, y as readonly number[], options);
 }
 
-function interpolate(fit: GlmnetResult, s: number): { a0: number; beta: number[] } {
+function interpolate(fit: GlmnetScalarResult, s: number): { a0: number; beta: number[] } {
   const path = fit.lambda;
   if (s >= path[0]!) return { a0: fit.a0[0]!, beta: fit.beta[0]!.slice() };
   if (s <= path[path.length - 1]!) return { a0: fit.a0[path.length - 1]!, beta: fit.beta[path.length - 1]!.slice() };
@@ -614,36 +614,108 @@ function interpolate(fit: GlmnetResult, s: number): { a0: number; beta: number[]
     beta: fit.beta[k]!.map((v, j) => v * (1 - t) + fit.beta[k + 1]![j]! * t) };
 }
 
+function interpolateMultinomial(fit: GlmnetMultinomialResult, s: number): { a0: number[]; beta: number[][] } {
+  const path = fit.lambda, p = fit.model.columns, kCount = fit.model.classes.length;
+  let left = 0, t = 0;
+  if (s >= path[0]!) left = 0;
+  else if (s <= path[path.length - 1]!) left = path.length - 1;
+  else {
+    while (left + 1 < path.length && path[left + 1]! > s) left++;
+    t = (Math.log(s) - Math.log(path[left]!)) / (Math.log(path[left + 1]!) - Math.log(path[left]!));
+  }
+  const right = Math.min(path.length - 1, left + 1);
+  const a0 = new Array<number>(kCount);
+  const beta = Array.from({ length: p }, () => new Array<number>(kCount));
+  for (let k = 0; k < kCount; k++) {
+    a0[k] = fit.a0[k]![left]! * (1 - t) + fit.a0[k]![right]! * t;
+    for (let j = 0; j < p; j++) {
+      beta[j]![k] = fit.beta[fit.model.classes[k]!]![j]![left]! * (1 - t) +
+        fit.beta[fit.model.classes[k]!]![j]![right]! * t;
+    }
+  }
+  return { a0, beta };
+}
+
 /** Extract coefficients at selected penalty values. Equivalent to R's `coef.glmnet()`.
  *
  * @category Regression
  */
-export function glmnetCoef(fit: GlmnetResult, s?: number | readonly number[]): number[][] {
+export function glmnetCoef(fit: GlmnetScalarResult, s?: number | readonly number[]): number[][];
+export function glmnetCoef(fit: GlmnetMultinomialResult, s?: number | readonly number[]): Record<string, number[][]>;
+export function glmnetCoef(fit: GlmnetResult, s?: number | readonly number[]): number[][] | Record<string, number[][]> {
   const values = s === undefined ? fit.lambda : typeof s === "number" ? [s] : Array.from(s);
-  return values.map(v => { const c = interpolate(fit, v); return [c.a0, ...c.beta]; });
+  if (fit.family === "multinomial") {
+    const out: Record<string, number[][]> = {};
+    for (let k = 0; k < fit.model.classes.length; k++) {
+      const name = fit.model.classes[k]!;
+      out[name] = [
+        values.map(value => interpolateMultinomial(fit, value).a0[k]!),
+        ...Array.from({ length: fit.model.columns }, (_, j) =>
+          values.map(value => interpolateMultinomial(fit, value).beta[j]![k]!)),
+      ];
+    }
+    return out;
+  }
+  return values.map(v => { const result = interpolate(fit, v); return [result.a0, ...result.beta]; });
 }
+
 /** Predict from a penalized generalized linear model. Equivalent to R's `predict.glmnet()`.
  *
  * @category Regression
  */
 export function glmnetPredict(
+  fit: GlmnetScalarResult, newx: readonly (readonly number[])[], options?: GlmnetPredictOptions,
+): number[][];
+export function glmnetPredict(
+  fit: GlmnetMultinomialResult, newx: readonly (readonly number[])[], options?: GlmnetPredictOptions,
+): number[][][] | string[][];
+export function glmnetPredict(
   fit: GlmnetResult, newx: readonly (readonly number[])[], options: GlmnetPredictOptions = {},
-): number[][] {
+): number[][] | number[][][] | string[][] {
   if (newx.some(r => r.length !== fit.model.columns)) throw new RangeError("newx has the wrong number of columns");
   const values = options.s === undefined ? fit.lambda.slice() :
     typeof options.s === "number" ? [options.s] : Array.from(options.s);
   const type = options.type ?? "link";
+  if (fit.family === "multinomial") {
+    if (options.offset?.some(v => v !== 0)) throw new RangeError("multinomial offsets must be class-specific");
+    if (type === "nonzero") return values.map(s => {
+      const result = interpolateMultinomial(fit, s);
+      return fit.model.classes.map((_, k) => result.beta.map((row, j) => row[k] !== 0 ? j + 1 : 0).filter(v => v !== 0));
+    });
+    if (type === "class") return values.map(s => newx.map(row => {
+      const result = interpolateMultinomial(fit, s);
+      let best = 0, bestEta = -Infinity;
+      for (let k = 0; k < fit.model.classes.length; k++) {
+        let eta = result.a0[k]!;
+        for (let j = 0; j < fit.model.columns; j++) eta += row[j]! * result.beta[j]![k]!;
+        if (eta > bestEta) { bestEta = eta; best = k; }
+      }
+      return fit.model.classes[best]!;
+    }));
+    return values.map(s => newx.map(row => {
+      const result = interpolateMultinomial(fit, s);
+      const eta = result.a0.map((v, k) => {
+        let out = v;
+        for (let j = 0; j < fit.model.columns; j++) out += row[j]! * result.beta[j]![k]!;
+        return out;
+      });
+      let maxEta = -Infinity; for (const v of eta) maxEta = Math.max(maxEta, v);
+      let denominator = 0; for (const v of eta) denominator += Math.exp(v - maxEta);
+      const probabilities = eta.map(v => Math.exp(v - maxEta) / denominator);
+      return type === "response" ? probabilities : eta;
+    }));
+  }
   const offset = options.offset ?? new Array<number>(newx.length).fill(0);
   if (offset.length !== newx.length) throw new RangeError("offset length must match newx");
   if (type === "nonzero") return values.map(s => {
-    const c = interpolate(fit, s), indices: number[] = [];
-    for (let j = 0; j < c.beta.length; j++) if (c.beta[j] !== 0) indices.push(j + 1);
+    const result = interpolate(fit, s), indices: number[] = [];
+    for (let j = 0; j < result.beta.length; j++) if (result.beta[j] !== 0) indices.push(j + 1);
     return indices;
   });
   return values.map(s => {
-    const c = interpolate(fit, s);
+    const result = interpolate(fit, s);
     return newx.map((row, i) => {
-      const eta = c.a0 + offset[i]! + row.reduce((v, z, j) => v + z * c.beta[j]!, 0);
+      const eta = result.a0 + offset[i]! + row.reduce((v, z, j) => v + z * result.beta[j]!, 0);
       if (type === "response") return inverseLink(eta, fit.family);
       if (type === "class") return inverseLink(eta, fit.family) >= 0.5 ? 1 : 0;
       return eta;
