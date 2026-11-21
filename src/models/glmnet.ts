@@ -480,15 +480,30 @@ function glmnetScalar(x: readonly (readonly number[])[], y: readonly number[], o
   if (!(fdev >= 0) || !Number.isFinite(fdev) || !(devmax > 0 && devmax <= 1)) throw new RangeError("invalid fdev or devmax");
   const a0: number[] = [], beta: number[][] = [], df: number[] = [], devRatio: number[] = [], converged: boolean[] = [], kktResidual: number[] = [];
   const nullDev = deviance(y, eta0, w, family);
-  let start = [nullA, ...nullBeta], npasses = 0;
+  // For gaussian, glmnet standardizes y to unit variance (the 1/n formula) before fitting and unstandardizes the
+  // coefficients (glmnet's documentation). The lasso part is unchanged by that, but the ridge part is not: the fit
+  // is that of y / sd(y) at lambda / sd(y), scaled back. Checked against R with alpha < 1 (the closed form of an
+  // orthogonal design matches R's coefficients to all digits; experiments/regression18-glmnet-ystd.R)
+  let yScale = 1;
+  if (family === "gaussian") {
+    const yMean = intercept ? mean(y.map((v, i) => v - offset[i]!), w) : 0;
+    let ss = 0;
+    for (let i = 0; i < n; i++) ss += w[i]! * (y[i]! - offset[i]! - yMean) ** 2;
+    yScale = Math.sqrt(ss / sum(w));
+    if (!(yScale > 0) || !Number.isFinite(yScale)) yScale = 1;
+  }
+  const yFit = y.map(v => v / yScale), offsetFit = offset.map(v => v / yScale);
+  const lowerFit = lower.map(v => v / yScale), upperFit = upper.map(v => v / yScale);
+  let start = [nullA / yScale, ...nullBeta.map(v => v / yScale)], npasses = 0;
   const everActive = new Set<number>();
   for (const lambda of lambdas) {
     const fitAlpha = !options.lambda && alpha === 0 && lambda === lambdaMax ? 0.001 : alpha;
-    const fit = fitOne(xs, y, w, offset, family, fitAlpha, lambda, start, intercept, pf, lower, upper, maxit, thresh);
+    const scaled = fitOne(xs, yFit, w, offsetFit, family, fitAlpha, lambda / yScale, start, intercept, pf, lowerFit, upperFit, maxit, thresh);
+    const fit = { ...scaled, a0: scaled.a0 * yScale, beta: scaled.beta.map(v => v * yScale), eta: scaled.eta.map(v => v * yScale) };
     const active = fit.beta.filter(v => v !== 0).length;
     for (let j = 0; j < p; j++) if (fit.beta[j] !== 0) everActive.add(j);
     if (active > dfmax || everActive.size > pmax) break;
-    start = [fit.a0, ...fit.beta]; npasses += fit.passes;
+    start = [scaled.a0, ...scaled.beta]; npasses += fit.passes;
     const originalBeta = fit.beta.map((v, j) => v / xScale[j]!);
     let originalIntercept = fit.a0;
     if (intercept && family === "gaussian") {
@@ -511,8 +526,9 @@ function glmnetScalar(x: readonly (readonly number[])[], y: readonly number[], o
     devRatio.push(currentDevRatio);
     converged.push(fit.converged);
     kktResidual.push(fit.kkt);
+    // the path ends when the deviance explained reaches devmax or grows by less than fdev times itself (as R)
     if (currentDevRatio >= devmax || (previousDevRatio !== undefined &&
-        (currentDevRatio - previousDevRatio) / Math.max(1e-15, 1 - previousDevRatio) < fdev)) break;
+        currentDevRatio - previousDevRatio < fdev * currentDevRatio)) break;
   }
   if (a0.length === 0) throw new RangeError("no lambda values satisfy dfmax and pmax");
   return { family, alpha, lambda: lambdas.slice(0, a0.length), a0, beta, df, devRatio, nullDev, npasses, converged, kktResidual,
@@ -811,8 +827,9 @@ function glmnetMultinomial(
     devRatio.push(currentDevRatio);
     converged.push(fit.converged);
     kktResidual.push(fit.kkt);
+    // the path ends when the deviance explained reaches devmax or grows by less than fdev times itself (as R)
     if (currentDevRatio >= devmax || (previousDevRatio !== undefined &&
-        (currentDevRatio - previousDevRatio) / Math.max(1e-15, 1 - previousDevRatio) < fdev)) break;
+        currentDevRatio - previousDevRatio < fdev * currentDevRatio)) break;
   }
   if (!devRatio.length) throw new RangeError("no lambda values satisfy dfmax and pmax");
   return { family: "multinomial", alpha, lambda: lambdas.slice(0, devRatio.length), a0, beta: betaByClass, dfmat,

@@ -248,4 +248,25 @@ describe("elastic-net generalized linear models", () => {
     expect(() => glmnet([[1],[2],[3]], [1,2,3])).toThrow();
     expect(() => glmnet([[1,2],[2,3],[NaN,4]], [1,2,3])).toThrow();
   });
+
+  it("standardizes y for gaussian, as R does, so that the ridge part acts at lambda / sd(y)", () => {
+    // R (experiments/regression18-glmnet-ystd.R): glmnet(x, y, alpha = 0.5, lambda = c(0.4, 0.1), control = list(thresh = 1e-16))
+    const n = 24, x = Array.from({ length: n }, (_, i) => { const a = 2 * Math.PI * i / n; return [Math.sin(a), Math.cos(a) + 0.3 * Math.sin(2 * a)]; });
+    const y = x.map((v, i) => 2.5 + 1.1 * v[0]! - 0.6 * v[1]! + 0.04 * Math.sin(6 * Math.PI * i / n));
+    const weights = Array.from({ length: n }, (_, i) => (i % 2 ? 3 : 1));
+    const cases: Array<[string, Record<string, unknown>, number[]]> = [
+      ["default", {}, [2.5, 2.5, 0.66797899904517111, -0.26900869261322863, 0.97486093208094127, -0.50412516149875330]],
+      ["standardize = FALSE", { standardize: false }, [2.5, 2.5, 0.48387466108245036, -0.16529402941883314, 0.89955245870081757, -0.46102741139024189]],
+      ["weights", { weights }, [2.5, 2.5, 0.66797899904517111, -0.26900869261322841, 0.97486093208094138, -0.50412516149875308]],
+      ["intercept = FALSE", { intercept: false }, [0, 0, 0.75992457457310092, -0.30603704095905249, 1.01026758065101463, -0.52243483197699958]],
+      ["alpha = 0", { alpha: 0 }, [2.5, 2.5, 0.76037446741527914, -0.41474970949924328, 0.98950770457089932, -0.53973147522049059]],
+    ];
+    const mismatches: string[] = [];
+    for (const [label, options, want] of cases) {
+      const fit = glmnet(x, y, { alpha: 0.5, lambda: [0.4, 0.1], thresh: 1e-15, ...options });
+      const got = [...fit.a0, ...fit.beta.flat()];
+      got.forEach((v, k) => { if (Math.abs(v - want[k]!) > 1e-12 * Math.max(1, Math.abs(want[k]!))) mismatches.push(`${label} [${k}]: ${v} vs R ${want[k]}`); });
+    }
+    expect(mismatches).toEqual([]);
+  });
 });
