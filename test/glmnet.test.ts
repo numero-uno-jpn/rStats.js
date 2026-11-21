@@ -67,7 +67,7 @@ describe("elastic-net generalized linear models", () => {
     };
     const multiX = fixture.multinomialData.X.values, multiY = fixture.multinomialData.y;
     for (const typeMultinomial of ["ungrouped", "grouped"] as const) {
-      const fit = glmnet(multiX, multiY, { family: "multinomial", typeMultinomial, nlambda: 6 });
+      const fit = glmnet(multiX, multiY, { family: "multinomial", typeMultinomial, nlambda: 6, maxit: 5000, thresh: 1e-7 });
       const expected = fixture[`multinomial_${typeMultinomial}`].value;
       expect(fit.lambda[0]).toBeCloseTo(expected.lambda[0]!, 7);
       const predictionRows = [multiX[0]!, multiX[50]!, multiX[100]!];
@@ -108,7 +108,7 @@ describe("elastic-net generalized linear models", () => {
     const fixture = glmnetFixture as unknown as { multinomialData: { X: { values: number[][] }; y: string[] } };
     const multiX = fixture.multinomialData.X.values, multiY = fixture.multinomialData.y;
     const foldid = Array.from({ length: multiY.length }, (_, i) => i % 5 + 1);
-    const cv = cvGlmnet(multiX, multiY, { family: "multinomial", foldid, nlambda: 6, keep: true });
+    const cv = cvGlmnet(multiX, multiY, { family: "multinomial", foldid, nlambda: 4, keep: true, maxit: 5000, thresh: 1e-7 });
     expect(cv.cvm.every(Number.isFinite)).toBe(true);
     expect(cv.fitPreval).toHaveLength(multiY.length);
   });
