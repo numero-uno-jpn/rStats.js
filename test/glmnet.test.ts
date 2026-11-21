@@ -24,8 +24,8 @@ describe("elastic-net generalized linear models", () => {
     ];
     for (let k = 0; k < expectedLambda.length; k++) {
       expect(fit.lambda[k]).toBeCloseTo(expectedLambda[k]!, 11);
-      expect(fit.a0[k]).toBeCloseTo(expectedA0[k]!, 8);
       for (let j = 0; j < 3; j++) expect(fit.beta[k]![j]).toBeCloseTo(expectedBeta[j]![k]!, 7);
+      expect(fit.a0[k]).toBeCloseTo(expectedA0[k]!, 8);
     }
     expect(fit.converged.every(Boolean)).toBe(true);
     expect(fit.kktResidual.every(v => v < 1e-8)).toBe(true);
