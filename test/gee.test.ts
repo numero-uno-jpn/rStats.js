@@ -84,17 +84,11 @@ describe("generalized estimating equations", () => {
   });
 
 
-  it.todo("matches R jack, j1s, and fij covariance after resolving the delete-cluster center and finite-sample factor");
-
-  it("distinguishes approximate, one-step, and fully iterated delete-cluster covariance", () => {
-    const jack = geeglm("y ~ x", data, { id: "id", "std.err": "jack" });
-    const j1s = geeglm("y ~ x", data, { id: "id", "std.err": "j1s" });
-    const fij = geeglm("y ~ x", data, { id: "id", "std.err": "fij" });
-    for (const fit of [jack, j1s, fij]) {
-      expect(fit.covariance).toHaveLength(2);
-      expect(fit.covariance.flat().every(Number.isFinite)).toBe(true);
+  it("rejects jackknife standard-error methods not included in 1.8.0", () => {
+    for (const method of ["jack", "j1s", "fij"] as const) {
+      expect(() => geeglm("y ~ x", data, { id: "id", "std.err": method as never }))
+        .toThrow(`std.err = "${method}" is not supported yet; use "san.se"`);
     }
-    expect(jack.covariance).not.toEqual(fij.covariance);
   });
 
 
