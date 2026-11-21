@@ -17,7 +17,7 @@ d <- data.frame(a=seq(-2,2,length.out=60),b=sin(seq_len(60)*.3))
 d$y <- 1+1.2*d$a-.6*d$b+sin(seq_len(60)*.7)*.4
 for(tol in c(1e-14,1e-16,1e-20)) out[[paste0("rq_",format(tol,scientific=TRUE))]] <- capture({
  f<-rq(y~a+b,data=d,tau=.5,method="fn",eps=tol)
- list(coef=coef(f),residuals=residuals(f),fitted=fitted(f),rho=f$rho)
+ list(coef=tab(coef(f)),residuals=as.numeric(residuals(f)),fitted=as.numeric(fitted(f)))
 })
 out$rqAnova <- capture({
  f<-rq(y~a+b,data=d,tau=.5,method="fn",eps=1e-14)
@@ -51,23 +51,23 @@ out$scale <- list()
 xx<-cbind(a=seq(-1,1,length.out=40),b=sin(seq_len(40)*.4)); yy<-1+.8*xx[,1]-.3*xx[,2]+cos(seq_len(40)*.7)*.1
 for(mult in c(1e100,1e-100)) {
  out$scale[[paste0("x",format(mult,scientific=TRUE))]]<-capture({
-  f<-rq(yy~I(xx[,1]*mult)+xx[,2],method="fn",eps=1e-14);coef(f)
+  f<-rq(yy~I(xx[,1]*mult)+xx[,2],method="fn",eps=1e-14);as.numeric(coef(f))
  })
  out$scale[[paste0("y",format(mult,scientific=TRUE))]]<-capture({
-  f<-rq(I(yy*mult)~xx[,1]+xx[,2],method="fn",eps=1e-14);coef(f)
+  f<-rq(I(yy*mult)~xx[,1]+xx[,2],method="fn",eps=1e-14);as.numeric(coef(f))
  })
 }
 out$nonfinite <- list()
 for(bad in c(NaN,Inf,-Inf)) {
  badY<-yy;badY[2]<-bad
- out$nonfinite[[paste0("rq_y_",bad)]]<-capture({ f<-rq(badY~xx[,1]+xx[,2],method="fn"); list(coef=coef(f),rho=f$rho) })
+ out$nonfinite[[paste0("rq_y_",bad)]]<-capture({ f<-rq(badY~xx[,1]+xx[,2],method="fn"); list(coef=tab(coef(f))) })
  zz<-xx;zz[2,1]<-bad
  out$nonfinite[[paste0("glmnet_x_",bad)]]<-capture({ f<-glmnet(zz,yy,nlambda=5); list(lambda=f$lambda,coef=as.matrix(coef(f))) })
 }
 out$weights <- lapply(c(1e-8,3,1e8),function(mult) capture({
  w<-rep(mult,length(yy))
- list(rq=coef(rq(yy~xx[,1]+xx[,2],weights=w,method="fn")),
-      gee=coef(geeglm(yy~xx[,1]+xx[,2],id=rep(1:20,each=2),weights=w,corstr="exchangeable")),
+ list(rq=as.numeric(coef(rq(yy~xx[,1]+xx[,2],weights=w,method="fn"))),
+      gee=as.numeric(coef(geeglm(yy~xx[,1]+xx[,2],id=rep(1:20,each=2),weights=w,corstr="exchangeable"))),
       glmnet=glmnet(xx,yy,weights=w,nlambda=5)$lambda)
 }))
 n<-100000; lx<-cbind(a=((seq_len(n)*37)%%1009)/1009,b=((seq_len(n)*73)%%1013)/1013)
@@ -79,7 +79,10 @@ gn<-50000; gd<-data.frame(id=rep(seq_len(gn),each=2),wave=rep(1:2,gn),x=rep(0:1,
 for(cs in c("independence","exchangeable")) out$timing[[paste0("gee_",cs)]]<-capture(
  as.numeric(system.time(geeglm(y~x,id=id,waves=wave,data=gd,corstr=cs))["elapsed"]))
 gx<-matrix(rnorm(n*20),n,20); gy<-1+gx[,1]-.5*gx[,2]+rnorm(n,sd=.5)
-for(fam in c("gaussian","binomial")) out$timing[[paste0("glmnet_",fam)]]<-capture(
- as.numeric(system.time(glmnet(gx,if(fam=="gaussian")gy else as.numeric(gy>median(gy)),
-                               family=fam,nlambda=20))["elapsed"]))
+for(fam in c("gaussian","binomial")) out$timing[[paste0("glmnet_",fam)]]<-capture({
+ tm<-system.time(f<-glmnet(gx,if(fam=="gaussian")gy else as.numeric(gy>median(gy)),
+                           family=fam,nlambda=20))
+ list(elapsed=as.numeric(tm["elapsed"]),npasses=f$npasses,nlambda=length(f$lambda),
+      converged=all(f$converged))
+})
 cat(toJSON(out,digits=NA,auto_unbox=TRUE,null="null",na="string",pretty=FALSE))
