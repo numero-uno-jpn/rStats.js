@@ -68,12 +68,23 @@ for (cs in c("independence","exchangeable","ar1")) out[[paste0("gamma_",cs)]] <-
 })
 sz <- reshape(seizure,varying=list(c("base","y1","y2","y3","y4")),v.names="y",times=0:4,direction="long")
 sz <- sz[order(sz$id,sz$time),];sz$t <- ifelse(sz$time==0,8,2);sz$x <- ifelse(sz$time==0,0,1)
-out$poisson_offset <- run({
- f <- geeglm(y~offset(log(t))+x+trt+x:trt,id=id,data=sz,family=poisson,corstr="exchangeable")
- ft <- geeglm(y~offset(log(t))+x+trt+x:trt,id=id,data=sz,family=poisson,corstr="exchangeable",
-              control=geese.control(epsilon=1e-10,maxit=200))
- list(default=capture(f),tight=capture(ft,FALSE))
-})
+for (cs in c("independence","exchangeable","ar1","unstructured")) {
+  out[[paste0("poisson_offset_",cs)]] <- run({
+    f <- geeglm(y~offset(log(t))+x+trt+x:trt,id=id,data=sz,family=poisson,corstr=cs)
+    ft <- geeglm(y~offset(log(t))+x+trt+x:trt,id=id,data=sz,family=poisson,corstr=cs,
+                 control=geese.control(epsilon=1e-10,maxit=200))
+    list(default=capture(f),tight=capture(ft,FALSE))
+  })
+}
+out$poisson_offset <- out$poisson_offset_exchangeable
+out$inputs <- list(
+  dietox=plain(dietox),
+  ohio=plain(ohio),
+  seizure=plain(seizure),
+  respiratory=plain(respiratory),
+  poisson_offset=plain(sz)
+)
+
 for (st in c("jack","j1s","fij")) out[[paste0("jack_",st)]] <- run({
  f <- geeglm(resp~age+smoke,id=id,data=ohio,family=binomial,corstr="exchangeable",std.err=st)
  capture(f)
