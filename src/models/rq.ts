@@ -1090,15 +1090,15 @@ export function rqAnova(fit: RqResult, reducedOrJoint?: RqResult | boolean): RqW
  * @category Regression
  */
 export interface RqWaldResult {
-  /** Wald test statistic for the coefficient. */
+  /** Joint Wald statistic for the tested slope restrictions across quantiles. */
   statistic: number;
   /** Numerator degrees of freedom for the Wald test. */
   df: number;
   /** Residual degrees of freedom used for the reference distribution. */
   dfResidual: number;
-  /** Two-sided p-value associated with the coefficient statistic. */
+  /** P-value for the joint Wald comparison. */
   pValue: number;
-  /** Quantile-regression optimization method. */
+  /** Wald comparison method used for the multi-quantile test. */
   method: "Wald";
 }
 
