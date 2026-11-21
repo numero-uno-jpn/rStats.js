@@ -188,6 +188,9 @@ describe("rStats.js 1.8.0 public-output completeness against the pinned R oracle
     const y = f.y as number[];
     const expected = f.gaussian_alpha1.value;
     const defaultFit = glmnet(x, y, { alpha: 1, nlambda: 8, lambdaMinRatio: 0.01 });
+    console.log("[regression18-oracle] glmnet default first-lambda beta", JSON.stringify({
+      beta: defaultFit.beta.map(row => row[0]), df: defaultFit.df[0], kkt: defaultFit.kktResidual[0],
+    }));
     vectorWithROracleUncertainty(defaultFit.lambda, expected.lambda, expected.lambdaTight);
     vectorWithROracleUncertainty(defaultFit.a0, expected.a0, expected.tightA0);
     matrixWithROracleUncertainty(transpose(defaultFit.beta), expected.beta.values, expected.tightBeta.values);
