@@ -5,7 +5,9 @@
  * Family used for the penalized generalized linear model.
  * @category Regression
  */
-export type GlmnetFamily = "gaussian" | "binomial" | "poisson";
+export type GlmnetFamily = "gaussian" | "binomial" | "poisson" | "multinomial";
+/** Multinomial penalty structure. @category Regression */
+export type GlmnetMultiType = "ungrouped" | "grouped";
 /**
  * Scale or coefficient selection returned by a penalized-model prediction.
  * @category Regression
@@ -18,6 +20,7 @@ export type GlmnetPredictType = "link" | "response" | "class" | "nonzero";
  */
 export interface GlmnetOptions {
   family?: GlmnetFamily;
+  typeMultinomial?: GlmnetMultiType;
   alpha?: number;
   lambda?: readonly number[];
   nlambda?: number;
@@ -36,11 +39,11 @@ export interface GlmnetOptions {
 }
 
 /**
- * Result of {@link glmnet}, including the complete regularization path.
+ * Result of a scalar-family {@link glmnet} fit.
  * @category Regression
  */
-export interface GlmnetResult {
-  family: GlmnetFamily;
+export interface GlmnetScalarResult {
+  family: "gaussian" | "binomial" | "poisson";
   alpha: number;
   lambda: number[];
   a0: number[];
@@ -61,6 +64,38 @@ export interface GlmnetResult {
     columns: number;
   };
 }
+
+/**
+ * Result of a multinomial {@link glmnet} fit.
+ * @category Regression
+ */
+export interface GlmnetMultinomialResult {
+  family: "multinomial";
+  alpha: number;
+  lambda: number[];
+  a0: number[][];
+  beta: Record<string, number[][]>;
+  dfmat: number[][];
+  devRatio: number[];
+  nullDev: number;
+  npasses: number;
+  converged: boolean[];
+  model: {
+    x: number[][];
+    y: string[];
+    weights: number[];
+    offset: number[];
+    xMean: number[];
+    xScale: number[];
+    intercept: boolean;
+    columns: number;
+    classes: string[];
+    typeMultinomial: GlmnetMultiType;
+  };
+}
+
+/** Union of scalar-family and multinomial regularization paths. @category Regression */
+export type GlmnetResult = GlmnetScalarResult | GlmnetMultinomialResult;
 
 /**
  * Options for {@link glmnetPredict}.
@@ -98,7 +133,7 @@ export interface CvGlmnetResult {
   lambdaMin: number;
   lambda1se: number;
   foldid: number[];
-  fitPreval?: number[][];
+  fitPreval?: number[][] | number[][][];
 }
 
 function soft(value: number, threshold: number): number {
