@@ -805,7 +805,7 @@ function interpolate(fit: GlmnetScalarResult, s: number): { a0: number; beta: nu
   if (s >= path[0]!) return { a0: fit.a0[0]!, beta: fit.beta[0]!.slice() };
   if (s <= path[path.length - 1]!) return { a0: fit.a0[path.length - 1]!, beta: fit.beta[path.length - 1]!.slice() };
   let k = 0; while (k + 1 < path.length && path[k + 1]! > s) k++;
-  const t = (Math.log(s) - Math.log(path[k]!)) / (Math.log(path[k + 1]!) - Math.log(path[k]!));
+  const t = (s - path[k]!) / (path[k + 1]! - path[k]!);
   return { a0: fit.a0[k]! * (1 - t) + fit.a0[k + 1]! * t,
     beta: fit.beta[k]!.map((v, j) => v * (1 - t) + fit.beta[k + 1]![j]! * t) };
 }
@@ -817,7 +817,7 @@ function interpolateMultinomial(fit: GlmnetMultinomialResult, s: number): { a0: 
   else if (s <= path[path.length - 1]!) left = path.length - 1;
   else {
     while (left + 1 < path.length && path[left + 1]! > s) left++;
-    t = (Math.log(s) - Math.log(path[left]!)) / (Math.log(path[left + 1]!) - Math.log(path[left]!));
+    t = (s - path[left]!) / (path[left + 1]! - path[left]!);
   }
   const right = Math.min(path.length - 1, left + 1);
   const a0 = new Array<number>(kCount);
