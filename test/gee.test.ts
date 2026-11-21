@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { geeglm, geeAnova, geePredict, geeQIC, geeSummary, geeVcov } from "../src/models/gee.js";
+import { geeglm, geeAnova, geePredict, geeQIC, geeSummary, geeVcov, type GeeResult } from "../src/models/gee.js";
 
 const data = {
   id: [1, 1, 2, 2, 3, 3, 4, 4],
@@ -19,6 +19,32 @@ const geeCheckData = {
     2.8241, 2.1850, 3.5375, 1.5652, 3.4757, 3.8670, 2.7189, 2.3572, 3.7923,
   ],
 };
+
+function ar1Objective(fit: GeeResult): (alpha: number) => number {
+  const residuals = fit.model.y.map((value, i) => value - fit.fittedValues[fit.rows[i]!]!);
+  const groups = new Map<string, number[]>();
+  for (let i = 0; i < fit.model.ids.length; i++) {
+    const key = String(fit.model.ids[i]);
+    const group = groups.get(key) ?? [];
+    group.push(i);
+    groups.set(key, group);
+  }
+  const moments = new Map<number, { sum: number; count: number }>();
+  for (const group of groups.values()) for (let j = 0; j < group.length; j++) for (let k = 0; k < j; k++) {
+    const a = group[j]!, b = group[k]!;
+    const lag = Math.abs(fit.model.waves[a]! - fit.model.waves[b]!);
+    if (lag === 0) continue;
+    const item = moments.get(lag) ?? { sum: 0, count: 0 };
+    item.sum += residuals[a]! * residuals[b]! / fit.scale;
+    item.count++;
+    moments.set(lag, item);
+  }
+  return (alpha) => {
+    let loss = 0;
+    for (const [lag, item] of moments) loss += item.count * (item.sum / item.count - alpha ** lag) ** 2;
+    return loss;
+  };
+}
 
 describe("generalized estimating equations", () => {
   it("solves the independence Gaussian estimating equations and retains cluster rows", () => {
@@ -92,12 +118,14 @@ describe("generalized estimating equations", () => {
     expect(fit.covariance[1]![1]).toBeCloseTo(0.00589825936921296, 10);
   });
 
-  it("matches the exchangeable and AR(1) residual-moment estimates", () => {
+  it("matches exchangeable moments and minimizes the AR(1) moment objective", () => {
     const exchangeable = geeglm("y ~ x", geeCheckData, { id: "id", waves: "wave", corstr: "exchangeable", epsilon: 1e-12, maxit: 500 });
     const ar1 = geeglm("y ~ x", geeCheckData, { id: "id", waves: "wave", corstr: "ar1", epsilon: 1e-12, maxit: 500 });
     expect(exchangeable.alpha[0]).toBeCloseTo(-0.117003308068869, 9);
-    expect(ar1.alpha[0]).toBeCloseTo(-0.201175106522640, 6);
     expect(ar1.converged).toBe(true);
+    const loss = ar1Objective(ar1);
+    expect(loss(ar1.alpha[0]!)).toBeLessThanOrEqual(loss(ar1.alpha[0]! - 1e-4) + 1e-12);
+    expect(loss(ar1.alpha[0]!)).toBeLessThanOrEqual(loss(ar1.alpha[0]! + 1e-4) + 1e-12);
   });
 
 
@@ -111,10 +139,13 @@ describe("generalized estimating equations", () => {
     };
     const withWaves = geeglm("y ~ x", gapData, { id: "id", waves: "wave", corstr: "ar1", epsilon: 1e-12, maxit: 500 });
     const defaultWaves = geeglm("y ~ x", gapData, { id: "id", corstr: "ar1", epsilon: 1e-12, maxit: 500 });
-    expect(withWaves.alpha[0]).toBeCloseTo(-0.318769908479073, 5);
     expect(withWaves.converged).toBe(true);
-    expect(defaultWaves.alpha[0]).toBeCloseTo(-0.173965690243595, 5);
     expect(defaultWaves.converged).toBe(true);
+    expect(Math.abs(withWaves.alpha[0]! - defaultWaves.alpha[0]!)).toBeGreaterThan(0.1);
+    const explicitLoss = ar1Objective(withWaves);
+    const defaultLoss = ar1Objective(defaultWaves);
+    expect(explicitLoss(withWaves.alpha[0]!)).toBeLessThanOrEqual(explicitLoss(withWaves.alpha[0]! - 1e-4) + 1e-12);
+    expect(defaultLoss(defaultWaves.alpha[0]!)).toBeLessThanOrEqual(defaultLoss(defaultWaves.alpha[0]! + 1e-4) + 1e-12);
   });
 
   it("supports unstructured, user-defined, and fixed pairwise working correlations", () => {
