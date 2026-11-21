@@ -67,7 +67,7 @@ describe("regression 1.8.0: scale, weight, order, and edge-input audit", () => {
   });
 
   it("keeps GEE coefficients and robust standard errors equivariant under x and y scales", () => {
-    const baseSe = geeBase.covariance.map((row, i) => Math.sqrt(row[i]!);
+    const baseSe = geeBase.covariance.map((row, i) => Math.sqrt(row[i]!));
     for (const scale of [1e100, 1e-100]) {
       const xFit = geeglm("y ~ x + z", { ...d, x: d.x.map(v => v * scale) }, geeOptions);
       close(xFit.coefficients[1]! * scale, geeBase.coefficients[1]!);
