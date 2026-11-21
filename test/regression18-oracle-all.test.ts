@@ -308,3 +308,20 @@ it("checks Gaussian glmnet lambda-max degrees of freedom", () => {
   expect(tightFit.df).toEqual(expected.tightDf);
   close(tightFit.nullDev, expected.tightNullDev, 1e-7);
 });
+
+it("diagnoses all synthetic GEE correlation structures against strict R fits", () => {
+  const g = geeFixture as any;
+  const data = g.inputs.gee_check;
+  for (const corstr of ["independence", "exchangeable", "ar1", "unstructured"] as const) {
+    const fit = geeglm("y ~ x", data, { id: "id", waves: "wave", family: "gaussian", corstr, epsilon: 1e-12, maxit: 1000 });
+    const reference = g.gee_check[corstr].value;
+    console.log("[regression18-oracle] synthetic GEE diagnostic", corstr, JSON.stringify({
+      js: fit.coefficients, r: reference.tight.coefficients,
+      jsAlpha: fit.alpha, rAlpha: correlationEstimates(reference.tight.corr),
+    }));
+    vectorWithROracleUncertainty(fit.coefficients, reference.default.coefficients, reference.tight.coefficients);
+    vectorWithROracleUncertainty(fit.alpha, correlationEstimates(reference.default.corr), correlationEstimates(reference.tight.corr));
+    matrixWithROracleUncertainty(fit.covariance, flatTable(reference.default.vcov), flatTable(reference.tight.vcov));
+    closeWithROracleUncertainty(fit.scale, reference.default.dispersion.values[0], reference.tight.dispersion.values[0]);
+  }
+});
