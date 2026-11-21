@@ -413,7 +413,6 @@ function oneStepJackknife(
   return covarianceOfReplicates(replicates);
 }
 
-/** Fit a marginal generalized estimating equation model. */
 /**
  * Fit a marginal generalized estimating equation model.
  * Equivalent to `geepack::geeglm()` in R.
