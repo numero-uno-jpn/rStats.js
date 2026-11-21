@@ -36,13 +36,20 @@ describe("elastic-net generalized linear models", () => {
     expect(glmnetCoef(fit, fit.lambda[2])[0]![0]).toBeCloseTo(fit.a0[2]!, 12);
   });
 
-  it("predicts on the response scale and interpolates coefficients on log lambda", () => {
+  it("predicts on the response scale and interpolates coefficients linearly in lambda", () => {
     const fit = glmnet(x, y, { nlambda: 8, lambdaMinRatio: 0.01 });
     const s = fit.lambda[2]!;
     const link = glmnetPredict(fit, x.slice(0, 3), { s, type: "link" });
     const response = glmnetPredict(fit, x.slice(0, 3), { s, type: "response" });
     expect(response).toEqual(link);
-    expect(glmnetCoef(fit, [0.75, 0.3])).toHaveLength(2);
+    const left = glmnetCoef(fit, fit.lambda[1]!)[0]!;
+    const right = glmnetCoef(fit, fit.lambda[2]!)[0]!;
+    const sOff = 0.3;
+    const t = (sOff - fit.lambda[1]!) / (fit.lambda[2]! - fit.lambda[1]!);
+    const offPath = glmnetCoef(fit, sOff)[0]!;
+    for (let j = 0; j < offPath.length; j++)
+      expect(offPath[j]).toBeCloseTo(left[j]! * (1 - t) + right[j]! * t, 12);
+    expect(glmnetCoef(fit, [0.75, sOff])).toHaveLength(2);
     expect(link[0]).toHaveLength(3);
   });
 
