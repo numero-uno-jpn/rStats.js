@@ -178,7 +178,7 @@ describe("rStats.js 1.8.0 public-output completeness against the pinned R oracle
     const expectedClass = Array.isArray(typeExpected.class[0]) ? typeExpected.class.flat() : typeExpected.class;
     expect(classPrediction[0]).toEqual(expectedClass);
     const nonzero = glmnetPredict(defaultFit, x.slice(0, 4), { s: defaultFit.lambda[2]!, type: "nonzero" });
-    expect(nonzero[0]).toEqual(typeExpected.nonzero.value);
+    expect(nonzero[0]).toEqual(Object.values(typeExpected.nonzero.value)[0]);
 
     const foldid = Array.from({ length: y.length }, (_, i) => i % 3 + 1);
     const cvExpected = f.cv.value;
@@ -189,7 +189,11 @@ describe("rStats.js 1.8.0 public-output completeness against the pinned R oracle
     vector(cv.cvm, cvExpected.groupedFalse.cvm, 1e-7);
     vector(cv.cvsd, cvExpected.groupedFalse.cvsd, 1e-7);
     vector(cv.nzero, cvExpected.nzero);
-    matrix(cv.fitPreval!, flatTable(cvExpected.groupedFalse.preval), 1e-7);
+    matrix(cv.fitPreval!, cvExpected.groupedFalse.preval.values, 1e-7);
+    vector(cv.cvup, cvExpected.cvmTight.map((v: number, i: number) => v + cvExpected.cvsdTight[i]!), 1e-7);
+    vector(cv.cvlo, cvExpected.cvmTight.map((v: number, i: number) => v - cvExpected.cvsdTight[i]!), 1e-7);
+    close(cv.lambdaMin, cvExpected.lambdaMinTight, 1e-10);
+    close(cv.lambda1se, cvExpected.lambda1seTight, 1e-10);
     expect(cv.lambdaMin).toBeGreaterThan(0);
     expect(cv.lambda1se).toBeGreaterThan(0);
     expect(cv.fitPreval).toBeDefined();
