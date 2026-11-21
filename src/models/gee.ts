@@ -44,6 +44,7 @@ export interface GeeResult {
   pearsonResiduals: number[];
   covariance: number[][];
   modelCovariance: number[][];
+  independenceCovariance: number[][];
   alpha: number[];
   scale: number;
   iterations: number;
@@ -407,13 +408,15 @@ export function geeglm(formula: string, data: DataFrame, options: GeeOptions): G
     meat = finalStep.meat;
     const breadInv = inverse(bread);
     const covariance = multiply(multiply(breadInv, meat), breadInv);
-    const modelCovariance = breadInv.map((r) => r.map((v) => v * scale));
+    const modelCovariance = breadInv.map((r) => r.slice());
+    const independentStep = geeStep(d.x, y, beta, offset, weights, family, clusterGroups, waves, "independence", [], scale, undefined);
+    const independenceCovariance = inverse(independentStep.bread);
     const ev = evaluate(d.x, y, beta, offset, family, weights);
     const fitted = new Array<number>(inputN).fill(NaN), linear = fitted.slice(), residuals = fitted.slice(), pearson = fitted.slice();
     rows.forEach((r, i) => { fitted[r] = ev.mu[i]!; linear[r] = ev.eta[i]!; residuals[r] = ev.residuals[i]!; pearson[r] = ev.pearson[i]!; });
     const result: GeeResult = {
       coefficients: beta, fittedValues: fitted, linearPredictors: linear, residuals, pearsonResiduals: pearson,
-      covariance, modelCovariance, alpha, scale, iterations: iteration, converged, family: family.family,
+      covariance, modelCovariance, independenceCovariance, alpha, scale, iterations: iteration, converged, family: family.family,
       link: family.name, corstr, stdErr, columnNames: d.colNames, rows, clusterIds: ids, waves,
       warnings: warnings.list.slice(),
       model: { formula, x: d.x, y, ids, waves, weights, offset, family: options.family ?? "gaussian",
@@ -472,18 +475,18 @@ export function geeQIC(fit: GeeResult): { QIC: number; QICu: number; Q: number; 
   const family = makeFamily(fit.model.family, fit.model.link);
   let q = 0;
   for (let i = 0; i < fit.model.y.length; i++) {
-    const y = fit.model.y[i]!, mu = fit.fittedValues[fit.rows[i]!]!;
-    if (family.family === "gaussian") q -= 0.5 * (y - mu) ** 2 / fit.scale;
-    else if (family.family === "binomial") q += y * Math.log(mu) + (1 - y) * Math.log(1 - mu);
-    else if (family.family === "poisson") q += y * Math.log(mu) - mu;
-    else if (family.family === "Gamma") q += -y / mu - Math.log(mu);
+    const y = fit.model.y[i]!, mu = fit.fittedValues[fit.rows[i]!]!, w = fit.model.weights[i]!;
+    if (family.family === "gaussian") q -= 0.5 * w * (y - mu) ** 2 / fit.scale;
+    else if (family.family === "binomial") q += w * (y * Math.log(mu) + (1 - y) * Math.log(1 - mu));
+    else if (family.family === "poisson") q += w * (y * Math.log(mu) - mu);
+    else if (family.family === "Gamma") q += w * (-y / mu - Math.log(mu));
   }
   const p = fit.coefficients.length;
-  const cicMatrix = multiply(inverse(fit.modelCovariance), inverse(fit.covariance));
+  const cicMatrix = multiply(fit.independenceCovariance, inverse(fit.covariance));
   let cic = 0;
   for (let i = 0; i < cicMatrix.length; i++) cic += cicMatrix[i]![i]!;
   const qic = -2 * q + 2 * cic;
   const qicu = -2 * q + 2 * p;
   const k = new Set(fit.clusterIds.map((v) => String(v))).size;
-  return { QIC: qic, QICu: qicu, Q: q, CIC: cic, params: p, QICC: qic + 2 * p * (p + 1) / Math.max(1, k - p - 1) };
+  return { QIC: qic, QICu: qicu, Q: q, CIC: cic, params: p, QICC: k > p + 1 ? qic + 2 * p * (p + 1) / (k - p - 1) : NaN };
 }
