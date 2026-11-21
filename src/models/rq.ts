@@ -622,10 +622,25 @@ export function rqPredict(fit: RqResult, newdata: DataFrame): number[] | number[
   return values.length === 1 ? values[0]! : values;
 }
 
+/** Options for rqSummary.
+ * @category Regression
+ */
 export interface RqSummaryOptions { se?: "nid" | "iid" | "rank" | "ker" | "boot"; covariance?: boolean; level?: number; }
+/** A coefficient row in an rq summary.
+ * @category Regression
+ */
 export interface RqCoefficientSummary { tau: number; term: string; estimate: number; stdError: number; statistic: number; pValue: number; }
+/** Result of rqSummary.
+ * @category Regression
+ */
 export interface RqSummaryResult { coefficients: RqCoefficientSummary[]; covariance?: number[][][]; se: string; warnings: string[]; }
+/** Options for confidence prediction intervals.
+ * @category Regression
+ */
 export interface RqPredictOptions { interval?: "none" | "confidence"; type?: "none" | "direct" | "percentile"; level?: number; }
+/** Result of confidence prediction.
+ * @category Regression
+ */
 export interface RqPredictResult { fit: number[] | number[][]; lower?: number[] | number[][]; upper?: number[] | number[][]; level: number; type: string; }
 
 function rqInverse(a: readonly number[][]): number[][] {
@@ -686,7 +701,10 @@ function rqNidCovariance(model: RqModel, tau: number, level: number): number[][]
   return middle.map((row) => row.map((v) => v * scale));
 }
 
-/** Coefficient summary with Hall–Sheather bandwidth and the nid sandwich covariance. */
+/** Coefficient summary with Hall–Sheather bandwidth and the nid sandwich covariance. Equivalent to R's summary.rq().
+ *
+ * @category Regression
+ */
 export function rqSummary(fit: RqResult, options: RqSummaryOptions = {}): RqSummaryResult {
   for (const key of Object.keys(options)) if (!["se", "covariance", "level"].includes(key)) throw new TypeError("unused argument (" + key + ")");
   const se = options.se ?? "nid";
@@ -708,7 +726,10 @@ export function rqSummary(fit: RqResult, options: RqSummaryOptions = {}): RqSumm
   return { coefficients, ...(options.covariance ? { covariance: covariances } : {}), se, warnings: [...fit.warnings] };
 }
 
-/** Confidence intervals for conditional quantile predictions using nid or direct quantile refits. */
+/** Confidence intervals for conditional quantile predictions using nid or direct quantile refits. Equivalent to R's predict.rq().
+ *
+ * @category Regression
+ */
 export function rqPredictInterval(fit: RqResult, newdata: DataFrame, options: RqPredictOptions = {}): RqPredictResult {
   for (const key of Object.keys(options)) if (!["interval", "type", "level"].includes(key)) throw new TypeError("unused argument (" + key + ")");
   const interval = options.interval ?? "none";
@@ -751,7 +772,10 @@ export function rqPredictInterval(fit: RqResult, newdata: DataFrame, options: Rq
   return { fit: predicted, lower, upper, level, type };
 }
 
-/** Wald test of equality of slopes across the quantiles in a multiple-tau fit. */
+/** Wald test of equality of slopes across the quantiles in a multiple-tau fit. Equivalent to R's anova.rq().
+ *
+ * @category Regression
+ */
 export function rqAnova(fit: RqResult): { statistic: number; df: number; dfResidual: number; pValue: number; method: "Wald" } {
   const model = fit.model;
   const p = model.columnNames.length;
