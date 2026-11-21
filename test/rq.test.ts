@@ -245,6 +245,14 @@ describe("quantile regression", () => {
   it("matches the Hall-Sheather nid covariance from the public oracle", () => {
     const data = { x: oracle.data.X.values.map((row) => row[1]!), y: oracle.data.y };
     const fit = rq("y ~ x", data, { tau: 0.5, method: "br" });
+
+    const h = 0.385563455061825;
+    const lowerFit = rq("y ~ x", data, { tau: 0.5 - h, method: "br" });
+    const upperFit = rq("y ~ x", data, { tau: 0.5 + h, method: "br" });
+    expect(lowerFit.coefficients["(Intercept)"]).toBeCloseTo(2, 13);
+    expect(lowerFit.coefficients.x).toBeCloseTo(0.75, 13);
+    expect(upperFit.coefficients["(Intercept)"]).toBeCloseTo(5, 13);
+    expect(upperFit.coefficients.x).toBeCloseTo(1, 13);
     const summary = rqSummary(fit, { se: "nid", covariance: true });
     expect(summary.coefficients).toHaveLength(2);
     expect(summary.covariance![0]![0]![0]).toBeCloseTo(0.415407811808214, 11);
