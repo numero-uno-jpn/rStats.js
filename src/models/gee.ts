@@ -16,7 +16,10 @@ import type { Sample } from "../htest/types.js";
 /** Working-correlation structures supported by geeglm.
  * @category Regression
  */
-/** Working correlation structures supported by a GEE fit. @category Regression */
+/**
+ * Working correlation structures supported by a GEE fit.
+ * @category Regression
+ */
 export type GeeCorrelation = "independence" | "exchangeable" | "ar1" | "unstructured" | "userdefined" | "fixed";
 
 /** Cluster identifiers may be numeric, character, or logical.
@@ -466,19 +469,28 @@ function geeStep(
   return { delta: solve(bread, score), bread, meat, clusterScores, clusterBread, eval: ev };
 }
 
-/** Options for selecting the covariance matrix returned by geeVcov. @category Regression */
+/**
+ * Options for selecting the covariance matrix returned by geeVcov.
+ * @category Regression
+ */
 export interface GeeVcovOptions {
   /** Covariance matrix to return: robust sandwich or model-based. */
   type?: "robust" | "naive";
 }
 
-/** Options for a GEE Wald analysis of variance. @category Regression */
+/**
+ * Options for a GEE Wald analysis of variance.
+ * @category Regression
+ */
 export interface GeeAnovaOptions {
   /** Wald test used for the sequential term comparison. */
   test?: "Wald";
 }
 
-/** Quasi-likelihood information criteria returned by geeQIC. @category Regression */
+/**
+ * Quasi-likelihood information criteria returned by geeQIC.
+ * @category Regression
+ */
 export interface GeeQICResult {
   /** Quasi-likelihood under the independence model criterion. */
   QIC: number;
