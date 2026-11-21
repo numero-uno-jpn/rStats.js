@@ -133,7 +133,7 @@ Grouped penalty is
 \lambda\sum_jv_j^*\{\alpha\|\beta_{j\cdot}\|_2+
 (1-\alpha)\|\beta_{j\cdot}\|_2^2/2\}.
 \]
-The ungrouped and grouped starts are 0.434995773978776 and 0.560170128638723; their deviance-ratio sequences differ as expected. The grouped path fails at its sixth lambda and returns the converged prefix.
+The ungrouped and grouped starts are 0.434995773978776 and 0.560170128638723; their deviance-ratio sequences differ as expected. The grouped path fails at its sixth lambda and returns the converged prefix. In the public coefficient output, class intercepts sum to zero for both types. Grouped slope vectors also sum to zero across classes, while ungrouped slope vectors generally do not; the ungrouped penalty is separable by class and must not be projected onto a zero-sum slope constraint.
 
 ### 7.5 Off-path interpolation
 
@@ -167,7 +167,7 @@ The public control output records fdev=1e-5, eps=1e-6, mnlam=5, devmax=.999, thr
 ## 8. Unresolved behaviour
 
 1. The exact stopping boundary for fdev, devmax, and active-set limits has not been isolated numerically. The n<p example reaches .01 exactly; the n>p example stops at .000372759372031494. The control defaults and both outcomes are recorded.
-2. Full class-centering/identifiability behaviour for every multinomial class-count and grouped-penalty corner case is not established by the compact output. Both grouped and ungrouped public paths and class probabilities were recorded; no unsupported parameterization detail is asserted.
+2. Full class-centering/identifiability behaviour for every multinomial class-count, penalty-factor, and coefficient-limit corner case is not established. The recorded three-class fixture establishes centered intercepts for both penalty types, non-zero-sum ungrouped slopes, and zero-sum grouped slopes.
 
 ## Decisions for the user
 
