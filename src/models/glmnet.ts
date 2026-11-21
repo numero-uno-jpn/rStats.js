@@ -246,7 +246,7 @@ function scalarKktResidual(
 
 function fitOne(
   x: readonly (readonly number[])[], y: readonly number[], weights: readonly number[], offset: readonly number[],
-  family: GlmnetFamily, alpha: number, lambda: number, start: number[], intercept: boolean,
+  family: "gaussian" | "binomial" | "poisson", alpha: number, lambda: number, start: number[], intercept: boolean,
   penalty: readonly number[], lower: readonly number[], upper: readonly number[], maxit: number, thresh: number,
 ): { a0: number; beta: number[]; eta: number[]; passes: number; converged: boolean; kkt: number } {
   const n = y.length, p = penalty.length;
