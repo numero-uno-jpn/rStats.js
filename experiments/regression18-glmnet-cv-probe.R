@@ -20,10 +20,19 @@ manual <- lapply(1:3, function(k) {
   test <- which(foldid == k)
   fixed <- glmnet(X[train, , drop = FALSE], y[train], lambda = full$lambda)
   automatic <- glmnet(X[train, , drop = FALSE], y[train], nlambda = 8)
+  pathCoef <- as.matrix(coef(automatic))
+  k <- max(which(automatic$lambda >= full$lambda[1]))
+  linearT <- (full$lambda[1] - automatic$lambda[k]) /
+    (automatic$lambda[k + 1] - automatic$lambda[k])
+  logT <- (log(full$lambda[1]) - log(automatic$lambda[k])) /
+    (log(automatic$lambda[k + 1]) - log(automatic$lambda[k]))
   list(
     test = test,
     fixed = tab(predict(fixed, X[test, , drop = FALSE], s = full$lambda)),
     automatic = tab(predict(automatic, X[test, , drop = FALSE], s = full$lambda)),
+    coefAtFirst = unname(as.matrix(coef(automatic, s = full$lambda[1]))[, 1]),
+    linearAtFirst = unname(pathCoef[, k] * (1 - linearT) + pathCoef[, k + 1] * linearT),
+    logAtFirst = unname(pathCoef[, k] * (1 - logT) + pathCoef[, k + 1] * logT),
     fixedLambda = fixed$lambda,
     automaticLambda = automatic$lambda
   )
