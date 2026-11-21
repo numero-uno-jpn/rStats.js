@@ -31,4 +31,17 @@ describe("generalized estimating equations", () => {
     expect(geePredict(fit, { newdata: { x: [2, 3] } })).toEqual([5, 7]);
     expect(geePredict(fit, { newdata: { x: [2, 3] }, type: "response" })).toEqual([5, 7]);
   });
+
+  it("treats offset(log(variable)) as fixed and uses it for newdata predictions", () => {
+    const t = [1, 2, 1, 2, 1, 2, 1, 2];
+    const x = [0, 1, 0, 1, 0, 1, 0, 1];
+    const residual = [0, 1, 1, 0, -1, -1, 0, 0];
+    const y = t.map((v, i) => 1 + 2 * x[i]! + Math.log(v) + residual[i]!);
+    const fit = geeglm("y ~ offset(log(t)) + x", { id: data.id, t, x, y }, { id: "id" });
+    expect(fit.coefficients[0]).toBeCloseTo(1, 10);
+    expect(fit.coefficients[1]).toBeCloseTo(2, 10);
+    expect(geePredict(fit, { newdata: { t: [4, 4], x: [0, 1] } })[0]).toBeCloseTo(1 + Math.log(4), 10);
+    expect(geePredict(fit, { newdata: { t: [4, 4], x: [0, 1] } })[1]).toBeCloseTo(3 + Math.log(4), 10);
+  });
+
 });
