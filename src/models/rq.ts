@@ -668,7 +668,7 @@ function rqBandwidth(n: number, tau: number, level: number): number {
   const z = qnorm(tau) as number;
   const critical = qnorm((1 + level) / 2) as number;
   const phi = Math.exp(-0.5 * z * z) / Math.sqrt(2 * Math.PI);
-  return Math.cbrt(1.5 * phi * phi * critical * critical / n);
+  return Math.cbrt((1.5 * phi * phi * critical * critical) / (n * (2 * z * z + 1)));
 }
 function rqBread(model: RqModel, tau: number, level: number, warnings?: string[]): number[][] {
   const h = rqBandwidth(model.y.length, tau, level);

@@ -108,9 +108,9 @@ The emitted design has \(X^\mathsf TX=((16,72),(72,664))\). Solving the common d
 
 With \(z_\tau=\Phi^{-1}(\tau)\) and standard normal density \(\phi\),
 \[
-h_{\rm HS}=n^{-1/3}\{1.5\phi(z_\tau)^2z_{1-\alpha/2}^2\}^{1/3},
+h_{\rm HS}=n^{-1/3}z_{1-\alpha/2}^{2/3}\left\{\frac{1.5\phi(z_\tau)^2}{2z_\tau^2+1}\right\}^{1/3},
 \quad
-h_{\rm B}=n^{-1/5}\{4.5\phi(z_\tau)^4\}^{1/5}.
+h_{\rm B}=n^{-1/5}\left\{\frac{4.5\phi(z_\tau)^4}{(2z_\tau^2+1)^2}\right\}^{1/5}.
 \]
 For n=16, tau=.5, alpha=.05, the independently evaluated values are 0.385563455061825 and 0.372003099908465; the public bandwidth output agrees to 14 significant digits.
 
