@@ -51,7 +51,7 @@ describe("rStats.js 1.8.0 public-output completeness against the pinned R oracle
     const rqData = rqFixture.data as any;
     const x = rqData.X.values.map((row: number[]) => row[1]);
     const fit = rq("y ~ x", { x, y: rqData.y }, { tau: 0.5, method: "fn", eps: 1e-12 });
-    const expectedFit = (rqFixture as any).fn_0.5.value;
+    const expectedFit = (rqFixture as any)["fn_0.5"].value;
     vector([fit.coefficients["(Intercept)"] as number, fit.coefficients.x as number], expectedFit.tightCoef);
     vector(fit.residuals as number[], expectedFit.residuals);
     vector(fit.fittedValues as number[], rqData.y.map((v: number, i: number) => v - expectedFit.residuals[i]!));
