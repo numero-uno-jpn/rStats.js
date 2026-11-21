@@ -38,9 +38,6 @@ function flatTable(expected: { nrow: number; ncol: number; values: number[] }): 
   return Array.from({ length: expected.nrow }, (_, i) =>
     Array.from({ length: expected.ncol }, (_, j) => expected.values[j * expected.nrow + i]!));
 }
-function geeTable(actual: readonly (readonly number[])[], expected: { nrow: number; ncol: number; values: number[] }, tolerance = 2e-7): void {
-  matrix(actual, flatTable(expected), tolerance);
-}
 function numericValues(value: any): number[] {
   const source = value && !Array.isArray(value) && Array.isArray(value.values) ? value.values : value;
   return Array.isArray(source) ? source.flat(Infinity).map(Number) : [];
