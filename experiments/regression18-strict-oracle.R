@@ -85,4 +85,14 @@ for (th in c(1e-16,1e-20)) {
     list(lambda=f$lambda,cvm=f$cvm,cvsd=f$cvsd,preval=tab(f$fit.preval))
   })
 }
+out$glmnetOffPath <- list()
+offLambda <- c(2,1,.5,.25,.125)
+for (th in c(1e-16,1e-20)) {
+  name <- if (th==1e-16) "thresh_1e16" else "thresh_1e20"
+  out$glmnetOffPath[[name]] <- capture({
+    f <- glmnet(X,y,lambda=offLambda,control=list(thresh=th,maxit=1e8))
+    list(lambda=f$lambda,coef=tab(coef(f,s=c(.75,.3))),
+         predict=tab(predict(f,X[1:4,],s=c(.75,.3))))
+  })
+}
 cat(toJSON(out,digits=NA,auto_unbox=TRUE,null="null",na="string",pretty=FALSE))
