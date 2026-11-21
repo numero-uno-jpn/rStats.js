@@ -64,11 +64,11 @@ describe("elastic-net generalized linear models", () => {
     const fixture = glmnetFixture as unknown as {
       X: { values: number[][] };
       y: number[];
-      gaussian_alpha0_5: { value: { lambda: number[]; a0: number[]; beta: { values: number[][] } } };
+      "gaussian_alpha0.5": { value: { lambda: number[]; a0: number[]; beta: { values: number[][] } } };
       gaussian_alpha0: { value: { lambda: number[]; a0: number[]; beta: { values: number[][] } } };
       penaltyFactor: { value: { lambda: number[]; a0: number[]; beta: { values: number[][] } } };
     };
-    for (const [alpha, key] of [[0.5, "gaussian_alpha0_5"], [0, "gaussian_alpha0"]] as const) {
+    for (const [alpha, key] of [[0.5, "gaussian_alpha0.5"], [0, "gaussian_alpha0"]] as const) {
       const fit = glmnet(fixture.X.values, fixture.y, { alpha, nlambda: 8, lambdaMinRatio: 0.01, thresh: 1e-12 });
       const expected = fixture[key].value;
       expect(fit.lambda[0]).toBeCloseTo(expected.lambda[0]!, 10);
