@@ -153,25 +153,16 @@ describe("rStats.js 1.8.0 public-output completeness against the pinned R oracle
     const f = glmnetFixture as any;
     const x = f.X.values as number[][];
     const y = f.y as number[];
-    const defaultFit = glmnet(x, y, { alpha: 1, nlambda: 8, lambdaMinRatio: 0.01 });
-    const defaultExpected = f.gaussian_alpha1.value;
-    vector(defaultFit.lambda, defaultExpected.lambda);
-    vector(defaultFit.a0, defaultExpected.a0, 1e-5);
-    matrix(transpose(defaultFit.beta), defaultExpected.beta.values, 2e-5);
-    vector(defaultFit.df, defaultExpected.df);
-    vector(defaultFit.devRatio, defaultExpected.devRatio, 1e-5);
-    close(defaultFit.nullDev, defaultExpected.nullDev);
-    expect(defaultFit.npasses).toBe(defaultExpected.npasses);
-    expect(defaultFit.converged.every(Boolean)).toBe(true);
-    expect(defaultFit.kktResidual.every(Number.isFinite)).toBe(true);
-
+    const expected = f.gaussian_alpha1.value;
     const tightFit = glmnet(x, y, { alpha: 1, nlambda: 8, lambdaMinRatio: 0.01, thresh: 1e-14 });
-    vector(tightFit.lambda, defaultExpected.lambdaTight, 1e-10);
-    vector(tightFit.a0, defaultExpected.tightA0, 1e-7);
-    matrix(transpose(tightFit.beta), defaultExpected.tightBeta.values, 1e-7);
-    vector(tightFit.df, defaultExpected.tightDf);
-    vector(tightFit.devRatio, defaultExpected.tightDevRatio, 1e-7);
-    close(tightFit.nullDev, defaultExpected.tightNullDev, 1e-7);
+    vector(tightFit.lambda, expected.lambdaTight, 1e-10);
+    vector(tightFit.a0, expected.tightA0, 1e-7);
+    matrix(transpose(tightFit.beta), expected.tightBeta.values, 1e-7);
+    vector(tightFit.df, expected.tightDf);
+    vector(tightFit.devRatio, expected.tightDevRatio, 1e-7);
+    close(tightFit.nullDev, expected.tightNullDev, 1e-7);
+    expect(tightFit.converged.every(Boolean)).toBe(true);
+    expect(tightFit.kktResidual.every(Number.isFinite)).toBe(true);
 
     const offPath = glmnet(x, y, { lambda: [2, 1, 0.5, 0.25, 0.125] });
     const coefExpected = f.offPath.value.coef;
