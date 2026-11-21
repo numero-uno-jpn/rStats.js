@@ -175,6 +175,16 @@ describe("rStats.js 1.8.0 public-output completeness against the pinned R oracle
     const x = f.X.values as number[][];
     const y = f.y as number[];
     const expected = f.gaussian_alpha1.value;
+    const defaultFit = glmnet(x, y, { alpha: 1, nlambda: 8, lambdaMinRatio: 0.01 });
+    vectorWithROracleUncertainty(defaultFit.lambda, expected.lambda, expected.lambdaTight);
+    vectorWithROracleUncertainty(defaultFit.a0, expected.a0, expected.tightA0);
+    matrixWithROracleUncertainty(transpose(defaultFit.beta), expected.beta.values, expected.tightBeta.values);
+    vectorWithROracleUncertainty(defaultFit.df, expected.df, expected.tightDf);
+    vectorWithROracleUncertainty(defaultFit.devRatio, expected.devRatio, expected.tightDevRatio);
+    closeWithROracleUncertainty(defaultFit.nullDev, expected.nullDev, expected.tightNullDev);
+    expect(defaultFit.converged.every(Boolean)).toBe(true);
+    expect(defaultFit.kktResidual.every(Number.isFinite)).toBe(true);
+
     const tightFit = glmnet(x, y, { alpha: 1, nlambda: 8, lambdaMinRatio: 0.01, thresh: 1e-14 });
     vector(tightFit.lambda, expected.lambdaTight, 1e-10);
     vector(tightFit.a0, expected.tightA0, 1e-7);
