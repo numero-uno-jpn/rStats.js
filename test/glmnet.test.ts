@@ -22,6 +22,8 @@ describe("elastic-net generalized linear models", () => {
       [0,0.0811248221001654,0.221693632928668,0.324238056770425,0.37882152783322,0.407092036696673,0.421733611762455,0.429319239778872],
       [0,0,0,0.0679075465786879,0.106438680348254,0.126396248651913,0.136731683765038,0.142085953612111],
     ];
+    expect(fit.converged.every(Boolean)).toBe(true);
+    expect(fit.kktResidual.every(v => v < 1e-8)).toBe(true);
     for (let k = 0; k < expectedLambda.length; k++) {
       expect(fit.lambda[k]).toBeCloseTo(expectedLambda[k]!, 11);
       for (let j = 0; j < 3; j++) expect(fit.beta[k]![j]).toBeCloseTo(expectedBeta[j]![k]!, 7);
