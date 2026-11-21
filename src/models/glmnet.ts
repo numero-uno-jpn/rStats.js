@@ -84,6 +84,7 @@ export interface GlmnetMultinomialResult {
   nullDev: number;
   npasses: number;
   converged: boolean[];
+  kktResidual: number[];
   model: {
     x: number[][];
     y: string[];
@@ -456,12 +457,64 @@ function multinomialObjective(
   return value;
 }
 
+function multinomialKktResidual(
+  x: readonly (readonly number[])[], y: readonly number[], weights: readonly number[],
+  a0: readonly number[], beta: readonly (readonly number[])[], lambda: number,
+  alpha: number, penalty: readonly number[], grouped: boolean,
+): number {
+  const n = y.length, p = penalty.length, kCount = a0.length;
+  const gradA = new Array<number>(kCount).fill(0);
+  const gradB = Array.from({ length: p }, () => new Array<number>(kCount).fill(0));
+  for (let i = 0; i < n; i++) {
+    const eta = a0.map((v, k) => {
+      let out = v;
+      for (let j = 0; j < p; j++) out += x[i]![j]! * beta[j]![k]!;
+      return out;
+    });
+    let maxEta = -Infinity; for (const v of eta) maxEta = Math.max(maxEta, v);
+    let denominator = 0; for (const v of eta) denominator += Math.exp(v - maxEta);
+    for (let k = 0; k < kCount; k++) {
+      const residual = weights[i]! * (Math.exp(eta[k]! - maxEta) / denominator - (y[i] === k ? 1 : 0)) / n;
+      gradA[k] = gradA[k]! + residual;
+      for (let j = 0; j < p; j++) gradB[j]![k] = gradB[j]![k]! + residual * x[i]![j]!;
+    }
+  }
+  let maximum = 0;
+  for (const value of gradA) maximum = Math.max(maximum, Math.abs(value));
+  for (let j = 0; j < p; j++) {
+    const l1 = lambda * alpha * penalty[j]!, ridge = lambda * (1 - alpha) * penalty[j]!;
+    if (grouped) {
+      let norm = 0, gradientNorm = 0, residualNorm = 0;
+      for (let k = 0; k < kCount; k++) norm += beta[j]![k]! ** 2;
+      norm = Math.sqrt(norm);
+      if (norm === 0) {
+        for (let k = 0; k < kCount; k++) gradientNorm += gradB[j]![k]! ** 2;
+        maximum = Math.max(maximum, Math.max(0, Math.sqrt(gradientNorm) - l1));
+      } else {
+        for (let k = 0; k < kCount; k++) {
+          const residual = gradB[j]![k]! + ridge * beta[j]![k]! + l1 * beta[j]![k]! / norm;
+          residualNorm += residual * residual;
+        }
+        maximum = Math.max(maximum, Math.sqrt(residualNorm));
+      }
+    } else {
+      for (let k = 0; k < kCount; k++) {
+        const value = beta[j]![k]!, smooth = gradB[j]![k]! + ridge * value;
+        const violation = value > 0 ? Math.abs(smooth + l1) :
+          value < 0 ? Math.abs(smooth - l1) : Math.max(0, Math.abs(smooth) - l1);
+        maximum = Math.max(maximum, violation);
+      }
+    }
+  }
+  return maximum;
+}
+
 function fitMultinomialOne(
   x: readonly (readonly number[])[], y: readonly number[], weights: readonly number[],
   startA: readonly number[], startB: readonly (readonly number[])[], lambda: number,
   alpha: number, penalty: readonly number[], grouped: boolean,
   lower: readonly number[], upper: readonly number[], maxit: number, thresh: number,
-): { a0: number[]; beta: number[][]; eta: number[][]; passes: number; converged: boolean } {
+): { a0: number[]; beta: number[][]; eta: number[][]; passes: number; converged: boolean; kkt: number } {
   const n = y.length, p = penalty.length, kCount = startA.length;
   let a0 = Array.from(startA), beta = startB.map(row => Array.from(row));
   let extrapA = a0.slice(), extrapB = beta.map(row => row.slice()), acceleration = 1;
@@ -547,9 +600,13 @@ function fitMultinomialOne(
       change = Math.max(change, Math.abs(beta[j]![k]! - oldB[j]![k]!));
       scale = Math.max(scale, Math.abs(beta[j]![k]!));
     }
-    if (change <= thresh * (1 + scale)) { converged = true; break; }
+    if (change <= thresh * (1 + scale)) {
+      const kkt = multinomialKktResidual(x, y, weights, a0, beta, lambda, alpha, penalty, grouped);
+      if (kkt <= thresh * (1 + scale)) { converged = true; break; }
+    }
   }
-  return { a0, beta, eta, passes, converged };
+  const kkt = multinomialKktResidual(x, y, weights, a0, beta, lambda, alpha, penalty, grouped);
+  return { a0, beta, eta, passes, converged, kkt };
 }
 
 function glmnetMultinomial(
@@ -619,7 +676,7 @@ function glmnetMultinomial(
   }
   const maxit = options.maxit ?? 100000, thresh = options.thresh ?? 1e-10;
   const a0: number[][] = classes.map(() => [] as number[]), betaByClass: Record<string, number[][]> = Object.fromEntries(classes.map(name => [name, Array.from({ length: p }, () => [] as number[])]));
-  const dfmat = classes.map(() => [] as number[]), devRatio: number[] = [], converged: boolean[] = [];
+  const dfmat = classes.map(() => [] as number[]), devRatio: number[] = [], converged: boolean[] = [], kktResidual: number[] = [];
   let startA = aNull.slice(), startB = Array.from({ length: p }, () => new Array<number>(kCount).fill(0)), npasses = 0;
   const everActive = new Set<number>();
   for (const lambda of lambdas) {
@@ -640,10 +697,11 @@ function glmnetMultinomial(
     const fittedDev = 2 * multinomialObjective(xs, y, w, fit.a0, fit.beta, 0, alpha, penalty, grouped);
     devRatio.push(nullDev === 0 ? 0 : 1 - fittedDev / nullDev);
     converged.push(fit.converged);
+    kktResidual.push(fit.kkt);
   }
   if (!a0.length) throw new RangeError("no lambda values satisfy dfmax and pmax");
   return { family: "multinomial", alpha, lambda: lambdas.slice(0, a0.length), a0, beta: betaByClass, dfmat,
-    devRatio, nullDev, npasses, converged,
+    devRatio, nullDev, npasses, converged, kktResidual,
     model: { x: x.map(row => Array.from(row)), y: Array.from(labels), weights: w, offset: new Array<number>(n).fill(0),
       xMean, xScale, intercept, columns: p, classes, typeMultinomial: options.typeMultinomial ?? "ungrouped" } };
 }
