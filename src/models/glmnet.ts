@@ -970,7 +970,7 @@ export function cvGlmnet(
   for (const fold of folds) {
     const train = numericY.map((_,i)=>i).filter(i=>foldid[i]!==fold), test = numericY.map((_,i)=>i).filter(i=>foldid[i]===fold);
     const subx=train.map(i=>x[i]!), suby=train.map(i=>numericY[i]!);
-    const subOptions: GlmnetOptions = {...options,
+    const subOptions: GlmnetOptions = {...options, lambda: fit.lambda,
       ...(options.weights === undefined ? {} : { weights: train.map(i=>options.weights![i]!) }),
       ...(options.offset === undefined ? {} : { offset: train.map(i=>options.offset![i]!) })};
     const sub=glmnetScalar(subx,suby,subOptions);
