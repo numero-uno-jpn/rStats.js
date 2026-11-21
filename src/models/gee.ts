@@ -398,16 +398,28 @@ export function geeglm(formula: string, data: DataFrame, options: GeeOptions): G
   const epsilon = options.epsilon ?? 1e-4, maxit = options.maxit ?? 25;
   if (!(epsilon > 0) || !Number.isFinite(epsilon) || !Number.isInteger(maxit) || maxit < 1) throw new RangeError("invalid convergence controls");
   const split = splitOffsets(formula);
-  const idName = typeof options.id === "string" ? options.id : undefined;
-  const waveName = typeof options.waves === "string" ? options.waves : undefined;
-  const extras = [idName, waveName, ...split.terms.map((t) => t.variable),
-    ...(typeof options.weights === "string" ? [options.weights] : []),
-    ...(typeof options.offset === "string" ? [options.offset] : [])].filter((v): v is string => v !== undefined);
-  const d = design(parseFormula(split.meanFormula), data, { extraVariables: extras, ...(options.weights === undefined ? {} : { weights: options.weights }) });
+  const inputN = Object.values(data)[0]?.length ?? 0;
+  const frameData = { ...data } as unknown as Record<string, unknown>;
+  const extras = split.terms.map((t) => t.variable);
+  const addVectorColumn = (base: string, values: ArrayLike<unknown>) => {
+    let name = "__gee_" + base;
+    while (name in frameData) name += "_";
+    frameData[name] = Array.from(values);
+    extras.push(name);
+  };
+  if (typeof options.id === "string") extras.push(options.id);
+  else addVectorColumn("id", options.id);
+  if (typeof options.waves === "string") extras.push(options.waves);
+  else if (options.waves !== undefined) addVectorColumn("waves", options.waves);
+  if (typeof options.weights === "string") extras.push(options.weights);
+  if (typeof options.offset === "string") extras.push(options.offset);
+  else if (options.offset !== undefined) addVectorColumn("offset", options.offset);
+  const d = design(parseFormula(split.meanFormula), frameData as DataFrame, {
+    extraVariables: extras, ...(options.weights === undefined ? {} : { weights: options.weights }),
+  });
   if (d.y === undefined) throw new TypeError("formula must have a response");
   const rows = d.frame.rows, n = rows.length, p = d.colNames.length;
   if (n === 0 || p === 0) throw new RangeError("no observations or no model columns");
-  const inputN = Object.values(data)[0]?.length ?? n;
   const ids = clusterVector(options.id, data, rows, inputN);
   let waves = options.waves === undefined ? rows.map((_, i) => i) : vector(options.waves, data, rows, inputN, 0, "waves");
   const weights = d.frame.weights ?? new Array<number>(n).fill(1);
