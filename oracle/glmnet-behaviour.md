@@ -139,11 +139,11 @@ The ungrouped and grouped starts are 0.434995773978776 and 0.560170128638723; th
 
 For s between adjacent stored lambdas,
 \[
-t=\frac{\log s-\log\lambda_k}{\log\lambda_{k+1}-\log\lambda_k},
+t=\frac{s-\lambda_k}{\lambda_{k+1}-\lambda_k},
 \quad
 \widehat\beta(s)=(1-t)\widehat\beta(\lambda_k)+t\widehat\beta(\lambda_{k+1}).
 \]
-The offPath output requests s=.75 and .30 from (2,1,.5,.25,.125) and records coefficient and prediction matrices. The public help states log-lambda interpolation. The compact output does not contain the full neighboring coefficient columns for this custom path, so an independent reconstruction is not claimed.
+The fixed-fold probe (`experiments/regression18-glmnet-cv-probe.R`, R 4.6.2 / glmnet 5.1) compares `coef(automatic, s=full$lambda[1])` with both formulas using the adjacent public coefficient columns. The returned coefficients equal the linear-in-lambda calculation to all displayed digits; the log-lambda calculation differs. The same fold-specific automatic path and interpolation reproduce `cv.glmnet`'s `fit.preval` matrix. This corrects the earlier interpretation of the help text.
 
 ### 7.6 Cross-validation
 
