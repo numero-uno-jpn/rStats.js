@@ -183,7 +183,7 @@ describe("generalized estimating equations", () => {
         se: [2.07996071483041, 0.0689921392266387, 1.72724039081666],
       },
     };
-    for (const method of ["jack", "j1s"] as const) {
+    for (const method of ["j1s", "jack"] as const) {
       const fit = geeglm("resp ~ age + smoke", jackData, {
         id: "id", waves: "wave", family: "binomial", corstr: "exchangeable", "std.err": method,
       });
