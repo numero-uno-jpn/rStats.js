@@ -96,6 +96,7 @@ describe("elastic-net generalized linear models", () => {
       const fit = glmnet(multiX, multiY, { family: "multinomial", typeMultinomial, nlambda: 6, maxit: 100000, thresh: 1e-14 });
       const expected = fixture[`multinomial_${typeMultinomial}`].value;
       expect(fit.lambda[0]).toBeCloseTo(expected.lambda[0]!, 7);
+      console.log("multinomial diagnostics", typeMultinomial, fit.converged, fit.kktResidual, fit.npasses);
       expect(fit.converged.every(Boolean)).toBe(true);
       expect(fit.beta.setosa![1]![2]).toBeCloseTo(expected.beta.setosa!.values[1]![2]!, 5);
       expect(fit.kktResidual.every(v => v < 1e-7)).toBe(true);
@@ -132,7 +133,13 @@ describe("elastic-net generalized linear models", () => {
     expect(grouped.lambda).toContain(grouped.lambdaMin);
     expect(grouped.lambda).toContain(grouped.lambda1se);
     const prevalence = ungrouped.fitPreval as number[][];
-    expect(prevalence[0]![0]).toBeCloseTo(fixture.cv.value.groupedFalse.preval.values[0]![0]!, 7);
+    const expectedPrevalence = fixture.cv.value.groupedFalse.preval.values;
+    let maxPrevalenceDifference = 0;
+    for (let i = 0; i < prevalence.length; i++) for (let k = 0; k < prevalence[i]!.length; k++)
+      maxPrevalenceDifference = Math.max(maxPrevalenceDifference,
+        Math.abs(prevalence[i]![k]! - expectedPrevalence[i]![k]!));
+    console.log("CV diagnostics", grouped.cvm[0], ungrouped.cvm[0], maxPrevalenceDifference);
+    expect(prevalence[0]![0]).toBeCloseTo(expectedPrevalence[0]![0]!, 7);
     expect(ungrouped.cvm[0]).toBeCloseTo(fixture.cv.value.groupedFalse.cvm[0]!, 7);
     expect(ungrouped.cvsd[0]).toBeCloseTo(fixture.cv.value.groupedFalse.cvsd[0]!, 7);
   });
