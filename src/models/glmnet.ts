@@ -37,6 +37,8 @@ export interface GlmnetOptions {
   upperLimits?: number | readonly number[];
   dfmax?: number;
   pmax?: number;
+  fdev?: number;
+  devmax?: number;
   maxit?: number;
   thresh?: number;
 }
@@ -367,7 +369,9 @@ function glmnetScalar(x: readonly (readonly number[])[], y: readonly number[], o
   const maxit = options.maxit ?? 100000, thresh = options.thresh ?? 1e-7;
   if (!Number.isInteger(maxit) || maxit < 1 || !(thresh > 0)) throw new RangeError("invalid convergence controls");
   const dfmax = options.dfmax ?? p + 1, pmax = options.pmax ?? p;
+  const fdev = options.fdev ?? 1e-5, devmax = options.devmax ?? 0.999;
   if (!Number.isInteger(dfmax) || dfmax < 1 || !Number.isInteger(pmax) || pmax < 1) throw new RangeError("dfmax and pmax must be positive integers");
+  if (!(fdev >= 0) || !Number.isFinite(fdev) || !(devmax > 0 && devmax <= 1)) throw new RangeError("invalid fdev or devmax");
   const a0: number[] = [], beta: number[][] = [], df: number[] = [], devRatio: number[] = [], converged: boolean[] = [], kktResidual: number[] = [];
   const nullDev = deviance(y, eta0, w, family);
   let start = [y0, ...new Array<number>(p).fill(0)], npasses = 0;
@@ -384,9 +388,13 @@ function glmnetScalar(x: readonly (readonly number[])[], y: readonly number[], o
     a0.push(originalIntercept);
     beta.push(originalBeta);
     df.push(active);
-    devRatio.push(nullDev === 0 ? 0 : 1 - deviance(y, fit.eta, w, family) / nullDev);
+    const currentDevRatio = nullDev === 0 ? 0 : 1 - deviance(y, fit.eta, w, family) / nullDev;
+    const previousDevRatio = devRatio.length ? devRatio[devRatio.length - 1]! : undefined;
+    devRatio.push(currentDevRatio);
     converged.push(fit.converged);
     kktResidual.push(fit.kkt);
+    if (currentDevRatio >= devmax || (previousDevRatio !== undefined &&
+        (currentDevRatio - previousDevRatio) / Math.max(1e-15, 1 - previousDevRatio) < fdev)) break;
   }
   if (a0.length === 0) throw new RangeError("no lambda values satisfy dfmax and pmax");
   return { family, alpha, lambda: lambdas.slice(0, a0.length), a0, beta, df, devRatio, nullDev, npasses, converged, kktResidual,
@@ -691,7 +699,9 @@ function glmnetMultinomial(
     lower[j] = lower[j]! * xScale[j]!; upper[j] = upper[j]! * xScale[j]!;
   }
   const maxit = options.maxit ?? 100000, thresh = options.thresh ?? 1e-7;
+  const fdev = options.fdev ?? 1e-5, devmax = options.devmax ?? 0.999;
   if (!Number.isInteger(maxit) || maxit < 1 || !(thresh > 0) || !Number.isFinite(thresh)) throw new RangeError("maxit and thresh must be positive");
+  if (!(fdev >= 0) || !Number.isFinite(fdev) || !(devmax > 0 && devmax <= 1)) throw new RangeError("invalid fdev or devmax");
   const a0: number[][] = classes.map(() => [] as number[]), betaByClass: Record<string, number[][]> = Object.fromEntries(classes.map(name => [name, Array.from({ length: p }, () => [] as number[])]));
   const dfmat = classes.map(() => [] as number[]), devRatio: number[] = [], converged: boolean[] = [], kktResidual: number[] = [];
   let startA = aNull.slice(), startB = Array.from({ length: p }, () => new Array<number>(kCount).fill(0)), npasses = 0;
@@ -712,9 +722,13 @@ function glmnetMultinomial(
     for (let k = 0; k < kCount; k++) for (let j = 0; j < p; j++) betaByClass[classes[k]!]![j]!.push(originalByClass[k]![j + 1]!);
     for (let k = 0; k < kCount; k++) dfmat[k]!.push(classDf[k]!);
     const fittedDev = 2 * multinomialObjective(xs, y, w, fit.a0, fit.beta, 0, alpha, penalty, grouped);
-    devRatio.push(nullDev === 0 ? 0 : 1 - fittedDev / nullDev);
+    const currentDevRatio = nullDev === 0 ? 0 : 1 - fittedDev / nullDev;
+    const previousDevRatio = devRatio.length ? devRatio[devRatio.length - 1]! : undefined;
+    devRatio.push(currentDevRatio);
     converged.push(fit.converged);
     kktResidual.push(fit.kkt);
+    if (currentDevRatio >= devmax || (previousDevRatio !== undefined &&
+        (currentDevRatio - previousDevRatio) / Math.max(1e-15, 1 - previousDevRatio) < fdev)) break;
   }
   if (!a0.length) throw new RangeError("no lambda values satisfy dfmax and pmax");
   return { family: "multinomial", alpha, lambda: lambdas.slice(0, a0.length), a0, beta: betaByClass, dfmat,
