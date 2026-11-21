@@ -814,6 +814,9 @@ export function rqAnova(fit: RqResult, reducedOrJoint?: RqResult | boolean): RqW
   return rqMultiTauWald(fit, tested);
 }
 
+/** Result of a quantile-regression Wald comparison.
+ * @category Regression
+ */
 export interface RqWaldResult {
   statistic: number;
   df: number;

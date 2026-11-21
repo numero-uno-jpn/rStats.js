@@ -78,6 +78,7 @@ export {
   type RqCoefficientSummary,
   type RqPredictOptions,
   type RqPredictResult,
+  type RqWaldResult,
   type RqMethod,
   type RqOptions,
   type RqModel,

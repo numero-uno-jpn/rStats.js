@@ -327,6 +327,7 @@ describe("quantile regression", () => {
     const separate = rqAnova(twoPredictorFit, false);
     expect(joint.df).toBe(4);
     expect(joint.dfResidual).toBe(176);
+    if (!Array.isArray(separate)) throw new Error("joint=false must return separate Wald tests");
     expect(separate).toHaveLength(2);
     expect(separate[0]!.df).toBe(2);
     expect(separate[0]!.dfResidual).toBe(178);
