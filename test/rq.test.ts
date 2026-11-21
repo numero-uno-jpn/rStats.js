@@ -265,7 +265,7 @@ describe("quantile regression", () => {
     expect(direct.upper).toHaveLength(3);
     for (let i = 0; i < 3; i++) {
       expect(none.lower![i]!).toBeLessThanOrEqual(fitted[i]!);
-      expect(none.upper![i]!).toBeGreaterThanOrEqual(none.fit[i] as number);
+      expect(none.upper![i]!).toBeGreaterThanOrEqual(fitted[i]!);
       expect(direct.lower![i]!).toBeLessThanOrEqual(direct.upper![i]!);
     }
   });
