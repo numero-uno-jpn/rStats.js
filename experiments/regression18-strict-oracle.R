@@ -48,9 +48,19 @@ lag1Cross <- sum(lag1Previous*lag1Next)
 alphaOLS <- lag1Cross/sum(lag1Previous^2)
 alphaUncenteredCor <- lag1Cross/sqrt(sum(lag1Previous^2)*sum(lag1Next^2))
 alphaCenteredCor <- cor(lag1Previous,lag1Next)
+residualLoss <- function(a) sum(vapply(residualGroups,function(v) {
+  total <- 0
+  if (length(v)>1) for (i in seq_len(length(v)-1)) for (j in (i+1):length(v)) {
+    lag <- j-i
+    total <- total + (v[j]-a^lag*v[i])^2
+  }
+  total
+},numeric(1)))
+alphaResidualLS <- optimize(residualLoss,interval=c(-.98,.98))$minimum
 out$geePredict$momentProbe <- list(lagMeans=lagMeans,lagWeights=lagWeights,
   alphaLag1=lagMeans[1],alphaLeastSquares=alphaLS,alphaOLS=alphaOLS,
   alphaUncenteredCor=alphaUncenteredCor,alphaCenteredCor=alphaCenteredCor,
+  alphaResidualLS=alphaResidualLS,
   alphaR=out$geePredict$epsilon_1e12$value$correlation$values[1])
 out$geePredict$explicitWaves <- capture({
   waves <- ave(seq_along(ohio$id), ohio$id, FUN=seq_along)
