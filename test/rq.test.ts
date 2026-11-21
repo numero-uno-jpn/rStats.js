@@ -294,7 +294,7 @@ describe("quantile regression", () => {
     expect(summary.covariance![0]).toHaveLength(2);
     expect(summary.covariance![1]).toHaveLength(2);
     expect(summary.covariance![2]).toHaveLength(2);
-    expect(() => rqSummary(rq("y ~ x", data, { tau: 0.5 }))).toThrow(/iid, rank, ker and boot remain unresolved/);
+    expect(() => rqSummary(rq("y ~ x", data, { tau: 0.5 }), { se: "iid" })).toThrow(/iid, ker and boot remain unresolved/);
   });
 
   it("computes a Wald test for equality of slopes across quantiles", () => {
@@ -335,7 +335,38 @@ describe("quantile regression", () => {
   });
 
   it.todo("iid density estimator is unresolved pending the user's independent review");
-  it.todo("rank interval endpoints are unresolved pending the user's independent review");
+  it("inverts the rank test as R does (n = 1000, and stackloss)", () => {
+    const fixture = JSON.parse(readFileSync(fileURLToPath(new URL("./fixtures/rq.json", import.meta.url)), "utf8"));
+    const mismatches: string[] = [];
+    const compare = (label: string, fit: ReturnType<typeof rq>, table: { values: number[][] }, skip: string[] = []) => {
+      const summary = rqSummary(fit, { se: "rank" });
+      summary.coefficients.forEach((row, j) => {
+        const [estimate, lower, upper] = table.values[j]!;
+        for (const [name, got, want] of [["estimate", row.estimate, estimate], ["lower", row.lower, lower], ["upper", row.upper, upper]] as const) {
+          if (skip.includes(`${row.term} ${name}`)) continue;
+          if (!(Math.abs(got! - want!) <= 1e-12 * Math.max(1, Math.abs(want!)))) mismatches.push(`${label} ${row.term} ${name}: ${got} vs R ${want}`);
+        }
+      });
+    };
+    // R: xx <- sin(seq_len(1000) * .17); yy <- 1 + 2 * xx + cos(seq_len(1000) * .31); summary(rq(yy ~ xx), se = "rank")
+    const xx = Array.from({ length: 1000 }, (_, i) => Math.sin((i + 1) * 0.17));
+    const yy = xx.map((v, i) => 1 + 2 * v + Math.cos((i + 1) * 0.31));
+    const n1000 = rq("yy ~ xx", { xx, yy });
+    compare("n1000", n1000, fixture.defaultSEswitch.value["1000"].rank);
+    // the default se for n <= 1000 is rank (choices 4)
+    expect(rqSummary(n1000).se).toBe("rank");
+    const stackloss = {
+      Air: [80, 80, 75, 62, 62, 62, 62, 62, 58, 58, 58, 58, 58, 58, 50, 50, 50, 50, 50, 56, 70],
+      Water: [27, 27, 25, 24, 22, 23, 24, 24, 23, 18, 18, 17, 18, 19, 18, 18, 19, 19, 20, 20, 20],
+      Acid: [89, 88, 90, 87, 87, 87, 93, 93, 87, 80, 89, 88, 82, 93, 89, 86, 72, 79, 80, 82, 91],
+      loss: [42, 37, 37, 28, 18, 18, 19, 20, 15, 14, 14, 13, 11, 12, 8, 7, 8, 8, 9, 15, 15],
+    };
+    // Known difference: with integer data the dual can be degenerate along the path and R passes another optimal
+    // vertex; the lower limit of Air.Flow is 0.52307 here and 0.51278 in R (T(b) itself agrees with R's own fits at
+    // every b tried, experiments/regression18-rank-path.R)
+    compare("stackloss", rq("loss ~ Air + Water + Acid", stackloss), fixture.summary_se_warnings.value.rank.value.coefficients, ["Air lower"]);
+    expect(mismatches).toEqual([]);
+  });
   it.todo("ker bandwidth and local density are unresolved pending R-output comparison");
   it.todo("bootstrap pwy, mcmb and wxy perturbation maps are unresolved pending the user's independent review");
 

@@ -148,7 +148,31 @@ The rank score is
 \[
 S(\beta)=\sum_i x_i\{\mathbf1(y_i\leq x_i^\mathsf T\beta)-\tau\}.
 \]
-The iid score covariance uses \(\tau(1-\tau)\sum_i x_ix_i^\mathsf T\); iid=FALSE uses the observation-specific score covariance. The reported interval endpoints are the lower and upper endpoints of the accepted set after profiling nuisance coefficients. At alpha=.05, the public intervals are intercept [1.96894923868268,4.53894801798403] and slope [0.580560930960114,1.06404864074146]. At alpha=.1 they are [1.14573004521032,5.07238472881931] and [0.557058220755292,1.18030276287381]. The non-iid alpha=.05 intervals are [1.96269708518447,4.54056234486899] and [0.575837208334820,1.07606187567548]. These public values are recorded; independent root-by-root reconstruction of the nuisance-profiled endpoints is not yet complete.
+**Rank intervals (identified on 2026-11-21 by the coordinator; `experiments/regression18-rank-path.R` and `.out.txt`).**
+For \(H_0:\beta_j=b\) the restricted problem regresses \(y-x_jb\) on the other columns \(X_{-j}\). Its dual solution
+\(\hat a\) (the regression rank scores at \(\tau\), \(0\le\hat a_i\le1\), \(X_{-j}^\mathsf T\hat a=(1-\tau)X_{-j}^\mathsf T\mathbf 1\))
+gives, with \(\tilde x\) the residual of \(x_j\) after least-squares projection on \(X_{-j}\) (iid = TRUE),
+\[
+T(b)=\frac{\sum_i\tilde x_i\{\hat a_i-(1-\tau)\}}{\sqrt{\tau(1-\tau)\sum_i\tilde x_i^2}} .
+\]
+\(T\) is a step function of \(b\). R follows the restricted problem from \(b=\hat\beta_j\) outward by parametric linear
+programming:
+- an *event* is a value of \(b\) at which a non-basic residual reaches 0. The residual changes sign; the basis is kept when
+  the basic dual values stay in \([0,1]\), and otherwise the row enters and the leaving row is the one that keeps the dual
+  feasible. All rows whose residual is 0 at the same \(b\) are processed before \(T\) is recorded;
+- at \(\hat\beta_j\) the restricted basis is the full basis less one row. When several are dual feasible (the same dual
+  vector), the leaving row is the one whose residual becomes positive just beyond \(\hat\beta_j\);
+- \(T\) is recorded after each event, and the endpoint is the linear interpolation, between the two consecutive events at
+  which \(T\) first crosses \(\pm t_{n-p,1-\alpha/2}\) (Student's t, not the normal), of the \(b\) where it equals the
+  critical value.
+
+R's default is `alpha = 0.1` (rStats.js `level = 0.9`). Checks: the 16-row example's four slope limits at alpha 0.05 and
+0.1 to all digits; the n = 1000 case of `defaultSEswitch` (four limits, 4e-14); stackloss (p = 4, `summary_se_warnings`),
+seven of eight limits to 1e-14. The eighth (Air.Flow lower: 0.52307 here, 0.51278 in R) and the 16-row intercept's
+lower limits are on integer data with tied events: the dual is degenerate there and R's path passes another optimal
+vertex. \(T(b)\) itself agrees with R's own restricted fits at every \(b\) tried (Part 3 of the experiment); only the
+event points used for the interpolation differ. Recorded as a known difference. For iid = FALSE the limits of the
+16-row example are in the experiment's output; they are not reproduced yet (section 8).
 
 For a nested restriction \(R\beta=r\), the Wald statistic is
 \[
@@ -188,7 +212,7 @@ The consolidated public-output probe in `experiments/regression18-rq-inference.R
    The residual-based candidate diagnostics did not identify the exact estimator: Gaussian density estimates at zero were
    0.129178297294227 and 0.120788728503014 after excluding the two exact-fit residuals (bandwidth choices nrd and nrd0),
    and 0.152618319387231 / 0.151872099454079 when retaining them. Residual quantile spacings for types 1–9 were also emitted and do not establish the reported scale. The common density is therefore still not specified.
-2. **rank interval endpoints.** Public endpoints are now retained for the small design (iid alpha=.05 and iid=FALSE alpha=.05) and Engel (iid alpha=.05, iid=FALSE alpha=.05, alpha=.1). The score definition is known, but the nuisance-profiled inversion and its numerical endpoint search have not been independently reconstructed to 1e-10. No endpoint is claimed as independently verified.
+2. **rank interval endpoints.** Resolved for iid = TRUE (section 7.5), except on degenerate (tied) data. iid = FALSE (the weighted projection of Koenker 1994) is not reproduced and not offered yet.
 3. **bootstrap perturbation maps.** The consolidated probe emitted `B`, `U` where exposed, raw draws, and post-call RNG kind for xy, pwy, mcmb and wxy on a 16-row design with four replicates. The raw draw streams are confirmed (sample indices, uniforms, standard normals, exponentials), but the finite-sample transformation from pwy/mcmb/wxy draws to each replicate's fitted coefficients is still not established from the methods papers and public output. Do not claim the bootstrap standard errors match yet.
 4. **ker bandwidth.** The small-design public `Hinv` and covariance imply a common residual density of approximately 0.0839500524748983 when expressed against the emitted (X^\mathsf TX). The public result does not expose the kernel bandwidth directly. Fitting the emitted H inverse to candidate kernel matrices identifies a Gaussian kernel to 4.9e-14 relative error, with the unnormalised Hessian form H = (1/h) sum_i phi(residual_i/h) x_i x_i^T and inferred h = 4.512859542966 for this 16-row case (the fitted scale factor is exactly n=16). The kernel shape is therefore strongly identified, but the rule that selects this bandwidth is not recovered from the public output. Keep ker unresolved and do not generalise this one inferred h to other samples.
 

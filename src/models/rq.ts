@@ -629,7 +629,13 @@ export interface RqSummaryOptions { se?: "nid" | "iid" | "rank" | "ker" | "boot"
 /** A coefficient row in an rq summary.
  * @category Regression
  */
-export interface RqCoefficientSummary { tau: number; term: string; estimate: number; stdError: number; statistic: number; pValue: number; }
+export interface RqCoefficientSummary {
+  tau: number; term: string; estimate: number;
+  /** NaN for `se = "rank"`, which gives an interval (`lower`, `upper`) instead. */
+  stdError: number; statistic: number; pValue: number;
+  /** The confidence limits of `se = "rank"` (R's `lower bd` and `upper bd`). */
+  lower?: number; upper?: number;
+}
 /** Result of rqSummary.
  * @category Regression
  */
@@ -705,6 +711,175 @@ function rqNidCovariance(model: RqModel, tau: number, level: number, warnings?: 
   return middle.map((row) => row.map((v) => v * scale));
 }
 
+// Confidence intervals by inversion of the regression rank-score test (Gutenbrunner, Jurečková, Koenker and Portnoy
+// 1993; Koenker 1994). For H0: beta_j = b the restricted problem regresses y - x_j b on the other columns; its dual
+// solution a (the regression rank scores at tau) gives
+//   T(b) = sum_i xt_i (a_i - (1 - tau)) / sqrt(tau (1 - tau) sum_i xt_i^2),
+// xt being x_j less its least-squares projection on the other columns. As b moves away from the estimate, the
+// restricted problem is followed by parametric linear programming: an event is a b at which a non-basic residual
+// reaches 0; the residual changes sign, and the basis changes only when that would take the basic dual values out
+// of [0, 1]. T is recorded after each event, and an endpoint is the linear interpolation, between the two events
+// where T first crosses +-qt(1 - alpha / 2, n - p), of the point where it equals the critical value. Matching
+// R's intervals needs exactly this path: the events and the interpolation between them (not the jumps of T) were
+// identified from R's public output (experiments/regression18-rank-path.*).
+const RANK_TOL = 1e-10;
+function rqRankDual(xr: readonly number[][], basis: readonly number[], positive: readonly boolean[], tau: number): number[] | undefined {
+  const q = xr[0]?.length ?? 0;
+  const rhs = new Array<number>(q).fill(0);
+  const inBasis = new Set(basis);
+  for (let i = 0; i < xr.length; i++) {
+    const row = xr[i]!;
+    const coefficient = (1 - tau) - (!inBasis.has(i) && positive[i] ? 1 : 0);
+    for (let k = 0; k < q; k++) rhs[k]! += coefficient * row[k]!;
+  }
+  if (q === 0) return [];
+  const transposed = Array.from({ length: q }, (_, k) => basis.map((i) => xr[i]![k]!));
+  let a: number[];
+  try { a = solveLinear(transposed, rhs); } catch { return undefined; }
+  return a.every((v) => v > -RANK_TOL && v < 1 + RANK_TOL) ? a : undefined;
+}
+function rqRankEndpoint(x: readonly number[][], y: readonly number[], j: number, tau: number, start: number,
+  startBasis: readonly number[], direction: 1 | -1, critical: number): number {
+  const n = y.length;
+  const xj = x.map((row) => row[j]!);
+  const xr = x.map((row) => row.filter((_, k) => k !== j));
+  const q = xr[0]!.length;
+  // xt: x_j less its least-squares projection on the other columns
+  let xt = xj;
+  if (q > 0) {
+    const gram = Array.from({ length: q }, (_, a) => Array.from({ length: q }, (_, b) => xr.reduce((s, row) => s + row[a]! * row[b]!, 0)));
+    const coef = solveLinear(gram, Array.from({ length: q }, (_, a) => xr.reduce((s, row, i) => s + row[a]! * xj[i]!, 0)));
+    xt = xj.map((v, i) => v - dot(xr[i]!, coef));
+  }
+  const scale = Math.sqrt(tau * (1 - tau) * xt.reduce((s, v) => s + v * v, 0));
+  // residual of row i as c_i - b d_i under a basis
+  const lines = (basis: readonly number[]) => {
+    if (q === 0) return { c: [...y], d: [...xj] };
+    const xb = basis.map((i) => xr[i]!);
+    const u = solveLinear(xb.map((r) => [...r]), basis.map((i) => y[i]!));
+    const v = solveLinear(xb.map((r) => [...r]), basis.map((i) => xj[i]!));
+    return { c: y.map((yi, i) => yi - dot(xr[i]!, u)), d: xj.map((xi, i) => xi - dot(xr[i]!, v)) };
+  };
+  const statistic = (basis: readonly number[], positive: readonly boolean[], a: readonly number[]) => {
+    const inBasis = new Map(basis.map((i, k) => [i, k]));
+    let s = 0;
+    for (let i = 0; i < n; i++) {
+      const k = inBasis.get(i);
+      const ai = k === undefined ? (positive[i] ? 1 : 0) : a[k]!;
+      s += xt[i]! * (ai - (1 - tau));
+    }
+    return s / scale;
+  };
+  // the restricted basis at the estimate: the full basis less one row. Several can be dual feasible there (a
+  // degenerate vertex); the one that stays optimal as b moves is the vertex that is best for the objective
+  // (y - x_j b)' a just beyond the estimate, that is the largest x_j' a when b decreases and the smallest when it
+  // increases
+  let basis: number[] = [];
+  let positive: boolean[] = [];
+  let a: number[] = [];
+  let found = false;
+  let best = -Infinity;
+  for (const leave of startBasis) {
+    const candidate = startBasis.filter((i) => i !== leave).slice(0, q);
+    if (candidate.length !== q) continue;
+    let ln;
+    try { ln = lines(candidate); } catch { continue; }
+    const sign = y.map((_, i) => {
+      const r = ln.c[i]! - start * ln.d[i]!;
+      return Math.abs(r) > RANK_TOL * (1 + Math.abs(y[i]!)) ? r > 0 : -direction * ln.d[i]! > 0;
+    });
+    const dual = rqRankDual(xr, candidate, sign, tau);
+    if (!dual) continue;
+    const position = new Map(candidate.map((i, k) => [i, k]));
+    let value = 0;
+    for (let i = 0; i < n; i++) {
+      const k = position.get(i);
+      value += xj[i]! * (k === undefined ? (sign[i] ? 1 : 0) : dual[k]!);
+    }
+    // ties (the same dual vector from several bases) go to the basis whose leaving row has a positive residual
+    const score = -direction * value + (sign[leave] ? RANK_TOL / 2 : 0);
+    if (!found || score > best) { basis = candidate; positive = sign; a = dual; best = score; found = true; }
+  }
+  if (!found) throw new RangeError("rank inversion: no feasible restricted basis at the estimate");
+  let b = start;
+  let t = statistic(basis, positive, a);
+  const target = direction < 0 ? critical : -critical;
+  for (let iteration = 0; iteration < 50 * n; iteration++) {
+    const { c, d } = lines(basis);
+    const inBasis = new Set(basis);
+    // the next b in this direction at which a non-basic residual c_i - b d_i reaches 0
+    let step = Infinity;
+    let k = -1;
+    for (let i = 0; i < n; i++) {
+      if (inBasis.has(i) || d[i] === 0) continue;
+      const root = c[i]! / d[i]!;
+      const s = (root - b) * direction;
+      if (s > RANK_TOL * (1 + Math.abs(b)) && s < step) { step = s; k = i; }
+    }
+    if (k < 0) return direction * Infinity;
+    const next = b + direction * step;
+    // every non-basic residual that reaches 0 at this b (ties are common) changes sign before T is recorded; each
+    // change keeps the basis when the dual stays feasible and is a pivot otherwise
+    let nextBasis = basis;
+    let nextPositive = positive;
+    let dual: number[] | undefined = a;
+    for (let guard = 0; guard <= n; guard++) {
+      const ln = lines(nextBasis);
+      const current = new Set(nextBasis);
+      // of the rows whose residual is 0 here, the one whose computed root c_i / d_i comes first in this direction.
+      // With ties (several roots equal in exact arithmetic, as with integer data) the dual can be degenerate and R's
+      // path can pass another optimal vertex, so its endpoints there need not be the ones here (a known difference)
+      let flip = -1;
+      let first = Infinity;
+      for (let i = 0; i < n; i++) {
+        if (current.has(i)) continue;
+        const r = ln.c[i]! - next * ln.d[i]!;
+        if (Math.abs(r) > RANK_TOL * (1 + Math.abs(y[i]!) + Math.abs(next * xj[i]!))) continue;
+        const beyond = -direction * ln.d[i]! > 0;
+        if (ln.d[i] === 0 || beyond === nextPositive[i]) continue;
+        const ahead = ((ln.c[i]! / ln.d[i]!) - b) * direction;
+        if (ahead < first) { first = ahead; flip = i; }
+      }
+      if (flip < 0) break;
+      const flipped = nextPositive.map((v, i) => (i === flip ? !v : v));
+      const kept = rqRankDual(xr, nextBasis, flipped, tau);
+      if (kept) { nextPositive = flipped; dual = kept; continue; }
+      // pivot: the row enters, and the leaving row is the one that keeps the dual feasible
+      let pivoted = false;
+      for (const leave of nextBasis) {
+        const candidate = nextBasis.map((i) => (i === leave ? flip : i));
+        let lc;
+        try { lc = lines(candidate); } catch { continue; }
+        const sign = flipped.map((v, i) => (i === leave ? -direction * lc.d[i]! > 0 : v));
+        const trial = rqRankDual(xr, candidate, sign, tau);
+        if (trial) { nextBasis = candidate; nextPositive = sign; dual = trial; pivoted = true; break; }
+      }
+      if (!pivoted) throw new RangeError("rank inversion: no feasible pivot");
+    }
+    if (!dual) throw new RangeError("rank inversion: no feasible pivot");
+    const nextT = statistic(nextBasis, nextPositive, dual);
+    if (direction < 0 ? nextT >= target : nextT <= target) {
+      return b + ((next - b) * (target - t)) / (nextT - t);
+    }
+    b = next; t = nextT; basis = nextBasis; positive = nextPositive; a = dual;
+  }
+  throw new RangeError("rank inversion did not converge");
+}
+function rqRankIntervals(model: RqModel, beta: readonly number[], tau: number, level: number): [number, number][] {
+  const w = model.weights;
+  const x = model.x.map((row, i) => row.map((v) => v * w[i]!));
+  const y = model.y.map((v, i) => v * w[i]!);
+  const p = beta.length;
+  const residuals = y.map((v, i) => v - dot(x[i]!, beta));
+  const order = residuals.map((r, i) => [Math.abs(r), i] as const).sort((u, v) => u[0] - v[0]).map(([, i]) => i);
+  const startBasis = order.slice(0, p);
+  const critical = qt((1 + level) / 2, y.length - p) as number;
+  return beta.map((bj, j) => [
+    rqRankEndpoint(x, y, j, tau, bj, startBasis, -1, critical),
+    rqRankEndpoint(x, y, j, tau, bj, startBasis, 1, critical),
+  ]);
+}
+
 /** Coefficient summary with Hall–Sheather bandwidth and the nid sandwich covariance. Equivalent to R's `summary.rq()`.
  *
  * @category Regression
@@ -713,10 +888,26 @@ export function rqSummary(fit: RqResult, options: RqSummaryOptions = {}): RqSumm
   for (const key of Object.keys(options)) if (!["se", "covariance", "level"].includes(key)) throw new TypeError("unused argument (" + key + ")");
   const model = fit.model;
   const se = options.se ?? (model.y.length <= 1000 ? "rank" : "nid");
-  if (se !== "nid") throw new RangeError("rqSummary currently supports se = 'nid'; iid, rank, ker and boot remain unresolved");
-  const level = options.level ?? 0.95;
+  if (se !== "nid" && se !== "rank") throw new RangeError("rqSummary currently supports se = 'nid' and 'rank'; iid, ker and boot remain unresolved");
+  // R's default for the rank intervals is alpha = 0.1; the nid bandwidth uses 0.95
+  const level = options.level ?? (se === "rank" ? 0.9 : 0.95);
   if (!(level > 0 && level < 1)) throw new RangeError("level must be between 0 and 1");
   const warnings = [...fit.warnings];
+  if (se === "rank") {
+    const coefficients: RqCoefficientSummary[] = [];
+    for (let k = 0; k < model.tau.length; k++) {
+      const beta = model.columnNames.map((term) => {
+        const raw = fit.coefficients[term]!;
+        return Array.isArray(raw) ? raw[k]! : raw;
+      });
+      const intervals = rqRankIntervals(model, beta, model.tau[k]!, level);
+      model.columnNames.forEach((term, j) => {
+        const [lower, upper] = intervals[j]!;
+        coefficients.push({ tau: model.tau[k]!, term, estimate: beta[j]!, stdError: NaN, statistic: NaN, pValue: NaN, lower, upper });
+      });
+    }
+    return { coefficients, se, warnings };
+  }
   const covariances = model.tau.map((tau) => rqNidCovariance(model, tau, level, warnings));
   const coefficients: RqCoefficientSummary[] = [];
   for (let k = 0; k < model.tau.length; k++) for (let j = 0; j < model.columnNames.length; j++) {
