@@ -9,6 +9,7 @@ import { design, type DesignContrast } from "./modelMatrix.js";
 import type { DataFrame } from "./modelFrame.js";
 import type { Sample } from "../htest/types.js";
 import { pt, qt } from "../distributions/t.js";
+import { qnorm } from "../distributions/normal.js";
 import { pf } from "../distributions/f.js";
 
 /** Algorithm used to fit a quantile-regression model.
@@ -648,8 +649,8 @@ function rqMul(a: readonly number[][], b: readonly number[][]): number[][] {
   return a.map((row) => b[0]!.map((_, j) => row.reduce((sum, v, k) => sum + v * b[k]![j]!, 0)));
 }
 function rqBandwidth(n: number, tau: number, level: number): number {
-  const z = qt(tau, 1e6) as number;
-  const critical = qt((1 + level) / 2, 1e6) as number;
+  const z = qnorm(tau) as number;
+  const critical = qnorm((1 + level) / 2) as number;
   const phi = Math.exp(-0.5 * z * z) / Math.sqrt(2 * Math.PI);
   return Math.cbrt(1.5 * phi * phi * critical * critical / n);
 }
