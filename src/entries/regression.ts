@@ -119,6 +119,8 @@ export {
   type GlmnetPredictType,
   type GlmnetOptions,
   type GlmnetResult,
+  type GlmnetScalarResult,
+  type GlmnetMultinomialResult,
   type GlmnetPredictOptions,
   type CvGlmnetOptions,
   type CvGlmnetResult,
