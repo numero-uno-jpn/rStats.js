@@ -97,6 +97,8 @@ export interface GeeResult {
     corstr: GeeCorrelation;
     scaleFix: boolean;
     scaleValue: number;
+    epsilon: number;
+    maxit: number;
     zcor: number[][] | undefined;
     data: DataFrame;
   };
@@ -393,7 +395,7 @@ export function geeglm(formula: string, data: DataFrame, options: GeeOptions): G
   if (!["independence", "exchangeable", "ar1", "unstructured", "userdefined", "fixed"].includes(corstr)) throw new RangeError("unknown working correlation");
   const stdErr = options["std.err"] ?? "san.se";
   if (!["san.se", "jack", "j1s", "fij"].includes(stdErr)) throw new RangeError("unknown standard-error estimator");
-  const epsilon = options.epsilon ?? 1e-10, maxit = options.maxit ?? 200;
+  const epsilon = options.epsilon ?? 1e-4, maxit = options.maxit ?? 25;
   if (!(epsilon > 0) || !Number.isFinite(epsilon) || !Number.isInteger(maxit) || maxit < 1) throw new RangeError("invalid convergence controls");
   const split = splitOffsets(formula);
   const idName = typeof options.id === "string" ? options.id : undefined;
@@ -546,7 +548,7 @@ export function geeglm(formula: string, data: DataFrame, options: GeeOptions): G
       model: { formula, meanFormula: split.meanFormula, offsetTerms: split.terms, termAssign: d.assign.slice(),
         termLabels: d.terms.termLabels.slice(), responseVariable: d.terms.variables[d.terms.response]!,
         intercept: d.terms.intercept, x: d.x, y, ids, waves, weights, offset, family: options.family ?? "gaussian",
-        link: options.link, corstr, scaleFix: options["scale.fix"] ?? false, scaleValue: options["scale.value"] ?? 1,
+        link: options.link, corstr, scaleFix: options["scale.fix"] ?? false, scaleValue: options["scale.value"] ?? 1, epsilon, maxit,
         zcor, data },
     };
     return reported("geeglm", result);
@@ -618,7 +620,7 @@ function refitForAnova(fit: GeeResult, formula: string): GeeResult {
     id: fit.model.ids, waves: fit.model.waves, family: fit.model.family,
     ...(fit.model.link === undefined ? {} : { link: fit.model.link }),
     corstr: fit.model.corstr, "std.err": "san.se", weights: fit.model.weights, offset: fit.model.offset,
-    "scale.fix": fit.model.scaleFix, "scale.value": fit.model.scaleValue,
+    "scale.fix": fit.model.scaleFix, "scale.value": fit.model.scaleValue, epsilon: fit.model.epsilon, maxit: fit.model.maxit,
     ...(fit.model.zcor === undefined ? {} : { zcor: fit.model.zcor }),
   };
   return geeglm(formula, data, options);
