@@ -192,7 +192,7 @@ describe("rStats.js 1.8.0 public-output completeness against the pinned R oracle
     vector(tightFit.a0, expected.tightA0, 1e-7);
     matrix(transpose(tightFit.beta), expected.tightBeta.values, 1e-7);
     console.log("[regression18-oracle] glmnet first-lambda beta JS vs R", JSON.stringify({
-      js: tightFit.beta.map(row => row[0]), r: expected.tightBeta.values.slice(0, expected.tightBeta.nrow),
+      js: tightFit.beta.map(row => row[0]), r: expected.tightBeta.values.map((row: number[]) => row[0]!),
       kkt: tightFit.kktResidual[0], lambda: tightFit.lambda[0],
     }));
     expect(tightFit.df).toEqual(expected.tightDf);
