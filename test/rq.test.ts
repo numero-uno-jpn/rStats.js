@@ -258,15 +258,19 @@ describe("quantile regression", () => {
     const none = rqPredictInterval(fit, { x: [1, 3, 5] }, { interval: "confidence", type: "none" });
     const direct = rqPredictInterval(fit, { x: [1, 3, 5] }, { interval: "confidence", type: "direct" });
     const fitted = none.fit as number[];
+    const noneLower = none.lower as number[];
+    const noneUpper = none.upper as number[];
+    const directLower = direct.lower as number[];
+    const directUpper = direct.upper as number[];
     expect(fitted).toHaveLength(3);
     expect(none.lower).toHaveLength(3);
     expect(none.upper).toHaveLength(3);
     expect(direct.lower).toHaveLength(3);
     expect(direct.upper).toHaveLength(3);
     for (let i = 0; i < 3; i++) {
-      expect(none.lower![i]!).toBeLessThanOrEqual(fitted[i]!);
-      expect(none.upper![i]!).toBeGreaterThanOrEqual(fitted[i]!);
-      expect(direct.lower![i]!).toBeLessThanOrEqual(direct.upper![i]!);
+      expect(noneLower[i]!).toBeLessThanOrEqual(fitted[i]!);
+      expect(noneUpper[i]!).toBeGreaterThanOrEqual(fitted[i]!);
+      expect(directLower[i]!).toBeLessThanOrEqual(directUpper[i]!);
     }
   });
 
