@@ -173,10 +173,10 @@ describe("elastic-net generalized linear models", () => {
     };
     const multiX = fixture.multinomialData.X.values, multiY = fixture.multinomialData.y;
     for (const typeMultinomial of ["ungrouped", "grouped"] as const) {
-      const fit = glmnet(multiX, multiY, { family: "multinomial", typeMultinomial, nlambda: 6, maxit: 100000, thresh: 1e-12 });
+      const fit = glmnet(multiX, multiY, { family: "multinomial", typeMultinomial, nlambda: 6, maxit: 200000, thresh: 1e-14 });
       const expected = fixture[`multinomial_${typeMultinomial}`].value;
       expect(fit.lambda[0]).toBeCloseTo(expected.lambda[0]!, 7);
-      console.log("multinomial diagnostics", typeMultinomial, fit.converged, fit.kktResidual, fit.npasses);
+      console.log("multinomial diagnostics", typeMultinomial, fit.converged, fit.kktResidual, fit.npasses, fit.beta.setosa!.map(row => row[2]));
       expect(fit.converged.every(Boolean)).toBe(true);
       expect(fit.beta.setosa![1]![2]).toBeCloseTo(expected.beta.setosa!.values[1]![2]!, 5);
       expect(fit.kktResidual.every(v => v < 1e-7)).toBe(true);
