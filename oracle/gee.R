@@ -118,7 +118,9 @@ for (cs in c("independence","exchangeable","ar1","unstructured")) {
       default=capture(f),
       tight=capture(ft,FALSE),
       fitted=unname(fitted(f)),
-      pearson=unname(residuals(f,type="pearson"))
+      pearson=unname(residuals(f,type="pearson")),
+      pearsonTight=unname(residuals(ft,type="pearson")),
+      qicTight=unname(as.numeric(QIC(ft)))
     )
   })
 }
