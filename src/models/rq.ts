@@ -786,6 +786,8 @@ export function rqPredictInterval(fit: RqResult, newdata: DataFrame, options: Rq
  * @category Regression
  */
 export function rqAnova(fit: RqResult): RqWaldResult;
+export function rqAnova(fit: RqResult, joint: true): RqWaldResult;
+export function rqAnova(fit: RqResult, joint: false): RqWaldResult[];
 export function rqAnova(fit: RqResult, joint: boolean): RqWaldResult | RqWaldResult[];
 export function rqAnova(fit: RqResult, reduced: RqResult): RqWaldResult;
 export function rqAnova(fit: RqResult, reducedOrJoint?: RqResult | boolean): RqWaldResult | RqWaldResult[] {
