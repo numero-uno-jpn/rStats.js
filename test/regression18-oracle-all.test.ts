@@ -19,6 +19,10 @@ function matrix(actual: readonly (readonly number[])[], expected: readonly (read
   expect(actual).toHaveLength(expected.length);
   for (let i = 0; i < expected.length; i++) vector(actual[i]!, expected[i]!, tolerance);
 }
+function flatTable(expected: { nrow: number; ncol: number; values: number[] }): number[][] {
+  return Array.from({ length: expected.nrow }, (_, i) =>
+    Array.from({ length: expected.ncol }, (_, j) => expected.values[j * expected.nrow + i]!));
+}
 function geeTable(actual: readonly (readonly number[])[], expected: { nrow: number; ncol: number; values: number[] }, tolerance = 2e-7): void {
   matrix(actual, flatTable(expected), tolerance);
 }
@@ -57,7 +61,7 @@ describe("rStats.js 1.8.0 public-output completeness against the pinned R oracle
 
     const engel = (rqFixture as any).engelPredict.value;
     const engelFit = rq("foodexp ~ income", engel.data, { tau: 0.5, method: "br" });
-    vector(rqPredict(engelFit, { income: [500, 1000, 2500] }), engel.prediction);
+    vector(rqPredict(engelFit, { income: [500, 1000, 2500] }) as number[], engel.prediction);
     const summary = rqSummary(engelFit, { se: "nid", covariance: true });
     const expectedSummary = engel.summary.values;
     matrix(summary.coefficients.map(row => [row.estimate, row.stdError, row.statistic, row.pValue]), expectedSummary);
@@ -184,7 +188,7 @@ describe("rStats.js 1.8.0 public-output completeness against the pinned R oracle
     vector(cv.cvm, cvExpected.groupedFalse.cvm, 1e-7);
     vector(cv.cvsd, cvExpected.groupedFalse.cvsd, 1e-7);
     vector(cv.nzero, cvExpected.nzero);
-    matrix(cv.fitPreval!, cvExpected.groupedFalse.preval.values, 1e-7);
+    matrix(cv.fitPreval as number[][], cvExpected.groupedFalse.preval.values, 1e-7);
     vector(cv.cvup, cvExpected.groupedFalse.cvm.map((v: number, i: number) => v + cvExpected.groupedFalse.cvsd[i]!), 1e-7);
     vector(cv.cvlo, cvExpected.groupedFalse.cvm.map((v: number, i: number) => v - cvExpected.groupedFalse.cvsd[i]!), 1e-7);
     const minIndex = cv.cvm.indexOf(Math.min(...cv.cvm));
