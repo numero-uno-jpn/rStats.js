@@ -504,7 +504,9 @@ function glmnetScalar(x: readonly (readonly number[])[], y: readonly number[], o
     let betaScale = 0;
     for (const value of fit.beta) betaScale = Math.max(betaScale, Math.abs(value));
     const zeroCut = 4 * Number.EPSILON * betaScale;
-    const activeMask = fit.beta.map(value => Math.abs(value) > zeroCut);
+    const automaticZeroLambda = options.lambda === undefined && alpha > 0 && lambda === lambdaMax &&
+      pf.every(value => value > 0) && lower.every(value => value <= 0) && upper.every(value => value >= 0);
+    const activeMask = fit.beta.map(value => !automaticZeroLambda && Math.abs(value) > zeroCut);
     const active = activeMask.filter(Boolean).length;
     for (let j = 0; j < p; j++) if (activeMask[j]) everActive.add(j);
     if (active > dfmax || everActive.size > pmax) break;
