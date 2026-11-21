@@ -41,7 +41,7 @@ The coordinate-descent path uses warm starts. The public default convergence thr
 
 ## 4. Coefficients and prediction
 
-The coefficient path includes the intercept and predictor coefficients for each lambda. For multinomial fits, there is one coefficient matrix per class, with the reference class parameterization documented by the package. The `coef` interface evaluates coefficients at requested $s$ values. When $s$ is outside the stored path, the default interpolation is linear in the coefficient path over log-lambda; exact refitting is a separate option requiring the original `x` and `y`.
+The coefficient path includes the intercept and predictor coefficients for each lambda. For multinomial fits, there is one coefficient matrix per class, with the reference class parameterization documented by the package. The `coef` interface evaluates coefficients at requested $s$ values. Between stored lambda values, coefficients are interpolated linearly in lambda; exact refitting is a separate option requiring the original `x` and `y`.
 
 Prediction supports:
 
@@ -166,9 +166,8 @@ The public control output records fdev=1e-5, eps=1e-6, mnlam=5, devmax=.999, thr
 
 ## 8. Unresolved behaviour
 
-1. The log-lambda interpolation rule is documented and the requested public values are recorded, but the custom-path output omits the neighboring coefficient columns. Independent reconstruction of the two off-path coefficient vectors is therefore not claimed.
-2. The exact stopping boundary for fdev, devmax, and active-set limits has not been isolated numerically. The n<p example reaches .01 exactly; the n>p example stops at .000372759372031494. The control defaults and both outcomes are recorded.
-3. Full class-centering/identifiability behaviour for every multinomial class-count and grouped-penalty corner case is not established by the compact output. Both grouped and ungrouped public paths and class probabilities were recorded; no unsupported parameterization detail is asserted.
+1. The exact stopping boundary for fdev, devmax, and active-set limits has not been isolated numerically. The n<p example reaches .01 exactly; the n>p example stops at .000372759372031494. The control defaults and both outcomes are recorded.
+2. Full class-centering/identifiability behaviour for every multinomial class-count and grouped-penalty corner case is not established by the compact output. Both grouped and ungrouped public paths and class probabilities were recorded; no unsupported parameterization detail is asserted.
 
 ## Decisions for the user
 
