@@ -36,4 +36,4 @@ out <- list(
   cvPreval = tab(cv$fit.preval),
   manual = manual
 )
-writeLines(toJSON(out, auto_unbox = TRUE, digits = NA, null = "null"), "/out/regression18-glmnet-cv-probe.json")
+writeLines(toJSON(out, auto_unbox = TRUE, digits = NA, null = "null"))
