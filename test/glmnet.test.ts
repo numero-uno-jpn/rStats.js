@@ -71,7 +71,8 @@ describe("elastic-net generalized linear models", () => {
       const fit = glmnet(multiX, multiY, { family: "multinomial", typeMultinomial, nlambda: 6, maxit: 100000, thresh: 1e-14 });
       const expected = fixture[`multinomial_${typeMultinomial}`].value;
       expect(fit.lambda[0]).toBeCloseTo(expected.lambda[0]!, 7);
-      expect(fit.kktResidual.every(Number.isFinite)).toBe(true);
+      expect(fit.converged.every(Boolean)).toBe(true);
+      expect(fit.kktResidual.every(v => v < 1e-7)).toBe(true);
       const predictionRows = [multiX[0]!, multiX[50]!, multiX[100]!];
       const probabilities = glmnetPredict(fit, predictionRows, { s: fit.lambda[2]!, type: "response" });
       const expectedRows = expected.response as Array<Record<string, number>>;
