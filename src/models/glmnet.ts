@@ -438,8 +438,8 @@ function fitMultinomialOne(
       for (let k = 0; k < kCount; k++) denominator += Math.exp(eta[i]![k]! - maxEta);
       for (let k = 0; k < kCount; k++) {
         const residual = weights[i]! * (Math.exp(eta[i]![k]! - maxEta) / denominator - (y[i] === k ? 1 : 0)) / n;
-        gradA[k] += residual;
-        for (let j = 0; j < p; j++) gradB[j]![k] += residual * x[i]![j]!;
+        gradA[k] = gradA[k]! + residual;
+        for (let j = 0; j < p; j++) gradB[j]![k] = gradB[j]![k]! + residual * x[i]![j]!;
       }
     }
     const oldA = a0.slice(), oldB = beta.map(row => row.slice());
@@ -449,7 +449,7 @@ function fitMultinomialOne(
       let centerA = 0;
       for (const v of nextA) centerA += v;
       centerA /= kCount;
-      for (let k = 0; k < kCount; k++) nextA[k] -= centerA;
+      for (let k = 0; k < kCount; k++) nextA[k] = nextA[k]! - centerA;
       const nextB = oldB.map((row, j) => {
         const z = row.map((v, k) => v - step * gradB[j]![k]!);
         const penaltyWeight = step * lambda * alpha * penalty[j]!;
@@ -536,7 +536,7 @@ function glmnetMultinomial(
     for (let k = 0; k < kCount; k++) {
       const prob = Math.exp(aNull[k]!) / nullDenominator;
       const residual = w[i]! * (prob - (y[i] === k ? 1 : 0)) / n;
-      for (let j = 0; j < p; j++) gradient[j]![k] += residual * xs[i]![j]!;
+      for (let j = 0; j < p; j++) gradient[j]![k] = gradient[j]![k]! + residual * xs[i]![j]!;
     }
   }
   const alphaForMax = alpha === 0 ? 0.001 : alpha;
@@ -569,7 +569,7 @@ function glmnetMultinomial(
   for (const lambda of lambdas) {
     const fit = fitMultinomialOne(xs, y, w, startA, startB, lambda, alpha, penalty, grouped, lower, upper, maxit, thresh);
     const classDf = new Array<number>(kCount).fill(0);
-    for (let j = 0; j < p; j++) for (let k = 0; k < kCount; k++) if (fit.beta[j]![k] !== 0) { classDf[k]++; everActive.add(j); }
+    for (let j = 0; j < p; j++) for (let k = 0; k < kCount; k++) if (fit.beta[j]![k] !== 0) { classDf[k] = classDf[k]! + 1; everActive.add(j); }
     if (classDf.some(v => v > (options.dfmax ?? p + 1)) || everActive.size > (options.pmax ?? p)) break;
     startA = fit.a0.slice(); startB = fit.beta.map(row => row.slice()); npasses += fit.passes;
     const originalByClass = classes.map((_, k) => {
@@ -592,6 +592,9 @@ function glmnetMultinomial(
       xMean, xScale, intercept, columns: p, classes, typeMultinomial: options.typeMultinomial ?? "ungrouped" } };
 }
 
+export function glmnet(x: readonly (readonly number[])[], y: readonly number[], options?: GlmnetOptions & { family?: "gaussian" | "binomial" | "poisson" }): GlmnetScalarResult;
+export function glmnet(x: readonly (readonly number[])[], y: readonly string[], options: GlmnetOptions & { family: "binomial" }): GlmnetScalarResult;
+export function glmnet(x: readonly (readonly number[])[], y: readonly string[], options: GlmnetOptions & { family: "multinomial" }): GlmnetMultinomialResult;
 export function glmnet(x: readonly (readonly number[])[], y: readonly (number | string)[], options: GlmnetOptions = {}): GlmnetResult {
   const family = options.family ?? "gaussian";
   if (family === "multinomial") return glmnetMultinomial(x, y.map(String), options);
@@ -790,6 +793,8 @@ function cvGlmnetMultinomial(
  *
  * @category Regression
  */
+export function cvGlmnet(x: readonly (readonly number[])[], y: readonly number[], options: CvGlmnetOptions): CvGlmnetResult;
+export function cvGlmnet(x: readonly (readonly number[])[], y: readonly string[], options: CvGlmnetOptions & { family: "binomial" | "multinomial" }): CvGlmnetResult;
 export function cvGlmnet(
   x: readonly (readonly number[])[], y: readonly (number | string)[], options: CvGlmnetOptions,
 ): CvGlmnetResult {
