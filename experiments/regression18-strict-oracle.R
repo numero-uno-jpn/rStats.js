@@ -57,9 +57,12 @@ residualLoss <- function(a) sum(vapply(residualGroups,function(v) {
   total
 },numeric(1)))
 alphaResidualLS <- optimize(residualLoss,interval=c(-.98,.98))$minimum
-out$geePredict$momentProbe <- list(lagMeans=lagMeans,lagWeights=lagWeights,
-  alphaLag1=lagMeans[1],alphaLeastSquares=alphaLS,alphaOLS=alphaOLS,
-  alphaUncenteredCor=alphaUncenteredCor,alphaCenteredCor=alphaCenteredCor,
+scaleR <- out$geePredict$epsilon_1e12$value$dispersion$values[1]
+alphaLSScaled <- optimize(function(a) sum(lagWeights * (lagMeans/scaleR - a^lags)^2),
+                          interval=c(-.98,.98))$minimum
+out$geePredict$momentProbe <- list(lagMeans=lagMeans,lagWeights=lagWeights,scaleR=scaleR,
+  alphaLag1=lagMeans[1],alphaLeastSquares=alphaLS,alphaLeastSquaresScaled=alphaLSScaled,
+  alphaOLS=alphaOLS,alphaUncenteredCor=alphaUncenteredCor,alphaCenteredCor=alphaCenteredCor,
   alphaResidualLS=alphaResidualLS,
   alphaR=out$geePredict$epsilon_1e12$value$correlation$values[1])
 out$geePredict$explicitWaves <- capture({
