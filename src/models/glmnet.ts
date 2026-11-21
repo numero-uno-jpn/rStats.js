@@ -384,7 +384,18 @@ function glmnetScalar(x: readonly (readonly number[])[], y: readonly number[], o
     start = [fit.a0, ...fit.beta]; npasses += fit.passes;
     const originalBeta = fit.beta.map((v, j) => v / xScale[j]!);
     let originalIntercept = fit.a0;
-    if (intercept) for (let j = 0; j < p; j++) originalIntercept -= xMean[j]! * originalBeta[j]!;
+    if (intercept && family === "gaussian") {
+      let numerator = 0, denominator = 0;
+      for (let i = 0; i < n; i++) {
+        let fitted = offset[i]!;
+        for (let j = 0; j < p; j++) fitted += x[i]![j]! * originalBeta[j]!;
+        numerator += w[i]! * (y[i]! - fitted);
+        denominator += w[i]!;
+      }
+      originalIntercept = numerator / denominator;
+    } else if (intercept) {
+      for (let j = 0; j < p; j++) originalIntercept -= xMean[j]! * originalBeta[j]!;
+    }
     a0.push(originalIntercept);
     beta.push(originalBeta);
     df.push(active);
