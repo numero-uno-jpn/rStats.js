@@ -289,7 +289,7 @@ export function glmnet(x: readonly (readonly number[])[], y: readonly number[], 
     converged.push(fit.converged);
   }
   if (a0.length === 0) throw new RangeError("no lambda values satisfy dfmax and pmax");
-  return { family, alpha, lambda: lambdas, a0, beta, df, devRatio, nullDev, npasses, converged,
+  return { family, alpha, lambda: lambdas.slice(0, a0.length), a0, beta, df, devRatio, nullDev, npasses, converged,
     model: { x: x.map(r => Array.from(r)), y: Array.from(y), weights: w, offset, xMean, xScale, intercept, columns: p } };
 }
 
