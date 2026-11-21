@@ -159,61 +159,64 @@ function fitOne(
   let a0 = start[0] ?? 0;
   const beta = start.slice(1);
   let eta = y.map((_, i) => a0 + offset[i]! + x[i]!.reduce((v, z, j) => v + z * beta[j]!, 0));
-  let objective = loss(y, eta, weights, family);
-  for (let j = 0; j < p; j++) objective += lambda * penalty[j]! * (alpha * Math.abs(beta[j]!) + (1 - alpha) * beta[j]! ** 2 / 2);
   let converged = false, passes = 0;
-  let previous = new Array<number>(p + 1).fill(0);
-  for (let it = 0; it < maxit; it++) {
-    passes++;
+  const maxSweeps = Math.min(2000, maxit);
+  for (let outer = 0; outer < maxit; outer++) {
     const oldA = a0, oldB = beta.slice();
-    let step = 1;
-    let accepted = false;
-    for (let back = 0; back < 50; back++) {
-      const proposal = oldB.slice();
-      let proposalA = oldA;
-      const currentEta = y.map((_, i) => oldA + offset[i]! + x[i]!.reduce((v, z, j) => v + z * oldB[j]!, 0));
-      const gradientA = intercept ? sum(y.map((v, i) => (inverseLink(currentEta[i]!, family) - v) * weights[i]!)) / n : 0;
-      let lipschitz = 1;
-      for (let j = 0; j < p; j++) {
-        let g = 0, hBound = 0;
-        for (let i = 0; i < n; i++) {
-          const mu = inverseLink(currentEta[i]!, family);
-          const d = family === "gaussian" ? 1 : family === "binomial" ? mu * (1 - mu) : mu;
-          g += (mu - y[i]!) * weights[i]! * x[i]![j]!;
-          hBound += d * weights[i]! * x[i]![j]! ** 2;
-        }
-        g /= n; hBound /= n;
-        const denom = Math.max(hBound + lambda * (1 - alpha) * penalty[j]!, 1e-12);
-        proposal[j] = Math.max(lower[j]!, Math.min(upper[j]!,
-          soft(oldB[j]! - step * g, step * lambda * alpha * penalty[j]!) / (1 + step * lambda * (1 - alpha) * penalty[j]!)));
-        lipschitz = Math.max(lipschitz, hBound);
-        void denom;
-      }
-      if (intercept) proposalA = oldA - step * gradientA;
-      const nextEta = y.map((_, i) => proposalA + offset[i]! + x[i]!.reduce((v, z, j) => v + z * proposal[j]!, 0));
-      let nextObjective = loss(y, nextEta, weights, family);
-      for (let j = 0; j < p; j++) nextObjective += lambda * penalty[j]! * (alpha * Math.abs(proposal[j]!) + (1 - alpha) * proposal[j]! ** 2 / 2);
-      if (Number.isFinite(nextObjective) && nextObjective <= objective + 1e-14) {
-        a0 = proposalA; for (let j = 0; j < p; j++) beta[j] = proposal[j]!;
-        eta = nextEta; objective = nextObjective; accepted = true; break;
-      }
-      step *= 0.5;
+    const workWeight = new Array<number>(n), target = new Array<number>(n);
+    for (let i = 0; i < n; i++) {
+      const mu = inverseLink(eta[i]!, family);
+      const derivative = family === "gaussian" ? 1 :
+        family === "binomial" ? Math.max(1e-12, mu * (1 - mu)) : Math.max(1e-12, mu);
+      workWeight[i] = weights[i]! * derivative;
+      target[i] = eta[i]! + (y[i]! - mu) / derivative - offset[i]!;
     }
-    if (!accepted) break;
-    let change = Math.abs(a0 - oldA);
-    for (let j = 0; j < p; j++) change = Math.max(change, Math.abs(beta[j]! - oldB[j]!));
-    let scale = Math.abs(a0); for (const value of beta) scale = Math.max(scale, Math.abs(value));
-    if (change <= thresh * (1 + scale)) { converged = true; break; }
-    previous = [a0, ...beta];
-    void previous;
+    let innerConverged = false;
+    for (let sweep = 0; sweep < maxSweeps; sweep++) {
+      passes++;
+      const sweepA = a0, sweepB = beta.slice();
+      if (intercept) {
+        let numerator = 0, denominator = 0;
+        for (let i = 0; i < n; i++) {
+          let residual = target[i]!;
+          for (let j = 0; j < p; j++) residual -= x[i]![j]! * beta[j]!;
+          numerator += workWeight[i]! * residual;
+          denominator += workWeight[i]!;
+        }
+        if (denominator > 0) a0 = numerator / denominator;
+      }
+      for (let j = 0; j < p; j++) {
+        let numerator = 0, denominator = 0;
+        for (let i = 0; i < n; i++) {
+          let partial = target[i]! - a0;
+          for (let k = 0; k < p; k++) if (k !== j) partial -= x[i]![k]! * beta[k]!;
+          const w = workWeight[i]!, xj = x[i]![j]!;
+          numerator += w * xj * partial;
+          denominator += w * xj * xj;
+        }
+        const curvature = denominator / n + lambda * (1 - alpha) * penalty[j]!;
+        const value = curvature > 0
+          ? soft(numerator / n, lambda * alpha * penalty[j]!) / curvature
+          : 0;
+        beta[j] = Math.max(lower[j]!, Math.min(upper[j]!, value));
+      }
+      let change = Math.abs(a0 - sweepA), scale = Math.abs(a0);
+      for (let j = 0; j < p; j++) {
+        change = Math.max(change, Math.abs(beta[j]! - sweepB[j]!));
+        scale = Math.max(scale, Math.abs(beta[j]!));
+      }
+      if (change <= Math.max(thresh * 0.1, 1e-13) * (1 + scale)) { innerConverged = true; break; }
+    }
+    eta = y.map((_, i) => a0 + offset[i]! + x[i]!.reduce((v, z, j) => v + z * beta[j]!, 0));
+    let change = Math.abs(a0 - oldA), scale = Math.abs(a0);
+    for (let j = 0; j < p; j++) {
+      change = Math.max(change, Math.abs(beta[j]! - oldB[j]!));
+      scale = Math.max(scale, Math.abs(beta[j]!));
+    }
+    if (change <= thresh * (1 + scale) && innerConverged) { converged = true; break; }
   }
   return { a0, beta, eta, passes, converged };
 }
-
-/** Fit a penalized generalized linear model path. Equivalent to R's `glmnet::glmnet()`.
- *
- * @category Regression
- */
 export function glmnet(x: readonly (readonly number[])[], y: readonly number[], options: GlmnetOptions = {}): GlmnetResult {
   const n = y.length, p = x[0]?.length ?? 0;
   if (n < 2 || p < 2 || x.length !== n || x.some(r => r.length !== p)) throw new RangeError("x must be a rectangular matrix with at least two columns and two rows");
