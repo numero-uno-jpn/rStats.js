@@ -139,6 +139,7 @@ describe("elastic-net generalized linear models", () => {
       maxPrevalenceDifference = Math.max(maxPrevalenceDifference,
         Math.abs(prevalence[i]![k]! - expectedPrevalence[i]![k]!));
     console.log("CV diagnostics", grouped.cvm[0], ungrouped.cvm[0], maxPrevalenceDifference);
+    expect(maxPrevalenceDifference).toBeLessThan(1e-7);
     expect(prevalence[0]![0]).toBeCloseTo(expectedPrevalence[0]![0]!, 7);
     expect(ungrouped.cvm[0]).toBeCloseTo(fixture.cv.value.groupedFalse.cvm[0]!, 7);
     expect(ungrouped.cvsd[0]).toBeCloseTo(fixture.cv.value.groupedFalse.cvsd[0]!, 7);
