@@ -208,7 +208,7 @@ describe("elastic-net generalized linear models", () => {
     };
     const foldid = Array.from({ length: fixture.y.length }, (_, i) => i % 3 + 1);
     const expected = fixture.cv.value;
-    const grouped = cvGlmnet(fixture.X.values, fixture.y, { foldid, nlambda: 8, keep: true, thresh: 1e-12 });
+    const grouped = cvGlmnet(fixture.X.values, fixture.y, { foldid, nlambda: 8, keep: true, thresh: 1e-14 });
     const groupedLength = Math.min(grouped.lambda.length, expected.lambdaTight.length);
     for (let k = 0; k < groupedLength; k++) {
       expect(grouped.lambda[k]).toBeCloseTo(expected.lambdaTight[k]!, 11);
@@ -220,7 +220,7 @@ describe("elastic-net generalized linear models", () => {
     expect(grouped.lambda).toContain(grouped.lambdaMin);
     expect(grouped.lambda).toContain(grouped.lambda1se);
     const ungrouped = cvGlmnet(fixture.X.values, fixture.y, {
-      foldid, nlambda: 8, grouped: false, keep: true, thresh: 1e-12,
+      foldid, nlambda: 8, grouped: false, keep: true, thresh: 1e-14,
     });
     const ungroupedLength = Math.min(ungrouped.lambda.length, expected.lambda.length);
     for (let k = 0; k < ungroupedLength; k++) {
