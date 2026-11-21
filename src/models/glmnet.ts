@@ -302,7 +302,7 @@ function fitOne(
         change = Math.max(change, Math.abs(beta[j]! - sweepB[j]!));
         scale = Math.max(scale, Math.abs(beta[j]!));
       }
-      if (change <= Math.max(thresh * 0.1, 1e-15) * (1 + scale)) { innerConverged = true; break; }
+      if (change <= Math.max(thresh * 0.001, Number.EPSILON * 4 * (1 + scale))) { innerConverged = true; break; }
     }
     eta = y.map((_, i) => a0 + offset[i]! + x[i]!.reduce((v, z, j) => v + z * beta[j]!, 0));
     let change = Math.abs(a0 - oldA), scale = Math.abs(a0);
@@ -377,7 +377,8 @@ function glmnetScalar(x: readonly (readonly number[])[], y: readonly number[], o
   let start = [y0, ...new Array<number>(p).fill(0)], npasses = 0;
   const everActive = new Set<number>();
   for (const lambda of lambdas) {
-    const fit = fitOne(xs, y, w, offset, family, alpha, lambda, start, intercept, pf, lower, upper, maxit, thresh);
+    const fitAlpha = !options.lambda && alpha === 0 && lambda === lambdaMax ? 0.001 : alpha;
+    const fit = fitOne(xs, y, w, offset, family, fitAlpha, lambda, start, intercept, pf, lower, upper, maxit, thresh);
     const active = fit.beta.filter(v => v !== 0).length;
     for (let j = 0; j < p; j++) if (fit.beta[j] !== 0) everActive.add(j);
     if (active > dfmax || everActive.size > pmax) break;
@@ -635,10 +636,8 @@ function fitMultinomialOne(
       change = Math.max(change, Math.abs(beta[j]![k]! - oldB[j]![k]!));
       scale = Math.max(scale, Math.abs(beta[j]![k]!));
     }
-    if (change <= thresh * (1 + scale)) {
-      const kkt = multinomialKktResidual(x, y, weights, a0, beta, lambda, alpha, penalty, grouped, intercept);
-      if (kkt <= thresh * (1 + scale)) { converged = true; break; }
-    }
+    const kkt = multinomialKktResidual(x, y, weights, a0, beta, lambda, alpha, penalty, grouped, intercept);
+    if (kkt <= thresh * (1 + scale)) { converged = true; break; }
   }
   const kkt = multinomialKktResidual(x, y, weights, a0, beta, lambda, alpha, penalty, grouped, intercept);
   return { a0, beta, eta, passes, converged, kkt };
