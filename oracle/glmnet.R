@@ -44,7 +44,17 @@ for(tm in c("ungrouped","grouped"))out[[paste0("multinomial_",tm)]]<-run({
 })
 out$offPath<-run({f<-glmnet(X,y,lambda=c(2,1,.5,.25,.125));list(lambda=f$lambda,coef=tab(coef(f,s=c(.75,.3))),predict=tab(predict(f,X[1:4,],s=c(.75,.3))))})
 foldid<-rep(1:3,4)
-out$cv<-run({f<-cv.glmnet(X,y,foldid=foldid,nlambda=8);ft<-cv.glmnet(X,y,foldid=foldid,nlambda=8,keep=TRUE,control=list(thresh=1e-20,maxit=1e8));g<-cv.glmnet(X,y,foldid=foldid,nlambda=8,grouped=FALSE,keep=TRUE,control=list(thresh=1e-20,maxit=1e8));list(lambda=f$lambda,cvm=f$cvm,cvsd=f$cvsd,cvup=f$cvup,cvlo=f$cvlo,nzero=f$nzero,lambdaMin=f$lambda.min,lambda1se=f$lambda.1se,lambdaTight=ft$lambda,cvmTight=ft$cvm,cvsdTight=ft$cvsd,lambdaMinTight=ft$lambda.min,lambda1seTight=ft$lambda.1se,groupedFalse=list(cvm=g$cvm,cvsd=g$cvsd,preval=tab(g$fit.preval)))})
+out$cv<-run({
+ f<-cv.glmnet(X,y,foldid=foldid,nlambda=8)
+ ft<-cv.glmnet(X,y,foldid=foldid,nlambda=8,keep=TRUE,control=list(thresh=1e-20,maxit=1e8))
+ g16<-cv.glmnet(X,y,foldid=foldid,nlambda=8,grouped=FALSE,keep=TRUE,control=list(thresh=1e-16,maxit=1e8))
+ g<-cv.glmnet(X,y,foldid=foldid,nlambda=8,grouped=FALSE,keep=TRUE,control=list(thresh=1e-20,maxit=1e8))
+ list(lambda=f$lambda,cvm=f$cvm,cvsd=f$cvsd,cvup=f$cvup,cvlo=f$cvlo,nzero=f$nzero,
+      lambdaMin=f$lambda.min,lambda1se=f$lambda.1se,lambdaTight=ft$lambda,cvmTight=ft$cvm,
+      cvsdTight=ft$cvsd,lambdaMinTight=ft$lambda.min,lambda1seTight=ft$lambda.1se,
+      groupedFalse=list(cvm=g$cvm,cvsd=g$cvsd,preval=tab(g$fit.preval)),
+      groupedFalseT16=list(cvm=g16$cvm,cvsd=g16$cvsd,preval=tab(g16$fit.preval)))
+})
 Xcv<-cbind(a=seq(-2,2,length.out=60),b=sin(seq_len(60)),c=cos(seq_len(60)))
 yg<-1+.5*Xcv[,1]-.3*Xcv[,2]+sin(seq_len(60)*1.7)*.2
 yb<-rep(0:1,30);fid<-rep(1:5,12)
