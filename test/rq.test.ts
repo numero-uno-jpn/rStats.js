@@ -257,13 +257,14 @@ describe("quantile regression", () => {
     const fit = rq("y ~ x", data, { tau: 0.5 });
     const none = rqPredictInterval(fit, { x: [1, 3, 5] }, { interval: "confidence", type: "none" });
     const direct = rqPredictInterval(fit, { x: [1, 3, 5] }, { interval: "confidence", type: "direct" });
-    expect(none.fit).toHaveLength(3);
+    const fitted = none.fit as number[];
+    expect(fitted).toHaveLength(3);
     expect(none.lower).toHaveLength(3);
     expect(none.upper).toHaveLength(3);
     expect(direct.lower).toHaveLength(3);
     expect(direct.upper).toHaveLength(3);
     for (let i = 0; i < 3; i++) {
-      expect(none.lower![i]!).toBeLessThanOrEqual(none.fit[i] as number);
+      expect(none.lower![i]!).toBeLessThanOrEqual(fitted[i]!);
       expect(none.upper![i]!).toBeGreaterThanOrEqual(none.fit[i] as number);
       expect(direct.lower![i]!).toBeLessThanOrEqual(direct.upper![i]!);
     }
