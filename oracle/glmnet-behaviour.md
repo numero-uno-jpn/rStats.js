@@ -168,6 +168,13 @@ The public control output records fdev=1e-5, eps=1e-6, mnlam=5, devmax=.999, thr
 
 1. The exact stopping boundary for fdev, devmax, and active-set limits has not been isolated numerically. The n<p example reaches .01 exactly; the n>p example stops at .000372759372031494. The control defaults and both outcomes are recorded.
 2. Full class-centering/identifiability behaviour for every multinomial class-count, penalty-factor, and coefficient-limit corner case is not established. The recorded three-class fixture establishes centered intercepts for both penalty types, non-zero-sum ungrouped slopes, and zero-sum grouped slopes.
+   **Multinomial paths against R (2026-11-21, the coordinator; `experiments/regression18-multinomial-tight.*`):** on iris,
+   R's default fit (thresh = 1e-7) is up to 1.2 (ungrouped) and 2.3 (grouped) from its strict refits, and its refits at
+   thresh 1e-14 and 1e-16 still differ by up to 1.3e-4 and 2.8e-3 at the smallest lambda (close to separation). R's
+   default is therefore not a reference here. rStats.js at thresh 1e-12 has KKT residuals below 1e-10 and is closer to
+   R's 1e-16 refit than R's 1e-14 refit is, at every lambda; the test compares within R's own gap. (The 0.002
+   "mismatch" recorded earlier was against R's default fit.) The path returned was also cut to the number of classes
+   (fixed).
 
 ## Decisions for the user
 
