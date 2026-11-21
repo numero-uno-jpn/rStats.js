@@ -273,7 +273,7 @@ function fitOne(
   }
   return { a0, beta, eta, passes, converged };
 }
-export function glmnet(x: readonly (readonly number[])[], y: readonly number[], options: GlmnetOptions = {}): GlmnetResult {
+function glmnetScalar(x: readonly (readonly number[])[], y: readonly number[], options: GlmnetOptions = {}): GlmnetScalarResult {
   const n = y.length, p = x[0]?.length ?? 0;
   if (n < 2 || p < 2 || x.length !== n || x.some(r => r.length !== p)) throw new RangeError("x must be a rectangular matrix with at least two columns and two rows");
   if (y.some(v => !Number.isFinite(v)) || x.some(r => r.some(v => !Number.isFinite(v)))) throw new RangeError("x and y must contain only finite values");
