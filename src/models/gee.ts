@@ -197,7 +197,7 @@ export interface GeeSummaryResult {
     /** Estimated working-correlation values. */
     estimate: number[];
   };
-  /** Value for warnings. */
+  /** Warnings recorded while fitting or summarizing the model. */
   warnings: string[];
 }
 
