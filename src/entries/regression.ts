@@ -96,6 +96,7 @@ export {
   geeAnova,
   geeQIC,
   type GeeOptions,
+  type GeeId,
   type GeeResult,
   type GeeSummaryResult,
   type GeeVcovResult,
