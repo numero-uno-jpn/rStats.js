@@ -340,8 +340,8 @@ it("diagnoses all synthetic GEE correlation structures against strict R fits", (
 
 it("diagnoses strict JS convergence for off-path glmnet interpolation", () => {
   const f = glmnetFixture as any;
-  const x = f.inputs.gaussian_alpha1.x;
-  const y = f.inputs.gaussian_alpha1.y;
+  const x = f.X.values;
+  const y = f.y;
   const lambda = [2, 1, 0.5, 0.25, 0.125];
   const defaultFit = glmnet(x, y, { lambda });
   const strictFit = glmnet(x, y, { lambda, thresh: 1e-14 });
