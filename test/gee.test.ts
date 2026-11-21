@@ -84,7 +84,7 @@ describe("generalized estimating equations", () => {
   });
 
 
-  it.todo("matches R jack and j1s covariance after resolving the delete-cluster center and finite-sample factor");
+  it.todo("matches R jack, j1s, and fij covariance after resolving the delete-cluster center and finite-sample factor");
 
   it("distinguishes approximate, one-step, and fully iterated delete-cluster covariance", () => {
     const jack = geeglm("y ~ x", data, { id: "id", "std.err": "jack" });
