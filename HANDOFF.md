@@ -55,6 +55,9 @@
     `docs/differences-from-r.md` (と ja) に。R 側の不具合と見ているのは geepack の 3 件 (scale.fix のエラー、fixed の anova が
     終わらない、poisson 無構造の厳しい当て直しが終わらない) だけ
   - 以後は再び token を節約する (ユーザーの指示 2026-11-21)。残りは ChatGPT に戻した
+  - **1.8.0 に入れないもの (ユーザーの決定 2026-11-21):** rq の se = iid・ker・boot と rank の iid = FALSE、geeglm の jackknife
+    3 種。R と合わせられなかった。エラーにして既知の未対応に (choices に記録済み `6ee8442f`)。仕上げと文書は
+    `briefs/release-1.8.ja.md` で ChatGPT に。glmnet の CV は R の厳しい当て直しの fixture を入れた (`64d30930`)
   - 残り: rq の iid の密度・ker の帯域・boot (pwy・mcmb・wxy)、geeglm の jack・j1s、glmnet の CV の cvm (1.2e-5)。
     最後に生成物 (option keys・R の索引)、文書・訳・デモは ChatGPT に
 - ChatGPT は返答のたびに「メッセージの配信がタイムアウト」になりやすい。そのたびに Issue #545 とブランチを見て再開の依頼文を書く
