@@ -19,10 +19,11 @@ const GEE_PREDICT_KEYS = ["newdata", "type", "newoffset"] as const;
 const GEE_ANOVA_KEYS = ["test"] as const;
 
 export type GeeCorrelation = "independence" | "exchangeable" | "ar1" | "unstructured" | "userdefined" | "fixed";
+export type GeeId = readonly (number | string | boolean)[];
 export type GeeStdErr = "san.se" | "jack" | "j1s" | "fij";
 
 export interface GeeOptions {
-  id: string | Sample;
+  id: string | GeeId;
   waves?: string | Sample;
   family?: GlmFamilyName | GlmFamilySpec;
   link?: GlmLink;
@@ -199,7 +200,7 @@ function vector(value: string | Sample | undefined, data: DataFrame, rows: reado
   });
 }
 
-function clusterVector(value: string | Sample, data: DataFrame, rows: readonly number[], n: number): (number | string | boolean)[] {
+function clusterVector(value: string | GeeId, data: DataFrame, rows: readonly number[], n: number): (number | string | boolean)[] {
   const raw: readonly unknown[] = typeof value === "string" ? getColumn(data, value) : Array.from(value);
   if (raw.length !== n) throw new RangeError("variable lengths differ (found for 'id')");
   return rows.map((i) => {
