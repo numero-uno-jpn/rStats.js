@@ -203,6 +203,8 @@ The public geese.control values are trace=0, jack=0, j1s=0, fij=0, maxit=25, eps
 5. The current rStats.js branch has provisional code paths for jack, j1s, and fij. jack uses a full-bread linearized deletion, j1s uses the bread with the deleted cluster contribution removed for its one-step update, and fij refits after each cluster deletion. These choices have not yet been compared with the newly expanded public-output fixture; they are not accepted as matching R until coefficient covariance and summary standard errors are compared. In particular, the exact finite-sample distinction between jack and j1s remains unresolved.
 6. The AR(1) moment minimization is numerically close but not yet at the same precision as the recorded R values: on the balanced 12-cluster check the current estimate differs by about 8.0e-8, and on the wave-gap check by about 1.15e-6. The tests therefore check convergence and local minimization of the documented moment objective, not a relaxed R-value tolerance. The expanded fixture will decide whether this is the public default/tight-control distinction or a remaining estimating-equation discrepancy; no 10-digit equivalence is claimed yet.
 
+7. The expanded 12-cluster Gaussian fixture separates the ordinary and tight public fits. For the tight fit, rStats.js returns alpha = -0.2011751865764183 versus R's -0.201175186600473 (absolute difference 2.41e-11). For the ordinary fit, rStats.js returns -0.2011751865764183 while R returns -0.201175106522640 (absolute difference 8.0054e-8). The tight comparison is accepted at the existing strict precision; the ordinary/default discrepancy remains unresolved. No tolerance was widened.
+
 ## Decisions for the user
 
 1. **Jackknife compatibility.** (A) implement all three variants with separate definitions and tests; (B) implement only sandwich first. **Recommendation: A**, because the public outputs distinguish them.
@@ -226,5 +228,3 @@ other section of this file.
 4. **Missing values:** the existing model-frame rule of the regression functions (rows with NA are dropped); the
    clusters, waves and working correlations are built from the remaining rows.
 5. **`zcor`:** accepted as a validated design matrix (or vector); no helpers like `genZcor` or `fixed2Zcor` in 1.8.0.
-
-7. The expanded 12-cluster Gaussian fixture separates the ordinary and tight public fits. For the tight fit, rStats.js returns alpha = -0.2011751865764183 versus R's -0.201175186600473 (absolute difference 2.41e-11). For the ordinary fit, rStats.js returns -0.2011751865764183 while R returns -0.201175106522640 (absolute difference 8.0054e-8). The tight comparison is accepted at the existing strict precision; the ordinary/default discrepancy remains unresolved. No tolerance was widened.
