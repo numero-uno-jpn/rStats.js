@@ -123,7 +123,7 @@ function multiply(a: readonly (readonly number[])[], b: readonly (readonly numbe
   const out = zeros(n, m);
   for (let i = 0; i < n; i++) for (let q = 0; q < k; q++) {
     const v = a[i]![q]!;
-    for (let j = 0; j < m; j++) out[i]![j] += v * b[q]![j]!;
+    for (let j = 0; j < m; j++) out[i]![j] = out[i]![j]! + v * b[q]![j]!;
   }
   return out;
 }
@@ -141,10 +141,10 @@ function inverse(input: readonly (readonly number[])[]): number[][] {
     if (!(Math.abs(a[pivot]![j]!) > Number.EPSILON * Math.max(1, rowMax))) throw new Error("singular working information matrix");
     [a[j], a[pivot]] = [a[pivot]!, a[j]!];
     const d = a[j]![j]!;
-    for (let k = 0; k < 2 * n; k++) a[j]![k] /= d;
+    for (let k = 0; k < 2 * n; k++) a[j]![k] = a[j]![k]! / d;
     for (let i = 0; i < n; i++) if (i !== j) {
       const f = a[i]![j]!;
-      for (let k = 0; k < 2 * n; k++) a[i]![k] -= f * a[j]![k]!;
+      for (let k = 0; k < 2 * n; k++) a[i]![k] = a[i]![k]! - f * a[j]![k]!;
     }
   }
   return a.map((r) => r.slice(n));
@@ -294,8 +294,8 @@ function geeStep(
     const localScore = multiply(transpose(D), ViR.map((v) => [v])).map((r) => r[0]!);
     for (let j = 0; j < p; j++) score[j]! += localScore[j]!;
     const localBread = multiply(multiply(transpose(D), Vi), D);
-    for (let j = 0; j < p; j++) for (let k = 0; k < p; k++) bread[j]![k] += localBread[j]![k]!;
-    for (let j = 0; j < p; j++) for (let k = 0; k < p; k++) meat[j]![k] += localScore[j]! * localScore[k]!;
+    for (let j = 0; j < p; j++) for (let k = 0; k < p; k++) bread[j]![k] = bread[j]![k]! + localBread[j]![k]!;
+    for (let j = 0; j < p; j++) for (let k = 0; k < p; k++) meat[j]![k] = meat[j]![k]! + localScore[j]! * localScore[k]!;
   }
   return { delta: solve(bread, score), bread, meat, eval: ev };
 }
@@ -421,7 +421,7 @@ export function geeAnova(fit: GeeResult, options: { test?: "Wald" } = {}): GeeAn
   const invCov = inverse(fit.covariance);
   const w = dot(fit.coefficients, multiply(invCov, fit.coefficients.map((v) => [v])).map((r) => r[0]!));
   const tail = pchisq(w, p, { lowerTail: false }) as number;
-  return reported("geeAnova", { rows: ["Model"], columns: ["Df", "X2", "Pr(>Chi)"], values: [[p, w, tail]], warnings: [] }, fit);
+  return reported("geeAnova", { rows: ["Model"], columns: ["Df", "X2", "Pr(>Chi)"] as ["Df", "X2", "Pr(>Chi)"], values: [[p, w, tail]], warnings: [] }, fit);
 }
 
 /** Quasi-likelihood information criteria (Pan, 2001). */
