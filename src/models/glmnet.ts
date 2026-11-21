@@ -277,7 +277,7 @@ function glmnetScalar(x: readonly (readonly number[])[], y: readonly number[], o
   const n = y.length, p = x[0]?.length ?? 0;
   if (n < 2 || p < 2 || x.length !== n || x.some(r => r.length !== p)) throw new RangeError("x must be a rectangular matrix with at least two columns and two rows");
   if (y.some(v => !Number.isFinite(v)) || x.some(r => r.some(v => !Number.isFinite(v)))) throw new RangeError("x and y must contain only finite values");
-  const family = options.family ?? "gaussian", alpha = options.alpha ?? 1;
+  const family = (options.family ?? "gaussian") as "gaussian" | "binomial" | "poisson", alpha = options.alpha ?? 1;
   if (!["gaussian", "binomial", "poisson"].includes(family)) throw new RangeError("unsupported family");
   if (!(alpha >= 0 && alpha <= 1)) throw new RangeError("alpha must be in [0, 1]");
   if (family === "binomial" && y.some(v => v < 0 || v > 1)) throw new RangeError("binomial y must be in [0, 1]");
@@ -531,9 +531,10 @@ function glmnetMultinomial(
   const nullEta = xs.map(() => aNull.slice());
   const nullDev = 2 * multinomialObjective(xs, y, w, aNull, xs[0]!.map(() => new Array<number>(kCount).fill(0)), 0, alpha, penalty, grouped);
   const gradient = Array.from({ length: p }, () => new Array<number>(kCount).fill(0));
+  let nullDenominator = 0; for (const v of aNull) nullDenominator += Math.exp(v);
   for (let i = 0; i < n; i++) {
     for (let k = 0; k < kCount; k++) {
-      const prob = Math.exp(aNull[k]!);
+      const prob = Math.exp(aNull[k]!) / nullDenominator;
       const residual = w[i]! * (prob - (y[i] === k ? 1 : 0)) / n;
       for (let j = 0; j < p; j++) gradient[j]![k] += residual * xs[i]![j]!;
     }
