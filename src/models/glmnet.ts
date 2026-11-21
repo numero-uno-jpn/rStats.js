@@ -73,8 +73,6 @@ export interface CvGlmnetResult {
   fitPreval?: number[][];
 }
 
-const EPS = Number.EPSILON;
-
 function soft(value: number, threshold: number): number {
   return value > threshold ? value - threshold : value < -threshold ? value + threshold : 0;
 }
@@ -197,7 +195,8 @@ function fitOne(
     if (!accepted) break;
     let change = Math.abs(a0 - oldA);
     for (let j = 0; j < p; j++) change = Math.max(change, Math.abs(beta[j]! - oldB[j]!));
-    if (change <= thresh * (1 + Math.max(Math.abs(a0), ...beta.map(Math.abs)))) { converged = true; break; }
+    let scale = Math.abs(a0); for (const value of beta) scale = Math.max(scale, Math.abs(value));
+    if (change <= thresh * (1 + scale)) { converged = true; break; }
     previous = [a0, ...beta];
     void previous;
   }
@@ -238,7 +237,7 @@ export function glmnet(x: readonly (readonly number[])[], y: readonly number[], 
     return Math.abs(g / n);
   });
   const alphaForMax = alpha === 0 ? 0.001 : alpha;
-  const lambdaMax = Math.max(...residualGradient.map((v, j) => pf[j]! > 0 ? v / (alphaForMax * pf[j]!) : 0));
+  let lambdaMax = 0; for (let j = 0; j < p; j++) if (pf[j]! > 0) lambdaMax = Math.max(lambdaMax, residualGradient[j]! / (alphaForMax * pf[j]!));
   const nlambda = options.nlambda ?? 100;
   if (!Number.isInteger(nlambda) || nlambda < 1) throw new RangeError("nlambda must be a positive integer");
   const minRatio = options.lambdaMinRatio ?? (n > p ? 1e-4 : 1e-2);
@@ -250,7 +249,7 @@ export function glmnet(x: readonly (readonly number[])[], y: readonly number[], 
   const upper = normalizeVector(options.upperLimits, p, Infinity);
   for (let j = 0; j < p; j++) {
     if (lower[j]! > 0 || lower[j]! > upper[j]!) throw new RangeError("invalid coefficient limits");
-    lower[j] *= xScale[j]!; upper[j] *= xScale[j]!;
+    lower[j] = lower[j]! * xScale[j]!; upper[j] = upper[j]! * xScale[j]!;
   }
   const maxit = options.maxit ?? 100000, thresh = options.thresh ?? 1e-10;
   if (!Number.isInteger(maxit) || maxit < 1 || !(thresh > 0)) throw new RangeError("invalid convergence controls");
@@ -313,10 +312,11 @@ export function cvGlmnet(x: readonly (readonly number[])[], y: readonly number[]
   for (const fold of folds) {
     const train = y.map((_,i)=>i).filter(i=>foldid[i]!==fold), test = y.map((_,i)=>i).filter(i=>foldid[i]===fold);
     const subx=train.map(i=>x[i]!), suby=train.map(i=>y[i]!);
-    const subOptions: GlmnetOptions = {...options, lambda, weights: options.weights ? train.map(i=>options.weights![i]!) : undefined,
-      offset: options.offset ? train.map(i=>options.offset![i]!) : undefined};
+    const subOptions: GlmnetOptions = {...options, lambda,
+      ...(options.weights === undefined ? {} : { weights: train.map(i=>options.weights![i]!) }),
+      ...(options.offset === undefined ? {} : { offset: train.map(i=>options.offset![i]!) })};
     const sub=glmnet(subx,suby,subOptions);
-    const pred=glmnetPredict(sub,test.map(i=>x[i]!),{s:lambda,type:"response",offset:options.offset?test.map(i=>options.offset![i]!):undefined});
+    const pred=glmnetPredict(sub,test.map(i=>x[i]!),{s:lambda,type:"response",...(options.offset === undefined ? {} : { offset: test.map(i=>options.offset![i]!) })});
     for(let i=0;i<test.length;i++) for(let k=0;k<lambda.length;k++) predictions[test[i]!]![k]=pred[k]![i]!;
     const err=lambda.map((_,k)=>test.reduce((v,i)=>v+((pred[k]![test.indexOf(i)]!-y[i]!)**2),0)/test.length);
     measures.push(err);
