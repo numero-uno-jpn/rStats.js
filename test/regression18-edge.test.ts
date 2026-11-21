@@ -7,6 +7,10 @@ function close(actual: number, expected: number, tolerance = 1e-10): void {
   expect(Number.isFinite(actual)).toBe(true);
   expect(Math.abs(actual - expected)).toBeLessThanOrEqual(tolerance * Math.max(1, Math.abs(expected)));
 }
+function rqScalar(value: number | number[]): number { return Array.isArray(value) ? value[0]! : value; }
+function rqVector(values: Record<string, number | number[]>): number[] {
+  return Object.values(values).flatMap(value => Array.isArray(value) ? value : [value]);
+}
 function closeVector(actual: readonly number[], expected: readonly number[], tolerance = 1e-10): void {
   expect(actual.length).toBe(expected.length);
   for (let i = 0; i < expected.length; i++) close(actual[i]!, expected[i]!, tolerance);
@@ -40,20 +44,20 @@ describe("regression 1.8.0: scale, weight, order, and edge-input audit", () => {
     const baseZSe = rqBaseSummary.coefficients.find(v => v.term === "z")!.stdError;
     for (const scale of [1e100, 1e-100]) {
       const xFit = rq("y ~ x + z", { ...d, x: d.x.map(v => v * scale) }, { tau: .5, method: "fn", eps: 1e-12 });
-      close(xFit.coefficients.x! * scale, rqBase.coefficients.x!);
-      close(xFit.coefficients.z!, rqBase.coefficients.z!);
+      close(rqScalar(xFit.coefficients.x!) * scale, rqScalar(rqBase.coefficients.x!));
+      close(rqScalar(xFit.coefficients.z!), rqScalar(rqBase.coefficients.z!));
       const xSummary = rqSummary(xFit, { se: "nid" });
       close(xSummary.coefficients.find(v => v.term === "x")!.stdError * scale, baseXSe, 1e-8);
       close(xSummary.coefficients.find(v => v.term === "z")!.stdError, baseZSe, 1e-8);
 
       const zFit = rq("y ~ x + z", { ...d, z: d.z.map(v => v * scale) }, { tau: .5, method: "fn", eps: 1e-12 });
-      close(zFit.coefficients.z! * scale, rqBase.coefficients.z!);
-      close(zFit.coefficients.x!, rqBase.coefficients.x!);
+      close(rqScalar(zFit.coefficients.z!) * scale, rqBase.coefficients.z!);
+      close(rqScalar(zFit.coefficients.x!), rqBase.coefficients.x!);
       const zSummary = rqSummary(zFit, { se: "nid" });
       close(zSummary.coefficients.find(v => v.term === "z")!.stdError * scale, baseZSe, 1e-8);
 
       const yFit = rq("ys ~ x + z", { ...d, ys: d.y.map(v => v * scale) }, { tau: .5, method: "fn", eps: 1e-12 });
-      for (const term of ["(Intercept)", "x", "z"]) close(yFit.coefficients[term]! / scale, rqBase.coefficients[term]!);
+      for (const term of ["(Intercept)", "x", "z"]) close(rqScalar(yFit.coefficients[term]!) / scale, rqScalar(rqBase.coefficients[term]!));
       const ySummary = rqSummary(yFit, { se: "nid" });
       for (const term of ["(Intercept)", "x", "z"]) {
         const baseSe = rqBaseSummary.coefficients.find(v => v.term === term)!.stdError;
@@ -116,7 +120,7 @@ describe("regression 1.8.0: scale, weight, order, and edge-input audit", () => {
     const rqZero = rq("y ~ x + z", d, { tau: .5, method: "fn", eps: 1e-12, weights: zero });
     const rqDrop = rq("y ~ x + z", { x: reorder(d.x, keep), z: reorder(d.z, keep), y: reorder(d.y, keep) },
       { tau: .5, method: "fn", eps: 1e-12 });
-    closeVector(["(Intercept)", "x", "z"].map(k => rqZero.coefficients[k]!), ["(Intercept)", "x", "z"].map(k => rqDrop.coefficients[k]!));
+    closeVector(["(Intercept)", "x", "z"].map(k => rqScalar(rqZero.coefficients[k]!)), ["(Intercept)", "x", "z"].map(k => rqScalar(rqDrop.coefficients[k]!)));
     const geeZero = geeglm("y ~ x + z", d, { ...geeOptions, weights: zero });
     const dDrop = { x: reorder(d.x, keep), z: reorder(d.z, keep), y: reorder(d.y, keep),
       id: reorder(d.id, keep), wave: reorder(d.wave, keep) };
@@ -133,7 +137,7 @@ describe("regression 1.8.0: scale, weight, order, and edge-input audit", () => {
     const shuffled = { x: reorder(d.x, order), z: reorder(d.z, order), y: reorder(d.y, order),
       id: reorder(d.id, order), wave: reorder(d.wave, order) };
     const rqRows = rq("y ~ x + z", shuffled, { tau: .5, method: "fn", eps: 1e-12 });
-    closeVector(["(Intercept)", "x", "z"].map(k => rqRows.coefficients[k]!), ["(Intercept)", "x", "z"].map(k => rqBase.coefficients[k]!));
+    closeVector(["(Intercept)", "x", "z"].map(k => rqScalar(rqRows.coefficients[k]!)), ["(Intercept)", "x", "z"].map(k => rqBase.coefficients[k]!));
     const geeRows = geeglm("y ~ x + z", shuffled, geeOptions);
     closeVector(geeRows.coefficients, geeBase.coefficients, 1e-8);
     const glmRows = glmnet(reorder(glmX, order), reorder(d.y, order), { nlambda: 10, thresh: 1e-12 });
@@ -141,8 +145,8 @@ describe("regression 1.8.0: scale, weight, order, and edge-input audit", () => {
     closeVector(glmRows.beta.flat(), glmBase.beta.flat(), 1e-8);
 
     const rqCols = rq("y ~ z + x", d, { tau: .5, method: "fn", eps: 1e-12 });
-    close(rqCols.coefficients.x!, rqBase.coefficients.x!);
-    close(rqCols.coefficients.z!, rqBase.coefficients.z!);
+    close(rqScalar(rqCols.coefficients.x!), rqBase.coefficients.x!);
+    close(rqScalar(rqCols.coefficients.z!), rqBase.coefficients.z!);
     const geeCols = geeglm("y ~ z + x", d, geeOptions);
     close(geeCols.coefficients[1]!, geeBase.coefficients[2]!, 1e-8);
     close(geeCols.coefficients[2]!, geeBase.coefficients[1]!, 1e-8);
@@ -158,10 +162,10 @@ describe("regression 1.8.0: scale, weight, order, and edge-input audit", () => {
     for (const bad of [NaN, Infinity, -Infinity]) {
       const badY = d.y.slice(); badY[3] = bad;
       const badX = d.x.slice(); badX[3] = bad;
-      finiteOrError(() => Object.values(rq("y ~ x + z", { ...d, y: badY }, { tau: .5, method: "fn" }).coefficients));
-      finiteOrError(() => Object.values(rq("y ~ x + z", { ...d, x: badX }, { tau: .5, method: "fn" }).coefficients));
+      finiteOrError(() => rqVector(rq("y ~ x + z", { ...d, y: badY }, { tau: .5, method: "fn" }).coefficients));
+      finiteOrError(() => rqVector(rq("y ~ x + z", { ...d, x: badX }, { tau: .5, method: "fn" }).coefficients));
       const badW = new Array<number>(d.y.length).fill(1); badW[3] = bad;
-      finiteOrError(() => Object.values(rq("y ~ x + z", d, { tau: .5, method: "fn", weights: badW }).coefficients));
+      finiteOrError(() => rqVector(rq("y ~ x + z", d, { tau: .5, method: "fn", weights: badW }).coefficients));
       finiteOrError(() => {
         const fit = geeglm("y ~ x + z", { ...d, y: badY }, geeOptions);
         return fit.coefficients.concat(fit.covariance.flat());
@@ -195,14 +199,14 @@ describe("regression 1.8.0: scale, weight, order, and edge-input audit", () => {
   it("handles rq tau near both boundaries and its degenerate design cases explicitly", () => {
     for (const tau of [.001, .999]) {
       const fit = rq("y ~ x + z", d, { tau, method: "fn", eps: 1e-12 });
-      expect(Object.values(fit.coefficients).every(Number.isFinite)).toBe(true);
+      expect(rqVector(fit.coefficients).every(Number.isFinite)).toBe(true);
     }
     const constantY = rq("y ~ x", { x: d.x.slice(0, 20), y: new Array<number>(20).fill(3) }, { tau: .5, method: "fn" });
-    expect(Object.values(constantY.coefficients).every(Number.isFinite)).toBe(true);
+    expect(rqVector(constantY.coefficients).every(Number.isFinite)).toBe(true);
     expect(() => rq("y ~ x + z", { x: [1,2,3,4], z: [2,4,6,8], y: [1,2,3,4] })).toThrow();
     expect(() => rq("y ~ x + z", { x: [1,2,3], z: [1,2,3], y: [1,2,3] })).toThrow();
     const square = rq("y ~ x", { x: [0, 1], y: [2, 4] }, { tau: .5 });
-    expect(Object.values(square.coefficients).every(Number.isFinite)).toBe(true);
+    expect(rqVector(square.coefficients).every(Number.isFinite)).toBe(true);
   });
 
   it("covers GEE single-cluster, singleton, and unbalanced cluster structures", () => {
