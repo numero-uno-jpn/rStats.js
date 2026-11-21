@@ -44,4 +44,16 @@ describe("generalized estimating equations", () => {
     expect(geePredict(fit, { newdata: { t: [4, 4], x: [0, 1] } })[1]).toBeCloseTo(3 + Math.log(4), 10);
   });
 
+
+  it("distinguishes approximate, one-step, and fully iterated delete-cluster covariance", () => {
+    const jack = geeglm("y ~ x", data, { id: "id", "std.err": "jack" });
+    const j1s = geeglm("y ~ x", data, { id: "id", "std.err": "j1s" });
+    const fij = geeglm("y ~ x", data, { id: "id", "std.err": "fij" });
+    for (const fit of [jack, j1s, fij]) {
+      expect(fit.covariance).toHaveLength(2);
+      expect(fit.covariance.flat().every(Number.isFinite)).toBe(true);
+    }
+    expect(jack.covariance).not.toEqual(fij.covariance);
+  });
+
 });
