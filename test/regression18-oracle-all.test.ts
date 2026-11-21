@@ -153,6 +153,9 @@ describe("rStats.js 1.8.0 public-output completeness against the pinned R oracle
       vectorWithROracleUncertainty(summary.correlation.estimate,
         correlationEstimates(expected.corr), correlationEstimates(expectedTight.corr));
       const qic = geeQIC(fit);
+      console.log("[regression18-oracle] GEE QIC diagnostic", JSON.stringify({ corstr,
+        js: [qic.QIC, qic.QICu, qic.Q, qic.CIC, qic.params, qic.QICC],
+        rDefault: expected.qic, rTight: reference.qicTight }));
       vectorWithROracleUncertainty([qic.QIC, qic.QICu, qic.Q, qic.CIC, qic.params, qic.QICC],
         expected.qic, reference.qicTight);
     }
