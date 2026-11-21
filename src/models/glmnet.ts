@@ -364,7 +364,7 @@ function glmnetScalar(x: readonly (readonly number[])[], y: readonly number[], o
     if (lower[j]! > 0 || lower[j]! > upper[j]!) throw new RangeError("invalid coefficient limits");
     lower[j] = lower[j]! * xScale[j]!; upper[j] = upper[j]! * xScale[j]!;
   }
-  const maxit = options.maxit ?? 100000, thresh = options.thresh ?? 1e-10;
+  const maxit = options.maxit ?? 100000, thresh = options.thresh ?? 1e-7;
   if (!Number.isInteger(maxit) || maxit < 1 || !(thresh > 0)) throw new RangeError("invalid convergence controls");
   const dfmax = options.dfmax ?? p + 1, pmax = options.pmax ?? p;
   if (!Number.isInteger(dfmax) || dfmax < 1 || !Number.isInteger(pmax) || pmax < 1) throw new RangeError("dfmax and pmax must be positive integers");
@@ -686,7 +686,7 @@ function glmnetMultinomial(
     if (lower[j]! > 0 || lower[j]! > upper[j]!) throw new RangeError("invalid coefficient limits");
     lower[j] = lower[j]! * xScale[j]!; upper[j] = upper[j]! * xScale[j]!;
   }
-  const maxit = options.maxit ?? 100000, thresh = options.thresh ?? 1e-10;
+  const maxit = options.maxit ?? 100000, thresh = options.thresh ?? 1e-7;
   const a0: number[][] = classes.map(() => [] as number[]), betaByClass: Record<string, number[][]> = Object.fromEntries(classes.map(name => [name, Array.from({ length: p }, () => [] as number[])]));
   const dfmat = classes.map(() => [] as number[]), devRatio: number[] = [], converged: boolean[] = [], kktResidual: number[] = [];
   let startA = aNull.slice(), startB = Array.from({ length: p }, () => new Array<number>(kCount).fill(0)), npasses = 0;
