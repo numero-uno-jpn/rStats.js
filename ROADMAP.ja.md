@@ -57,7 +57,7 @@ SciPy (`scipy.stats`、`scipy.special`、`scipy.linalg`) は移植元のコー�
 
 回帰 (以前の項目 2) は 1.8.0 に向けて完了しました: 分位点回帰 (`rq`)、一般化推定方程式 (`geeglm`)、
 正則化回帰 (`glmnet`) です。[変更履歴](CHANGELOG.md#unreleased) と
-[R との違い](docs/ja/differences-from-r.md#回帰-rq-geeglm-glmnet) を参照してください。
+[R との違い](docs/ja/differences-from-r.md) を参照してください。
 
 ## 残っていること
 
