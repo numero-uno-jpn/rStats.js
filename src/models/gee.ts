@@ -478,6 +478,33 @@ function geeStep(
   return { delta: solve(bread, score), bread, meat, eval: ev };
 }
 
+/** Fit the independence working-correlation model used to construct Omega_I in QIC. */
+function fitIndependenceForQIC(
+  x: readonly (readonly number[])[], y: readonly number[], startBeta: readonly number[],
+  offset: readonly number[], weights: readonly number[], family: Family,
+  clusterGroups: readonly number[][], waves: readonly number[], startScale: number,
+  scaleFix: boolean, scaleValue: number, epsilon: number, maxit: number,
+): { beta: number[]; scale: number } {
+  let beta = Array.from(startBeta), scale = startScale;
+  for (let iteration = 1; iteration <= maxit; iteration++) {
+    const step = geeStep(x, y, beta, offset, weights, family, clusterGroups, waves,
+      "independence", [], scale, undefined);
+    const next = beta.map((v, j) => v + step.delta[j]!);
+    if (next.some((v) => !Number.isFinite(v))) throw new Error("non-finite coefficient in independence GEE iteration");
+    let diff = 0;
+    for (let j = 0; j < beta.length; j++) diff = Math.max(diff, Math.abs(next[j]! - beta[j]!));
+    beta = next;
+    const ev = evaluate(x, y, beta, offset, family, weights);
+    const oldScale = scale;
+    if (!scaleFix) scale = ev.pearson.reduce((s, v) => s + v * v, 0) / y.length;
+    diff = Math.max(diff, Math.abs(scale - oldScale));
+    let betaScale = 1;
+    for (const value of beta) betaScale = Math.max(betaScale, Math.abs(value));
+    if (diff <= epsilon * betaScale) break;
+  }
+  return { beta, scale: scaleFix ? scaleValue : scale };
+}
+
 /**
  * Options for selecting the covariance matrix returned by geeVcov.
  * @category Regression
@@ -658,7 +685,11 @@ export function geeglm(formula: string, data: DataFrame, options: GeeOptions): G
     const breadInv = inverse(bread);
     let covariance = multiply(multiply(breadInv, meat), breadInv);
     const modelCovariance = breadInv.map((r) => r.slice());
-    const independentStep = geeStep(x, y, beta, offset, weights, family, clusterGroups, waves, "independence", [], scale, undefined);
+    const independentFit = corstr === "independence" ? { beta, scale } :
+      fitIndependenceForQIC(x, y, beta, offset, weights, family, clusterGroups, waves, scale,
+        options["scale.fix"] ?? false, options["scale.value"] ?? 1, epsilon, maxit);
+    const independentStep = geeStep(x, y, independentFit.beta, offset, weights, family, clusterGroups, waves,
+      "independence", [], independentFit.scale, undefined);
     const independenceCovariance = inverse(independentStep.bread);
     const ev = evaluate(x, y, beta, offset, family, weights);
     const fitted = new Array<number>(inputN).fill(NaN), linear = fitted.slice(), residuals = fitted.slice(), pearson = fitted.slice();
