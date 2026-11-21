@@ -330,6 +330,8 @@ function geeStep(
 ) {
   const ev = evaluate(x, y, beta, offset, family, weights);
   const p = beta.length, bread = zeros(p, p), meat = zeros(p, p), score = new Array<number>(p).fill(0);
+  const clusterScores: number[][] = [];
+  const clusterBread: number[][][] = [];
   let pairOffset = 0;
   for (const rows of clusterGroups) {
     const a = rows.map((i) => Math.sqrt(family.variance(ev.mu[i]!) / weights[i]!));
@@ -343,10 +345,12 @@ function geeStep(
     const localScore = multiply(transpose(D), ViR.map((v) => [v])).map((r) => r[0]!);
     for (let j = 0; j < p; j++) score[j]! += localScore[j]!;
     const localBread = multiply(multiply(transpose(D), Vi), D);
+    clusterScores.push(localScore);
+    clusterBread.push(localBread);
     for (let j = 0; j < p; j++) for (let k = 0; k < p; k++) bread[j]![k] = bread[j]![k]! + localBread[j]![k]!;
     for (let j = 0; j < p; j++) for (let k = 0; k < p; k++) meat[j]![k] = meat[j]![k]! + localScore[j]! * localScore[k]!;
   }
-  return { delta: solve(bread, score), bread, meat, eval: ev };
+  return { delta: solve(bread, score), bread, meat, clusterScores, clusterBread, eval: ev };
 }
 
 /** Fit a marginal generalized estimating equation model. */
@@ -357,7 +361,7 @@ export function geeglm(formula: string, data: DataFrame, options: GeeOptions): G
   if (!["independence", "exchangeable", "ar1", "unstructured", "userdefined", "fixed"].includes(corstr)) throw new RangeError("unknown working correlation");
   const stdErr = options["std.err"] ?? "san.se";
   if (!["san.se", "jack", "j1s", "fij"].includes(stdErr)) throw new RangeError("unknown standard-error estimator");
-  if (stdErr !== "san.se") throw new Error("jackknife standard errors are not implemented yet");
+  if (stdErr !== "san.se" && stdErr !== "jack" && stdErr !== "j1s" && stdErr !== "fij") throw new RangeError("unknown standard-error estimator");
   const epsilon = options.epsilon ?? 1e-10, maxit = options.maxit ?? 200;
   if (!(epsilon > 0) || !Number.isFinite(epsilon) || !Number.isInteger(maxit) || maxit < 1) throw new RangeError("invalid convergence controls");
   const split = splitOffsets(formula);
@@ -438,7 +442,50 @@ export function geeglm(formula: string, data: DataFrame, options: GeeOptions): G
     bread = finalStep.bread;
     meat = finalStep.meat;
     const breadInv = inverse(bread);
-    const covariance = multiply(multiply(breadInv, meat), breadInv);
+    let covariance = multiply(multiply(breadInv, meat), breadInv);
+    if (stdErr === "jack" || stdErr === "j1s") {
+      covariance = oneStepJackknife(beta, bread, finalStep.clusterScores, finalStep.clusterBread, stdErr === "j1s");
+    }
+    if (stdErr === "fij") {
+      const deleted: number[][] = [];
+      const originalColumns = Object.entries(data).map(([name, col]) => [name, Array.from(col as ArrayLike<unknown>)] as const);
+      const pairStarts: number[] = [];
+      let pairOffset = 0;
+      for (const g of clusterGroups) {
+        pairStarts.push(pairOffset);
+        pairOffset += g.length * (g.length - 1) / 2;
+      }
+      for (let gi = 0; gi < clusterGroups.length; gi++) {
+        const removed = new Set(clusterGroups[gi]!);
+        const keptPositions = rows.map((_, i) => i).filter((i) => !removed.has(i));
+        if (keptPositions.length === 0) throw new RangeError("fij leaves no observations after deleting a cluster");
+        const keptRows = keptPositions.map((i) => rows[i]!);
+        const subsetData = Object.fromEntries(originalColumns.map(([name, col]) => [name, keptRows.map((r) => col[r])])) as DataFrame;
+        const subsetIds = keptPositions.map((i) => ids[i]!);
+        const subsetWaves = keptPositions.map((i) => waves[i]!);
+        const subsetWeights = keptPositions.map((i) => weights[i]!);
+        const subsetOffset = keptPositions.map((i) => offset[i]!);
+        let subsetZcor: number[][] | undefined;
+        if (zcor !== undefined) {
+          subsetZcor = [];
+          for (let gj = 0; gj < clusterGroups.length; gj++) if (gj !== gi) {
+            const count = clusterGroups[gj]!.length * (clusterGroups[gj]!.length - 1) / 2;
+            subsetZcor.push(...zcor.slice(pairStarts[gj]!, pairStarts[gj]! + count));
+          }
+        }
+        const refitOptions: GeeOptions = {
+          id: subsetIds, waves: subsetWaves, family: options.family ?? "gaussian",
+          ...(options.link === undefined ? {} : { link: options.link }),
+          corstr, "std.err": "san.se", weights: subsetWeights, offset: subsetOffset,
+          epsilon, maxit, "scale.fix": options["scale.fix"] ?? false,
+          "scale.value": options["scale.value"] ?? 1,
+          ...(subsetZcor === undefined ? {} : { zcor: subsetZcor }),
+        };
+        const refit = geeglm(split.meanFormula, subsetData, refitOptions);
+        deleted.push(refit.coefficients);
+      }
+      covariance = covarianceOfReplicates(deleted);
+    }
     const modelCovariance = breadInv.map((r) => r.slice());
     const independentStep = geeStep(d.x, y, beta, offset, weights, family, clusterGroups, waves, "independence", [], scale, undefined);
     const independenceCovariance = inverse(independentStep.bread);
