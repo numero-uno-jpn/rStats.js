@@ -24,7 +24,8 @@ for (spec in list(default=NULL,epsilon_1e10=geese.control(epsilon=1e-10,maxit=20
   out$geePredict[[name]] <- capture({
     f <- if (is.null(spec)) geeglm(resp~age+smoke,id=id,data=ohio,family=binomial,corstr="ar1")
          else geeglm(resp~age+smoke,id=id,data=ohio,family=binomial,corstr="ar1",control=spec)
-    list(link=unname(predict(f,newdata=nd)),response=unname(predict(f,newdata=nd,type="response")))
+    list(coefficients=unname(coef(f)),link=unname(predict(f,newdata=nd)),
+         response=unname(predict(f,newdata=nd,type="response")))
   })
 }
 data(dietox)
