@@ -66,9 +66,9 @@ for(mult in c(1e100,1e-100)) {
 out$nonfinite <- list()
 for(bad in c(NaN,Inf,-Inf)) {
  badY<-yy;badY[2]<-bad
- out$nonfinite[[paste0("rq_y_",bad)]]<-capture(rq(badY~xx[,1]+xx[,2],method="fn"))
+ out$nonfinite[[paste0("rq_y_",bad)]]<-capture({ f<-rq(badY~xx[,1]+xx[,2],method="fn"); list(coef=coef(f),rho=f$rho) })
  zz<-xx;zz[2,1]<-bad
- out$nonfinite[[paste0("glmnet_x_",bad)]]<-capture(glmnet(zz,yy,nlambda=5))
+ out$nonfinite[[paste0("glmnet_x_",bad)]]<-capture({ f<-glmnet(zz,yy,nlambda=5); list(lambda=f$lambda,coef=as.matrix(coef(f))) })
 }
 out$weights <- lapply(c(1e-8,3,1e8),function(mult) capture({
  w<-rep(mult,length(yy))
