@@ -598,7 +598,7 @@ export function geePredict(fit: GeeResult, options: GeePredictOptions = {}): num
     return options.type === "response" ? fit.fittedValues.slice() : fit.linearPredictors.slice();
   }
   const newdata = options.newdata ?? fit.model.data;
-  const d = design(parseFormula(fit.model.meanFormula), newdata, { extraVariables: fit.model.offsetTerms.map((t) => t.variable) });
+  const d = design(parseFormula(fit.model.meanFormula), newdata, { extraVariables: [...fit.model.offsetTerms.map((t) => t.variable), ...(fit.model.offsetOptionColumn === undefined ? [] : [fit.model.offsetOptionColumn])] });
   const family = makeFamily(fit.model.family, fit.model.link);
   const n = d.x.length;
   const offset = options.newoffset === undefined ? new Array<number>(n).fill(0) : Array.from(options.newoffset);
