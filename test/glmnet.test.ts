@@ -60,6 +60,31 @@ describe("elastic-net generalized linear models", () => {
     expect(cv.fitPreval).toHaveLength(12);
   });
 
+  it("matches elastic-net and ridge lambda maxima and constrained penalty factors", () => {
+    const fixture = glmnetFixture as unknown as {
+      X: { values: number[][] };
+      y: number[];
+      gaussian_alpha0_5: { value: { lambda: number[]; a0: number[]; beta: { values: number[][] } } };
+      gaussian_alpha0: { value: { lambda: number[]; a0: number[]; beta: { values: number[][] } } };
+      penaltyFactor: { value: { lambda: number[]; a0: number[]; beta: { values: number[][] } } };
+    };
+    for (const [alpha, key] of [[0.5, "gaussian_alpha0_5"], [0, "gaussian_alpha0"]] as const) {
+      const fit = glmnet(fixture.X.values, fixture.y, { alpha, nlambda: 8, lambdaMinRatio: 0.01, thresh: 1e-12 });
+      const expected = fixture[key].value;
+      expect(fit.lambda[0]).toBeCloseTo(expected.lambda[0]!, 10);
+      expect(fit.a0[0]).toBeCloseTo(expected.a0[0]!, 7);
+      expect(fit.beta[0]![0]).toBeCloseTo(expected.beta.values[0]![0]!, 7);
+    }
+    const constrained = glmnet(fixture.X.values, fixture.y, {
+      penaltyFactor: [0, 1, 4], lowerLimits: [-0.5, 0, -1], upperLimits: [0.5, 0, 1],
+      dfmax: 2, pmax: 3, nlambda: 8,
+    });
+    const expected = fixture.penaltyFactor.value;
+    expect(constrained.lambda[0]).toBeCloseTo(expected.lambda[0]!, 10);
+    expect(constrained.beta[0]![0]).toBeCloseTo(expected.beta.values[0]![0]!, 7);
+    expect(constrained.beta.every(row => row[1] === 0)).toBe(true);
+  });
+
   it("matches the public grouped and ungrouped multinomial path starts", () => {
     const fixture = glmnetFixture as unknown as {
       multinomialData: { X: { values: number[][] }; y: string[] };
