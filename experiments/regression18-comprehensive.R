@@ -73,7 +73,7 @@ out$weights <- lapply(c(1e-8,3,1e8),function(mult) capture({
 n<-100000; lx<-cbind(a=((seq_len(n)*37)%%1009)/1009,b=((seq_len(n)*73)%%1013)/1013)
 ly<-1.5+.8*lx[,1]-.4*lx[,2]+.2*(((seq_len(n)*97)%%101)-50)/50
 out$timing <- list()
-out$timing$rq_fn <- capture(as.numeric(system.time(rq(ly~lx[,1]+lx[,2],method="fn",eps=1e-10,maxit=200))["elapsed"]))
+out$timing$rq_fn <- capture(as.numeric(system.time(rq(ly~lx[,1]+lx[,2],method="fn",eps=1e-10))["elapsed"]))
 gn<-10000; gd<-data.frame(id=rep(seq_len(gn),each=2),wave=rep(1:2,gn),x=rep(0:1,gn),
  y=rep(1:2,gn)+rep(seq_len(gn)%%7,each=2)/10+rep(c(.03,-.03),gn))
 for(cs in c("independence","exchangeable")) out$timing[[paste0("gee_",cs)]]<-capture(

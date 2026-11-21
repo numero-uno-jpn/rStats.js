@@ -288,7 +288,7 @@ function inverse(input: readonly (readonly number[])[]): number[][] {
     for (let i = j + 1; i < n; i++) if (Math.abs(a[i]![j]!) > Math.abs(a[pivot]![j]!)) pivot = i;
     let rowMax = 0;
     for (let k = 0; k < n; k++) rowMax = Math.max(rowMax, Math.abs(a[pivot]![k]!));
-    if (!(Math.abs(a[pivot]![j]!) > Number.EPSILON * Math.max(1, rowMax))) throw new Error("singular working information matrix");
+    if (!(rowMax > 0) || !(Math.abs(a[pivot]![j]!) > Number.EPSILON * rowMax)) throw new Error("singular working information matrix");
     [a[j], a[pivot]] = [a[pivot]!, a[j]!];
     const d = a[j]![j]!;
     for (let k = 0; k < 2 * n; k++) a[j]![k] = a[j]![k]! / d;
@@ -554,27 +554,38 @@ export function geeglm(formula: string, data: DataFrame, options: GeeOptions): G
     extraVariables: extras, ...(options.weights === undefined ? {} : { weights: options.weights }),
   });
   if (d.y === undefined) throw new TypeError("formula must have a response");
-  const rows = d.frame.rows, n = rows.length, p = d.colNames.length;
-  if (n === 0 || p === 0) throw new RangeError("no observations or no model columns");
-  const ids = clusterVector(options.id, data, rows, inputN);
-  let waves = options.waves === undefined ? rows.map((_, i) => i) : vector(options.waves, data, rows, inputN, 0, "waves");
-  const weights = d.frame.weights ?? new Array<number>(n).fill(1);
-  if (weights.some((v) => v < 0)) throw new RangeError("weights must be nonnegative");
-  const offset = vector(options.offset, data, rows, inputN, 0, "offset");
+  const frameRows = d.frame.rows, frameN = frameRows.length, p = d.colNames.length;
+  if (frameN === 0 || p === 0) throw new RangeError("no observations or no model columns");
+  const frameIds = clusterVector(options.id, data, frameRows, inputN);
+  const frameWaves = options.waves === undefined ? frameRows.map((_, i) => i) : vector(options.waves, data, frameRows, inputN, 0, "waves");
+  const frameWeights = d.frame.weights ?? new Array<number>(frameN).fill(1);
+  if (frameWeights.some((v) => v < 0)) throw new RangeError("weights must be nonnegative");
+  if (frameWeights.some((v) => !Number.isFinite(v))) throw new RangeError("weights must be finite");
+  const frameOffset = vector(options.offset, data, frameRows, inputN, 0, "offset");
   for (const term of split.terms) {
-    const values = vector(term.variable, data, rows, inputN, 0, "offset");
-    for (let i = 0; i < offset.length; i++) offset[i] = offset[i]! + (term.log ? Math.log(values[i]!) : values[i]!);
+    const values = vector(term.variable, data, frameRows, inputN, 0, "offset");
+    for (let i = 0; i < frameOffset.length; i++) frameOffset[i] = frameOffset[i]! + (term.log ? Math.log(values[i]!) : values[i]!);
   }
+  const active: number[] = [];
+  for (let i = 0; i < frameN; i++) if (frameWeights[i]! > 0) active.push(i);
+  if (active.length === 0) throw new RangeError("no observations with positive weight");
+  const rows = active.map((i) => frameRows[i]!);
+  const n = rows.length;
+  const x = active.map((i) => d.x[i]!);
+  const y = active.map((i) => d.y![i]!);
+  const ids = active.map((i) => frameIds[i]!);
+  let waves = active.map((i) => frameWaves[i]!);
+  const weights = active.map((i) => frameWeights[i]!);
+  const offset = active.map((i) => frameOffset[i]!);
+  if (x.some((row) => row.some((v) => !Number.isFinite(v)))) throw new RangeError("NA/NaN/Inf in 'x'");
+  if (y.some((v) => !Number.isFinite(v))) throw new RangeError("NA/NaN/Inf in 'y'");
+  if (offset.some((v) => !Number.isFinite(v))) throw new RangeError("offset must be finite");
   const clusterGroups = groups(ids);
   if (options.waves === undefined) {
     waves = new Array<number>(n).fill(0);
     for (const g of clusterGroups) for (let j = 0; j < g.length; j++) waves[g[j]!] = j;
   }
   const family = makeFamily(options.family ?? "gaussian", options.link);
-  const y = d.y;
-  if (y.some((v, i) => !Number.isFinite(v) && weights[i]! > 0)) throw new RangeError("NA/NaN/Inf in 'y'");
-  if (weights.some((v) => !Number.isFinite(v))) throw new RangeError("weights must be finite");
-  if (weights.every((v) => v === 0)) throw new RangeError("no observations with positive weight");
   if (options.zcor !== undefined) {
     if (!Array.isArray(options.zcor)) throw new TypeError("zcor must be a matrix or numeric vector");
     const raw = options.zcor as readonly unknown[];
@@ -603,7 +614,7 @@ export function geeglm(formula: string, data: DataFrame, options: GeeOptions): G
   }
   const warnings = new Warnings();
   return withWarnings(warnings, () => {
-    const startFit = unreported(() => glm(d.x, y, {
+    const startFit = unreported(() => glm(x, y, {
       family: options.family ?? "gaussian",
       ...(options.link === undefined ? {} : { link: options.link }),
       weights, offset, intercept: false, epsilon, maxit,
@@ -618,7 +629,7 @@ export function geeglm(formula: string, data: DataFrame, options: GeeOptions): G
       corstr === "userdefined" ? new Array<number>(zcor?.[0]?.length ?? 0).fill(0) : [];
     let bread = identity(p), meat = identity(p), converged = false, iteration = 0;
     for (iteration = 1; iteration <= maxit; iteration++) {
-      const step = geeStep(d.x, y, beta, offset, weights, family, clusterGroups, waves, corstr, alpha, scale, zcor);
+      const step = geeStep(x, y, beta, offset, weights, family, clusterGroups, waves, corstr, alpha, scale, zcor);
       const next = beta.map((v, j) => v + step.delta[j]!);
       if (next.some((v) => !Number.isFinite(v))) throw new Error("non-finite coefficient in GEE iteration");
       let diff = 0;
@@ -628,7 +639,7 @@ export function geeglm(formula: string, data: DataFrame, options: GeeOptions): G
       beta = next;
       bread = step.bread;
       meat = step.meat;
-      const ev = evaluate(d.x, y, beta, offset, family, weights);
+      const ev = evaluate(x, y, beta, offset, family, weights);
       if (!options["scale.fix"] && !family.fixedDispersion) scale = ev.pearson.reduce((s, v) => s + v * v, 0) / n;
       if (corstr === "exchangeable" || corstr === "ar1" || corstr === "unstructured" || corstr === "userdefined") {
         alpha = pairMoments(ev.pearson, clusterGroups, waves, corstr, scale, zcor).map((v) => Math.max(-0.99, Math.min(0.99, v)));
@@ -640,15 +651,15 @@ export function geeglm(formula: string, data: DataFrame, options: GeeOptions): G
       if (diff <= epsilon * betaScale) { converged = true; break; }
     }
     if (!converged) warnings.add("geeglm did not converge in " + maxit + " iterations");
-    const finalStep = geeStep(d.x, y, beta, offset, weights, family, clusterGroups, waves, corstr, alpha, scale, zcor);
+    const finalStep = geeStep(x, y, beta, offset, weights, family, clusterGroups, waves, corstr, alpha, scale, zcor);
     bread = finalStep.bread;
     meat = finalStep.meat;
     const breadInv = inverse(bread);
     let covariance = multiply(multiply(breadInv, meat), breadInv);
     const modelCovariance = breadInv.map((r) => r.slice());
-    const independentStep = geeStep(d.x, y, beta, offset, weights, family, clusterGroups, waves, "independence", [], scale, undefined);
+    const independentStep = geeStep(x, y, beta, offset, weights, family, clusterGroups, waves, "independence", [], scale, undefined);
     const independenceCovariance = inverse(independentStep.bread);
-    const ev = evaluate(d.x, y, beta, offset, family, weights);
+    const ev = evaluate(x, y, beta, offset, family, weights);
     const fitted = new Array<number>(inputN).fill(NaN), linear = fitted.slice(), residuals = fitted.slice(), pearson = fitted.slice();
     rows.forEach((r, i) => { fitted[r] = ev.mu[i]!; linear[r] = ev.eta[i]!; residuals[r] = ev.residuals[i]!; pearson[r] = ev.pearson[i]!; });
     const result: GeeResult = {
@@ -660,7 +671,7 @@ export function geeglm(formula: string, data: DataFrame, options: GeeOptions): G
         offsetOptionColumn: typeof options.offset === "string" ? options.offset : undefined,
         hasExternalOffset: options.offset !== undefined, termAssign: d.assign.slice(),
         termLabels: d.terms.termLabels.slice(), responseVariable: d.terms.variables[d.terms.response]!,
-        intercept: d.terms.intercept, x: d.x, y, ids, waves, weights, offset, family: options.family ?? "gaussian",
+        intercept: d.terms.intercept, x: x, y, ids, waves, weights, offset, family: options.family ?? "gaussian",
         link: options.link, corstr, scaleFix: options["scale.fix"] ?? false, scaleValue: options["scale.value"] ?? 1, epsilon, maxit,
         zcor, data },
     };

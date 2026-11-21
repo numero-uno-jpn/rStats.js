@@ -729,7 +729,15 @@ export interface RqPredictResult {
 
 function rqInverse(a: readonly number[][]): number[][] {
   const n = a.length;
-  const m = a.map((row, i) => [...row, ...Array.from({ length: n }, (_, j) => +(i === j))]);
+  if (n === 0 || a.some((row) => row.length !== n)) throw new RangeError("singular covariance matrix");
+  let matrixScale = 0;
+  for (const row of a) for (const value of row) {
+    if (!Number.isFinite(value)) throw new RangeError("singular covariance matrix");
+    matrixScale = Math.max(matrixScale, Math.abs(value));
+  }
+  if (!(matrixScale > 0) || !Number.isFinite(matrixScale)) throw new RangeError("singular covariance matrix");
+  const m = a.map((row, i) => [...row.map((value) => value / matrixScale),
+    ...Array.from({ length: n }, (_, j) => +(i === j))]);
   for (let k = 0; k < n; k++) {
     let pivot = k;
     for (let i = k + 1; i < n; i++) if (Math.abs(m[i]![k]!) > Math.abs(m[pivot]![k]!)) pivot = i;
@@ -742,7 +750,7 @@ function rqInverse(a: readonly number[][]): number[][] {
       for (let j = 0; j < 2 * n; j++) m[i]![j]! -= v * m[k]![j]!;
     }
   }
-  return m.map((row) => row.slice(n));
+  return m.map((row) => row.slice(n).map((value) => value / matrixScale));
 }
 function rqMul(a: readonly number[][], b: readonly number[][]): number[][] {
   return a.map((row) => b[0]!.map((_, j) => row.reduce((sum, v, k) => sum + v * b[k]![j]!, 0)));
@@ -760,11 +768,14 @@ function rqBread(model: RqModel, tau: number, level: number, warnings?: string[]
   const plus = fitOne(model.x, model.y, model.weights, tau + h, model.method, 500, 1e-12).beta;
   const p = model.columnNames.length;
   const bread = Array.from({ length: p }, () => new Array<number>(p).fill(0));
+  let responseScale = 0;
+  for (const value of model.y) responseScale = Math.max(responseScale, Math.abs(value));
+  const densityTolerance = NID_DENSITY_EPS * responseScale;
   let nonPositive = 0;
   for (let i = 0; i < model.y.length; i++) {
     const row = model.x[i]!;
     const difference = dot(row, plus) - dot(row, minus);
-    const density = difference > NID_DENSITY_EPS ? (2 * h) / (difference - NID_DENSITY_EPS) : 0;
+    const density = difference > densityTolerance ? (2 * h) / (difference - densityTolerance) : 0;
     if (density === 0) nonPositive++;
     for (let j = 0; j < p; j++) for (let k = 0; k <= j; k++) bread[j]![k]! += model.weights[i]! * density * row[j]! * row[k]!;
   }
