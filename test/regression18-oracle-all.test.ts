@@ -42,6 +42,9 @@ function numericValues(value: any): number[] {
   const source = value && !Array.isArray(value) && Array.isArray(value.values) ? value.values : value;
   return Array.isArray(source) ? source.flat(Infinity).map(Number) : [];
 }
+function correlationEstimates(value: { nrow: number; values: number[] }): number[] {
+  return value.values.slice(0, value.nrow);
+}
 function transpose(values: readonly (readonly number[])[]): number[][] {
   if (values.length === 0) return [];
   return Array.from({ length: values[0]!.length }, (_, j) => values.map(row => row[j]!));
@@ -119,31 +122,40 @@ describe("rStats.js 1.8.0 public-output completeness against the pinned R oracle
   it("compares all R-observable geeglm, geeVcov, geeSummary, geePredict, geeAnova, and geeQIC fields", () => {
     const g = geeFixture as any;
     const checkData = g.inputs.gee_check;
-    const fit = geeglm("y ~ x", checkData, {
-      id: "id", waves: "wave", family: "gaussian", corstr: "independence",
-    });
-    const expected = g.gee_check.independence.value.default;
-    const expectedTight = g.gee_check.independence.value.tight;
-    vectorWithROracleUncertainty(fit.coefficients, expected.coefficients, expectedTight.coefficients);
-    vectorWithROracleUncertainty(fit.fittedValues, numericValues(expected.fitted), numericValues(expectedTight.fitted));
-    vectorWithROracleUncertainty(fit.residuals, numericValues(expected.residuals), numericValues(expectedTight.residuals));
-    vectorWithROracleUncertainty(fit.pearsonResiduals,
-      numericValues(g.gee_check.independence.value.pearson), numericValues(g.gee_check.independence.value.pearsonTight));
-    matrixWithROracleUncertainty(fit.covariance, flatTable(expected.vcov), flatTable(expectedTight.vcov));
-    vectorWithROracleUncertainty(fit.alpha, numericValues(expected.corr), numericValues(expectedTight.corr));
-    closeWithROracleUncertainty(fit.scale, expected.dispersion.values[0]!, expectedTight.dispersion.values[0]!);
-    expect(fit.model.x).toHaveLength(checkData.y.length);
-    expect(fit.model.y).toEqual(checkData.y);
+    for (const corstr of ["independence", "exchangeable", "ar1", "unstructured"] as const) {
+      const fit = geeglm("y ~ x", checkData, {
+        id: "id", waves: "wave", family: "gaussian", corstr,
+      });
+      const reference = g.gee_check[corstr].value;
+      const expected = reference.default;
+      const expectedTight = reference.tight;
+      vectorWithROracleUncertainty(fit.coefficients, expected.coefficients, expectedTight.coefficients);
+      vectorWithROracleUncertainty(fit.fittedValues, numericValues(expected.fitted), numericValues(expectedTight.fitted));
+      vectorWithROracleUncertainty(fit.residuals, numericValues(expected.residuals), numericValues(expectedTight.residuals));
+      vectorWithROracleUncertainty(fit.pearsonResiduals,
+        numericValues(reference.pearson), numericValues(reference.pearsonTight));
+      matrixWithROracleUncertainty(fit.covariance, flatTable(expected.vcov), flatTable(expectedTight.vcov));
+      vectorWithROracleUncertainty(fit.alpha, correlationEstimates(expected.corr), correlationEstimates(expectedTight.corr));
+      closeWithROracleUncertainty(fit.scale, expected.dispersion.values[0]!, expectedTight.dispersion.values[0]!);
+      if (corstr === "independence") {
+        expect(fit.model.x).toHaveLength(checkData.y.length);
+        expect(fit.model.y).toEqual(checkData.y);
+      }
 
-    const vcov = geeVcov(fit);
-    expect(vcov.rows).toEqual(expected.vcov.rows);
-    expect(vcov.columns).toEqual(expected.vcov.cols);
-    matrixWithROracleUncertainty(vcov.values, flatTable(expected.vcov), flatTable(expectedTight.vcov));
-    const summary = geeSummary(fit);
-    expect(summary.rows).toEqual(expected.summary.rows);
-    matrixWithROracleUncertainty(summary.values, flatTable(expected.summary), flatTable(expectedTight.summary));
-    closeWithROracleUncertainty(summary.scale, expected.dispersion.values[0]!, expectedTight.dispersion.values[0]!);
-    vectorWithROracleUncertainty(summary.correlation.estimate, numericValues(expected.corr), numericValues(expectedTight.corr));
+      const vcov = geeVcov(fit);
+      expect(vcov.rows).toEqual(expected.vcov.rows);
+      expect(vcov.columns).toEqual(expected.vcov.cols);
+      matrixWithROracleUncertainty(vcov.values, flatTable(expected.vcov), flatTable(expectedTight.vcov));
+      const summary = geeSummary(fit);
+      expect(summary.rows).toEqual(expected.summary.rows);
+      matrixWithROracleUncertainty(summary.values, flatTable(expected.summary), flatTable(expectedTight.summary));
+      closeWithROracleUncertainty(summary.scale, expected.dispersion.values[0]!, expectedTight.dispersion.values[0]!);
+      vectorWithROracleUncertainty(summary.correlation.estimate,
+        correlationEstimates(expected.corr), correlationEstimates(expectedTight.corr));
+      const qic = geeQIC(fit);
+      vectorWithROracleUncertainty([qic.QIC, qic.QICu, qic.Q, qic.CIC, qic.params, qic.QICC],
+        expected.qic, reference.qicTight);
+    }
 
     const ohio = g.inputs.ohio;
     const ohioFit = geeglm("resp ~ age + smoke", ohio, { id: "id", family: "binomial", corstr: "ar1", epsilon: 1e-12, maxit: 1000 });
@@ -167,9 +179,7 @@ describe("rStats.js 1.8.0 public-output completeness against the pinned R oracle
     const expectedAnova = g.dietox_independence.value;
     matrixWithROracleUncertainty(sequential.values, anovaValues(expectedAnova.anovaTight), anovaValues(expectedAnova.anovaTighter));
 
-    const qic = geeQIC(fit);
-    const qicValues = [qic.QIC, qic.QICu, qic.Q, qic.CIC, qic.params, qic.QICC];
-    vectorWithROracleUncertainty(qicValues, expected.qic, g.gee_check.independence.value.qicTight);
+
   });
 
   it("compares all R-observable glmnet, glmnetCoef, glmnetPredict, and cvGlmnet fields", () => {
