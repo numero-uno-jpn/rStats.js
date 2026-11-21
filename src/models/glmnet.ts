@@ -625,13 +625,15 @@ function glmnetMultinomial(
   x: readonly (readonly number[])[], labels: readonly string[], options: GlmnetOptions,
 ): GlmnetMultinomialResult {
   const n = labels.length, p = x[0]?.length ?? 0;
+  const multiType = options.typeMultinomial ?? "ungrouped";
+  if (multiType !== "ungrouped" && multiType !== "grouped") throw new RangeError("typeMultinomial must be ungrouped or grouped");
   if (n < 2 || p < 2 || x.length !== n || x.some(row => row.length !== p)) throw new RangeError("x must be a rectangular matrix with at least two columns and two rows");
   if (x.some(row => row.some(v => !Number.isFinite(v)))) throw new RangeError("x must contain only finite values");
   const classes = Array.from(new Set(labels)).sort();
   if (classes.length < 2) throw new RangeError("multinomial y must contain at least two classes");
   const classIndex = new Map(classes.map((value, index) => [value, index]));
   const y = labels.map(value => classIndex.get(value)!);
-  const kCount = classes.length, alpha = options.alpha ?? 1, grouped = (options.typeMultinomial ?? "ungrouped") === "grouped";
+  const kCount = classes.length, alpha = options.alpha ?? 1, grouped = multiType === "grouped";
   if (!(alpha >= 0 && alpha <= 1)) throw new RangeError("alpha must be in [0, 1]");
   if (options.offset?.some(v => v !== 0)) throw new RangeError("multinomial offsets must be class-specific and are not supported");
   const intercept = options.intercept ?? true;
@@ -687,6 +689,7 @@ function glmnetMultinomial(
     lower[j] = lower[j]! * xScale[j]!; upper[j] = upper[j]! * xScale[j]!;
   }
   const maxit = options.maxit ?? 100000, thresh = options.thresh ?? 1e-7;
+  if (!Number.isInteger(maxit) || maxit < 1 || !(thresh > 0) || !Number.isFinite(thresh)) throw new RangeError("maxit and thresh must be positive");
   const a0: number[][] = classes.map(() => [] as number[]), betaByClass: Record<string, number[][]> = Object.fromEntries(classes.map(name => [name, Array.from({ length: p }, () => [] as number[])]));
   const dfmat = classes.map(() => [] as number[]), devRatio: number[] = [], converged: boolean[] = [], kktResidual: number[] = [];
   let startA = aNull.slice(), startB = Array.from({ length: p }, () => new Array<number>(kCount).fill(0)), npasses = 0;
@@ -715,7 +718,7 @@ function glmnetMultinomial(
   return { family: "multinomial", alpha, lambda: lambdas.slice(0, a0.length), a0, beta: betaByClass, dfmat,
     devRatio, nullDev, npasses, converged, kktResidual,
     model: { x: x.map(row => Array.from(row)), y: Array.from(labels), weights: w, offset: new Array<number>(n).fill(0),
-      xMean, xScale, intercept, columns: p, classes, typeMultinomial: options.typeMultinomial ?? "ungrouped" } };
+      xMean, xScale, intercept, columns: p, classes, typeMultinomial: multiType } };
 }
 
 /**
