@@ -4,7 +4,7 @@ import { geeglm, geeAnova, geePredict, geeSummary, geeVcov } from "../src/models
 const data = {
   id: [1, 1, 2, 2, 3, 3, 4, 4],
   x: [0, 1, 0, 1, 0, 1, 0, 1],
-  y: [1, 3, 2, 4, 0, 2, 1, 3],
+  y: [1, 4, 2, 3, 0, 2, 1, 3],
 };
 
 describe("generalized estimating equations", () => {
