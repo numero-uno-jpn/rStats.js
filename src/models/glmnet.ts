@@ -426,32 +426,6 @@ function glmnetScalar(x: readonly (readonly number[])[], y: readonly number[], o
 }
 
 
-function centeredPenaltyShift(values: readonly number[], alpha: number): number {
-  if (alpha >= 1) {
-    const sorted = Array.from(values).sort((a, b) => a - b);
-    const middle = Math.floor(sorted.length / 2);
-    return sorted.length % 2 ? -sorted[middle]! : -(sorted[middle - 1]! + sorted[middle]!) / 2;
-  }
-  if (alpha <= 0) return -mean(values, new Array<number>(values.length).fill(1));
-  let lo = Infinity, hi = -Infinity;
-  for (const value of values) { lo = Math.min(lo, -value); hi = Math.max(hi, -value); }
-  const derivative = (shift: number): number => {
-    let total = 0;
-    for (const value of values) {
-      const v = value + shift;
-      total += alpha * (v > 0 ? 1 : v < 0 ? -1 : 0) + (1 - alpha) * v;
-    }
-    return total;
-  };
-  const span = Math.max(1, hi - lo);
-  lo -= span; hi += span;
-  for (let i = 0; i < 100; i++) {
-    const mid = (lo + hi) / 2;
-    if (derivative(mid) < 0) lo = mid; else hi = mid;
-  }
-  return (lo + hi) / 2;
-}
-
 function multinomialObjective(
   x: readonly (readonly number[])[], y: readonly number[], weights: readonly number[],
   a0: readonly number[], beta: readonly (readonly number[])[], lambda: number,
