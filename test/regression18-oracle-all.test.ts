@@ -335,3 +335,20 @@ it("diagnoses all synthetic GEE correlation structures against strict R fits", (
     closeWithROracleUncertainty(fit.scale, reference.default.dispersion.values[0], reference.tight.dispersion.values[0]);
   }
 });
+
+it("diagnoses strict JS convergence for off-path glmnet interpolation", () => {
+  const f = glmnetFixture as any;
+  const x = f.inputs.gaussian_alpha1.x;
+  const y = f.inputs.gaussian_alpha1.y;
+  const lambda = [2, 1, 0.5, 0.25, 0.125];
+  const defaultFit = glmnet(x, y, { lambda });
+  const strictFit = glmnet(x, y, { lambda, thresh: 1e-14 });
+  const defaultCoef = transpose(glmnetCoef(defaultFit, [0.75, 0.3]));
+  const strictCoef = transpose(glmnetCoef(strictFit, [0.75, 0.3]));
+  console.log("[regression18-oracle] off-path default vs strict JS", JSON.stringify({
+    defaultCoef, strictCoef, r16: f.offPath.value.coefT16?.values, r20: f.offPath.value.coefT20?.values,
+  }));
+  if (f.offPath.value.coefT16 && f.offPath.value.coefT20) {
+    matrixWithROracleUncertainty(strictCoef, f.offPath.value.coefT16.values, f.offPath.value.coefT20.values);
+  }
+});
