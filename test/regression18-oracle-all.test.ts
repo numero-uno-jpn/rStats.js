@@ -19,6 +19,20 @@ function matrix(actual: readonly (readonly number[])[], expected: readonly (read
   expect(actual).toHaveLength(expected.length);
   for (let i = 0; i < expected.length; i++) vector(actual[i]!, expected[i]!, tolerance);
 }
+function vectorWithROracleUncertainty(actual: readonly number[], coarse: readonly number[], tight: readonly number[]): void {
+  expect(actual).toHaveLength(tight.length);
+  expect(coarse).toHaveLength(tight.length);
+  for (let i = 0; i < tight.length; i++) {
+    const allowance = 2e-7 * Math.max(1, Math.abs(tight[i]!)) + Math.abs(coarse[i]! - tight[i]!);
+    expect(Number.isFinite(actual[i])).toBe(true);
+    expect(Math.abs(actual[i]! - tight[i]!)).toBeLessThanOrEqual(allowance);
+  }
+}
+function matrixWithROracleUncertainty(actual: readonly (readonly number[])[], coarse: readonly (readonly number[])[], tight: readonly (readonly number[])[]): void {
+  expect(actual).toHaveLength(tight.length);
+  expect(coarse).toHaveLength(tight.length);
+  for (let i = 0; i < tight.length; i++) vectorWithROracleUncertainty(actual[i]!, coarse[i]!, tight[i]!);
+}
 function flatTable(expected: { nrow: number; ncol: number; values: number[] }): number[][] {
   return Array.from({ length: expected.nrow }, (_, i) =>
     Array.from({ length: expected.ncol }, (_, j) => expected.values[j * expected.nrow + i]!));
@@ -132,22 +146,18 @@ describe("rStats.js 1.8.0 public-output completeness against the pinned R oracle
     vector(summary.correlation.estimate, numericValues(expected.corr));
 
     const ohio = g.inputs.ohio;
-    const ohioFit = geeglm("resp ~ age + smoke", ohio, { id: "id", family: "binomial", corstr: "ar1" });
+    const ohioFit = geeglm("resp ~ age + smoke", ohio, { id: "id", family: "binomial", corstr: "ar1", epsilon: 1e-12, maxit: 1000 });
     const prediction = g.predict.value;
     const newdata = { age: [-2, 0, 1], smoke: ["0", "1", "1"] };
     const linkPrediction = geePredict(ohioFit, { newdata, type: "link" });
     const responsePrediction = geePredict(ohioFit, { newdata, type: "response" });
-    console.log("[regression18-oracle] geePredict JS vs R", JSON.stringify({
-      jsLink: linkPrediction, rLink: prediction.link, jsResponse: responsePrediction, rResponse: prediction.response,
-    }));
-    vector(linkPrediction, prediction.link, 1e-3);
-    vector(responsePrediction, prediction.response, 1e-3);
+    vectorWithROracleUncertainty(linkPrediction, prediction.linkTight, prediction.linkTighter);
+    vectorWithROracleUncertainty(responsePrediction, prediction.responseTight, prediction.responseTighter);
 
-    const dietoxFit = geeglm("Weight ~ Time + Cu", g.inputs.dietox, { id: "Pig", corstr: "independence" });
+    const dietoxFit = geeglm("Weight ~ Time + Cu", g.inputs.dietox, { id: "Pig", corstr: "independence", epsilon: 1e-12, maxit: 1000 });
     const sequential = geeAnova(dietoxFit);
-    const expectedAnova = g.dietox_independence.value.anova;
-    expect(sequential.values).toHaveLength(anovaValues(expectedAnova).length);
-    matrix(sequential.values, anovaValues(expectedAnova), 1e-3);
+    const expectedAnova = g.dietox_independence.value;
+    matrixWithROracleUncertainty(sequential.values, anovaValues(expectedAnova.anovaTight), anovaValues(expectedAnova.anovaTighter));
 
     const qic = geeQIC(fit);
     const qicValues = [qic.QIC, qic.QICu, qic.Q, qic.CIC, qic.params, qic.QICC];
@@ -169,7 +179,7 @@ describe("rStats.js 1.8.0 public-output completeness against the pinned R oracle
     console.log("[regression18-oracle] glmnet nullDev JS vs R", JSON.stringify({
       js: tightFit.nullDev, r: expected.tightNullDev, n: y.length,
     }));
-    close(tightFit.nullDev * y.length, expected.tightNullDev, 1e-7);
+    close(tightFit.nullDev, expected.tightNullDev, 1e-7);
     expect(tightFit.converged.every(Boolean)).toBe(true);
     expect(tightFit.kktResidual.every(Number.isFinite)).toBe(true);
 
@@ -194,13 +204,14 @@ describe("rStats.js 1.8.0 public-output completeness against the pinned R oracle
     const foldid = Array.from({ length: y.length }, (_, i) => i % 3 + 1);
     const cvExpected = f.cv.value;
     const cv = cvGlmnet(x, y, {
-      foldid, nlambda: 8, keep: true, grouped: false, thresh: 1e-7, maxit: 1000,
+      foldid, nlambda: 8, keep: true, grouped: false, thresh: 1e-14,
     });
     vector(cv.lambda, cvExpected.lambdaTight, 1e-10);
-    vector(cv.cvm, cvExpected.groupedFalse.cvm, 1e-5);
-    vector(cv.cvsd, cvExpected.groupedFalse.cvsd, 1e-5);
+    vectorWithROracleUncertainty(cv.cvm, cvExpected.groupedFalseT16.cvm, cvExpected.groupedFalse.cvm);
+    vectorWithROracleUncertainty(cv.cvsd, cvExpected.groupedFalseT16.cvsd, cvExpected.groupedFalse.cvsd);
     vector(cv.nzero, cvExpected.nzero);
-    matrix(cv.fitPreval as number[][], cvExpected.groupedFalse.preval.values, 1e-5);
+    matrixWithROracleUncertainty(cv.fitPreval as number[][],
+      flatTable(cvExpected.groupedFalseT16.preval), flatTable(cvExpected.groupedFalse.preval));
     vector(cv.cvup, cvExpected.groupedFalse.cvm.map((v: number, i: number) => v + cvExpected.groupedFalse.cvsd[i]!), 1e-7);
     vector(cv.cvlo, cvExpected.groupedFalse.cvm.map((v: number, i: number) => v - cvExpected.groupedFalse.cvsd[i]!), 1e-7);
     const minIndex = cv.cvm.indexOf(Math.min(...cv.cvm));
