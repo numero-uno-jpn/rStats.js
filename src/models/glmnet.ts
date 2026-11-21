@@ -534,18 +534,18 @@ function multinomialKktResidual(
       for (let k = 0; k < kCount; k++) {
         const value = beta[j]![k]!, smooth = gradB[j]![k]! + ridge * value;
         if (value > 0) {
-          const residual = smooth + l1;
-          lowerBound = Math.max(lowerBound, residual);
-          upperBound = Math.min(upperBound, residual);
+          const shift = -(smooth + l1);
+          lowerBound = Math.max(lowerBound, shift);
+          upperBound = Math.min(upperBound, shift);
           constrained = true;
         } else if (value < 0) {
-          const residual = smooth - l1;
-          lowerBound = Math.max(lowerBound, residual);
-          upperBound = Math.min(upperBound, residual);
+          const shift = -(smooth - l1);
+          lowerBound = Math.max(lowerBound, shift);
+          upperBound = Math.min(upperBound, shift);
           constrained = true;
         } else {
-          lowerBound = Math.max(lowerBound, smooth - l1);
-          upperBound = Math.min(upperBound, smooth + l1);
+          lowerBound = Math.max(lowerBound, -smooth - l1);
+          upperBound = Math.min(upperBound, -smooth + l1);
           constrained = true;
         }
       }
@@ -644,7 +644,9 @@ function fitMultinomialOne(
     }
     passes++;
     if (!accepted) {
-      const scale = Math.max(1, ...a0.map(Math.abs), ...beta.flat().map(Math.abs));
+      let scale = 1;
+      for (const value of a0) scale = Math.max(scale, Math.abs(value));
+      for (const row of beta) for (const value of row) scale = Math.max(scale, Math.abs(value));
       const residual = multinomialKktResidual(x, y, weights, a0, beta, lambda, alpha, penalty, grouped, intercept);
       if (residual <= thresh * (1 + scale)) converged = true;
       break;
