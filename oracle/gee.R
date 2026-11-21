@@ -183,6 +183,7 @@ out$predict <- run({
                control=geese.control(epsilon=1e-12,maxit=1000))
  nd <- data.frame(age=c(-2,0,1),smoke=c(0,1,1))
  list(coefficients=unname(coef(f)),coefficientsTight=unname(coef(ft)),coefficientsTighter=unname(coef(ftt)),
+      corr=tab(summary(f)$corr),corrTight=tab(summary(ft)$corr),corrTighter=tab(summary(ftt)$corr),
       link=unname(predict(f,newdata=nd)),response=unname(predict(f,newdata=nd,type="response")),
       linkTight=unname(predict(ft,newdata=nd)),responseTight=unname(predict(ft,newdata=nd,type="response")),
       linkTighter=unname(predict(ftt,newdata=nd)),responseTighter=unname(predict(ftt,newdata=nd,type="response")))
