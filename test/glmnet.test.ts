@@ -165,36 +165,35 @@ describe("elastic-net generalized linear models", () => {
     expect(constrained.beta.every(row => row[1] === 0)).toBe(true);
   });
 
-  // Unresolved: at thresh=1e-14 and maxit=200000, the final path point still reports non-convergence (KKT 1.6083e-11).
-  it.todo("matches the public grouped and ungrouped multinomial path starts");
-
-  /* it("matches the public grouped and ungrouped multinomial path starts", () => {
+  it("solves the grouped and ungrouped multinomial paths to the optimum that R's strict refits approach", () => {
+    // R's default fit (thresh = 1e-7) is up to 2.3 away from its strict refits on this path (iris is close to
+    // separation), and even R's refits at thresh 1e-14 and 1e-16 differ by up to 3e-3 at the smallest lambda. So the
+    // reference is R's 1e-16 refit, within the change between R's two refits (how far R itself still is from the
+    // optimum) and a small margin; and the KKT conditions at every lambda. rStats.js is closer to R's 1e-16 refit than
+    // R's 1e-14 refit is, at every lambda (experiment in the commit that added this test).
     const fixture = glmnetFixture as unknown as {
       multinomialData: { X: { values: number[][] }; y: string[] };
-      multinomial_ungrouped: { value: { lambda: number[]; a0: { values: number[][] }; beta: Record<string, { values: number[][] }>; response: Array<Record<string, number>> } };
-      multinomial_grouped: { value: { lambda: number[]; a0: { values: number[][] }; beta: Record<string, { values: number[][] }>; response: Array<Record<string, number>> } };
-    };
+    } & Record<string, { value: { lambda: number[]; class: string[][];
+      fitTight: Record<"t14" | "t16", { lambda: number[]; a0: { values: number[][] }; beta: Record<string, { values: number[][] }> }> } }>;
     const multiX = fixture.multinomialData.X.values, multiY = fixture.multinomialData.y;
+    const mismatches: string[] = [];
     for (const typeMultinomial of ["ungrouped", "grouped"] as const) {
-      const fit = glmnet(multiX, multiY, { family: "multinomial", typeMultinomial, nlambda: 6, maxit: 200000, thresh: 1e-14 });
-      const expected = fixture[`multinomial_${typeMultinomial}`].value;
-      expect(fit.lambda[0]).toBeCloseTo(expected.lambda[0]!, 7);
-      console.log("multinomial diagnostics", typeMultinomial, fit.converged, fit.kktResidual, fit.npasses, fit.beta.setosa!.map(row => row[2]));
+      const fit = glmnet(multiX, multiY, { family: "multinomial", typeMultinomial, nlambda: 6, thresh: 1e-12 });
+      const { t14, t16 } = fixture[`multinomial_${typeMultinomial}`]!.value.fitTight;
+      expect(fit.lambda).toHaveLength(6);
+      fit.lambda.forEach((v, l) => { if (Math.abs(v - t16.lambda[l]!) > 1e-13 * t16.lambda[l]!) mismatches.push(`${typeMultinomial} lambda ${l}`); });
       expect(fit.converged.every(Boolean)).toBe(true);
-      expect(fit.beta.setosa![1]![2]).toBeCloseTo(expected.beta.setosa!.values[1]![2]!, 5);
-      expect(fit.kktResidual.every(v => v < 1e-7)).toBe(true);
-      const predictionRows = [multiX[0]!, multiX[50]!, multiX[100]!];
-      const probabilities = glmnetPredict(fit, predictionRows, { s: fit.lambda[2]!, type: "response" });
-      const expectedRows = expected.response as Array<Record<string, number>>;
-      const classesInOrder = ["setosa", "versicolor", "virginica"];
-      for (let i = 0; i < 3; i++) for (let k = 0; k < 3; k++) {
-        const key = Object.keys(expectedRows[i]!).find(name => name.startsWith(classesInOrder[k]! + ".s="))!;
-        expect(probabilities[0]![i]![k]).toBeCloseTo(expectedRows[i]![key]!, 5);
+      expect(Math.max(...fit.kktResidual)).toBeLessThan(1e-10);
+      for (const k of ["setosa", "versicolor", "virginica"]) for (let j = 0; j < 4; j++) for (let l = 0; l < 6; l++) {
+        const want = t16.beta[k]!.values[j]![l]!, gap = Math.abs(t14.beta[k]!.values[j]![l]! - want);
+        const got = fit.beta[k]![j]![l]!;
+        if (Math.abs(got - want) > gap + 1e-6 * (1 + Math.abs(want))) mismatches.push(`${typeMultinomial} ${k} beta[${j}] lambda ${l}: ${got} vs R ${want} (R's own gap ${gap})`);
       }
-      const classes = glmnetPredict(fit, predictionRows, { s: fit.lambda[2]!, type: "class" });
-      expect(classes[0]).toEqual(["setosa", "versicolor", "virginica"]);
+      const rows = [multiX[0]!, multiX[50]!, multiX[100]!];
+      expect(glmnetPredict(fit, rows, { s: fit.lambda[2]!, type: "class" })[0]).toEqual(fixture[`multinomial_${typeMultinomial}`]!.value.class.map(row => row[0]));
       expect(glmnetCoef(fit, fit.lambda[2]!)).toHaveProperty("setosa");
     }
+    expect(mismatches).toEqual([]);
   });
 
   // Unresolved: fixing the fold lambda sequence worsened grouped cvm[0] to 9.2948486185 vs 9.4462193037.

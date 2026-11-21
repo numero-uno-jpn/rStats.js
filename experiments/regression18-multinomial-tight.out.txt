@@ -1,0 +1,13 @@
+ungrouped lambda equal: TRUE 
+default setosa col2:  0.000000000000000  0.173722902540334 -1.154294875155134  0.000000000000000 
+tight   setosa col2:  0.000000000000000  0.176717262412794 -1.154272702051792  0.000000000000000 
+max |default - tight| over the path: 1.19351 
+grouped lambda equal: FALSE 
+default setosa col2:  0.000000000000000  0.428716289895408 -0.424073777249453 -1.731356193724793 
+tight   setosa col2:  0.000000000000000  0.426227612845755 -0.419387630738929 -1.753169350939836 
+Error in as.matrix(f$beta[[k]]) - as.matrix(ft$beta[[k]]) : 
+  non-conformable arrays
+Calls: cat -> sapply -> lapply -> FUN
+In addition: Warning message:
+from glmnet C++ code (error code -6); Convergence for 6th lambda value not reached after maxit=100000 iterations; solutions for larger lambdas returned 
+Execution halted

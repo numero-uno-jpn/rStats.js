@@ -720,8 +720,8 @@ function glmnetMultinomial(
     if (currentDevRatio >= devmax || (previousDevRatio !== undefined &&
         (currentDevRatio - previousDevRatio) / Math.max(1e-15, 1 - previousDevRatio) < fdev)) break;
   }
-  if (!a0.length) throw new RangeError("no lambda values satisfy dfmax and pmax");
-  return { family: "multinomial", alpha, lambda: lambdas.slice(0, a0.length), a0, beta: betaByClass, dfmat,
+  if (!devRatio.length) throw new RangeError("no lambda values satisfy dfmax and pmax");
+  return { family: "multinomial", alpha, lambda: lambdas.slice(0, devRatio.length), a0, beta: betaByClass, dfmat,
     devRatio, nullDev, npasses, converged, kktResidual,
     model: { x: x.map(row => Array.from(row)), y: Array.from(labels), weights: w, offset: new Array<number>(n).fill(0),
       xMean, xScale, intercept, columns: p, classes, typeMultinomial: multiType } };

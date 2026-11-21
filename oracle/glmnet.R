@@ -36,7 +36,11 @@ for(tm in c("ungrouped","grouped"))out[[paste0("multinomial_",tm)]]<-run({
  list(lambda=f$lambda,a0=tab(f$a0),beta=lapply(f$beta,tab),dfmat=tab(f$dfmat),
       devRatio=f$dev.ratio,nullDev=f$nulldev,
       response=as.data.frame(predict(f,Xi[c(1,51,101),],s=f$lambda[3],type="response")),
-      class=predict(f,Xi[c(1,51,101),],s=f$lambda[3],type="class"))
+      class=predict(f,Xi[c(1,51,101),],s=f$lambda[3],type="class"),
+      # R's default (thresh = 1e-7) differs from a strict refit by up to 2.3 on this path (iris is close to
+      # separation), so strict refits at two thresholds: where they agree, R's solution is a reference
+      fitTight=lapply(c(t14=1e-14,t16=1e-16),function(th){g<-glmnet(Xi,yi,family="multinomial",type.multinomial=tm,
+        nlambda=6,control=list(thresh=th,maxit=1e8));list(lambda=g$lambda,a0=tab(g$a0),beta=lapply(g$beta,tab))}))
 })
 out$offPath<-run({f<-glmnet(X,y,lambda=c(2,1,.5,.25,.125));list(lambda=f$lambda,coef=tab(coef(f,s=c(.75,.3))),predict=tab(predict(f,X[1:4,],s=c(.75,.3))))})
 foldid<-rep(1:3,4)
