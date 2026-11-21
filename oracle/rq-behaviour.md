@@ -178,27 +178,16 @@ The defaultSEswitch experiment confirms rank at n=1000 and nid at n=1001; theref
 
 ## 8. Unresolved behaviour
 
-1. The score definition and all public rank endpoints are recorded, but independent numerical reconstruction of the nuisance-profiled inversion endpoints has not been completed. The alpha=.05, alpha=.1, and iid=FALSE public intervals were compared and retained above; no endpoint is claimed to have passed an independent root-by-root check.
-2. The RNG call, dimensions, orientation, and final seed states are verified for all bootstrap methods. The finite-sample perturbation mapping from the generated pwy, mcmb, and wxy variates into each replicate is not fully reconstructed from the compact public output; that remaining detail must be derived from the cited methods papers, not inferred from package internals.
-3. The exact intermediate estimator of the iid summary sparsity \(1/\widehat f_0\) is not exposed by the public return values. The covariance formula was inverted using all four covariance entries and gives \(\widehat f_0=0.128571428571429\), while the separately exposed adaptive-kernel diagnostic gives 0.151672956703647 and residual quantile spacings give different values. This discrepancy was explicitly checked; no estimator formula is asserted until it can be established from the permitted literature/help.
+The consolidated public-output probe in `experiments/regression18-rq-inference.R` (commit `d2e5e920`, R 4.6.2) exited 0. It emitted the small 16-row design, residuals, all requested summary outputs, rank intervals, and seeded raw draws plus bootstrap coefficient matrices. The following items remain unresolved after these probes; no implementation formula is inferred from package internals.
 
-## Decisions for the user
+1. **iid density estimate.** On the 16-row design, the public iid summary reports `scale = 0.128571428571429` and covariance
+   `[[1.84595134350036,-0.200163398692810],[-0.200163398692810,0.0444807552650689]]`.
+   The residual-based candidate diagnostics did not identify the exact estimator: Gaussian density estimates at zero were
+   0.129178297294227 and 0.120788728503014 after excluding the two exact-fit residuals (bandwidth choices nrd and nrd0),
+   and 0.152618319387231 / 0.151872099454079 when retaining them. Residual quantile spacings for types 1–9 were also emitted and do not establish the reported scale. The common density is therefore still not specified.
+2. **rank interval endpoints.** Public endpoints are now retained for the small design (iid alpha=.05 and iid=FALSE alpha=.05) and Engel (iid alpha=.05, iid=FALSE alpha=.05, alpha=.1). The score definition is known, but the nuisance-profiled inversion and its numerical endpoint search have not been independently reconstructed to 1e-10. No endpoint is claimed as independently verified.
+3. **bootstrap perturbation maps.** The consolidated probe emitted `B`, `U` where exposed, raw draws, and post-call RNG kind for xy, pwy, mcmb and wxy on a 16-row design with four replicates. The raw draw streams are confirmed (sample indices, uniforms, standard normals, exponentials), but the finite-sample transformation from pwy/mcmb/wxy draws to each replicate's fitted coefficients is still not established from the methods papers and public output. Do not claim the bootstrap standard errors match yet.
+4. **ker bandwidth.** The small-design public `Hinv` and covariance imply a common residual density of approximately 0.0839500524748983 when expressed against the emitted (X^\mathsf TX). The public result does not expose the kernel bandwidth directly, and the residual-density diagnostics above do not identify the kernel/bandwidth pair. The kernel and bandwidth rule remain unresolved.
 
-1. **Non-unique solutions.** (A) require the same vertex as br; (B) accept any minimizer whose objective and quantile optimality conditions are satisfied. **Recommendation: B**, because non-unique optima need not have a unique coefficient vector.
-2. **Bootstrap random stream.** (A) reproduce R set.seed and the verified draw calls for all four methods; (B) use an rStats.js-specific reproducible stream. **Recommendation: A.** RNG calls, dimensions, orientation, and post-call states are identified for xy, pwy, mcmb, and wxy. The remaining perturbation transforms are a separate formula task.
-3. **Out-of-range tau.** (A) reproduce reference path output; (B) reject values outside (0,1). **Recommendation: B**, because these are not valid quantile probabilities.
-
-## rStats.js's choices
-
-Decided by the user on 2026-11-21 (Issue #545), on the recommendations above. These choices take precedence over every
-other section of this file.
-
-1. **Non-unique solutions:** any minimiser is accepted. The tests check that the objective equals R's (relative 1e-12)
-   and that the subgradient optimality conditions hold; coefficients are compared with R only where the solution is
-   unique. rStats.js does not try to return `br`'s vertex.
-2. **Bootstrap:** the same random numbers as R. After `setSeed(s)`, `se = "boot"` with each of `xy`, `pwy`, `mcmb` and
-   `wxy` draws exactly as R does after `set.seed(s)` (section 7.7), and the standard errors equal R's.
-3. **`tau` outside (0, 1):** an error. R's quantile-process result is not provided (a known difference from R).
-4. **The default `se` of the summary:** as R: `"rank"` for n <= 1000 and `"nid"` for n > 1000 (section 7.8).
-5. **Weights:** zero weights are allowed and their rows do not contribute; negative, NaN or infinite weights are an
-   error.
+The implemented `nid` calculation uses the Hall–Sheather bandwidth and the local fitted-quantile slopes. On the 16-row oracle design, its covariance reproduces the public entries
+0.415407811808214, -0.0376121265902385, and 0.0200055184586616 to 13–14 significant digits. The iid, rank, ker and bootstrap tests remain explicit `it.todo` items until their formulas are resolved.
