@@ -42,7 +42,17 @@ for(tm in c("ungrouped","grouped"))out[[paste0("multinomial_",tm)]]<-run({
       fitTight=lapply(c(t14=1e-14,t16=1e-16),function(th){g<-glmnet(Xi,yi,family="multinomial",type.multinomial=tm,
         nlambda=6,control=list(thresh=th,maxit=1e8));list(lambda=g$lambda,a0=tab(g$a0),beta=lapply(g$beta,tab))}))
 })
-out$offPath<-run({f<-glmnet(X,y,lambda=c(2,1,.5,.25,.125));list(lambda=f$lambda,coef=tab(coef(f,s=c(.75,.3))),predict=tab(predict(f,X[1:4,],s=c(.75,.3))))})
+out$offPath<-run({
+ lam<-c(2,1,.5,.25,.125)
+ f<-glmnet(X,y,lambda=lam)
+ f16<-glmnet(X,y,lambda=lam,control=list(thresh=1e-16,maxit=1e8))
+ f20<-glmnet(X,y,lambda=lam,control=list(thresh=1e-20,maxit=1e8))
+ list(lambda=f$lambda,coef=tab(coef(f,s=c(.75,.3))),coefT16=tab(coef(f16,s=c(.75,.3))),
+      coefT20=tab(coef(f20,s=c(.75,.3))),
+      predict=tab(predict(f,X[1:4,],s=c(.75,.3))),
+      predictT16=tab(predict(f16,X[1:4,],s=c(.75,.3))),
+      predictT20=tab(predict(f20,X[1:4,],s=c(.75,.3))))
+})
 foldid<-rep(1:3,4)
 out$cv<-run({
  f<-cv.glmnet(X,y,foldid=foldid,nlambda=8)
