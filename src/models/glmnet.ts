@@ -259,8 +259,11 @@ export function glmnet(x: readonly (readonly number[])[], y: readonly number[], 
   for (const lambda of lambdas) {
     const fit = fitOne(xs, y, w, offset, family, alpha, lambda, start, intercept, pf, lower, upper, maxit, thresh);
     start = [fit.a0, ...fit.beta]; npasses += fit.passes;
-    a0.push(fit.a0);
-    beta.push(fit.beta.map((v, j) => v / xScale[j]!));
+    const originalBeta = fit.beta.map((v, j) => v / xScale[j]!);
+    let originalIntercept = fit.a0;
+    if (intercept) for (let j = 0; j < p; j++) originalIntercept -= xMean[j]! * originalBeta[j]!;
+    a0.push(originalIntercept);
+    beta.push(originalBeta);
     df.push(fit.beta.filter(v => v !== 0).length);
     devRatio.push(nullDev === 0 ? 0 : 1 - deviance(y, fit.eta, w, family) / nullDev);
     converged.push(fit.converged);
