@@ -71,9 +71,13 @@ sz <- sz[order(sz$id,sz$time),];sz$t <- ifelse(sz$time==0,8,2);sz$x <- ifelse(sz
 for (cs in c("independence","exchangeable","ar1","unstructured")) {
   out[[paste0("poisson_offset_",cs)]] <- run({
     f <- geeglm(y~offset(log(t))+x+trt+x:trt,id=id,data=sz,family=poisson,corstr=cs)
-    ft <- geeglm(y~offset(log(t))+x+trt+x:trt,id=id,data=sz,family=poisson,corstr=cs,
-                 control=geese.control(epsilon=1e-10,maxit=200))
-    list(default=capture(f),tight=capture(ft,FALSE))
+    # the tight refit with corstr = "unstructured" did not finish in 60 s although maxit = 200 (geepack 1.3.13; the
+    # default fit takes 0.04 s), so that case has no tight refit
+    if (cs == "unstructured") list(default=capture(f),tight="skipped") else {
+      ft <- geeglm(y~offset(log(t))+x+trt+x:trt,id=id,data=sz,family=poisson,corstr=cs,
+                   control=geese.control(epsilon=1e-10,maxit=200))
+      list(default=capture(f),tight=capture(ft,FALSE))
+    }
   })
 }
 out$poisson_offset <- out$poisson_offset_exchangeable
