@@ -223,7 +223,8 @@ describe("rStats.js 1.8.0 public-output completeness against the pinned R oracle
       flatTable(cvExpected.groupedFalseT16.preval), flatTable(cvExpected.groupedFalse.preval));
     vector(cv.cvup, cvExpected.groupedFalse.cvm.map((v: number, i: number) => v + cvExpected.groupedFalse.cvsd[i]!), 1e-7);
     vector(cv.cvlo, cvExpected.groupedFalse.cvm.map((v: number, i: number) => v - cvExpected.groupedFalse.cvsd[i]!), 1e-7);
-    const minIndex = cv.cvm.indexOf(Math.min(...cv.cvm));
+    let minIndex = 0;
+    for (let i = 1; i < cv.cvm.length; i++) if (cv.cvm[i]! < cv.cvm[minIndex]!) minIndex = i;
     let oneSeIndex = minIndex;
     for (let i = 0; i < cv.lambda.length; i++) if (cv.cvm[i]! <= cv.cvm[minIndex]! + cv.cvsd[minIndex]!) oneSeIndex = i;
     close(cv.lambdaMin, cv.lambda[minIndex]!, 1e-10);
