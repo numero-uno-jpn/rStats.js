@@ -302,8 +302,8 @@ it("compares Ohio AR1 fit coefficients and correlation with R", () => {
 
 it("checks Gaussian glmnet lambda-max degrees of freedom", () => {
   const f = glmnetFixture as any;
-  const x = f.inputs.gaussian_alpha1.x;
-  const y = f.inputs.gaussian_alpha1.y;
+  const x = f.X.values;
+  const y = f.y;
   const expected = f.gaussian_alpha1.value;
   const fit = glmnet(x, y, { alpha: 1, nlambda: 8, lambdaMinRatio: 0.01 });
   console.log("[regression18-oracle] glmnet lambda-max diagnostic", JSON.stringify({
