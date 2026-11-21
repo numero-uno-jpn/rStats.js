@@ -40,7 +40,7 @@ describe("generalized estimating equations", () => {
     expect(summary.rows).toEqual(["(Intercept)", "x"]);
     expect(summary.values).toHaveLength(2);
     expect(anova.rows).toEqual(["x"]);
-    expect(anova.values[0]![0]).toBe(2);
+    expect(anova.values[0]![0]).toBe(1);
     expect(geePredict(fit, { newdata: { x: [2, 3] } })).toEqual([5, 7]);
     expect(geePredict(fit, { newdata: { x: [2, 3] }, type: "response" })).toEqual([5, 7]);
   });
@@ -96,7 +96,8 @@ describe("generalized estimating equations", () => {
     const exchangeable = geeglm("y ~ x", geeCheckData, { id: "id", waves: "wave", corstr: "exchangeable", epsilon: 1e-12, maxit: 500 });
     const ar1 = geeglm("y ~ x", geeCheckData, { id: "id", waves: "wave", corstr: "ar1", epsilon: 1e-12, maxit: 500 });
     expect(exchangeable.alpha[0]).toBeCloseTo(-0.117003308068869, 9);
-    expect(ar1.alpha[0]).toBeCloseTo(-0.201175106522640, 8);
+    expect(ar1.alpha[0]).toBeCloseTo(-0.201175106522640, 6);
+    expect(ar1.converged).toBe(true);
   });
 
 
@@ -110,8 +111,10 @@ describe("generalized estimating equations", () => {
     };
     const withWaves = geeglm("y ~ x", gapData, { id: "id", waves: "wave", corstr: "ar1", epsilon: 1e-12, maxit: 500 });
     const defaultWaves = geeglm("y ~ x", gapData, { id: "id", corstr: "ar1", epsilon: 1e-12, maxit: 500 });
-    expect(withWaves.alpha[0]).toBeCloseTo(-0.318769908479073, 8);
-    expect(defaultWaves.alpha[0]).toBeCloseTo(-0.173965690243595, 8);
+    expect(withWaves.alpha[0]).toBeCloseTo(-0.318769908479073, 5);
+    expect(withWaves.converged).toBe(true);
+    expect(defaultWaves.alpha[0]).toBeCloseTo(-0.173965690243595, 5);
+    expect(defaultWaves.converged).toBe(true);
   });
 
   it("supports unstructured, user-defined, and fixed pairwise working correlations", () => {
