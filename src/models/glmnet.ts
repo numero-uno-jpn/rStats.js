@@ -97,7 +97,10 @@ export interface GlmnetMultinomialResult {
   };
 }
 
-/** Union of scalar-family and multinomial regularization paths. @category Regression */
+/**
+ * Union of scalar-family and multinomial regularization paths.
+ * @category Regression
+ */
 export type GlmnetResult = GlmnetScalarResult | GlmnetMultinomialResult;
 
 /**
@@ -610,6 +613,11 @@ function glmnetMultinomial(
       xMean, xScale, intercept, columns: p, classes, typeMultinomial: options.typeMultinomial ?? "ungrouped" } };
 }
 
+/**
+ * Fit a penalized generalized linear model path. Equivalent to R's `glmnet::glmnet()`.
+ *
+ * @category Regression
+ */
 export function glmnet(x: readonly (readonly number[])[], y: readonly number[], options?: GlmnetOptions & { family?: "gaussian" | "binomial" | "poisson" }): GlmnetScalarResult;
 export function glmnet(x: readonly (readonly number[])[], y: readonly string[], options: GlmnetOptions & { family: "binomial" }): GlmnetScalarResult;
 export function glmnet(x: readonly (readonly number[])[], y: readonly string[], options: GlmnetOptions & { family: "multinomial" }): GlmnetMultinomialResult;
