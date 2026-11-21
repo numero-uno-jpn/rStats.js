@@ -119,7 +119,7 @@ describe("generalized estimating equations", () => {
     const zcor = Array.from({ length: 12 }, () => [[1, 0], [0, 1], [1, 0]]).flat();
     const userdefined = geeglm("y ~ x", geeCheckData, { id: "id", waves: "wave", corstr: "userdefined", zcor });
     const fixed = geeglm("y ~ x", geeCheckData, {
-      id: "id", waves: "wave", corstr: "fixed", zcor: Array.from({ length: 36 }, () => [0.25]),
+      id: "id", waves: "wave", corstr: "fixed", zcor: new Array(36).fill(0.25),
     });
     expect(unstructured.alpha).toHaveLength(3);
     expect(userdefined.alpha).toHaveLength(2);
