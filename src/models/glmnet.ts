@@ -349,6 +349,260 @@ function glmnetScalar(x: readonly (readonly number[])[], y: readonly number[], o
     model: { x: x.map(r => Array.from(r)), y: Array.from(y), weights: w, offset, xMean, xScale, intercept, columns: p } };
 }
 
+
+function centeredPenaltyShift(values: readonly number[], alpha: number): number {
+  if (alpha >= 1) {
+    const sorted = Array.from(values).sort((a, b) => a - b);
+    const middle = Math.floor(sorted.length / 2);
+    return sorted.length % 2 ? -sorted[middle]! : -(sorted[middle - 1]! + sorted[middle]!) / 2;
+  }
+  if (alpha <= 0) return -mean(values, new Array<number>(values.length).fill(1));
+  let lo = Infinity, hi = -Infinity;
+  for (const value of values) { lo = Math.min(lo, -value); hi = Math.max(hi, -value); }
+  const derivative = (shift: number): number => {
+    let total = 0;
+    for (const value of values) {
+      const v = value + shift;
+      total += alpha * (v > 0 ? 1 : v < 0 ? -1 : 0) + (1 - alpha) * v;
+    }
+    return total;
+  };
+  const span = Math.max(1, hi - lo);
+  lo -= span; hi += span;
+  for (let i = 0; i < 100; i++) {
+    const mid = (lo + hi) / 2;
+    if (derivative(mid) < 0) lo = mid; else hi = mid;
+  }
+  return (lo + hi) / 2;
+}
+
+function multinomialObjective(
+  x: readonly (readonly number[])[], y: readonly number[], weights: readonly number[],
+  a0: readonly number[], beta: readonly (readonly number[])[], lambda: number,
+  alpha: number, penalty: readonly number[], grouped: boolean,
+): number {
+  const n = y.length, p = penalty.length, kCount = a0.length;
+  let value = 0;
+  for (let i = 0; i < n; i++) {
+    let maxEta = -Infinity;
+    const eta = new Array<number>(kCount);
+    for (let k = 0; k < kCount; k++) {
+      let v = a0[k]!;
+      for (let j = 0; j < p; j++) v += x[i]![j]! * beta[j]![k]!;
+      eta[k] = v;
+      maxEta = Math.max(maxEta, v);
+    }
+    let denominator = 0;
+    for (let k = 0; k < kCount; k++) denominator += Math.exp(eta[k]! - maxEta);
+    value += weights[i]! * (Math.log(denominator) + maxEta - eta[y[i]!]!);
+  }
+  value /= n;
+  for (let j = 0; j < p; j++) {
+    if (grouped) {
+      let norm = 0;
+      for (let k = 0; k < kCount; k++) norm += beta[j]![k]! ** 2;
+      norm = Math.sqrt(norm);
+      value += lambda * penalty[j]! * (alpha * norm + (1 - alpha) * norm * norm / 2);
+    } else {
+      for (let k = 0; k < kCount; k++) {
+        const v = beta[j]![k]!;
+        value += lambda * penalty[j]! * (alpha * Math.abs(v) + (1 - alpha) * v * v / 2);
+      }
+    }
+  }
+  return value;
+}
+
+function fitMultinomialOne(
+  x: readonly (readonly number[])[], y: readonly number[], weights: readonly number[],
+  startA: readonly number[], startB: readonly (readonly number[])[], lambda: number,
+  alpha: number, penalty: readonly number[], grouped: boolean,
+  lower: readonly number[], upper: readonly number[], maxit: number, thresh: number,
+): { a0: number[]; beta: number[][]; eta: number[][]; passes: number; converged: boolean } {
+  const n = y.length, p = penalty.length, kCount = startA.length;
+  let a0 = Array.from(startA), beta = startB.map(row => Array.from(row));
+  let eta = x.map(row => a0.map((v, k) => {
+    let out = v;
+    for (let j = 0; j < p; j++) out += row[j]! * beta[j]![k]!;
+    return out;
+  }));
+  let current = multinomialObjective(x, y, weights, a0, beta, lambda, alpha, penalty, grouped);
+  let converged = false, passes = 0;
+  for (let iteration = 0; iteration < maxit; iteration++) {
+    const gradA = new Array<number>(kCount).fill(0);
+    const gradB = Array.from({ length: p }, () => new Array<number>(kCount).fill(0));
+    for (let i = 0; i < n; i++) {
+      let maxEta = -Infinity;
+      for (let k = 0; k < kCount; k++) maxEta = Math.max(maxEta, eta[i]![k]!);
+      let denominator = 0;
+      for (let k = 0; k < kCount; k++) denominator += Math.exp(eta[i]![k]! - maxEta);
+      for (let k = 0; k < kCount; k++) {
+        const residual = weights[i]! * (Math.exp(eta[i]![k]! - maxEta) / denominator - (y[i] === k ? 1 : 0)) / n;
+        gradA[k] += residual;
+        for (let j = 0; j < p; j++) gradB[j]![k] += residual * x[i]![j]!;
+      }
+    }
+    const oldA = a0.slice(), oldB = beta.map(row => row.slice());
+    let step = 1, accepted = false;
+    for (let backtrack = 0; backtrack < 60; backtrack++) {
+      const nextA = oldA.map((v, k) => v - step * gradA[k]!);
+      let centerA = 0;
+      for (const v of nextA) centerA += v;
+      centerA /= kCount;
+      for (let k = 0; k < kCount; k++) nextA[k] -= centerA;
+      const nextB = oldB.map((row, j) => {
+        const z = row.map((v, k) => v - step * gradB[j]![k]!);
+        const penaltyWeight = step * lambda * alpha * penalty[j]!;
+        const ridge = 1 + step * lambda * (1 - alpha) * penalty[j]!;
+        if (grouped) {
+          let norm = 0;
+          for (const v of z) norm += v * v;
+          norm = Math.sqrt(norm);
+          const shrink = norm > 0 ? Math.max(0, 1 - penaltyWeight / norm) / ridge : 0;
+          const values = z.map(v => v * shrink);
+          let center = 0;
+          for (const v of values) center += v;
+          center /= kCount;
+          return values.map(v => Math.max(lower[j]!, Math.min(upper[j]!, v - center)));
+        }
+        const values = z.map(v => soft(v, penaltyWeight) / ridge);
+        const shift = centeredPenaltyShift(values, alpha);
+        return values.map(v => Math.max(lower[j]!, Math.min(upper[j]!, v + shift)));
+      });
+      const nextEta = x.map(row => nextA.map((v, k) => {
+        let out = v;
+        for (let j = 0; j < p; j++) out += row[j]! * nextB[j]![k]!;
+        return out;
+      }));
+      const nextObjective = multinomialObjective(x, y, weights, nextA, nextB, lambda, alpha, penalty, grouped);
+      if (Number.isFinite(nextObjective) && nextObjective <= current + 1e-14) {
+        a0 = nextA; beta = nextB; eta = nextEta; current = nextObjective; accepted = true; break;
+      }
+      step *= 0.5;
+    }
+    passes++;
+    if (!accepted) break;
+    let change = 0, scale = 0;
+    for (let k = 0; k < kCount; k++) {
+      change = Math.max(change, Math.abs(a0[k]! - oldA[k]!));
+      scale = Math.max(scale, Math.abs(a0[k]!));
+    }
+    for (let j = 0; j < p; j++) for (let k = 0; k < kCount; k++) {
+      change = Math.max(change, Math.abs(beta[j]![k]! - oldB[j]![k]!));
+      scale = Math.max(scale, Math.abs(beta[j]![k]!));
+    }
+    if (change <= thresh * (1 + scale)) { converged = true; break; }
+  }
+  return { a0, beta, eta, passes, converged };
+}
+
+function glmnetMultinomial(
+  x: readonly (readonly number[])[], labels: readonly string[], options: GlmnetOptions,
+): GlmnetMultinomialResult {
+  const n = labels.length, p = x[0]?.length ?? 0;
+  if (n < 2 || p < 2 || x.length !== n || x.some(row => row.length !== p)) throw new RangeError("x must be a rectangular matrix with at least two columns and two rows");
+  if (x.some(row => row.some(v => !Number.isFinite(v)))) throw new RangeError("x must contain only finite values");
+  const classes = Array.from(new Set(labels)).sort();
+  if (classes.length < 2) throw new RangeError("multinomial y must contain at least two classes");
+  const classIndex = new Map(classes.map((value, index) => [value, index]));
+  const y = labels.map(value => classIndex.get(value)!);
+  const kCount = classes.length, alpha = options.alpha ?? 1, grouped = (options.typeMultinomial ?? "ungrouped") === "grouped";
+  if (!(alpha >= 0 && alpha <= 1)) throw new RangeError("alpha must be in [0, 1]");
+  if (options.offset?.some(v => v !== 0)) throw new RangeError("multinomial offsets must be class-specific and are not supported");
+  const intercept = options.intercept ?? true;
+  const weights = options.weights ? Array.from(options.weights) : new Array<number>(n).fill(1);
+  if (weights.length !== n || weights.some(v => !(v >= 0) || !Number.isFinite(v)) || sum(weights) <= 0) throw new RangeError("invalid weights");
+  const w = weights.map(v => v * n / sum(weights));
+  const penaltyRaw = normalizeVector(options.penaltyFactor, p, 1);
+  if (penaltyRaw.some(v => !(v >= 0) || !Number.isFinite(v)) || sum(penaltyRaw) <= 0) throw new RangeError("invalid penalty.factor");
+  const penalty = penaltyRaw.map(v => v * p / sum(penaltyRaw));
+  const xMean = Array.from({ length: p }, (_, j) => intercept ? mean(x.map(row => row[j]!), w) : 0);
+  const xScale = Array.from({ length: p }, (_, j) => {
+    let v = 0; for (let i = 0; i < n; i++) v += w[i]! * (x[i]![j]! - xMean[j]!) ** 2;
+    const scale = Math.sqrt(v / n);
+    if (!(scale > 0)) throw new RangeError("x contains a constant column");
+    return options.standardize === false ? 1 : scale;
+  });
+  const xs = x.map(row => row.map((v, j) => (v - xMean[j]!) / xScale[j]!));
+  const classWeight = classes.map((_, k) => y.reduce((v, cls, i) => v + (cls === k ? w[i]! : 0), 0));
+  const initialA = classWeight.map(v => Math.log(Math.max(v / n, 1e-15)));
+  let center = 0; for (const v of initialA) center += v; center /= kCount;
+  const aNull = intercept ? initialA.map(v => v - center) : new Array<number>(kCount).fill(0);
+  const nullEta = xs.map(() => aNull.slice());
+  const nullDev = 2 * multinomialObjective(xs, y, w, aNull, xs[0]!.map(() => new Array<number>(kCount).fill(0)), 0, alpha, penalty, grouped);
+  const gradient = Array.from({ length: p }, () => new Array<number>(kCount).fill(0));
+  for (let i = 0; i < n; i++) {
+    for (let k = 0; k < kCount; k++) {
+      const prob = Math.exp(aNull[k]!);
+      const residual = w[i]! * (prob - (y[i] === k ? 1 : 0)) / n;
+      for (let j = 0; j < p; j++) gradient[j]![k] += residual * xs[i]![j]!;
+    }
+  }
+  const alphaForMax = alpha === 0 ? 0.001 : alpha;
+  let lambdaMax = 0;
+  for (let j = 0; j < p; j++) {
+    let norm = 0;
+    if (grouped) {
+      for (let k = 0; k < kCount; k++) norm += gradient[j]![k]! ** 2;
+      norm = Math.sqrt(norm);
+    } else {
+      for (let k = 0; k < kCount; k++) norm = Math.max(norm, Math.abs(gradient[j]![k]!));
+    }
+    if (penalty[j]! > 0) lambdaMax = Math.max(lambdaMax, norm / (alphaForMax * penalty[j]!));
+  }
+  const nlambda = options.nlambda ?? 100, minRatio = options.lambdaMinRatio ?? (n > p ? 1e-4 : 1e-2);
+  if (!Number.isInteger(nlambda) || nlambda < 1 || !(minRatio > 0 && minRatio <= 1)) throw new RangeError("invalid lambda path controls");
+  const lambdas = options.lambda ? Array.from(options.lambda) :
+    Array.from({ length: nlambda }, (_, i) => lambdaMax * Math.exp(Math.log(minRatio) * i / Math.max(1, nlambda - 1)));
+  if (!lambdas.length || lambdas.some((v, i) => !(v > 0) || (i > 0 && v > lambdas[i - 1]!))) throw new RangeError("lambda must be a decreasing positive sequence");
+  const lower = normalizeVector(options.lowerLimits, p, -Infinity), upper = normalizeVector(options.upperLimits, p, Infinity);
+  for (let j = 0; j < p; j++) {
+    if (lower[j]! > 0 || lower[j]! > upper[j]!) throw new RangeError("invalid coefficient limits");
+    lower[j] = lower[j]! * xScale[j]!; upper[j] = upper[j]! * xScale[j]!;
+  }
+  const maxit = options.maxit ?? 100000, thresh = options.thresh ?? 1e-10;
+  const a0: number[][] = [], betaByClass: Record<string, number[][]> = Object.fromEntries(classes.map(name => [name, Array.from({ length: p }, () => [] as number[])]));
+  const dfmat = classes.map(() => [] as number[]), devRatio: number[] = [], converged: boolean[] = [];
+  let startA = aNull.slice(), startB = Array.from({ length: p }, () => new Array<number>(kCount).fill(0)), npasses = 0;
+  const everActive = new Set<number>();
+  for (const lambda of lambdas) {
+    const fit = fitMultinomialOne(xs, y, w, startA, startB, lambda, alpha, penalty, grouped, lower, upper, maxit, thresh);
+    const classDf = new Array<number>(kCount).fill(0);
+    for (let j = 0; j < p; j++) for (let k = 0; k < kCount; k++) if (fit.beta[j]![k] !== 0) { classDf[k]++; everActive.add(j); }
+    if (classDf.some(v => v > (options.dfmax ?? p + 1)) || everActive.size > (options.pmax ?? p)) break;
+    startA = fit.a0.slice(); startB = fit.beta.map(row => row.slice()); npasses += fit.passes;
+    const originalByClass = classes.map((_, k) => {
+      const row = fit.beta.map((v, j) => v[k]! / xScale[j]!);
+      let interceptValue = fit.a0[k]!;
+      if (intercept) for (let j = 0; j < p; j++) interceptValue -= xMean[j]! * row[j]!;
+      return [interceptValue, ...row];
+    });
+    a0.push(fit.a0.map((_, k) => originalByClass[k]![0]!));
+    for (let k = 0; k < kCount; k++) for (let j = 0; j < p; j++) betaByClass[classes[k]!]![j]!.push(originalByClass[k]![j + 1]!);
+    for (let k = 0; k < kCount; k++) dfmat[k]!.push(classDf[k]!);
+    const fittedDev = 2 * multinomialObjective(xs, y, w, fit.a0, fit.beta, 0, alpha, penalty, grouped);
+    devRatio.push(nullDev === 0 ? 0 : 1 - fittedDev / nullDev);
+    converged.push(fit.converged);
+  }
+  if (!a0.length) throw new RangeError("no lambda values satisfy dfmax and pmax");
+  return { family: "multinomial", alpha, lambda: lambdas.slice(0, a0.length), a0, beta: betaByClass, dfmat,
+    devRatio, nullDev, npasses, converged,
+    model: { x: x.map(row => Array.from(row)), y: Array.from(labels), weights: w, offset: new Array<number>(n).fill(0),
+      xMean, xScale, intercept, columns: p, classes, typeMultinomial: options.typeMultinomial ?? "ungrouped" } };
+}
+
+export function glmnet(x: readonly (readonly number[])[], y: readonly (number | string)[], options: GlmnetOptions = {}): GlmnetResult {
+  const family = options.family ?? "gaussian";
+  if (family === "multinomial") return glmnetMultinomial(x, y.map(String), options);
+  if (y.some(v => typeof v !== "number")) {
+    if (family !== "binomial") throw new TypeError("non-numeric y is supported only for binomial or multinomial families");
+    const classes = Array.from(new Set(y.map(String))).sort();
+    if (classes.length !== 2) throw new RangeError("binomial factor y must have exactly two classes");
+    return glmnetScalar(x, y.map(v => String(v) === classes[1] ? 1 : 0), options);
+  }
+  return glmnetScalar(x, y as readonly number[], options);
+}
+
 function interpolate(fit: GlmnetResult, s: number): { a0: number; beta: number[] } {
   const path = fit.lambda;
   if (s >= path[0]!) return { a0: fit.a0[0]!, beta: fit.beta[0]!.slice() };
