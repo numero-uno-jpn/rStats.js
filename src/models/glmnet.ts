@@ -56,6 +56,7 @@ export interface GlmnetScalarResult {
   nullDev: number;
   npasses: number;
   converged: boolean[];
+  kktResidual: number[];
   model: {
     x: number[][];
     y: number[];
@@ -214,11 +215,40 @@ function deviance(y: readonly number[], eta: readonly number[], weights: readonl
   }
   return out;
 }
+function scalarKktResidual(
+  x: readonly (readonly number[])[], y: readonly number[], weights: readonly number[], eta: readonly number[],
+  family: "gaussian" | "binomial" | "poisson", alpha: number, lambda: number,
+  beta: readonly number[], intercept: boolean, penalty: readonly number[],
+  lower: readonly number[], upper: readonly number[],
+): number {
+  const n = y.length, p = beta.length, gradient = new Array<number>(p).fill(0);
+  let interceptGradient = 0;
+  for (let i = 0; i < n; i++) {
+    const residual = weights[i]! * (inverseLink(eta[i]!, family) - y[i]!) / n;
+    interceptGradient += residual;
+    for (let j = 0; j < p; j++) gradient[j] = gradient[j]! + residual * x[i]![j]!;
+  }
+  let maximum = intercept ? Math.abs(interceptGradient) : 0;
+  for (let j = 0; j < p; j++) {
+    const value = beta[j]!, smooth = gradient[j]! + lambda * (1 - alpha) * penalty[j]! * value;
+    const l1 = lambda * alpha * penalty[j]!;
+    let violation = 0;
+    if (lower[j] === upper[j]) violation = 0;
+    else if (value <= lower[j]! + 1e-12) violation = Math.max(0, -(smooth + (value < 0 ? -l1 : l1)));
+    else if (value >= upper[j]! - 1e-12) violation = Math.max(0, smooth + (value > 0 ? l1 : -l1));
+    else if (value > 0) violation = Math.abs(smooth + l1);
+    else if (value < 0) violation = Math.abs(smooth - l1);
+    else violation = Math.max(0, Math.abs(smooth) - l1);
+    maximum = Math.max(maximum, violation);
+  }
+  return maximum;
+}
+
 function fitOne(
   x: readonly (readonly number[])[], y: readonly number[], weights: readonly number[], offset: readonly number[],
   family: GlmnetFamily, alpha: number, lambda: number, start: number[], intercept: boolean,
   penalty: readonly number[], lower: readonly number[], upper: readonly number[], maxit: number, thresh: number,
-): { a0: number; beta: number[]; eta: number[]; passes: number; converged: boolean } {
+): { a0: number; beta: number[]; eta: number[]; passes: number; converged: boolean; kkt: number } {
   const n = y.length, p = penalty.length;
   let a0 = start[0] ?? 0;
   const beta = start.slice(1);
@@ -277,9 +307,13 @@ function fitOne(
       change = Math.max(change, Math.abs(beta[j]! - oldB[j]!));
       scale = Math.max(scale, Math.abs(beta[j]!));
     }
-    if (change <= thresh * (1 + scale) && innerConverged) { converged = true; break; }
+    if (change <= thresh * (1 + scale) && innerConverged) {
+      const kkt = scalarKktResidual(x, y, weights, eta, family, alpha, lambda, beta, intercept, penalty, lower, upper);
+      if (kkt <= thresh * (1 + scale)) { converged = true; break; }
+    }
   }
-  return { a0, beta, eta, passes, converged };
+  const kkt = scalarKktResidual(x, y, weights, eta, family, alpha, lambda, beta, intercept, penalty, lower, upper);
+  return { a0, beta, eta, passes, converged, kkt };
 }
 function glmnetScalar(x: readonly (readonly number[])[], y: readonly number[], options: GlmnetOptions = {}): GlmnetScalarResult {
   const n = y.length, p = x[0]?.length ?? 0;
@@ -333,7 +367,7 @@ function glmnetScalar(x: readonly (readonly number[])[], y: readonly number[], o
   if (!Number.isInteger(maxit) || maxit < 1 || !(thresh > 0)) throw new RangeError("invalid convergence controls");
   const dfmax = options.dfmax ?? p + 1, pmax = options.pmax ?? p;
   if (!Number.isInteger(dfmax) || dfmax < 1 || !Number.isInteger(pmax) || pmax < 1) throw new RangeError("dfmax and pmax must be positive integers");
-  const a0: number[] = [], beta: number[][] = [], df: number[] = [], devRatio: number[] = [], converged: boolean[] = [];
+  const a0: number[] = [], beta: number[][] = [], df: number[] = [], devRatio: number[] = [], converged: boolean[] = [], kktResidual: number[] = [];
   const nullDev = deviance(y, eta0, w, family);
   let start = [y0, ...new Array<number>(p).fill(0)], npasses = 0;
   const everActive = new Set<number>();
@@ -351,9 +385,10 @@ function glmnetScalar(x: readonly (readonly number[])[], y: readonly number[], o
     df.push(active);
     devRatio.push(nullDev === 0 ? 0 : 1 - deviance(y, fit.eta, w, family) / nullDev);
     converged.push(fit.converged);
+    kktResidual.push(fit.kkt);
   }
   if (a0.length === 0) throw new RangeError("no lambda values satisfy dfmax and pmax");
-  return { family, alpha, lambda: lambdas.slice(0, a0.length), a0, beta, df, devRatio, nullDev, npasses, converged,
+  return { family, alpha, lambda: lambdas.slice(0, a0.length), a0, beta, df, devRatio, nullDev, npasses, converged, kktResidual,
     model: { x: x.map(r => Array.from(r)), y: Array.from(y), weights: w, offset, xMean, xScale, intercept, columns: p } };
 }
 
