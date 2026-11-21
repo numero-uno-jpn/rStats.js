@@ -55,6 +55,10 @@ against R and are not a priority.
 The full list is in the [README](README.md#what-is-included); known differences from R are in
 [docs/differences-from-r.md](docs/differences-from-r.md).
 
+Regression (the former item 2) was completed for 1.8.0: quantile regression (`rq`), generalized estimating
+equations (`geeglm`) and penalized regression (`glmnet`). See [the release changes](CHANGELOG.md#unreleased) and
+[the documented differences from R](docs/differences-from-r.md#regression-rq-geeglm-and-glmnet).
+
 ## Remaining
 
 The priority is that a medical or psychological study can use the right method: exact methods for small samples,
@@ -62,9 +66,7 @@ and effect measures with their confidence intervals, not only p-values. The list
 a statistics web application for medical and psychological research (2026-11-06). In order of priority; the R
 function or package that each item is checked against is given in brackets.
 
-2. **Regression for 1.8.0:** quantile regression [quantreg `rq`], GEE [geepack] and regularised regression [glmnet].
-   They need linear programming, working correlations and coordinate descent, and matching R takes more work.
-3. **Later, in no particular order:** MANOVA [`manova`], discriminant analysis [MASS `lda`], canonical correlation
+2. **Later, in no particular order:** MANOVA [`manova`], discriminant analysis [MASS `lda`], canonical correlation
    [`cancor`]; cluster analysis [`hclust`, `kmeans`]; multidimensional scaling and correspondence analysis
    [`cmdscale`, MASS `isoMDS`, ca]; Tamhane's T2 and Page's test [PMCMRplus], Grubbs' test [outliers]; time series
    [`acf`, `arima`].
