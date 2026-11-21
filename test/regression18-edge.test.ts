@@ -272,7 +272,7 @@ describe("regression 1.8.0: scale, weight, order, and edge-input audit", () => {
       const fit = glmnet(largeX, family === "gaussian" ? largeY : largeBinary,
         { family, nlambda: 20, thresh: 1e-6 });
       const elapsed = Date.now() - start;
-      console.log(`[regression18-edge] glmnet ${family}, n=${rows}, p=${columns}: ${elapsed} ms`);
+      console.log(`[regression18-edge] glmnet ${family}, n=${rows}, p=${columns}: ${elapsed} ms, coordinate passes=${fit.npasses}`);
       expect(fit.beta.flat().every(Number.isFinite)).toBe(true);
     }
   });
