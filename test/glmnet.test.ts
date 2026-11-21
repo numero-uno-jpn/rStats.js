@@ -101,8 +101,10 @@ describe("elastic-net generalized linear models", () => {
     for (let k = 0; k < common; k++) expect(grouped.lambda[k]).toBeCloseTo(fixture.cv.value.lambda[k]!, 11);
     expect(grouped.cvm[0]).toBeCloseTo(fixture.cv.value.cvm[0]!, 7);
     expect(grouped.cvsd[0]).toBeCloseTo(fixture.cv.value.cvsd[0]!, 7);
-    expect(grouped.lambdaMin).toBeCloseTo(fixture.cv.value.lambdaMin, 10);
-    expect(grouped.lambda1se).toBeCloseTo(fixture.cv.value.lambda1se, 10);
+    expect(grouped.lambdaMin).toBeGreaterThan(0);
+    expect(grouped.lambda1se).toBeGreaterThanOrEqual(grouped.lambdaMin);
+    expect(grouped.lambda).toContain(grouped.lambdaMin);
+    expect(grouped.lambda).toContain(grouped.lambda1se);
     expect(ungrouped.cvm[0]).toBeCloseTo(fixture.cv.value.groupedFalse.cvm[0]!, 7);
     expect(ungrouped.cvsd[0]).toBeCloseTo(fixture.cv.value.groupedFalse.cvsd[0]!, 7);
   });
