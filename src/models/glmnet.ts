@@ -1,9 +1,12 @@
 // Elastic-net regularized generalized linear models, derived from the published objective and public numerical output.
 // The path solver uses a monotone proximal-gradient method; no glmnet or R implementation code is used.
 
+/** Family used for the penalized generalized linear model. @category Regression */
 export type GlmnetFamily = "gaussian" | "binomial" | "poisson";
+/** Scale or coefficient selection returned by a penalized-model prediction. @category Regression */
 export type GlmnetPredictType = "link" | "response" | "class" | "nonzero";
 
+/** Options for {@link glmnet}. @category Regression */
 export interface GlmnetOptions {
   family?: GlmnetFamily;
   alpha?: number;
@@ -23,6 +26,7 @@ export interface GlmnetOptions {
   thresh?: number;
 }
 
+/** Result of {@link glmnet}, including the complete regularization path. @category Regression */
 export interface GlmnetResult {
   family: GlmnetFamily;
   alpha: number;
@@ -46,12 +50,14 @@ export interface GlmnetResult {
   };
 }
 
+/** Options for {@link glmnetPredict}. @category Regression */
 export interface GlmnetPredictOptions {
   s?: number | readonly number[];
   type?: GlmnetPredictType;
   offset?: readonly number[];
 }
 
+/** Options for {@link cvGlmnet}; fold assignments are required. @category Regression */
 export interface CvGlmnetOptions extends GlmnetOptions {
   foldid: readonly number[];
   typeMeasure?: "deviance" | "mse" | "mae" | "class" | "auc";
@@ -59,6 +65,7 @@ export interface CvGlmnetOptions extends GlmnetOptions {
   keep?: boolean;
 }
 
+/** Cross-validation summary returned by {@link cvGlmnet}. @category Regression */
 export interface CvGlmnetResult {
   fit: GlmnetResult;
   lambda: number[];
@@ -203,6 +210,10 @@ function fitOne(
   return { a0, beta, eta, passes, converged };
 }
 
+/** Fit a penalized generalized linear model path. Equivalent to R's `glmnet::glmnet()`.
+ *
+ * @category Regression
+ */
 export function glmnet(x: readonly (readonly number[])[], y: readonly number[], options: GlmnetOptions = {}): GlmnetResult {
   const n = y.length, p = x[0]?.length ?? 0;
   if (n < 2 || p < 2 || x.length !== n || x.some(r => r.length !== p)) throw new RangeError("x must be a rectangular matrix with at least two columns and two rows");
@@ -282,10 +293,18 @@ function interpolate(fit: GlmnetResult, s: number): { a0: number; beta: number[]
     beta: fit.beta[k]!.map((v, j) => v * (1 - t) + fit.beta[k + 1]![j]! * t) };
 }
 
+/** Extract coefficients at selected penalty values. Equivalent to R's `coef.glmnet()`.
+ *
+ * @category Regression
+ */
 export function glmnetCoef(fit: GlmnetResult, s?: number | readonly number[]): number[][] {
   const values = s === undefined ? fit.lambda : typeof s === "number" ? [s] : Array.from(s);
   return values.map(v => { const c = interpolate(fit, v); return [c.a0, ...c.beta]; });
 }
+/** Predict from a penalized generalized linear model. Equivalent to R's `predict.glmnet()`.
+ *
+ * @category Regression
+ */
 export function glmnetPredict(
   fit: GlmnetResult, newx: readonly (readonly number[])[], options: GlmnetPredictOptions = {},
 ): number[][] {
@@ -311,6 +330,10 @@ export function glmnetPredict(
   });
 }
 
+/** Cross-validate a penalized generalized linear model. Equivalent to R's `cv.glmnet()`.
+ *
+ * @category Regression
+ */
 export function cvGlmnet(x: readonly (readonly number[])[], y: readonly number[], options: CvGlmnetOptions): CvGlmnetResult {
   if (!options.foldid || options.foldid.length !== y.length) throw new RangeError("foldid is required and must match y");
   const foldid = Array.from(options.foldid), folds = Array.from(new Set(foldid)).sort((a,b)=>a-b);
