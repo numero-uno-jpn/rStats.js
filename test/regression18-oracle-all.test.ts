@@ -266,3 +266,39 @@ describe("rStats.js 1.8.0 public-output completeness against the pinned R oracle
     expect(cv.fitPreval).toBeDefined();
   });
 });
+
+it("compares Ohio AR1 fit coefficients and correlation with R", () => {
+  const g = geeFixture as any;
+  const ohioFit = geeglm("resp ~ age + smoke", g.inputs.ohio, {
+    id: "id", family: "binomial", corstr: "ar1", epsilon: 1e-12, maxit: 1000,
+  });
+  const reference = g.ohio_ar1.value;
+  console.log("[regression18-oracle] Ohio AR1 diagnostic", JSON.stringify({
+    jsCoefficients: ohioFit.coefficients,
+    rCoefficients: reference.tight.coefficients,
+    jsAlpha: ohioFit.alpha,
+    rAlpha: correlationEstimates(reference.tight.corr),
+    jsScale: ohioFit.scale,
+    rScale: reference.tight.dispersion.values[0],
+    iterations: ohioFit.iterations,
+    converged: ohioFit.converged,
+  }));
+  vectorWithROracleUncertainty(ohioFit.coefficients, reference.default.coefficients, reference.tight.coefficients);
+  vectorWithROracleUncertainty(ohioFit.alpha, correlationEstimates(reference.default.corr), correlationEstimates(reference.tight.corr));
+  closeWithROracleUncertainty(ohioFit.scale, reference.default.dispersion.values[0], reference.tight.dispersion.values[0]);
+});
+
+it("checks Gaussian glmnet lambda-max degrees of freedom", () => {
+  const f = glmnetFixture as any;
+  const x = f.inputs.gaussian_alpha1.x;
+  const y = f.inputs.gaussian_alpha1.y;
+  const expected = f.gaussian_alpha1.value;
+  const fit = glmnet(x, y, { alpha: 1, nlambda: 8, lambdaMinRatio: 0.01 });
+  console.log("[regression18-oracle] glmnet lambda-max diagnostic", JSON.stringify({
+    beta: fit.beta.map(row => row[0]),
+    df: fit.df[0],
+    rDf: expected.df[0],
+    kkt: fit.kktResidual[0],
+  }));
+  expect(fit.df).toEqual(expected.df);
+});
