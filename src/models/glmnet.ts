@@ -325,8 +325,6 @@ export function cvGlmnet(x: readonly (readonly number[])[], y: readonly number[]
     const sub=glmnet(subx,suby,subOptions);
     const pred=glmnetPredict(sub,test.map(i=>x[i]!),{s:lambda,type:"response",...(options.offset === undefined ? {} : { offset: test.map(i=>options.offset![i]!) })});
     for(let i=0;i<test.length;i++) for(let k=0;k<lambda.length;k++) predictions[test[i]!]![k]=pred[k]![i]!;
-    const err=lambda.map((_,k)=>test.reduce((v,i)=>v+((pred[k]![test.indexOf(i)]!-y[i]!)**2),0)/test.length);
-    measures.push(err);
   }
   const grouped=options.grouped??true;
   const measure = options.typeMeasure ?? (fit.family === "gaussian" ? "mse" : "deviance");
