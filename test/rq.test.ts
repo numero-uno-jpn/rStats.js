@@ -294,10 +294,10 @@ describe("quantile regression", () => {
     expect(summary.covariance![0]).toHaveLength(2);
     expect(summary.covariance![1]).toHaveLength(2);
     expect(summary.covariance![2]).toHaveLength(2);
-    const fit = rq("y ~ x", data, { tau: 0.5 });
+    const singleFit = rq("y ~ x", data, { tau: 0.5 });
     for (const se of ["iid", "ker", "boot"] as const)
-      expect(() => rqSummary(fit, { se: se as never })).toThrow(`se = "${se}" is not supported yet; use "rank" or "nid"`);
-    expect(() => rqSummary(fit, { se: "rank", iid: false } as never))
+      expect(() => rqSummary(singleFit, { se: se as never })).toThrow(`se = "${se}" is not supported yet; use "rank" or "nid"`);
+    expect(() => rqSummary(singleFit, { se: "rank", iid: false } as never))
       .toThrow('se = "rank", iid = false is not supported yet; omit iid or use se = "nid"');
   });
 
