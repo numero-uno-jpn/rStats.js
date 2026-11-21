@@ -16,6 +16,7 @@ import type { Sample } from "../htest/types.js";
 /** Working-correlation structures supported by geeglm.
  * @category Regression
  */
+/** Working correlation structures supported by a GEE fit. @category Regression */
 export type GeeCorrelation = "independence" | "exchangeable" | "ar1" | "unstructured" | "userdefined" | "fixed";
 
 /** Cluster identifiers may be numeric, character, or logical.
@@ -32,18 +33,31 @@ export type GeeStdErr = "san.se";
  * @category Regression
  */
 export interface GeeOptions {
+  /** Cluster identifier column or values. */
   id: string | GeeId;
+  /** Within-cluster observation order or wave values. */
   waves?: string | Sample;
+  /** Response distribution used by the estimating equations. */
   family?: GlmFamilyName | GlmFamilySpec;
+  /** Link function for the response mean. */
   link?: GlmLink;
+  /** Working correlation structure. */
   corstr?: GeeCorrelation;
+  /** Value for std.err. */
   "std.err"?: GeeStdErr;
+  /** User-supplied or fixed pairwise working-correlation values. */
   zcor?: readonly (readonly number[])[] | Sample;
+  /** Prior observation weights. */
   weights?: string | Sample;
+  /** Known contribution to the linear predictor. */
   offset?: string | Sample;
+  /** Value for scale.fix. */
   "scale.fix"?: boolean;
+  /** Value for scale.value. */
   "scale.value"?: number;
+  /** Convergence tolerance for coefficient updates. */
   epsilon?: number;
+  /** Maximum number of fitting iterations. */
   maxit?: number;
 }
 
@@ -69,51 +83,97 @@ function splitOffsets(formula: string): { meanFormula: string; terms: GeeOffsetT
  * @category Regression
  */
 export interface GeeResult {
+  /** Estimated marginal-model coefficients. */
   coefficients: number[];
+  /** Fitted marginal means for the original input rows. */
   fittedValues: number[];
+  /** Fitted linear predictors for the original input rows. */
   linearPredictors: number[];
+  /** Response residuals for the original input rows. */
   residuals: number[];
+  /** Pearson residuals for the original input rows. */
   pearsonResiduals: number[];
+  /** Robust sandwich covariance matrix of the coefficient estimates. */
   covariance: number[][];
+  /** Model-based covariance matrix under the working correlation. */
   modelCovariance: number[][];
+  /** Model-based covariance matrix under independence working correlation. */
   independenceCovariance: number[][];
+  /** Estimated working-correlation parameter values. */
   alpha: number[];
+  /** Scale or dispersion parameter. */
   scale: number;
+  /** Number of coefficient-update iterations performed. */
   iterations: number;
+  /** Whether the coefficient iteration met its convergence criterion. */
   converged: boolean;
+  /** Response distribution used by the estimating equations. */
   family: GlmFamilyName;
+  /** Link function for the response mean. */
   link: string;
+  /** Working correlation structure. */
   corstr: GeeCorrelation;
+  /** Standard-error estimator used by the fit. */
   stdErr: GeeStdErr;
+  /** Names of the model-matrix columns. */
   columnNames: string[];
+  /** Original data-row indices retained in the model frame. */
   rows: number[];
+  /** Cluster identifiers corresponding to retained rows. */
   clusterIds: (number | string | boolean)[];
+  /** Within-cluster observation order or wave values. */
   waves: number[];
+  /** Value for warnings. */
   warnings: string[];
+  /** Value for model. */
   model: {
+    /** Original model formula. */
     formula: string;
+    /** Mean-model formula after offset terms are separated. */
     meanFormula: string;
+    /** Offset terms extracted from the formula. */
     offsetTerms: GeeOffsetTerm[];
+    /** Name of the data column supplied through the offset option, if any. */
     offsetOptionColumn: string | undefined;
+    /** Whether an offset was supplied outside the formula. */
     hasExternalOffset: boolean;
+    /** Model-matrix column to formula-term assignment. */
     termAssign: number[];
+    /** Labels of the formula terms. */
     termLabels: string[];
+    /** Name of the response variable. */
     responseVariable: string;
+    /** Whether the mean model includes an intercept. */
     intercept: boolean;
+    /** Model matrix for retained observations. */
     x: number[][];
+    /** Response values for retained observations. */
     y: number[];
+    /** Cluster identifiers for retained observations. */
     ids: (number | string | boolean)[];
+    /** Within-cluster observation order or wave values. */
     waves: number[];
+    /** Prior observation weights. */
     weights: number[];
+    /** Known contribution to the linear predictor. */
     offset: number[];
+    /** Response distribution used by the estimating equations. */
     family: GlmFamilyName | GlmFamilySpec;
+    /** Link function for the response mean. */
     link: GlmLink | undefined;
+    /** Working correlation structure. */
     corstr: GeeCorrelation;
+    /** Whether the scale parameter is fixed. */
     scaleFix: boolean;
+    /** Scale value used when scale is fixed. */
     scaleValue: number;
+    /** Convergence tolerance for coefficient updates. */
     epsilon: number;
+    /** Maximum number of fitting iterations. */
     maxit: number;
+    /** User-supplied or fixed pairwise working-correlation values. */
     zcor: number[][] | undefined;
+    /** Data frame retained for prediction and model comparisons. */
     data: DataFrame;
   };
 }
@@ -122,11 +182,17 @@ export interface GeeResult {
  * @category Regression
  */
 export interface GeeSummaryResult {
+  /** Original data-row indices retained in the model frame. */
   rows: string[];
+  /** Column labels for the returned summary table. */
   columns: ["Estimate", "Std. Error", "Wald", "Pr(>|W|)"];
+  /** Numeric values in the returned summary table. */
   values: number[][];
+  /** Scale or dispersion parameter. */
   scale: number;
+  /** Estimated working-correlation summary. */
   correlation: { rows: string[]; estimate: number[] };
+  /** Value for warnings. */
   warnings: string[];
 }
 
@@ -134,8 +200,11 @@ export interface GeeSummaryResult {
  * @category Regression
  */
 export interface GeeVcovResult {
+  /** Original data-row indices retained in the model frame. */
   rows: string[];
+  /** Column labels for the returned summary table. */
   columns: string[];
+  /** Numeric values in the returned summary table. */
   values: number[][];
 }
 
@@ -143,8 +212,11 @@ export interface GeeVcovResult {
  * @category Regression
  */
 export interface GeePredictOptions {
+  /** Optional data frame used to construct predictions. */
   newdata?: DataFrame;
+  /** Prediction scale or covariance selection. */
   type?: "link" | "response";
+  /** Offset values for new observations. */
   newoffset?: Sample;
 }
 
@@ -152,8 +224,11 @@ export interface GeePredictOptions {
  * @category Regression
  */
 export interface GeeAnovaResult {
+  /** Original data-row indices retained in the model frame. */
   rows: string[];
+  /** Column labels for the returned summary table. */
   columns: ["Df", "X2", "Pr(>Chi)"];
+  /** Numeric values in the returned summary table. */
   values: number[][];
 }
 
@@ -386,6 +461,34 @@ function geeStep(
   return { delta: solve(bread, score), bread, meat, clusterScores, clusterBread, eval: ev };
 }
 
+/** Options for selecting the covariance matrix returned by geeVcov. @category Regression */
+export interface GeeVcovOptions {
+  /** Covariance matrix to return: robust sandwich or model-based. */
+  type?: "robust" | "naive";
+}
+
+/** Options for a GEE Wald analysis of variance. @category Regression */
+export interface GeeAnovaOptions {
+  /** Wald test used for the sequential term comparison. */
+  test?: "Wald";
+}
+
+/** Quasi-likelihood information criteria returned by geeQIC. @category Regression */
+export interface GeeQICResult {
+  /** Quasi-likelihood under the independence model criterion. */
+  QIC: number;
+  /** Uncorrected quasi-likelihood information criterion. */
+  QICu: number;
+  /** Quasi-likelihood component. */
+  Q: number;
+  /** Correlation information criterion. */
+  CIC: number;
+  /** Number of fitted mean-model parameters. */
+  params: number;
+  /** Finite-sample corrected QIC. */
+  QICC: number;
+}
+
 /**
  * Fit a marginal generalized estimating equation model.
  * Equivalent to `geepack::geeglm()` in R.
@@ -542,7 +645,7 @@ export function geeglm(formula: string, data: DataFrame, options: GeeOptions): G
  * Equivalent to R's `vcov()`.
  * @category Regression
  */
-export function geeVcov(fit: GeeResult, options: { type?: "robust" | "naive" } = {}): GeeVcovResult {
+export function geeVcov(fit: GeeResult, options: GeeVcovOptions = {}): GeeVcovResult {
   checkOptions(options, ["type"], "geeVcov"); // generated: option-keys.mjs
   const a = options.type === "naive" ? fit.modelCovariance : fit.covariance;
   return { rows: fit.columnNames, columns: fit.columnNames, values: a.map((r) => r.slice()) };
@@ -640,7 +743,7 @@ function refitForAnova(fit: GeeResult, formula: string): GeeResult {
  * Equivalent to R's `anova()`.
  * @category Regression
  */
-export function geeAnova(fit: GeeResult, options: { test?: "Wald" } | GeeResult = {}): GeeAnovaResult {
+export function geeAnova(fit: GeeResult, options: GeeAnovaOptions | GeeResult = {}): GeeAnovaResult {
   if (isGeeResult(options)) {
     const reduced = options;
     if (fit.rows.length !== reduced.rows.length || fit.rows.some((r, i) => r !== reduced.rows[i]) ||
@@ -685,7 +788,7 @@ export function geeAnova(fit: GeeResult, options: { test?: "Wald" } | GeeResult 
  * Equivalent to `geepack::QIC()` in R.
  * @category Regression
  */
-export function geeQIC(fit: GeeResult): { QIC: number; QICu: number; Q: number; CIC: number; params: number; QICC: number } {
+export function geeQIC(fit: GeeResult): GeeQICResult {
   const family = makeFamily(fit.model.family, fit.model.link);
   let q = 0;
   for (let i = 0; i < fit.model.y.length; i++) {
