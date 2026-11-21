@@ -96,10 +96,19 @@ out$pathLength <- run({ f <- glmnet(X, y, nlambda = 20, lambda.min.ratio = .001)
 out$explicitLambda <- run({ f <- glmnet(X, y, lambda = c(2, 1, .5, .25, .125)); list(lambda = f$lambda, a0 = f$a0, beta = tab(f$beta), df = f$df) })
 out$poissonOffset <- run({ yp <- c(1,2,1,3,2,4,1,3,2,5,4,6); f <- glmnet(X, yp, family = "poisson", offset = log(seq(1, 2, length.out = 12)), nlambda = 6); list(lambda = f$lambda, a0 = f$a0, beta = tab(f$beta), df = f$df, devRatio = f$dev.ratio, nulldev = f$nulldev) })
 out$predictTypes <- run({
-  fb <- glmnet(X, c(0,0,1,0,1,0,1,0,1,1,1,1), family = "binomial", nlambda = 6)
+  by <- c(0,0,1,0,1,0,1,0,1,1,1,1)
+  fb <- glmnet(X, by, family = "binomial", nlambda = 6)
+  fb16 <- glmnet(X, by, family = "binomial", nlambda = 6,
+                 control = list(thresh = 1e-16, maxit = 1e8))
+  fb20 <- glmnet(X, by, family = "binomial", nlambda = 6,
+                 control = list(thresh = 1e-20, maxit = 1e8))
   fg <- glmnet(X, y, nlambda = 6)
   list(link = tab(predict(fb, X[1:4, ], s = fb$lambda[3], type = "link")),
+       linkT16 = tab(predict(fb16, X[1:4, ], s = fb16$lambda[3], type = "link")),
+       linkT20 = tab(predict(fb20, X[1:4, ], s = fb20$lambda[3], type = "link")),
        response = tab(predict(fb, X[1:4, ], s = fb$lambda[3], type = "response")),
+       responseT16 = tab(predict(fb16, X[1:4, ], s = fb16$lambda[3], type = "response")),
+       responseT20 = tab(predict(fb20, X[1:4, ], s = fb20$lambda[3], type = "response")),
        class = predict(fb, X[1:4, ], s = fb$lambda[3], type = "class"),
        nonzero = run(predict(fg, type = "nonzero", s = fg$lambda[3])))
 })
