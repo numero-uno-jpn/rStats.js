@@ -665,7 +665,7 @@ export function geeglm(formula: string, data: DataFrame, options: GeeOptions): G
     rows.forEach((r, i) => { fitted[r] = ev.mu[i]!; linear[r] = ev.eta[i]!; residuals[r] = ev.residuals[i]!; pearson[r] = ev.pearson[i]!; });
     const result: GeeResult = {
       coefficients: beta, fittedValues: fitted, linearPredictors: linear, residuals, pearsonResiduals: pearson,
-      covariance, modelCovariance, independenceCovariance, alpha, scale, iterations: iteration, converged, family: family.family,
+      covariance, modelCovariance, independenceCovariance, alpha, scale, iterations: converged ? iteration : maxit, converged, family: family.family,
       link: family.name, corstr, stdErr, columnNames: d.colNames, rows, clusterIds: ids, waves,
       warnings: warnings.list.slice(),
       model: { formula, meanFormula: split.meanFormula, offsetTerms: split.terms,
