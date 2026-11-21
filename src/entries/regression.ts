@@ -84,3 +84,23 @@ export {
   type RqModel,
   type RqResult,
 } from "../models/rq.js";
+
+
+// Generalized estimating equations (rStats.js/regression)
+
+export {
+  geeglm,
+  geeSummary,
+  geeVcov,
+  geePredict,
+  geeAnova,
+  geeQIC,
+  type GeeOptions,
+  type GeeResult,
+  type GeeSummaryResult,
+  type GeeVcovResult,
+  type GeePredictOptions,
+  type GeeAnovaResult,
+  type GeeCorrelation,
+  type GeeStdErr,
+} from "../models/gee.js";
