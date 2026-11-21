@@ -1,5 +1,5 @@
 // Elastic-net regularized generalized linear models, derived from the published objective and public numerical output.
-// The path solver uses a monotone proximal-gradient method; no glmnet or R implementation code is used.
+// The path solver uses IRLS with coordinate descent; no glmnet or R implementation code is used.
 
 /**
  * Family used for the penalized generalized linear model.
