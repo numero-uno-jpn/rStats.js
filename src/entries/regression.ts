@@ -115,6 +115,7 @@ export {
   glmnetPredict,
   cvGlmnet,
   type GlmnetFamily,
+  type GlmnetMultiType,
   type GlmnetPredictType,
   type GlmnetOptions,
   type GlmnetResult,
