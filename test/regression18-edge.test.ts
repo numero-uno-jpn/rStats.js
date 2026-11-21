@@ -120,7 +120,7 @@ describe("regression 1.8.0: scale, weight, order, and edge-input audit", () => {
     const unit = new Array<number>(d.y.length).fill(1);
     for (const scale of [1e-8, 3, 1e8]) {
       const rqFit = rq("y ~ x + z", d, { tau: .5, method: "fn", eps: 1e-12, weights: unit.map(v => v * scale) });
-      closeVector(["(Intercept)", "x", "z"].map(k => rqScalar(rqFit.coefficients[k]!)), ["(Intercept)", "x", "z"].map(k => rqScalar(rqBase.coefficients[k]!)));
+      closeVector(["(Intercept)", "x", "z"].map(k => rqScalar(rqFit.coefficients[k]!)), ["(Intercept)", "x", "z"].map(k => rqScalar(rqBase.coefficients[k]!)), 1e-12);
       const geeFit = geeglm("y ~ x + z", d, { ...geeOptions, weights: unit.map(v => v * scale) });
       closeVector(geeFit.coefficients, geeBase.coefficients, 1e-12);
       const glmFit = glmnet(glmX, d.y, { nlambda: 10, thresh: 1e-12, weights: unit.map(v => v * scale) });

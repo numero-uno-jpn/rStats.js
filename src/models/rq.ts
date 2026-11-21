@@ -768,7 +768,8 @@ function rqBread(model: RqModel, tau: number, level: number, warnings?: string[]
   const bread = Array.from({ length: p }, () => new Array<number>(p).fill(0));
   let responseScale = 0;
   for (const value of model.y) responseScale = Math.max(responseScale, Math.abs(value));
-  const densityTolerance = NID_DENSITY_EPS * Math.min(responseScale, 1);
+  const densityScale = responseScale > 1e8 || (responseScale > 0 && responseScale < 1e-8) ? responseScale : 1;
+  const densityTolerance = NID_DENSITY_EPS * densityScale;
   let nonPositive = 0;
   for (let i = 0; i < model.y.length; i++) {
     const row = model.x[i]!;
