@@ -269,7 +269,7 @@ function fitOne(
         change = Math.max(change, Math.abs(beta[j]! - sweepB[j]!));
         scale = Math.max(scale, Math.abs(beta[j]!));
       }
-      if (change <= Math.max(thresh * 0.1, 1e-13) * (1 + scale)) { innerConverged = true; break; }
+      if (change <= Math.max(thresh * 0.1, 1e-15) * (1 + scale)) { innerConverged = true; break; }
     }
     eta = y.map((_, i) => a0 + offset[i]! + x[i]!.reduce((v, z, j) => v + z * beta[j]!, 0));
     let change = Math.abs(a0 - oldA), scale = Math.abs(a0);
