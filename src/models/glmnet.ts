@@ -498,12 +498,24 @@ function multinomialKktResidual(
         maximum = Math.max(maximum, Math.sqrt(residualNorm));
       }
     } else {
+      const fixed: number[] = [], intervals: Array<[number, number]> = [];
       for (let k = 0; k < kCount; k++) {
         const value = beta[j]![k]!, smooth = gradB[j]![k]! + ridge * value;
-        const violation = value > 0 ? Math.abs(smooth + l1) :
-          value < 0 ? Math.abs(smooth - l1) : Math.max(0, Math.abs(smooth) - l1);
-        maximum = Math.max(maximum, violation);
+        if (value > 0) fixed.push(smooth + l1);
+        else if (value < 0) fixed.push(smooth - l1);
+        else intervals.push([smooth - l1, smooth + l1]);
       }
+      const candidates = fixed.slice();
+      for (const interval of intervals) { candidates.push(interval[0], interval[1], (interval[0] + interval[1]) / 2); }
+      if (candidates.length === 0) continue;
+      let best = Infinity;
+      for (const center of candidates) {
+        let violation = 0;
+        for (const value of fixed) violation = Math.max(violation, Math.abs(value - center));
+        for (const interval of intervals) violation = Math.max(violation, interval[0] - center, center - interval[1]);
+        best = Math.min(best, Math.max(0, violation));
+      }
+      maximum = Math.max(maximum, best);
     }
   }
   return maximum;
