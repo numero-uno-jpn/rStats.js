@@ -25,12 +25,13 @@ for (spec in list(default=NULL,epsilon_1e10=geese.control(epsilon=1e-10,maxit=20
     f <- if (is.null(spec)) geeglm(resp~age+smoke,id=id,data=ohio,family=binomial,corstr="ar1")
          else geeglm(resp~age+smoke,id=id,data=ohio,family=binomial,corstr="ar1",control=spec)
     list(coefficients=unname(coef(f)),correlation=tab(summary(f)$corr),dispersion=tab(summary(f)$dispersion),
-         pearson=unname(residuals(f,type="pearson")),
          link=unname(predict(f,newdata=nd)),response=unname(predict(f,newdata=nd,type="response")))
   })
 }
 out$geePredict$clusterSizes <- as.numeric(table(ohio$id))
-pearsonR <- out$geePredict$epsilon_1e12$value$pearson
+fitMoment <- geeglm(resp~age+smoke,id=id,data=ohio,family=binomial,corstr="ar1",
+                    control=geese.control(epsilon=1e-12,maxit=1000))
+pearsonR <- as.numeric(residuals(fitMoment,type="pearson"))
 residualGroups <- split(pearsonR, ohio$id)
 lags <- seq_len(max(lengths(residualGroups)) - 1)
 lagWeights <- vapply(lags, function(lag) sum(pmax(lengths(residualGroups) - lag, 0)), numeric(1))
