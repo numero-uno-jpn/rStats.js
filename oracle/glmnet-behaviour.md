@@ -176,6 +176,9 @@ The public control output records fdev=1e-5, eps=1e-6, mnlam=5, devmax=.999, thr
    "mismatch" recorded earlier was against R's default fit.) The path returned was also cut to the number of classes
    (fixed).
 
+
+3. **Gaussian CV convergence.** The fixed 12-row, three-fold MSE probe (`experiments/regression18-stage2-probe.R`, commit `1c020099`) compares `cv.glmnet` at its default threshold with `control = list(thresh = 1e-14)`. The lambda sequences are identical. The default `cvm` is [9.44621930369904, 11.3713998844143, 12.9202373881273, 13.4546955803551, 13.6499612094868, 13.7028618513169, 13.7155276216079]; the strict `cvm` is [9.44623140699237, 11.371658212584, 12.9204802968718, 13.455510930971, 13.6505012156248, 13.7033364652098, 13.7164775060099]. The first difference (default minus strict) is -1.21032933257936e-5 and the maximum absolute difference over the path is 9.49884401931556e-4. This confirms that the earlier 1.2e-5 mismatch is a default-convergence difference, not a lambda-path difference. The strict CV values have been added to `oracle/glmnet.R`; `test/fixtures/glmnet.json` must be regenerated before the comparison test can be enabled. Keep the CV test `it.todo` until that fixture update is available.
+
 ## Decisions for the user
 
 1. **Convergence target.** (A) reproduce default early stopping; (B) solve each lambda to a strict independently checked optimum. **Recommendation: B**, consistent with numerical-correctness policy.
