@@ -15,13 +15,11 @@ describe("elastic-net generalized linear models", () => {
       0.647290715250188,0.335262586973981,0.173648408012529,0.0899407532389702,
       0.0465845854032229,0.0241283680538477,0.0124972271386075,0.00647290715250188,
     ];
-    const expectedA0 = [4,3.88271173667072,3.75615476998144,3.64374026443544,
-      3.58319834566978,3.55184082187821,3.53559926168872,3.52718699685476];
-    const expectedBeta = [
-      [0,0.184142045470072,0.319196192530147,0.384448641336019,0.418013681075416,0.435398595147185,0.444403078447611,0.449066916696125],
-      [0,0.0811248221001654,0.221693632928668,0.324238056770425,0.37882152783322,0.407092036696673,0.421733611762455,0.429319239778872],
-      [0,0,0,0.0679075465786879,0.106438680348254,0.126396248651913,0.136731683765038,0.142085953612111],
-    ];
+    const tight = (glmnetFixture as unknown as {
+      gaussian_alpha1: { value: { tightA0: number[]; tightBeta: { values: number[][] } } };
+    }).gaussian_alpha1.value;
+    const expectedA0 = tight.tightA0;
+    const expectedBeta = tight.tightBeta.values;
     expect(fit.converged.every(Boolean)).toBe(true);
     expect(fit.kktResidual.every(v => v < 1e-8)).toBe(true);
     for (let k = 0; k < expectedLambda.length; k++) {
