@@ -51,7 +51,14 @@ for (cs in c("independence","exchangeable","ar1","unstructured")) {
     ft <- geeglm(Weight~Time+Cu,id=Pig,data=dietox,corstr=cs,
                  control=geese.control(epsilon=1e-10,maxit=200))
     a <- anova(f)
-    list(default=capture(f),tight=capture(ft,FALSE),anova=anovaTable(a))
+    ans <- list(default=capture(f),tight=capture(ft,FALSE),anova=anovaTable(a))
+    if (cs == "independence") {
+      ftt <- geeglm(Weight~Time+Cu,id=Pig,data=dietox,corstr=cs,
+                    control=geese.control(epsilon=1e-12,maxit=1000))
+      ans$anovaTight <- anovaTable(anova(ft))
+      ans$anovaTighter <- anovaTable(anova(ftt))
+    }
+    ans
   })
   out[[paste0("ohio_",cs)]] <- run({
     f <- geeglm(resp~age+smoke,id=id,data=ohio,family=binomial,corstr=cs)
@@ -168,8 +175,14 @@ out$nested_anova <- run({
 })
 out$predict <- run({
  f <- geeglm(resp~age+smoke,id=id,data=ohio,family=binomial,corstr="ar1")
+ ft <- geeglm(resp~age+smoke,id=id,data=ohio,family=binomial,corstr="ar1",
+              control=geese.control(epsilon=1e-10,maxit=200))
+ ftt <- geeglm(resp~age+smoke,id=id,data=ohio,family=binomial,corstr="ar1",
+               control=geese.control(epsilon=1e-12,maxit=1000))
  nd <- data.frame(age=c(-2,0,1),smoke=c(0,1,1))
- list(link=unname(predict(f,newdata=nd)),response=unname(predict(f,newdata=nd,type="response")))
+ list(link=unname(predict(f,newdata=nd)),response=unname(predict(f,newdata=nd,type="response")),
+      linkTight=unname(predict(ft,newdata=nd)),responseTight=unname(predict(ft,newdata=nd,type="response")),
+      linkTighter=unname(predict(ftt,newdata=nd)),responseTighter=unname(predict(ftt,newdata=nd,type="response")))
 })
 out$unsorted_id <- run(capture(geeglm(Weight~Time,id=Pig,data=dietox[order(dietox$Time,-dietox$Pig),],corstr="exchangeable")))
 out$singletons <- run(capture(geeglm(mpg~wt,id=seq_len(nrow(mtcars)),data=mtcars,corstr="exchangeable")))
