@@ -99,4 +99,32 @@ describe("generalized estimating equations", () => {
     expect(ar1.alpha[0]).toBeCloseTo(-0.201175106522640, 8);
   });
 
+
+  it("uses explicit waves for AR(1) gaps and defaults to consecutive within-cluster waves", () => {
+    const keep = geeCheckData.id.map((id, i) => !(id <= 6 && geeCheckData.wave[i] === 2));
+    const gapData = {
+      id: geeCheckData.id.filter((_, i) => keep[i]),
+      wave: geeCheckData.wave.filter((_, i) => keep[i]),
+      x: geeCheckData.x.filter((_, i) => keep[i]),
+      y: geeCheckData.y.filter((_, i) => keep[i]),
+    };
+    const withWaves = geeglm("y ~ x", gapData, { id: "id", waves: "wave", corstr: "ar1" });
+    const defaultWaves = geeglm("y ~ x", gapData, { id: "id", corstr: "ar1" });
+    expect(withWaves.alpha[0]).toBeCloseTo(-0.318769908479073, 8);
+    expect(defaultWaves.alpha[0]).toBeCloseTo(-0.173965690243595, 8);
+  });
+
+  it("supports unstructured, user-defined, and fixed pairwise working correlations", () => {
+    const unstructured = geeglm("y ~ x", geeCheckData, { id: "id", waves: "wave", corstr: "unstructured" });
+    const zcor = Array.from({ length: 12 }, () => [[1, 0], [0, 1], [1, 0]]).flat();
+    const userdefined = geeglm("y ~ x", geeCheckData, { id: "id", waves: "wave", corstr: "userdefined", zcor });
+    const fixed = geeglm("y ~ x", geeCheckData, {
+      id: "id", waves: "wave", corstr: "fixed", zcor: Array.from({ length: 36 }, () => [0.25]),
+    });
+    expect(unstructured.alpha).toHaveLength(3);
+    expect(userdefined.alpha).toHaveLength(2);
+    expect(fixed.alpha).toHaveLength(0);
+    expect([...unstructured.coefficients, ...userdefined.coefficients, ...fixed.coefficients].every(Number.isFinite)).toBe(true);
+  });
+
 });
