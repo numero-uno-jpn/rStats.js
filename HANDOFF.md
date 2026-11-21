@@ -41,6 +41,17 @@
   ChatGPT は先に geeglm へ進んだ。geeglm は大半を実装、テスト 1 件 (`zcor must be a matrix`) が落ちる。
   私がした直し: `oracle/rq.R` の JSON にできない 2 か所、`oracle/gee.R` の poisson 無構造の厳しい当て直し (geepack が
   maxit = 200 でも 60 秒で終わらない) を外した。fixture rq・gee は作り直し済み。生成物 (option keys・R の索引) は最後に私が作る
+- **段階 2 は実質済み、R と合わない残りを私が引き取った (ユーザーの判断、2026-11-21 夕):** ChatGPT は止めた。作業ブランチで:
+  - **rq の rank (済み、`7e006d65`):** パラメトリックな線形計画で T(b) を追い、event ごとに記録、$t_{n-p,1-\alpha/2}$ を横切る
+    2 つの event の線形補間。同点のないデータで R と 1e-14 (n = 1000 の 4 端点、stackloss 8 端点中 7)。整数データで event が
+    同点になり双対が退化する所だけ R と違う (stackloss の Air.Flow 下限、既知の違い)。iid = FALSE は未対応。既定の level は 0.9。
+    証拠 `experiments/regression18-rank-path.*`
+  - **glmnet の multinomial (済み、`731e46ce`・`a41a5a42`):** 返す lambda がクラスの数 (3) に切られていた不具合を直した。R の
+    既定は iris で厳しい当て直しから最大 2.3 離れていて参照にならない (ChatGPT の「0.002 のずれ」はこれ)。R の 1e-14 と 1e-16
+    の当て直しの差の範囲で比べるテストにした。rStats.js は 1e-12 で KKT 1e-10 以下。ただし **厳しい閾値では遅い** (1e-12 で
+    4〜7 秒、1e-14 で 25 秒。FISTA)。既定 (1e-7) は 0.5 秒
+  - 残り: rq の iid の密度・ker の帯域・boot (pwy・mcmb・wxy)、geeglm の jack・j1s、glmnet の CV の cvm (1.2e-5)。
+    最後に生成物 (option keys・R の索引)、文書・訳・デモは ChatGPT に
 - ChatGPT は返答のたびに「メッセージの配信がタイムアウト」になりやすい。そのたびに Issue #545 とブランチを見て再開の依頼文を書く
 - (以前) 次: ユーザーが ChatGPT に依頼文を貼る → 段階 1 の報告 (仕様書 3 つ + Decisions) を Issue #545 で点検 → Decisions を
   ユーザーに聞いて choices を書く → fixture を作る
