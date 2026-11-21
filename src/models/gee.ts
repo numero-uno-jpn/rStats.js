@@ -820,13 +820,16 @@ export function geeQIC(fit: GeeResult): GeeQICResult {
   let q = 0;
   for (let i = 0; i < fit.model.y.length; i++) {
     const y = fit.model.y[i]!, mu = fit.fittedValues[fit.rows[i]!]!, w = fit.model.weights[i]!;
-    if (family.family === "gaussian") q -= 0.5 * w * (y - mu) ** 2 / fit.scale;
+    // R's quasi-likelihood for the gaussian family is -RSS / 2 (not divided by the scale)
+    if (family.family === "gaussian") q -= 0.5 * w * (y - mu) ** 2;
     else if (family.family === "binomial") q += w * (y * Math.log(mu) + (1 - y) * Math.log(1 - mu));
     else if (family.family === "poisson") q += w * (y * Math.log(mu) - mu);
     else if (family.family === "Gamma") q += w * (-y / mu - Math.log(mu));
   }
   const p = fit.coefficients.length;
-  const cicMatrix = multiply(fit.independenceCovariance, inverse(fit.covariance));
+  // CIC = trace(Omega_I V_R) (Pan 2001): Omega_I is the information of the independence model, the inverse of its
+  // model-based covariance, and V_R the robust covariance
+  const cicMatrix = multiply(inverse(fit.independenceCovariance), fit.covariance);
   let cic = 0;
   for (let i = 0; i < cicMatrix.length; i++) cic += cicMatrix[i]![i]!;
   const qic = -2 * q + 2 * cic;

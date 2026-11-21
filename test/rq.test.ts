@@ -310,7 +310,7 @@ describe("quantile regression", () => {
     const result = rqAnova(fit);
     expect(result.method).toBe("Wald");
     expect(result.df).toBe(2);
-    expect(result.dfResidual).toBe(46);
+    expect(result.dfResidual).toBe(148); // R: 50 * 3 - 2
     expect(result.pValue).toBeGreaterThanOrEqual(0);
     expect(result.pValue).toBeLessThanOrEqual(1);
     const single = rq("y ~ x", data, { tau: 0.5, method: "fn", eps: 1e-12 });
@@ -330,12 +330,12 @@ describe("quantile regression", () => {
     const joint = rqAnova(twoPredictorFit, true);
     const separate = rqAnova(twoPredictorFit, false);
     expect(joint.df).toBe(4);
-    expect(joint.dfResidual).toBe(44);
+    expect(joint.dfResidual).toBe(146); // R: n m - 4
     if (!Array.isArray(separate)) throw new Error("joint=false must return separate Wald tests");
     expect(separate).toHaveLength(2);
     expect(separate[0]!.df).toBe(2);
-    expect(separate[0]!.dfResidual).toBe(46);
-    expect(separate[1]!.dfResidual).toBe(46);
+    expect(separate[0]!.dfResidual).toBe(148);
+    expect(separate[1]!.dfResidual).toBe(148);
   });
 
   it("inverts the rank test as R does (n = 1000, and stackloss)", () => {

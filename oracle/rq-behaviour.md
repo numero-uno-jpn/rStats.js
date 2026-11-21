@@ -180,6 +180,7 @@ W=(R\widehat\beta-r)^\mathsf T
 \{R\widehat V R^\mathsf T\}^{-1}(R\widehat\beta-r).
 \]
 The public multiTau result is ndf=2, ddf=46, Tn=1.95304970194872, pvalue=0.153425200963809 for joint=TRUE and the single-slope joint=FALSE test in this one-predictor design. Tn is the F statistic W/ndf, not the unscaled chi-square W. For a multiple-tau fit with m quantiles and r tested slopes, ndf=r(m-1) and ddf=n-(r+1)(m-1); nested single-tau comparisons use ddf=n-p. The two-predictor experiment records the four-restriction joint test and separate two-restriction tests.
+**Correction (2026-11-21, the coordinator):** R's residual degrees of freedom for the test across taus is \(nm-q\) (n rows, m taus, q restrictions): 148 for n = 50, three taus and one slope (both `br` and `fn`), 176 and 178 for the 60-row two-predictor case. The `ddf = 46` above was of another design; the formula \(n-(r+1)(m-1)\) used earlier was wrong. `experiments/regression18-demo-fixes.R`.
 
 ### 7.6 Confidence prediction
 
