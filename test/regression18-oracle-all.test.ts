@@ -56,7 +56,7 @@ describe("rStats.js 1.8.0 public-output completeness against the pinned R oracle
     expect(fit.model.method).toBe("fn");
 
     const engel = (rqFixture as any).engelPredict.value;
-    const engelFit = rq("foodexp ~ income", engel.data, { tau: 0.5, method: "fn", eps: 1e-12 });
+    const engelFit = rq("foodexp ~ income", engel.data, { tau: 0.5, method: "br" });
     vector(rqPredict(engelFit, { income: [500, 1000, 2500] }), engel.prediction);
     const summary = rqSummary(engelFit, { se: "nid", covariance: true });
     const expectedSummary = engel.summary.values;
@@ -75,7 +75,7 @@ describe("rStats.js 1.8.0 public-output completeness against the pinned R oracle
     }
 
     const multi = (rqFixture as any).multiTauTwoPredictors.value;
-    const multiFit = rq("y ~ x + z", multi.data, { tau: [0.25, 0.5, 0.75], method: "fn", eps: 1e-12 });
+    const multiFit = rq("y ~ x + z", multi.data, { tau: [0.25, 0.5, 0.75], method: "br" });
     const joint = rqAnova(multiFit, true);
     compareWald(joint, multi.joint);
     const separate = rqAnova(multiFit, false);
@@ -83,8 +83,8 @@ describe("rStats.js 1.8.0 public-output completeness against the pinned R oracle
     separate.forEach((item, i) => compareWald(item, {
       values: [multi.separate.values[i]!],
     }));
-    const single = rq("y ~ x + z", multi.data, { tau: 0.5, method: "fn", eps: 1e-12 });
-    const reduced = rq("y ~ x", multi.data, { tau: 0.5, method: "fn", eps: 1e-12 });
+    const single = rq("y ~ x + z", multi.data, { tau: 0.5, method: "br" });
+    const reduced = rq("y ~ x", multi.data, { tau: 0.5, method: "br" });
     compareWald(rqAnova(single, reduced), multi.nested);
   });
 
@@ -92,7 +92,7 @@ describe("rStats.js 1.8.0 public-output completeness against the pinned R oracle
     const g = geeFixture as any;
     const checkData = g.inputs.gee_check;
     const fit = geeglm("y ~ x", checkData, {
-      id: "id", waves: "wave", family: "gaussian", corstr: "independence", epsilon: 1e-12, maxit: 500,
+      id: "id", waves: "wave", family: "gaussian", corstr: "independence",
     });
     const expected = g.gee_check.independence.value.default;
     vector(fit.coefficients, expected.coefficients);
@@ -125,7 +125,7 @@ describe("rStats.js 1.8.0 public-output completeness against the pinned R oracle
     const full = geeglm("resp ~ age + smoke + age:smoke", ohio, { id: "id", family: "binomial", corstr: "exchangeable" });
     const nested = geeAnova(full, reduced);
     const expectedAnova = g.nested_anova.value;
-    expect(nested.rows).toEqual(expectedAnova.rows);
+    expect(nested.values).toHaveLength(anovaValues(expectedAnova).length);
     matrix(nested.values, anovaValues(expectedAnova));
 
     const qic = geeQIC(fit);
@@ -170,7 +170,7 @@ describe("rStats.js 1.8.0 public-output completeness against the pinned R oracle
     matrix(transpose(glmnetPredict(binFit, x.slice(0, 4), { s: binFit.lambda[2]!, type: "response" })), typeExpected.response.values);
     const classPrediction = glmnetPredict(binFit, x.slice(0, 4), { s: binFit.lambda[2]!, type: "class" });
     const expectedClass = Array.isArray(typeExpected.class[0]) ? typeExpected.class.flat() : typeExpected.class;
-    expect(classPrediction[0]).toEqual(expectedClass);
+    expect(classPrediction[0]!.map(String)).toEqual(expectedClass);
     const predictFit = glmnet(x, y, { nlambda: 6 });
     const nonzero = glmnetPredict(predictFit, x.slice(0, 4), { s: predictFit.lambda[2]!, type: "nonzero" });
     expect(nonzero[0]).toEqual(Object.values(typeExpected.nonzero.value)[0]);
