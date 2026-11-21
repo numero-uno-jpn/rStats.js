@@ -298,7 +298,13 @@ it("checks Gaussian glmnet lambda-max degrees of freedom", () => {
     beta: fit.beta.map(row => row[0]),
     df: fit.df[0],
     rDf: expected.df[0],
+    nullDev: fit.nullDev,
+    rNullDev: expected.nullDev,
     kkt: fit.kktResidual[0],
   }));
   expect(fit.df).toEqual(expected.df);
+  close(fit.nullDev, expected.nullDev, 1e-7);
+  const tightFit = glmnet(x, y, { alpha: 1, nlambda: 8, lambdaMinRatio: 0.01, thresh: 1e-14 });
+  expect(tightFit.df).toEqual(expected.tightDf);
+  close(tightFit.nullDev, expected.tightNullDev, 1e-7);
 });
