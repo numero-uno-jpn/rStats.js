@@ -227,10 +227,10 @@ describe("rStats.js 1.8.0 public-output completeness against the pinned R oracle
     const offPath = glmnet(x, y, { lambda: [2, 1, 0.5, 0.25, 0.125] });
     vector(offPath.lambda, f.offPath.value.lambda, 1e-10);
     matrixWithROracleUncertainty(transpose(glmnetCoef(offPath, [0.75, 0.3])),
-      flatTable(f.offPath.value.coefT16), flatTable(f.offPath.value.coefT20));
+      f.offPath.value.coefT16.values, f.offPath.value.coefT20.values);
     matrixWithROracleUncertainty(
       transpose(glmnetPredict(offPath, x.slice(0, 4), { s: [0.75, 0.3], type: "link" })),
-      flatTable(f.offPath.value.predictT16), flatTable(f.offPath.value.predictT20));
+      f.offPath.value.predictT16.values, f.offPath.value.predictT20.values);
 
     const binY = [0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1];
     const binFit = glmnet(x, binY, { family: "binomial", nlambda: 6 });
