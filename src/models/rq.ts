@@ -772,10 +772,10 @@ function rqBread(model: RqModel, tau: number, level: number, warnings?: string[]
   const bread = Array.from({ length: p }, () => new Array<number>(p).fill(0));
   const extremeScale = responseScale > 1e8 || (responseScale > 0 && responseScale < 1e-8);
   const densityTolerance = NID_DENSITY_EPS * (extremeScale ? 1 : 1 / yScale);
+  const delta = plus.map((value, j) => value - minus[j]!);
   let nonPositive = 0;
   for (let i = 0; i < model.y.length; i++) {
     const row = model.x[i]!;
-    const delta = plus.map((value, j) => value - minus[j]!);
     const difference = dot(row, delta);
     const density = difference > densityTolerance ? (2 * h / yScale) / (difference - densityTolerance) : 0;
     if (density === 0) nonPositive++;
