@@ -39,6 +39,12 @@ cases.push(["rlm (from /regression)", "rlm", regressionEntry]);
 cases.push(["rlm with all its methods (from /regression)", "rlm, rlmSummary, rlmVcov, psiHuber, psiHampel, psiBisquare", regressionEntry]);
 cases.push(["nls (from /regression)", "nls", regressionEntry]);
 cases.push(["nls with all its methods (from /regression)", "nls, nlsSummary, nlsVcov, nlsPredict, nlsConfint, nlsAnova", regressionEntry]);
+cases.push(["rq (from /regression)", "rq", regressionEntry]);
+cases.push(["rq with all its methods (from /regression)", "rq, rqSummary, rqPredict, rqPredictInterval, rqAnova", regressionEntry]);
+cases.push(["geeglm (from /regression)", "geeglm", regressionEntry]);
+cases.push(["geeglm with all its methods (from /regression)", "geeglm, geeSummary, geeVcov, geePredict, geeAnova, geeQIC", regressionEntry]);
+cases.push(["glmnet (from /regression)", "glmnet", regressionEntry]);
+cases.push(["glmnet with all its methods (from /regression)", "glmnet, glmnetCoef, glmnetPredict, cvGlmnet", regressionEntry]);
 
 const rows = [];
 for (const [label, names, from = dist] of cases) {
