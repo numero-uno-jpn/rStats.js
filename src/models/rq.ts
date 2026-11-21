@@ -730,18 +730,16 @@ export interface RqPredictResult {
 function rqInverse(a: readonly number[][]): number[][] {
   const n = a.length;
   if (n === 0 || a.some((row) => row.length !== n)) throw new RangeError("singular covariance matrix");
-  let matrixScale = 0;
-  for (const row of a) for (const value of row) {
-    if (!Number.isFinite(value)) throw new RangeError("singular covariance matrix");
-    matrixScale = Math.max(matrixScale, Math.abs(value));
-  }
-  if (!(matrixScale > 0) || !Number.isFinite(matrixScale)) throw new RangeError("singular covariance matrix");
-  const m = a.map((row, i) => [...row.map((value) => value / matrixScale),
+  const scale = a.map((row, i) => Math.sqrt(Math.abs(row[i]!)));
+  if (scale.some((value) => !(value > 0) || !Number.isFinite(value))) throw new RangeError("singular covariance matrix");
+  const m = a.map((row, i) => [...row.map((value, j) => value / scale[i]! / scale[j]!),
     ...Array.from({ length: n }, (_, j) => +(i === j))]);
   for (let k = 0; k < n; k++) {
     let pivot = k;
     for (let i = k + 1; i < n; i++) if (Math.abs(m[i]![k]!) > Math.abs(m[pivot]![k]!)) pivot = i;
-    if (!(Math.abs(m[pivot]![k]!) > Number.EPSILON)) throw new RangeError("singular covariance matrix");
+    let rowMax = 0;
+    for (let j = 0; j < n; j++) rowMax = Math.max(rowMax, Math.abs(m[pivot]![j]!));
+    if (!(rowMax > 0) || !(Math.abs(m[pivot]![k]!) > Number.EPSILON * rowMax)) throw new RangeError("singular covariance matrix");
     [m[k], m[pivot]] = [m[pivot]!, m[k]!];
     const d = m[k]![k]!;
     for (let j = 0; j < 2 * n; j++) m[k]![j]! /= d;
@@ -750,7 +748,7 @@ function rqInverse(a: readonly number[][]): number[][] {
       for (let j = 0; j < 2 * n; j++) m[i]![j]! -= v * m[k]![j]!;
     }
   }
-  return m.map((row) => row.slice(n).map((value) => value / matrixScale));
+  return m.map((row, i) => row.slice(n).map((value, j) => value / scale[i]! / scale[j]!));
 }
 function rqMul(a: readonly number[][], b: readonly number[][]): number[][] {
   return a.map((row) => b[0]!.map((_, j) => row.reduce((sum, v, k) => sum + v * b[k]![j]!, 0)));
@@ -770,7 +768,7 @@ function rqBread(model: RqModel, tau: number, level: number, warnings?: string[]
   const bread = Array.from({ length: p }, () => new Array<number>(p).fill(0));
   let responseScale = 0;
   for (const value of model.y) responseScale = Math.max(responseScale, Math.abs(value));
-  const densityTolerance = NID_DENSITY_EPS * responseScale;
+  const densityTolerance = NID_DENSITY_EPS * Math.min(responseScale, 1);
   let nonPositive = 0;
   for (let i = 0; i < model.y.length; i++) {
     const row = model.x[i]!;

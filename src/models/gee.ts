@@ -280,9 +280,11 @@ function multiply(a: readonly (readonly number[])[], b: readonly (readonly numbe
 
 function inverse(input: readonly (readonly number[])[]): number[][] {
   const n = input.length;
-  if (n === 0 || input.some((r) => r.length !== n)) throw new RangeError("the matrix must be square and nonempty");
+  if (n === 0 || input.some((row) => row.length !== n)) throw new RangeError("the matrix must be square and nonempty");
+  const scale = input.map((row, i) => Math.sqrt(Math.abs(row[i]!)));
+  if (scale.some((value) => !(value > 0) || !Number.isFinite(value))) throw new Error("singular working information matrix");
   const eye = identity(n);
-  const a = input.map((r, i) => [...r, ...eye[i]!]);
+  const a = input.map((row, i) => [...row.map((value, j) => value / scale[i]! / scale[j]!), ...eye[i]!]);
   for (let j = 0; j < n; j++) {
     let pivot = j;
     for (let i = j + 1; i < n; i++) if (Math.abs(a[i]![j]!) > Math.abs(a[pivot]![j]!)) pivot = i;
@@ -297,9 +299,8 @@ function inverse(input: readonly (readonly number[])[]): number[][] {
       for (let k = 0; k < 2 * n; k++) a[i]![k] = a[i]![k]! - f * a[j]![k]!;
     }
   }
-  return a.map((r) => r.slice(n));
+  return a.map((row, i) => row.slice(n).map((value, j) => value / scale[i]! / scale[j]!));
 }
-
 function dot(a: readonly number[], b: readonly number[]): number {
   let s = 0;
   for (let i = 0; i < a.length; i++) s += a[i]! * b[i]!;
