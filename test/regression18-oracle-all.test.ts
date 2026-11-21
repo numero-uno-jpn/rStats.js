@@ -175,7 +175,8 @@ describe("rStats.js 1.8.0 public-output completeness against the pinned R oracle
     matrix(transpose(glmnetPredict(binFit, x.slice(0, 4), { s: binFit.lambda[2]!, type: "link" })), typeExpected.link.values);
     matrix(transpose(glmnetPredict(binFit, x.slice(0, 4), { s: binFit.lambda[2]!, type: "response" })), typeExpected.response.values);
     const classPrediction = glmnetPredict(binFit, x.slice(0, 4), { s: binFit.lambda[2]!, type: "class" });
-    vector(classPrediction[0]!.map(v => Number(v)), typeExpected.class.map((v: string) => Number(v)));
+    const expectedClass = Array.isArray(typeExpected.class[0]) ? typeExpected.class.flat() : typeExpected.class;
+    expect(classPrediction[0]).toEqual(expectedClass);
     const nonzero = glmnetPredict(defaultFit, x.slice(0, 4), { s: defaultFit.lambda[2]!, type: "nonzero" });
     expect(nonzero[0]).toEqual(typeExpected.nonzero.value);
 
@@ -187,7 +188,8 @@ describe("rStats.js 1.8.0 public-output completeness against the pinned R oracle
     vector(cv.lambda, cvExpected.lambdaTight, 1e-10);
     vector(cv.cvm, cvExpected.groupedFalse.cvm, 1e-7);
     vector(cv.cvsd, cvExpected.groupedFalse.cvsd, 1e-7);
-    vector(cv.cvn as unknown as number[], cvExpected.nzero ?? []);
+    vector(cv.nzero, cvExpected.nzero);
+    matrix(cv.fitPreval!, flatTable(cvExpected.groupedFalse.preval), 1e-7);
     expect(cv.lambdaMin).toBeGreaterThan(0);
     expect(cv.lambda1se).toBeGreaterThan(0);
     expect(cv.fitPreval).toBeDefined();
