@@ -389,7 +389,6 @@ export function geeglm(formula: string, data: DataFrame, options: GeeOptions): G
   if (!["independence", "exchangeable", "ar1", "unstructured", "userdefined", "fixed"].includes(corstr)) throw new RangeError("unknown working correlation");
   const stdErr = options["std.err"] ?? "san.se";
   if (!["san.se", "jack", "j1s", "fij"].includes(stdErr)) throw new RangeError("unknown standard-error estimator");
-  if (stdErr !== "san.se" && stdErr !== "jack" && stdErr !== "j1s" && stdErr !== "fij") throw new RangeError("unknown standard-error estimator");
   const epsilon = options.epsilon ?? 1e-10, maxit = options.maxit ?? 200;
   if (!(epsilon > 0) || !Number.isFinite(epsilon) || !Number.isInteger(maxit) || maxit < 1) throw new RangeError("invalid convergence controls");
   const split = splitOffsets(formula);
@@ -426,7 +425,16 @@ export function geeglm(formula: string, data: DataFrame, options: GeeOptions): G
   if ((corstr === "userdefined" || corstr === "fixed") && options.zcor === undefined) throw new TypeError("zcor is required for userdefined and fixed working correlations");
   const zcor: number[][] | undefined = options.zcor === undefined ? undefined : options.zcor.map((r) => Array.from(r as readonly number[]));
   if (zcor?.some((r) => r.some((v) => !Number.isFinite(v)))) throw new RangeError("zcor must contain finite numbers");
-  if (corstr === "fixed" && zcor?.some((r) => r.length !== 1 || Math.abs(r[0]!) > 1)) throw new RangeError("fixed zcor must be a one-column matrix of correlations in [-1, 1]");
+  if (zcor !== undefined) {
+    let pairCount = 0;
+    for (const g of clusterGroups) pairCount += g.length * (g.length - 1) / 2;
+    if (zcor.length !== pairCount) throw new RangeError("zcor must have one row per within-cluster pair");
+    const columns = zcor[0]?.length ?? 0;
+    if (columns === 0 || zcor.some((r) => r.length !== columns)) throw new RangeError("zcor rows must have the same positive number of columns");
+    if (corstr === "fixed" && (columns !== 1 || zcor.some((r) => Math.abs(r[0]!) > 1))) {
+      throw new RangeError("fixed zcor must be a one-column matrix of correlations in [-1, 1]");
+    }
+  }
   const warnings = new Warnings();
   return withWarnings(warnings, () => {
     const startFit = unreported(() => glm(d.x, y, {
