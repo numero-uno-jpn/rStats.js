@@ -112,14 +112,17 @@ h_{\rm HS}=n^{-1/3}z_{1-\alpha/2}^{2/3}\left\{\frac{1.5\phi(z_\tau)^2}{2z_\tau^2
 \quad
 h_{\rm B}=n^{-1/5}\left\{\frac{4.5\phi(z_\tau)^4}{(2z_\tau^2+1)^2}\right\}^{1/5}.
 \]
-For n=16, tau=.5, alpha=.05, the independently evaluated values are 0.385563455061825 and 0.372003099908465; the public bandwidth output agrees to 14 significant digits.
+For n=16, alpha=.05, the public values at tau=.25/.5/.75 are HS 0.267035449857894 / 0.385563455061825 / 0.267035449857894 and Bofinger 0.239394531706056 / 0.372003099908465 / 0.239394531706056; the corrected formulas agree to 14 significant digits.
 
-For each row,
+For each row, let
 \[
-\widehat s_i=
-\frac{x_i^\mathsf T\widehat\beta_{\tau+h}-x_i^\mathsf T\widehat\beta_{\tau-h}}{2h},
-\quad \widehat f_i=1/\widehat s_i,\quad
-H=X^\mathsf T\operatorname{diag}(\widehat f_i)X,\quad J=X^\mathsf TX,
+d_i=x_i^\mathsf T(\widehat\beta_{\tau+h}-\widehat\beta_{\tau-h}),
+\quad \widehat f_i^+=\max\{0,2h/(d_i-\epsilon)\},
+\quad \epsilon=2^{-26},
+\]
+and set
+\[
+H=X^\mathsf T\operatorname{diag}(\widehat f_i^+)X,\quad J=X^\mathsf TX.
 \]
 and
 \[
