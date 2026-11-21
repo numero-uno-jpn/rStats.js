@@ -353,6 +353,33 @@ function geeStep(
   return { delta: solve(bread, score), bread, meat, clusterScores, clusterBread, eval: ev };
 }
 
+function covarianceOfReplicates(replicates: readonly (readonly number[])[]): number[][] {
+  const k = replicates.length;
+  if (k < 2) throw new RangeError("jackknife requires at least two clusters");
+  const p = replicates[0]!.length;
+  const mean = new Array<number>(p).fill(0);
+  for (const row of replicates) for (let j = 0; j < p; j++) mean[j]! += row[j]! / k;
+  const covariance = zeros(p, p);
+  for (const row of replicates) for (let j = 0; j < p; j++) for (let l = 0; l < p; l++) {
+    covariance[j]![l] = covariance[j]![l]! + (k - 1) / k * (row[j]! - mean[j]!) * (row[l]! - mean[l]!);
+  }
+  return covariance;
+}
+
+function oneStepJackknife(
+  beta: readonly number[], bread: number[][], scores: readonly (readonly number[])[],
+  clusterBread: readonly (readonly (readonly number[])[])[], useDeletedBread: boolean,
+): number[][] {
+  const replicates = scores.map((score, i) => {
+    const b = useDeletedBread
+      ? bread.map((row, j) => row.map((v, k) => v - clusterBread[i]![j]![k]!))
+      : bread;
+    const delta = multiply(inverse(b), score.map((v) => [v])).map((r) => r[0]!);
+    return beta.map((v, j) => v - delta[j]!);
+  });
+  return covarianceOfReplicates(replicates);
+}
+
 /** Fit a marginal generalized estimating equation model. */
 export function geeglm(formula: string, data: DataFrame, options: GeeOptions): GeeResult {
   checkOptions(options, GEE_KEYS, "geeglm"); // generated: option-keys.mjs
