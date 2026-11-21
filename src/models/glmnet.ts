@@ -345,8 +345,28 @@ function glmnetScalar(x: readonly (readonly number[])[], y: readonly number[], o
     return options.standardize === false ? 1 : s;
   });
   const xs = x.map(r => r.map((v, j) => (v - xMean[j]!) / xScale[j]!));
+  const lower = normalizeVector(options.lowerLimits, p, -Infinity);
+  const upper = normalizeVector(options.upperLimits, p, Infinity);
+  for (let j = 0; j < p; j++) {
+    if (lower[j]! > 0 || lower[j]! > upper[j]!) throw new RangeError("invalid coefficient limits");
+    lower[j] = lower[j]! * xScale[j]!;
+    upper[j] = upper[j]! * xScale[j]!;
+  }
+  const maxit = options.maxit ?? 100000, thresh = options.thresh ?? 1e-7;
+  if (!Number.isInteger(maxit) || maxit < 1 || !(thresh > 0)) throw new RangeError("invalid convergence controls");
   const y0 = nullIntercept(y, w, offset, family, intercept);
-  const eta0 = y.map((_, i) => y0 + offset[i]!);
+  let nullA = y0;
+  let nullBeta = new Array<number>(p).fill(0);
+  if (pf.some(v => v === 0)) {
+    const nullLower = lower.map((v, j) => pf[j] === 0 ? v : 0);
+    const nullUpper = upper.map((v, j) => pf[j] === 0 ? v : 0);
+    const nullFit = fitOne(xs, y, w, offset, family, alpha, 0,
+      [y0, ...nullBeta], intercept, pf, nullLower, nullUpper, maxit, thresh);
+    nullA = nullFit.a0;
+    nullBeta = nullFit.beta;
+  }
+  const eta0 = y.map((_, i) => nullA + offset[i]! +
+    xs[i]!.reduce((value, predictor, j) => value + predictor * nullBeta[j]!, 0));
   const residualGradient = Array.from({ length: p }, (_, j) => {
     let g = 0; for (let i = 0; i < n; i++) g += w[i]! * (inverseLink(eta0[i]!, family) - y[i]!) * xs[i]![j]!;
     return Math.abs(g / n);
@@ -360,21 +380,13 @@ function glmnetScalar(x: readonly (readonly number[])[], y: readonly number[], o
   const lambdas = options.lambda ? Array.from(options.lambda) :
     Array.from({ length: nlambda }, (_, i) => lambdaMax * Math.exp(Math.log(minRatio) * i / Math.max(1, nlambda - 1)));
   if (lambdas.length === 0 || lambdas.some((v, i) => !(v > 0) || (i > 0 && v > lambdas[i - 1]!))) throw new RangeError("lambda must be a decreasing positive sequence");
-  const lower = normalizeVector(options.lowerLimits, p, -Infinity);
-  const upper = normalizeVector(options.upperLimits, p, Infinity);
-  for (let j = 0; j < p; j++) {
-    if (lower[j]! > 0 || lower[j]! > upper[j]!) throw new RangeError("invalid coefficient limits");
-    lower[j] = lower[j]! * xScale[j]!; upper[j] = upper[j]! * xScale[j]!;
-  }
-  const maxit = options.maxit ?? 100000, thresh = options.thresh ?? 1e-7;
-  if (!Number.isInteger(maxit) || maxit < 1 || !(thresh > 0)) throw new RangeError("invalid convergence controls");
   const dfmax = options.dfmax ?? p + 1, pmax = options.pmax ?? p;
   const fdev = options.fdev ?? 1e-5, devmax = options.devmax ?? 0.999;
   if (!Number.isInteger(dfmax) || dfmax < 1 || !Number.isInteger(pmax) || pmax < 1) throw new RangeError("dfmax and pmax must be positive integers");
   if (!(fdev >= 0) || !Number.isFinite(fdev) || !(devmax > 0 && devmax <= 1)) throw new RangeError("invalid fdev or devmax");
   const a0: number[] = [], beta: number[][] = [], df: number[] = [], devRatio: number[] = [], converged: boolean[] = [], kktResidual: number[] = [];
   const nullDev = deviance(y, eta0, w, family);
-  let start = [y0, ...new Array<number>(p).fill(0)], npasses = 0;
+  let start = [nullA, ...nullBeta], npasses = 0;
   const everActive = new Set<number>();
   for (const lambda of lambdas) {
     const fitAlpha = !options.lambda && alpha === 0 && lambda === lambdaMax ? 0.001 : alpha;
@@ -593,15 +605,27 @@ function fitMultinomialOne(
         const penaltyWeight = step * lambda * alpha * penalty[j]!;
         const ridge = 1 + step * lambda * (1 - alpha) * penalty[j]!;
         if (grouped) {
-          let norm = 0; for (const v of z) norm += v * v; norm = Math.sqrt(norm);
+          let center = 0; for (const v of z) center += v; center /= kCount;
+          const projected = z.map(v => v - center);
+          let norm = 0; for (const v of projected) norm += v * v; norm = Math.sqrt(norm);
           const shrink = norm > 0 ? Math.max(0, 1 - penaltyWeight / norm) / ridge : 0;
-          const values = z.map(v => v * shrink);
-          let center = 0; for (const v of values) center += v; center /= kCount;
-          return values.map(v => Math.max(lower[j]!, Math.min(upper[j]!, v - center)));
+          return projected.map(v => Math.max(lower[j]!, Math.min(upper[j]!, v * shrink)));
         }
-        const values = z.map(v => soft(v, penaltyWeight) / ridge);
-        const shift = centeredPenaltyShift(values, alpha);
-        return values.map(v => Math.max(lower[j]!, Math.min(upper[j]!, v + shift)));
+        let shift: number;
+        if (penaltyWeight === 0) {
+          shift = z.reduce((total, value) => total + value, 0) / kCount;
+        } else {
+          let lo = Infinity, hi = -Infinity;
+          for (const value of z) { lo = Math.min(lo, value - penaltyWeight); hi = Math.max(hi, value + penaltyWeight); }
+          for (let bisection = 0; bisection < 80; bisection++) {
+            const mid = (lo + hi) / 2;
+            let total = 0; for (const value of z) total += soft(value - mid, penaltyWeight);
+            if (total > 0) lo = mid; else hi = mid;
+          }
+          shift = (lo + hi) / 2;
+        }
+        return z.map(value => Math.max(lower[j]!, Math.min(upper[j]!,
+          soft(value - shift, penaltyWeight) / ridge)));
       });
       candidateEta = x.map(row => candidateA.map((v, k) => {
         let out = v;
@@ -619,7 +643,12 @@ function fitMultinomialOne(
       } else step *= 0.5;
     }
     passes++;
-    if (!accepted) break;
+    if (!accepted) {
+      const scale = Math.max(1, ...a0.map(Math.abs), ...beta.flat().map(Math.abs));
+      const residual = multinomialKktResidual(x, y, weights, a0, beta, lambda, alpha, penalty, grouped, intercept);
+      if (residual <= thresh * (1 + scale)) converged = true;
+      break;
+    }
     const oldA = a0, oldB = beta;
     a0 = candidateA; beta = candidateB; eta = candidateEta; current = candidateObjective;
     const nextAcceleration = (1 + Math.sqrt(1 + 4 * acceleration * acceleration)) / 2;
