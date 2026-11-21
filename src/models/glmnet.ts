@@ -267,21 +267,28 @@ export function glmnet(x: readonly (readonly number[])[], y: readonly number[], 
   }
   const maxit = options.maxit ?? 100000, thresh = options.thresh ?? 1e-10;
   if (!Number.isInteger(maxit) || maxit < 1 || !(thresh > 0)) throw new RangeError("invalid convergence controls");
+  const dfmax = options.dfmax ?? p + 1, pmax = options.pmax ?? p;
+  if (!Number.isInteger(dfmax) || dfmax < 1 || !Number.isInteger(pmax) || pmax < 1) throw new RangeError("dfmax and pmax must be positive integers");
   const a0: number[] = [], beta: number[][] = [], df: number[] = [], devRatio: number[] = [], converged: boolean[] = [];
   const nullDev = deviance(y, eta0, w, family);
   let start = [y0, ...new Array<number>(p).fill(0)], npasses = 0;
+  const everActive = new Set<number>();
   for (const lambda of lambdas) {
     const fit = fitOne(xs, y, w, offset, family, alpha, lambda, start, intercept, pf, lower, upper, maxit, thresh);
+    const active = fit.beta.filter(v => v !== 0).length;
+    for (let j = 0; j < p; j++) if (fit.beta[j] !== 0) everActive.add(j);
+    if (active > dfmax || everActive.size > pmax) break;
     start = [fit.a0, ...fit.beta]; npasses += fit.passes;
     const originalBeta = fit.beta.map((v, j) => v / xScale[j]!);
     let originalIntercept = fit.a0;
     if (intercept) for (let j = 0; j < p; j++) originalIntercept -= xMean[j]! * originalBeta[j]!;
     a0.push(originalIntercept);
     beta.push(originalBeta);
-    df.push(fit.beta.filter(v => v !== 0).length);
+    df.push(active);
     devRatio.push(nullDev === 0 ? 0 : 1 - deviance(y, fit.eta, w, family) / nullDev);
     converged.push(fit.converged);
   }
+  if (a0.length === 0) throw new RangeError("no lambda values satisfy dfmax and pmax");
   return { family, alpha, lambda: lambdas, a0, beta, df, devRatio, nullDev, npasses, converged,
     model: { x: x.map(r => Array.from(r)), y: Array.from(y), weights: w, offset, xMean, xScale, intercept, columns: p } };
 }
