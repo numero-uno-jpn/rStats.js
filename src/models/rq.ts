@@ -866,7 +866,7 @@ function rqMultiTauWald(fit: RqResult, tested: number[]): RqWaldResult {
     return value;
   }));
   const inv = rqInverse(small);
-  const weighted = rqMul(inv, [difference]).map((row) => row[0]!);
+  const weighted = inv.map((row) => row.reduce((sum, value, i) => sum + value * difference[i]!, 0));
   const statistic = difference.reduce((sum, value, i) => sum + value * weighted[i]!, 0);
   const dfResidual = model.y.length - (tested.length + 1) * (m - 1);
   return { statistic, df: q, dfResidual, pValue: pf(statistic / q, q, dfResidual, { lowerTail: false }) as number, method: "Wald" };
