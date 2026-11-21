@@ -1,0 +1,195 @@
+import { describe, expect, it } from "vitest";
+import { rq, rqPredict, rqSummary, rqPredictInterval, rqAnova } from "../src/models/rq.js";
+import { geeglm, geeVcov, geeSummary, geePredict, geeAnova, geeQIC } from "../src/models/gee.js";
+import { glmnet, glmnetCoef, glmnetPredict, cvGlmnet } from "../src/models/glmnet.js";
+import rqFixture from "./fixtures/rq.json" with { type: "json" };
+import geeFixture from "./fixtures/gee.json" with { type: "json" };
+import glmnetFixture from "./fixtures/glmnet.json" with { type: "json" };
+
+type Table = { rows?: string[] | null; cols?: string[] | null; values: number[][] };
+function close(actual: number, expected: number, tolerance = 2e-7): void {
+  expect(Number.isFinite(actual)).toBe(true);
+  expect(Math.abs(actual - expected)).toBeLessThanOrEqual(tolerance * Math.max(1, Math.abs(expected)));
+}
+function vector(actual: readonly number[], expected: readonly number[], tolerance = 2e-7): void {
+  expect(actual).toHaveLength(expected.length);
+  for (let i = 0; i < expected.length; i++) close(actual[i]!, expected[i]!, tolerance);
+}
+function matrix(actual: readonly (readonly number[])[], expected: readonly (readonly number[])[], tolerance = 2e-7): void {
+  expect(actual).toHaveLength(expected.length);
+  for (let i = 0; i < expected.length; i++) vector(actual[i]!, expected[i]!, tolerance);
+}
+function rqTable(actual: readonly (readonly number[])[], expected: Table, tolerance = 2e-7): void {
+  matrix(actual, expected.values, tolerance);
+}
+function flatTable(expected: { nrow: number; ncol: number; values: number[] }): number[][] {
+  return Array.from({ length: expected.nrow }, (_, i) =>
+    Array.from({ length: expected.ncol }, (_, j) => expected.values[j * expected.nrow + i]!));
+}
+function geeTable(actual: readonly (readonly number[])[], expected: { nrow: number; ncol: number; values: number[] }, tolerance = 2e-7): void {
+  matrix(actual, flatTable(expected), tolerance);
+}
+function transpose(values: readonly (readonly number[])[]): number[][] {
+  if (values.length === 0) return [];
+  return Array.from({ length: values[0]!.length }, (_, j) => values.map(row => row[j]!));
+}
+function anovaValues(expected: { columns: Record<string, number[]> }): number[][] {
+  const keys = Object.keys(expected.columns);
+  const n = expected.columns[keys[0]!]!.length;
+  return Array.from({ length: n }, (_, i) => keys.map(key => expected.columns[key]![i]!));
+}
+function compareWald(actual: { statistic: number; df: number; dfResidual: number; pValue: number }, expected: Table): void {
+  const row = expected.values[0]!;
+  close(actual.df, row[0]!);
+  close(actual.dfResidual, row[1]!);
+  close(actual.statistic, row[2]!);
+  close(actual.pValue, row[3]!);
+}
+
+describe("rStats.js 1.8.0 public-output completeness against the pinned R oracle", () => {
+  it("compares all R-observable rq, rqPredict, rqSummary, rqPredictInterval, and rqAnova fields", () => {
+    const rqData = rqFixture.data as any;
+    const x = rqData.X.values.map((row: number[]) => row[1]);
+    const fit = rq("y ~ x", { x, y: rqData.y }, { tau: 0.5, method: "fn", eps: 1e-12 });
+    const expectedFit = (rqFixture as any).fn_0.5.value;
+    vector([fit.coefficients["(Intercept)"] as number, fit.coefficients.x as number], expectedFit.tightCoef);
+    vector(fit.residuals as number[], expectedFit.residuals);
+    vector(fit.fittedValues as number[], rqData.y.map((v: number, i: number) => v - expectedFit.residuals[i]!));
+    close(fit.rho as number, expectedFit.tightRho);
+    matrix(fit.model.x, rqData.X.values);
+    vector(fit.model.y, rqData.y);
+    vector(fit.model.weights, new Array<number>(rqData.y.length).fill(1));
+    expect(fit.model.tau).toEqual([0.5]);
+    expect(fit.model.method).toBe("fn");
+
+    const engel = (rqFixture as any).engelPredict.value;
+    const engelFit = rq("foodexp ~ income", engel.data, { tau: 0.5, method: "fn", eps: 1e-12 });
+    vector(rqPredict(engelFit, { income: [500, 1000, 2500] }), engel.prediction);
+    const summary = rqSummary(engelFit, { se: "nid", covariance: true });
+    const expectedSummary = engel.summary.values;
+    matrix(summary.coefficients.map(row => [row.estimate, row.stdError, row.statistic, row.pValue]), expectedSummary);
+    expect(summary.coefficients.map(row => row.term)).toEqual(engel.summary.rows);
+    matrix(summary.covariance![0]!, engel.cov.values);
+
+    const ciNone = rqPredictInterval(engelFit, { income: [500, 1000, 2500] }, { interval: "confidence", type: "none" });
+    const ciDirect = rqPredictInterval(engelFit, { income: [500, 1000, 2500] }, { interval: "confidence", type: "direct" });
+    for (const [actual, expected] of [[ciNone, engel.ciNone], [ciDirect, engel.ciDirect]] as const) {
+      const rows = expected.values;
+      vector(actual.fit as number[], rows.map((r: number[]) => r[0]!));
+      vector(actual.lower as number[], rows.map((r: number[]) => r[1]!));
+      vector(actual.upper as number[], rows.map((r: number[]) => r[2]!));
+      close(actual.level, 0.95);
+    }
+
+    const multi = (rqFixture as any).multiTauTwoPredictors.value;
+    const multiFit = rq("y ~ x + z", multi.data, { tau: [0.25, 0.5, 0.75], method: "fn", eps: 1e-12 });
+    const joint = rqAnova(multiFit, true);
+    compareWald(joint, multi.joint);
+    const separate = rqAnova(multiFit, false);
+    expect(separate).toHaveLength(multi.separate.values.length);
+    separate.forEach((item, i) => compareWald(item, {
+      values: [multi.separate.values[i]!],
+    }));
+    const single = rq("y ~ x + z", multi.data, { tau: 0.5, method: "fn", eps: 1e-12 });
+    const reduced = rq("y ~ x", multi.data, { tau: 0.5, method: "fn", eps: 1e-12 });
+    compareWald(rqAnova(single, reduced), multi.nested);
+  });
+
+  it("compares all R-observable geeglm, geeVcov, geeSummary, geePredict, geeAnova, and geeQIC fields", () => {
+    const g = geeFixture as any;
+    const checkData = g.inputs.gee_check;
+    const fit = geeglm("y ~ x", checkData, {
+      id: "id", waves: "wave", family: "gaussian", corstr: "independence", epsilon: 1e-12, maxit: 500,
+    });
+    const expected = g.gee_check.independence.value.default;
+    vector(fit.coefficients, expected.coefficients);
+    vector(fit.fittedValues, expected.fitted.flat().map(Number));
+    vector(fit.residuals, expected.residuals.flat().map(Number));
+    vector(fit.pearsonResiduals, g.gee_check.independence.value.pearson.flat().map(Number));
+    geeTable(fit.covariance, expected.vcov);
+    vector(fit.alpha, expected.corr.values.flat());
+    close(fit.scale, expected.dispersion.values[0]!);
+    expect(fit.model.x).toHaveLength(checkData.y.length);
+    expect(fit.model.y).toEqual(checkData.y);
+
+    const vcov = geeVcov(fit);
+    expect(vcov.rows).toEqual(expected.vcov.rows);
+    expect(vcov.columns).toEqual(expected.vcov.cols);
+    geeTable(vcov.values, expected.vcov);
+    const summary = geeSummary(fit);
+    expect(summary.rows).toEqual(expected.summary.rows);
+    geeTable(summary.values, expected.summary);
+    close(summary.scale, expected.dispersion.values[0]!);
+    vector(summary.correlation.estimate, expected.corr.values.flat());
+
+    const ohio = g.inputs.ohio;
+    const ohioFit = geeglm("resp ~ age + smoke", ohio, { id: "id", family: "binomial", corstr: "ar1" });
+    const prediction = g.predict.value;
+    vector(geePredict(ohioFit, { newdata: { age: [-2, 0, 1], smoke: [0, 1, 1] }, type: "link" }), prediction.link);
+    vector(geePredict(ohioFit, { newdata: { age: [-2, 0, 1], smoke: [0, 1, 1] }, type: "response" }), prediction.response);
+
+    const reduced = geeglm("resp ~ age", ohio, { id: "id", family: "binomial", corstr: "exchangeable" });
+    const full = geeglm("resp ~ age + smoke + age:smoke", ohio, { id: "id", family: "binomial", corstr: "exchangeable" });
+    const nested = geeAnova(full, reduced);
+    const expectedAnova = g.nested_anova.value;
+    expect(nested.rows).toEqual(expectedAnova.rows);
+    matrix(nested.values, anovaValues(expectedAnova));
+
+    const qic = geeQIC(fit);
+    const qicValues = [qic.QIC, qic.QICu, qic.Q, qic.CIC, qic.params, qic.QICC];
+    vector(qicValues, expected.qic);
+  });
+
+  it("compares all R-observable glmnet, glmnetCoef, glmnetPredict, and cvGlmnet fields", () => {
+    const f = glmnetFixture as any;
+    const x = f.X.values as number[][];
+    const y = f.y as number[];
+    const defaultFit = glmnet(x, y, { alpha: 1, nlambda: 8, lambdaMinRatio: 0.01 });
+    const defaultExpected = f.gaussian_alpha1.value;
+    vector(defaultFit.lambda, defaultExpected.lambda);
+    vector(defaultFit.a0, defaultExpected.a0);
+    matrix(transpose(defaultFit.beta), defaultExpected.beta.values);
+    vector(defaultFit.df, defaultExpected.df);
+    vector(defaultFit.devRatio, defaultExpected.devRatio);
+    close(defaultFit.nullDev, defaultExpected.nullDev);
+    expect(defaultFit.converged.every(Boolean)).toBe(true);
+    expect(defaultFit.kktResidual.every(Number.isFinite)).toBe(true);
+
+    const tightFit = glmnet(x, y, { alpha: 1, nlambda: 8, lambdaMinRatio: 0.01, thresh: 1e-14 });
+    vector(tightFit.lambda, defaultExpected.lambdaTight, 1e-10);
+    vector(tightFit.a0, defaultExpected.tightA0, 1e-7);
+    matrix(transpose(tightFit.beta), defaultExpected.tightBeta.values, 1e-7);
+    vector(tightFit.df, defaultExpected.tightDf);
+    vector(tightFit.devRatio, defaultExpected.tightDevRatio, 1e-7);
+    close(tightFit.nullDev, defaultExpected.tightNullDev, 1e-7);
+
+    const offPath = glmnet(x, y, { lambda: [2, 1, 0.5, 0.25, 0.125], thresh: 1e-14 });
+    const coefExpected = f.offPath.value.coef;
+    matrix(transpose(glmnetCoef(offPath, [0.75, 0.3])), coefExpected.values);
+    const predictExpected = f.offPath.value.predict;
+    matrix(transpose(glmnetPredict(offPath, x.slice(0, 4), { s: [0.75, 0.3], type: "link" })), predictExpected.values);
+
+    const binY = [0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1];
+    const binFit = glmnet(x, binY, { family: "binomial", nlambda: 6 });
+    const typeExpected = f.predictTypes.value;
+    matrix(transpose(glmnetPredict(binFit, x.slice(0, 4), { s: binFit.lambda[2]!, type: "link" })), typeExpected.link.values);
+    matrix(transpose(glmnetPredict(binFit, x.slice(0, 4), { s: binFit.lambda[2]!, type: "response" })), typeExpected.response.values);
+    const classPrediction = glmnetPredict(binFit, x.slice(0, 4), { s: binFit.lambda[2]!, type: "class" });
+    vector(classPrediction[0]!.map(v => Number(v)), typeExpected.class.map((v: string) => Number(v)));
+    const nonzero = glmnetPredict(defaultFit, x.slice(0, 4), { s: defaultFit.lambda[2]!, type: "nonzero" });
+    expect(nonzero[0]).toEqual(typeExpected.nonzero.value);
+
+    const foldid = Array.from({ length: y.length }, (_, i) => i % 3 + 1);
+    const cvExpected = f.cv.value;
+    const cv = cvGlmnet(x, y, {
+      foldid, nlambda: 8, keep: true, grouped: false, thresh: 1e-20, maxit: 1e8,
+    });
+    vector(cv.lambda, cvExpected.lambdaTight, 1e-10);
+    vector(cv.cvm, cvExpected.groupedFalse.cvm, 1e-7);
+    vector(cv.cvsd, cvExpected.groupedFalse.cvsd, 1e-7);
+    vector(cv.cvn as unknown as number[], cvExpected.nzero ?? []);
+    expect(cv.lambdaMin).toBeGreaterThan(0);
+    expect(cv.lambda1se).toBeGreaterThan(0);
+    expect(cv.fitPreval).toBeDefined();
+  });
+});
