@@ -426,67 +426,80 @@ function fitMultinomialOne(
 ): { a0: number[]; beta: number[][]; eta: number[][]; passes: number; converged: boolean } {
   const n = y.length, p = penalty.length, kCount = startA.length;
   let a0 = Array.from(startA), beta = startB.map(row => Array.from(row));
+  let extrapA = a0.slice(), extrapB = beta.map(row => row.slice()), acceleration = 1;
   let eta = x.map(row => a0.map((v, k) => {
     let out = v;
     for (let j = 0; j < p; j++) out += row[j]! * beta[j]![k]!;
     return out;
   }));
   let current = multinomialObjective(x, y, weights, a0, beta, lambda, alpha, penalty, grouped);
-  let converged = false, passes = 0;
-  for (let iteration = 0; iteration < maxit; iteration++) {
+  let step = 2 / (p + 1), converged = false, passes = 0;
+  const gradientAt = (a: readonly number[], b: readonly (readonly number[])[]) => {
     const gradA = new Array<number>(kCount).fill(0);
     const gradB = Array.from({ length: p }, () => new Array<number>(kCount).fill(0));
     for (let i = 0; i < n; i++) {
-      let maxEta = -Infinity;
-      for (let k = 0; k < kCount; k++) maxEta = Math.max(maxEta, eta[i]![k]!);
-      let denominator = 0;
-      for (let k = 0; k < kCount; k++) denominator += Math.exp(eta[i]![k]! - maxEta);
+      const rowEta = a.map((v, k) => {
+        let out = v;
+        for (let j = 0; j < p; j++) out += x[i]![j]! * b[j]![k]!;
+        return out;
+      });
+      let maxEta = -Infinity; for (const v of rowEta) maxEta = Math.max(maxEta, v);
+      let denominator = 0; for (const v of rowEta) denominator += Math.exp(v - maxEta);
       for (let k = 0; k < kCount; k++) {
-        const residual = weights[i]! * (Math.exp(eta[i]![k]! - maxEta) / denominator - (y[i] === k ? 1 : 0)) / n;
+        const residual = weights[i]! * (Math.exp(rowEta[k]! - maxEta) / denominator - (y[i] === k ? 1 : 0)) / n;
         gradA[k] = gradA[k]! + residual;
         for (let j = 0; j < p; j++) gradB[j]![k] = gradB[j]![k]! + residual * x[i]![j]!;
       }
     }
-    const oldA = a0.slice(), oldB = beta.map(row => row.slice());
-    let step = 1, accepted = false;
-    for (let backtrack = 0; backtrack < 60; backtrack++) {
-      const nextA = oldA.map((v, k) => v - step * gradA[k]!);
-      let centerA = 0;
-      for (const v of nextA) centerA += v;
-      centerA /= kCount;
-      for (let k = 0; k < kCount; k++) nextA[k] = nextA[k]! - centerA;
-      const nextB = oldB.map((row, j) => {
-        const z = row.map((v, k) => v - step * gradB[j]![k]!);
+    return { gradA, gradB };
+  };
+  for (let iteration = 0; iteration < maxit; iteration++) {
+    let gradients = gradientAt(extrapA, extrapB);
+    let candidateA: number[] = [], candidateB: number[][] = [], candidateEta: number[][] = [];
+    let candidateObjective = Infinity, accepted = false;
+    for (let restart = 0; restart < 20; restart++) {
+      candidateA = extrapA.map((v, k) => v - step * gradients.gradA[k]!);
+      let centerA = 0; for (const v of candidateA) centerA += v; centerA /= kCount;
+      for (let k = 0; k < kCount; k++) candidateA[k] = candidateA[k]! - centerA;
+      candidateB = extrapB.map((row, j) => {
+        const z = row.map((v, k) => v - step * gradients.gradB[j]![k]!);
         const penaltyWeight = step * lambda * alpha * penalty[j]!;
         const ridge = 1 + step * lambda * (1 - alpha) * penalty[j]!;
         if (grouped) {
-          let norm = 0;
-          for (const v of z) norm += v * v;
-          norm = Math.sqrt(norm);
+          let norm = 0; for (const v of z) norm += v * v; norm = Math.sqrt(norm);
           const shrink = norm > 0 ? Math.max(0, 1 - penaltyWeight / norm) / ridge : 0;
           const values = z.map(v => v * shrink);
-          let center = 0;
-          for (const v of values) center += v;
-          center /= kCount;
+          let center = 0; for (const v of values) center += v; center /= kCount;
           return values.map(v => Math.max(lower[j]!, Math.min(upper[j]!, v - center)));
         }
         const values = z.map(v => soft(v, penaltyWeight) / ridge);
         const shift = centeredPenaltyShift(values, alpha);
         return values.map(v => Math.max(lower[j]!, Math.min(upper[j]!, v + shift)));
       });
-      const nextEta = x.map(row => nextA.map((v, k) => {
+      candidateEta = x.map(row => candidateA.map((v, k) => {
         let out = v;
-        for (let j = 0; j < p; j++) out += row[j]! * nextB[j]![k]!;
+        for (let j = 0; j < p; j++) out += row[j]! * candidateB[j]![k]!;
         return out;
       }));
-      const nextObjective = multinomialObjective(x, y, weights, nextA, nextB, lambda, alpha, penalty, grouped);
-      if (Number.isFinite(nextObjective) && nextObjective <= current + 1e-14) {
-        a0 = nextA; beta = nextB; eta = nextEta; current = nextObjective; accepted = true; break;
+      candidateObjective = multinomialObjective(x, y, weights, candidateA, candidateB, lambda, alpha, penalty, grouped);
+      if (Number.isFinite(candidateObjective) && candidateObjective <= current + 1e-13) {
+        accepted = true;
+        break;
       }
-      step *= 0.5;
+      if (restart === 0) {
+        extrapA = a0.slice(); extrapB = beta.map(row => row.slice()); acceleration = 1;
+        gradients = gradientAt(extrapA, extrapB);
+      } else step *= 0.5;
     }
     passes++;
     if (!accepted) break;
+    const oldA = a0, oldB = beta;
+    a0 = candidateA; beta = candidateB; eta = candidateEta; current = candidateObjective;
+    const nextAcceleration = (1 + Math.sqrt(1 + 4 * acceleration * acceleration)) / 2;
+    const momentum = (acceleration - 1) / nextAcceleration;
+    extrapA = a0.map((v, k) => v + momentum * (v - oldA[k]!));
+    extrapB = beta.map((row, j) => row.map((v, k) => v + momentum * (v - oldB[j]![k]!)));
+    acceleration = nextAcceleration;
     let change = 0, scale = 0;
     for (let k = 0; k < kCount; k++) {
       change = Math.max(change, Math.abs(a0[k]! - oldA[k]!));
