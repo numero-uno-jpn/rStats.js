@@ -204,7 +204,10 @@ function groups(ids: readonly (number | string | boolean)[]): number[][] {
   return out;
 }
 
-function correlationMatrix(size: number, structure: GeeCorrelation, alpha: readonly number[], waves: readonly number[]): number[][] {
+function correlationMatrix(
+  size: number, structure: GeeCorrelation, alpha: readonly number[], waves: readonly number[],
+  zcor: readonly (readonly number[])[] | undefined, pairOffset: number,
+): number[][] {
   const r = identity(size);
   let pair = 0;
   for (let j = 0; j < size; j++) for (let k = 0; k < j; k++) {
@@ -212,6 +215,8 @@ function correlationMatrix(size: number, structure: GeeCorrelation, alpha: reado
     if (structure === "exchangeable") v = alpha[0] ?? 0;
     else if (structure === "ar1") v = (alpha[0] ?? 0) ** Math.abs(waves[j]! - waves[k]!);
     else if (structure === "unstructured") v = alpha[pair] ?? 0;
+    else if (structure === "userdefined") v = dot(zcor?.[pairOffset + pair] ?? [], alpha);
+    else if (structure === "fixed") v = zcor?.[pairOffset + pair]?.[0] ?? 0;
     r[j]![k] = v;
     r[k]![j] = v;
     pair++;
@@ -219,11 +224,14 @@ function correlationMatrix(size: number, structure: GeeCorrelation, alpha: reado
   return r;
 }
 
-function pairMoments(residuals: readonly number[], clusterGroups: readonly (readonly number[])[], waves: readonly number[], structure: GeeCorrelation): number[] {
+function pairMoments(
+  residuals: readonly number[], clusterGroups: readonly (readonly number[])[], waves: readonly number[],
+  structure: GeeCorrelation, scale: number, zcor: readonly (readonly number[])[] | undefined,
+): number[] {
   if (structure === "exchangeable") {
     let total = 0, count = 0;
     for (const g of clusterGroups) for (let j = 0; j < g.length; j++) for (let k = 0; k < j; k++) {
-      total += residuals[g[j]!]! * residuals[g[k]!]!;
+      total += residuals[g[j]!]! * residuals[g[k]!]! / scale;
       count++;
     }
     return [count ? total / count : 0];
@@ -234,7 +242,7 @@ function pairMoments(residuals: readonly number[], clusterGroups: readonly (read
       const lag = Math.abs(waves[g[j]!]! - waves[g[k]!]!);
       if (lag === 0) continue;
       const z = sums.get(lag) ?? { sum: 0, n: 0 };
-      z.sum += residuals[g[j]!]! * residuals[g[k]!]!;
+      z.sum += residuals[g[j]!]! * residuals[g[k]!]! / scale;
       z.n++;
       sums.set(lag, z);
     }
@@ -260,10 +268,26 @@ function pairMoments(residuals: readonly number[], clusterGroups: readonly (read
     const sums: number[] = [], counts: number[] = [];
     for (const g of clusterGroups) for (let j = 0; j < g.length; j++) for (let k = 0; k < j; k++) {
       const ix = j * (j - 1) / 2 + k;
-      sums[ix] = (sums[ix] ?? 0) + residuals[g[j]!]! * residuals[g[k]!]!;
+      sums[ix] = (sums[ix] ?? 0) + residuals[g[j]!]! * residuals[g[k]!]! / scale;
       counts[ix] = (counts[ix] ?? 0) + 1;
     }
     return sums.map((v, i) => v / counts[i]!);
+  }
+  if (structure === "userdefined") {
+    if (zcor === undefined) throw new TypeError("zcor is required for userdefined correlation");
+    const rows: number[][] = [];
+    const target: number[] = [];
+    let pair = 0;
+    for (const g of clusterGroups) for (let j = 0; j < g.length; j++) for (let k = 0; k < j; k++) {
+      const designRow = zcor[pair];
+      if (designRow === undefined || designRow.length === 0) throw new RangeError("zcor must have one nonempty row per within-cluster pair");
+      rows.push(Array.from(designRow));
+      target.push(residuals[g[j]!]! * residuals[g[k]!]! / scale);
+      pair++;
+    }
+    if (zcor.length !== rows.length) throw new RangeError("zcor must have one row per within-cluster pair");
+    const zt = transpose(rows);
+    return solve(multiply(zt, rows), multiply(zt, target.map((v) => [v])).map((r) => r[0]!));
   }
   return [];
 }
@@ -280,12 +304,15 @@ function evaluate(x: number[][], y: number[], beta: number[], offset: number[], 
 function geeStep(
   x: number[][], y: number[], beta: number[], offset: number[], weights: number[], family: Family,
   clusterGroups: number[][], waves: number[], corstr: GeeCorrelation, alpha: number[], scale: number,
+  zcor: readonly (readonly number[])[] | undefined,
 ) {
   const ev = evaluate(x, y, beta, offset, family, weights);
   const p = beta.length, bread = zeros(p, p), meat = zeros(p, p), score = new Array<number>(p).fill(0);
+  let pairOffset = 0;
   for (const rows of clusterGroups) {
     const a = rows.map((i) => Math.sqrt(family.variance(ev.mu[i]!) / weights[i]!));
-    const R = correlationMatrix(rows.length, corstr, alpha, rows.map((i) => waves[i]!));
+    const R = correlationMatrix(rows.length, corstr, alpha, rows.map((i) => waves[i]!), zcor, pairOffset);
+    pairOffset += rows.length * (rows.length - 1) / 2;
     const V = R.map((r, j) => r.map((v, k) => scale * a[j]! * v * a[k]!));
     const Vi = inverse(V);
     const D = rows.map((i) => x[i]!.map((v) => v * ev.derivative[i]!));
@@ -308,6 +335,7 @@ export function geeglm(formula: string, data: DataFrame, options: GeeOptions): G
   if (!["independence", "exchangeable", "ar1", "unstructured", "userdefined", "fixed"].includes(corstr)) throw new RangeError("unknown working correlation");
   const stdErr = options["std.err"] ?? "san.se";
   if (!["san.se", "jack", "j1s", "fij"].includes(stdErr)) throw new RangeError("unknown standard-error estimator");
+  if (stdErr !== "san.se") throw new Error("jackknife standard errors are not implemented yet");
   const epsilon = options.epsilon ?? 1e-10, maxit = options.maxit ?? 200;
   if (!(epsilon > 0) || !Number.isFinite(epsilon) || !Number.isInteger(maxit) || maxit < 1) throw new RangeError("invalid convergence controls");
   const idName = typeof options.id === "string" ? options.id : undefined;
@@ -324,14 +352,20 @@ export function geeglm(formula: string, data: DataFrame, options: GeeOptions): G
   if (weights.some((v) => v < 0)) throw new RangeError("weights must be nonnegative");
   const offset = vector(options.offset, data, rows, inputN, 0, "offset");
   const clusterGroups = groups(ids);
-  if (options.waves === undefined) waves = waves.map((_, i) => clusterGroups.find((g) => g.includes(i))?.indexOf(i) ?? 0);
+  if (options.waves === undefined) {
+    waves = new Array<number>(n).fill(0);
+    for (const g of clusterGroups) for (let j = 0; j < g.length; j++) waves[g[j]!] = j;
+  }
   const family = makeFamily(options.family ?? "gaussian", options.link);
   const y = d.y;
   if (y.some((v, i) => !Number.isFinite(v) && weights[i]! > 0)) throw new RangeError("NA/NaN/Inf in 'y'");
   if (weights.some((v) => !Number.isFinite(v))) throw new RangeError("weights must be finite");
   if (weights.every((v) => v === 0)) throw new RangeError("no observations with positive weight");
-  if (options.zcor !== undefined && !Array.isArray(options.zcor)) throw new TypeError("zcor must be a matrix");
+  if (options.zcor !== undefined && (!Array.isArray(options.zcor) || options.zcor.some((r) => !Array.isArray(r)))) throw new TypeError("zcor must be a matrix");
   if ((corstr === "userdefined" || corstr === "fixed") && options.zcor === undefined) throw new TypeError("zcor is required for userdefined and fixed working correlations");
+  const zcor = options.zcor?.map((r) => Array.from(r));
+  if (zcor?.some((r) => r.some((v) => !Number.isFinite(v)))) throw new RangeError("zcor must contain finite numbers");
+  if (corstr === "fixed" && zcor?.some((r) => r.length !== 1 || Math.abs(r[0]!) > 1)) throw new RangeError("fixed zcor must be a one-column matrix of correlations in [-1, 1]");
   const warnings = new Warnings();
   return withWarnings(warnings, () => {
     const xtx = multiply(transpose(d.x), d.x);
@@ -339,27 +373,36 @@ export function geeglm(formula: string, data: DataFrame, options: GeeOptions): G
     let beta = solve(xtx, xty);
     let scale = options["scale.fix"] ? (options["scale.value"] ?? 1) : 1;
     if (!(scale > 0) || !Number.isFinite(scale)) throw new RangeError("scale.value must be positive and finite");
+    let maxPairs = 0;
+    for (const g of clusterGroups) maxPairs = Math.max(maxPairs, g.length * (g.length - 1) / 2);
     let alpha: number[] = corstr === "exchangeable" || corstr === "ar1" ? [0] :
-      corstr === "unstructured" ? new Array<number>(Math.max(0, ...clusterGroups.map((g) => g.length * (g.length - 1) / 2))).fill(0) : [];
+      corstr === "unstructured" ? new Array<number>(maxPairs).fill(0) :
+      corstr === "userdefined" ? new Array<number>(zcor?.[0]?.length ?? 0).fill(0) : [];
     let bread = identity(p), meat = identity(p), converged = false, iteration = 0;
     for (iteration = 1; iteration <= maxit; iteration++) {
-      const step = geeStep(d.x, y, beta, offset, weights, family, clusterGroups, waves, corstr, alpha, scale);
+      const step = geeStep(d.x, y, beta, offset, weights, family, clusterGroups, waves, corstr, alpha, scale, zcor);
       const next = beta.map((v, j) => v + step.delta[j]!);
       if (next.some((v) => !Number.isFinite(v))) throw new Error("non-finite coefficient in GEE iteration");
       let diff = 0;
       for (let j = 0; j < p; j++) diff = Math.max(diff, Math.abs(next[j]! - beta[j]!));
+      const oldAlpha = alpha.slice();
+      const oldScale = scale;
       beta = next;
       bread = step.bread;
       meat = step.meat;
       const ev = evaluate(d.x, y, beta, offset, family, weights);
       if (!options["scale.fix"] && !family.fixedDispersion) scale = ev.pearson.reduce((s, v) => s + v * v, 0) / n;
-      if (corstr === "exchangeable" || corstr === "ar1" || corstr === "unstructured") {
-        alpha = pairMoments(ev.pearson, clusterGroups, waves, corstr).map((v) => Math.max(-0.99, Math.min(0.99, v)));
+      if (corstr === "exchangeable" || corstr === "ar1" || corstr === "unstructured" || corstr === "userdefined") {
+        alpha = pairMoments(ev.pearson, clusterGroups, waves, corstr, scale, zcor).map((v) => Math.max(-0.99, Math.min(0.99, v)));
       }
-      if (diff <= epsilon * Math.max(1, ...beta.map(Math.abs))) { converged = true; break; }
+      for (let j = 0; j < alpha.length; j++) diff = Math.max(diff, Math.abs(alpha[j]! - (oldAlpha[j] ?? 0)));
+      diff = Math.max(diff, Math.abs(scale - oldScale));
+      let betaScale = 1;
+      for (const v of beta) betaScale = Math.max(betaScale, Math.abs(v));
+      if (diff <= epsilon * betaScale) { converged = true; break; }
     }
     if (!converged) warnings.add("geeglm did not converge in " + maxit + " iterations");
-    const finalStep = geeStep(d.x, y, beta, offset, weights, family, clusterGroups, waves, corstr, alpha, scale);
+    const finalStep = geeStep(d.x, y, beta, offset, weights, family, clusterGroups, waves, corstr, alpha, scale, zcor);
     bread = finalStep.bread;
     meat = finalStep.meat;
     const breadInv = inverse(bread);
@@ -375,7 +418,7 @@ export function geeglm(formula: string, data: DataFrame, options: GeeOptions): G
       warnings: warnings.list.slice(),
       model: { formula, x: d.x, y, ids, waves, weights, offset, family: options.family ?? "gaussian",
         link: options.link, corstr, scaleFix: options["scale.fix"] ?? false, scaleValue: options["scale.value"] ?? 1,
-        zcor: options.zcor?.map((r) => Array.from(r)), data },
+        zcor, data },
     };
     return reported("geeglm", result);
   });
