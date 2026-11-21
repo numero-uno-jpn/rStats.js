@@ -1270,8 +1270,11 @@ The reference decisions are recorded in [rq](../oracle/rq-behaviour.md), [geeglm
 - **Lambda path (known difference):** when a portion of R's path cannot be reproduced by the documented path
   construction, rStats.js returns the penalty values it actually fitted and records the difference rather than
   substituting another path.
-- **Not in 1.8.0:** random fold generation (supply `foldid`; cross-validation is deterministic), exact refitting
-  off the path (`exact: true`), and the Cox and relaxed-lasso families.
+- **Cross-validation and multinomial scope:** both grouped and ungrouped CV summaries are supported, and multinomial
+  fits support grouped and ungrouped penalties. The demo omits multinomial examples because R default fits can fail to
+  converge on some data.
+- **Not in 1.8.0:** random fold generation (supply `foldid`; cross-validation is deterministic) and exact refitting
+  off the path (`exact: true`); off-path requests use log-lambda interpolation.
 
 ### Mixed models
 
