@@ -113,7 +113,7 @@ for (cs in c("independence","exchangeable","ar1","unstructured")) {
   out$gee_check[[cs]] <- run({
     f <- geeglm(y~x,id=id,waves=wave,data=gee_check,family=gaussian,corstr=cs)
     ft <- geeglm(y~x,id=id,waves=wave,data=gee_check,family=gaussian,corstr=cs,
-                 control=geese.control(epsilon=1e-12,maxit=500))
+                 control=geese.control(epsilon=1e-12,maxit=1000))
     list(
       default=capture(f),
       tight=capture(ft,FALSE),
