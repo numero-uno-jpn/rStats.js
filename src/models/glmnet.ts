@@ -290,18 +290,22 @@ export function glmnetPredict(
   fit: GlmnetResult, newx: readonly (readonly number[])[], options: GlmnetPredictOptions = {},
 ): number[][] {
   if (newx.some(r => r.length !== fit.model.columns)) throw new RangeError("newx has the wrong number of columns");
-  const values = options.s === undefined ? [fit.lambda[fit.lambda.length - 1]!] :
+  const values = options.s === undefined ? fit.lambda.slice() :
     typeof options.s === "number" ? [options.s] : Array.from(options.s);
   const type = options.type ?? "link";
   const offset = options.offset ?? new Array<number>(newx.length).fill(0);
   if (offset.length !== newx.length) throw new RangeError("offset length must match newx");
+  if (type === "nonzero") return values.map(s => {
+    const c = interpolate(fit, s), indices: number[] = [];
+    for (let j = 0; j < c.beta.length; j++) if (c.beta[j] !== 0) indices.push(j + 1);
+    return indices;
+  });
   return values.map(s => {
     const c = interpolate(fit, s);
     return newx.map((row, i) => {
       const eta = c.a0 + offset[i]! + row.reduce((v, z, j) => v + z * c.beta[j]!, 0);
       if (type === "response") return inverseLink(eta, fit.family);
       if (type === "class") return inverseLink(eta, fit.family) >= 0.5 ? 1 : 0;
-      if (type === "nonzero") return c.beta.some(v => v !== 0) ? 1 : 0;
       return eta;
     });
   });
@@ -325,10 +329,46 @@ export function cvGlmnet(x: readonly (readonly number[])[], y: readonly number[]
     measures.push(err);
   }
   const grouped=options.grouped??true;
-  const cvm=lambda.map((_,k)=>sum(measures.map(v=>v[k]!))/folds.length);
+  const measure = options.typeMeasure ?? (fit.family === "gaussian" ? "mse" : "deviance");
+  const score = (indices: readonly number[], k: number): number => {
+    if (measure === "auc") {
+      let concordant = 0, ties = 0, pairs = 0;
+      for (const i of indices) if (y[i]! >= 0.5) for (const j of indices) if (y[j]! < 0.5) {
+        pairs++;
+        if (predictions[i]![k]! > predictions[j]![k]!) concordant++;
+        else if (predictions[i]![k] === predictions[j]![k]) ties++;
+      }
+      return pairs === 0 ? NaN : 1 - (concordant + ties / 2) / pairs;
+    }
+    let total = 0;
+    for (const i of indices) {
+      const observed = y[i]!, predicted = predictions[i]![k]!;
+      if (measure === "mae") total += Math.abs(predicted - observed);
+      else if (measure === "class") total += (predicted >= 0.5) === (observed >= 0.5) ? 0 : 1;
+      else if (measure === "deviance" && fit.family !== "gaussian") {
+        const mu = Math.max(1e-15, Math.min(fit.family === "binomial" ? 1 - 1e-15 : Infinity, predicted));
+        if (fit.family === "binomial") {
+          total += 2 * ((observed > 0 ? observed * Math.log(observed / mu) : 0) +
+            (observed < 1 ? (1 - observed) * Math.log((1 - observed) / (1 - mu)) : 0));
+        } else total += 2 * (observed === 0 ? mu : observed * Math.log(observed / mu) - (observed - mu));
+      } else total += (predicted - observed) ** 2;
+    }
+    return total / indices.length;
+  };
+  const foldScores = folds.map(fold => y.map((_,i)=>i).filter(i=>foldid[i]===fold));
+  for (let k=0;k<lambda.length;k++) measures.push(foldScores.map(indices=>score(indices,k)));
+  const cvm=lambda.map((_,k)=>grouped
+    ? sum(measures.map(v=>v[k]!))/folds.length
+    : score(y.map((_,i)=>i),k));
   const cvsd=lambda.map((_,k)=>{
     if(grouped){const m=cvm[k]!;return Math.sqrt(sum(measures.map(v=>(v[k]!-m)**2))/(folds.length-1)/folds.length);}
-    const vals=y.map((v,i)=>(predictions[i]![k]!-v)**2);const m=sum(vals)/vals.length;
+    const vals=y.map((_,i)=> {
+      const observed=y[i]!, predicted=predictions[i]![k]!;
+      if(measure==="mae") return Math.abs(predicted-observed);
+      if(measure==="class") return (predicted>=0.5)===(observed>=0.5)?0:1;
+      return (predicted-observed)**2;
+    });
+    const m=sum(vals)/vals.length;
     return Math.sqrt(sum(vals.map(v=>(v-m)**2))/(vals.length-1)/vals.length);
   });
   let min=0;for(let k=1;k<cvm.length;k++)if(cvm[k]!<cvm[min]!)min=k;
