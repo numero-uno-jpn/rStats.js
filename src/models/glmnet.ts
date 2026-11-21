@@ -781,6 +781,7 @@ export function glmnetCoef(fit: GlmnetScalarResult, s?: number | readonly number
 export function glmnetCoef(fit: GlmnetMultinomialResult, s?: number | readonly number[]): Record<string, number[][]>;
 export function glmnetCoef(fit: GlmnetResult, s?: number | readonly number[]): number[][] | Record<string, number[][]> {
   const values = s === undefined ? fit.lambda : typeof s === "number" ? [s] : Array.from(s);
+  if (values.some(v => !(v > 0) || !Number.isFinite(v))) throw new RangeError("s must contain positive finite lambda values");
   if (fit.family === "multinomial") {
     const out: Record<string, number[][]> = {};
     for (let k = 0; k < fit.model.classes.length; k++) {
@@ -812,11 +813,14 @@ export function glmnetPredict(
 export function glmnetPredict(
   fit: GlmnetResult, newx: readonly (readonly number[])[], options: GlmnetPredictOptions = {},
 ): number[][] | number[][][] | string[][] {
-  if (newx.some(r => r.length !== fit.model.columns)) throw new RangeError("newx has the wrong number of columns");
+  if (newx.some(r => r.length !== fit.model.columns || r.some(v => !Number.isFinite(v)))) throw new RangeError("newx must be finite and have the fitted number of columns");
   const values = options.s === undefined ? fit.lambda.slice() :
     typeof options.s === "number" ? [options.s] : Array.from(options.s);
   const type = options.type ?? "link";
+  if (values.some(v => !(v > 0) || !Number.isFinite(v))) throw new RangeError("s must contain positive finite lambda values");
+  if (fit.family !== "multinomial" && type === "class" && fit.family !== "binomial") throw new RangeError("type=class is available only for binomial and multinomial models");
   if (fit.family === "multinomial") {
+    if (options.offset && options.offset.length !== newx.length) throw new RangeError("offset length must match newx");
     if (options.offset?.some(v => v !== 0)) throw new RangeError("multinomial offsets must be class-specific");
     if (type === "nonzero") return values.map(s => {
       const result = interpolateMultinomial(fit, s);
