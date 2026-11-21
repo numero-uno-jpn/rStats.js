@@ -226,3 +226,5 @@ other section of this file.
 4. **Missing values:** the existing model-frame rule of the regression functions (rows with NA are dropped); the
    clusters, waves and working correlations are built from the remaining rows.
 5. **`zcor`:** accepted as a validated design matrix (or vector); no helpers like `genZcor` or `fixed2Zcor` in 1.8.0.
+
+7. The expanded 12-cluster Gaussian fixture separates the ordinary and tight public fits. For the tight fit, rStats.js returns alpha = -0.2011751865764183 versus R's -0.201175186600473 (absolute difference 2.41e-11). For the ordinary fit, rStats.js returns -0.2011751865764183 while R returns -0.201175106522640 (absolute difference 8.0054e-8). The tight comparison is accepted at the existing strict precision; the ordinary/default discrepancy remains unresolved. No tolerance was widened.
