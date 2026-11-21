@@ -809,7 +809,7 @@ export function rqAnova(fit: RqResult, reducedOrJoint?: RqResult | boolean): RqW
     const small = indices.map((i) => indices.map((j) => covariance[i]![j]!));
     const inv = rqInverse(small);
     const difference = omitted.map(({ name }) => fit.coefficients[name] as number);
-    const weighted = rqMul(inv, [difference]).map((row) => row[0]!);
+    const weighted = inv.map((row) => row.reduce((sum, value, i) => sum + value * difference[i]!, 0));
     const statistic = difference.reduce((sum, value, i) => sum + value * weighted[i]!, 0);
     const df = omitted.length;
     const dfResidual = model.y.length - model.columnNames.length;
