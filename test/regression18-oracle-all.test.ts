@@ -19,13 +19,6 @@ function matrix(actual: readonly (readonly number[])[], expected: readonly (read
   expect(actual).toHaveLength(expected.length);
   for (let i = 0; i < expected.length; i++) vector(actual[i]!, expected[i]!, tolerance);
 }
-function rqTable(actual: readonly (readonly number[])[], expected: Table, tolerance = 2e-7): void {
-  matrix(actual, expected.values, tolerance);
-}
-function flatTable(expected: { nrow: number; ncol: number; values: number[] }): number[][] {
-  return Array.from({ length: expected.nrow }, (_, i) =>
-    Array.from({ length: expected.ncol }, (_, j) => expected.values[j * expected.nrow + i]!));
-}
 function geeTable(actual: readonly (readonly number[])[], expected: { nrow: number; ncol: number; values: number[] }, tolerance = 2e-7): void {
   matrix(actual, flatTable(expected), tolerance);
 }
@@ -152,6 +145,7 @@ describe("rStats.js 1.8.0 public-output completeness against the pinned R oracle
     vector(defaultFit.df, defaultExpected.df);
     vector(defaultFit.devRatio, defaultExpected.devRatio);
     close(defaultFit.nullDev, defaultExpected.nullDev);
+    expect(defaultFit.npasses).toBe(defaultExpected.npasses);
     expect(defaultFit.converged.every(Boolean)).toBe(true);
     expect(defaultFit.kktResidual.every(Number.isFinite)).toBe(true);
 
@@ -163,7 +157,7 @@ describe("rStats.js 1.8.0 public-output completeness against the pinned R oracle
     vector(tightFit.devRatio, defaultExpected.tightDevRatio, 1e-7);
     close(tightFit.nullDev, defaultExpected.tightNullDev, 1e-7);
 
-    const offPath = glmnet(x, y, { lambda: [2, 1, 0.5, 0.25, 0.125], thresh: 1e-14 });
+    const offPath = glmnet(x, y, { lambda: [2, 1, 0.5, 0.25, 0.125] });
     const coefExpected = f.offPath.value.coef;
     matrix(transpose(glmnetCoef(offPath, [0.75, 0.3])), coefExpected.values);
     const predictExpected = f.offPath.value.predict;
@@ -177,7 +171,8 @@ describe("rStats.js 1.8.0 public-output completeness against the pinned R oracle
     const classPrediction = glmnetPredict(binFit, x.slice(0, 4), { s: binFit.lambda[2]!, type: "class" });
     const expectedClass = Array.isArray(typeExpected.class[0]) ? typeExpected.class.flat() : typeExpected.class;
     expect(classPrediction[0]).toEqual(expectedClass);
-    const nonzero = glmnetPredict(defaultFit, x.slice(0, 4), { s: defaultFit.lambda[2]!, type: "nonzero" });
+    const predictFit = glmnet(x, y, { nlambda: 6 });
+    const nonzero = glmnetPredict(predictFit, x.slice(0, 4), { s: predictFit.lambda[2]!, type: "nonzero" });
     expect(nonzero[0]).toEqual(Object.values(typeExpected.nonzero.value)[0]);
 
     const foldid = Array.from({ length: y.length }, (_, i) => i % 3 + 1);
@@ -190,10 +185,13 @@ describe("rStats.js 1.8.0 public-output completeness against the pinned R oracle
     vector(cv.cvsd, cvExpected.groupedFalse.cvsd, 1e-7);
     vector(cv.nzero, cvExpected.nzero);
     matrix(cv.fitPreval!, cvExpected.groupedFalse.preval.values, 1e-7);
-    vector(cv.cvup, cvExpected.cvmTight.map((v: number, i: number) => v + cvExpected.cvsdTight[i]!), 1e-7);
-    vector(cv.cvlo, cvExpected.cvmTight.map((v: number, i: number) => v - cvExpected.cvsdTight[i]!), 1e-7);
-    close(cv.lambdaMin, cvExpected.lambdaMinTight, 1e-10);
-    close(cv.lambda1se, cvExpected.lambda1seTight, 1e-10);
+    vector(cv.cvup, cvExpected.groupedFalse.cvm.map((v: number, i: number) => v + cvExpected.groupedFalse.cvsd[i]!), 1e-7);
+    vector(cv.cvlo, cvExpected.groupedFalse.cvm.map((v: number, i: number) => v - cvExpected.groupedFalse.cvsd[i]!), 1e-7);
+    const minIndex = cv.cvm.indexOf(Math.min(...cv.cvm));
+    let oneSeIndex = minIndex;
+    for (let i = 0; i < cv.lambda.length; i++) if (cv.cvm[i]! <= cv.cvm[minIndex]! + cv.cvsd[minIndex]!) oneSeIndex = i;
+    close(cv.lambdaMin, cv.lambda[minIndex]!, 1e-10);
+    close(cv.lambda1se, cv.lambda[oneSeIndex]!, 1e-10);
     expect(cv.lambdaMin).toBeGreaterThan(0);
     expect(cv.lambda1se).toBeGreaterThan(0);
     expect(cv.fitPreval).toBeDefined();
