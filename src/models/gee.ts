@@ -82,6 +82,8 @@ export interface GeeResult {
     formula: string;
     meanFormula: string;
     offsetTerms: GeeOffsetTerm[];
+    offsetOptionColumn: string | undefined;
+    hasExternalOffset: boolean;
     termAssign: number[];
     termLabels: string[];
     responseVariable: string;
@@ -557,7 +559,9 @@ export function geeglm(formula: string, data: DataFrame, options: GeeOptions): G
       covariance, modelCovariance, independenceCovariance, alpha, scale, iterations: iteration, converged, family: family.family,
       link: family.name, corstr, stdErr, columnNames: d.colNames, rows, clusterIds: ids, waves,
       warnings: warnings.list.slice(),
-      model: { formula, meanFormula: split.meanFormula, offsetTerms: split.terms, termAssign: d.assign.slice(),
+      model: { formula, meanFormula: split.meanFormula, offsetTerms: split.terms,
+        offsetOptionColumn: typeof options.offset === "string" ? options.offset : undefined,
+        hasExternalOffset: options.offset !== undefined, termAssign: d.assign.slice(),
         termLabels: d.terms.termLabels.slice(), responseVariable: d.terms.variables[d.terms.response]!,
         intercept: d.terms.intercept, x: d.x, y, ids, waves, weights, offset, family: options.family ?? "gaussian",
         link: options.link, corstr, scaleFix: options["scale.fix"] ?? false, scaleValue: options["scale.value"] ?? 1, epsilon, maxit,
@@ -606,6 +610,16 @@ export function geePredict(fit: GeeResult, options: GeePredictOptions = {}): num
       if (typeof v !== "number" || !Number.isFinite(v)) throw new RangeError("offset variable must contain finite numbers");
       offset[i] = offset[i]! + (term.log ? Math.log(v) : v);
     }
+  }
+  if (fit.model.offsetOptionColumn !== undefined) {
+    const raw = getColumn(newdata, fit.model.offsetOptionColumn);
+    for (let i = 0; i < n; i++) {
+      const v = raw[d.frame.rows[i]!];
+      if (typeof v !== "number" || !Number.isFinite(v)) throw new RangeError("offset variable must contain finite numbers");
+      offset[i] = offset[i]! + v;
+    }
+  } else if (fit.model.hasExternalOffset && options.newoffset === undefined) {
+    throw new RangeError("newoffset is required when the fit used a vector offset");
   }
   const eta = d.x.map((r, i) => dot(r, fit.coefficients) + offset[i]!);
   return options.type === "response" ? eta.map((v) => family.linkinv(v)) : eta;
