@@ -565,7 +565,7 @@ function glmnetMultinomial(
     lower[j] = lower[j]! * xScale[j]!; upper[j] = upper[j]! * xScale[j]!;
   }
   const maxit = options.maxit ?? 100000, thresh = options.thresh ?? 1e-10;
-  const a0: number[][] = [], betaByClass: Record<string, number[][]> = Object.fromEntries(classes.map(name => [name, Array.from({ length: p }, () => [] as number[])]));
+  const a0: number[][] = classes.map(() => [] as number[]), betaByClass: Record<string, number[][]> = Object.fromEntries(classes.map(name => [name, Array.from({ length: p }, () => [] as number[])]));
   const dfmat = classes.map(() => [] as number[]), devRatio: number[] = [], converged: boolean[] = [];
   let startA = aNull.slice(), startB = Array.from({ length: p }, () => new Array<number>(kCount).fill(0)), npasses = 0;
   const everActive = new Set<number>();
@@ -581,7 +581,7 @@ function glmnetMultinomial(
       if (intercept) for (let j = 0; j < p; j++) interceptValue -= xMean[j]! * row[j]!;
       return [interceptValue, ...row];
     });
-    a0.push(fit.a0.map((_, k) => originalByClass[k]![0]!));
+    for (let k = 0; k < kCount; k++) a0[k]!.push(originalByClass[k]![0]!);
     for (let k = 0; k < kCount; k++) for (let j = 0; j < p; j++) betaByClass[classes[k]!]![j]!.push(originalByClass[k]![j + 1]!);
     for (let k = 0; k < kCount; k++) dfmat[k]!.push(classDf[k]!);
     const fittedDev = 2 * multinomialObjective(xs, y, w, fit.a0, fit.beta, 0, alpha, penalty, grouped);
