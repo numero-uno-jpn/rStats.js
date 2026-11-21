@@ -173,7 +173,7 @@ describe("elastic-net generalized linear models", () => {
     };
     const multiX = fixture.multinomialData.X.values, multiY = fixture.multinomialData.y;
     for (const typeMultinomial of ["ungrouped", "grouped"] as const) {
-      const fit = glmnet(multiX, multiY, { family: "multinomial", typeMultinomial, nlambda: 6, maxit: 100000 });
+      const fit = glmnet(multiX, multiY, { family: "multinomial", typeMultinomial, nlambda: 6, maxit: 100000, thresh: 1e-12 });
       const expected = fixture[`multinomial_${typeMultinomial}`].value;
       expect(fit.lambda[0]).toBeCloseTo(expected.lambda[0]!, 7);
       console.log("multinomial diagnostics", typeMultinomial, fit.converged, fit.kktResidual, fit.npasses);
@@ -202,8 +202,8 @@ describe("elastic-net generalized linear models", () => {
         groupedFalse: { cvm: number[]; cvsd: number[]; preval: { values: number[][] } } } };
     };
     const foldid = Array.from({ length: fixture.y.length }, (_, i) => i % 3 + 1);
-    const grouped = cvGlmnet(fixture.X.values, fixture.y, { foldid, nlambda: 8, keep: true });
-    const ungrouped = cvGlmnet(fixture.X.values, fixture.y, { foldid, nlambda: 8, grouped: false, keep: true });
+    const grouped = cvGlmnet(fixture.X.values, fixture.y, { foldid, nlambda: 8, keep: true, thresh: 1e-12 });
+    const ungrouped = cvGlmnet(fixture.X.values, fixture.y, { foldid, nlambda: 8, grouped: false, keep: true, thresh: 1e-12 });
     const common = Math.min(grouped.lambda.length, fixture.cv.value.lambda.length);
     for (let k = 0; k < common; k++) expect(grouped.lambda[k]).toBeCloseTo(fixture.cv.value.lambda[k]!, 11);
     expect(grouped.cvm[0]).toBeCloseTo(fixture.cv.value.cvm[0]!, 7);
