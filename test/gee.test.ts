@@ -9,9 +9,9 @@ const data = {
 
 
 const geeCheckData = {
-  id: Array.from({ length: 12 }, (_, i) => Math.floor(i / 3) + 1),
-  wave: Array.from({ length: 12 }, (_, i) => (i % 3) + 1),
-  x: Array.from({ length: 12 }, (_, i) => [-1, 0, 1][i % 3]!),
+  id: Array.from({ length: 36 }, (_, i) => Math.floor(i / 3) + 1),
+  wave: Array.from({ length: 36 }, (_, i) => (i % 3) + 1),
+  x: Array.from({ length: 36 }, (_, i) => [-1, 0, 1][i % 3]!),
   y: [
     1.7534, 2.9203, 2.5018, 2.8479, 3.1191, 3.3040, 1.9940, 2.9519, 3.3162,
     2.0370, 3.1600, 3.7074, 2.1179, 2.7573, 3.5305, 1.8430, 2.5981, 3.7241,
