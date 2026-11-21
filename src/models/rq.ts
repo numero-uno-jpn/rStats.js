@@ -776,10 +776,17 @@ export function rqPredictInterval(fit: RqResult, newdata: DataFrame, options: Rq
  *
  * @category Regression
  */
-export function rqAnova(fit: RqResult, reduced?: RqResult): { statistic: number; df: number; dfResidual: number; pValue: number; method: "Wald" } {
-  const model = fit.model;
-  if (reduced) {
-    const smallModel = reduced.model;
+/** Wald comparisons for nested models or slopes across multiple quantiles. Equivalent to R's `anova.rq()`.
+ *
+ * @category Regression
+ */
+export function rqAnova(fit: RqResult): RqWaldResult;
+export function rqAnova(fit: RqResult, joint: boolean): RqWaldResult | RqWaldResult[];
+export function rqAnova(fit: RqResult, reduced: RqResult): RqWaldResult;
+export function rqAnova(fit: RqResult, reducedOrJoint?: RqResult | boolean): RqWaldResult | RqWaldResult[] {
+  if (typeof reducedOrJoint === "object" && reducedOrJoint !== null) {
+    const model = fit.model;
+    const smallModel = reducedOrJoint.model;
     if (model.tau.length !== 1 || smallModel.tau.length !== 1 || model.tau[0] !== smallModel.tau[0]) {
       throw new RangeError("nested Wald comparison requires two fits at the same single tau");
     }
@@ -801,12 +808,29 @@ export function rqAnova(fit: RqResult, reduced?: RqResult): { statistic: number;
     const dfResidual = model.y.length - model.columnNames.length;
     return { statistic, df, dfResidual, pValue: pf(statistic / df, df, dfResidual, { lowerTail: false }) as number, method: "Wald" };
   }
+  const model = fit.model;
+  const tested = Array.from({ length: model.columnNames.length - 1 }, (_, j) => j + 1);
+  if (reducedOrJoint === false) return tested.map((j) => rqMultiTauWald(fit, [j]));
+  return rqMultiTauWald(fit, tested);
+}
+
+export interface RqWaldResult {
+  statistic: number;
+  df: number;
+  dfResidual: number;
+  pValue: number;
+  method: "Wald";
+}
+
+function rqMultiTauWald(fit: RqResult, tested: number[]): RqWaldResult {
+  const model = fit.model;
   const p = model.columnNames.length;
   const m = model.tau.length;
   if (m < 2) throw new RangeError("Wald anova requires a multiple-tau fit");
+  if (tested.length === 0) throw new RangeError("Wald anova has no slope restrictions");
   const restrictions: number[][] = [];
   const difference: number[] = [];
-  for (let j = 1; j < p; j++) {
+  for (const j of tested) {
     const raw = fit.coefficients[model.columnNames[j]!]!;
     if (!Array.isArray(raw)) throw new RangeError("multiple-tau coefficients are required");
     for (let k = 1; k < m; k++) {
@@ -832,8 +856,8 @@ export function rqAnova(fit: RqResult, reduced?: RqResult): { statistic: number;
     return value;
   }));
   const inv = rqInverse(small);
-  const weighted = inv.map((row) => row.reduce((sum, v, i) => sum + v * difference[i]!, 0));
-  const statistic = difference.reduce((sum, v, i) => sum + v * weighted[i]!, 0);
-  const dfResidual = model.y.length - p * (m - 1);
+  const weighted = rqMul(inv, [difference]).map((row) => row[0]!);
+  const statistic = difference.reduce((sum, value, i) => sum + value * weighted[i]!, 0);
+  const dfResidual = model.y.length - (tested.length + 1) * (m - 1);
   return { statistic, df: q, dfResidual, pValue: pf(statistic / q, q, dfResidual, { lowerTail: false }) as number, method: "Wald" };
 }
