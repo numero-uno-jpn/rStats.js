@@ -125,7 +125,7 @@ export interface GlmnetMultinomialResult {
   a0: number[][];
   /** Predictor coefficient estimates for each penalty value. */
   beta: Record<string, number[][]>;
-  /** Value for dfmat. */
+  /** Class-specific degrees of freedom at each penalty value. */
   dfmat: number[][];
   /** Fraction of null deviance explained at each penalty value. */
   devRatio: number[];
