@@ -248,12 +248,14 @@ describe("rStats.js 1.8.0 public-output completeness against the pinned R oracle
     close(poissonFit.nullDev, f.poisson.value.nullDev, 1e-7);
     const typeExpected = f.predictTypes.value;
     const binLink = glmnetPredict(binFit, x.slice(0, 4), { s: binFit.lambda[2]!, type: "link" });
+    const binResponse = glmnetPredict(binFit, x.slice(0, 4), { s: binFit.lambda[2]!, type: "response" });
     console.log("[regression18-oracle] binomial prediction diagnostic", JSON.stringify({
       lambda: binFit.lambda, beta: binFit.beta, a0: binFit.a0, converged: binFit.converged,
-      kkt: binFit.kktResidual, link: binLink, expected: typeExpected.link.values,
+      kkt: binFit.kktResidual, link: binLink, rDefault: typeExpected.link.values,
+      r16: typeExpected.linkT16.values, r20: typeExpected.linkT20.values,
     }));
-    matrix(transpose(binLink), typeExpected.link.values);
-    matrix(transpose(glmnetPredict(binFit, x.slice(0, 4), { s: binFit.lambda[2]!, type: "response" })), typeExpected.response.values);
+    matrixWithROracleUncertainty(transpose(binLink), typeExpected.linkT16.values, typeExpected.linkT20.values);
+    matrixWithROracleUncertainty(transpose(binResponse), typeExpected.responseT16.values, typeExpected.responseT20.values);
     const classPrediction = glmnetPredict(binFit, x.slice(0, 4), { s: binFit.lambda[2]!, type: "class" });
     const expectedClass = Array.isArray(typeExpected.class[0]) ? typeExpected.class.flat() : typeExpected.class;
     expect(classPrediction[0]!.map(String)).toEqual(expectedClass);
