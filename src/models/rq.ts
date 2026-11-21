@@ -762,19 +762,22 @@ function rqBandwidth(n: number, tau: number, level: number): number {
 }
 function rqBread(model: RqModel, tau: number, level: number, warnings?: string[]): number[][] {
   const h = rqBandwidth(model.y.length, tau, level);
-  const minus = fitOne(model.x, model.y, model.weights, tau - h, model.method, 500, 1e-12).beta;
-  const plus = fitOne(model.x, model.y, model.weights, tau + h, model.method, 500, 1e-12).beta;
-  const p = model.columnNames.length;
-  const bread = Array.from({ length: p }, () => new Array<number>(p).fill(0));
   let responseScale = 0;
   for (const value of model.y) responseScale = Math.max(responseScale, Math.abs(value));
-  const densityScale = responseScale > 1e8 || (responseScale > 0 && responseScale < 1e-8) ? responseScale : 1;
-  const densityTolerance = NID_DENSITY_EPS * densityScale;
+  const yScale = responseScale > 0 ? responseScale : 1;
+  const normalizedY = model.y.map((value) => value / yScale);
+  const minus = fitOne(model.x, normalizedY, model.weights, tau - h, model.method, 500, 1e-12).beta;
+  const plus = fitOne(model.x, normalizedY, model.weights, tau + h, model.method, 500, 1e-12).beta;
+  const p = model.columnNames.length;
+  const bread = Array.from({ length: p }, () => new Array<number>(p).fill(0));
+  const extremeScale = responseScale > 1e8 || (responseScale > 0 && responseScale < 1e-8);
+  const densityTolerance = NID_DENSITY_EPS * (extremeScale ? 1 : 1 / yScale);
   let nonPositive = 0;
   for (let i = 0; i < model.y.length; i++) {
     const row = model.x[i]!;
-    const difference = dot(row, plus) - dot(row, minus);
-    const density = difference > densityTolerance ? (2 * h) / (difference - densityTolerance) : 0;
+    const delta = plus.map((value, j) => value - minus[j]!);
+    const difference = dot(row, delta);
+    const density = difference > densityTolerance ? (2 * h / yScale) / (difference - densityTolerance) : 0;
     if (density === 0) nonPositive++;
     for (let j = 0; j < p; j++) for (let k = 0; k <= j; k++) bread[j]![k]! += model.weights[i]! * density * row[j]! * row[k]!;
   }
