@@ -29,7 +29,7 @@ export interface GeeOptions {
   link?: GlmLink;
   corstr?: GeeCorrelation;
   "std.err"?: GeeStdErr;
-  zcor?: readonly (readonly number[])[];
+  zcor?: readonly (readonly number[])[] | Sample;
   weights?: string | Sample;
   offset?: string | Sample;
   "scale.fix"?: boolean;
@@ -427,7 +427,13 @@ export function geeglm(formula: string, data: DataFrame, options: GeeOptions): G
   if (weights.every((v) => v === 0)) throw new RangeError("no observations with positive weight");
   if (options.zcor !== undefined && (!Array.isArray(options.zcor) || options.zcor.some((r) => !Array.isArray(r)))) throw new TypeError("zcor must be a matrix");
   if ((corstr === "userdefined" || corstr === "fixed") && options.zcor === undefined) throw new TypeError("zcor is required for userdefined and fixed working correlations");
-  const zcor: number[][] | undefined = options.zcor === undefined ? undefined : options.zcor.map((r) => Array.from(r as readonly number[]));
+  let zcor: number[][] | undefined;
+  if (options.zcor !== undefined) {
+    const rawZcor = Array.from(options.zcor as ArrayLike<unknown>);
+    zcor = typeof rawZcor[0] === "number"
+      ? rawZcor.map((v) => [v as number])
+      : rawZcor.map((r) => Array.from(r as readonly number[]));
+  }
   if (zcor?.some((r) => r.some((v) => !Number.isFinite(v)))) throw new RangeError("zcor must contain finite numbers");
   if (zcor !== undefined) {
     let pairCount = 0;
