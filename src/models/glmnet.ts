@@ -673,8 +673,11 @@ export function glmnetPredict(
   fit: GlmnetScalarResult, newx: readonly (readonly number[])[], options?: GlmnetPredictOptions,
 ): number[][];
 export function glmnetPredict(
-  fit: GlmnetMultinomialResult, newx: readonly (readonly number[])[], options?: GlmnetPredictOptions,
-): number[][][] | string[][];
+  fit: GlmnetMultinomialResult, newx: readonly (readonly number[])[], options: GlmnetPredictOptions & { type: "class" },
+): string[][];
+export function glmnetPredict(
+  fit: GlmnetMultinomialResult, newx: readonly (readonly number[])[], options?: GlmnetPredictOptions & { type?: "link" | "response" | "nonzero" },
+): number[][][];
 export function glmnetPredict(
   fit: GlmnetResult, newx: readonly (readonly number[])[], options: GlmnetPredictOptions = {},
 ): number[][] | number[][][] | string[][] {
