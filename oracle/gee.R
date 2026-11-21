@@ -85,6 +85,58 @@ out$inputs <- list(
   poisson_offset=plain(sz)
 )
 
+# Deterministic public-output check data used for independent formula validation.
+gee_check <- data.frame(
+  id=rep(1:12,each=3),
+  wave=rep(1:3,12),
+  x=rep(c(-1,0,1),12),
+  y=c(
+    1.7534,2.9203,2.5018,2.8479,3.1191,3.3040,1.9940,2.9519,3.3162,
+    2.0370,3.1600,3.7074,2.1179,2.7573,3.5305,1.8430,2.5981,3.7241,
+    2.0848,2.1128,3.2114,2.4783,2.6839,3.3756,2.4709,3.7123,3.0934,
+    2.8241,2.1850,3.5375,1.5652,3.4757,3.8670,2.7189,2.3572,3.7923
+  )
+)
+out$gee_check <- list()
+for (cs in c("independence","exchangeable","ar1","unstructured")) {
+  out$gee_check[[cs]] <- run({
+    f <- geeglm(y~x,id=id,waves=wave,data=gee_check,family=gaussian,corstr=cs)
+    ft <- geeglm(y~x,id=id,waves=wave,data=gee_check,family=gaussian,corstr=cs,
+                 control=geese.control(epsilon=1e-12,maxit=500))
+    list(
+      default=capture(f),
+      tight=capture(ft,FALSE),
+      fitted=unname(fitted(f)),
+      pearson=unname(residuals(f,type="pearson"))
+    )
+  })
+}
+set.seed(1729)
+jackknife_binomial <- data.frame(
+  id=rep(1:20,each=3),
+  wave=rep(1:3,20),
+  age=rep(seq(20,58,length.out=20),each=3)+rep(c(-1,0,1),20),
+  smoke=rep(rep(c(0,1),each=10),each=3)
+)
+eta <- -2.8 + 0.04*jackknife_binomial$age + 0.9*jackknife_binomial$smoke + 0.15*jackknife_binomial$wave
+jackknife_binomial$resp <- rbinom(nrow(jackknife_binomial),1,plogis(eta))
+out$jackknife_binomial <- list()
+for (st in c("jack","j1s","fij")) {
+  out$jackknife_binomial[[st]] <- run({
+    f <- geeglm(resp~age+smoke,id=id,waves=wave,data=jackknife_binomial,
+                family=binomial,corstr="exchangeable",std.err=st)
+    list(
+      coefficients=unname(coef(f)),
+      vcov=tab(vcov(f)),
+      summary=tab(coef(summary(f))),
+      corr=tab(summary(f)$corr),
+      dispersion=tab(summary(f)$dispersion)
+    )
+  })
+}
+out$inputs$gee_check <- plain(gee_check)
+out$inputs$jackknife_binomial <- plain(jackknife_binomial)
+
 for (st in c("jack","j1s","fij")) out[[paste0("jack_",st)]] <- run({
  f <- geeglm(resp~age+smoke,id=id,data=ohio,family=binomial,corstr="exchangeable",std.err=st)
  capture(f)
