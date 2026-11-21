@@ -10,7 +10,7 @@ const y = [4,2,5,1,7,0,6,3,8,2,9,1];
 
 describe("elastic-net generalized linear models", () => {
   it("matches the tight Gaussian lasso path and returns original-scale coefficients", () => {
-    const fit = glmnet(x, y, { nlambda: 8, lambdaMinRatio: 0.01, thresh: 1e-12 });
+    const fit = glmnet(x, y, { nlambda: 8, lambdaMinRatio: 0.01, thresh: 1e-14 });
     const expectedLambda = [
       0.647290715250188,0.335262586973981,0.173648408012529,0.0899407532389702,
       0.0465845854032229,0.0241283680538477,0.0124972271386075,0.00647290715250188,
@@ -70,13 +70,16 @@ describe("elastic-net generalized linear models", () => {
       const fit = glmnet(multiX, multiY, { family: "multinomial", typeMultinomial, nlambda: 6 });
       const expected = fixture[`multinomial_${typeMultinomial}`].value;
       expect(fit.lambda[0]).toBeCloseTo(expected.lambda[0]!, 7);
-      expect(fit.a0[0]![1]).toBeCloseTo(expected.a0.values[0]![1]!, 5);
-      const probabilities = glmnetPredict(fit, multiX.slice(0, 3), { s: fit.lambda[2]!, type: "response" });
-      for (const row of probabilities[0]!) {
-        expect(row.reduce((a, b) => a + b, 0)).toBeCloseTo(1, 12);
+      const predictionRows = [multiX[0]!, multiX[50]!, multiX[100]!];
+      const probabilities = glmnetPredict(fit, predictionRows, { s: fit.lambda[2]!, type: "response" });
+      const expectedRows = expected.response as Array<Record<string, number>>;
+      const classesInOrder = ["setosa", "versicolor", "virginica"];
+      for (let i = 0; i < 3; i++) for (let k = 0; k < 3; k++) {
+        const key = Object.keys(expectedRows[i]!).find(name => name.startsWith(classesInOrder[k]! + ".s="))!;
+        expect(probabilities[0]![i]![k]).toBeCloseTo(expectedRows[i]![key]!, 5);
       }
-      const classes = glmnetPredict(fit, multiX.slice(0, 3), { s: fit.lambda[2]!, type: "class" });
-      expect(classes[0]).toEqual(["setosa", "setosa", "setosa"]);
+      const classes = glmnetPredict(fit, predictionRows, { s: fit.lambda[2]!, type: "class" });
+      expect(classes[0]).toEqual(["setosa", "versicolor", "virginica"]);
       expect(glmnetCoef(fit, fit.lambda[2]!)).toHaveProperty("setosa");
     }
   });
