@@ -34,7 +34,7 @@ g <- data.frame(id=rep(1:12,each=3),wave=rep(1:3,12),x=rep(c(-1,0,1),12),
 for(cs in c("independence","exchangeable","ar1","unstructured")) for(tol in c(1e-10,1e-12,1e-14))
  out[[paste0("gee_",cs,"_",format(tol,scientific=TRUE))]] <- capture({
  f<-geeglm(y~x,id=id,waves=wave,data=g,family=gaussian,corstr=cs,
-           control=geese.control(epsilon=tol,maxit=500))
+           control=geese.control(epsilon=tol,maxit=1000))
  s<-summary(f)
  list(coef=coef(f),vcov=tab(vcov(f)),summary=tab(coef(s)),corr=tab(s$corr),
       dispersion=tab(s$dispersion),qic=as.numeric(QIC(f)))
