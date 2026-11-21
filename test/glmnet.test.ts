@@ -88,8 +88,8 @@ describe("elastic-net generalized linear models", () => {
   it("matches the public grouped and ungrouped multinomial path starts", () => {
     const fixture = glmnetFixture as unknown as {
       multinomialData: { X: { values: number[][] }; y: string[] };
-      multinomial_ungrouped: { value: { lambda: number[]; a0: { values: number[][] }; response: Array<Record<string, number>> } };
-      multinomial_grouped: { value: { lambda: number[]; a0: { values: number[][] }; response: Array<Record<string, number>> } };
+      multinomial_ungrouped: { value: { lambda: number[]; a0: { values: number[][] }; beta: Record<string, { values: number[][] }>; response: Array<Record<string, number>> } };
+      multinomial_grouped: { value: { lambda: number[]; a0: { values: number[][] }; beta: Record<string, { values: number[][] }>; response: Array<Record<string, number>> } };
     };
     const multiX = fixture.multinomialData.X.values, multiY = fixture.multinomialData.y;
     for (const typeMultinomial of ["ungrouped", "grouped"] as const) {
@@ -97,6 +97,7 @@ describe("elastic-net generalized linear models", () => {
       const expected = fixture[`multinomial_${typeMultinomial}`].value;
       expect(fit.lambda[0]).toBeCloseTo(expected.lambda[0]!, 7);
       expect(fit.converged.every(Boolean)).toBe(true);
+      expect(fit.beta.setosa![1]![2]).toBeCloseTo(expected.beta.setosa!.values[1]![2]!, 5);
       expect(fit.kktResidual.every(v => v < 1e-7)).toBe(true);
       const predictionRows = [multiX[0]!, multiX[50]!, multiX[100]!];
       const probabilities = glmnetPredict(fit, predictionRows, { s: fit.lambda[2]!, type: "response" });
