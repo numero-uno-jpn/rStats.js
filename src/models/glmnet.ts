@@ -356,10 +356,10 @@ export function cvGlmnet(x: readonly (readonly number[])[], y: readonly number[]
   const foldScores = folds.map(fold => y.map((_,i)=>i).filter(i=>foldid[i]===fold));
   for (let k=0;k<lambda.length;k++) measures.push(foldScores.map(indices=>score(indices,k)));
   const cvm=lambda.map((_,k)=>grouped
-    ? sum(measures.map(v=>v[k]!))/folds.length
+    ? sum(measures[k]!)/folds.length
     : score(y.map((_,i)=>i),k));
   const cvsd=lambda.map((_,k)=>{
-    if(grouped){const m=cvm[k]!;return Math.sqrt(sum(measures.map(v=>(v[k]!-m)**2))/(folds.length-1)/folds.length);}
+    if(grouped){const m=cvm[k]!;return Math.sqrt(sum(measures[k]!.map(v=>(v-m)**2))/(folds.length-1)/folds.length);}
     const vals=y.map((_,i)=> {
       const observed=y[i]!, predicted=predictions[i]![k]!;
       if(measure==="mae") return Math.abs(predicted-observed);
