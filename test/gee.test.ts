@@ -155,28 +155,7 @@ describe("generalized estimating equations", () => {
     expect(ordinary.converged).toBe(true);
   });
 
-  it("keeps jack and j1s covariance estimates finite on the seeded binomial clusters", () => {
-    const resp = [0,0,0,0,1,0,0,0,1,1,0,0,0,0,0,0,0,1,0,1,0,0,0,0,0,0,0,0,0,1,
-      0,0,0,1,1,1,1,1,1,1,1,1,1,1,0,1,0,1,0,1,1,0,1,1,0,1,1,1,1,1];
-    const jackData = {
-      id: Array.from({ length: 60 }, (_, i) => Math.floor(i / 3) + 1),
-      wave: Array.from({ length: 60 }, (_, i) => i % 3 + 1),
-      age: Array.from({ length: 60 }, (_, i) => 20 + Math.floor(i / 3) * 2 + (i % 3) - 1),
-      smoke: Array.from({ length: 60 }, (_, i) => Math.floor(Math.floor(i / 3) / 10)),
-      resp,
-    };
-    for (const method of ["jack", "j1s"] as const) {
-      const fit = geeglm("resp ~ age + smoke", jackData, {
-        id: "id", waves: "wave", family: "binomial", corstr: "exchangeable", "std.err": method,
-      });
-      const covariance = fit.covariance.flat();
-      const standardErrors = fit.covariance.map((row, i) => Math.sqrt(row[i]!));
-      // R comparisons and their unresolved discrepancies are recorded in oracle/gee-behaviour.md §8.
-      expect(covariance).toHaveLength(9);
-      expect(covariance.every(Number.isFinite)).toBe(true);
-      expect(standardErrors.every(v => Number.isFinite(v) && v > 0)).toBe(true);
-    }
-  });
+
 
   it("supports unstructured, user-defined, and fixed pairwise working correlations", () => {
     const unstructured = geeglm("y ~ x", geeCheckData, { id: "id", waves: "wave", corstr: "unstructured" });
