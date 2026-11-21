@@ -701,7 +701,7 @@ function rqNidCovariance(model: RqModel, tau: number, level: number): number[][]
   return middle.map((row) => row.map((v) => v * scale));
 }
 
-/** Coefficient summary with Hall–Sheather bandwidth and the nid sandwich covariance. Equivalent to R's summary.rq().
+/** Coefficient summary with Hall–Sheather bandwidth and the nid sandwich covariance. Equivalent to R's `summary.rq()`.
  *
  * @category Regression
  */
@@ -726,7 +726,7 @@ export function rqSummary(fit: RqResult, options: RqSummaryOptions = {}): RqSumm
   return { coefficients, ...(options.covariance ? { covariance: covariances } : {}), se, warnings: [...fit.warnings] };
 }
 
-/** Confidence intervals for conditional quantile predictions using nid or direct quantile refits. Equivalent to R's predict.rq().
+/** Confidence intervals for conditional quantile predictions using nid or direct quantile refits. Equivalent to R's `predict.rq()`.
  *
  * @category Regression
  */
@@ -772,7 +772,7 @@ export function rqPredictInterval(fit: RqResult, newdata: DataFrame, options: Rq
   return { fit: predicted, lower, upper, level, type };
 }
 
-/** Wald test of equality of slopes across the quantiles in a multiple-tau fit. Equivalent to R's anova.rq().
+/** Wald test of equality of slopes across the quantiles in a multiple-tau fit. Equivalent to R's `anova.rq()`.
  *
  * @category Regression
  */
