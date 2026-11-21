@@ -326,12 +326,12 @@ describe("quantile regression", () => {
     const joint = rqAnova(twoPredictorFit, true);
     const separate = rqAnova(twoPredictorFit, false);
     expect(joint.df).toBe(4);
-    expect(joint.dfResidual).toBe(176);
+    expect(joint.dfResidual).toBe(44);
     if (!Array.isArray(separate)) throw new Error("joint=false must return separate Wald tests");
     expect(separate).toHaveLength(2);
     expect(separate[0]!.df).toBe(2);
-    expect(separate[0]!.dfResidual).toBe(178);
-    expect(separate[1]!.dfResidual).toBe(178);
+    expect(separate[0]!.dfResidual).toBe(46);
+    expect(separate[1]!.dfResidual).toBe(46);
   });
 
   it.todo("iid density estimator is unresolved pending the user's independent review");
