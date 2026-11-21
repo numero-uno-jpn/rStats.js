@@ -34,6 +34,14 @@
   作業ブランチ `a183864d`。段階 2 の指示は `briefs/regression-1.8-stage2.ja.md` (oracle に足す case の一覧つき)
 - 次: ChatGPT が段階 2 (rq → geeglm → glmnet)。fixture の依頼が Issue に来たら `npm run oracle -- <名前>` で作って push。
   1 つずつ CI 緑の報告が来たら、私が数値を独立に点検する
+- **段階 2 の途中 (2026-11-21 朝、作業ブランチ `d5b3c834`):** rq の当てはめ (br・fn) は完了。総当たりの回避策を
+  差し戻し、指示 `briefs/regression-1.8-rq-lp.ja.md` で作り直させた (br 1 万件 846 ms、fn 10 万件 796 ms)。rq の nid・
+  predict・anova (Wald)・複数 τ も済み。**rq の未解明 4 件** (iid の密度、rank の端点、ker の帯域、boot の pwy・mcmb・wxy) は
+  `it.todo`。ユーザーの判断で ChatGPT にもう一度やらせたが、実験 `regression18-rq-final-probe.R` が R のエラーで止まり、
+  ChatGPT は先に geeglm へ進んだ。geeglm は大半を実装、テスト 1 件 (`zcor must be a matrix`) が落ちる。
+  私がした直し: `oracle/rq.R` の JSON にできない 2 か所、`oracle/gee.R` の poisson 無構造の厳しい当て直し (geepack が
+  maxit = 200 でも 60 秒で終わらない) を外した。fixture rq・gee は作り直し済み。生成物 (option keys・R の索引) は最後に私が作る
+- ChatGPT は返答のたびに「メッセージの配信がタイムアウト」になりやすい。そのたびに Issue #545 とブランチを見て再開の依頼文を書く
 - (以前) 次: ユーザーが ChatGPT に依頼文を貼る → 段階 1 の報告 (仕様書 3 つ + Decisions) を Issue #545 で点検 → Decisions を
   ユーザーに聞いて choices を書く → fixture を作る
 
