@@ -200,6 +200,7 @@ The public geese.control values are trace=0, jack=0, j1s=0, fij=0, maxit=25, eps
 2. Single-fit anova for the fixed working-correlation structure did not finish within 40 seconds in the earlier ohio_fixed run. The fixed fit and zcor construction are recorded; no further time was spent on this slow path.
 3. The validation matrix for arbitrary user-defined zcor, unequal cluster sizes, and all missing-wave patterns is not exhaustive. userdefinedToeplitz and wavesGap verify the basic cases; unsupported layouts should be rejected until specified.
 4. The public summary reports standard errors for working-correlation and scale parameters, and the oracle captures the corresponding alphaVar/gammaVar and dispersion tables. Their nuisance-parameter estimating-equation sandwich has not yet been independently reconstructed entry-by-entry. The 12-cluster Gaussian and 20-cluster binomial public values are retained; no unsupported closed-form shortcut is claimed.
+5. The current rStats.js branch has provisional code paths for jack, j1s, and fij. jack uses a full-bread linearized deletion, j1s uses the bread with the deleted cluster contribution removed for its one-step update, and fij refits after each cluster deletion. These choices have not yet been compared with the newly expanded public-output fixture; they are not accepted as matching R until coefficient covariance and summary standard errors are compared. In particular, the exact finite-sample distinction between jack and j1s remains unresolved.
 
 ## Decisions for the user
 
