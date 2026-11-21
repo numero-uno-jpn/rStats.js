@@ -482,7 +482,7 @@ function geeStep(
 function fitIndependenceForQIC(
   x: readonly (readonly number[])[], y: readonly number[], startBeta: readonly number[],
   offset: readonly number[], weights: readonly number[], family: Family,
-  clusterGroups: readonly number[][], waves: readonly number[], startScale: number,
+  clusterGroups: number[][], waves: number[], startScale: number,
   scaleFix: boolean, scaleValue: number, epsilon: number, maxit: number,
 ): { beta: number[]; scale: number } {
   let beta = Array.from(startBeta), scale = startScale;
