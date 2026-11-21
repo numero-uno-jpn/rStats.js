@@ -225,10 +225,12 @@ describe("rStats.js 1.8.0 public-output completeness against the pinned R oracle
     expect(tightFit.kktResidual.every(Number.isFinite)).toBe(true);
 
     const offPath = glmnet(x, y, { lambda: [2, 1, 0.5, 0.25, 0.125] });
-    const coefExpected = f.offPath.value.coef;
-    matrix(transpose(glmnetCoef(offPath, [0.75, 0.3])), coefExpected.values);
-    const predictExpected = f.offPath.value.predict;
-    matrix(transpose(glmnetPredict(offPath, x.slice(0, 4), { s: [0.75, 0.3], type: "link" })), predictExpected.values);
+    vector(offPath.lambda, f.offPath.value.lambda, 1e-10);
+    matrixWithROracleUncertainty(transpose(glmnetCoef(offPath, [0.75, 0.3])),
+      flatTable(f.offPath.value.coefT16), flatTable(f.offPath.value.coefT20));
+    matrixWithROracleUncertainty(
+      transpose(glmnetPredict(offPath, x.slice(0, 4), { s: [0.75, 0.3], type: "link" })),
+      flatTable(f.offPath.value.predictT16), flatTable(f.offPath.value.predictT20));
 
     const binY = [0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1];
     const binFit = glmnet(x, binY, { family: "binomial", nlambda: 6 });
