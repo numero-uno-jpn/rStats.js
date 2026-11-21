@@ -480,6 +480,7 @@ function glmnetScalar(x: readonly (readonly number[])[], y: readonly number[], o
   if (!(fdev >= 0) || !Number.isFinite(fdev) || !(devmax > 0 && devmax <= 1)) throw new RangeError("invalid fdev or devmax");
   const a0: number[] = [], beta: number[][] = [], df: number[] = [], devRatio: number[] = [], converged: boolean[] = [], kktResidual: number[] = [];
   const nullDev = deviance(y, eta0, w, family);
+  const reportedNullDev = family === "gaussian" ? nullDev * n : nullDev;
   // For gaussian, glmnet standardizes y to unit variance (the 1/n formula) before fitting and unstandardizes the
   // coefficients (glmnet's documentation). The lasso part is unchanged by that, but the ridge part is not: the fit
   // is that of y / sd(y) at lambda / sd(y), scaled back. Checked against R with alpha < 1 (the closed form of an
@@ -531,7 +532,7 @@ function glmnetScalar(x: readonly (readonly number[])[], y: readonly number[], o
         currentDevRatio - previousDevRatio < fdev * currentDevRatio)) break;
   }
   if (a0.length === 0) throw new RangeError("no lambda values satisfy dfmax and pmax");
-  return { family, alpha, lambda: lambdas.slice(0, a0.length), a0, beta, df, devRatio, nullDev, npasses, converged, kktResidual,
+  return { family, alpha, lambda: lambdas.slice(0, a0.length), a0, beta, df, devRatio, nullDev: reportedNullDev, npasses, converged, kktResidual,
     model: { x: x.map(r => Array.from(r)), y: Array.from(y), weights: w, offset, xMean, xScale, intercept, columns: p } };
 }
 
