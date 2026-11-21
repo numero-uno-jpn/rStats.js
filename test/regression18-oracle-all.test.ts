@@ -148,6 +148,12 @@ describe("rStats.js 1.8.0 public-output completeness against the pinned R oracle
     const ohio = g.inputs.ohio;
     const ohioFit = geeglm("resp ~ age + smoke", ohio, { id: "id", family: "binomial", corstr: "ar1", epsilon: 1e-12, maxit: 1000 });
     const prediction = g.predict.value;
+    expect(ohioFit.converged).toBe(true);
+    console.log("[regression18-oracle] Ohio GEE coefficients JS vs strict R", JSON.stringify({
+      js: ohioFit.coefficients, rTight: prediction.coefficientsTight, rTighter: prediction.coefficientsTighter,
+      iterations: ohioFit.iterations, converged: ohioFit.converged,
+    }));
+    vectorWithROracleUncertainty(ohioFit.coefficients, prediction.coefficientsTight, prediction.coefficientsTighter);
     const newdata = { age: [-2, 0, 1], smoke: ["0", "1", "1"] };
     const linkPrediction = geePredict(ohioFit, { newdata, type: "link" });
     const responsePrediction = geePredict(ohioFit, { newdata, type: "response" });
