@@ -847,5 +847,8 @@ export function geeQIC(fit: GeeResult): GeeQICResult {
   const qic = -2 * q + 2 * cic;
   const qicu = -2 * q + 2 * p;
   const k = new Set(fit.clusterIds.map((v) => String(v))).size;
-  return { QIC: qic, QICu: qicu, Q: q, CIC: cic, params: p, QICC: k > p + 1 ? qic + 2 * p * (p + 1) / (k - p - 1) : NaN };
+  // The finite-sample correction counts both mean-model and estimated working-correlation parameters.
+  const totalParams = p + fit.alpha.length;
+  return { QIC: qic, QICu: qicu, Q: q, CIC: cic, params: p, QICC: k > totalParams + 1
+    ? qic + 2 * totalParams * (totalParams + 1) / (k - totalParams - 1) : NaN };
 }
