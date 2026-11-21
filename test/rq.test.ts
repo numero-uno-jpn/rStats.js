@@ -294,6 +294,14 @@ describe("quantile regression", () => {
     expect(result.dfResidual).toBe(46);
     expect(result.pValue).toBeGreaterThanOrEqual(0);
     expect(result.pValue).toBeLessThanOrEqual(1);
+    const single = rq("y ~ x", data, { tau: 0.5, method: "fn", eps: 1e-12 });
+    const reduced = rq("y ~ 1", data, { tau: 0.5, method: "fn", eps: 1e-12 });
+    const nested = rqAnova(single, reduced);
+    expect(nested.method).toBe("Wald");
+    expect(nested.df).toBe(1);
+    expect(nested.dfResidual).toBe(48);
+    expect(nested.pValue).toBeGreaterThanOrEqual(0);
+    expect(nested.pValue).toBeLessThanOrEqual(1);
   });
 
   it.todo("iid density estimator is unresolved pending the user's independent review");

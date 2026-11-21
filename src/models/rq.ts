@@ -707,11 +707,11 @@ function rqNidCovariance(model: RqModel, tau: number, level: number): number[][]
  */
 export function rqSummary(fit: RqResult, options: RqSummaryOptions = {}): RqSummaryResult {
   for (const key of Object.keys(options)) if (!["se", "covariance", "level"].includes(key)) throw new TypeError("unused argument (" + key + ")");
-  const se = options.se ?? "nid";
+  const model = fit.model;
+  const se = options.se ?? (model.y.length <= 1000 ? "rank" : "nid");
   if (se !== "nid") throw new RangeError("rqSummary currently supports se = 'nid'; iid, rank, ker and boot remain unresolved");
   const level = options.level ?? 0.95;
   if (!(level > 0 && level < 1)) throw new RangeError("level must be between 0 and 1");
-  const model = fit.model;
   const covariances = model.tau.map((tau) => rqNidCovariance(model, tau, level));
   const coefficients: RqCoefficientSummary[] = [];
   for (let k = 0; k < model.tau.length; k++) for (let j = 0; j < model.columnNames.length; j++) {
@@ -776,8 +776,31 @@ export function rqPredictInterval(fit: RqResult, newdata: DataFrame, options: Rq
  *
  * @category Regression
  */
-export function rqAnova(fit: RqResult): { statistic: number; df: number; dfResidual: number; pValue: number; method: "Wald" } {
+export function rqAnova(fit: RqResult, reduced?: RqResult): { statistic: number; df: number; dfResidual: number; pValue: number; method: "Wald" } {
   const model = fit.model;
+  if (reduced) {
+    const smallModel = reduced.model;
+    if (model.tau.length !== 1 || smallModel.tau.length !== 1 || model.tau[0] !== smallModel.tau[0]) {
+      throw new RangeError("nested Wald comparison requires two fits at the same single tau");
+    }
+    if (model.y.length !== smallModel.y.length || model.weights.some((w, i) => w !== smallModel.weights[i])) {
+      throw new RangeError("nested Wald comparison requires the same observations and weights");
+    }
+    const omitted = model.columnNames.map((name, i) => ({ name, i })).filter(({ name }) => !smallModel.columnNames.includes(name));
+    if (omitted.length === 0 || smallModel.columnNames.some((name) => !model.columnNames.includes(name))) {
+      throw new RangeError("the second model must be a strict nested submodel of the first");
+    }
+    const covariance = rqNidCovariance(model, model.tau[0]!, 0.95);
+    const indices = omitted.map((v) => v.i);
+    const small = indices.map((i) => indices.map((j) => covariance[i]![j]!));
+    const inv = rqInverse(small);
+    const difference = omitted.map(({ name }) => fit.coefficients[name] as number);
+    const weighted = rqMul(inv, [difference]).map((row) => row[0]!);
+    const statistic = difference.reduce((sum, value, i) => sum + value * weighted[i]!, 0);
+    const df = omitted.length;
+    const dfResidual = model.y.length - model.columnNames.length;
+    return { statistic, df, dfResidual, pValue: pf(statistic / df, df, dfResidual, { lowerTail: false }) as number, method: "Wald" };
+  }
   const p = model.columnNames.length;
   const m = model.tau.length;
   if (m < 2) throw new RangeError("Wald anova requires a multiple-tau fit");
