@@ -169,7 +169,7 @@ describe("rStats.js 1.8.0 public-output completeness against the pinned R oracle
 
     const qic = geeQIC(fit);
     const qicValues = [qic.QIC, qic.QICu, qic.Q, qic.CIC, qic.params, qic.QICC];
-    vectorWithROracleUncertainty(qicValues, expected.qic, expected.qicTight);
+    vectorWithROracleUncertainty(qicValues, expected.qic, g.gee_check.independence.value.qicTight);
   });
 
   it("compares all R-observable glmnet, glmnetCoef, glmnetPredict, and cvGlmnet fields", () => {
