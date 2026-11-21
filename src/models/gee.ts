@@ -480,8 +480,8 @@ function geeStep(
 
 /** Fit the independence working-correlation model used to construct Omega_I in QIC. */
 function fitIndependenceForQIC(
-  x: readonly (readonly number[])[], y: readonly number[], startBeta: readonly number[],
-  offset: readonly number[], weights: readonly number[], family: Family,
+  x: number[][], y: number[], startBeta: readonly number[],
+  offset: number[], weights: number[], family: Family,
   clusterGroups: number[][], waves: number[],
   scaleFix: boolean, scaleValue: number, epsilon: number, maxit: number,
 ): { beta: number[]; scale: number } {
