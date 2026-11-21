@@ -561,9 +561,11 @@ function fitMultinomialOne(
     let candidateA: number[] = [], candidateB: number[][] = [], candidateEta: number[][] = [];
     let candidateObjective = Infinity, accepted = false;
     for (let restart = 0; restart < 20; restart++) {
-      candidateA = extrapA.map((v, k) => v - step * gradients.gradA[k]!);
-      let centerA = 0; for (const v of candidateA) centerA += v; centerA /= kCount;
-      for (let k = 0; k < kCount; k++) candidateA[k] = candidateA[k]! - centerA;
+      candidateA = intercept ? extrapA.map((v, k) => v - step * gradients.gradA[k]!) : extrapA.slice();
+      if (intercept) {
+        let centerA = 0; for (const v of candidateA) centerA += v; centerA /= kCount;
+        for (let k = 0; k < kCount; k++) candidateA[k] = candidateA[k]! - centerA;
+      }
       candidateB = extrapB.map((row, j) => {
         const z = row.map((v, k) => v - step * gradients.gradB[j]![k]!);
         const penaltyWeight = step * lambda * alpha * penalty[j]!;
