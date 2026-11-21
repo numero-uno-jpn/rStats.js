@@ -132,6 +132,8 @@ describe("elastic-net generalized linear models", () => {
     expect(grouped.lambda1se).toBeGreaterThanOrEqual(grouped.lambdaMin);
     expect(grouped.lambda).toContain(grouped.lambdaMin);
     expect(grouped.lambda).toContain(grouped.lambda1se);
+    const prevalence = ungrouped.fitPreval as number[][];
+    expect(prevalence[0]![0]).toBeCloseTo(fixture.cv.value.groupedFalse.preval.values[0]![0]!, 7);
     expect(ungrouped.cvm[0]).toBeCloseTo(fixture.cv.value.groupedFalse.cvm[0]!, 7);
     expect(ungrouped.cvsd[0]).toBeCloseTo(fixture.cv.value.groupedFalse.cvsd[0]!, 7);
   });
