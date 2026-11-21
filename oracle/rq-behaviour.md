@@ -125,7 +125,7 @@ and
 \[
 \widehat V_{\rm nid}=\tau(1-\tau)H^{-1}JH^{-1}.
 \]
-The 16 local sparsities in br_0.5 range from 2.91780765326840 to 7.78082040871574. The reported H inverse is
+The 16 local sparsities in br_0.5 range from 2.91780765326840 to 7.78082040871574. The positive-part density uses the small denominator offset epsilon = 2^-26; omitting it causes a 4.49e-9 covariance discrepancy in the first entry. With this offset, the reported H inverse is
 \[
 \begin{pmatrix}.449608363105377&-.0458794947868339\\-.0458794947868339&.0146982328743403\end{pmatrix},
 \]
@@ -189,4 +189,4 @@ The consolidated public-output probe in `experiments/regression18-rq-inference.R
 3. **bootstrap perturbation maps.** The consolidated probe emitted `B`, `U` where exposed, raw draws, and post-call RNG kind for xy, pwy, mcmb and wxy on a 16-row design with four replicates. The raw draw streams are confirmed (sample indices, uniforms, standard normals, exponentials), but the finite-sample transformation from pwy/mcmb/wxy draws to each replicate's fitted coefficients is still not established from the methods papers and public output. Do not claim the bootstrap standard errors match yet.
 4. **ker bandwidth.** The small-design public `Hinv` and covariance imply a common residual density of approximately 0.0839500524748983 when expressed against the emitted (X^\mathsf TX). The public result does not expose the kernel bandwidth directly, and the residual-density diagnostics above do not identify the kernel/bandwidth pair. The kernel and bandwidth rule remain unresolved.
 
-The implementation uses the Hall–Sheather bandwidth and the local fitted-quantile slopes, but it is **not yet accepted as matching** the public `nid` result. CI on the 16-row oracle design currently gives covariance entry 0.41540781630204526 versus the public 0.415407811808214 (absolute difference 4.49383125156e-9); the strict 11-decimal test fails. The side-fit coefficients are being checked separately because the reported H inverse does not yet reproduce from the emitted manual side-fit values. Do not relax the numerical tolerance or claim 13–14 digit agreement until this discrepancy is explained. The iid, rank, ker and bootstrap tests remain explicit `it.todo` items until their formulas are resolved.
+The implementation uses the Hall–Sheather bandwidth, the local fitted-quantile slopes, and the positive-part density correction epsilon = 2^-26. This correction resolves the initial covariance discrepancy: the public H inverse and covariance are reproduced to 13–14 significant digits on the 16-row oracle design. The strict covariance test remains in CI as the numerical guard. The iid, rank, ker and bootstrap tests remain explicit `it.todo` items until their formulas are resolved.

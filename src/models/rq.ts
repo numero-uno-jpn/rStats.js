@@ -663,24 +663,28 @@ function rqInverse(a: readonly number[][]): number[][] {
 function rqMul(a: readonly number[][], b: readonly number[][]): number[][] {
   return a.map((row) => b[0]!.map((_, j) => row.reduce((sum, v, k) => sum + v * b[k]![j]!, 0)));
 }
+const NID_DENSITY_EPS = 2 ** -26;
 function rqBandwidth(n: number, tau: number, level: number): number {
   const z = qnorm(tau) as number;
   const critical = qnorm((1 + level) / 2) as number;
   const phi = Math.exp(-0.5 * z * z) / Math.sqrt(2 * Math.PI);
   return Math.cbrt(1.5 * phi * phi * critical * critical / n);
 }
-function rqBread(model: RqModel, tau: number, level: number): number[][] {
+function rqBread(model: RqModel, tau: number, level: number, warnings?: string[]): number[][] {
   const h = rqBandwidth(model.y.length, tau, level);
   const minus = fitOne(model.x, model.y, model.weights, tau - h, model.method, 500, 1e-12).beta;
   const plus = fitOne(model.x, model.y, model.weights, tau + h, model.method, 500, 1e-12).beta;
   const p = model.columnNames.length;
   const bread = Array.from({ length: p }, () => new Array<number>(p).fill(0));
+  let nonPositive = 0;
   for (let i = 0; i < model.y.length; i++) {
     const row = model.x[i]!;
-    const density = 2 * h / (dot(row, plus) - dot(row, minus));
-    if (!(density > 0) || !Number.isFinite(density)) throw new RangeError("non-positive local density in nid covariance");
+    const difference = dot(row, plus) - dot(row, minus);
+    const density = difference > NID_DENSITY_EPS ? (2 * h) / (difference - NID_DENSITY_EPS) : 0;
+    if (density === 0) nonPositive++;
     for (let j = 0; j < p; j++) for (let k = 0; k <= j; k++) bread[j]![k]! += model.weights[i]! * density * row[j]! * row[k]!;
   }
+  if (nonPositive > 0) warnings?.push(`${nonPositive} non-positive fis`);
   for (let j = 0; j < p; j++) for (let k = 0; k < j; k++) bread[k]![j] = bread[j]![k]!;
   return bread;
 }
@@ -694,8 +698,8 @@ function rqMeat(model: RqModel): number[][] {
   for (let j = 0; j < p; j++) for (let k = 0; k < j; k++) meat[k]![j] = meat[j]![k]!;
   return meat;
 }
-function rqNidCovariance(model: RqModel, tau: number, level: number): number[][] {
-  const inv = rqInverse(rqBread(model, tau, level));
+function rqNidCovariance(model: RqModel, tau: number, level: number, warnings?: string[]): number[][] {
+  const inv = rqInverse(rqBread(model, tau, level, warnings));
   const middle = rqMul(rqMul(inv, rqMeat(model)), inv);
   const scale = tau * (1 - tau);
   return middle.map((row) => row.map((v) => v * scale));
@@ -712,7 +716,8 @@ export function rqSummary(fit: RqResult, options: RqSummaryOptions = {}): RqSumm
   if (se !== "nid") throw new RangeError("rqSummary currently supports se = 'nid'; iid, rank, ker and boot remain unresolved");
   const level = options.level ?? 0.95;
   if (!(level > 0 && level < 1)) throw new RangeError("level must be between 0 and 1");
-  const covariances = model.tau.map((tau) => rqNidCovariance(model, tau, level));
+  const warnings = [...fit.warnings];
+  const covariances = model.tau.map((tau) => rqNidCovariance(model, tau, level, warnings));
   const coefficients: RqCoefficientSummary[] = [];
   for (let k = 0; k < model.tau.length; k++) for (let j = 0; j < model.columnNames.length; j++) {
     const term = model.columnNames[j]!;
@@ -723,7 +728,7 @@ export function rqSummary(fit: RqResult, options: RqSummaryOptions = {}): RqSumm
     const pValue = 2 * (pt(-Math.abs(statistic), model.y.length - model.columnNames.length) as number);
     coefficients.push({ tau: model.tau[k]!, term, estimate, stdError, statistic, pValue });
   }
-  return { coefficients, ...(options.covariance ? { covariance: covariances } : {}), se, warnings: [...fit.warnings] };
+  return { coefficients, ...(options.covariance ? { covariance: covariances } : {}), se, warnings };
 }
 
 /** Confidence intervals for conditional quantile predictions using nid or direct quantile refits. Equivalent to R's `predict.rq()`.
