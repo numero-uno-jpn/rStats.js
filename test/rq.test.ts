@@ -282,6 +282,21 @@ describe("quantile regression", () => {
     }
   });
 
+  it("summarises multiple tau fits with one nid covariance per tau", () => {
+    const data = {
+      x: Array.from({ length: 50 }, (_, i) => i / 10),
+      y: Array.from({ length: 50 }, (_, i) => 1 + 0.8 * (i / 10) + ((i * 17) % 11 - 5) / 10),
+    };
+    const fit = rq("y ~ x", data, { tau: [0.25, 0.5, 0.75], method: "fn", eps: 1e-12 });
+    const summary = rqSummary(fit, { se: "nid", covariance: true });
+    expect(summary.coefficients).toHaveLength(6);
+    expect(summary.covariance).toHaveLength(3);
+    expect(summary.covariance![0]).toHaveLength(2);
+    expect(summary.covariance![1]).toHaveLength(2);
+    expect(summary.covariance![2]).toHaveLength(2);
+    expect(() => rqSummary(rq("y ~ x", data, { tau: 0.5 }))).toThrow(/iid, rank, ker and boot remain unresolved/);
+  });
+
   it("computes a Wald test for equality of slopes across quantiles", () => {
     const data = {
       x: Array.from({ length: 50 }, (_, i) => i / 10),
