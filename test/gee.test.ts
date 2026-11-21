@@ -26,7 +26,7 @@ describe("generalized estimating equations", () => {
     expect(vc.values).toHaveLength(2);
     expect(summary.rows).toEqual(["(Intercept)", "x"]);
     expect(summary.values).toHaveLength(2);
-    expect(anova.rows).toEqual(["Model"]);
+    expect(anova.rows).toEqual(["x"]);
     expect(anova.values[0]![0]).toBe(2);
     expect(geePredict(fit, { newdata: { x: [2, 3] } })).toEqual([5, 7]);
     expect(geePredict(fit, { newdata: { x: [2, 3] }, type: "response" })).toEqual([5, 7]);
@@ -54,6 +54,19 @@ describe("generalized estimating equations", () => {
       expect(fit.covariance.flat().every(Number.isFinite)).toBe(true);
     }
     expect(jack.covariance).not.toEqual(fij.covariance);
+  });
+
+
+  it("tests added terms in sequential and nested GEE Wald comparisons", () => {
+    const dataZ = { ...data, z: [0, 0, 1, 1, 0, 1, 1, 0] };
+    const reduced = geeglm("y ~ x", dataZ, { id: "id" });
+    const full = geeglm("y ~ x + z", dataZ, { id: "id" });
+    const sequential = geeAnova(full);
+    const nested = geeAnova(full, reduced);
+    expect(sequential.rows).toEqual(["x", "z"]);
+    expect(sequential.values).toHaveLength(2);
+    expect(nested.values[0]![0]).toBe(1);
+    expect(Number.isFinite(nested.values[0]![1]!)).toBe(true);
   });
 
 });
