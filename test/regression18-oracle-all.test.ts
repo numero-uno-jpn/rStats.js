@@ -182,7 +182,7 @@ describe("rStats.js 1.8.0 public-output completeness against the pinned R oracle
     const foldid = Array.from({ length: y.length }, (_, i) => i % 3 + 1);
     const cvExpected = f.cv.value;
     const cv = cvGlmnet(x, y, {
-      foldid, nlambda: 8, keep: true, grouped: false, thresh: 1e-20, maxit: 1e8,
+      foldid, nlambda: 8, keep: true, grouped: false, thresh: 1e-14,
     });
     vector(cv.lambda, cvExpected.lambdaTight, 1e-10);
     vector(cv.cvm, cvExpected.groupedFalse.cvm, 1e-7);
