@@ -1,13 +1,23 @@
-ungrouped lambda equal: TRUE 
+ungrouped lambdas 6 6 
 default setosa col2:  0.000000000000000  0.173722902540334 -1.154294875155134  0.000000000000000 
 tight   setosa col2:  0.000000000000000  0.176717262412794 -1.154272702051792  0.000000000000000 
-max |default - tight| over the path: 1.19351 
-grouped lambda equal: FALSE 
+max |default - tight| over the common path: 1.19351 
+grouped lambdas 5 6 
 default setosa col2:  0.000000000000000  0.428716289895408 -0.424073777249453 -1.731356193724793 
 tight   setosa col2:  0.000000000000000  0.426227612845755 -0.419387630738929 -1.753169350939836 
-Error in as.matrix(f$beta[[k]]) - as.matrix(ft$beta[[k]]) : 
-  non-conformable arrays
-Calls: cat -> sapply -> lapply -> FUN
-In addition: Warning message:
+max |default - tight| over the common path: 2.346023 
+Warning message:
 from glmnet C++ code (error code -6); Convergence for 6th lambda value not reached after maxit=100000 iterations; solutions for larger lambdas returned 
-Execution halted
+ungrouped n lambda 6 6 
+max |1e-14 - 1e-16|: 0.0001344389 
+setosa col2:  0.000000000000000  0.176717262412794 -1.154272702051792  0.000000000000000 
+grouped n lambda 6 6 
+max |1e-14 - 1e-16|: 0.002806585 
+setosa col2:  0.000000000000000  0.426227612845755 -0.419387630738929 -1.753169350939836 
+ungrouped 6 n lambda 6 devRatio -1.01057e-15  6.72604e-01  8.96766e-01  9.52651e-01  9.62605e-01  9.63769e-01 ... last 0.96376877 
+ungrouped 100 n lambda 100 devRatio -1.01057e-15  6.55701e-02  1.20466e-01  1.67302e-01  2.07825e-01  2.53703e-01 ... last 0.96376556 
+grouped 6 n lambda 5 devRatio -1.41480e-15  6.85423e-01  8.99887e-01  9.51307e-01  9.60727e-01 ... last 0.96072745 
+grouped 100 n lambda 61 devRatio -1.41480e-15  7.26803e-02  1.34289e-01  1.88698e-01  2.36633e-01  2.79501e-01 ... last 0.95186353 
+Warning messages:
+1: from glmnet C++ code (error code -6); Convergence for 6th lambda value not reached after maxit=100000 iterations; solutions for larger lambdas returned 
+2: from glmnet C++ code (error code -62); Convergence for 62th lambda value not reached after maxit=100000 iterations; solutions for larger lambdas returned 

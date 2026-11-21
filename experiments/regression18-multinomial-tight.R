@@ -6,10 +6,11 @@ Xi <- as.matrix(iris[, 1:4]); yi <- iris$Species
 for (tm in c("ungrouped", "grouped")) {
   f <- glmnet(Xi, yi, family = "multinomial", type.multinomial = tm, nlambda = 6)
   ft <- suppressWarnings(glmnet(Xi, yi, family = "multinomial", type.multinomial = tm, nlambda = 6, control = list(thresh = 1e-14, maxit = 1e8)))
-  cat(tm, "lambda equal:", isTRUE(all.equal(f$lambda, ft$lambda, tolerance = 0)), "\n")
+  cat(tm, "lambdas", length(f$lambda), length(ft$lambda), "\n")
   cat("default setosa col2:", format(as.matrix(f$beta$setosa)[, 2], digits = 15), "\n")
   cat("tight   setosa col2:", format(as.matrix(ft$beta$setosa)[, 2], digits = 15), "\n")
-  cat("max |default - tight| over the path:", max(sapply(names(f$beta), function(k) max(abs(as.matrix(f$beta[[k]]) - as.matrix(ft$beta[[k]]))))), "\n")
+  m <- min(length(f$lambda), length(ft$lambda))  # R's default can stop early (non-convergence)
+  cat("max |default - tight| over the common path:", max(sapply(names(f$beta), function(k) max(abs(as.matrix(f$beta[[k]])[, 1:m] - as.matrix(ft$beta[[k]])[, 1:m])))), "\n")
 }
 for (tm in c("ungrouped", "grouped")) {
   ft <- glmnet(Xi, yi, family = "multinomial", type.multinomial = tm, nlambda = 6, control = list(thresh = 1e-14, maxit = 1e8))
