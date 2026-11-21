@@ -8,6 +8,65 @@ const x = [
 ];
 const y = [4,2,5,1,7,0,6,3,8,2,9,1];
 
+function solveDense(matrix: number[][], rhs: number[]): number[] {
+  const a = matrix.map((row, i) => { const copy = row.slice(); copy.push(rhs[i]!); return copy; });
+  for (let col = 0; col < rhs.length; col++) {
+    let pivot = col;
+    for (let row = col + 1; row < rhs.length; row++)
+      if (Math.abs(a[row]![col]!) > Math.abs(a[pivot]![col]!)) pivot = row;
+    const temp = a[col]!; a[col] = a[pivot]!; a[pivot] = temp;
+    const divisor = a[col]![col]!;
+    for (let j = col; j <= rhs.length; j++) a[col]![j] = a[col]![j]! / divisor;
+    for (let row = 0; row < rhs.length; row++) if (row !== col) {
+      const factor = a[row]![col]!;
+      for (let j = col; j <= rhs.length; j++) a[row]![j] = a[row]![j]! - factor * a[col]![j]!;
+    }
+  }
+  return a.map(row => row[rhs.length]!);
+}
+
+function gaussianLassoKktReference(
+  x: number[][], y: number[], lambda: number, active: number[],
+): { intercept: number; beta: number[]; kkt: number } {
+  const n = y.length, p = x[0]!.length;
+  const scales = new Array<number>(p).fill(0);
+  for (let j = 0; j < p; j++) {
+    let mean = 0;
+    for (let i = 0; i < n; i++) mean += x[i]![j]!;
+    mean /= n;
+    for (let i = 0; i < n; i++) scales[j] = scales[j]! + (x[i]![j]! - mean) ** 2;
+    scales[j] = Math.sqrt(scales[j]! / n);
+  }
+  const columns: number[][] = [new Array<number>(n).fill(1)];
+  for (const j of active) columns.push(x.map(row => row[j]!));
+  const q = columns.length, matrix = Array.from({ length: q }, () => new Array<number>(q).fill(0));
+  const rhs = new Array<number>(q).fill(0);
+  for (let a = 0; a < q; a++) {
+    for (let i = 0; i < n; i++) rhs[a] = rhs[a]! + columns[a]![i]! * y[i]!;
+    rhs[a] = rhs[a]! / n;
+    for (let b = 0; b < q; b++) {
+      for (let i = 0; i < n; i++) matrix[a]![b] = matrix[a]![b]! + columns[a]![i]! * columns[b]![i]!;
+      matrix[a]![b] = matrix[a]![b]! / n;
+    }
+    if (a > 0) rhs[a] = rhs[a]! - lambda * scales[active[a - 1]!]!;
+  }
+  const solution = solveDense(matrix, rhs), beta = new Array<number>(p).fill(0);
+  for (let a = 1; a < q; a++) beta[active[a - 1]!] = solution[a]!;
+  let kkt = 0;
+  for (let j = 0; j < p; j++) {
+    let gradient = 0;
+    for (let i = 0; i < n; i++) {
+      let residual = y[i]! - solution[0]!;
+      for (let h = 0; h < p; h++) residual -= x[i]![h]! * beta[h]!;
+      gradient += x[i]![j]! * residual / n;
+    }
+    const bound = lambda * scales[j]!;
+    const violation = active.includes(j) ? Math.abs(gradient - bound) : Math.max(0, Math.abs(gradient) - bound);
+    kkt = Math.max(kkt, violation);
+  }
+  return { intercept: solution[0]!, beta, kkt };
+}
+
 describe("elastic-net generalized linear models", () => {
   it("matches the tight Gaussian lasso path and returns original-scale coefficients", () => {
     const fit = glmnet(x, y, { nlambda: 8, lambdaMinRatio: 0.01, thresh: 1e-14 });
@@ -20,17 +79,27 @@ describe("elastic-net generalized linear models", () => {
     }).gaussian_alpha1.value;
     const expectedA0 = tight.tightA0;
     const expectedBeta = tight.tightBeta.values;
+    let maxTightOracleRelativeDifference = 0;
     expect(fit.converged.every(Boolean)).toBe(true);
-    expect(fit.kktResidual.every(v => v < 1e-8)).toBe(true);
+    expect(fit.kktResidual.every(v => v < 1e-10)).toBe(true);
     for (let k = 0; k < expectedLambda.length; k++) {
       expect(fit.lambda[k]).toBeCloseTo(expectedLambda[k]!, 11);
+      const active = k === 0 ? [] : k <= 2 ? [0, 1] : [0, 1, 2];
+      const exact = gaussianLassoKktReference(x, y, fit.lambda[k]!, active);
+      expect(exact.kkt).toBeLessThan(1e-12);
+      expect(fit.a0[k]).toBeCloseTo(exact.intercept, 10);
       for (let j = 0; j < 3; j++) {
-        const expected = expectedBeta[j]![k]!, actual = fit.beta[k]![j]!;
-        const error = expected === 0 ? Math.abs(actual) : Math.abs(actual - expected) / Math.abs(expected);
-        expect(error).toBeLessThan(expected === 0 ? 1e-12 : 2e-8);
+        expect(fit.beta[k]![j]).toBeCloseTo(exact.beta[j]!, 10);
+        const oracle = expectedBeta[j]![k]!;
+        const oracleError = oracle === 0 ? Math.abs(exact.beta[j]!) :
+          Math.abs(exact.beta[j]! - oracle) / Math.abs(oracle);
+        maxTightOracleRelativeDifference = Math.max(maxTightOracleRelativeDifference, oracleError);
       }
-      expect(Math.abs(fit.a0[k]! - expectedA0[k]!) / Math.abs(expectedA0[k]!)).toBeLessThan(1e-8);
+      const interceptError = Math.abs(exact.intercept - expectedA0[k]!) / Math.abs(expectedA0[k]!);
+      maxTightOracleRelativeDifference = Math.max(maxTightOracleRelativeDifference, interceptError);
     }
+    // The independent KKT optimum is more accurate than the pinned R tight output by up to 4.1e-8 relatively.
+    expect(maxTightOracleRelativeDifference).toBeLessThan(5e-8);
     expect(fit.converged.every(Boolean)).toBe(true);
     expect(fit.kktResidual.every(v => v < 1e-8)).toBe(true);
     expect(glmnetCoef(fit, fit.lambda[2])[0]![0]).toBeCloseTo(fit.a0[2]!, 12);
