@@ -32,8 +32,9 @@ describe("elastic-net generalized linear models", () => {
 
   it("predicts on the response scale and interpolates coefficients on log lambda", () => {
     const fit = glmnet(x, y, { nlambda: 8, lambdaMinRatio: 0.01 });
-    const link = glmnetPredict(fit, x.slice(0, 3), { s: fit.lambda[2], type: "link" });
-    const response = glmnetPredict(fit, x.slice(0, 3), { s: fit.lambda[2], type: "response" });
+    const s = fit.lambda[2]!;
+    const link = glmnetPredict(fit, x.slice(0, 3), { s, type: "link" });
+    const response = glmnetPredict(fit, x.slice(0, 3), { s, type: "response" });
     expect(response).toEqual(link);
     expect(glmnetCoef(fit, [0.75, 0.3])).toHaveLength(2);
     expect(link[0]).toHaveLength(3);
