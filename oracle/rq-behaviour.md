@@ -234,3 +234,8 @@ Calls: as.matrix -> as.matrix -> as.matrix.default -> array
 ```
 
 The failure indicates that the probe passed a `NULL` value to an unguarded `as.matrix()`; the public-output log does not identify which object was `NULL`. Static inspection of the probe (not an R execution result) shows that the first unguarded conversion is `as.matrix(wxySummary$B)`, so a NULL bootstrap-draw field there is the leading candidate. This is not promoted to a confirmed diagnosis without a successful public run. Consequently this run supplies no new numerical evidence for iid, ker, rank, or bootstrap. The four corresponding implementation tests remain `it.todo`. The previous independently successful probes and numerical findings above are retained, but none of the four unresolved formula choices is promoted on the basis of this failed run. The experiment was intentionally not pushed a second time, in accordance with the one-push limit.
+6. **Not in 1.8.0** (the user's decision on 2026-11-21, Issue #545): `se = "iid"`, `"ker"` and `"boot"`, and the rank
+   intervals with `iid = FALSE`, because they could not be matched with R from its public output (section 8). Asking
+   for them is an error that says so; they are recorded as not yet supported.
+7. **Rank intervals on tied data:** where events tie (integer data) the dual can be degenerate and R's path passes
+   another optimal vertex, so a limit can differ from R's (section 7.5). A known difference, not a fault in R.

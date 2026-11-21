@@ -203,3 +203,6 @@ other section of this file.
 4. **Cross-validation:** `foldid` is required (no random folds in 1.8.0).
 5. **`grouped`:** both `TRUE` and `FALSE`.
 6. **Multinomial:** both `type.multinomial = "ungrouped"` and `"grouped"`.
+7. **R's default fits are not converged** on some data (iris multinomial: up to 2.3 from a strict refit; the CV `cvm`
+   by 1.2e-5): rStats.js is compared with R's strict refits (choices 1). A known difference in what R returns by default,
+   not a fault in R.

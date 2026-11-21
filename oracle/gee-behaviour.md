@@ -234,3 +234,7 @@ other section of this file.
 4. **Missing values:** the existing model-frame rule of the regression functions (rows with NA are dropped); the
    clusters, waves and working correlations are built from the remaining rows.
 5. **`zcor`:** accepted as a validated design matrix (or vector); no helpers like `genZcor` or `fixed2Zcor` in 1.8.0.
+6. **Not in 1.8.0** (the user's decision on 2026-11-21, Issue #545): `std.err = "jack"`, `"j1s"` and `"fij"`, because
+   they could not be matched with R from its public output (section 8; R's matrix is 2/3 of the delete-one-cluster
+   scatter in the 12-cluster check). Asking for them is an error that says so; the sandwich (`"san.se"`) is the
+   supported estimator.
