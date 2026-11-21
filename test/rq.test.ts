@@ -294,7 +294,11 @@ describe("quantile regression", () => {
     expect(summary.covariance![0]).toHaveLength(2);
     expect(summary.covariance![1]).toHaveLength(2);
     expect(summary.covariance![2]).toHaveLength(2);
-    expect(() => rqSummary(rq("y ~ x", data, { tau: 0.5 }), { se: "iid" })).toThrow(/iid, ker and boot remain unresolved/);
+    const fit = rq("y ~ x", data, { tau: 0.5 });
+    for (const se of ["iid", "ker", "boot"] as const)
+      expect(() => rqSummary(fit, { se: se as never })).toThrow(`se = "${se}" is not supported yet; use "rank" or "nid"`);
+    expect(() => rqSummary(fit, { se: "rank", iid: false } as never))
+      .toThrow('se = "rank", iid = false is not supported yet; omit iid or use se = "nid"');
   });
 
   it("computes a Wald test for equality of slopes across quantiles", () => {
@@ -334,7 +338,6 @@ describe("quantile regression", () => {
     expect(separate[1]!.dfResidual).toBe(46);
   });
 
-  it.todo("iid density estimator is unresolved pending the user's independent review");
   it("inverts the rank test as R does (n = 1000, and stackloss)", () => {
     const fixture = JSON.parse(readFileSync(fileURLToPath(new URL("./fixtures/rq.json", import.meta.url)), "utf8"));
     const mismatches: string[] = [];
@@ -367,7 +370,5 @@ describe("quantile regression", () => {
     compare("stackloss", rq("loss ~ Air + Water + Acid", stackloss), fixture.summary_se_warnings.value.rank.value.coefficients, ["Air lower"]);
     expect(mismatches).toEqual([]);
   });
-  it.todo("ker bandwidth and local density are unresolved pending R-output comparison");
-  it.todo("bootstrap pwy, mcmb and wxy perturbation maps are unresolved pending the user's independent review");
 
 });
