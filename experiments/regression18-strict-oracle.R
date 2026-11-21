@@ -25,10 +25,25 @@ for (spec in list(default=NULL,epsilon_1e10=geese.control(epsilon=1e-10,maxit=20
     f <- if (is.null(spec)) geeglm(resp~age+smoke,id=id,data=ohio,family=binomial,corstr="ar1")
          else geeglm(resp~age+smoke,id=id,data=ohio,family=binomial,corstr="ar1",control=spec)
     list(coefficients=unname(coef(f)),correlation=tab(summary(f)$corr),dispersion=tab(summary(f)$dispersion),
+         pearson=unname(residuals(f,type="pearson")),
          link=unname(predict(f,newdata=nd)),response=unname(predict(f,newdata=nd,type="response")))
   })
 }
 out$geePredict$clusterSizes <- as.numeric(table(ohio$id))
+pearsonR <- out$geePredict$epsilon_1e12$value$pearson
+residualGroups <- split(pearsonR, ohio$id)
+lags <- seq_len(max(lengths(residualGroups)) - 1)
+lagWeights <- vapply(lags, function(lag) sum(pmax(lengths(residualGroups) - lag, 0)), numeric(1))
+lagMeans <- vapply(lags, function(lag) {
+  products <- unlist(lapply(residualGroups, function(v) {
+    if (length(v) > lag) v[(lag + 1):length(v)] * v[seq_len(length(v) - lag)] else numeric()
+  }))
+  mean(products)
+}, numeric(1))
+alphaLS <- optimize(function(a) sum(lagWeights * (lagMeans - a^lags)^2), interval=c(-.98,.98))$minimum
+out$geePredict$momentProbe <- list(lagMeans=lagMeans,lagWeights=lagWeights,
+  alphaLag1=lagMeans[1],alphaLeastSquares=alphaLS,
+  alphaR=out$geePredict$epsilon_1e12$value$correlation$values[1])
 out$geePredict$explicitWaves <- capture({
   waves <- ave(seq_along(ohio$id), ohio$id, FUN=seq_along)
   f <- geeglm(resp~age+smoke,id=id,waves=waves,data=ohio,family=binomial,corstr="ar1",
