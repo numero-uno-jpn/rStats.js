@@ -244,7 +244,12 @@ describe("rStats.js 1.8.0 public-output completeness against the pinned R oracle
     const poissonFit = glmnet(x, poissonY, { family: "poisson", offset: poissonOffset, nlambda: 6 });
     close(poissonFit.nullDev, f.poisson.value.nullDev, 1e-7);
     const typeExpected = f.predictTypes.value;
-    matrix(transpose(glmnetPredict(binFit, x.slice(0, 4), { s: binFit.lambda[2]!, type: "link" })), typeExpected.link.values);
+    const binLink = glmnetPredict(binFit, x.slice(0, 4), { s: binFit.lambda[2]!, type: "link" });
+    console.log("[regression18-oracle] binomial prediction diagnostic", JSON.stringify({
+      lambda: binFit.lambda, beta: binFit.beta, a0: binFit.a0, converged: binFit.converged,
+      kkt: binFit.kktResidual, link: binLink, expected: typeExpected.link.values,
+    }));
+    matrix(transpose(binLink), typeExpected.link.values);
     matrix(transpose(glmnetPredict(binFit, x.slice(0, 4), { s: binFit.lambda[2]!, type: "response" })), typeExpected.response.values);
     const classPrediction = glmnetPredict(binFit, x.slice(0, 4), { s: binFit.lambda[2]!, type: "class" });
     const expectedClass = Array.isArray(typeExpected.class[0]) ? typeExpected.class.flat() : typeExpected.class;
