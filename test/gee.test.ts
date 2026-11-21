@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { geeglm, geeAnova, geePredict, geeSummary, geeVcov } from "../src/models/gee.js";
+import { geeglm, geeAnova, geePredict, geeQIC, geeSummary, geeVcov } from "../src/models/gee.js";
 
 const data = {
   id: [1, 1, 2, 2, 3, 3, 4, 4],
@@ -125,6 +125,14 @@ describe("generalized estimating equations", () => {
     expect(userdefined.alpha).toHaveLength(2);
     expect(fixed.alpha).toHaveLength(0);
     expect([...unstructured.coefficients, ...userdefined.coefficients, ...fixed.coefficients].every(Number.isFinite)).toBe(true);
+  });
+
+
+  it("returns the six QIC statistics", () => {
+    const fit = geeglm("y ~ x", data, { id: "id" });
+    const qic = geeQIC(fit);
+    expect(Object.keys(qic)).toEqual(["QIC", "QICu", "Q", "CIC", "params", "QICC"]);
+    expect(Object.values(qic).every(Number.isFinite)).toBe(true);
   });
 
 });
