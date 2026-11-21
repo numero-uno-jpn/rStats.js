@@ -67,6 +67,7 @@ out$penaltyFactor<-run({
 out$noIntercept <- run({ f <- glmnet(X, y, intercept = FALSE, nlambda = 6); list(lambda = f$lambda, a0 = f$a0, beta = tab(f$beta), df = f$df, devRatio = f$dev.ratio) })
 out$limits <- run({ f <- glmnet(X, y, lower.limits = -.5, upper.limits = .5, nlambda = 6); list(lambda = f$lambda, a0 = f$a0, beta = tab(f$beta), df = f$df) })
 out$activeSet <- run({ f <- glmnet(X, y, dfmax = 2, pmax = 3, nlambda = 8); list(lambda = f$lambda, a0 = f$a0, beta = tab(f$beta), df = f$df, devRatio = f$dev.ratio, jerr = f$jerr) })
+out$earlyStop <- run({ f <- glmnet(X, y, fdev = .05, devmax = .8, nlambda = 20); list(lambda = f$lambda, a0 = f$a0, beta = tab(f$beta), df = f$df, devRatio = f$dev.ratio, jerr = f$jerr) })
 out$pathLength <- run({ f <- glmnet(X, y, nlambda = 20, lambda.min.ratio = .001); list(lambda = f$lambda, a0 = f$a0, beta = tab(f$beta), df = f$df, jerr = f$jerr) })
 out$explicitLambda <- run({ f <- glmnet(X, y, lambda = c(2, 1, .5, .25, .125)); list(lambda = f$lambda, a0 = f$a0, beta = tab(f$beta), df = f$df) })
 out$poissonOffset <- run({ yp <- c(1,2,1,3,2,4,1,3,2,5,4,6); f <- glmnet(X, yp, family = "poisson", offset = log(seq(1, 2, length.out = 12)), nlambda = 6); list(lambda = f$lambda, a0 = f$a0, beta = tab(f$beta), df = f$df, devRatio = f$dev.ratio, nulldev = f$nulldev) })
