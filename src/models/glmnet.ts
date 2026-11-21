@@ -727,18 +727,92 @@ export function glmnetPredict(
  *
  * @category Regression
  */
-export function cvGlmnet(x: readonly (readonly number[])[], y: readonly number[], options: CvGlmnetOptions): CvGlmnetResult {
+function cvGlmnetMultinomial(
+  x: readonly (readonly number[])[], y: readonly string[], options: CvGlmnetOptions,
+): CvGlmnetResult {
   if (!options.foldid || options.foldid.length !== y.length) throw new RangeError("foldid is required and must match y");
+  const foldid = Array.from(options.foldid), folds = Array.from(new Set(foldid)).sort((a, b) => a - b);
+  if (folds.length < 3) throw new RangeError("at least three folds are required");
+  const fit = glmnetMultinomial(x, y, options), lambda = fit.lambda, classes = fit.model.classes;
+  const predictions = Array.from({ length: y.length }, () =>
+    Array.from({ length: lambda.length }, () => new Array<number>(classes.length).fill(NaN)));
+  for (const fold of folds) {
+    const train = y.map((_, i) => i).filter(i => foldid[i] !== fold);
+    const test = y.map((_, i) => i).filter(i => foldid[i] === fold);
+    const subOptions: GlmnetOptions = { ...options, lambda,
+      ...(options.weights === undefined ? {} : { weights: train.map(i => options.weights![i]!) }) };
+    const sub = glmnetMultinomial(train.map(i => x[i]!), train.map(i => y[i]!), subOptions);
+    const pred = glmnetPredict(sub, test.map(i => x[i]!), { s: lambda, type: "response" }) as number[][][];
+    for (let i = 0; i < test.length; i++) for (let k = 0; k < lambda.length; k++)
+      predictions[test[i]!]![k] = pred[k]![i]!.slice();
+  }
+  const measure = options.typeMeasure ?? "deviance", grouped = options.grouped ?? true;
+  if (measure === "auc") throw new RangeError("AUC cross-validation is not defined for multinomial responses");
+  const observationLoss = (i: number, lambdaIndex: number): number => {
+    const probs = predictions[i]![lambdaIndex]!, observed = classes.indexOf(y[i]!);
+    if (measure === "class") {
+      let best = 0; for (let k = 1; k < probs.length; k++) if (probs[k]! > probs[best]!) best = k;
+      return best === observed ? 0 : 1;
+    }
+    if (measure === "mae" || measure === "mse") {
+      let total = 0;
+      for (let k = 0; k < probs.length; k++) {
+        const d = probs[k]! - (k === observed ? 1 : 0);
+        total += measure === "mae" ? Math.abs(d) : d * d;
+      }
+      return total / probs.length;
+    }
+    return -2 * Math.log(Math.max(1e-15, probs[observed]!));
+  };
+  const foldRows = folds.map(fold => y.map((_, i) => i).filter(i => foldid[i] === fold));
+  const foldScores = lambda.map((_, k) => foldRows.map(rows => sum(rows.map(i => observationLoss(i, k))) / rows.length));
+  const cvm = lambda.map((_, k) => grouped
+    ? sum(foldScores[k]!)/folds.length
+    : sum(y.map((_, i) => observationLoss(i, k))) / y.length);
+  const cvsd = lambda.map((_, k) => {
+    if (grouped) {
+      const m = cvm[k]!;
+      return Math.sqrt(sum(foldScores[k]!.map(v => (v - m) ** 2)) / (folds.length - 1) / folds.length);
+    }
+    const vals = y.map((_, i) => observationLoss(i, k)), m = sum(vals) / vals.length;
+    return Math.sqrt(sum(vals.map(v => (v - m) ** 2)) / (vals.length - 1) / vals.length);
+  });
+  let min = 0; for (let k = 1; k < cvm.length; k++) if (cvm[k]! < cvm[min]!) min = k;
+  const cutoff = cvm[min]! + cvsd[min]!;
+  let one = min; for (let k = 0; k < lambda.length; k++) if (cvm[k]! <= cutoff) one = k;
+  const nzero = lambda.map((_, k) => fit.dfmat.reduce((v, row) => v + row[k]!, 0));
+  return { fit, lambda, cvm, cvsd, cvup: cvm.map((v, i) => v + cvsd[i]!),
+    cvlo: cvm.map((v, i) => v - cvsd[i]!), nzero, lambdaMin: lambda[min]!, lambda1se: lambda[one]!, foldid,
+    ...(options.keep ? { fitPreval: predictions } : {}) };
+}
+
+/** Cross-validate a penalized generalized linear model. Equivalent to R's `cv.glmnet()`.
+ *
+ * @category Regression
+ */
+export function cvGlmnet(
+  x: readonly (readonly number[])[], y: readonly (number | string)[], options: CvGlmnetOptions,
+): CvGlmnetResult {
+  if (options.family === "multinomial") return cvGlmnetMultinomial(x, y.map(String), options);
+  if (y.some(v => typeof v !== "number")) {
+    if (options.family !== "binomial") throw new TypeError("non-numeric y is supported only for binomial or multinomial families");
+    const classes = Array.from(new Set(y.map(String))).sort();
+    if (classes.length !== 2) throw new RangeError("binomial factor y must have exactly two classes");
+    return cvGlmnet(x, y.map(v => String(v) === classes[1] ? 1 : 0), options);
+  }
+  const numericY = y as readonly number[];
+  if (!options.foldid || options.foldid.length !== numericY.length) throw new RangeError("foldid is required and must match y");
   const foldid = Array.from(options.foldid), folds = Array.from(new Set(foldid)).sort((a,b)=>a-b);
   if (folds.length < 3) throw new RangeError("at least three folds are required");
-  const fit = glmnet(x, y, options), lambda = fit.lambda, measures: number[][] = [], predictions = Array.from({length:y.length},()=>new Array<number>(lambda.length).fill(NaN));
+  const fit = glmnetScalar(x, numericY, options), lambda = fit.lambda, measures: number[][] = [];
+  const predictions = Array.from({length:numericY.length},()=>new Array<number>(lambda.length).fill(NaN));
   for (const fold of folds) {
-    const train = y.map((_,i)=>i).filter(i=>foldid[i]!==fold), test = y.map((_,i)=>i).filter(i=>foldid[i]===fold);
-    const subx=train.map(i=>x[i]!), suby=train.map(i=>y[i]!);
+    const train = numericY.map((_,i)=>i).filter(i=>foldid[i]!==fold), test = numericY.map((_,i)=>i).filter(i=>foldid[i]===fold);
+    const subx=train.map(i=>x[i]!), suby=train.map(i=>numericY[i]!);
     const subOptions: GlmnetOptions = {...options, lambda,
       ...(options.weights === undefined ? {} : { weights: train.map(i=>options.weights![i]!) }),
       ...(options.offset === undefined ? {} : { offset: train.map(i=>options.offset![i]!) })};
-    const sub=glmnet(subx,suby,subOptions);
+    const sub=glmnetScalar(subx,suby,subOptions);
     const pred=glmnetPredict(sub,test.map(i=>x[i]!),{s:lambda,type:"response",...(options.offset === undefined ? {} : { offset: test.map(i=>options.offset![i]!) })});
     for(let i=0;i<test.length;i++) for(let k=0;k<lambda.length;k++) predictions[test[i]!]![k]=pred[k]![i]!;
   }
@@ -747,7 +821,7 @@ export function cvGlmnet(x: readonly (readonly number[])[], y: readonly number[]
   const score = (indices: readonly number[], k: number): number => {
     if (measure === "auc") {
       let concordant = 0, ties = 0, pairs = 0;
-      for (const i of indices) if (y[i]! >= 0.5) for (const j of indices) if (y[j]! < 0.5) {
+      for (const i of indices) if (numericY[i]! >= 0.5) for (const j of indices) if (numericY[j]! < 0.5) {
         pairs++;
         if (predictions[i]![k]! > predictions[j]![k]!) concordant++;
         else if (predictions[i]![k] === predictions[j]![k]) ties++;
@@ -756,7 +830,7 @@ export function cvGlmnet(x: readonly (readonly number[])[], y: readonly number[]
     }
     let total = 0;
     for (const i of indices) {
-      const observed = y[i]!, predicted = predictions[i]![k]!;
+      const observed = numericY[i]!, predicted = predictions[i]![k]!;
       if (measure === "mae") total += Math.abs(predicted - observed);
       else if (measure === "class") total += (predicted >= 0.5) === (observed >= 0.5) ? 0 : 1;
       else if (measure === "deviance" && fit.family !== "gaussian") {
@@ -769,15 +843,15 @@ export function cvGlmnet(x: readonly (readonly number[])[], y: readonly number[]
     }
     return total / indices.length;
   };
-  const foldScores = folds.map(fold => y.map((_,i)=>i).filter(i=>foldid[i]===fold));
+  const foldScores = folds.map(fold => numericY.map((_,i)=>i).filter(i=>foldid[i]===fold));
   for (let k=0;k<lambda.length;k++) measures.push(foldScores.map(indices=>score(indices,k)));
   const cvm=lambda.map((_,k)=>grouped
     ? sum(measures[k]!)/folds.length
-    : score(y.map((_,i)=>i),k));
+    : score(numericY.map((_,i)=>i),k));
   const cvsd=lambda.map((_,k)=>{
     if(grouped){const m=cvm[k]!;return Math.sqrt(sum(measures[k]!.map(v=>(v-m)**2))/(folds.length-1)/folds.length);}
-    const vals=y.map((_,i)=> {
-      const observed=y[i]!, predicted=predictions[i]![k]!;
+    const vals=numericY.map((_,i)=> {
+      const observed=numericY[i]!, predicted=predictions[i]![k]!;
       if(measure==="mae") return Math.abs(predicted-observed);
       if(measure==="class") return (predicted>=0.5)===(observed>=0.5)?0:1;
       return (predicted-observed)**2;
