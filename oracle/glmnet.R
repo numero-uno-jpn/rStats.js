@@ -52,4 +52,40 @@ out$penaltyFactor<-run({
  f<-glmnet(X,y,penalty.factor=c(0,1,4),lower.limits=c(-.5,0,-1),upper.limits=c(.5,0,1),dfmax=2,pmax=3,nlambda=8)
  list(lambda=f$lambda,a0=f$a0,beta=tab(f$beta),df=f$df,devRatio=f$dev.ratio)
 })
+
+# Expanded controls and prediction modes required by stage 2.
+out$noIntercept <- run({ f <- glmnet(X, y, intercept = FALSE, nlambda = 6); list(lambda = f$lambda, a0 = f$a0, beta = tab(f$beta), df = f$df, devRatio = f$dev.ratio) })
+out$limits <- run({ f <- glmnet(X, y, lower.limits = -.5, upper.limits = .5, nlambda = 6); list(lambda = f$lambda, a0 = f$a0, beta = tab(f$beta), df = f$df) })
+out$activeSet <- run({ f <- glmnet(X, y, dfmax = 2, pmax = 3, nlambda = 8); list(lambda = f$lambda, a0 = f$a0, beta = tab(f$beta), df = f$df, devRatio = f$dev.ratio, jerr = f$jerr) })
+out$pathLength <- run({ f <- glmnet(X, y, nlambda = 20, lambda.min.ratio = .001); list(lambda = f$lambda, a0 = f$a0, beta = tab(f$beta), df = f$df, jerr = f$jerr) })
+out$explicitLambda <- run({ f <- glmnet(X, y, lambda = c(2, 1, .5, .25, .125)); list(lambda = f$lambda, a0 = f$a0, beta = tab(f$beta), df = f$df) })
+out$poissonOffset <- run({ yp <- c(1,2,1,3,2,4,1,3,2,5,4,6); f <- glmnet(X, yp, family = "poisson", offset = log(seq(1, 2, length.out = 12)), nlambda = 6); list(lambda = f$lambda, a0 = f$a0, beta = tab(f$beta), df = f$df, devRatio = f$dev.ratio, nulldev = f$nulldev) })
+out$predictTypes <- run({
+  fb <- glmnet(X, c(0,0,1,0,1,0,1,0,1,1,1,1), family = "binomial", nlambda = 6)
+  fg <- glmnet(X, y, nlambda = 6)
+  list(link = tab(predict(fb, X[1:4, ], s = fb$lambda[3], type = "link")),
+       response = tab(predict(fb, X[1:4, ], s = fb$lambda[3], type = "response")),
+       class = predict(fb, X[1:4, ], s = fb$lambda[3], type = "class"),
+       nonzero = run(predict(fg, type = "nonzero", s = fg$lambda[3])))
+})
+out$constantColumn <- run(glmnet(cbind(X, constant = 1), y))
+out$constantY <- run(glmnet(X, rep(3, length(y))))
+out$pGreaterN <- run({
+  set.seed(1)
+  Z <- matrix(rnorm(6 * 20), 6, 20)
+  zy <- Z[, 1] - 2 * Z[, 2] + rnorm(6)
+  f <- glmnet(Z, zy, nlambda = 6)
+  list(X = tab(Z), y = zy, lambda = f$lambda, a0 = f$a0, beta = tab(f$beta), df = f$df)
+})
+out$oneColumn <- run(glmnet(X[, 1, drop = FALSE], y))
+out$binomialSeparation <- run(glmnet(cbind(x1 = 1:12, x2 = c(3,1,4,1,5,9,2,6,5,3,5,8)), rep(0:1, each = 6), family = "binomial"))
+out$scaleX1e100 <- run({ f <- glmnet(X * 1e100, y, nlambda = 6); list(lambda = f$lambda, a0 = f$a0, beta = tab(f$beta), df = f$df) })
+out$scaleY1em100 <- run({ f <- glmnet(X, y * 1e-100, nlambda = 6); list(lambda = f$lambda, a0 = f$a0, beta = tab(f$beta), df = f$df) })
+out$naX <- run({ Xn <- X; Xn[2, 3] <- NA; glmnet(Xn, y) })
+out$binomialOneClass <- run(glmnet(X, rep(1, length(y)), family = "binomial"))
+for (a in c(.5, 0)) {
+  out[[paste0("binomial_alpha", a)]] <- run({ f <- glmnet(X, c(0,0,1,0,1,0,1,0,1,1,1,1), family = "binomial", alpha = a, nlambda = 6); list(lambda = f$lambda, a0 = f$a0, beta = tab(f$beta), df = f$df, devRatio = f$dev.ratio) })
+  out[[paste0("poisson_alpha", a)]] <- run({ f <- glmnet(X, c(1,2,1,3,2,4,1,3,2,5,4,6), family = "poisson", alpha = a, nlambda = 6); list(lambda = f$lambda, a0 = f$a0, beta = tab(f$beta), df = f$df, devRatio = f$dev.ratio) })
+}
+
 writeLines(toJSON(out,digits=NA,auto_unbox=TRUE,null="null",na="string",pretty=FALSE),file.path("/out","glmnet.json"))
