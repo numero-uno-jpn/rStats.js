@@ -6,7 +6,10 @@
  * @category Regression
  */
 export type GlmnetFamily = "gaussian" | "binomial" | "poisson" | "multinomial";
-/** Multinomial penalty structure. @category Regression */
+/**
+ * Multinomial penalty structure.
+ * @category Regression
+ */
 export type GlmnetMultiType = "ungrouped" | "grouped";
 /**
  * Scale or coefficient selection returned by a penalized-model prediction.
