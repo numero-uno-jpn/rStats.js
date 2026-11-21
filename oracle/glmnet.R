@@ -79,8 +79,10 @@ out$predictTypes <- run({
        class = predict(fb, X[1:4, ], s = fb$lambda[3], type = "class"),
        nonzero = run(predict(fg, type = "nonzero", s = fg$lambda[3])))
 })
-out$constantColumn <- run(glmnet(cbind(X, constant = 1), y))
-out$constantY <- run(glmnet(X, rep(3, length(y))))
+# The numbers of a fit (a glmnet object is not JSON-encodable)
+fitNumbers <- function(f) list(lambda = f$lambda, a0 = f$a0, beta = tab(f$beta), df = f$df, dev.ratio = f$dev.ratio)
+out$constantColumn <- run(fitNumbers(glmnet(cbind(X, constant = 1), y)))
+out$constantY <- run(fitNumbers(glmnet(X, rep(3, length(y)))))
 out$pGreaterN <- run({
   set.seed(1)
   Z <- matrix(rnorm(6 * 20), 6, 20)
@@ -89,11 +91,11 @@ out$pGreaterN <- run({
   list(X = tab(Z), y = zy, lambda = f$lambda, a0 = f$a0, beta = tab(f$beta), df = f$df)
 })
 out$oneColumn <- run(glmnet(X[, 1, drop = FALSE], y))
-out$binomialSeparation <- run(glmnet(cbind(x1 = 1:12, x2 = c(3,1,4,1,5,9,2,6,5,3,5,8)), rep(0:1, each = 6), family = "binomial"))
+out$binomialSeparation <- run(fitNumbers(glmnet(cbind(x1 = 1:12, x2 = c(3,1,4,1,5,9,2,6,5,3,5,8)), rep(0:1, each = 6), family = "binomial")))
 out$scaleX1e100 <- run({ f <- glmnet(X * 1e100, y, nlambda = 6); list(lambda = f$lambda, a0 = f$a0, beta = tab(f$beta), df = f$df) })
 out$scaleY1em100 <- run({ f <- glmnet(X, y * 1e-100, nlambda = 6); list(lambda = f$lambda, a0 = f$a0, beta = tab(f$beta), df = f$df) })
-out$naX <- run({ Xn <- X; Xn[2, 3] <- NA; glmnet(Xn, y) })
-out$binomialOneClass <- run(glmnet(X, rep(1, length(y)), family = "binomial"))
+out$naX <- run({ Xn <- X; Xn[2, 3] <- NA; fitNumbers(glmnet(Xn, y)) })
+out$binomialOneClass <- run(fitNumbers(glmnet(X, rep(1, length(y)), family = "binomial")))
 out$binomialFactor <- run({ f <- glmnet(X, factor(ifelse(c(0,0,1,0,1,0,1,0,1,1,1,1) == 1, "manual", "auto")), family = "binomial", nlambda = 6); list(lambda = f$lambda, a0 = f$a0, beta = tab(f$beta), df = f$df, devRatio = f$dev.ratio) })
 for (a in c(.5, 0)) {
   out[[paste0("binomial_alpha", a)]] <- run({ f <- glmnet(X, c(0,0,1,0,1,0,1,0,1,1,1,1), family = "binomial", alpha = a, nlambda = 6); list(lambda = f$lambda, a0 = f$a0, beta = tab(f$beta), df = f$df, devRatio = f$dev.ratio) })
