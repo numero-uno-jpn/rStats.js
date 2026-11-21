@@ -37,6 +37,24 @@ export interface GeeOptions {
   maxit?: number;
 }
 
+interface GeeOffsetTerm { variable: string; log: boolean }
+
+function splitOffsets(formula: string): { meanFormula: string; terms: GeeOffsetTerm[] } {
+  const pattern = /offset\s*\(\s*(?:log\s*\(\s*([A-Za-z_.][A-Za-z0-9_.]*)\s*\)|([A-Za-z_.][A-Za-z0-9_.]*))\s*\)/g;
+  const terms: GeeOffsetTerm[] = [];
+  for (const match of formula.matchAll(pattern)) {
+    const logVariable = match[1];
+    const variable = logVariable ?? match[2];
+    if (variable === undefined) continue;
+    terms.push({ variable, log: logVariable !== undefined });
+  }
+  let meanFormula = formula.replace(pattern, "");
+  meanFormula = meanFormula.replace(/~\s*\+/g, "~ ").replace(/\+\s*\+/g, "+").replace(/\+\s*$/g, "").trim();
+  if (/~\s*$/.test(meanFormula)) meanFormula += " 1";
+  if (terms.length > 0 && meanFormula.endsWith("~")) meanFormula += " 1";
+  return { meanFormula, terms };
+}
+
 export interface GeeResult {
   coefficients: number[];
   fittedValues: number[];
@@ -61,6 +79,8 @@ export interface GeeResult {
   warnings: string[];
   model: {
     formula: string;
+    meanFormula: string;
+    offsetTerms: GeeOffsetTerm[];
     x: number[][];
     y: number[];
     ids: (number | string | boolean)[];
@@ -340,10 +360,13 @@ export function geeglm(formula: string, data: DataFrame, options: GeeOptions): G
   if (stdErr !== "san.se") throw new Error("jackknife standard errors are not implemented yet");
   const epsilon = options.epsilon ?? 1e-10, maxit = options.maxit ?? 200;
   if (!(epsilon > 0) || !Number.isFinite(epsilon) || !Number.isInteger(maxit) || maxit < 1) throw new RangeError("invalid convergence controls");
+  const split = splitOffsets(formula);
   const idName = typeof options.id === "string" ? options.id : undefined;
   const waveName = typeof options.waves === "string" ? options.waves : undefined;
-  const extras = [idName, waveName, ...(typeof options.weights === "string" ? [options.weights] : []), ...(typeof options.offset === "string" ? [options.offset] : [])].filter((v): v is string => v !== undefined);
-  const d = design(parseFormula(formula), data, { extraVariables: extras, ...(options.weights === undefined ? {} : { weights: options.weights }) });
+  const extras = [idName, waveName, ...split.terms.map((t) => t.variable),
+    ...(typeof options.weights === "string" ? [options.weights] : []),
+    ...(typeof options.offset === "string" ? [options.offset] : [])].filter((v): v is string => v !== undefined);
+  const d = design(parseFormula(split.meanFormula), data, { extraVariables: extras, ...(options.weights === undefined ? {} : { weights: options.weights }) });
   if (d.y === undefined) throw new TypeError("formula must have a response");
   const rows = d.frame.rows, n = rows.length, p = d.colNames.length;
   if (n === 0 || p === 0) throw new RangeError("no observations or no model columns");
@@ -353,6 +376,10 @@ export function geeglm(formula: string, data: DataFrame, options: GeeOptions): G
   const weights = d.frame.weights ?? new Array<number>(n).fill(1);
   if (weights.some((v) => v < 0)) throw new RangeError("weights must be nonnegative");
   const offset = vector(options.offset, data, rows, inputN, 0, "offset");
+  for (const term of split.terms) {
+    const values = vector(term.variable, data, rows, inputN, 0, "offset");
+    for (let i = 0; i < offset.length; i++) offset[i] = offset[i]! + (term.log ? Math.log(values[i]!) : values[i]!);
+  }
   const clusterGroups = groups(ids);
   if (options.waves === undefined) {
     waves = new Array<number>(n).fill(0);
@@ -423,7 +450,7 @@ export function geeglm(formula: string, data: DataFrame, options: GeeOptions): G
       covariance, modelCovariance, independenceCovariance, alpha, scale, iterations: iteration, converged, family: family.family,
       link: family.name, corstr, stdErr, columnNames: d.colNames, rows, clusterIds: ids, waves,
       warnings: warnings.list.slice(),
-      model: { formula, x: d.x, y, ids, waves, weights, offset, family: options.family ?? "gaussian",
+      model: { formula, meanFormula: split.meanFormula, offsetTerms: split.terms, x: d.x, y, ids, waves, weights, offset, family: options.family ?? "gaussian",
         link: options.link, corstr, scaleFix: options["scale.fix"] ?? false, scaleValue: options["scale.value"] ?? 1,
         zcor, data },
     };
@@ -458,11 +485,19 @@ export function geePredict(fit: GeeResult, options: GeePredictOptions = {}): num
     return options.type === "response" ? fit.fittedValues.slice() : fit.linearPredictors.slice();
   }
   const newdata = options.newdata ?? fit.model.data;
-  const d = design(parseFormula(fit.model.formula), newdata);
+  const d = design(parseFormula(fit.model.meanFormula), newdata, { extraVariables: fit.model.offsetTerms.map((t) => t.variable) });
   const family = makeFamily(fit.model.family, fit.model.link);
   const n = d.x.length;
   const offset = options.newoffset === undefined ? new Array<number>(n).fill(0) : Array.from(options.newoffset);
-  if (offset.length !== n) throw new RangeError("newoffset must have one value per row");
+  if (offset.length !== n) throw new RangeError("newoffset must have one value per retained row");
+  for (const term of fit.model.offsetTerms) {
+    const raw = getColumn(newdata, term.variable);
+    for (let i = 0; i < n; i++) {
+      const v = raw[d.frame.rows[i]!];
+      if (typeof v !== "number" || !Number.isFinite(v)) throw new RangeError("offset variable must contain finite numbers");
+      offset[i] = offset[i]! + (term.log ? Math.log(v) : v);
+    }
+  }
   const eta = d.x.map((r, i) => dot(r, fit.coefficients) + offset[i]!);
   return options.type === "response" ? eta.map((v) => family.linkinv(v)) : eta;
 }
