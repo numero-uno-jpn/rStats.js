@@ -7,6 +7,19 @@ const data = {
   y: [1, 4, 2, 3, 0, 2, 1, 3],
 };
 
+
+const geeCheckData = {
+  id: Array.from({ length: 12 }, (_, i) => Math.floor(i / 3) + 1),
+  wave: Array.from({ length: 12 }, (_, i) => (i % 3) + 1),
+  x: Array.from({ length: 12 }, (_, i) => [-1, 0, 1][i % 3]!),
+  y: [
+    1.7534, 2.9203, 2.5018, 2.8479, 3.1191, 3.3040, 1.9940, 2.9519, 3.3162,
+    2.0370, 3.1600, 3.7074, 2.1179, 2.7573, 3.5305, 1.8430, 2.5981, 3.7241,
+    2.0848, 2.1128, 3.2114, 2.4783, 2.6839, 3.3756, 2.4709, 3.7123, 3.0934,
+    2.8241, 2.1850, 3.5375, 1.5652, 3.4757, 3.8670, 2.7189, 2.3572, 3.7923,
+  ],
+};
+
 describe("generalized estimating equations", () => {
   it("solves the independence Gaussian estimating equations and retains cluster rows", () => {
     const fit = geeglm("y ~ x", data, { id: "id", family: "gaussian", corstr: "independence" });
@@ -67,6 +80,23 @@ describe("generalized estimating equations", () => {
     expect(sequential.values).toHaveLength(2);
     expect(nested.values[0]![0]).toBe(1);
     expect(Number.isFinite(nested.values[0]![1]!)).toBe(true);
+  });
+
+  it("matches the independent 12-cluster Gaussian oracle for mean, scale, and sandwich covariance", () => {
+    const fit = geeglm("y ~ x", geeCheckData, { id: "id", waves: "wave", corstr: "independence" });
+    expect(fit.coefficients[0]).toBeCloseTo(2.82583888888889, 11);
+    expect(fit.coefficients[1]).toBeCloseTo(0.592741666666667, 11);
+    expect(fit.scale).toBeCloseTo(0.173445234552469, 11);
+    expect(fit.covariance[0]![0]).toBeCloseTo(0.00369049728137860, 10);
+    expect(fit.covariance[0]![1]).toBeCloseTo(-0.0000763672646604936, 10);
+    expect(fit.covariance[1]![1]).toBeCloseTo(0.00589825936921296, 10);
+  });
+
+  it("matches the exchangeable and AR(1) residual-moment estimates", () => {
+    const exchangeable = geeglm("y ~ x", geeCheckData, { id: "id", waves: "wave", corstr: "exchangeable" });
+    const ar1 = geeglm("y ~ x", geeCheckData, { id: "id", waves: "wave", corstr: "ar1" });
+    expect(exchangeable.alpha[0]).toBeCloseTo(-0.117003308068869, 9);
+    expect(ar1.alpha[0]).toBeCloseTo(-0.201175106522640, 8);
   });
 
 });
