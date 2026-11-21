@@ -232,6 +232,11 @@ describe("rStats.js 1.8.0 public-output completeness against the pinned R oracle
 
     const binY = [0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1];
     const binFit = glmnet(x, binY, { family: "binomial", nlambda: 6 });
+    close(binFit.nullDev, f.binomial.value.nullDev, 1e-7);
+    const poissonY = [1, 2, 1, 3, 2, 4, 1, 3, 2, 5, 4, 6];
+    const poissonOffset = Array.from({ length: 12 }, (_, i) => Math.log(1 + i / 11));
+    const poissonFit = glmnet(x, poissonY, { family: "poisson", offset: poissonOffset, nlambda: 6 });
+    close(poissonFit.nullDev, f.poisson.value.nullDev, 1e-7);
     const typeExpected = f.predictTypes.value;
     matrix(transpose(glmnetPredict(binFit, x.slice(0, 4), { s: binFit.lambda[2]!, type: "link" })), typeExpected.link.values);
     matrix(transpose(glmnetPredict(binFit, x.slice(0, 4), { s: binFit.lambda[2]!, type: "response" })), typeExpected.response.values);
