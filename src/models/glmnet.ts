@@ -1,12 +1,21 @@
 // Elastic-net regularized generalized linear models, derived from the published objective and public numerical output.
 // The path solver uses a monotone proximal-gradient method; no glmnet or R implementation code is used.
 
-/** Family used for the penalized generalized linear model. @category Regression */
+/**
+ * Family used for the penalized generalized linear model.
+ * @category Regression
+ */
 export type GlmnetFamily = "gaussian" | "binomial" | "poisson";
-/** Scale or coefficient selection returned by a penalized-model prediction. @category Regression */
+/**
+ * Scale or coefficient selection returned by a penalized-model prediction.
+ * @category Regression
+ */
 export type GlmnetPredictType = "link" | "response" | "class" | "nonzero";
 
-/** Options for {@link glmnet}. @category Regression */
+/**
+ * Options for {@link glmnet}.
+ * @category Regression
+ */
 export interface GlmnetOptions {
   family?: GlmnetFamily;
   alpha?: number;
@@ -26,7 +35,10 @@ export interface GlmnetOptions {
   thresh?: number;
 }
 
-/** Result of {@link glmnet}, including the complete regularization path. @category Regression */
+/**
+ * Result of {@link glmnet}, including the complete regularization path.
+ * @category Regression
+ */
 export interface GlmnetResult {
   family: GlmnetFamily;
   alpha: number;
@@ -50,14 +62,20 @@ export interface GlmnetResult {
   };
 }
 
-/** Options for {@link glmnetPredict}. @category Regression */
+/**
+ * Options for {@link glmnetPredict}.
+ * @category Regression
+ */
 export interface GlmnetPredictOptions {
   s?: number | readonly number[];
   type?: GlmnetPredictType;
   offset?: readonly number[];
 }
 
-/** Options for {@link cvGlmnet}; fold assignments are required. @category Regression */
+/**
+ * Options for {@link cvGlmnet}; fold assignments are required.
+ * @category Regression
+ */
 export interface CvGlmnetOptions extends GlmnetOptions {
   foldid: readonly number[];
   typeMeasure?: "deviance" | "mse" | "mae" | "class" | "auc";
@@ -65,7 +83,10 @@ export interface CvGlmnetOptions extends GlmnetOptions {
   keep?: boolean;
 }
 
-/** Cross-validation summary returned by {@link cvGlmnet}. @category Regression */
+/**
+ * Cross-validation summary returned by {@link cvGlmnet}.
+ * @category Regression
+ */
 export interface CvGlmnetResult {
   fit: GlmnetResult;
   lambda: number[];
