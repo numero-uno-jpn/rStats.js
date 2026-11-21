@@ -36,8 +36,8 @@ plain <- function(x) {
 }
 capture <- function(f,includeQIC=TRUE) {
   s <- summary(f)
-  ans <- list(coefficients=unname(coef(f)),vcov=tab(vcov(f)),
-              corr=tab(s$corr),dispersion=tab(s$dispersion),
+  ans <- list(coefficients=unname(coef(f)),vcov=tab(vcov(f)),summary=tab(coef(s)),
+              fitted=unname(fitted(f)),residuals=unname(residuals(f)),corr=tab(s$corr),dispersion=tab(s$dispersion),
               alphaVar=as.numeric(diag(f$geese$valpha)),gammaVar=as.numeric(diag(f$geese$vgamma)))
   if (includeQIC) ans$qic <- unname(as.numeric(QIC(f)))
   ans
