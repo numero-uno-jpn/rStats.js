@@ -247,7 +247,17 @@ describe("regression 1.8.0: scale, weight, order, and edge-input audit", () => {
     expect(Object.values(multi.beta).flat(2).every(Number.isFinite)).toBe(true);
   });
 
-  it("fits 100000 GEE rows and 100000-row, 20-predictor glmnet models and records elapsed time", () => {
+  it("fits 100000-row rq, GEE, and 20-predictor glmnet workloads and records elapsed time", () => {
+    const rqN = 100000;
+    const rqX = Array.from({ length: rqN }, (_, i) => ((i * 37) % 1009) / 1009);
+    const rqZ = Array.from({ length: rqN }, (_, i) => ((i * 73) % 1013) / 1013);
+    const rqY = rqX.map((v, i) => 1.5 + .8 * v - .4 * rqZ[i]! + .2 * (((i * 97) % 101) - 50) / 50);
+    const rqStart = Date.now();
+    const rqFit = rq("y ~ x + z", { x: rqX, z: rqZ, y: rqY }, { tau: .5, method: "fn", eps: 1e-10 });
+    const rqElapsed = Date.now() - rqStart;
+    console.log(`[regression18-edge] rq fn, n=${rqN}: ${rqElapsed} ms`);
+    expect(rqVector(rqFit.coefficients).every(Number.isFinite)).toBe(true);
+
     const clusters = 50000, n = clusters * 2;
     const largeGee = {
       id: Array.from({ length: n }, (_, i) => Math.floor(i / 2) + 1),
