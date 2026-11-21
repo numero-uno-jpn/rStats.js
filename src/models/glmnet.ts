@@ -136,6 +136,8 @@ export interface CvGlmnetResult {
   lambdaMin: number;
   lambda1se: number;
   foldid: number[];
+  name?: string;
+  warnings?: string[];
   fitPreval?: number[][] | number[][][];
 }
 
@@ -792,7 +794,7 @@ function cvGlmnetMultinomial(
   const nzero = lambda.map((_, k) => fit.dfmat.reduce((v, row) => v + row[k]!, 0));
   return { fit, lambda, cvm, cvsd, cvup: cvm.map((v, i) => v + cvsd[i]!),
     cvlo: cvm.map((v, i) => v - cvsd[i]!), nzero, lambdaMin: lambda[min]!, lambda1se: lambda[one]!, foldid,
-    ...(options.keep ? { fitPreval: predictions } : {}) };
+    name: measure, ...(options.keep ? { fitPreval: predictions } : {}) };
 }
 
 /** Cross-validate a penalized generalized linear model. Equivalent to R's `cv.glmnet()`.
@@ -828,7 +830,14 @@ export function cvGlmnet(
     for(let i=0;i<test.length;i++) for(let k=0;k<lambda.length;k++) predictions[test[i]!]![k]=pred[k]![i]!;
   }
   const grouped=options.grouped??true;
-  const measure = options.typeMeasure ?? (fit.family === "gaussian" ? "mse" : "deviance");
+  let measure = options.typeMeasure ?? (fit.family === "gaussian" ? "mse" : "deviance");
+  const foldScores = folds.map(fold => numericY.map((_,i)=>i).filter(i=>foldid[i]===fold));
+  const warnings: string[] = [];
+  if (measure === "auc" && (foldScores.some(rows => rows.length < 10) ||
+      foldScores.some(rows => !rows.some(i => numericY[i]! >= 0.5) || !rows.some(i => numericY[i]! < 0.5)))) {
+    warnings.push("AUC requires at least ten observations and both classes in every fold; using deviance instead.");
+    measure = "deviance";
+  }
   const score = (indices: readonly number[], k: number): number => {
     if (measure === "auc") {
       let concordant = 0, ties = 0, pairs = 0;
@@ -854,7 +863,6 @@ export function cvGlmnet(
     }
     return total / indices.length;
   };
-  const foldScores = folds.map(fold => numericY.map((_,i)=>i).filter(i=>foldid[i]===fold));
   for (let k=0;k<lambda.length;k++) measures.push(foldScores.map(indices=>score(indices,k)));
   const cvm=lambda.map((_,k)=>grouped
     ? sum(measures[k]!)/folds.length
@@ -865,6 +873,14 @@ export function cvGlmnet(
       const observed=numericY[i]!, predicted=predictions[i]![k]!;
       if(measure==="mae") return Math.abs(predicted-observed);
       if(measure==="class") return (predicted>=0.5)===(observed>=0.5)?0:1;
+      if(measure==="deviance" && fit.family === "binomial") {
+        const mu=Math.max(1e-15,Math.min(1-1e-15,predicted));
+        return 2*((observed>0?observed*Math.log(observed/mu):0)+(observed<1?(1-observed)*Math.log((1-observed)/(1-mu)):0));
+      }
+      if(measure==="deviance" && fit.family === "poisson") {
+        const mu=Math.max(1e-15,predicted);
+        return 2*(observed===0?mu:observed*Math.log(observed/mu)-(observed-mu));
+      }
       return (predicted-observed)**2;
     });
     const m=sum(vals)/vals.length;
@@ -874,6 +890,6 @@ export function cvGlmnet(
   const cutoff=cvm[min]!+cvsd[min]!;
   let one=min;for(let k=0;k<lambda.length;k++)if(cvm[k]!<=cutoff)one=k;
   return {fit,lambda,cvm,cvsd,cvup:cvm.map((v,i)=>v+cvsd[i]!),cvlo:cvm.map((v,i)=>v-cvsd[i]!),
-    nzero:fit.df,lambdaMin:lambda[min]!,lambda1se:lambda[one]!,foldid,
+    nzero:fit.df,lambdaMin:lambda[min]!,lambda1se:lambda[one]!,foldid,name:measure,warnings,
     ...(options.keep?{fitPreval:predictions}:{})};
 }
