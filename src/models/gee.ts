@@ -482,10 +482,10 @@ function geeStep(
 function fitIndependenceForQIC(
   x: readonly (readonly number[])[], y: readonly number[], startBeta: readonly number[],
   offset: readonly number[], weights: readonly number[], family: Family,
-  clusterGroups: number[][], waves: number[], startScale: number,
+  clusterGroups: number[][], waves: number[],
   scaleFix: boolean, scaleValue: number, epsilon: number, maxit: number,
 ): { beta: number[]; scale: number } {
-  let beta = Array.from(startBeta), scale = startScale;
+  let beta = Array.from(startBeta), scale = scaleFix ? scaleValue : 1;
   for (let iteration = 1; iteration <= maxit; iteration++) {
     const step = geeStep(x, y, beta, offset, weights, family, clusterGroups, waves,
       "independence", [], scale, undefined);
@@ -686,7 +686,7 @@ export function geeglm(formula: string, data: DataFrame, options: GeeOptions): G
     let covariance = multiply(multiply(breadInv, meat), breadInv);
     const modelCovariance = breadInv.map((r) => r.slice());
     const independentFit = corstr === "independence" ? { beta, scale } :
-      fitIndependenceForQIC(x, y, beta, offset, weights, family, clusterGroups, waves, scale,
+      fitIndependenceForQIC(x, y, startFit.coefficients, offset, weights, family, clusterGroups, waves,
         options["scale.fix"] ?? false, options["scale.value"] ?? 1, epsilon, maxit);
     const independentStep = geeStep(x, y, independentFit.beta, offset, weights, family, clusterGroups, waves,
       "independence", [], independentFit.scale, undefined);
