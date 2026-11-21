@@ -93,8 +93,8 @@ describe("generalized estimating equations", () => {
   });
 
   it("matches the exchangeable and AR(1) residual-moment estimates", () => {
-    const exchangeable = geeglm("y ~ x", geeCheckData, { id: "id", waves: "wave", corstr: "exchangeable" });
-    const ar1 = geeglm("y ~ x", geeCheckData, { id: "id", waves: "wave", corstr: "ar1" });
+    const exchangeable = geeglm("y ~ x", geeCheckData, { id: "id", waves: "wave", corstr: "exchangeable", epsilon: 1e-12, maxit: 500 });
+    const ar1 = geeglm("y ~ x", geeCheckData, { id: "id", waves: "wave", corstr: "ar1", epsilon: 1e-12, maxit: 500 });
     expect(exchangeable.alpha[0]).toBeCloseTo(-0.117003308068869, 9);
     expect(ar1.alpha[0]).toBeCloseTo(-0.201175106522640, 8);
   });
@@ -108,8 +108,8 @@ describe("generalized estimating equations", () => {
       x: geeCheckData.x.filter((_, i) => keep[i]),
       y: geeCheckData.y.filter((_, i) => keep[i]),
     };
-    const withWaves = geeglm("y ~ x", gapData, { id: "id", waves: "wave", corstr: "ar1" });
-    const defaultWaves = geeglm("y ~ x", gapData, { id: "id", corstr: "ar1" });
+    const withWaves = geeglm("y ~ x", gapData, { id: "id", waves: "wave", corstr: "ar1", epsilon: 1e-12, maxit: 500 });
+    const defaultWaves = geeglm("y ~ x", gapData, { id: "id", corstr: "ar1", epsilon: 1e-12, maxit: 500 });
     expect(withWaves.alpha[0]).toBeCloseTo(-0.318769908479073, 8);
     expect(defaultWaves.alpha[0]).toBeCloseTo(-0.173965690243595, 8);
   });
