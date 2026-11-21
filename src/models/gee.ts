@@ -5,7 +5,8 @@
 import { pnorm } from "../distributions/normal.js";
 import { pchisq } from "../distributions/chisq.js";
 import { checkOptions } from "../internal/checkOptions.js";
-import { reported, Warnings, withWarnings } from "../internal/warnings.js";
+import { reported, Warnings, withWarnings, unreported } from "../internal/warnings.js";
+import { glm } from "./glm.js";
 import { makeFamily, type GlmFamilyName, type GlmFamilySpec, type GlmLink, type Family } from "./glmFamily.js";
 import { design } from "./modelMatrix.js";
 import { parseFormula } from "./formula.js";
@@ -342,14 +343,14 @@ export function geeglm(formula: string, data: DataFrame, options: GeeOptions): G
   const idName = typeof options.id === "string" ? options.id : undefined;
   const waveName = typeof options.waves === "string" ? options.waves : undefined;
   const extras = [idName, waveName, ...(typeof options.weights === "string" ? [options.weights] : []), ...(typeof options.offset === "string" ? [options.offset] : [])].filter((v): v is string => v !== undefined);
-  const d = design(parseFormula(formula), data, { extraVariables: extras });
+  const d = design(parseFormula(formula), data, { extraVariables: extras, ...(options.weights === undefined ? {} : { weights: options.weights }) });
   if (d.y === undefined) throw new TypeError("formula must have a response");
   const rows = d.frame.rows, n = rows.length, p = d.colNames.length;
   if (n === 0 || p === 0) throw new RangeError("no observations or no model columns");
   const inputN = Object.values(data)[0]?.length ?? n;
   const ids = clusterVector(options.id, data, rows, inputN);
   let waves = options.waves === undefined ? rows.map((_, i) => i) : vector(options.waves, data, rows, inputN, 0, "waves");
-  const weights = vector(options.weights, data, rows, inputN, 1, "weights");
+  const weights = d.frame.weights ?? new Array<number>(n).fill(1);
   if (weights.some((v) => v < 0)) throw new RangeError("weights must be nonnegative");
   const offset = vector(options.offset, data, rows, inputN, 0, "offset");
   const clusterGroups = groups(ids);
@@ -369,9 +370,12 @@ export function geeglm(formula: string, data: DataFrame, options: GeeOptions): G
   if (corstr === "fixed" && zcor?.some((r) => r.length !== 1 || Math.abs(r[0]!) > 1)) throw new RangeError("fixed zcor must be a one-column matrix of correlations in [-1, 1]");
   const warnings = new Warnings();
   return withWarnings(warnings, () => {
-    const xtx = multiply(transpose(d.x), d.x);
-    const xty = multiply(transpose(d.x), y.map((v) => [v])).map((r) => r[0]!);
-    let beta = solve(xtx, xty);
+    const startFit = unreported(() => glm(d.x, y, {
+      family: options.family ?? "gaussian",
+      ...(options.link === undefined ? {} : { link: options.link }),
+      weights, offset, intercept: false, epsilon, maxit,
+    }));
+    let beta = startFit.coefficients.slice();
     let scale = options["scale.fix"] ? (options["scale.value"] ?? 1) : 1;
     if (!(scale > 0) || !Number.isFinite(scale)) throw new RangeError("scale.value must be positive and finite");
     let maxPairs = 0;
@@ -450,6 +454,9 @@ export function geeSummary(fit: GeeResult, options: Record<string, never> = {}):
 /** Marginal mean predictions on the link or response scale. */
 export function geePredict(fit: GeeResult, options: GeePredictOptions = {}): number[] {
   checkOptions(options, GEE_PREDICT_KEYS, "geePredict");
+  if (options.newdata === undefined && options.newoffset === undefined) {
+    return options.type === "response" ? fit.fittedValues.slice() : fit.linearPredictors.slice();
+  }
   const newdata = options.newdata ?? fit.model.data;
   const d = design(parseFormula(fit.model.formula), newdata);
   const family = makeFamily(fit.model.family, fit.model.link);
