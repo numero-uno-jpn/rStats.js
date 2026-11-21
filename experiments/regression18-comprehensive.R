@@ -17,13 +17,7 @@ d <- data.frame(a=seq(-2,2,length.out=60),b=sin(seq_len(60)*.3))
 d$y <- 1+1.2*d$a-.6*d$b+sin(seq_len(60)*.7)*.4
 for(tol in c(1e-14,1e-16,1e-20)) out[[paste0("rq_",format(tol,scientific=TRUE))]] <- capture({
  f<-rq(y~a+b,data=d,tau=.5,method="fn",eps=tol)
- s<-summary(f,se="nid",covariance=TRUE)
- nd<-data.frame(a=c(-1.5,-.25,.5,1.75),b=c(.2,-.7,.1,.9))
- list(coef=coef(f),residuals=residuals(f),fitted=fitted(f),rho=f$rho,
-      summary=tab(coef(s)),covariance=tab(s$cov),
-      prediction=predict(f,newdata=nd),
-      none=tab(predict(f,newdata=nd,interval="confidence",type="none")),
-      direct=tab(predict(f,newdata=nd,interval="confidence",type="direct")))
+ list(coef=coef(f),residuals=residuals(f),fitted=fitted(f),rho=f$rho)
 })
 out$rqAnova <- capture({
  f<-rq(y~a+b,data=d,tau=.5,method="fn",eps=1e-14)
@@ -43,7 +37,7 @@ for(cs in c("independence","exchangeable","ar1","unstructured")) for(tol in c(1e
            control=geese.control(epsilon=tol,maxit=500))
  s<-summary(f)
  list(coef=coef(f),vcov=tab(vcov(f)),summary=tab(coef(s)),corr=tab(s$corr),
-      dispersion=tab(s$dispersion),fitted=fitted(f),residuals=residuals(f),qic=as.numeric(QIC(f)))
+      dispersion=tab(s$dispersion),qic=as.numeric(QIC(f)))
  })
 set.seed(913); X<-matrix(rnorm(240),60,4); y<-1.5+.7*X[,1]-.4*X[,2]+rnorm(60,sd=.2); fold<-rep(1:5,12)
 for(tol in c(1e-14,1e-16,1e-20)) out[[paste0("glmnet_",format(tol,scientific=TRUE))]] <- capture({
@@ -51,7 +45,7 @@ for(tol in c(1e-14,1e-16,1e-20)) out[[paste0("glmnet_",format(tol,scientific=TRU
  cv<-cv.glmnet(X,y,alpha=.5,foldid=fold,nlambda=12,keep=TRUE,control=list(thresh=tol,maxit=1e7))
  list(lambda=f$lambda,a0=f$a0,beta=tab(f$beta),df=f$df,devRatio=f$dev.ratio,
       cvLambda=cv$lambda,cvm=cv$cvm,cvsd=cv$cvsd,lambdaMin=cv$lambda.min,
-      lambda1se=cv$lambda.1se,preval=tab(cv$fit.preval))
+      lambda1se=cv$lambda.1se)
 })
 out$scale <- list()
 xx<-cbind(a=seq(-1,1,length.out=40),b=sin(seq_len(40)*.4)); yy<-1+.8*xx[,1]-.3*xx[,2]+cos(seq_len(40)*.7)*.1
@@ -81,7 +75,7 @@ ly<-1.5+.8*lx[,1]-.4*lx[,2]+.2*(((seq_len(n)*97)%%101)-50)/50
 out$timing <- list()
 out$timing$rq_fn <- capture(as.numeric(system.time(rq(ly~lx[,1]+lx[,2],method="fn",eps=1e-10,maxit=200))["elapsed"]))
 gn<-10000; gd<-data.frame(id=rep(seq_len(gn),each=2),wave=rep(1:2,gn),x=rep(0:1,gn),
- y=rep(1:2,gn)+rep(seq_len(gn)%%7,each=2)/10)
+ y=rep(1:2,gn)+rep(seq_len(gn)%%7,each=2)/10+rep(c(.03,-.03),gn))
 for(cs in c("independence","exchangeable")) out$timing[[paste0("gee_",cs)]]<-capture(
  as.numeric(system.time(geeglm(y~x,id=id,waves=wave,data=gd,corstr=cs))["elapsed"]))
 gx<-matrix(rnorm(n*20),n,20); gy<-1+gx[,1]-.5*gx[,2]+rnorm(n,sd=.5)

@@ -189,7 +189,7 @@ out$engelPredict<-run({
  f<-rq(foodexp~income,data=engel,tau=.5)
  nd<-data.frame(income=c(500,1000,2500))
  s<-summary(f,se="nid",covariance=TRUE)
- list(data=list(income=unname(engel$income),foodexp=unname(engel$foodexp)),coef=unname(coef(f)),cov=tab(s$cov),prediction=unname(predict(f,newdata=nd)),
+ list(data=list(income=unname(engel$income),foodexp=unname(engel$foodexp)),coef=unname(coef(f)),summary=tab(coef(summary(f,se="nid"))),cov=tab(s$cov),prediction=unname(predict(f,newdata=nd)),
       ciNone=tab(predict(f,newdata=nd,interval="confidence",se="nid",type="none")),
       ciDirect=tab(predict(f,newdata=nd,interval="confidence",type="direct")),
       ciPercentile=tab(predict(f,newdata=nd,interval="confidence",type="percentile",se="boot",R=40)))
@@ -198,7 +198,11 @@ out$multiTauTwoPredictors<-run({
  d2<-data.frame(x=seq(-2,2,length.out=60),z=sin(seq_len(60)*.3))
  d2$y<-1+1.2*d2$x-.6*d2$z+sin(seq_len(60)*.7)*.4
  f<-rq(y~x+z,data=d2,tau=c(.25,.5,.75))
- list(data=list(x=unname(d2$x),z=unname(d2$z),y=unname(d2$y)),coef=tab(coef(f)),joint=tab(anova(f,joint=TRUE)$table),separate=tab(anova(f,joint=FALSE)$table))
+ single<-rq(y~x+z,data=d2,tau=.5)
+ reduced<-rq(y~x,data=d2,tau=.5)
+ list(data=list(x=unname(d2$x),z=unname(d2$z),y=unname(d2$y)),coef=tab(coef(f)),
+      nested=tab(anova(single,reduced)$table),joint=tab(anova(f,joint=TRUE)$table),
+      separate=tab(anova(f,joint=FALSE)$table))
 })
 
 writeLines(
