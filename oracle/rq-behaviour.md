@@ -193,3 +193,16 @@ The consolidated public-output probe in `experiments/regression18-rq-inference.R
 4. **ker bandwidth.** The small-design public `Hinv` and covariance imply a common residual density of approximately 0.0839500524748983 when expressed against the emitted (X^\mathsf TX). The public result does not expose the kernel bandwidth directly. Fitting the emitted H inverse to candidate kernel matrices identifies a Gaussian kernel to 4.9e-14 relative error, with the unnormalised Hessian form H = (1/h) sum_i phi(residual_i/h) x_i x_i^T and inferred h = 4.512859542966 for this 16-row case (the fitted scale factor is exactly n=16). The kernel shape is therefore strongly identified, but the rule that selects this bandwidth is not recovered from the public output. Keep ker unresolved and do not generalise this one inferred h to other samples.
 
 The implementation uses the Hall–Sheather bandwidth, the local fitted-quantile slopes, and the positive-part density correction epsilon = 2^-26. This correction resolves the initial covariance discrepancy: the public H inverse and covariance are reproduced to 13–14 significant digits on the 16-row oracle design. The strict covariance test remains in CI as the numerical guard. The iid, rank, ker and bootstrap tests remain explicit `it.todo` items until their formulas are resolved.
+
+
+### Final stage-2 recheck (2026-11-21)
+
+The single combined follow-up probe `experiments/regression18-rq-final-probe.R` (commit `5951531f`) did not produce a JSON result. R 4.6.2 exited with status 1 after warning that the small-design Barrodale–Roberts solution may be nonunique, then raised:
+
+```
+Error in array(x, c(length(x), 1L), if (!is.null(names(x))) list(names(x),  :
+  'data' must be of a vector type, was 'NULL'
+Calls: as.matrix -> as.matrix -> as.matrix.default -> array
+```
+
+The failure indicates that the probe passed a `NULL` value to an unguarded `as.matrix()`; the public-output log does not identify which object was `NULL`. Consequently this run supplies no new numerical evidence for iid, ker, rank, or bootstrap. The four corresponding implementation tests remain `it.todo`. The previous independently successful probes and numerical findings above are retained, but none of the four unresolved formula choices is promoted on the basis of this failed run. The experiment was intentionally not pushed a second time, in accordance with the one-push limit.
