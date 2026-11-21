@@ -180,7 +180,8 @@ out$predict <- run({
  ftt <- geeglm(resp~age+smoke,id=id,data=ohio,family=binomial,corstr="ar1",
                control=geese.control(epsilon=1e-12,maxit=1000))
  nd <- data.frame(age=c(-2,0,1),smoke=c(0,1,1))
- list(link=unname(predict(f,newdata=nd)),response=unname(predict(f,newdata=nd,type="response")),
+ list(coefficients=unname(coef(f)),coefficientsTight=unname(coef(ft)),coefficientsTighter=unname(coef(ftt)),
+      link=unname(predict(f,newdata=nd)),response=unname(predict(f,newdata=nd,type="response")),
       linkTight=unname(predict(ft,newdata=nd)),responseTight=unname(predict(ft,newdata=nd,type="response")),
       linkTighter=unname(predict(ftt,newdata=nd)),responseTighter=unname(predict(ftt,newdata=nd,type="response")))
 })
