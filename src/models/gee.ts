@@ -641,7 +641,7 @@ export function geeglm(formula: string, data: DataFrame, options: GeeOptions): G
       bread = step.bread;
       meat = step.meat;
       const ev = evaluate(x, y, beta, offset, family, weights);
-      if (!options["scale.fix"] && !family.fixedDispersion) scale = ev.pearson.reduce((s, v) => s + v * v, 0) / n;
+      if (!options["scale.fix"]) scale = ev.pearson.reduce((s, v) => s + v * v, 0) / n;
       if (corstr === "exchangeable" || corstr === "ar1" || corstr === "unstructured" || corstr === "userdefined") {
         alpha = pairMoments(ev.pearson, clusterGroups, waves, corstr, scale, zcor).map((v) => Math.max(-0.99, Math.min(0.99, v)));
       }
