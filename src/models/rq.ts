@@ -625,7 +625,7 @@ export function rqPredict(fit: RqResult, newdata: DataFrame): number[] | number[
 /** Options for rqSummary.
  * @category Regression
  */
-export interface RqSummaryOptions { se?: "nid" | "iid" | "rank" | "ker" | "boot"; covariance?: boolean; level?: number; }
+export interface RqSummaryOptions { se?: "nid" | "rank"; covariance?: boolean; level?: number; }
 /** A coefficient row in an rq summary.
  * @category Regression
  */
@@ -885,10 +885,15 @@ function rqRankIntervals(model: RqModel, beta: readonly number[], tau: number, l
  * @category Regression
  */
 export function rqSummary(fit: RqResult, options: RqSummaryOptions = {}): RqSummaryResult {
+  const extendedOptions = options as RqSummaryOptions & { iid?: unknown };
+  if (options.se === "rank" && extendedOptions.iid === false)
+    throw new RangeError('se = "rank", iid = false is not supported yet; omit iid or use se = "nid"');
   for (const key of Object.keys(options)) if (!["se", "covariance", "level"].includes(key)) throw new TypeError("unused argument (" + key + ")");
   const model = fit.model;
-  const se = options.se ?? (model.y.length <= 1000 ? "rank" : "nid");
-  if (se !== "nid" && se !== "rank") throw new RangeError("rqSummary currently supports se = 'nid' and 'rank'; iid, ker and boot remain unresolved");
+  const requestedSe = options.se as string | undefined;
+  if (requestedSe !== undefined && requestedSe !== "nid" && requestedSe !== "rank")
+    throw new RangeError(`se = "${requestedSe}" is not supported yet; use "rank" or "nid"`);
+  const se = requestedSe ?? (model.y.length <= 1000 ? "rank" : "nid");
   // R's default for the rank intervals is alpha = 0.1; the nid bandwidth uses 0.95
   const level = options.level ?? (se === "rank" ? 0.9 : 0.95);
   if (!(level > 0 && level < 1)) throw new RangeError("level must be between 0 and 1");
