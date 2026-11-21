@@ -58,7 +58,13 @@
   - **1.8.0 に入れないもの (ユーザーの決定 2026-11-21):** rq の se = iid・ker・boot と rank の iid = FALSE、geeglm の jackknife
     3 種。R と合わせられなかった。エラーにして既知の未対応に (choices に記録済み `6ee8442f`)。仕上げと文書は
     `briefs/release-1.8.ja.md` で ChatGPT に。glmnet の CV は R の厳しい当て直しの fixture を入れた (`64d30930`)
-  - 残り: rq の iid の密度・ker の帯域・boot (pwy・mcmb・wxy)、geeglm の jack・j1s、glmnet の CV の cvm (1.2e-5)。
+  - **仕上げ (2026-11-22、作業ブランチ `b4ed6632`):** ChatGPT が F・R0〜R3 (未対応のエラー、TSDoc、size、文書、デモ 6 例) を済ませた。
+    生成物は私 (option keys に geeAnova の条件、日本語の索引に 15 関数の説明、r-results.json)。**デモを R で流して不具合が
+    3 つ見つかり、私が直した:** glmnet の gaussian で alpha < 1 の ridge が y の標準化を欠いていた (2〜4%)、経路の早い終わり
+    (fdev × dev.ratio)、rq の τ をまたぐ検定の残差の自由度 (n m − q。ChatGPT が誤った式にテストを合わせていた)、geeglm の QIC
+    (準尤度は −RSS/2、CIC の向き)。R の厳しい当て直しも閾値 1e-14 では収束していなかった (CV は 1e-20 に)。全テスト通過
+    (Mac 専用の 2 件を除く)。**次: ChatGPT に包括的な点検 (端の入力・桁落ち) → 私が要点を点検 → 取り込みと公開**
+  - (以前の残り、今は 1.8.0 の外) rq の iid の密度・ker の帯域・boot (pwy・mcmb・wxy)、geeglm の jack・j1s。
     最後に生成物 (option keys・R の索引)、文書・訳・デモは ChatGPT に
 - ChatGPT は返答のたびに「メッセージの配信がタイムアウト」になりやすい。そのたびに Issue #545 とブランチを見て再開の依頼文を書く
 - (以前) 次: ユーザーが ChatGPT に依頼文を貼る → 段階 1 の報告 (仕様書 3 つ + Decisions) を Issue #545 で点検 → Decisions を
