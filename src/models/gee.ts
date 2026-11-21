@@ -703,9 +703,9 @@ function refitForAnova(fit: GeeResult, formula: string): GeeResult {
  * Equivalent to R's `anova()`.
  * @category Regression
  */
-export function geeAnova(fit: GeeResult, optionsOrCompare: { test?: "Wald" } | GeeResult = {}): GeeAnovaResult {
-  if (isGeeResult(optionsOrCompare)) {
-    const reduced = optionsOrCompare;
+export function geeAnova(fit: GeeResult, options: { test?: "Wald" } | GeeResult = {}): GeeAnovaResult {
+  if (isGeeResult(options)) {
+    const reduced = options;
     if (fit.rows.length !== reduced.rows.length || fit.rows.some((r, i) => r !== reduced.rows[i]) ||
       fit.clusterIds.length !== reduced.clusterIds.length ||
       fit.clusterIds.some((v, i) => v !== reduced.clusterIds[i])) {
@@ -721,8 +721,8 @@ export function geeAnova(fit: GeeResult, optionsOrCompare: { test?: "Wald" } | G
     return reported("geeAnova", { rows: [fit.model.formula], columns: ["Df", "X2", "Pr(>Chi)"] as ["Df", "X2", "Pr(>Chi)"],
       values: [[test.df, test.statistic, test.p]], warnings: [] }, fit, reduced);
   }
-  checkOptions(optionsOrCompare, ["test"], "geeAnova"); // generated: option-keys.mjs
-  if (optionsOrCompare.test !== undefined && optionsOrCompare.test !== "Wald") throw new RangeError("only Wald tests are available");
+  checkOptions(options, ["test"], "geeAnova"); // generated: option-keys.mjs
+  if (options.test !== undefined && options.test !== "Wald") throw new RangeError("only Wald tests are available");
   const labels = fit.model.termLabels;
   if (labels.length === 0) {
     const test = waldBlock(fit, fit.coefficients.map((_, i) => i));
