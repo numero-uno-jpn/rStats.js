@@ -423,7 +423,7 @@ function centeredPenaltyShift(values: readonly number[], alpha: number): number 
 function multinomialObjective(
   x: readonly (readonly number[])[], y: readonly number[], weights: readonly number[],
   a0: readonly number[], beta: readonly (readonly number[])[], lambda: number,
-  alpha: number, penalty: readonly number[], grouped: boolean, intercept: boolean,
+  alpha: number, penalty: readonly number[], grouped: boolean,
 ): number {
   const n = y.length, p = penalty.length, kCount = a0.length;
   let value = 0;
@@ -460,7 +460,7 @@ function multinomialObjective(
 function multinomialKktResidual(
   x: readonly (readonly number[])[], y: readonly number[], weights: readonly number[],
   a0: readonly number[], beta: readonly (readonly number[])[], lambda: number,
-  alpha: number, penalty: readonly number[], grouped: boolean,
+  alpha: number, penalty: readonly number[], grouped: boolean, intercept: boolean,
 ): number {
   const n = y.length, p = penalty.length, kCount = a0.length;
   const gradA = new Array<number>(kCount).fill(0);
@@ -619,7 +619,7 @@ function fitMultinomialOne(
       if (kkt <= thresh * (1 + scale)) { converged = true; break; }
     }
   }
-  const kkt = multinomialKktResidual(x, y, weights, a0, beta, lambda, alpha, penalty, grouped);
+  const kkt = multinomialKktResidual(x, y, weights, a0, beta, lambda, alpha, penalty, grouped, intercept);
   return { a0, beta, eta, passes, converged, kkt };
 }
 
