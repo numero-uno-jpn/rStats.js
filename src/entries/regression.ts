@@ -105,3 +105,20 @@ export {
   type GeeCorrelation,
   type GeeStdErr,
 } from "../models/gee.js";
+
+
+// Penalized regression (rStats.js/regression)
+
+export {
+  glmnet,
+  glmnetCoef,
+  glmnetPredict,
+  cvGlmnet,
+  type GlmnetFamily,
+  type GlmnetPredictType,
+  type GlmnetOptions,
+  type GlmnetResult,
+  type GlmnetPredictOptions,
+  type CvGlmnetOptions,
+  type CvGlmnetResult,
+} from "../models/glmnet.js";
