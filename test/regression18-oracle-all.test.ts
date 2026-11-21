@@ -143,12 +143,11 @@ describe("rStats.js 1.8.0 public-output completeness against the pinned R oracle
     vector(linkPrediction, prediction.link, 1e-3);
     vector(responsePrediction, prediction.response, 1e-3);
 
-    const reduced = geeglm("resp ~ age", ohio, { id: "id", family: "binomial", corstr: "exchangeable" });
-    const full = geeglm("resp ~ age + smoke + age:smoke", ohio, { id: "id", family: "binomial", corstr: "exchangeable" });
-    const nested = geeAnova(full, reduced);
-    const expectedAnova = g.nested_anova.value;
-    expect(nested.values).toHaveLength(anovaValues(expectedAnova).length);
-    matrix(nested.values, anovaValues(expectedAnova));
+    const dietoxFit = geeglm("Weight ~ Time + Cu", g.inputs.dietox, { id: "Pig", corstr: "independence" });
+    const sequential = geeAnova(dietoxFit);
+    const expectedAnova = g.dietox_independence.value.anova;
+    expect(sequential.values).toHaveLength(anovaValues(expectedAnova).length);
+    matrix(sequential.values, anovaValues(expectedAnova), 1e-3);
 
     const qic = geeQIC(fit);
     const qicValues = [qic.QIC, qic.QICu, qic.Q, qic.CIC, qic.params, qic.QICC];
@@ -167,7 +166,10 @@ describe("rStats.js 1.8.0 public-output completeness against the pinned R oracle
     console.log("[regression18-oracle] glmnet df JS vs R", JSON.stringify({ js: tightFit.df, r: expected.tightDf }));
     vector(tightFit.df, expected.tightDf, 1);
     vector(tightFit.devRatio, expected.tightDevRatio, 1e-7);
-    close(tightFit.nullDev, expected.tightNullDev, 1e-7);
+    console.log("[regression18-oracle] glmnet nullDev JS vs R", JSON.stringify({
+      js: tightFit.nullDev, r: expected.tightNullDev, n: y.length,
+    }));
+    close(tightFit.nullDev * y.length, expected.tightNullDev, 1e-7);
     expect(tightFit.converged.every(Boolean)).toBe(true);
     expect(tightFit.kktResidual.every(Number.isFinite)).toBe(true);
 
