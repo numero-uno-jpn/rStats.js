@@ -26,6 +26,10 @@ function flatTable(expected: { nrow: number; ncol: number; values: number[] }): 
 function geeTable(actual: readonly (readonly number[])[], expected: { nrow: number; ncol: number; values: number[] }, tolerance = 2e-7): void {
   matrix(actual, flatTable(expected), tolerance);
 }
+function numericValues(value: any): number[] {
+  const source = value && !Array.isArray(value) && Array.isArray(value.values) ? value.values : value;
+  return Array.isArray(source) ? source.flat(Infinity).map(Number) : [];
+}
 function transpose(values: readonly (readonly number[])[]): number[][] {
   if (values.length === 0) return [];
   return Array.from({ length: values[0]!.length }, (_, j) => values.map(row => row[j]!));
@@ -108,11 +112,11 @@ describe("rStats.js 1.8.0 public-output completeness against the pinned R oracle
     });
     const expected = g.gee_check.independence.value.default;
     vector(fit.coefficients, expected.coefficients);
-    vector(fit.fittedValues, expected.fitted.values.map(Number));
-    vector(fit.residuals, expected.residuals.map(Number));
-    vector(fit.pearsonResiduals, g.gee_check.independence.value.pearson.values.map(Number));
+    vector(fit.fittedValues, numericValues(expected.fitted));
+    vector(fit.residuals, numericValues(expected.residuals));
+    vector(fit.pearsonResiduals, numericValues(g.gee_check.independence.value.pearson));
     geeTable(fit.covariance, expected.vcov);
-    vector(fit.alpha, expected.corr.values.flat());
+    vector(fit.alpha, numericValues(expected.corr));
     close(fit.scale, expected.dispersion.values[0]!);
     expect(fit.model.x).toHaveLength(checkData.y.length);
     expect(fit.model.y).toEqual(checkData.y);
@@ -125,7 +129,7 @@ describe("rStats.js 1.8.0 public-output completeness against the pinned R oracle
     expect(summary.rows).toEqual(expected.summary.rows);
     geeTable(summary.values, expected.summary);
     close(summary.scale, expected.dispersion.values[0]!);
-    vector(summary.correlation.estimate, expected.corr.values.flat());
+    vector(summary.correlation.estimate, numericValues(expected.corr));
 
     const ohio = g.inputs.ohio;
     const ohioFit = geeglm("resp ~ age + smoke", ohio, { id: "id", family: "binomial", corstr: "ar1" });
