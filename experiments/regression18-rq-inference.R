@@ -1,25 +1,11 @@
 # issue: 545
-# Public-output probes for quantile-regression inference (no implementation inspection).
+# One compact public-output experiment for unresolved rq inference formulae.
 suppressMessages(library(quantreg))
 library(jsonlite)
 
-data(engel)
-n <- nrow(engel)
-tau <- 0.5
-fit <- rq(foodexp ~ income, tau = tau, data = engel, method = "br")
-h.hs <- bandwidth.rq(tau, n, hs = TRUE)
-h.bofinger <- bandwidth.rq(tau, n, hs = FALSE)
-fit.lo <- rq(foodexp ~ income, tau = tau - h.hs, data = engel, method = "br")
-fit.hi <- rq(foodexp ~ income, tau = tau + h.hs, data = engel, method = "br")
-r <- residuals(fit)
-f.lo <- fitted(fit.lo)
-f.hi <- fitted(fit.hi)
-
 tab <- function(x) {
   if (is.null(x)) return(NULL)
-  if (is.matrix(x) || is.data.frame(x)) {
-    return(list(rows = rownames(x), cols = colnames(x), values = unname(as.matrix(x))))
-  }
+  if (is.matrix(x) || is.data.frame(x)) return(list(rows = rownames(x), cols = colnames(x), values = unname(as.matrix(x))))
   x
 }
 capture <- function(expr) {
@@ -31,118 +17,96 @@ capture <- function(expr) {
   list(value = value, warnings = warnings)
 }
 
-out <- list(
-  bandwidth = list(hs = h.hs, bofinger = h.bofinger),
-  iid = capture({
-    s <- summary(fit, se = "iid", covariance = TRUE)
-    list(table = tab(coef(s)), cov = s$cov, scale = s$scale, names = names(s))
-  }),
-  nid = capture({
-    s <- summary(fit, se = "nid", covariance = TRUE)
-    list(table = tab(coef(s)), cov = s$cov, Hinv = s$Hinv, J = s$J, scale = s$scale, names = names(s))
-  }),
-  ker = capture({
-    s <- summary(fit, se = "ker", covariance = TRUE)
-    list(table = tab(coef(s)), cov = s$cov, Hinv = s$Hinv, J = s$J)
-  }),
-  rank = capture(list(
-    iid = tab(coef(summary(fit, se = "rank", alpha = 0.05))),
-    noniid = tab(coef(summary(fit, se = "rank", iid = FALSE, alpha = 0.05))),
-    alpha10 = tab(coef(summary(fit, se = "rank", alpha = 0.1)))
-  )),
-  densityProbes = list(
-    tauMinus = tau - h.hs,
-    tauPlus = tau + h.hs,
-    betaMinus = coef(fit.lo),
-    betaPlus = coef(fit.hi),
-    meanSparsity = mean((f.hi - f.lo) / (2 * h.hs)),
-    localSparsity = (f.hi - f.lo) / (2 * h.hs),
-    residualQuantilesType1 = quantile(r, c(tau - h.hs, tau + h.hs), type = 1),
-    residualQuantilesType7 = quantile(r, c(tau - h.hs, tau + h.hs), type = 7)
-  ),
-  small = capture({
-    x <- -3:12
-    y <- c(2, 1, 4, 2, 5, 3, 8, 5, 9, 7, 11, 8, 14, 10, 15, 13)
-    f <- rq(y ~ x, tau = 0.5, method = "br")
-    hs <- bandwidth.rq(0.5, length(y), hs = TRUE)
-    fl <- rq(y ~ x, tau = 0.5 - hs, method = "br")
-    fh <- rq(y ~ x, tau = 0.5 + hs, method = "br")
-    fl.fn <- rq(y ~ x, tau = 0.5 - hs, method = "fn")
-    fh.fn <- rq(y ~ x, tau = 0.5 + hs, method = "fn")
-    si <- summary(f, se = "iid", covariance = TRUE)
-    si.b <- summary(f, se = "iid", covariance = TRUE, hs = FALSE)
-    sn <- summary(f, se = "nid", covariance = TRUE)
-    sk <- summary(f, se = "ker", covariance = TRUE)
-    rz <- residuals(f)
-    rn <- rz[abs(rz) > 1e-8]
-    d0 <- function(v, bw) {
-      z <- density(v, bw = bw)
-      approx(z$x, z$y, xout = 0)$y
-    }
-    list(
-      coef = coef(f),
-      residuals = rz,
-      bandwidth = hs,
-      betaMinus = coef(fl),
-      betaPlus = coef(fh),
-      meanSparsityBr = mean(fitted(fh) - fitted(fl)) / (2 * hs),
-      betaMinusFn = coef(fl.fn),
-      betaPlusFn = coef(fh.fn),
-      meanSparsityFn = mean(fitted(fh.fn) - fitted(fl.fn)) / (2 * hs),
-      fittedMinus = fitted(fl),
-      fittedPlus = fitted(fh),
-      iidCov = si$cov,
-      iidResiduals = si$residuals,
-      iidScale = si$scale,
-      iidNames = names(si),
-      iidBofingerCov = si.b$cov,
-      iidBofingerScale = si.b$scale,
-      nid = list(table = coef(sn), cov = sn$cov, Hinv = sn$Hinv, J = sn$J, scale = sn$scale, residuals = sn$residuals, names = names(sn)),
-      ker = list(table = coef(sk), cov = sk$cov, Hinv = sk$Hinv, J = sk$J, scale = sk$scale, residuals = sk$residuals, names = names(sk)),
-      nonzeroResidualCount = length(rn),
-      bwNrd = bw.nrd(rn),
-      bwNrd0 = bw.nrd0(rn),
-      densityNrdNonzero = d0(rn, "nrd"),
-      densityNrd0Nonzero = d0(rn, "nrd0"),
-      densityNrdAll = d0(rz, "nrd"),
-      densityNrd0All = d0(rz, "nrd0"),
-      residualQuantiles = lapply(1:9, function(type) quantile(rn, c(0.5 - hs, 0.5 + hs), type = type))
-    )
-  })
+data(engel)
+n <- nrow(engel)
+tau <- 0.5
+fit <- rq(foodexp ~ income, tau = tau, data = engel, method = "br")
+h.hs <- bandwidth.rq(tau, n, hs = TRUE)
+h.bofinger <- bandwidth.rq(tau, n, hs = FALSE)
+s.iid <- summary(fit, se = "iid", covariance = TRUE)
+s.iid.b <- summary(fit, se = "iid", covariance = TRUE, hs = FALSE)
+s.nid <- summary(fit, se = "nid", covariance = TRUE)
+s.ker <- summary(fit, se = "ker", covariance = TRUE)
+s.rank <- summary(fit, se = "rank", alpha = 0.05)
+s.rank.noniid <- summary(fit, se = "rank", iid = FALSE, alpha = 0.05)
+s.rank.10 <- summary(fit, se = "rank", alpha = 0.1)
+
+small <- data.frame(
+  x = -3:12,
+  y = c(2, 1, 4, 2, 5, 3, 8, 5, 9, 7, 11, 8, 14, 10, 15, 13)
+)
+small.fit <- rq(y ~ x, data = small, tau = tau, method = "br")
+small.res <- residuals(small.fit)
+small.nonzero <- small.res[abs(small.res) > 1e-8]
+small.hs <- bandwidth.rq(tau, nrow(small), hs = TRUE)
+small.iid <- summary(small.fit, se = "iid", covariance = TRUE)
+small.iid.b <- summary(small.fit, se = "iid", covariance = TRUE, hs = FALSE)
+small.nid <- summary(small.fit, se = "nid", covariance = TRUE)
+small.ker <- summary(small.fit, se = "ker", covariance = TRUE)
+small.rank <- summary(small.fit, se = "rank", alpha = 0.05)
+small.rank.noniid <- summary(small.fit, se = "rank", iid = FALSE, alpha = 0.05)
+small.fit.lo <- rq(y ~ x, data = small, tau = tau - small.hs, method = "br")
+small.fit.hi <- rq(y ~ x, data = small, tau = tau + small.hs, method = "br")
+small.qlo <- lapply(1:9, function(type) quantile(small.nonzero, tau - small.hs, type = type))
+small.qhi <- lapply(1:9, function(type) quantile(small.nonzero, tau + small.hs, type = type))
+small.density <- function(v, bw) {
+  d <- density(v, bw = bw)
+  approx(d$x, d$y, xout = 0)$y
+}
+small.probes <- list(
+  residuals = small.res,
+  nonzeroResiduals = small.nonzero,
+  bandwidth = small.hs,
+  betaMinus = coef(small.fit.lo),
+  betaPlus = coef(small.fit.hi),
+  fittedMinus = fitted(small.fit.lo),
+  fittedPlus = fitted(small.fit.hi),
+  iid = list(table = tab(coef(small.iid)), cov = small.iid$cov, scale = small.iid$scale, residuals = small.iid$residuals, names = names(small.iid)),
+  iidBofinger = list(table = tab(coef(small.iid.b)), cov = small.iid.b$cov, scale = small.iid.b$scale),
+  nid = list(table = tab(coef(small.nid)), cov = small.nid$cov, Hinv = small.nid$Hinv, J = small.nid$J, scale = small.nid$scale),
+  ker = list(table = tab(coef(small.ker)), cov = small.ker$cov, Hinv = small.ker$Hinv, J = small.ker$J, scale = small.ker$scale),
+  rank = tab(coef(small.rank)),
+  rankNoniid = tab(coef(small.rank.noniid)),
+  quantileTypeLower = small.qlo,
+  quantileTypeUpper = small.qhi,
+  densityNrd = small.density(small.nonzero, "nrd"),
+  densityNrd0 = small.density(small.nonzero, "nrd0"),
+  densityAllNrd = small.density(small.res, "nrd"),
+  densityAllNrd0 = small.density(small.res, "nrd0")
 )
 
-X <- cbind(1, engel$income)
-out$iidRowOrder <- capture({
-  d <- data.frame(x = -3:12, y = c(2, 1, 4, 2, 5, 3, 8, 5, 9, 7, 11, 8, 14, 10, 15, 13))
-  hs <- bandwidth.rq(0.5, nrow(d), hs = TRUE)
-  probe <- function(dd) {
-    f <- rq(y ~ x, data = dd, tau = 0.5, method = "br")
-    lo <- rq(y ~ x, data = dd, tau = 0.5 - hs, method = "br")
-    hi <- rq(y ~ x, data = dd, tau = 0.5 + hs, method = "br")
-    s <- summary(f, se = "iid", covariance = TRUE)
-    dfit <- fitted(hi) - fitted(lo)
-    list(scale = s$scale, coef = coef(f), betaMinus = coef(lo), betaPlus = coef(hi),
-      meanSparsity = mean(dfit) / (2 * hs), firstSparsity = dfit[1] / (2 * hs),
-      lastSparsity = dfit[length(dfit)] / (2 * hs), n = nrow(dd))
-  }
-  set.seed(1)
-  ord <- sample.int(nrow(d))
-  list(original = probe(d), reversed = probe(d[nrow(d):1, ]),
-    permuted = probe(d[ord, ]), permutation = ord)
-})
-out$data <- list(income = engel$income, foodexp = engel$foodexp)
+Xsmall <- model.matrix(y ~ x, small)
+bootProbes <- list()
 for (method in c("xy", "pwy", "mcmb", "wxy")) {
-  if (method == "mcmb") {
-    set.seed(1)
-    mcmbZ <- matrix(rnorm(n * 2), nrow = n, ncol = 2)
-    set.seed(1)
-  } else {
-    set.seed(1)
-  }
-  out[[paste0("boot_", method)]] <- capture({
-    z <- boot.rq(X, engel$foodexp, tau = tau, R = 2, bsmethod = method)
-    list(B = z$B, U = z$U, Z = if (method == "mcmb") mcmbZ else NULL, seedIndex = .Random.seed[1])
+  set.seed(1)
+  raw <- switch(
+    method,
+    xy = sample.int(nrow(small), nrow(small) * 4, replace = TRUE),
+    pwy = runif(nrow(small) * 4),
+    mcmb = rnorm(nrow(small) * 4),
+    wxy = rexp(nrow(small) * 4, rate = 1)
+  )
+  set.seed(1)
+  bootProbes[[method]] <- capture({
+    b <- boot.rq(Xsmall, small$y, tau = tau, R = 4, bsmethod = method)
+    list(B = b$B, U = b$U, rawDraws = raw, seedIndex = .Random.seed[1])
   })
 }
 
+out <- list(
+  bandwidth = list(hs = h.hs, bofinger = h.bofinger),
+  engel = list(
+    coef = coef(fit),
+    iid = list(table = tab(coef(s.iid)), cov = s.iid$cov, scale = s.iid$scale, names = names(s.iid)),
+    iidBofinger = list(table = tab(coef(s.iid.b)), cov = s.iid.b$cov, scale = s.iid.b$scale),
+    nid = list(table = tab(coef(s.nid)), cov = s.nid$cov, Hinv = s.nid$Hinv, J = s.nid$J, scale = s.nid$scale, names = names(s.nid)),
+    ker = list(table = tab(coef(s.ker)), cov = s.ker$cov, Hinv = s.ker$Hinv, J = s.ker$J, names = names(s.ker)),
+    rank = tab(coef(s.rank)),
+    rankNoniid = tab(coef(s.rank.noniid)),
+    rankAlpha10 = tab(coef(s.rank.10)),
+    residuals = residuals(fit)
+  ),
+  small = small.probes,
+  bootstrap = bootProbes
+)
 cat(toJSON(out, digits = NA, auto_unbox = TRUE, null = "null", na = "string", pretty = FALSE))
