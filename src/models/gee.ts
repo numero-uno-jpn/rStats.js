@@ -446,8 +446,6 @@ function geeStep(
 ) {
   const ev = evaluate(x, y, beta, offset, family, weights);
   const p = beta.length, bread = zeros(p, p), meat = zeros(p, p), score = new Array<number>(p).fill(0);
-  const clusterScores: number[][] = [];
-  const clusterBread: number[][][] = [];
   let pairOffset = 0;
   for (const rows of clusterGroups) {
     const a = rows.map((i) => Math.sqrt(family.variance(ev.mu[i]!) / weights[i]!));
@@ -461,12 +459,10 @@ function geeStep(
     const localScore = multiply(transpose(D), ViR.map((v) => [v])).map((r) => r[0]!);
     for (let j = 0; j < p; j++) score[j]! += localScore[j]!;
     const localBread = multiply(multiply(transpose(D), Vi), D);
-    clusterScores.push(localScore);
-    clusterBread.push(localBread);
     for (let j = 0; j < p; j++) for (let k = 0; k < p; k++) bread[j]![k] = bread[j]![k]! + localBread[j]![k]!;
     for (let j = 0; j < p; j++) for (let k = 0; k < p; k++) meat[j]![k] = meat[j]![k]! + localScore[j]! * localScore[k]!;
   }
-  return { delta: solve(bread, score), bread, meat, clusterScores, clusterBread, eval: ev };
+  return { delta: solve(bread, score), bread, meat, eval: ev };
 }
 
 /**
