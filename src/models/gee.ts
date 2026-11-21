@@ -43,7 +43,7 @@ export interface GeeOptions {
   link?: GlmLink;
   /** Working correlation structure. */
   corstr?: GeeCorrelation;
-  /** Value for std.err. */
+  /** Standard-error estimator requested for the coefficient covariance. */
   "std.err"?: GeeStdErr;
   /** User-supplied or fixed pairwise working-correlation values. */
   zcor?: readonly (readonly number[])[] | Sample;
@@ -51,9 +51,9 @@ export interface GeeOptions {
   weights?: string | Sample;
   /** Known contribution to the linear predictor. */
   offset?: string | Sample;
-  /** Value for scale.fix. */
+  /** Whether to hold the scale parameter fixed at scale.value. */
   "scale.fix"?: boolean;
-  /** Value for scale.value. */
+  /** Fixed scale parameter value when scale.fix is enabled. */
   "scale.value"?: number;
   /** Convergence tolerance for coefficient updates. */
   epsilon?: number;
@@ -123,9 +123,9 @@ export interface GeeResult {
   clusterIds: (number | string | boolean)[];
   /** Within-cluster observation order or wave values. */
   waves: number[];
-  /** Value for warnings. */
+  /** Warnings recorded while fitting or summarizing the model. */
   warnings: string[];
-  /** Value for model. */
+  /** Model-frame, design, and cluster information retained for downstream methods. */
   model: {
     /** Original model formula. */
     formula: string;
@@ -191,7 +191,12 @@ export interface GeeSummaryResult {
   /** Scale or dispersion parameter. */
   scale: number;
   /** Estimated working-correlation summary. */
-  correlation: { rows: string[]; estimate: number[] };
+  correlation: {
+    /** Labels for the reported working-correlation rows. */
+    rows: string[];
+    /** Estimated working-correlation values. */
+    estimate: number[];
+  };
   /** Value for warnings. */
   warnings: string[];
 }
