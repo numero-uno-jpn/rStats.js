@@ -634,7 +634,7 @@ export function geeAnova(fit: GeeResult, optionsOrCompare: { test?: "Wald" } | G
     }
     const indices = fit.model.termAssign.map((a, i) => a > oldTerms.length ? i : -1).filter((i) => i >= 0);
     const test = waldBlock(fit, indices);
-    return reported("geeAnova", { rows: [fit.model.formula], columns: ["Df", "X2", "Pr(>Chi)"],
+    return reported("geeAnova", { rows: [fit.model.formula], columns: ["Df", "X2", "Pr(>Chi)"] as ["Df", "X2", "Pr(>Chi)"],
       values: [[test.df, test.statistic, test.p]], warnings: [] }, fit, reduced);
   }
   checkOptions(optionsOrCompare, GEE_ANOVA_KEYS, "geeAnova");
@@ -642,7 +642,7 @@ export function geeAnova(fit: GeeResult, optionsOrCompare: { test?: "Wald" } | G
   const labels = fit.model.termLabels;
   if (labels.length === 0) {
     const test = waldBlock(fit, fit.coefficients.map((_, i) => i));
-    return reported("geeAnova", { rows: ["Model"], columns: ["Df", "X2", "Pr(>Chi)"],
+    return reported("geeAnova", { rows: ["Model"], columns: ["Df", "X2", "Pr(>Chi)"] as ["Df", "X2", "Pr(>Chi)"],
       values: [[test.df, test.statistic, test.p]], warnings: [] }, fit);
   }
   const rows: string[] = [], values: number[][] = [];
@@ -656,7 +656,7 @@ export function geeAnova(fit: GeeResult, optionsOrCompare: { test?: "Wald" } | G
     rows.push(labels[j]!);
     values.push([test.df, test.statistic, test.p]);
   }
-  return reported("geeAnova", { rows, columns: ["Df", "X2", "Pr(>Chi)"], values, warnings: [] }, fit);
+  return reported("geeAnova", { rows, columns: ["Df", "X2", "Pr(>Chi)"] as ["Df", "X2", "Pr(>Chi)"], values, warnings: [] }, fit);
 }
 
 /** Quasi-likelihood information criteria (Pan, 2001). */
