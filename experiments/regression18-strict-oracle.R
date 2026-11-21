@@ -24,10 +24,18 @@ for (spec in list(default=NULL,epsilon_1e10=geese.control(epsilon=1e-10,maxit=20
   out$geePredict[[name]] <- capture({
     f <- if (is.null(spec)) geeglm(resp~age+smoke,id=id,data=ohio,family=binomial,corstr="ar1")
          else geeglm(resp~age+smoke,id=id,data=ohio,family=binomial,corstr="ar1",control=spec)
-    list(coefficients=unname(coef(f)),link=unname(predict(f,newdata=nd)),
-         response=unname(predict(f,newdata=nd,type="response")))
+    list(coefficients=unname(coef(f)),correlation=tab(summary(f)$corr),
+         link=unname(predict(f,newdata=nd)),response=unname(predict(f,newdata=nd,type="response")))
   })
 }
+out$geePredict$clusterSizes <- as.numeric(table(ohio$id))
+out$geePredict$explicitWaves <- capture({
+  waves <- ave(seq_along(ohio$id), ohio$id, FUN=seq_along)
+  f <- geeglm(resp~age+smoke,id=id,waves=waves,data=ohio,family=binomial,corstr="ar1",
+              control=geese.control(epsilon=1e-12,maxit=1000))
+  list(coefficients=unname(coef(f)),correlation=tab(summary(f)$corr),
+       link=unname(predict(f,newdata=nd)),response=unname(predict(f,newdata=nd,type="response")))
+})
 data(dietox)
 dietox$Cu <- factor(dietox$Cu)
 out$geeSequentialAnova <- list()
