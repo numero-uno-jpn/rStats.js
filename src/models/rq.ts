@@ -813,7 +813,8 @@ export function rqAnova(fit: RqResult, reducedOrJoint?: RqResult | boolean): RqW
     const statistic = difference.reduce((sum, value, i) => sum + value * weighted[i]!, 0);
     const df = omitted.length;
     const dfResidual = model.y.length - model.columnNames.length;
-    return { statistic, df, dfResidual, pValue: pf(statistic / df, df, dfResidual, { lowerTail: false }) as number, method: "Wald" };
+    const fStatistic = statistic / df;
+    return { statistic: fStatistic, df, dfResidual, pValue: pf(fStatistic, df, dfResidual, { lowerTail: false }) as number, method: "Wald" };
   }
   const model = fit.model;
   const tested = Array.from({ length: model.columnNames.length - 1 }, (_, j) => j + 1);
@@ -869,5 +870,6 @@ function rqMultiTauWald(fit: RqResult, tested: number[]): RqWaldResult {
   const weighted = inv.map((row) => row.reduce((sum, value, i) => sum + value * difference[i]!, 0));
   const statistic = difference.reduce((sum, value, i) => sum + value * weighted[i]!, 0);
   const dfResidual = model.y.length - (tested.length + 1) * (m - 1);
-  return { statistic, df: q, dfResidual, pValue: pf(statistic / q, q, dfResidual, { lowerTail: false }) as number, method: "Wald" };
+  const fStatistic = statistic / q;
+  return { statistic: fStatistic, df: q, dfResidual, pValue: pf(fStatistic, q, dfResidual, { lowerTail: false }) as number, method: "Wald" };
 }
