@@ -33,7 +33,7 @@ const names = Object.keys(scope);
  * Exports added since the last release. The public demo loads the released build from jsDelivr, so their examples
  * (with R results from `npm run demo:r`) are added when the next version is tagged; until then they are listed here
  */
-const NOT_IN_DEMO_YET: string[] = ["rq", "rqPredict", "rqSummary", "rqPredictInterval", "rqAnova", "geeglm", "geeSummary", "geeVcov", "geePredict", "geeAnova", "geeQIC", "glmnet", "glmnetCoef", "glmnetPredict", "cvGlmnet"];
+const NOT_IN_DEMO_YET: string[] = [];
 
 /**
  * Exports that have no demo example: they return no value to compare with R's (an example evaluates to numbers).
