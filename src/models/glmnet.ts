@@ -530,26 +530,12 @@ function multinomialKktResidual(
         maximum = Math.max(maximum, Math.sqrt(residualNorm));
       }
     } else {
-      let lowerBound = -Infinity, upperBound = Infinity, constrained = false;
       for (let k = 0; k < kCount; k++) {
         const value = beta[j]![k]!, smooth = gradB[j]![k]! + ridge * value;
-        if (value > 0) {
-          const shift = -(smooth + l1);
-          lowerBound = Math.max(lowerBound, shift);
-          upperBound = Math.min(upperBound, shift);
-          constrained = true;
-        } else if (value < 0) {
-          const shift = -(smooth - l1);
-          lowerBound = Math.max(lowerBound, shift);
-          upperBound = Math.min(upperBound, shift);
-          constrained = true;
-        } else {
-          lowerBound = Math.max(lowerBound, -smooth - l1);
-          upperBound = Math.min(upperBound, -smooth + l1);
-          constrained = true;
-        }
+        const residual = value > 0 ? Math.abs(smooth + l1)
+          : value < 0 ? Math.abs(smooth - l1) : Math.max(0, Math.abs(smooth) - l1);
+        maximum = Math.max(maximum, residual);
       }
-      if (constrained) maximum = Math.max(maximum, Math.max(0, (lowerBound - upperBound) / 2));
     }
   }
   return maximum;
@@ -611,21 +597,8 @@ function fitMultinomialOne(
           const shrink = norm > 0 ? Math.max(0, 1 - penaltyWeight / norm) / ridge : 0;
           return projected.map(v => Math.max(lower[j]!, Math.min(upper[j]!, v * shrink)));
         }
-        let shift: number;
-        if (penaltyWeight === 0) {
-          shift = z.reduce((total, value) => total + value, 0) / kCount;
-        } else {
-          let lo = Infinity, hi = -Infinity;
-          for (const value of z) { lo = Math.min(lo, value - penaltyWeight); hi = Math.max(hi, value + penaltyWeight); }
-          for (let bisection = 0; bisection < 80; bisection++) {
-            const mid = (lo + hi) / 2;
-            let total = 0; for (const value of z) total += soft(value - mid, penaltyWeight);
-            if (total > 0) lo = mid; else hi = mid;
-          }
-          shift = (lo + hi) / 2;
-        }
         return z.map(value => Math.max(lower[j]!, Math.min(upper[j]!,
-          soft(value - shift, penaltyWeight) / ridge)));
+          soft(value, penaltyWeight) / ridge)));
       });
       candidateEta = x.map(row => candidateA.map((v, k) => {
         let out = v;
