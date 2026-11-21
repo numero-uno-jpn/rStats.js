@@ -82,6 +82,10 @@ export interface GeeResult {
     formula: string;
     meanFormula: string;
     offsetTerms: GeeOffsetTerm[];
+    termAssign: number[];
+    termLabels: string[];
+    responseVariable: string;
+    intercept: boolean;
     x: number[][];
     y: number[];
     ids: (number | string | boolean)[];
@@ -533,7 +537,9 @@ export function geeglm(formula: string, data: DataFrame, options: GeeOptions): G
       covariance, modelCovariance, independenceCovariance, alpha, scale, iterations: iteration, converged, family: family.family,
       link: family.name, corstr, stdErr, columnNames: d.colNames, rows, clusterIds: ids, waves,
       warnings: warnings.list.slice(),
-      model: { formula, meanFormula: split.meanFormula, offsetTerms: split.terms, x: d.x, y, ids, waves, weights, offset, family: options.family ?? "gaussian",
+      model: { formula, meanFormula: split.meanFormula, offsetTerms: split.terms, termAssign: d.assign.slice(),
+        termLabels: d.terms.termLabels.slice(), responseVariable: d.terms.variables[d.terms.response]!,
+        intercept: d.terms.intercept, x: d.x, y, ids, waves, weights, offset, family: options.family ?? "gaussian",
         link: options.link, corstr, scaleFix: options["scale.fix"] ?? false, scaleValue: options["scale.value"] ?? 1,
         zcor, data },
     };
@@ -585,14 +591,72 @@ export function geePredict(fit: GeeResult, options: GeePredictOptions = {}): num
   return options.type === "response" ? eta.map((v) => family.linkinv(v)) : eta;
 }
 
-/** Overall Wald test; term-wise sequential restrictions are added when the model retains term assignments. */
-export function geeAnova(fit: GeeResult, options: { test?: "Wald" } = {}): GeeAnovaResult {
-  checkOptions(options, GEE_ANOVA_KEYS, "geeAnova");
-  const p = fit.coefficients.length;
-  const invCov = inverse(fit.covariance);
-  const w = dot(fit.coefficients, multiply(invCov, fit.coefficients.map((v) => [v])).map((r) => r[0]!));
-  const tail = pchisq(w, p, { lowerTail: false }) as number;
-  return reported("geeAnova", { rows: ["Model"], columns: ["Df", "X2", "Pr(>Chi)"] as ["Df", "X2", "Pr(>Chi)"], values: [[p, w, tail]], warnings: [] }, fit);
+function isGeeResult(value: unknown): value is GeeResult {
+  return typeof value === "object" && value !== null &&
+    Array.isArray((value as GeeResult).coefficients) && Array.isArray((value as GeeResult).covariance);
+}
+
+function waldBlock(fit: GeeResult, indices: readonly number[]): { df: number; statistic: number; p: number } {
+  if (indices.length === 0) throw new RangeError("the model comparison adds no coefficients");
+  const beta = indices.map((i) => fit.coefficients[i]!);
+  const covariance = indices.map((i) => indices.map((j) => fit.covariance[i]![j]!));
+  const statistic = dot(beta, multiply(inverse(covariance), beta.map((v) => [v])).map((r) => r[0]!));
+  return { df: indices.length, statistic, p: pchisq(statistic, indices.length, { lowerTail: false }) as number };
+}
+
+function refitForAnova(fit: GeeResult, formula: string): GeeResult {
+  const rows = fit.rows;
+  const columns = Object.entries(fit.model.data).map(([name, column]) => [name, Array.from(column as ArrayLike<unknown>)] as const);
+  const data = Object.fromEntries(columns.map(([name, column]) => [name, rows.map((r) => column[r])])) as DataFrame;
+  const options: GeeOptions = {
+    id: fit.model.ids, waves: fit.model.waves, family: fit.model.family,
+    ...(fit.model.link === undefined ? {} : { link: fit.model.link }),
+    corstr: fit.model.corstr, "std.err": "san.se", weights: fit.model.weights, offset: fit.model.offset,
+    "scale.fix": fit.model.scaleFix, "scale.value": fit.model.scaleValue,
+    ...(fit.model.zcor === undefined ? {} : { zcor: fit.model.zcor }),
+  };
+  return geeglm(formula, data, options);
+}
+
+/** Sequential Wald tests for terms, or a nested-model Wald comparison. */
+export function geeAnova(fit: GeeResult, optionsOrCompare: { test?: "Wald" } | GeeResult = {}): GeeAnovaResult {
+  if (isGeeResult(optionsOrCompare)) {
+    const reduced = optionsOrCompare;
+    if (fit.rows.length !== reduced.rows.length || fit.rows.some((r, i) => r !== reduced.rows[i]) ||
+      fit.clusterIds.length !== reduced.clusterIds.length ||
+      fit.clusterIds.some((v, i) => v !== reduced.clusterIds[i])) {
+      throw new RangeError("models must use the same observations and cluster identifiers");
+    }
+    const oldTerms = reduced.model.termLabels;
+    if (oldTerms.length >= fit.model.termLabels.length ||
+      oldTerms.some((term, i) => fit.model.termLabels[i] !== term)) {
+      throw new RangeError("the second model must be a nested prefix of the first model");
+    }
+    const indices = fit.model.termAssign.map((a, i) => a > oldTerms.length ? i : -1).filter((i) => i >= 0);
+    const test = waldBlock(fit, indices);
+    return reported("geeAnova", { rows: [fit.model.formula], columns: ["Df", "X2", "Pr(>Chi)"],
+      values: [[test.df, test.statistic, test.p]], warnings: [] }, fit, reduced);
+  }
+  checkOptions(optionsOrCompare, GEE_ANOVA_KEYS, "geeAnova");
+  if (optionsOrCompare.test !== undefined && optionsOrCompare.test !== "Wald") throw new RangeError("only Wald tests are available");
+  const labels = fit.model.termLabels;
+  if (labels.length === 0) {
+    const test = waldBlock(fit, fit.coefficients.map((_, i) => i));
+    return reported("geeAnova", { rows: ["Model"], columns: ["Df", "X2", "Pr(>Chi)"],
+      values: [[test.df, test.statistic, test.p]], warnings: [] }, fit);
+  }
+  const rows: string[] = [], values: number[][] = [];
+  for (let j = 0; j < labels.length; j++) {
+    const prefix = labels.slice(0, j + 1);
+    const rhs = (fit.model.intercept ? "" : "0 + ") + prefix.join(" + ");
+    const formula = fit.model.responseVariable + " ~ " + rhs;
+    const prefixFit = j === labels.length - 1 ? fit : refitForAnova(fit, formula);
+    const indices = prefixFit.model.termAssign.map((a, i) => a === j + 1 ? i : -1).filter((i) => i >= 0);
+    const test = waldBlock(prefixFit, indices);
+    rows.push(labels[j]!);
+    values.push([test.df, test.statistic, test.p]);
+  }
+  return reported("geeAnova", { rows, columns: ["Df", "X2", "Pr(>Chi)"], values, warnings: [] }, fit);
 }
 
 /** Quasi-likelihood information criteria (Pan, 2001). */
