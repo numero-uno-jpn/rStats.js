@@ -81,6 +81,26 @@ describe("elastic-net generalized linear models", () => {
     }
   });
 
+  it("matches grouped and ungrouped Gaussian CV summaries from the fixed-fold oracle", () => {
+    const fixture = glmnetFixture as unknown as {
+      X: { values: number[][] };
+      y: number[];
+      cv: { value: { lambda: number[]; cvm: number[]; cvsd: number[]; lambdaMin: number; lambda1se: number;
+        groupedFalse: { cvm: number[]; cvsd: number[] } } };
+    };
+    const foldid = Array.from({ length: fixture.y.length }, (_, i) => i % 3 + 1);
+    const grouped = cvGlmnet(fixture.X.values, fixture.y, { foldid, nlambda: 8, keep: true });
+    const ungrouped = cvGlmnet(fixture.X.values, fixture.y, { foldid, nlambda: 8, grouped: false, keep: true });
+    expect(grouped.lambda).toHaveLength(fixture.cv.value.lambda.length);
+    expect(grouped.lambda[0]).toBeCloseTo(fixture.cv.value.lambda[0]!, 11);
+    expect(grouped.cvm[0]).toBeCloseTo(fixture.cv.value.cvm[0]!, 7);
+    expect(grouped.cvsd[0]).toBeCloseTo(fixture.cv.value.cvsd[0]!, 7);
+    expect(grouped.lambdaMin).toBeCloseTo(fixture.cv.value.lambdaMin, 10);
+    expect(grouped.lambda1se).toBeCloseTo(fixture.cv.value.lambda1se, 10);
+    expect(ungrouped.cvm[0]).toBeCloseTo(fixture.cv.value.groupedFalse.cvm[0]!, 7);
+    expect(ungrouped.cvsd[0]).toBeCloseTo(fixture.cv.value.groupedFalse.cvsd[0]!, 7);
+  });
+
   it("cross-validates multinomial probabilities on fixed folds", () => {
     const fixture = glmnetFixture as unknown as { multinomialData: { X: { values: number[][] }; y: string[] } };
     const multiX = fixture.multinomialData.X.values, multiY = fixture.multinomialData.y;
