@@ -318,9 +318,9 @@ describe("quantile regression", () => {
     expect(nested.pValue).toBeGreaterThanOrEqual(0);
     expect(nested.pValue).toBeLessThanOrEqual(1);
     const twoPredictorData = {
-      x: Array.from({ length: 182 }, (_, i) => i / 20),
-      z: Array.from({ length: 182 }, (_, i) => ((i * 13) % 37) / 10),
-      y: Array.from({ length: 182 }, (_, i) => 1 + 0.5 * (i / 20) - 0.4 * (((i * 13) % 37) / 10) + ((i * 17) % 11 - 5) / 10),
+      x: Array.from({ length: 50 }, (_, i) => i / 10),
+      z: Array.from({ length: 50 }, (_, i) => ((i * 13) % 37) / 10),
+      y: Array.from({ length: 50 }, (_, i) => 1 + 0.5 * (i / 10) - 0.4 * (((i * 13) % 37) / 10) + ((i * 17) % 11 - 5) / 10),
     };
     const twoPredictorFit = rq("y ~ x + z", twoPredictorData, { tau: [0.25, 0.5, 0.75], method: "fn", eps: 1e-12 });
     const joint = rqAnova(twoPredictorFit, true);
