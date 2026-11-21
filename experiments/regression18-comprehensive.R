@@ -29,8 +29,8 @@ out$rqAnova <- capture({
  f<-rq(y~a+b,data=d,tau=.5,method="fn",eps=1e-14)
  r<-rq(y~a,data=d,tau=.5,method="fn",eps=1e-14)
  m<-rq(y~a+b,data=d,tau=c(.25,.5,.75),method="fn",eps=1e-14)
- list(nested=as.data.frame(anova(f,r)),joint=as.data.frame(anova(m,joint=TRUE)),
-      separate=as.data.frame(anova(m,joint=FALSE)))
+ list(nested=tab(anova(f,r)$table),joint=tab(anova(m,joint=TRUE)$table),
+      separate=tab(anova(m,joint=FALSE)$table))
 })
 g <- data.frame(id=rep(1:12,each=3),wave=rep(1:3,12),x=rep(c(-1,0,1),12),
  y=c(1.7534,2.9203,2.5018,2.8479,3.1191,3.3040,1.9940,2.9519,3.3162,
@@ -65,7 +65,8 @@ for(mult in c(1e100,1e-100)) {
 }
 out$nonfinite <- list()
 for(bad in c(NaN,Inf,-Inf)) {
- out$nonfinite[[paste0("rq_y_",bad)]]<-capture(rq(yy~xx[,1]+xx[,2],method="fn"))
+ badY<-yy;badY[2]<-bad
+ out$nonfinite[[paste0("rq_y_",bad)]]<-capture(rq(badY~xx[,1]+xx[,2],method="fn"))
  zz<-xx;zz[2,1]<-bad
  out$nonfinite[[paste0("glmnet_x_",bad)]]<-capture(glmnet(zz,yy,nlambda=5))
 }
