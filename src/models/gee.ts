@@ -469,7 +469,13 @@ export function geeglm(formula: string, data: DataFrame, options: GeeOptions): G
   if (y.some((v, i) => !Number.isFinite(v) && weights[i]! > 0)) throw new RangeError("NA/NaN/Inf in 'y'");
   if (weights.some((v) => !Number.isFinite(v))) throw new RangeError("weights must be finite");
   if (weights.every((v) => v === 0)) throw new RangeError("no observations with positive weight");
-  if (options.zcor !== undefined && (!Array.isArray(options.zcor) || options.zcor.some((r) => !Array.isArray(r)))) throw new TypeError("zcor must be a matrix");
+  if (options.zcor !== undefined) {
+    if (!Array.isArray(options.zcor)) throw new TypeError("zcor must be a matrix or numeric vector");
+    const raw = options.zcor as readonly unknown[];
+    const isVector = raw.every((value) => typeof value === "number");
+    const isMatrix = raw.every((row) => Array.isArray(row));
+    if (!isVector && !isMatrix) throw new TypeError("zcor must be a matrix or numeric vector");
+  }
   if ((corstr === "userdefined" || corstr === "fixed") && options.zcor === undefined) throw new TypeError("zcor is required for userdefined and fixed working correlations");
   let zcor: number[][] | undefined;
   if (options.zcor !== undefined) {
