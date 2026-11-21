@@ -452,7 +452,8 @@ function fitBr(
         if (swap !== undefined) break;
       }
       if (swap === undefined) return { beta, iterations: iteration + 1 };
-      basis.splice(0, basis.length, ...swap.basis);
+      basis.length = 0;
+      for (const index of swap.basis) basis.push(index);
       beta = swap.beta;
       continue;
     }
@@ -472,7 +473,8 @@ function fitBr(
     // degenerate vertex. Bland ordering and the visited-basis guard provide
     // deterministic anti-cycling; the objective comparison is diagnostic only.
     void objectiveDecreased;
-    basis.splice(0, basis.length, ...nextBasis);
+    basis.length = 0;
+    for (const index of nextBasis) basis.push(index);
     beta = nextBeta;
   }
   throw new Error("quantile regression vertex walk did not converge within maxit");
@@ -557,9 +559,8 @@ function fitOne(
         const dualEquality = equalityResidual.reduce((m, v) => Math.max(m, Math.abs(v)), 0);
         dualObjective -= (1 - tau) * normalizedY.reduce((sum, value) => sum + value, 0);
         const certificate = signCompatible &&
-          dualEquality <= 1e-8 * Math.max(1, ...normalizedX[0]!.map((_, j) => Math.abs(
-            normalizedX.reduce((sum, row) => sum + row[j]!, 0),
-          ))) &&
+          dualEquality <= 1e-8 * Math.max(1, normalizedX[0]!.reduce((maximum, _, j) => Math.max(maximum,
+            Math.abs(normalizedX.reduce((sum, row) => sum + row[j]!, 0))), 0)) &&
           Math.abs(newLoss - dualObjective) <= 1e-8 * Math.max(1, Math.abs(newLoss), Math.abs(dualObjective));
         if (certificate && newLoss <= oldLoss + 1e-12 * Math.max(1, Math.abs(oldLoss))) normalizedBeta = candidate;
       } catch {
