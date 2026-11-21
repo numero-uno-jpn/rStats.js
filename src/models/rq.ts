@@ -23,12 +23,19 @@ export type RqMethod = "br" | "fn";
  * @category Regression
  */
 export interface RqOptions {
+  /** Quantile probability or probabilities to fit. */
   tau?: number | Sample;
+  /** Quantile-regression optimization method. */
   method?: RqMethod;
+  /** Nonnegative prior observation weights. */
   weights?: Sample | string;
+  /** Contrast coding specifications for factor predictors. */
   contrasts?: Record<string, DesignContrast>;
+  /** Explicit level order for factor predictors. */
   levels?: Record<string, readonly string[]>;
+  /** Maximum number of optimization iterations. */
   maxit?: number;
+  /** Convergence tolerance for the optimization. */
   eps?: number;
 }
 
@@ -37,13 +44,21 @@ export interface RqOptions {
  * @category Regression
  */
 export interface RqModel {
+  /** Model formula used to define the response and predictors. */
   formula: string;
+  /** Numeric model matrix used by the fit. */
   x: number[][];
+  /** Observed response values. */
   y: number[];
+  /** Nonnegative prior observation weights. */
   weights: number[];
+  /** Original data-row indices retained in the model frame. */
   rows: number[];
+  /** Names of the columns in the model matrix. */
   columnNames: string[];
+  /** Quantile probability or probabilities to fit. */
   tau: number[];
+  /** Quantile-regression optimization method. */
   method: RqMethod;
 }
 
@@ -52,13 +67,21 @@ export interface RqModel {
  * @category Regression
  */
 export interface RqResult {
+  /** Estimated regression coefficients. */
   coefficients: Record<string, number | number[]>;
+  /** Fitted conditional means or quantiles for the input rows. */
   fittedValues: number[] | number[][];
+  /** Response residuals for the input rows. */
   residuals: number[] | number[][];
+  /** Quantile check-loss objective value. */
   rho: number | number[];
+  /** Whether the numerical fitting procedure met its convergence criterion. */
   converged: boolean;
+  /** Number of iterations used by the fitting procedure. */
   iterations: number;
+  /** Warnings recorded while fitting or summarizing the model. */
   warnings: string[];
+  /** Model-frame and design information retained for downstream methods. */
   model: RqModel;
 }
 
@@ -625,29 +648,74 @@ export function rqPredict(fit: RqResult, newdata: DataFrame): number[] | number[
 /** Options for rqSummary.
  * @category Regression
  */
-export interface RqSummaryOptions { se?: "nid" | "rank"; covariance?: boolean; level?: number; }
+export interface RqSummaryOptions {
+  /** Standard-error or interval method used for the summary. */
+  se?: "nid" | "rank";
+  /** Estimated coefficient covariance matrix or matrices. */
+  covariance?: boolean;
+  /** Confidence level for reported intervals. */
+  level?: number;
+}
 /** A coefficient row in an rq summary.
  * @category Regression
  */
 export interface RqCoefficientSummary {
-  tau: number; term: string; estimate: number;
+  /** Quantile probability or probabilities to fit. */
+  tau: number;
+  /** Model term represented by this coefficient row. */
+  term: string;
+  /** Estimated coefficient value. */
+  estimate: number;
   /** NaN for `se = "rank"`, which gives an interval (`lower`, `upper`) instead. */
-  stdError: number; statistic: number; pValue: number;
+  stdError: number;
+  /** Wald test statistic for the coefficient. */
+  statistic: number;
+  /** Two-sided p-value associated with the coefficient statistic. */
+  pValue: number;
   /** The confidence limits of `se = "rank"` (R's `lower bd` and `upper bd`). */
-  lower?: number; upper?: number;
+  lower?: number;
+  /** Upper confidence limit for the coefficient. */
+  upper?: number;
 }
 /** Result of rqSummary.
  * @category Regression
  */
-export interface RqSummaryResult { coefficients: RqCoefficientSummary[]; covariance?: number[][][]; se: string; warnings: string[]; }
+export interface RqSummaryResult {
+  /** Estimated regression coefficients. */
+  coefficients: RqCoefficientSummary[];
+  /** Estimated coefficient covariance matrix or matrices. */
+  covariance?: number[][][];
+  /** Standard-error or interval method used for the summary. */
+  se: string;
+  /** Warnings recorded while fitting or summarizing the model. */
+  warnings: string[];
+}
 /** Options for confidence prediction intervals.
  * @category Regression
  */
-export interface RqPredictOptions { interval?: "none" | "confidence"; type?: "none" | "direct" | "percentile"; level?: number; }
+export interface RqPredictOptions {
+  /** Whether prediction output includes confidence intervals. */
+  interval?: "none" | "confidence";
+  /** Prediction scale or confidence-interval construction method. */
+  type?: "none" | "direct" | "percentile";
+  /** Confidence level for reported intervals. */
+  level?: number;
+}
 /** Result of confidence prediction.
  * @category Regression
  */
-export interface RqPredictResult { fit: number[] | number[][]; lower?: number[] | number[][]; upper?: number[] | number[][]; level: number; type: string; }
+export interface RqPredictResult {
+  /** Predicted conditional quantiles or fitted values. */
+  fit: number[] | number[][];
+  /** Lower confidence limit for the coefficient. */
+  lower?: number[] | number[][];
+  /** Upper confidence limit for the coefficient. */
+  upper?: number[] | number[][];
+  /** Confidence level for reported intervals. */
+  level: number;
+  /** Prediction scale or confidence-interval construction method. */
+  type: string;
+}
 
 function rqInverse(a: readonly number[][]): number[][] {
   const n = a.length;
@@ -1022,10 +1090,15 @@ export function rqAnova(fit: RqResult, reducedOrJoint?: RqResult | boolean): RqW
  * @category Regression
  */
 export interface RqWaldResult {
+  /** Wald test statistic for the coefficient. */
   statistic: number;
+  /** Numerator degrees of freedom for the Wald test. */
   df: number;
+  /** Residual degrees of freedom used for the reference distribution. */
   dfResidual: number;
+  /** Two-sided p-value associated with the coefficient statistic. */
   pValue: number;
+  /** Quantile-regression optimization method. */
   method: "Wald";
 }
 
