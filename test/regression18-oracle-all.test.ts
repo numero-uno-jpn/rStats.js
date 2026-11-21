@@ -153,10 +153,6 @@ describe("rStats.js 1.8.0 public-output completeness against the pinned R oracle
       vectorWithROracleUncertainty(summary.correlation.estimate,
         correlationEstimates(expected.corr), correlationEstimates(expectedTight.corr));
       const qic = geeQIC(fit);
-      console.log("[regression18-oracle] GEE QIC diagnostic", JSON.stringify({ corstr,
-        js: [qic.QIC, qic.QICu, qic.Q, qic.CIC, qic.params, qic.QICC],
-        scale: fit.scale, independenceCovariance: fit.independenceCovariance, robustCovariance: fit.covariance,
-        rDefault: expected.qic, rTight: reference.qicTight }));
       vectorWithROracleUncertainty([qic.QIC, qic.QICu, qic.Q, qic.CIC, qic.params, qic.QICC],
         expected.qic, reference.qicTight);
     }
@@ -250,11 +246,6 @@ describe("rStats.js 1.8.0 public-output completeness against the pinned R oracle
     const typeExpected = f.predictTypes.value;
     const binLink = glmnetPredict(binFit, x.slice(0, 4), { s: binFit.lambda[2]!, type: "link" });
     const binResponse = glmnetPredict(binFit, x.slice(0, 4), { s: binFit.lambda[2]!, type: "response" });
-    console.log("[regression18-oracle] binomial prediction diagnostic", JSON.stringify({
-      lambda: binFit.lambda, beta: binFit.beta, a0: binFit.a0, converged: binFit.converged,
-      kkt: binFit.kktResidual, link: binLink, rDefault: typeExpected.link.values,
-      r16: typeExpected.linkT16.values, r20: typeExpected.linkT20.values,
-    }));
     matrixWithROracleUncertainty(transpose(binLink), typeExpected.linkT16.values, typeExpected.linkT20.values);
     matrixWithROracleUncertainty(transpose(binResponse), typeExpected.responseT16.values, typeExpected.responseT20.values);
     const classPrediction = glmnetPredict(binFit, x.slice(0, 4), { s: binFit.lambda[2]!, type: "class" });
