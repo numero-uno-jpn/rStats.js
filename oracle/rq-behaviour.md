@@ -155,7 +155,7 @@ For a nested restriction \(R\beta=r\), the Wald statistic is
 W=(R\widehat\beta-r)^\mathsf T
 \{R\widehat V R^\mathsf T\}^{-1}(R\widehat\beta-r).
 \]
-The public multiTau result is ndf=2, ddf=46, Tn=1.95304970194872, pvalue=0.153425200963809 for joint=TRUE and the single-slope joint=FALSE test in this one-predictor design. The two-predictor experiment records the four-restriction joint test and separate two-restriction tests.
+The public multiTau result is ndf=2, ddf=46, Tn=1.95304970194872, pvalue=0.153425200963809 for joint=TRUE and the single-slope joint=FALSE test in this one-predictor design. Tn is the F statistic W/ndf, not the unscaled chi-square W. For a multiple-tau fit with m quantiles and r tested slopes, ndf=r(m-1) and ddf=n-(r+1)(m-1); nested single-tau comparisons use ddf=n-p. The two-predictor experiment records the four-restriction joint test and separate two-restriction tests.
 
 ### 7.6 Confidence prediction
 
