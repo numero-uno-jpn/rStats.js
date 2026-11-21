@@ -158,6 +158,11 @@ describe("rStats.js 1.8.0 public-output completeness against the pinned R oracle
     }
 
     const ohio = g.inputs.ohio;
+    for (const corstr of ["independence", "exchangeable"] as const) {
+      const fit = geeglm("resp ~ age + smoke", ohio, { id: "id", family: "binomial", corstr, epsilon: 1e-12, maxit: 1000 });
+      const reference = g[`ohio_${corstr}`].value;
+      vectorWithROracleUncertainty(fit.coefficients, reference.default.coefficients, reference.tight.coefficients);
+    }
     const ohioFit = geeglm("resp ~ age + smoke", ohio, { id: "id", family: "binomial", corstr: "ar1", epsilon: 1e-12, maxit: 1000 });
     const prediction = g.predict.value;
     expect(ohioFit.converged).toBe(true);
