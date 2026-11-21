@@ -169,10 +169,12 @@ describe("rStats.js 1.8.0 public-output completeness against the pinned R oracle
     console.log("[regression18-oracle] Ohio GEE coefficients JS vs strict R", JSON.stringify({
       js: ohioFit.coefficients, rTight: prediction.coefficientsTight, rTighter: prediction.coefficientsTighter,
       jsAlpha: ohioFit.alpha, rAlphaTight: prediction.corrTight.values[0], rAlphaTighter: prediction.corrTighter.values[0],
+      jsScale: ohioFit.scale, rScaleTight: prediction.dispersionTight.values[0], rScaleTighter: prediction.dispersionTighter.values[0],
       iterations: ohioFit.iterations, converged: ohioFit.converged,
     }));
     vectorWithROracleUncertainty(ohioFit.coefficients, prediction.coefficientsTight, prediction.coefficientsTighter);
     vectorWithROracleUncertainty(ohioFit.alpha, [prediction.corrTight.values[0]], [prediction.corrTighter.values[0]]);
+    closeWithROracleUncertainty(ohioFit.scale, prediction.dispersionTight.values[0], prediction.dispersionTighter.values[0]);
     const newdata = { age: [-2, 0, 1], smoke: ["0", "1", "1"] };
     const linkPrediction = geePredict(ohioFit, { newdata, type: "link" });
     const responsePrediction = geePredict(ohioFit, { newdata, type: "response" });
