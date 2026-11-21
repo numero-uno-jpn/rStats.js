@@ -247,8 +247,8 @@ describe("regression 1.8.0: scale, weight, order, and edge-input audit", () => {
     expect(Object.values(multi.beta).flat(2).every(Number.isFinite)).toBe(true);
   });
 
-  it("fits 10000 GEE clusters and 100000-row, 20-predictor glmnet models and records elapsed time", () => {
-    const clusters = 10000, n = clusters * 2;
+  it("fits 100000 GEE rows and 100000-row, 20-predictor glmnet models and records elapsed time", () => {
+    const clusters = 50000, n = clusters * 2;
     const largeGee = {
       id: Array.from({ length: n }, (_, i) => Math.floor(i / 2) + 1),
       wave: Array.from({ length: n }, (_, i) => i % 2 + 1),
@@ -259,7 +259,7 @@ describe("regression 1.8.0: scale, weight, order, and edge-input audit", () => {
       const start = Date.now();
       const fit = geeglm("y ~ x", largeGee, { id: "id", waves: "wave", corstr, epsilon: 1e-8, maxit: 100 });
       const elapsed = Date.now() - start;
-      console.log(`[regression18-edge] geeglm ${corstr}, ${clusters} clusters: ${elapsed} ms`);
+      console.log(`[regression18-edge] geeglm ${corstr}, ${clusters} clusters (${n} rows): ${elapsed} ms`);
       expect(fit.coefficients.every(Number.isFinite)).toBe(true);
     }
     const rows = 100000, columns = 20;
