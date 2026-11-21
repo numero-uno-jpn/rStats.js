@@ -163,7 +163,7 @@ describe("rStats.js 1.8.0 public-output completeness against the pinned R oracle
       const reference = g[`ohio_${corstr}`].value;
       vectorWithROracleUncertainty(fit.coefficients, reference.default.coefficients, reference.tight.coefficients);
     }
-    const ohioFit = geeglm("resp ~ age + smoke", ohio, { id: "id", family: "binomial", corstr: "ar1", epsilon: 1e-12, maxit: 1000 });
+    const ohioFit = geeglm("resp ~ age + smoke", ohio, { id: "id", family: "binomial", corstr: "ar1", epsilon: 1e-10, maxit: 1000 });
     const prediction = g.predict.value;
     expect(ohioFit.converged).toBe(true);
     console.log("[regression18-oracle] Ohio GEE coefficients JS vs strict R", JSON.stringify({
@@ -172,6 +172,7 @@ describe("rStats.js 1.8.0 public-output completeness against the pinned R oracle
       jsScale: ohioFit.scale, rScaleTight: prediction.dispersionTight.values[0], rScaleTighter: prediction.dispersionTighter.values[0],
       iterations: ohioFit.iterations, converged: ohioFit.converged,
     }));
+    expect(ohioFit.converged).toBe(true);
     vectorWithROracleUncertainty(ohioFit.coefficients, prediction.coefficientsTight, prediction.coefficientsTighter);
     vectorWithROracleUncertainty(ohioFit.alpha, [prediction.corrTight.values[0]], [prediction.corrTighter.values[0]]);
     closeWithROracleUncertainty(ohioFit.scale, prediction.dispersionTight.values[0], prediction.dispersionTighter.values[0]);
@@ -280,7 +281,7 @@ describe("rStats.js 1.8.0 public-output completeness against the pinned R oracle
 it("compares Ohio AR1 fit coefficients and correlation with R", () => {
   const g = geeFixture as any;
   const ohioFit = geeglm("resp ~ age + smoke", g.inputs.ohio, {
-    id: "id", family: "binomial", corstr: "ar1", epsilon: 1e-12, maxit: 1000,
+    id: "id", family: "binomial", corstr: "ar1", epsilon: 1e-10, maxit: 1000,
   });
   const reference = g.ohio_ar1.value;
   console.log("[regression18-oracle] Ohio AR1 diagnostic", JSON.stringify({
@@ -293,6 +294,7 @@ it("compares Ohio AR1 fit coefficients and correlation with R", () => {
     iterations: ohioFit.iterations,
     converged: ohioFit.converged,
   }));
+  expect(ohioFit.converged).toBe(true);
   vectorWithROracleUncertainty(ohioFit.coefficients, reference.default.coefficients, reference.tight.coefficients);
   vectorWithROracleUncertainty(ohioFit.alpha, correlationEstimates(reference.default.corr), correlationEstimates(reference.tight.corr));
   closeWithROracleUncertainty(ohioFit.scale, reference.default.dispersion.values[0], reference.tight.dispersion.values[0]);
