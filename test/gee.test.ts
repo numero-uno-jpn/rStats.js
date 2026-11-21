@@ -135,4 +135,24 @@ describe("generalized estimating equations", () => {
     expect(Object.values(qic).every(Number.isFinite)).toBe(true);
   });
 
+
+  it("drops rows with missing vector cluster ids, waves, weights, or offsets", () => {
+    const fit = geeglm("y ~ x", { x: [0, 1, 0, 1], y: [1, 3, 2, 4] }, {
+      id: [1, 1, NaN, 2],
+      waves: [1, 2, 1, 2],
+      weights: [1, 1, 1, 1],
+      offset: [0, 0, 0, 0],
+    });
+    expect(fit.rows).toEqual([0, 1, 3]);
+    expect(fit.clusterIds).toEqual([1, 1, 2]);
+    expect(Number.isNaN(fit.fittedValues[2]!)).toBe(true);
+  });
+
+  it("omits rows with missing vector offsets and weights before forming clusters", () => {
+    const fit = geeglm("y ~ x", { id: [1, 1, 2, 2], x: [0, 1, 0, 1], y: [1, 3, 2, 4] }, {
+      id: "id", weights: [1, 1, NaN, 1], offset: [0, 0, 0, 0],
+    });
+    expect(fit.rows).toEqual([0, 1, 3]);
+  });
+
 });
