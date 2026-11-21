@@ -1,0 +1,1144 @@
+// Quantile regression. The linear-programming formulation follows Koenker and Bassett (1978)
+// and the primal-dual interior-point method of Portnoy and Koenker (1997).
+// This implementation is independently derived from those published equations and public numerical output.
+
+import { reported } from "../internal/warnings.js";
+import { qr, qrCoef } from "../linalg/qr.js";
+import { parseFormula } from "./formula.js";
+import { design, type DesignContrast } from "./modelMatrix.js";
+import type { DataFrame } from "./modelFrame.js";
+import type { Sample } from "../htest/types.js";
+import { pt, qt } from "../distributions/t.js";
+import { qnorm } from "../distributions/normal.js";
+import { pf } from "../distributions/f.js";
+
+/** Algorithm used to fit a quantile-regression model.
+ *
+ * @category Regression
+ */
+export type RqMethod = "br" | "fn";
+
+/** Options for {@link rq}.
+ *
+ * @category Regression
+ */
+export interface RqOptions {
+  /** Quantile probability or probabilities to fit. */
+  tau?: number | Sample;
+  /** Quantile-regression optimization method. */
+  method?: RqMethod;
+  /** Nonnegative prior observation weights. */
+  weights?: Sample | string;
+  /** Contrast coding specifications for factor predictors. */
+  contrasts?: Record<string, DesignContrast>;
+  /** Explicit level order for factor predictors. */
+  levels?: Record<string, readonly string[]>;
+  /** Maximum number of optimization iterations. */
+  maxit?: number;
+  /** Convergence tolerance for the optimization. */
+  eps?: number;
+}
+
+/** Model data retained by a quantile-regression fit.
+ *
+ * @category Regression
+ */
+export interface RqModel {
+  /** Model formula used to define the response and predictors. */
+  formula: string;
+  /** Numeric model matrix used by the fit. */
+  x: number[][];
+  /** Observed response values. */
+  y: number[];
+  /** Nonnegative prior observation weights. */
+  weights: number[];
+  /** Original data-row indices retained in the model frame. */
+  rows: number[];
+  /** Names of the columns in the model matrix. */
+  columnNames: string[];
+  /** Quantile probability or probabilities to fit. */
+  tau: number[];
+  /** Quantile-regression optimization method. */
+  method: RqMethod;
+}
+
+/** Result returned by {@link rq}.
+ *
+ * @category Regression
+ */
+export interface RqResult {
+  /** Estimated regression coefficients. */
+  coefficients: Record<string, number | number[]>;
+  /** Fitted conditional means or quantiles for the input rows. */
+  fittedValues: number[] | number[][];
+  /** Response residuals for the input rows. */
+  residuals: number[] | number[][];
+  /** Quantile check-loss objective value. */
+  rho: number | number[];
+  /** Whether the numerical fitting procedure met its convergence criterion. */
+  converged: boolean;
+  /** Number of iterations used by the fitting procedure. */
+  iterations: number;
+  /** Warnings recorded while fitting or summarizing the model. */
+  warnings: string[];
+  /** Model-frame and design information retained for downstream methods. */
+  model: RqModel;
+}
+
+function solveLinear(a: number[][], b: number[]): number[] {
+  const n = b.length;
+  const m = a.map((row, i) => [...row, b[i]!]);
+  for (let k = 0; k < n; k++) {
+    let pivot = k;
+    for (let i = k + 1; i < n; i++) if (Math.abs(m[i]![k]!) > Math.abs(m[pivot]![k]!)) pivot = i;
+    let rowScale = 1;
+    for (let j = 0; j < n; j++) rowScale = Math.max(rowScale, Math.abs(m[pivot]![j]!));
+    if (!(Math.abs(m[pivot]![k]!) > Number.EPSILON * rowScale)) {
+      throw new RangeError("singular design matrix");
+    }
+    [m[k], m[pivot]] = [m[pivot]!, m[k]!];
+    const d = m[k]![k]!;
+    for (let j = k; j <= n; j++) m[k]![j]! /= d;
+    for (let i = 0; i < n; i++) {
+      if (i === k) continue;
+      const f = m[i]![k]!;
+      if (f === 0) continue;
+      for (let j = k; j <= n; j++) m[i]![j]! -= f * m[k]![j]!;
+    }
+  }
+  return m.map((row) => row[n]!);
+}
+
+function dot(a: readonly number[], b: readonly number[]): number {
+  let s = 0;
+  for (let i = 0; i < a.length; i++) s += a[i]! * b[i]!;
+  return s;
+}
+
+function cholesky(a: readonly number[][]): number[][] {
+  const n = a.length;
+  const l = Array.from({ length: n }, () => new Array<number>(n).fill(0));
+  for (let i = 0; i < n; i++) {
+    for (let j = 0; j <= i; j++) {
+      let value = a[i]![j]!;
+      for (let k = 0; k < j; k++) value -= l[i]![k]! * l[j]![k]!;
+      if (i === j) {
+        if (!(value > 0) || !Number.isFinite(value)) throw new RangeError("normal equations are not positive definite");
+        l[i]![j] = Math.sqrt(value);
+      } else {
+        l[i]![j] = value / l[j]![j]!;
+      }
+    }
+  }
+  return l;
+}
+
+function solveCholesky(l: readonly number[][], rhs: readonly number[]): number[] {
+  const n = rhs.length;
+  const x = Array.from(rhs);
+  for (let i = 0; i < n; i++) {
+    for (let j = 0; j < i; j++) x[i]! -= l[i]![j]! * x[j]!;
+    x[i]! /= l[i]![i]!;
+  }
+  for (let i = n - 1; i >= 0; i--) {
+    for (let j = i + 1; j < n; j++) x[i]! -= l[j]![i]! * x[j]!;
+    x[i]! /= l[i]![i]!;
+  }
+  return x;
+}
+
+interface DualDirection {
+  db: number[];
+  dl: number[];
+  du: number[];
+  dbeta: number[];
+}
+
+function dualDirection(
+  x: readonly number[][],
+  b: readonly number[],
+  lower: readonly number[],
+  upper: readonly number[],
+  rp: readonly number[],
+  rd: readonly number[],
+  rcLower: readonly number[],
+  rcUpper: readonly number[],
+): DualDirection {
+  const n = b.length;
+  const p = x[0]!.length;
+  const inverseW = new Array<number>(n);
+  const rhs = new Array<number>(n);
+  for (let i = 0; i < n; i++) {
+    const bi = b[i]!;
+    const oneMinus = 1 - bi;
+    if (!(bi > 0 && oneMinus > 0 && lower[i]! > 0 && upper[i]! > 0)) {
+      throw new RangeError("invalid interior point in quantile regression");
+    }
+    const w = lower[i]! / bi + upper[i]! / oneMinus;
+    inverseW[i] = 1 / w;
+    rhs[i] = -rd[i]! - rcLower[i]! / bi + rcUpper[i]! / oneMinus;
+  }
+
+  const gram = Array.from({ length: p }, () => new Array<number>(p).fill(0));
+  const projected = new Array<number>(p).fill(0);
+  for (let i = 0; i < n; i++) {
+    const wi = inverseW[i]!;
+    for (let j = 0; j < p; j++) {
+      const xj = x[i]![j]!;
+      projected[j]! += xj * wi * rhs[i]!;
+      for (let k = 0; k <= j; k++) gram[j]![k]! += xj * wi * x[i]![k]!;
+    }
+  }
+  for (let j = 0; j < p; j++) {
+    for (let k = 0; k < j; k++) gram[k]![j] = gram[j]![k]!;
+    projected[j]! += rp[j]!;
+  }
+  const dbeta = solveCholesky(cholesky(gram), projected);
+  const db = new Array<number>(n);
+  const dl = new Array<number>(n);
+  const du = new Array<number>(n);
+  for (let i = 0; i < n; i++) {
+    let value = rhs[i]!;
+    for (let j = 0; j < p; j++) value -= x[i]![j]! * dbeta[j]!;
+    db[i] = inverseW[i]! * value;
+    dl[i] = (-rcLower[i]! - lower[i]! * db[i]!) / b[i]!;
+    du[i] = (-rcUpper[i]! + upper[i]! * db[i]!) / (1 - b[i]!);
+  }
+  return { db, dl, du, dbeta };
+}
+
+function maxBoxStep(b: readonly number[], db: readonly number[]): number {
+  let step = 1;
+  for (let i = 0; i < b.length; i++) {
+    if (db[i]! > 0) step = Math.min(step, (1 - b[i]!) / db[i]!);
+    else if (db[i]! < 0) step = Math.min(step, -b[i]! / db[i]!);
+  }
+  return step;
+}
+
+function maxPositiveStep(v: readonly number[], dv: readonly number[]): number {
+  let step = 1;
+  for (let i = 0; i < v.length; i++) if (dv[i]! < 0) step = Math.min(step, -v[i]! / dv[i]!);
+  return step;
+}
+
+/** Mehrotra predictor-corrector for the box-constrained dual regression-quantile LP. */
+function fitFn(
+  x: readonly number[][], y: readonly number[], tau: number, maxit: number, eps: number,
+): { beta: number[]; dual: number[]; iterations: number } {
+  const n = y.length;
+  const p = x[0]!.length;
+  const b = new Array<number>(n).fill(1 - tau);
+  const lower = new Array<number>(n).fill(1);
+  const upper = new Array<number>(n).fill(1);
+  const beta = new Array<number>(p).fill(0);
+  const h = new Array<number>(p).fill(0);
+  for (let i = 0; i < n; i++) for (let j = 0; j < p; j++) h[j]! += (1 - tau) * x[i]![j]!;
+  let iterations = 0;
+
+  for (let it = 0; it < maxit; it++) {
+    iterations = it + 1;
+    const rp = new Array<number>(p).fill(0);
+    const rd = new Array<number>(n);
+    let rpScale = 1;
+    let rdScale = 1;
+    let gap = 0;
+    let primalObjective = 0;
+    let dualObjective = 0;
+    for (let i = 0; i < n; i++) {
+      dualObjective += y[i]! * b[i]!;
+      gap += b[i]! * lower[i]! + (1 - b[i]!) * upper[i]!;
+      for (let j = 0; j < p; j++) rp[j]! += x[i]![j]! * b[i]!;
+      let fitted = 0;
+      for (let j = 0; j < p; j++) fitted += x[i]![j]! * beta[j]!;
+      rd[i] = fitted - lower[i]! + upper[i]! - y[i]!;
+    }
+    for (let j = 0; j < p; j++) {
+      rp[j]! -= h[j]!;
+      rpScale = Math.max(rpScale, Math.abs(h[j]!));
+    }
+    for (let i = 0; i < n; i++) rdScale = Math.max(rdScale, Math.abs(y[i]!));
+    for (let i = 0; i < n; i++) {
+      const residual = y[i]!;
+      let fitted = 0;
+      for (let j = 0; j < p; j++) fitted += x[i]![j]! * beta[j]!;
+      const r = residual - fitted;
+      primalObjective += r * (tau - (r < 0 ? 1 : 0));
+    }
+    const equalityNorm = rp.reduce((m, v) => Math.max(m, Math.abs(v)), 0) / rpScale;
+    const stationarityNorm = rd.reduce((m, v) => Math.max(m, Math.abs(v)), 0) / rdScale;
+    const gapNorm = gap / Math.max(1, Math.abs(primalObjective), Math.abs(dualObjective));
+    if (Math.max(equalityNorm, stationarityNorm, gapNorm) <= eps) return { beta, dual: b, iterations };
+
+    const rcLowerAffine = b.map((v, i) => v * lower[i]!);
+    const rcUpperAffine = b.map((v, i) => (1 - v) * upper[i]!);
+    const affine = dualDirection(x, b, lower, upper, rp, rd, rcLowerAffine, rcUpperAffine);
+    const alphaPAff = Math.min(1, maxBoxStep(b, affine.db));
+    const alphaDAff = Math.min(1, maxPositiveStep(lower, affine.dl), maxPositiveStep(upper, affine.du));
+    let gapAffine = 0;
+    for (let i = 0; i < n; i++) {
+      const ba = b[i]! + alphaPAff * affine.db[i]!;
+      const la = lower[i]! + alphaDAff * affine.dl[i]!;
+      const ua = upper[i]! + alphaDAff * affine.du[i]!;
+      gapAffine += ba * la + (1 - ba) * ua;
+    }
+    const mu = gap / (2 * n);
+    const muAffine = gapAffine / (2 * n);
+    const sigma = mu > 0 ? Math.max(0, Math.min(1, (muAffine / mu) ** 3)) : 0;
+    const rcLower = b.map((v, i) => v * lower[i]! + affine.db[i]! * affine.dl[i]! - sigma * mu);
+    const rcUpper = b.map((v, i) => (1 - v) * upper[i]! - affine.db[i]! * affine.du[i]! - sigma * mu);
+    const step = dualDirection(x, b, lower, upper, rp, rd, rcLower, rcUpper);
+    const alphaP = Math.min(1, 0.99995 * maxBoxStep(b, step.db));
+    const alphaD = Math.min(1, 0.99995 * maxPositiveStep(lower, step.dl), 0.99995 * maxPositiveStep(upper, step.du));
+    for (let i = 0; i < n; i++) {
+      b[i]! += alphaP * step.db[i]!;
+      lower[i]! += alphaD * step.dl[i]!;
+      upper[i]! += alphaD * step.du[i]!;
+    }
+    for (let j = 0; j < p; j++) beta[j]! += alphaD * step.dbeta[j]!;
+  }
+  throw new Error("quantile regression interior-point method did not converge within maxit");
+}
+
+interface VertexDirection {
+  slope: number;
+  step: number;
+  entering: number;
+  direction: number[];
+  leaving: number;
+}
+
+function directionalEdge(
+  x: readonly number[][],
+  y: readonly number[],
+  weights: readonly number[],
+  tau: number,
+  beta: readonly number[],
+  basis: readonly number[],
+  leaving: number,
+  sign: number,
+): VertexDirection | undefined {
+  const p = basis.length;
+  const matrix = basis.map((i) => Array.from(x[i]!));
+  const unit = new Array<number>(p).fill(0);
+  unit[leaving] = sign;
+  const direction = solveLinear(matrix, unit);
+  const slopeTerms: Array<{ time: number; weight: number; index: number }> = [];
+  let slope = 0;
+  for (let i = 0; i < x.length; i++) {
+    let fitted = 0;
+    let movement = 0;
+    for (let j = 0; j < p; j++) {
+      fitted += x[i]![j]! * beta[j]!;
+      movement -= x[i]![j]! * direction[j]!;
+    }
+    const residual = y[i]! - fitted;
+    const scale = Math.max(1, Math.abs(y[i]!), Math.abs(fitted));
+    if (Math.abs(residual) <= 32 * Number.EPSILON * scale) {
+      if (movement > 0) slope += weights[i]! * tau * movement;
+      else if (movement < 0) slope += weights[i]! * (tau - 1) * movement;
+      continue;
+    }
+    slope += weights[i]! * movement * (tau - (residual < 0 ? 1 : 0));
+    if (movement !== 0) {
+      const time = -residual / movement;
+      if (time > 32 * Number.EPSILON * Math.max(1, Math.abs(time))) {
+        slopeTerms.push({ time, weight: weights[i]! * Math.abs(movement), index: i });
+      }
+    }
+  }
+  if (!(slope < 0) || slopeTerms.length === 0) return undefined;
+  slopeTerms.sort((a, b) => a.time - b.time || a.index - b.index);
+  let accumulated = 0;
+  const target = -slope;
+  let step = slopeTerms[slopeTerms.length - 1]!.time;
+  for (const term of slopeTerms) {
+    accumulated += term.weight;
+    if (accumulated >= target) {
+      step = term.time;
+      break;
+    }
+  }
+  const tolerance = 128 * Number.EPSILON * Math.max(1, Math.abs(step));
+  const tied = slopeTerms.filter((term) => Math.abs(term.time - step) <= tolerance);
+  for (const term of tied) {
+    const candidate = basis.filter((_, j) => j !== leaving).concat(term.index);
+    if (new Set(candidate).size !== p) continue;
+    if (qr(candidate.map((i) => x[i]!)).rank === p) {
+      return { slope, step, entering: term.index, direction, leaving };
+    }
+  }
+  return undefined;
+}
+
+/** Vertex-to-vertex edge descent for the weighted check-loss objective. */
+function fitBr(
+  x: readonly number[][], y: readonly number[], weights: readonly number[], tau: number, maxit: number,
+): { beta: number[]; iterations: number } {
+  const n = y.length;
+  const p = x[0]!.length;
+  const leastSquares = qrCoef(qr(x), y);
+  const residuals = y.map((v, i) => v - dot(x[i]!, leastSquares));
+  const order = Array.from({ length: n }, (_, i) => i).sort((a, b) =>
+    Math.abs(residuals[a]!) - Math.abs(residuals[b]!) || a - b);
+  const basis: number[] = [];
+  for (const i of order) {
+    const trial = basis.concat(i);
+    if (qr(trial.map((row) => x[row]!)).rank === trial.length) basis.push(i);
+    if (basis.length === p) break;
+  }
+  if (basis.length !== p) throw new RangeError("could not construct a full-rank initial quantile-regression basis");
+  let beta = solveLinear(basis.map((i) => Array.from(x[i]!)), basis.map((i) => y[i]!));
+  const seen = new Set<string>();
+  for (let iteration = 0; iteration < maxit; iteration++) {
+    const key = basis.slice().sort((a, b) => a - b).join(",");
+    if (seen.has(key)) throw new Error("quantile regression vertex walk cycled");
+    seen.add(key);
+    let best: VertexDirection | undefined;
+    for (let j = 0; j < p; j++) {
+      for (const sign of [1, -1]) {
+        const edge = directionalEdge(x, y, weights, tau, beta, basis, j, sign);
+        if (edge === undefined) continue;
+        // Bland's deterministic entering/leaving order prevents cycling across
+        // zero-length pivots at degenerate vertices.
+        if (best === undefined || edge.entering < best.entering ||
+          (edge.entering === best.entering && basis[edge.leaving]! < basis[best.leaving]!)) {
+          best = edge;
+        }
+      }
+    }
+    if (best === undefined) {
+      const fitted = x.map((row) => dot(row, beta));
+      const residual = y.map((value, i) => value - fitted[i]!);
+      const zeroRows = residual.map((value, i) => ({
+        index: i,
+        zero: Math.abs(value) <= 64 * Number.EPSILON * Math.max(1, Math.abs(y[i]!), Math.abs(fitted[i]!)),
+      })).filter((item) => item.zero && !basis.includes(item.index)).map((item) => item.index);
+      if (zeroRows.length === 0 || residual.every((value, i) =>
+        Math.abs(value) <= 64 * Number.EPSILON * Math.max(1, Math.abs(y[i]!), Math.abs(fitted[i]!)))) {
+        return { beta, iterations: iteration + 1 };
+      }
+
+      // Degenerate pivot: exchange an additional exact-fit observation into the
+      // basis without moving beta. This exposes descent edges hidden by tied zeros.
+      let swap: { basis: number[]; beta: number[] } | undefined;
+      const leavingOrder = Array.from({ length: p }, (_, j) => j)
+        .sort((a, b) => basis[a]! - basis[b]!);
+      // Bland's rule also applies to zero-length exchanges: smallest entering
+      // observation first, then smallest leaving basic observation.
+      for (const entering of zeroRows) {
+        for (const leaving of leavingOrder) {
+          const candidateBasis = basis.filter((_, j) => j !== leaving).concat(entering);
+          if (new Set(candidateBasis).size !== p) continue;
+          const candidateKey = candidateBasis.slice().sort((a, b) => a - b).join(",");
+          if (seen.has(candidateKey) || qr(candidateBasis.map((i) => x[i]!)).rank !== p) continue;
+          const candidateBeta = solveLinear(candidateBasis.map((i) => Array.from(x[i]!)), candidateBasis.map((i) => y[i]!));
+          let hasDescent = false;
+          for (let j = 0; j < p && !hasDescent; j++) for (const sign of [1, -1]) {
+            const edge = directionalEdge(x, y, weights, tau, candidateBeta, candidateBasis, j, sign);
+            if (edge !== undefined) { hasDescent = true; break; }
+          }
+          if (hasDescent) {
+            swap = { basis: candidateBasis, beta: candidateBeta };
+            break;
+          }
+        }
+        if (swap !== undefined) break;
+      }
+      if (swap === undefined) return { beta, iterations: iteration + 1 };
+      basis.splice(0, basis.length, ...swap.basis);
+      beta = swap.beta;
+      continue;
+    }
+    const nextBasis = basis.filter((_, j) => j !== best!.leaving).concat(best.entering);
+    const nextBeta = solveLinear(nextBasis.map((i) => Array.from(x[i]!)), nextBasis.map((i) => y[i]!));
+    const currentLoss = x.reduce((sum, row, i) => {
+      const r = y[i]! - dot(row, beta);
+      return sum + weights[i]! * r * (tau - (r < 0 ? 1 : 0));
+    }, 0);
+    const nextLoss = x.reduce((sum, row, i) => {
+      const r = y[i]! - dot(row, nextBeta);
+      return sum + weights[i]! * r * (tau - (r < 0 ? 1 : 0));
+    }, 0);
+    const objectiveTolerance = 1e-12 * Math.max(1, Math.abs(currentLoss), Math.abs(nextLoss));
+    const objectiveDecreased = nextLoss < currentLoss - objectiveTolerance;
+    // A pivot with no numerically resolvable decrease is still necessary at a
+    // degenerate vertex. Bland ordering and the visited-basis guard provide
+    // deterministic anti-cycling; the objective comparison is diagnostic only.
+    void objectiveDecreased;
+    basis.splice(0, basis.length, ...nextBasis);
+    beta = nextBeta;
+  }
+  throw new Error("quantile regression vertex walk did not converge within maxit");
+}
+
+function fitOne(
+  x: readonly number[][], y: readonly number[], weights: readonly number[], tau: number,
+  method: RqMethod, maxit: number, eps: number,
+): { beta: number[]; fitted: number[]; residuals: number[]; rho: number; converged: boolean; iterations: number } {
+  const n = y.length;
+  const p = x[0]!.length;
+  if (n === 0 || p === 0) throw new RangeError("the design matrix must have at least one column and one row");
+  if (n < p) throw new RangeError("singular design matrix");
+  if (qr(x).rank < p) throw new RangeError("singular design matrix");
+
+  const weightScale = weights.reduce((m, v) => Math.max(m, v), 0);
+  const yScale = y.reduce((m, v) => Math.max(m, Math.abs(v)), 0) || 1;
+  const columnScale = new Array<number>(p).fill(0);
+  for (const row of x) for (let j = 0; j < p; j++) columnScale[j] = Math.max(columnScale[j]!, Math.abs(row[j]!));
+  if (columnScale.some((v) => !(v > 0) || !Number.isFinite(v))) throw new RangeError("singular design matrix");
+  const normalizedX = x.map((row, i) => row.map((v, j) => (weights[i]! / weightScale) * (v / columnScale[j]!)));
+  const normalizedY = y.map((v, i) => (weights[i]! / weightScale) * (v / yScale));
+
+  let normalizedBeta: number[];
+  let iterations: number;
+  if (p === 1 && x.every((row) => row[0] === x[0]![0])) {
+    const scale = x[0]![0]!;
+    const quantile = scale > 0 ? tau : 1 - tau;
+    const ordered = y.map((value, i) => ({ value: value / scale, weight: weights[i]! }))
+      .sort((a, b) => a.value - b.value);
+    const total = ordered.reduce((sum, item) => sum + item.weight, 0);
+    let cumulative = 0;
+    let estimate = ordered[0]!.value;
+    for (const item of ordered) {
+      cumulative += item.weight;
+      estimate = item.value;
+      if (cumulative >= quantile * total) break;
+    }
+    normalizedBeta = [estimate * columnScale[0]! / yScale];
+    iterations = ordered.length;
+  } else if (method === "br") {
+    const fit = fitBr(normalizedX, normalizedY, new Array<number>(n).fill(1), tau, maxit);
+    normalizedBeta = fit.beta;
+    iterations = fit.iterations;
+  } else {
+    const fit = fitFn(normalizedX, normalizedY, tau, maxit, eps);
+    normalizedBeta = fit.beta;
+    iterations = fit.iterations;
+    // Move the central-path estimate to a nearby vertex when its dual certificate
+    // verifies the same optimum. This is a bounded greedy basis selection, not enumeration.
+    const residual = normalizedY.map((v, i) => v - dot(normalizedX[i]!, normalizedBeta));
+    const ordered = Array.from({ length: n }, (_, i) => i).sort((a, b) =>
+      Math.abs(residual[a]!) - Math.abs(residual[b]!) || a - b);
+    const basis: number[] = [];
+    for (const i of ordered) {
+      const trial = basis.concat(i);
+      if (qr(trial.map((row) => normalizedX[row]!)).rank === trial.length) basis.push(i);
+      if (basis.length === p) break;
+    }
+    if (basis.length === p) {
+      try {
+        const candidate = solveLinear(basis.map((i) => Array.from(normalizedX[i]!)), basis.map((i) => normalizedY[i]!));
+        const oldLoss = normalizedX.reduce((sum, row, i) => {
+          const r = normalizedY[i]! - dot(row, normalizedBeta);
+          return sum + r * (tau - (r < 0 ? 1 : 0));
+        }, 0);
+        const candidateResidual = normalizedY.map((v, i) => v - dot(normalizedX[i]!, candidate));
+        const newLoss = candidateResidual.reduce((sum, r) => sum + r * (tau - (r < 0 ? 1 : 0)), 0);
+        let dualObjective = 0;
+        let signCompatible = true;
+        const residualScale = candidateResidual.reduce((m, v) => Math.max(m, Math.abs(v)), 1);
+        for (let i = 0; i < n; i++) {
+          const ai = fit.dual[i]!;
+          dualObjective += normalizedY[i]! * ai;
+           if (candidateResidual[i]! > 1e-8 * residualScale && ai < 1 - 1e-7) signCompatible = false;
+          if (candidateResidual[i]! < -1e-8 * residualScale && ai > 1e-7) signCompatible = false;
+        }
+        const equalityResidual = new Array<number>(p).fill(0);
+        for (let i = 0; i < n; i++) for (let j = 0; j < p; j++) {
+          equalityResidual[j]! += normalizedX[i]![j]! * (fit.dual[i]! - (1 - tau));
+        }
+        const dualEquality = equalityResidual.reduce((m, v) => Math.max(m, Math.abs(v)), 0);
+        dualObjective -= (1 - tau) * normalizedY.reduce((sum, value) => sum + value, 0);
+        const certificate = signCompatible &&
+          dualEquality <= 1e-8 * Math.max(1, ...normalizedX[0]!.map((_, j) => Math.abs(
+            normalizedX.reduce((sum, row) => sum + row[j]!, 0),
+          ))) &&
+          Math.abs(newLoss - dualObjective) <= 1e-8 * Math.max(1, Math.abs(newLoss), Math.abs(dualObjective));
+        if (certificate && newLoss <= oldLoss + 1e-12 * Math.max(1, Math.abs(oldLoss))) normalizedBeta = candidate;
+      } catch {
+        // Retain the converged central-path estimate if the nearby basis is numerically singular.
+      }
+    }
+  }
+
+  const beta = normalizedBeta.map((v, j) => v * yScale / columnScale[j]!);
+  const fitted = x.map((row) => dot(row, beta));
+  const residuals = y.map((v, i) => v - fitted[i]!);
+  let rho = 0;
+  for (let i = 0; i < n; i++) rho += weights[i]! * residuals[i]! * (tau - (residuals[i]! < 0 ? 1 : 0));
+  return { beta, fitted, residuals, rho, converged: true, iterations };
+}
+
+/**
+ * Fit a linear conditional quantile model. Equivalent to `quantreg::rq()` in R.
+ * Uses the formula/model-matrix interface of other regression models.
+ *
+ * @param formula A formula such as `y ~ x`.
+ * @param data A data frame of columns.
+ * @param options Quantile, algorithm, and prior weights.
+ * @example
+ * ```ts
+ * rq("y ~ x", { x: [1, 2, 3, 4], y: [2, 1, 4, 3] }, { tau: 0.5 });
+ * ```
+ * @category Regression
+ */
+export function rq(formula: string, data: DataFrame, options: RqOptions = {}): RqResult {
+  const tauValues = typeof options.tau === "number" ? [options.tau] : options.tau === undefined ? [0.5] : Array.from(options.tau);
+  if (tauValues.length === 0 || tauValues.some((v) => !(v > 0 && v < 1) || !Number.isFinite(v))) {
+    throw new RangeError("tau must contain values strictly between 0 and 1");
+  }
+  const method = options.method ?? "br";
+  if (method !== "br" && method !== "fn") throw new RangeError("method must be 'br' or 'fn'");
+  const maxit = options.maxit ?? 100;
+  const eps = options.eps ?? 1e-12;
+  if (!Number.isInteger(maxit) || maxit < 1) throw new RangeError("maxit must be a positive integer");
+  if (!(eps > 0) || !Number.isFinite(eps)) throw new RangeError("eps must be positive and finite");
+  const d = design(parseFormula(formula), data, {
+    ...(options.weights === undefined ? {} : { weights: options.weights }),
+    ...(options.contrasts === undefined ? {} : { contrasts: options.contrasts }),
+    ...(options.levels === undefined ? {} : { levels: options.levels }),
+  });
+  if (d.y === undefined) throw new TypeError("the formula must have a numeric response");
+  const weights = d.frame.weights ?? new Array<number>(d.y.length).fill(1);
+  if (weights.some((v) => !Number.isFinite(v) || v < 0)) throw new RangeError("weights must be non-negative and finite");
+  const kept = d.y.map((v, i) => i).filter((i) => weights[i]! > 0);
+  if (kept.length < d.x[0]!.length) throw new RangeError("singular design matrix");
+  const x = kept.map((i) => d.x[i]!);
+  const y = kept.map((i) => d.y![i]!);
+  const w = kept.map((i) => weights[i]!);
+  if (x.some((row) => row.some((v) => !Number.isFinite(v))) || y.some((v) => !Number.isFinite(v))) {
+    throw new RangeError("x and y must contain only finite values");
+  }
+  const fits = tauValues.map((tau) => fitOne(x, y, w, tau, method, maxit, eps));
+  const coefficients: Record<string, number | number[]> = {};
+  d.colNames.forEach((name, j) => {
+    coefficients[name] = tauValues.length === 1 ? fits[0]!.beta[j]! : fits.map((fit) => fit.beta[j]!);
+  });
+  const model: RqModel = { formula, x, y, weights: w, rows: kept.map((i) => d.frame.rows[i]!), columnNames: d.colNames, tau: tauValues, method };
+  const warnings = [...d.warnings];
+  if (fits.some((fit) => !fit.converged)) warnings.push("quantile regression did not converge within the iteration limit");
+  const fittedValues = tauValues.length === 1 ? fits[0]!.fitted : fits.map((fit) => fit.fitted);
+  const residuals = tauValues.length === 1 ? fits[0]!.residuals : fits.map((fit) => fit.residuals);
+  const rho = tauValues.length === 1 ? fits[0]!.rho : fits.map((fit) => fit.rho);
+  return reported("rq", {
+    coefficients, fittedValues, residuals, rho, converged: fits.every((fit) => fit.converged),
+    iterations: fits.reduce((m, fit) => Math.max(m, fit.iterations), 0), warnings, model,
+  });
+}
+
+/**
+ * Predict conditional quantiles for new observations. Equivalent to `quantreg::predict.rq()` in R.
+ *
+ * @category Regression
+ */
+export function rqPredict(fit: RqResult, newdata: DataFrame): number[] | number[][] {
+  const rhs = fit.model.formula.slice(fit.model.formula.indexOf("~") + 1);
+  const parsed = parseFormula("~ " + rhs);
+  const d = design(parsed, newdata, { anyResponse: true, dropUnusedLevels: true });
+  const matrix = d.x;
+  const coefs = fit.model.tau.map((_, k) => fit.model.columnNames.map((name) => {
+    const v = fit.coefficients[name]!;
+    return Array.isArray(v) ? v[k]! : v;
+  }));
+  const values = coefs.map((beta) => matrix.map((row) => dot(row, beta)));
+  return values.length === 1 ? values[0]! : values;
+}
+
+/** Options for rqSummary.
+ * @category Regression
+ */
+export interface RqSummaryOptions {
+  /** Standard-error or interval method used for the summary. */
+  se?: "nid" | "rank";
+  /** Estimated coefficient covariance matrix or matrices. */
+  covariance?: boolean;
+  /** Confidence level for reported intervals. */
+  level?: number;
+}
+/** A coefficient row in an rq summary.
+ * @category Regression
+ */
+export interface RqCoefficientSummary {
+  /** Quantile probability or probabilities to fit. */
+  tau: number;
+  /** Model term represented by this coefficient row. */
+  term: string;
+  /** Estimated coefficient value. */
+  estimate: number;
+  /** NaN for `se = "rank"`, which gives an interval (`lower`, `upper`) instead. */
+  stdError: number;
+  /** Wald test statistic for the coefficient. */
+  statistic: number;
+  /** Two-sided p-value associated with the coefficient statistic. */
+  pValue: number;
+  /** The confidence limits of `se = "rank"` (R's `lower bd` and `upper bd`). */
+  lower?: number;
+  /** Upper confidence limit for the coefficient. */
+  upper?: number;
+}
+/** Result of rqSummary.
+ * @category Regression
+ */
+export interface RqSummaryResult {
+  /** Estimated regression coefficients. */
+  coefficients: RqCoefficientSummary[];
+  /** Estimated coefficient covariance matrix or matrices. */
+  covariance?: number[][][];
+  /** Standard-error or interval method used for the summary. */
+  se: string;
+  /** Warnings recorded while fitting or summarizing the model. */
+  warnings: string[];
+}
+/** Options for confidence prediction intervals.
+ * @category Regression
+ */
+export interface RqPredictOptions {
+  /** Whether prediction output includes confidence intervals. */
+  interval?: "none" | "confidence";
+  /** Prediction scale or confidence-interval construction method. */
+  type?: "none" | "direct" | "percentile";
+  /** Confidence level for reported intervals. */
+  level?: number;
+}
+/** Result of confidence prediction.
+ * @category Regression
+ */
+export interface RqPredictResult {
+  /** Predicted conditional quantiles or fitted values. */
+  fit: number[] | number[][];
+  /** Lower confidence limit for the coefficient. */
+  lower?: number[] | number[][];
+  /** Upper confidence limit for the coefficient. */
+  upper?: number[] | number[][];
+  /** Confidence level for reported intervals. */
+  level: number;
+  /** Prediction scale or confidence-interval construction method. */
+  type: string;
+}
+
+function rqInverse(a: readonly number[][]): number[][] {
+  const n = a.length;
+  const m = a.map((row, i) => [...row, ...Array.from({ length: n }, (_, j) => +(i === j))]);
+  for (let k = 0; k < n; k++) {
+    let pivot = k;
+    for (let i = k + 1; i < n; i++) if (Math.abs(m[i]![k]!) > Math.abs(m[pivot]![k]!)) pivot = i;
+    if (!(Math.abs(m[pivot]![k]!) > Number.EPSILON)) throw new RangeError("singular covariance matrix");
+    [m[k], m[pivot]] = [m[pivot]!, m[k]!];
+    const d = m[k]![k]!;
+    for (let j = 0; j < 2 * n; j++) m[k]![j]! /= d;
+    for (let i = 0; i < n; i++) if (i !== k) {
+      const v = m[i]![k]!;
+      for (let j = 0; j < 2 * n; j++) m[i]![j]! -= v * m[k]![j]!;
+    }
+  }
+  return m.map((row) => row.slice(n));
+}
+function rqMul(a: readonly number[][], b: readonly number[][]): number[][] {
+  return a.map((row) => b[0]!.map((_, j) => row.reduce((sum, v, k) => sum + v * b[k]![j]!, 0)));
+}
+const NID_DENSITY_EPS = 2 ** -26;
+function rqBandwidth(n: number, tau: number, level: number): number {
+  const z = qnorm(tau) as number;
+  const critical = qnorm((1 + level) / 2) as number;
+  const phi = Math.exp(-0.5 * z * z) / Math.sqrt(2 * Math.PI);
+  return Math.cbrt((1.5 * phi * phi * critical * critical) / (n * (2 * z * z + 1)));
+}
+function rqBread(model: RqModel, tau: number, level: number, warnings?: string[]): number[][] {
+  const h = rqBandwidth(model.y.length, tau, level);
+  const minus = fitOne(model.x, model.y, model.weights, tau - h, model.method, 500, 1e-12).beta;
+  const plus = fitOne(model.x, model.y, model.weights, tau + h, model.method, 500, 1e-12).beta;
+  const p = model.columnNames.length;
+  const bread = Array.from({ length: p }, () => new Array<number>(p).fill(0));
+  let nonPositive = 0;
+  for (let i = 0; i < model.y.length; i++) {
+    const row = model.x[i]!;
+    const difference = dot(row, plus) - dot(row, minus);
+    const density = difference > NID_DENSITY_EPS ? (2 * h) / (difference - NID_DENSITY_EPS) : 0;
+    if (density === 0) nonPositive++;
+    for (let j = 0; j < p; j++) for (let k = 0; k <= j; k++) bread[j]![k]! += model.weights[i]! * density * row[j]! * row[k]!;
+  }
+  if (nonPositive > 0) warnings?.push(`${nonPositive} non-positive fis`);
+  for (let j = 0; j < p; j++) for (let k = 0; k < j; k++) bread[k]![j] = bread[j]![k]!;
+  return bread;
+}
+function rqMeat(model: RqModel): number[][] {
+  const p = model.columnNames.length;
+  const meat = Array.from({ length: p }, () => new Array<number>(p).fill(0));
+  for (let i = 0; i < model.y.length; i++) {
+    const row = model.x[i]!;
+    for (let j = 0; j < p; j++) for (let k = 0; k <= j; k++) meat[j]![k]! += model.weights[i]! ** 2 * row[j]! * row[k]!;
+  }
+  for (let j = 0; j < p; j++) for (let k = 0; k < j; k++) meat[k]![j] = meat[j]![k]!;
+  return meat;
+}
+function rqNidCovariance(model: RqModel, tau: number, level: number, warnings?: string[]): number[][] {
+  const inv = rqInverse(rqBread(model, tau, level, warnings));
+  const middle = rqMul(rqMul(inv, rqMeat(model)), inv);
+  const scale = tau * (1 - tau);
+  return middle.map((row) => row.map((v) => v * scale));
+}
+
+// Confidence intervals by inversion of the regression rank-score test (Gutenbrunner, Jurečková, Koenker and Portnoy
+// 1993; Koenker 1994). For H0: beta_j = b the restricted problem regresses y - x_j b on the other columns; its dual
+// solution a (the regression rank scores at tau) gives
+//   T(b) = sum_i xt_i (a_i - (1 - tau)) / sqrt(tau (1 - tau) sum_i xt_i^2),
+// xt being x_j less its least-squares projection on the other columns. As b moves away from the estimate, the
+// restricted problem is followed by parametric linear programming: an event is a b at which a non-basic residual
+// reaches 0; the residual changes sign, and the basis changes only when that would take the basic dual values out
+// of [0, 1]. T is recorded after each event, and an endpoint is the linear interpolation, between the two events
+// where T first crosses +-qt(1 - alpha / 2, n - p), of the point where it equals the critical value. Matching
+// R's intervals needs exactly this path: the events and the interpolation between them (not the jumps of T) were
+// identified from R's public output (experiments/regression18-rank-path.*).
+const RANK_TOL = 1e-10;
+function rqRankDual(xr: readonly number[][], basis: readonly number[], positive: readonly boolean[], tau: number): number[] | undefined {
+  const q = xr[0]?.length ?? 0;
+  const rhs = new Array<number>(q).fill(0);
+  const inBasis = new Set(basis);
+  for (let i = 0; i < xr.length; i++) {
+    const row = xr[i]!;
+    const coefficient = (1 - tau) - (!inBasis.has(i) && positive[i] ? 1 : 0);
+    for (let k = 0; k < q; k++) rhs[k]! += coefficient * row[k]!;
+  }
+  if (q === 0) return [];
+  const transposed = Array.from({ length: q }, (_, k) => basis.map((i) => xr[i]![k]!));
+  let a: number[];
+  try { a = solveLinear(transposed, rhs); } catch { return undefined; }
+  return a.every((v) => v > -RANK_TOL && v < 1 + RANK_TOL) ? a : undefined;
+}
+function rqRankEndpoint(x: readonly number[][], y: readonly number[], j: number, tau: number, start: number,
+  startBasis: readonly number[], direction: 1 | -1, critical: number): number {
+  const n = y.length;
+  const xj = x.map((row) => row[j]!);
+  const xr = x.map((row) => row.filter((_, k) => k !== j));
+  const q = xr[0]!.length;
+  // xt: x_j less its least-squares projection on the other columns
+  let xt = xj;
+  if (q > 0) {
+    const gram = Array.from({ length: q }, (_, a) => Array.from({ length: q }, (_, b) => xr.reduce((s, row) => s + row[a]! * row[b]!, 0)));
+    const coef = solveLinear(gram, Array.from({ length: q }, (_, a) => xr.reduce((s, row, i) => s + row[a]! * xj[i]!, 0)));
+    xt = xj.map((v, i) => v - dot(xr[i]!, coef));
+  }
+  const scale = Math.sqrt(tau * (1 - tau) * xt.reduce((s, v) => s + v * v, 0));
+  // residual of row i as c_i - b d_i under a basis
+  const lines = (basis: readonly number[]) => {
+    if (q === 0) return { c: [...y], d: [...xj] };
+    const xb = basis.map((i) => xr[i]!);
+    const u = solveLinear(xb.map((r) => [...r]), basis.map((i) => y[i]!));
+    const v = solveLinear(xb.map((r) => [...r]), basis.map((i) => xj[i]!));
+    return { c: y.map((yi, i) => yi - dot(xr[i]!, u)), d: xj.map((xi, i) => xi - dot(xr[i]!, v)) };
+  };
+  const statistic = (basis: readonly number[], positive: readonly boolean[], a: readonly number[]) => {
+    const inBasis = new Map(basis.map((i, k) => [i, k]));
+    let s = 0;
+    for (let i = 0; i < n; i++) {
+      const k = inBasis.get(i);
+      const ai = k === undefined ? (positive[i] ? 1 : 0) : a[k]!;
+      s += xt[i]! * (ai - (1 - tau));
+    }
+    return s / scale;
+  };
+  // the restricted basis at the estimate: the full basis less one row. Several can be dual feasible there (a
+  // degenerate vertex); the one that stays optimal as b moves is the vertex that is best for the objective
+  // (y - x_j b)' a just beyond the estimate, that is the largest x_j' a when b decreases and the smallest when it
+  // increases
+  let basis: number[] = [];
+  let positive: boolean[] = [];
+  let a: number[] = [];
+  let found = false;
+  let best = -Infinity;
+  for (const leave of startBasis) {
+    const candidate = startBasis.filter((i) => i !== leave).slice(0, q);
+    if (candidate.length !== q) continue;
+    let ln;
+    try { ln = lines(candidate); } catch { continue; }
+    const sign = y.map((_, i) => {
+      const r = ln.c[i]! - start * ln.d[i]!;
+      return Math.abs(r) > RANK_TOL * (1 + Math.abs(y[i]!)) ? r > 0 : -direction * ln.d[i]! > 0;
+    });
+    const dual = rqRankDual(xr, candidate, sign, tau);
+    if (!dual) continue;
+    const position = new Map(candidate.map((i, k) => [i, k]));
+    let value = 0;
+    for (let i = 0; i < n; i++) {
+      const k = position.get(i);
+      value += xj[i]! * (k === undefined ? (sign[i] ? 1 : 0) : dual[k]!);
+    }
+    // ties (the same dual vector from several bases) go to the basis whose leaving row has a positive residual
+    const score = -direction * value + (sign[leave] ? RANK_TOL / 2 : 0);
+    if (!found || score > best) { basis = candidate; positive = sign; a = dual; best = score; found = true; }
+  }
+  if (!found) throw new RangeError("rank inversion: no feasible restricted basis at the estimate");
+  let b = start;
+  let t = statistic(basis, positive, a);
+  const target = direction < 0 ? critical : -critical;
+  for (let iteration = 0; iteration < 50 * n; iteration++) {
+    const { c, d } = lines(basis);
+    const inBasis = new Set(basis);
+    // the next b in this direction at which a non-basic residual c_i - b d_i reaches 0
+    let step = Infinity;
+    let k = -1;
+    for (let i = 0; i < n; i++) {
+      if (inBasis.has(i) || d[i] === 0) continue;
+      const root = c[i]! / d[i]!;
+      const s = (root - b) * direction;
+      if (s > RANK_TOL * (1 + Math.abs(b)) && s < step) { step = s; k = i; }
+    }
+    if (k < 0) return direction * Infinity;
+    const next = b + direction * step;
+    // every non-basic residual that reaches 0 at this b (ties are common) changes sign before T is recorded; each
+    // change keeps the basis when the dual stays feasible and is a pivot otherwise
+    let nextBasis = basis;
+    let nextPositive = positive;
+    let dual: number[] | undefined = a;
+    for (let guard = 0; guard <= n; guard++) {
+      const ln = lines(nextBasis);
+      const current = new Set(nextBasis);
+      // of the rows whose residual is 0 here, the one whose computed root c_i / d_i comes first in this direction.
+      // With ties (several roots equal in exact arithmetic, as with integer data) the dual can be degenerate and R's
+      // path can pass another optimal vertex, so its endpoints there need not be the ones here (a known difference)
+      let flip = -1;
+      let first = Infinity;
+      for (let i = 0; i < n; i++) {
+        if (current.has(i)) continue;
+        const r = ln.c[i]! - next * ln.d[i]!;
+        if (Math.abs(r) > RANK_TOL * (1 + Math.abs(y[i]!) + Math.abs(next * xj[i]!))) continue;
+        const beyond = -direction * ln.d[i]! > 0;
+        if (ln.d[i] === 0 || beyond === nextPositive[i]) continue;
+        const ahead = ((ln.c[i]! / ln.d[i]!) - b) * direction;
+        if (ahead < first) { first = ahead; flip = i; }
+      }
+      if (flip < 0) break;
+      const flipped = nextPositive.map((v, i) => (i === flip ? !v : v));
+      const kept = rqRankDual(xr, nextBasis, flipped, tau);
+      if (kept) { nextPositive = flipped; dual = kept; continue; }
+      // pivot: the row enters, and the leaving row is the one that keeps the dual feasible
+      let pivoted = false;
+      for (const leave of nextBasis) {
+        const candidate = nextBasis.map((i) => (i === leave ? flip : i));
+        let lc;
+        try { lc = lines(candidate); } catch { continue; }
+        const sign = flipped.map((v, i) => (i === leave ? -direction * lc.d[i]! > 0 : v));
+        const trial = rqRankDual(xr, candidate, sign, tau);
+        if (trial) { nextBasis = candidate; nextPositive = sign; dual = trial; pivoted = true; break; }
+      }
+      if (!pivoted) throw new RangeError("rank inversion: no feasible pivot");
+    }
+    if (!dual) throw new RangeError("rank inversion: no feasible pivot");
+    const nextT = statistic(nextBasis, nextPositive, dual);
+    if (direction < 0 ? nextT >= target : nextT <= target) {
+      return b + ((next - b) * (target - t)) / (nextT - t);
+    }
+    b = next; t = nextT; basis = nextBasis; positive = nextPositive; a = dual;
+  }
+  throw new RangeError("rank inversion did not converge");
+}
+function rqRankIntervals(model: RqModel, beta: readonly number[], tau: number, level: number): [number, number][] {
+  const w = model.weights;
+  const x = model.x.map((row, i) => row.map((v) => v * w[i]!));
+  const y = model.y.map((v, i) => v * w[i]!);
+  const p = beta.length;
+  const residuals = y.map((v, i) => v - dot(x[i]!, beta));
+  const order = residuals.map((r, i) => [Math.abs(r), i] as const).sort((u, v) => u[0] - v[0]).map(([, i]) => i);
+  const startBasis = order.slice(0, p);
+  const critical = qt((1 + level) / 2, y.length - p) as number;
+  return beta.map((bj, j) => [
+    rqRankEndpoint(x, y, j, tau, bj, startBasis, -1, critical),
+    rqRankEndpoint(x, y, j, tau, bj, startBasis, 1, critical),
+  ]);
+}
+
+/** Coefficient summary with Hall–Sheather bandwidth and the nid sandwich covariance. Equivalent to R's `summary.rq()`.
+ *
+ * @category Regression
+ */
+export function rqSummary(fit: RqResult, options: RqSummaryOptions = {}): RqSummaryResult {
+  const extendedOptions = options as RqSummaryOptions & { iid?: unknown };
+  if (options.se === "rank" && extendedOptions.iid === false)
+    throw new RangeError('se = "rank", iid = false is not supported yet; omit iid or use se = "nid"');
+  for (const key of Object.keys(options)) if (!["se", "covariance", "level"].includes(key)) throw new TypeError("unused argument (" + key + ")");
+  const model = fit.model;
+  const requestedSe = options.se as string | undefined;
+  if (requestedSe !== undefined && requestedSe !== "nid" && requestedSe !== "rank")
+    throw new RangeError(`se = "${requestedSe}" is not supported yet; use "rank" or "nid"`);
+  const se = requestedSe ?? (model.y.length <= 1000 ? "rank" : "nid");
+  // R's default for the rank intervals is alpha = 0.1; the nid bandwidth uses 0.95
+  const level = options.level ?? (se === "rank" ? 0.9 : 0.95);
+  if (!(level > 0 && level < 1)) throw new RangeError("level must be between 0 and 1");
+  const warnings = [...fit.warnings];
+  if (se === "rank") {
+    const coefficients: RqCoefficientSummary[] = [];
+    for (let k = 0; k < model.tau.length; k++) {
+      const beta = model.columnNames.map((term) => {
+        const raw = fit.coefficients[term]!;
+        return Array.isArray(raw) ? raw[k]! : raw;
+      });
+      const intervals = rqRankIntervals(model, beta, model.tau[k]!, level);
+      model.columnNames.forEach((term, j) => {
+        const [lower, upper] = intervals[j]!;
+        coefficients.push({ tau: model.tau[k]!, term, estimate: beta[j]!, stdError: NaN, statistic: NaN, pValue: NaN, lower, upper });
+      });
+    }
+    return { coefficients, se, warnings };
+  }
+  const covariances = model.tau.map((tau) => rqNidCovariance(model, tau, level, warnings));
+  const coefficients: RqCoefficientSummary[] = [];
+  for (let k = 0; k < model.tau.length; k++) for (let j = 0; j < model.columnNames.length; j++) {
+    const term = model.columnNames[j]!;
+    const raw = fit.coefficients[term]!;
+    const estimate = Array.isArray(raw) ? raw[k]! : raw;
+    const stdError = Math.sqrt(covariances[k]![j]![j]!);
+    const statistic = estimate / stdError;
+    const pValue = 2 * (pt(-Math.abs(statistic), model.y.length - model.columnNames.length) as number);
+    coefficients.push({ tau: model.tau[k]!, term, estimate, stdError, statistic, pValue });
+  }
+  return { coefficients, ...(options.covariance ? { covariance: covariances } : {}), se, warnings };
+}
+
+/** Confidence intervals for conditional quantile predictions using nid or direct quantile refits. Equivalent to R's `predict.rq()`.
+ *
+ * @category Regression
+ */
+export function rqPredictInterval(fit: RqResult, newdata: DataFrame, options: RqPredictOptions = {}): RqPredictResult {
+  for (const key of Object.keys(options)) if (!["interval", "type", "level"].includes(key)) throw new TypeError("unused argument (" + key + ")");
+  const interval = options.interval ?? "none";
+  const type = options.type ?? "none";
+  const level = options.level ?? 0.95;
+  if (!(level > 0 && level < 1)) throw new RangeError("level must be between 0 and 1");
+  const predicted = rqPredict(fit, newdata);
+  if (interval === "none") return { fit: predicted, level, type };
+  if (interval !== "confidence") throw new RangeError("interval must be 'none' or 'confidence'");
+  if (type === "percentile") throw new RangeError("percentile prediction intervals require bootstrap inference");
+  const model = fit.model;
+  if (model.tau.length !== 1) throw new RangeError("confidence intervals currently require a single tau");
+  const rhs = model.formula.slice(model.formula.indexOf("~") + 1);
+  const matrix = design(parseFormula("~ " + rhs), newdata, { anyResponse: true, dropUnusedLevels: true }).x;
+  const tau = model.tau[0]!;
+  let lower: number[];
+  let upper: number[];
+  if (type === "direct") {
+    const h = rqBandwidth(model.y.length, tau, level);
+    if (!(tau - h > 0 && tau + h < 1)) throw new RangeError("direct interval bandwidth leaves the unit interval");
+    const lo = fitOne(model.x, model.y, model.weights, tau - h, model.method, 500, 1e-12).beta;
+    const hi = fitOne(model.x, model.y, model.weights, tau + h, model.method, 500, 1e-12).beta;
+    lower = matrix.map((row) => dot(row, lo));
+    upper = matrix.map((row) => dot(row, hi));
+  } else if (type === "none") {
+    const cov = rqNidCovariance(model, tau, level);
+    const beta = model.columnNames.map((name) => fit.coefficients[name] as number);
+    const critical = qt((1 + level) / 2, model.y.length - model.columnNames.length) as number;
+    lower = [];
+    upper = [];
+    for (const row of matrix) {
+      const cv = cov.map((r) => dot(r, row));
+      const variance = dot(row, cv);
+      const center = dot(row, beta);
+      const half = critical * Math.sqrt(Math.max(0, variance));
+      lower.push(center - half);
+      upper.push(center + half);
+    }
+  } else throw new RangeError("type must be 'none', 'direct' or 'percentile'");
+  return { fit: predicted, lower, upper, level, type };
+}
+
+/** Wald test of equality of slopes across the quantiles in a multiple-tau fit. Equivalent to R's `anova.rq()`.
+ *
+ * @category Regression
+ */
+/** Wald comparisons for nested models or slopes across multiple quantiles. Equivalent to R's `anova.rq()`.
+ *
+ * @category Regression
+ */
+export function rqAnova(fit: RqResult): RqWaldResult;
+export function rqAnova(fit: RqResult, joint: true): RqWaldResult;
+export function rqAnova(fit: RqResult, joint: false): RqWaldResult[];
+export function rqAnova(fit: RqResult, joint: boolean): RqWaldResult | RqWaldResult[];
+export function rqAnova(fit: RqResult, reduced: RqResult): RqWaldResult;
+export function rqAnova(fit: RqResult, reducedOrJoint?: RqResult | boolean): RqWaldResult | RqWaldResult[] {
+  if (typeof reducedOrJoint === "object" && reducedOrJoint !== null) {
+    const model = fit.model;
+    const smallModel = reducedOrJoint.model;
+    if (model.tau.length !== 1 || smallModel.tau.length !== 1 || model.tau[0] !== smallModel.tau[0]) {
+      throw new RangeError("nested Wald comparison requires two fits at the same single tau");
+    }
+    if (model.y.length !== smallModel.y.length || model.weights.some((w, i) => w !== smallModel.weights[i])) {
+      throw new RangeError("nested Wald comparison requires the same observations and weights");
+    }
+    const omitted = model.columnNames.map((name, i) => ({ name, i })).filter(({ name }) => !smallModel.columnNames.includes(name));
+    if (omitted.length === 0 || smallModel.columnNames.some((name) => !model.columnNames.includes(name))) {
+      throw new RangeError("the second model must be a strict nested submodel of the first");
+    }
+    const covariance = rqNidCovariance(model, model.tau[0]!, 0.95);
+    const indices = omitted.map((v) => v.i);
+    const small = indices.map((i) => indices.map((j) => covariance[i]![j]!));
+    const inv = rqInverse(small);
+    const difference = omitted.map(({ name }) => fit.coefficients[name] as number);
+    const weighted = inv.map((row) => row.reduce((sum, value, i) => sum + value * difference[i]!, 0));
+    const statistic = difference.reduce((sum, value, i) => sum + value * weighted[i]!, 0);
+    const df = omitted.length;
+    const dfResidual = model.y.length - model.columnNames.length;
+    const fStatistic = statistic / df;
+    return { statistic: fStatistic, df, dfResidual, pValue: pf(fStatistic, df, dfResidual, { lowerTail: false }) as number, method: "Wald" };
+  }
+  const model = fit.model;
+  const tested = Array.from({ length: model.columnNames.length - 1 }, (_, j) => j + 1);
+  if (reducedOrJoint === false) return tested.map((j) => rqMultiTauWald(fit, [j]));
+  return rqMultiTauWald(fit, tested);
+}
+
+/** Result of a quantile-regression Wald comparison.
+ * @category Regression
+ */
+export interface RqWaldResult {
+  /** Joint Wald statistic for the tested slope restrictions across quantiles. */
+  statistic: number;
+  /** Numerator degrees of freedom for the Wald test. */
+  df: number;
+  /** Residual degrees of freedom used for the reference distribution. */
+  dfResidual: number;
+  /** P-value for the joint Wald comparison. */
+  pValue: number;
+  /** Wald comparison method used for the multi-quantile test. */
+  method: "Wald";
+}
+
+function rqMultiTauWald(fit: RqResult, tested: number[]): RqWaldResult {
+  const model = fit.model;
+  const p = model.columnNames.length;
+  const m = model.tau.length;
+  if (m < 2) throw new RangeError("Wald anova requires a multiple-tau fit");
+  if (tested.length === 0) throw new RangeError("Wald anova has no slope restrictions");
+  const restrictions: number[][] = [];
+  const difference: number[] = [];
+  for (const j of tested) {
+    const raw = fit.coefficients[model.columnNames[j]!]!;
+    if (!Array.isArray(raw)) throw new RangeError("multiple-tau coefficients are required");
+    for (let k = 1; k < m; k++) {
+      const row = new Array<number>(p * m).fill(0);
+      row[k * p + j] = 1;
+      row[j] = -1;
+      restrictions.push(row);
+      difference.push(raw[k]! - raw[0]!);
+    }
+  }
+  const q = restrictions.length;
+  const bread = model.tau.map((tau) => rqInverse(rqBread(model, tau, 0.95)));
+  const meat = rqMeat(model);
+  const covariance = Array.from({ length: p * m }, () => new Array<number>(p * m).fill(0));
+  for (let a = 0; a < m; a++) for (let b = 0; b < m; b++) {
+    const block = rqMul(rqMul(bread[a]!, meat), bread[b]!);
+    const scale = Math.min(model.tau[a]!, model.tau[b]!) - model.tau[a]! * model.tau[b]!;
+    for (let j = 0; j < p; j++) for (let k = 0; k < p; k++) covariance[a * p + j]![b * p + k] = block[j]![k]! * scale;
+  }
+  const small = restrictions.map((r) => restrictions.map((c) => {
+    let value = 0;
+    for (let i = 0; i < r.length; i++) for (let j = 0; j < c.length; j++) value += r[i]! * covariance[i]![j]! * c[j]!;
+    return value;
+  }));
+  const inv = rqInverse(small);
+  const weighted = inv.map((row) => row.reduce((sum, value, i) => sum + value * difference[i]!, 0));
+  const statistic = difference.reduce((sum, value, i) => sum + value * weighted[i]!, 0);
+  const dfResidual = model.y.length - (tested.length + 1) * (m - 1);
+  const fStatistic = statistic / q;
+  return { statistic: fStatistic, df: q, dfResidual, pValue: pf(fStatistic, q, dfResidual, { lowerTail: false }) as number, method: "Wald" };
+}

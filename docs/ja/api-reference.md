@@ -23,7 +23,17 @@ import { qbeta } from "@numero-uno-jpn/rstats/distributions";       // または
                                                                      // descriptive、linalg、numerics、special
 import { lmer, glmer } from "@numero-uno-jpn/rstats/mixed";        // 混合モデル: この分野からだけ
 import { polr, rlm, nls } from "@numero-uno-jpn/rstats/regression"; // 回帰: この分野からだけ
+import { rq, rqSummary, rqPredict, rqPredictInterval, rqAnova } from "@numero-uno-jpn/rstats/regression";
+import { geeglm, geeSummary, geeVcov, geePredict, geeAnova, geeQIC } from "@numero-uno-jpn/rstats/regression";
+import { glmnet, glmnetCoef, glmnetPredict, cvGlmnet } from "@numero-uno-jpn/rstats/regression";
 ```
+
+`/regression` には、分位点回帰 (`rq`)、一般化推定方程式 (`geeglm`)、正則化回帰 (`glmnet`) もあります。
+たとえば、`rq("y ~ x", data, { tau: 0.5 })` は条件付き中央値を当てはめ、
+`geeglm("y ~ x", data, { id: "subject", corstr: "exchangeable" })` は周辺モデルを当てはめ、
+`glmnet(x, y, { family: "gaussian", alpha: 1 })` は lasso の経路を求めます。
+メソッドはそれぞれ `rqSummary` / `rqPredictInterval`、`geeSummary` / `geeVcov` / `geeQIC`、
+`glmnetCoef` / `glmnetPredict` / `cvGlmnet` です。
 
 バンドラーを使わないときは、`https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@1.7.0/dist/rstats.js` が、混合モデルと回帰以外のすべての関数を含む 1 つの ES モジュールです。混合モデルは `dist/mixed.js`、回帰は `dist/regression.js` にあります。URL にはバージョンを含めてください (正確なバージョン、または 1.0.0 以降の `@1` のようなメジャーバージョン)。バージョンのない URL は、破壊的変更を含むすべての新しいリリースに追従してしまいます。1 つのページでは、`dist/rstats.js` か分野ごとのバンドル (`dist/tests.js`、`dist/mixed.js`、`dist/regression.js` など) のどちらか一方だけを使ってください。両方を混ぜると、共通のコードが 2 度読み込まれ、乱数の状態も 2 つになります。
 

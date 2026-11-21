@@ -64,3 +64,67 @@ export {
   type NlsConfintResult,
   type NlsAnovaResult,
 } from "../models/nls.js";
+
+// Quantile regression (rStats.js/regression)
+
+export {
+  rq,
+  rqPredict,
+  rqSummary,
+  rqPredictInterval,
+  rqAnova,
+  type RqSummaryOptions,
+  type RqSummaryResult,
+  type RqCoefficientSummary,
+  type RqPredictOptions,
+  type RqPredictResult,
+  type RqWaldResult,
+  type RqMethod,
+  type RqOptions,
+  type RqModel,
+  type RqResult,
+} from "../models/rq.js";
+
+
+// Generalized estimating equations (rStats.js/regression)
+
+export {
+  geeglm,
+  geeSummary,
+  geeVcov,
+  geePredict,
+  geeAnova,
+  geeQIC,
+  type GeeOptions,
+  type GeeId,
+  type GeeResult,
+  type GeeVcovOptions,
+  type GeeAnovaOptions,
+  type GeeQICResult,
+  type GeeSummaryResult,
+  type GeeVcovResult,
+  type GeePredictOptions,
+  type GeeAnovaResult,
+  type GeeCorrelation,
+  type GeeStdErr,
+} from "../models/gee.js";
+
+
+// Penalized regression (rStats.js/regression)
+
+export {
+  glmnet,
+  glmnetCoef,
+  glmnetPredict,
+  cvGlmnet,
+  type GlmnetFamily,
+  type GlmnetMultiType,
+  type GlmnetPredictType,
+  type GlmnetOptions,
+  type GlmnetResult,
+  type GlmnetScalarResult,
+  type GlmnetMultinomialResult,
+  type GlmnetPredictOptions,
+  type CvGlmnetOptions,
+  type CvGlmnetResult,
+} from "../models/glmnet.js";

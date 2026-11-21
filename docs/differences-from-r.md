@@ -1235,6 +1235,47 @@ The reference decisions are recorded in [polr](../oracle/polr-behaviour.md), [rl
   are rejected before iteration. The `port` algorithm is an independently implemented bound-constrained Gauss-Newton
   method, not the PORT library.
 
+### Regression: rq, geeglm and glmnet
+
+The reference decisions are recorded in [rq](../oracle/rq-behaviour.md), [geeglm](../oracle/gee-behaviour.md) and
+[glmnet](../oracle/glmnet-behaviour.md). The scope and differences below follow their final "rStats.js's choices".
+
+**Quantile regression**
+
+- **Rank intervals on tied data (known difference):** when observations tie, the dual problem can be degenerate and
+  the optimization path can pass through another optimal vertex. A confidence endpoint can therefore differ from R's.
+  This is a known difference in the selected solution, not a fault in R.
+- **Not in 1.8.0:** summary standard errors `se: "iid"`, `"ker"` and `"boot"`, and rank intervals with
+  `iid: false`. Their definitions could not be established from the public output. They are rejected with an
+  explicit unsupported-option error; `"rank"` and `"nid"` are supported.
+
+**Generalized estimating equations**
+
+- **Fixed scale:** rStats.js fits the documented estimating equations with `scale.fix` and the supplied scale held
+  fixed. R 4.6.2 with geepack 1.3.13 fails on this call (see the GEE behaviour notes); this is a defect in geepack,
+  not a numerical difference adopted by rStats.js.
+- **Cluster order (known difference):** cluster rows need not be contiguous. rStats.js groups them internally and
+  returns fitted values and residuals in the user's original row order. R treats each contiguous run of an id as a
+  separate cluster.
+- **Not in 1.8.0:** delete-cluster standard errors `"jack"`, `"j1s"` and `"fij"`, which could not be matched
+  against R's public covariance output. The supported estimator is the sandwich `"san.se"`. Helpers such as
+  `genZcor` and `fixed2Zcor` are also not exported; validated `zcor` input is accepted.
+
+**Penalized regression**
+
+- **Convergence (known difference):** rStats.js solves each penalty value to the KKT optimum. Some R default fits
+  have not converged: on the iris multinomial example the default coefficients can differ from a strict refit by
+  up to 2.3, and the cross-validation `cvm` by 1.2e-5. rStats.js is compared with strict refits. This describes
+  the convergence state of the default fit, not a fault in R.
+- **Lambda path (known difference):** when a portion of R's path cannot be reproduced by the documented path
+  construction, rStats.js returns the penalty values it actually fitted and records the difference rather than
+  substituting another path.
+- **Cross-validation and multinomial scope:** both grouped and ungrouped CV summaries are supported, and multinomial
+  fits support grouped and ungrouped penalties. The demo omits multinomial examples because R default fits can fail to
+  converge on some data.
+- **Not in 1.8.0:** random fold generation (supply `foldid`; cross-validation is deterministic) and exact refitting
+  off the path (`exact: true`); off-path requests use log-lambda interpolation.
+
 ### Mixed models
 
 - **`lmer` returns the exact optimum** of the REML criterion (or the ML deviance), found by Newton's method with

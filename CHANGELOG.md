@@ -7,6 +7,19 @@ While the version is 0.x, a minor release (0.y.0) may contain breaking changes;
 they are listed under **Breaking** for each release. From 1.0.0 the project follows
 [Semantic Versioning](https://semver.org/).
 
+## Unreleased
+
+### Added
+
+- **Regression models** in the separate `/regression` area: quantile regression (`rq`, `rqSummary`, `rqPredict`,
+  `rqPredictInterval`, `rqAnova`); generalized estimating equations (`geeglm`, `geeSummary`, `geeVcov`,
+  `geePredict`, `geeAnova`, `geeQIC`); and penalized regression (`glmnet`, `glmnetCoef`, `glmnetPredict`,
+  `cvGlmnet`). The area remains outside the root entry point and `dist/rstats.js`.
+- **Inference scope:** rq summaries support `se: "rank"` and `"nid"`; GEE supports the sandwich `std.err: "san.se"`.
+  rq's `iid`, `ker`, `boot` and rank `iid: false`, and GEE's `jack`, `j1s`, `fij` are not included in 1.8.0.
+- **Cross-validation:** `cvGlmnet` requires explicit fixed folds (`foldid`) and supports grouped and ungrouped summaries.
+  See [the documented differences from R](docs/differences-from-r.md#regression-rq-geeglm-and-glmnet).
+
 ## 1.7.0 - 2026-11-20
 
 ### Added
