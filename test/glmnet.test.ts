@@ -62,8 +62,8 @@ describe("elastic-net generalized linear models", () => {
   it("matches the public grouped and ungrouped multinomial path starts", () => {
     const fixture = glmnetFixture as unknown as {
       multinomialData: { X: { values: number[][] }; y: string[] };
-      multinomial_ungrouped: { value: { lambda: number[]; a0: { values: number[][] } } };
-      multinomial_grouped: { value: { lambda: number[]; a0: { values: number[][] } } };
+      multinomial_ungrouped: { value: { lambda: number[]; a0: { values: number[][] }; response: Array<Record<string, number>> } };
+      multinomial_grouped: { value: { lambda: number[]; a0: { values: number[][] }; response: Array<Record<string, number>> } };
     };
     const multiX = fixture.multinomialData.X.values, multiY = fixture.multinomialData.y;
     for (const typeMultinomial of ["ungrouped", "grouped"] as const) {
