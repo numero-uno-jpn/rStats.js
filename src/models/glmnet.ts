@@ -744,18 +744,26 @@ function cvGlmnetMultinomial(
   if (!options.foldid || options.foldid.length !== y.length) throw new RangeError("foldid is required and must match y");
   const foldid = Array.from(options.foldid), folds = Array.from(new Set(foldid)).sort((a, b) => a - b);
   if (folds.length < 3) throw new RangeError("at least three folds are required");
-  const fit = glmnetMultinomial(x, y, options), lambda = fit.lambda, classes = fit.model.classes;
-  const predictions = Array.from({ length: y.length }, () =>
-    Array.from({ length: lambda.length }, () => new Array<number>(classes.length).fill(NaN)));
+  const fit = glmnetMultinomial(x, y, options), classes = fit.model.classes;
+  const foldFits: Array<{ test: number[]; fit: GlmnetMultinomialResult }> = [];
+  let commonLength = fit.lambda.length;
   for (const fold of folds) {
     const train = y.map((_, i) => i).filter(i => foldid[i] !== fold);
     const test = y.map((_, i) => i).filter(i => foldid[i] === fold);
-    const subOptions: GlmnetOptions = { ...options, lambda,
+    const subOptions: GlmnetOptions = { ...options, lambda: fit.lambda,
       ...(options.weights === undefined ? {} : { weights: train.map(i => options.weights![i]!) }) };
     const sub = glmnetMultinomial(train.map(i => x[i]!), train.map(i => y[i]!), subOptions);
-    const pred = glmnetPredict(sub, test.map(i => x[i]!), { s: lambda, type: "response" }) as number[][][];
-    for (let i = 0; i < test.length; i++) for (let k = 0; k < lambda.length; k++)
-      predictions[test[i]!]![k] = pred[k]![i]!.slice();
+    commonLength = Math.min(commonLength, sub.lambda.length);
+    foldFits.push({ test, fit: sub });
+  }
+  if (commonLength < 1) throw new Error("cross-validation folds have no common converged lambda");
+  const lambda = fit.lambda.slice(0, commonLength);
+  const predictions = Array.from({ length: y.length }, () =>
+    Array.from({ length: lambda.length }, () => new Array<number>(classes.length).fill(NaN)));
+  for (const foldFit of foldFits) {
+    const pred = glmnetPredict(foldFit.fit, foldFit.test.map(i => x[i]!), { s: lambda, type: "response" }) as number[][][];
+    for (let i = 0; i < foldFit.test.length; i++) for (let k = 0; k < lambda.length; k++)
+      predictions[foldFit.test[i]!]![k] = pred[k]![i]!.slice();
   }
   const measure = options.typeMeasure ?? "deviance", grouped = options.grouped ?? true;
   if (measure === "auc") throw new RangeError("AUC cross-validation is not defined for multinomial responses");
@@ -817,17 +825,25 @@ export function cvGlmnet(
   if (!options.foldid || options.foldid.length !== numericY.length) throw new RangeError("foldid is required and must match y");
   const foldid = Array.from(options.foldid), folds = Array.from(new Set(foldid)).sort((a,b)=>a-b);
   if (folds.length < 3) throw new RangeError("at least three folds are required");
-  const fit = glmnetScalar(x, numericY, options), lambda = fit.lambda, measures: number[][] = [];
-  const predictions = Array.from({length:numericY.length},()=>new Array<number>(lambda.length).fill(NaN));
+  const fit = glmnetScalar(x, numericY, options), measures: number[][] = [];
+  const foldFits: Array<{ test: number[]; fit: GlmnetScalarResult }> = [];
+  let commonLength = fit.lambda.length;
   for (const fold of folds) {
     const train = numericY.map((_,i)=>i).filter(i=>foldid[i]!==fold), test = numericY.map((_,i)=>i).filter(i=>foldid[i]===fold);
     const subx=train.map(i=>x[i]!), suby=train.map(i=>numericY[i]!);
-    const subOptions: GlmnetOptions = {...options, lambda,
+    const subOptions: GlmnetOptions = {...options, lambda: fit.lambda,
       ...(options.weights === undefined ? {} : { weights: train.map(i=>options.weights![i]!) }),
       ...(options.offset === undefined ? {} : { offset: train.map(i=>options.offset![i]!) })};
     const sub=glmnetScalar(subx,suby,subOptions);
-    const pred=glmnetPredict(sub,test.map(i=>x[i]!),{s:lambda,type:"response",...(options.offset === undefined ? {} : { offset: test.map(i=>options.offset![i]!) })});
-    for(let i=0;i<test.length;i++) for(let k=0;k<lambda.length;k++) predictions[test[i]!]![k]=pred[k]![i]!;
+    commonLength = Math.min(commonLength, sub.lambda.length);
+    foldFits.push({ test, fit: sub });
+  }
+  if (commonLength < 1) throw new Error("cross-validation folds have no common converged lambda");
+  const lambda = fit.lambda.slice(0, commonLength);
+  const predictions = Array.from({length:numericY.length},()=>new Array<number>(lambda.length).fill(NaN));
+  for (const foldFit of foldFits) {
+    const pred=glmnetPredict(foldFit.fit,foldFit.test.map(i=>x[i]!),{s:lambda,type:"response",...(options.offset === undefined ? {} : { offset: foldFit.test.map(i=>options.offset![i]!) })});
+    for(let i=0;i<foldFit.test.length;i++) for(let k=0;k<lambda.length;k++) predictions[foldFit.test[i]!]![k]=pred[k]![i]!;
   }
   const grouped=options.grouped??true;
   let measure = options.typeMeasure ?? (fit.family === "gaussian" ? "mse" : "deviance");
@@ -890,6 +906,6 @@ export function cvGlmnet(
   const cutoff=cvm[min]!+cvsd[min]!;
   let one=min;for(let k=0;k<lambda.length;k++)if(cvm[k]!<=cutoff)one=k;
   return {fit,lambda,cvm,cvsd,cvup:cvm.map((v,i)=>v+cvsd[i]!),cvlo:cvm.map((v,i)=>v-cvsd[i]!),
-    nzero:fit.df,lambdaMin:lambda[min]!,lambda1se:lambda[one]!,foldid,name:measure,warnings,
+    nzero:fit.df.slice(0, lambda.length),lambdaMin:lambda[min]!,lambda1se:lambda[one]!,foldid,name:measure,warnings,
     ...(options.keep?{fitPreval:predictions}:{})};
 }
