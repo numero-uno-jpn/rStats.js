@@ -423,7 +423,7 @@ function centeredPenaltyShift(values: readonly number[], alpha: number): number 
 function multinomialObjective(
   x: readonly (readonly number[])[], y: readonly number[], weights: readonly number[],
   a0: readonly number[], beta: readonly (readonly number[])[], lambda: number,
-  alpha: number, penalty: readonly number[], grouped: boolean,
+  alpha: number, penalty: readonly number[], grouped: boolean, intercept: boolean,
 ): number {
   const n = y.length, p = penalty.length, kCount = a0.length;
   let value = 0;
@@ -480,7 +480,7 @@ function multinomialKktResidual(
     }
   }
   let maximum = 0;
-  for (const value of gradA) maximum = Math.max(maximum, Math.abs(value));
+  if (intercept) for (const value of gradA) maximum = Math.max(maximum, Math.abs(value));
   for (let j = 0; j < p; j++) {
     const l1 = lambda * alpha * penalty[j]!, ridge = lambda * (1 - alpha) * penalty[j]!;
     if (grouped) {
@@ -525,7 +525,7 @@ function fitMultinomialOne(
   x: readonly (readonly number[])[], y: readonly number[], weights: readonly number[],
   startA: readonly number[], startB: readonly (readonly number[])[], lambda: number,
   alpha: number, penalty: readonly number[], grouped: boolean,
-  lower: readonly number[], upper: readonly number[], maxit: number, thresh: number,
+  lower: readonly number[], upper: readonly number[], maxit: number, thresh: number, intercept: boolean,
 ): { a0: number[]; beta: number[][]; eta: number[][]; passes: number; converged: boolean; kkt: number } {
   const n = y.length, p = penalty.length, kCount = startA.length;
   let a0 = Array.from(startA), beta = startB.map(row => Array.from(row));
@@ -613,7 +613,7 @@ function fitMultinomialOne(
       scale = Math.max(scale, Math.abs(beta[j]![k]!));
     }
     if (change <= thresh * (1 + scale)) {
-      const kkt = multinomialKktResidual(x, y, weights, a0, beta, lambda, alpha, penalty, grouped);
+      const kkt = multinomialKktResidual(x, y, weights, a0, beta, lambda, alpha, penalty, grouped, intercept);
       if (kkt <= thresh * (1 + scale)) { converged = true; break; }
     }
   }
@@ -695,7 +695,7 @@ function glmnetMultinomial(
   let startA = aNull.slice(), startB = Array.from({ length: p }, () => new Array<number>(kCount).fill(0)), npasses = 0;
   const everActive = new Set<number>();
   for (const lambda of lambdas) {
-    const fit = fitMultinomialOne(xs, y, w, startA, startB, lambda, alpha, penalty, grouped, lower, upper, maxit, thresh);
+    const fit = fitMultinomialOne(xs, y, w, startA, startB, lambda, alpha, penalty, grouped, lower, upper, maxit, thresh, intercept);
     const classDf = new Array<number>(kCount).fill(0);
     for (let j = 0; j < p; j++) for (let k = 0; k < kCount; k++) if (fit.beta[j]![k] !== 0) { classDf[k] = classDf[k]! + 1; everActive.add(j); }
     if (classDf.some(v => v > (options.dfmax ?? p + 1)) || everActive.size > (options.pmax ?? p)) break;
