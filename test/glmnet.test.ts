@@ -118,7 +118,7 @@ describe("elastic-net generalized linear models", () => {
       X: { values: number[][] };
       y: number[];
       cv: { value: { lambda: number[]; cvm: number[]; cvsd: number[]; lambdaMin: number; lambda1se: number;
-        groupedFalse: { cvm: number[]; cvsd: number[] } } };
+        groupedFalse: { cvm: number[]; cvsd: number[]; preval: { values: number[][] } } } };
     };
     const foldid = Array.from({ length: fixture.y.length }, (_, i) => i % 3 + 1);
     const grouped = cvGlmnet(fixture.X.values, fixture.y, { foldid, nlambda: 8, keep: true });
