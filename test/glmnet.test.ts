@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { cvGlmnet, glmnet, glmnetCoef, glmnetPredict } from "../src/models/glmnet.js";
+import glmnetFixture from "./fixtures/glmnet.json" with { type: "json" };
 
 const x = [
   [-2,1,2],[1,0,-1],[0,2,1],[2,-1,0],[-1,3,-2],[3,-2,3],
@@ -56,6 +57,37 @@ describe("elastic-net generalized linear models", () => {
     expect(cv.cvm.every(Number.isFinite)).toBe(true);
     expect(cv.cvsd.every(Number.isFinite)).toBe(true);
     expect(cv.fitPreval).toHaveLength(12);
+  });
+
+  it("matches the public grouped and ungrouped multinomial path starts", () => {
+    const fixture = glmnetFixture as unknown as {
+      multinomialData: { X: { values: number[][] }; y: string[] };
+      multinomial_ungrouped: { value: { lambda: number[]; a0: { values: number[][] } } };
+      multinomial_grouped: { value: { lambda: number[]; a0: { values: number[][] } } };
+    };
+    const multiX = fixture.multinomialData.X.values, multiY = fixture.multinomialData.y;
+    for (const typeMultinomial of ["ungrouped", "grouped"] as const) {
+      const fit = glmnet(multiX, multiY, { family: "multinomial", typeMultinomial, nlambda: 6 });
+      const expected = fixture[`multinomial_${typeMultinomial}`].value;
+      expect(fit.lambda[0]).toBeCloseTo(expected.lambda[0]!, 7);
+      expect(fit.a0[0]![1]).toBeCloseTo(expected.a0.values[0]![1]!, 5);
+      const probabilities = glmnetPredict(fit, multiX.slice(0, 3), { s: fit.lambda[2]!, type: "response" });
+      for (const row of probabilities[0]!) {
+        expect(row.reduce((a, b) => a + b, 0)).toBeCloseTo(1, 12);
+      }
+      const classes = glmnetPredict(fit, multiX.slice(0, 3), { s: fit.lambda[2]!, type: "class" });
+      expect(classes[0]).toEqual(["setosa", "setosa", "setosa"]);
+      expect(glmnetCoef(fit, fit.lambda[2]!)).toHaveProperty("setosa");
+    }
+  });
+
+  it("cross-validates multinomial probabilities on fixed folds", () => {
+    const fixture = glmnetFixture as unknown as { multinomialData: { X: { values: number[][] }; y: string[] } };
+    const multiX = fixture.multinomialData.X.values, multiY = fixture.multinomialData.y;
+    const foldid = Array.from({ length: multiY.length }, (_, i) => i % 5 + 1);
+    const cv = cvGlmnet(multiX, multiY, { family: "multinomial", foldid, nlambda: 6, keep: true });
+    expect(cv.cvm.every(Number.isFinite)).toBe(true);
+    expect(cv.fitPreval).toHaveLength(multiY.length);
   });
 
   it("rejects non-finite designs and one-column predictors", () => {
