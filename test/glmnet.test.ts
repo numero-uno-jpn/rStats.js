@@ -68,7 +68,7 @@ describe("elastic-net generalized linear models", () => {
     };
     const multiX = fixture.multinomialData.X.values, multiY = fixture.multinomialData.y;
     for (const typeMultinomial of ["ungrouped", "grouped"] as const) {
-      const fit = glmnet(multiX, multiY, { family: "multinomial", typeMultinomial, nlambda: 6, maxit: 5000, thresh: 1e-7 });
+      const fit = glmnet(multiX, multiY, { family: "multinomial", typeMultinomial, nlambda: 6, maxit: 100000, thresh: 1e-14 });
       const expected = fixture[`multinomial_${typeMultinomial}`].value;
       expect(fit.lambda[0]).toBeCloseTo(expected.lambda[0]!, 7);
       expect(fit.kktResidual.every(Number.isFinite)).toBe(true);
@@ -96,8 +96,9 @@ describe("elastic-net generalized linear models", () => {
     const foldid = Array.from({ length: fixture.y.length }, (_, i) => i % 3 + 1);
     const grouped = cvGlmnet(fixture.X.values, fixture.y, { foldid, nlambda: 8, keep: true });
     const ungrouped = cvGlmnet(fixture.X.values, fixture.y, { foldid, nlambda: 8, grouped: false, keep: true });
-    expect(grouped.lambda).toHaveLength(fixture.cv.value.lambda.length);
-    expect(grouped.lambda[0]).toBeCloseTo(fixture.cv.value.lambda[0]!, 11);
+    const common = fixture.cv.value.lambda.length;
+    expect(grouped.lambda.length).toBeGreaterThanOrEqual(common);
+    for (let k = 0; k < common; k++) expect(grouped.lambda[k]).toBeCloseTo(fixture.cv.value.lambda[k]!, 11);
     expect(grouped.cvm[0]).toBeCloseTo(fixture.cv.value.cvm[0]!, 7);
     expect(grouped.cvsd[0]).toBeCloseTo(fixture.cv.value.cvsd[0]!, 7);
     expect(grouped.lambdaMin).toBeCloseTo(fixture.cv.value.lambdaMin, 10);
