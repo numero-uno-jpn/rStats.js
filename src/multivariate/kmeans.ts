@@ -129,30 +129,39 @@ function lloyd(rows: number[][], initial: number[][], iterMax: number): { cluste
     for (let g = 0; g < k; g++) if (stats.size[g]! > 0) centers[g] = stats.centers[g]!;
     cluster = next;
     iter = pass + 1;
-    if (!changed && pass > 0) { converged = true; break; }
+    if (!changed) { converged = true; break; }
   }
   return { cluster, iter: iter + (converged ? 0 : 1), converged };
 }
 function macqueen(rows: number[][], initial: number[][], iterMax: number): { cluster: number[]; iter: number; converged: boolean } {
   const k = initial.length, p = rows[0]!.length;
-  let centers = initial.map((r) => [...r]);
-  let cluster = rows.map((row) => nearest(row, centers));
+  let cluster = rows.map((row) => nearest(row, initial));
+  let { centers, size } = means(rows, cluster, k, p);
   let converged = false, iter = 0;
   for (let pass = 0; pass < iterMax; pass++) {
-    const next = new Array<number>(rows.length).fill(-1);
-    const counts = new Array<number>(k).fill(0);
+    let moved = false;
+    // MacQueen's sequential update: each transfer changes the two means and
+    // their counts immediately, so subsequent observations see the new fit.
     for (let i = 0; i < rows.length; i++) {
-      const g = nearest(rows[i]!, centers);
-      next[i] = g;
-      const count = counts[g]!;
-      for (let j = 0; j < p; j++) centers[g]![j] = centers[g]![j]! + (rows[i]![j]! - centers[g]![j]!) / (count + 1);
-      counts[g] = count + 1;
+      const from = cluster[i]!;
+      if (size[from]! <= 1) continue;
+      const to = nearest(rows[i]!, centers);
+      if (to === from) continue;
+      const row = rows[i]!;
+      const oldN = size[from]!, newN = size[to]!;
+      for (let j = 0; j < p; j++) {
+        centers[from]![j] = (oldN * centers[from]![j]! - row[j]!) / (oldN - 1);
+        centers[to]![j] = (newN * centers[to]![j]! + row[j]!) / (newN + 1);
+      }
+      size[from] = oldN - 1;
+      size[to] = newN + 1;
+      cluster[i] = to;
+      moved = true;
     }
-    const changed = next.some((v, i) => v !== cluster[i]);
-    cluster = next; iter = pass + 1;
-    if (!changed) { converged = true; break; }
+    iter = pass + 1;
+    if (!moved) { converged = true; break; }
   }
-  return { cluster, iter: iter + (converged ? 0 : 1), converged };
+  return { cluster, iter, converged };
 }
 function hartiganWong(rows: number[][], initial: number[][], iterMax: number): { cluster: number[]; iter: number; converged: boolean } {
   const k = initial.length, p = rows[0]!.length;
@@ -256,7 +265,7 @@ export function kmeans(
     }
     if (!result.converged) warnings.push(`did not converge in ${maxIterations} ${maxIterations === 1 ? "iteration" : "iterations"}`);
     const fit = fitStats(rows, result.cluster, k, data.colNames, data.rowNames, result.iter,
-      algorithm === "Hartigan-Wong" ? (result.converged ? 0 : 2) : null, warnings);
+      algorithm === "Hartigan-Wong" ? (result.converged ? 0 : 2) : (result.converged ? null : 2), warnings);
     if (fit.totWithinss < bestW) { best = fit; bestW = fit.totWithinss; }
   }
   return best!;

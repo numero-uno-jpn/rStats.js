@@ -164,6 +164,13 @@ describe("kmeans: complete R fixtures", () => {
       compare("kmeans_iter_" + algorithm + "_" + m, kmeans(smallu, starts3, { algorithm, iterMax: m }));
     }
     compare("kmeans_partial_name", kmeans(irisTable, c3, { algorithm: "Mac" }));
+    // MacQueen updates both cluster means immediately during each observation pass.
+    const mqOne = kmeans(smallu, starts3, { algorithm: "MacQueen", iterMax: 1 });
+    compare("kmeans_iter_MacQueen_1", mqOne);
+    for (const algorithm of ["Lloyd", "Forgy"] as const) {
+      const limited = kmeans(smallTable, far, { algorithm, iterMax: 1 });
+      if (limited.ifault !== 2) mismatches.push(`kmeans_iter_max_ifault_${algorithm}: expected 2`);
+    }
     const nax = irisData.map((r) => [...r]); nax[2]![1] = NaN;
     try { kmeans({ ...irisTable, values: nax }, c3); mismatches.push("kmeans_na: expected error"); } catch { /* expected */ }
     for (const action of [

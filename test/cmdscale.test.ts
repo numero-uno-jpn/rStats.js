@@ -38,24 +38,50 @@ function compare(key: string, actual: CmdscaleResult, scale = 1): void {
   if (JSON.stringify(actual.points.rows) !== JSON.stringify(expected.points.rows ?? null)) mismatches.push(`${key}.points.rows differ`);
   if (JSON.stringify(actual.points.cols) !== JSON.stringify(expected.points.cols ?? null)) mismatches.push(`${key}.points.cols differ`);
   const cols = points[0]?.length ?? 0;
-  for (let j = 0; j < cols; j++) {
-    let dot = 0;
-    for (let i = 0; i < Math.min(actual.points.values.length, points.length); i++) dot += actual.points.values[i]![j]! * num(points[i]![j]);
-    if (dot < 0) for (const row of actual.points.values) row[j] = -row[j]!;
+  const eig = Array.isArray(expected.eig) ? expected.eig.map(num) : [];
+  const eigScale = eig.reduce((m: number, v: number) => Math.max(m, Math.abs(v)), 0);
+  const nearZero = (j: number): boolean => Math.abs(eig[j] ?? Infinity) <= points.length * Number.EPSILON * eigScale;
+  const groups: number[][] = [];
+  for (let j = 0; j < cols;) {
+    const group = [j];
+    while (j + 1 < cols) {
+      const left = eig[j] ?? 0, right = eig[j + 1] ?? 0;
+      const relativeGap = Math.abs(left - right) / Math.max(Math.abs(left), Math.abs(right), Number.MIN_VALUE);
+      if (relativeGap > 1e-10 && !nearZero(j) && !nearZero(j + 1)) break;
+      group.push(j + 1);
+      j++;
+    }
+    groups.push(group);
+    j++;
   }
-  for (let i = 0; i < Math.min(actual.points.values.length, points.length); i++) {
-    if (actual.points.values[i]!.length !== points[i]!.length) mismatches.push(`${key}.points[${i}] columns differ`);
-    for (let j = 0; j < Math.min(actual.points.values[i]!.length, points[i]!.length); j++) {
-      const expectedEig = Array.isArray(expected.eig) ? Math.abs(num(expected.eig[j])) : Infinity;
-      const eigScale = Array.isArray(expected.eig) ? Math.max(1, ...expected.eig.map((v: unknown) => Math.abs(num(v)))) : 1;
-      const eigRoundoff = Array.isArray(expected.eig) ? 2 * Number.EPSILON * expected.eig.length * eigScale : 0;
-      const tolerance = expectedEig <= eigRoundoff ? Math.sqrt(eigRoundoff) : 1e-12 * Math.max(1, Math.abs(num(points[i]![j])));
-      if (Math.abs(actual.points.values[i]![j]! - num(points[i]![j])) > tolerance) mismatches.push(`${key}.points[${i},${j}] error exceeds ${tolerance}`);
+  for (const group of groups) {
+    if (group.length > 1 || group.some((j) => nearZero(j))) {
+      // A repeated/near-zero eigenspace has no unique eigenvector basis:
+      // LAPACK may rotate its columns. Compare its invariant X X^T contribution.
+      for (let i = 0; i < Math.min(actual.points.values.length, points.length); i++) {
+        for (let h = 0; h < Math.min(actual.points.values.length, points.length); h++) {
+          let av = 0, ev = 0;
+          for (const j of group) {
+            av += actual.points.values[i]![j]! * actual.points.values[h]![j]!;
+            ev += num(points[i]![j]) * num(points[h]![j]);
+          }
+          if (Math.abs(av - ev) > 1e-10 * Math.max(1, Math.abs(ev))) mismatches.push(`${key}.projector[${i},${h}] differs`);
+        }
+      }
+    } else {
+      const j = group[0]!;
+      let dot = 0;
+      for (let i = 0; i < Math.min(points.length, actual.points.values.length); i++) dot += actual.points.values[i]![j]! * num(points[i]![j]);
+      if (dot < 0) for (const row of actual.points.values) row[j] = -row[j]!;
+      for (let i = 0; i < Math.min(points.length, actual.points.values.length); i++) {
+        const tolerance = 1e-12 * Math.max(1, Math.abs(num(points[i]![j])));
+        if (Math.abs(actual.points.values[i]![j]! - num(points[i]![j])) > tolerance) mismatches.push(`${key}.points[${i},${j}] differs`);
+      }
     }
   }
   if (expected.eig !== undefined && expected.eig !== null) {
     const eig = expected.eig.map(num);
-    const eigScale = Math.max(1, ...eig.map((v: number) => Math.abs(v)));
+    const eigScale = eig.reduce((m: number, v: number) => Math.max(m, Math.abs(v)), 1);
     const absTol = 2 * Number.EPSILON * eig.length * eigScale;
     if (actual.eig.length !== eig.length) mismatches.push(key + ".eig length differs");
     for (let i = 0; i < Math.min(actual.eig.length, eig.length); i++) {

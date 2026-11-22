@@ -85,48 +85,29 @@ function gramFromDistances(d: readonly (readonly number[])[]): { x: number[][]; 
 
 function cailliez(d: readonly (readonly number[])[]): number {
   const n = d.length;
-  const A = centerMatrix(d.map((row) => row.map((v) => v * v))).map((row) => row.map((v) => -v / 2));
-  const C = centerMatrix(d).map((row) => row.map((v) => -v));
+  // Cailliez (1983): c is the largest real eigenvalue of
+  // [[0, 2 B0], [-I, -4 B1]], with B0/B1 the double-centered D^2/D
+  // matrices multiplied by -1/2.
+  const B0 = centerMatrix(d.map((row) => row.map((v) => v * v))).map((row) => row.map((v) => -v / 2));
+  const B1 = centerMatrix(d).map((row) => row.map((v) => -v / 2));
   const size = 2 * n;
   const companion = Array.from({ length: size }, () => new Array<number>(size).fill(0));
   for (let i = 0; i < n; i++) {
-    companion[i]![n + i] = 1;
     for (let j = 0; j < n; j++) {
-      companion[n + i]![j] = -2 * A[i]![j]!;
-      companion[n + i]![n + j] = -2 * C[i]![j]!;
+      companion[i]![n + j] = 2 * B0[i]![j]!;
+      companion[n + i]![n + j] = -4 * B1[i]![j]!;
     }
+    companion[n + i]![i] = -1;
   }
   const values = eigen(companion, { symmetric: false, onlyValues: true });
   let largest = 0;
-  const imag = values.valuesIm;
   for (let i = 0; i < values.values.length; i++) {
-    if (imag !== undefined && Math.abs(imag[i]!) > 1e-9 * Math.max(1, Math.abs(values.values[i]!))) continue;
-    largest = Math.max(largest, values.values[i]!);
+    const real = values.values[i]!;
+    const imaginary = values.valuesIm?.[i] ?? 0;
+    if (Math.abs(imaginary) <= 1e-10 * Math.max(1, Math.abs(real)) && real > largest) largest = real;
   }
-  const minEigen = (constant: number): number => {
-    const adjusted = d.map((row, i) => row.map((v, j) => i === j ? v : v + constant));
-    const gram = gramFromDistances(adjusted).gram;
-    return Math.min(...eigen(gram, { symmetric: true, onlyValues: true }).values);
-  };
-  let distanceScale = 0;
-  for (const row of d) for (const value of row) distanceScale = Math.max(distanceScale, Math.abs(value));
-  let lo = 0, hi = largest > 0 ? largest : distanceScale;
-  if (minEigen(0) >= 0) return 0;
-  let upperValue = minEigen(hi);
-  for (let i = 0; upperValue < 0 && i < 64; i++) {
-    hi *= 2;
-    upperValue = minEigen(hi);
-  }
-  if (!(upperValue >= 0)) return largest;
-  for (let i = 0; i < 64; i++) {
-    const mid = lo + (hi - lo) / 2;
-    if (mid === lo || mid === hi) break;
-    if (minEigen(mid) >= 0) hi = mid;
-    else lo = mid;
-  }
-  return hi;
+  return largest;
 }
-
 function orient(points: number[][]): void {
   if (points.length === 0) return;
   const k = points[0]!.length;
