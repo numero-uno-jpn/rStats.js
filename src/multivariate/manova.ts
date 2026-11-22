@@ -1,0 +1,216 @@
+// Multivariate analysis of variance from sequential model projections and generalized roots.
+// Formulas, QR, and eigendecompositions use rStats.js' own model and linear-algebra layers.
+
+import { pf1 } from "../distributions/f.js";
+import { eigen } from "../linalg/eigen.js";
+import { qr, qrCoef, qrFitted, qrResid } from "../linalg/qr.js";
+import { design } from "../models/modelMatrix.js";
+import { parseFormula } from "../models/formula.js";
+import type { DataFrame } from "../models/modelFrame.js";
+
+export type ManovaTestName = "Pillai" | "Wilks" | "Hotelling-Lawley" | "Roy";
+export interface ManovaOptions { tol?: number; }
+export interface ManovaSummaryOptions { test?: ManovaTestName | "all"; intercept?: boolean; }
+export interface MatrixTable { rows: string[]; cols: string[] | null; values: number[][]; }
+export interface ManovaFit {
+  formula: string;
+  responseNames: string[];
+  termNames: string[];
+  termDf: number[];
+  residualDf: number;
+  residualSSP: number[][];
+  termSSP: Record<string, number[][]>;
+  termRoots: Record<string, number[]>;
+  coefficients: number[][];
+  coefficientNames: string[];
+  responseScales: number[];
+  warnings: string[];
+}
+export interface ManovaSummary {
+  Pillai: MatrixTable;
+  Wilks: MatrixTable;
+  "Hotelling-Lawley": MatrixTable;
+  Roy: MatrixTable;
+  SS: Record<string, MatrixTable>;
+  Eigenvalues: MatrixTable;
+  coef: MatrixTable;
+}
+
+function zeros(r: number, c: number): number[][] { return Array.from({ length: r }, () => new Array<number>(c).fill(0)); }
+function transpose(a: number[][]): number[][] { return a.length ? a[0]!.map((_, j) => a.map((r) => r[j]!)) : []; }
+function cross(a: number[][], b: number[][] = a): number[][] {
+  const out = zeros(a[0]?.length ?? 0, b[0]?.length ?? 0);
+  for (const [i, row] of a.entries()) for (const [j, v] of row.entries()) for (let k = 0; k < out[i]!.length; k++) out[i]![k]! += v * b[j]![k]!;
+  return out;
+}
+function mul(a: number[][], b: number[][]): number[][] {
+  const out = zeros(a.length, b[0]?.length ?? 0);
+  for (let i = 0; i < a.length; i++) for (let k = 0; k < (a[0]?.length ?? 0); k++) for (let j = 0; j < (b[0]?.length ?? 0); j++) out[i]![j]! += a[i]![k]! * b[k]![j]!;
+  return out;
+}
+function scaleRows(a: number[][], scales: readonly number[]): number[][] {
+  return a.map((row) => row.map((v, j) => v * scales[j]!));
+}
+function table(rows: string[], cols: string[] | null, values: number[][]): MatrixTable { return { rows, cols, values }; }
+function responseParts(formula: string): { names: string[]; rhs: string } {
+  const m = /^\s*cbind\s*\((.*)\)\s*~\s*(.+)$/s.exec(formula);
+  if (!m) throw new TypeError("the response must be cbind(y1, y2, ...) in a MANOVA formula");
+  const names = m[1]!.split(",").map((v) => v.trim());
+  if (names.length < 2) throw new RangeError("need multiple responses");
+  return { names, rhs: m[2]!.trim() };
+}
+function dataColumn(data: DataFrame, name: string): number[] {
+  const v = data[name];
+  if (v === undefined) throw new RangeError(`object '${name}' not found`);
+  const a = Array.from(v);
+  if (a.some((x) => x !== null && typeof x !== "number")) throw new TypeError(`response '${name}' must be numeric`);
+  return a.map((x) => x === null ? NaN : x as number);
+}
+function rootsFor(e: number[][], h: number[][], tol: number): number[] {
+  const ee = eigen(e, { symmetric: true });
+  const max = Math.max(0, ...ee.values);
+  const keep = ee.values.map((v, i) => v > max * tol ? i : -1).filter((i) => i >= 0);
+  if (keep.length !== e.length) throw new RangeError(`residuals have rank ${keep.length} < ${e.length}`);
+  const q = ee.vectors!;
+  const inv = zeros(e.length, e.length);
+  for (const j of keep) for (let r = 0; r < e.length; r++) for (let c = 0; c < e.length; c++) inv[r]![c]! += q[r]![j]! * q[c]![j]! / Math.sqrt(ee.values[j]!);
+  const a = mul(mul(inv, h), inv);
+  for (let i = 0; i < a.length; i++) for (let j = i + 1; j < a.length; j++) a[i]![j] = a[j]![i] = (a[i]![j]! + a[j]![i]!) / 2;
+  return eigen(a, { symmetric: true }).values;
+}
+function statRow(roots0: readonly number[], p: number, q: number, v: number, name: ManovaTestName): number[] {
+  const roots = roots0.slice(0, Math.min(p, q)).map((x) => Math.max(0, x));
+  const s = Math.min(p, q), m = (Math.abs(p - q) - 1) / 2, n0 = (v - p - 1) / 2;
+  const pillai = roots.reduce((a, x) => a + x / (1 + x), 0);
+  const wilks = roots.reduce((a, x) => a / (1 + x), 1);
+  const hotelling = roots.reduce((a, x) => a + x, 0);
+  const roy = roots[0] ?? 0;
+  let value: number, df1: number, df2: number, f: number;
+  switch (name) {
+    case "Pillai":
+      value = pillai; df1 = s * (2 * m + s + 1); df2 = s * (2 * n0 + s + 1);
+      f = ((2 * n0 + s + 1) / (2 * m + s + 1)) * value / (s - value); break;
+    case "Wilks": {
+      value = wilks; const t = p * q > 2 ? Math.sqrt((p * p * q * q - 4) / (p * p + q * q - 5)) : 1;
+      const u = (p * q - 2) / 4; df1 = p * q; df2 = (v - (p - q + 1) / 2) * t - 2 * u;
+      const wt = value ** (1 / t); f = ((1 - wt) / wt) * (df2 / df1); break;
+    }
+    case "Hotelling-Lawley":
+      value = hotelling; df1 = s * (2 * m + s + 1); df2 = 2 * (s * n0 + 1);
+      f = (df2 / (df1 * s)) * value; break;
+    case "Roy":
+      value = roy; df1 = Math.max(p, q); df2 = v - Math.max(p, q) + q;
+      f = (df2 / df1) * value; break;
+  }
+  return [q, value, f, df1, df2, pf1(f, df1, df2, false, false)];
+}
+
+/**
+ * Fit a multivariate analysis of variance model with sequential (Type I) terms.
+ * The response is `cbind(y1, y2, ...)`; all four classical MANOVA statistics are available in {@link summaryManova}.
+ *
+ * @param formula Multivariate formula, e.g. `"cbind(y1, y2, y3) ~ group + covariate"`.
+ * @param data Data frame.
+ * @param options Numerical rank tolerance.
+ *
+ * @category Multivariate analysis
+ */
+export function manova(formula: string, data: DataFrame, options: ManovaOptions = {}): ManovaFit {
+  const { names, rhs } = responseParts(formula);
+  const tol = options.tol ?? 1e-7;
+  if (!(Number.isFinite(tol) && tol >= 0)) throw new RangeError("'tol' must be a non-negative finite number");
+  const parsed = parseFormula(`~ ${rhs}`);
+  const d = design(parsed, data, { extraVariables: names, dropUnusedLevels: true });
+  const raw = names.map((name) => dataColumn(data, name));
+  const y = d.frame.rows.map((row) => raw.map((col) => col[row]!));
+  if (y.some((r) => r.some((v) => !Number.isFinite(v)))) throw new RangeError("NA/NaN/Inf in foreign function call (arg 1)");
+  const p = names.length, n = y.length;
+  if (p < 2) throw new RangeError("need multiple responses");
+  const scales = names.map((_, j) => Math.max(1, ...y.map((r) => Math.abs(r[j]!))));
+  const ys = scaleRows(y, scales.map((s) => 1 / s));
+  const full = qr(d.x, { tol });
+  const residual = qrResid(full, ys) as number[][];
+  const e = cross(residual);
+  const eig = eigen(e, { symmetric: true });
+  const maxEig = Math.max(0, ...eig.values);
+  const rank = eig.values.filter((v) => v > maxEig * tol).length;
+  if (rank < p) throw new RangeError(`residuals have rank ${rank} < ${p}`);
+  const fitted = qrFitted(full, ys) as number[][];
+  const coef = qrCoef(full, ys) as number[][];
+  const termSSP: Record<string, number[][]> = {};
+  const termRoots: Record<string, number[]> = {};
+  const termDf: number[] = [];
+  const termNames = d.terms.termLabels;
+  const assignments = d.assign;
+  let prevFit = zeros(n, p);
+  let prevRank = 0;
+  const interceptCols = assignments.map((a, i) => a === 0 ? i : -1).filter((i) => i >= 0);
+  if (interceptCols.length) {
+    const q0 = qr(d.x.map((r) => interceptCols.map((j) => r[j]!)), { tol });
+    const fit0 = qrFitted(q0, ys) as number[][];
+    const h0 = cross(fit0);
+    termSSP["(Intercept)"] = h0;
+    termRoots["(Intercept)"] = rootsFor(e, h0, tol);
+    prevFit = fit0;
+    prevRank = q0.rank;
+  }
+  for (let term = 1; term <= termNames.length; term++) {
+    const cols = assignments.map((a, i) => a <= term ? i : -1).filter((i) => i >= 0);
+    const xx = d.x.map((r) => cols.map((j) => r[j]!));
+    const q = qr(xx, { tol });
+    const fit = qrFitted(q, ys) as number[][];
+    const diff = fit.map((r, i) => r.map((v, j) => v - prevFit[i]![j]!));
+    const h = cross(diff);
+    const df = q.rank - prevRank;
+    if (df > 0) {
+      termSSP[termNames[term - 1]!] = h;
+      termRoots[termNames[term - 1]!] = rootsFor(e, h, tol);
+      termDf.push(df);
+    } else termDf.push(0);
+    prevFit = fit; prevRank = q.rank;
+  }
+  const unscale = (m: number[][]) => m.map((r, i) => r.map((v, j) => v * scales[i]! * scales[j]!));
+  return {
+    formula, responseNames: names, termNames, termDf, residualDf: n - full.rank,
+    residualSSP: unscale(e),
+    termSSP: Object.fromEntries(Object.entries(termSSP).map(([k, v]) => [k, unscale(v)])),
+    termRoots, coefficients: coef.map((r) => r.map((v, j) => v * scales[j]!)),
+    coefficientNames: d.colNames, responseScales: scales, warnings: d.warnings,
+  };
+}
+
+/**
+ * Summary tables for all four MANOVA statistics, with optional sequential intercept row.
+ *
+ * @param fit A result of {@link manova}.
+ * @param options Select a statistic or request the intercept row.
+ *
+ * @category Multivariate analysis
+ */
+export function summaryManova(fit: ManovaFit, options: ManovaSummaryOptions = {}): ManovaSummary {
+  const testNames: ManovaTestName[] = ["Pillai", "Wilks", "Hotelling-Lawley", "Roy"];
+  const terms = Object.keys(fit.termSSP).filter((x) => x !== "(Intercept)");
+  const names = options.intercept && fit.termSSP["(Intercept)"] ? ["(Intercept)", ...terms] : terms;
+  const p = fit.responseNames.length, v = fit.residualDf;
+  const make = (test: ManovaTestName): MatrixTable => {
+    const col = test === "Pillai" ? "Pillai" : test === "Wilks" ? "Wilks" : test;
+    const rows = names.map((term) => {
+      const roots = fit.termRoots[term] ?? [];
+      const q = term === "(Intercept)" ? 1 : fit.termDf[fit.termNames.indexOf(term)]!;
+      return statRow(roots, p, q, v, test);
+    });
+    rows.push([v, NaN, NaN, NaN, NaN, NaN]);
+    return table([...names, "Residuals"], ["Df", col, "approx F", "num Df", "den Df", "Pr(>F)"], rows);
+  };
+  const SS: Record<string, MatrixTable> = {};
+  for (const name of [...names, "Residuals"]) {
+    const raw = name === "Residuals" ? fit.residualSSP : fit.termSSP[name]!;
+    SS[name] = table(fit.responseNames, fit.responseNames, raw);
+  }
+  const Eigenvalues = table(names, null, names.map((name) => fit.termRoots[name] ?? []));
+  const coef = table(fit.coefficientNames, fit.responseNames, fit.coefficients);
+  return {
+    Pillai: make("Pillai"), Wilks: make("Wilks"), "Hotelling-Lawley": make("Hotelling-Lawley"), Roy: make("Roy"),
+    SS, Eigenvalues, coef,
+  };
+}
