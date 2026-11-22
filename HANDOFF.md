@@ -61,7 +61,14 @@ ROADMAP の「残っていること」の 2 (順不同の一覧) から選んだ
   choices は私が書いた。ChatGPT の oracle は `experiments/` を読み標準出力に出していて動かなかったので、ケースを
   `oracle/_tests19cases.R`・`_multivariate19cases.R` に移して直した。fixture 6 つ (実験の JSON と全件同じ)。段階 2 の指示は
   `briefs/tests-multivariate-1.9-stage2.ja.md`
-- PR の CI は `oracle/`・`experiments/`・`briefs/` だけの push では動かない (コードの変更がないため。正常)
+- **PR の CI が動かなかった本当の原因: PR #550 が main と `HANDOFF.md` で衝突していた** (衝突した PR では `pull_request` の
+  CI が動かない。「briefs だけでは動かない」という前の見立ては誤り。ci.yml にパスの絞り込みはない)。作業ブランチでも HANDOFF を
+  直し、その後 main だけを直したため。作業ブランチの HANDOFF を main と同じにして直した (`41c95c28`)。**以後、作業ブランチで
+  HANDOFF を触らない** (HANDOFF は main だけ)
+- 段階 2 (T2、`dadef527`): **群の順の choice をユーザーが変更** (2026-11-22): 「初出の順」→ R の `factor()` の順 (既存の
+  `labelledGroups`)。T2・Page の choices 3 と段階 2 の指示を直した (`d8655271`)。T2 の点検: 既存の `layout`・`allPairs`・
+  `PMCMRResult` を使っていない、T2' の `pAdjustMethod` が R (`"T2' (Sidak)"`) と違う、`@category`・R の名前の 1 文・
+  `NOT_IN_DEMO_YET` がない。option keys と r-functions は私が作る
 - 次: ChatGPT が段階 2 (T2 → Page → Grubbs → manova → lda → cancor)。「配線の依頼」が来たら `/multivariate` を配線
   (`package.json`・`scripts/bundle.mjs`・`scripts/size.mjs`・`typedoc.json`・`src/api-reference.ts`・テストの一覧。1.7.0 の
   `8778e17c` が手本)。1 つずつ CI 緑の報告が来たら私が数値を点検
