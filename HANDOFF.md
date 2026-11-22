@@ -17,8 +17,8 @@
 - **教訓:** ChatGPT は R を流せず、デモの R のコード・テストの期待値・許容を外しがち。**デモを R で流して照らし合わせると本物の
   不具合が出る** (今回 4 つ)。R の既定も厳しい当て直し (1e-14) も収束していないことがある → 閾値を 2 つ出して比べる。
   ChatGPT の会話は毎回タイムアウトする → Issue に途中経過を書かせ、こちらが状態を見て再開の依頼文を書く
-- `docs/ja/api/TRANSLATING.md` の 0 節 (Haiku 5.5 以外は止まる) は古い条件。依頼文で外すよう書く (直すかは未定)
-- 片付けは未定 (ユーザーに確認): `work/regression-1.8`・`release/1.8.0-regression`・`release/1.8.0` の削除、PR #546・Issue #545
+- `docs/ja/api/TRANSLATING.md` の 0 節 (Haiku 5.5 以外は止まる) は古い条件だったので削除した (ユーザーの決定)
+- 片付け済み (ユーザーの指示): `work/regression-1.8`・`release/1.8.0-regression`・`release/1.8.0` を手元と GitHub から削除 (中身が main と同じことを確かめた)、PR #546・Issue #545 を閉じた
 - 次: ROADMAP の次の項目 (未定)。1.8.0 で外した推論 (rq の iid・ker・boot、geeglm の jackknife) は後の版の候補
 
 ## 1.8.0 の途中の記録: 段階 1 の報告を待つ (セッション 26、2026-11-20 夜に作成)
