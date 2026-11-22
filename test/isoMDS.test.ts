@@ -15,6 +15,8 @@ function compare(key: string, actual: IsoMDSResult, stressTol = 1e-8): void {
   const expected = fixture[key]?.value;
   if (!expected) { mismatches.push(`${key}: missing fixture`); return; }
   const points = expected.points.values;
+  if (JSON.stringify(actual.points.rows) !== JSON.stringify(expected.points.rows ?? null)) mismatches.push(`${key}.points.rows differ`);
+  if (JSON.stringify(actual.points.cols) !== JSON.stringify(expected.points.cols ?? null)) mismatches.push(`${key}.points.cols differ`);
   if (actual.points.values.length !== points.length) mismatches.push(`${key}.points row count differs`);
   const k = points[0]?.length ?? 0;
   for (let j = 0; j < k; j++) {
@@ -22,7 +24,7 @@ function compare(key: string, actual: IsoMDSResult, stressTol = 1e-8): void {
     for (let i = 0; i < Math.min(points.length, actual.points.values.length); i++) dot += actual.points.values[i]![j]! * num(points[i]![j]);
     if (dot < 0) for (const row of actual.points.values) row[j] = -row[j]!;
   }
-  for (let i = 0; i < Math.min(points.length, actual.points.length); i++) {
+  for (let i = 0; i < Math.min(points.length, actual.points.values.length); i++) {
     for (let j = 0; j < Math.min(points[i]!.length, actual.points.values[i]!.length); j++) {
       const a = actual.points.values[i]![j]!, e = num(points[i]![j]);
       const rel = Math.abs(a - e) / Math.max(1, Math.abs(e));
@@ -70,7 +72,7 @@ describe("isoMDS", () => {
     const scaled = isoMDS(scaledD);
     if (Math.abs(base.stress - scaled.stress) > 1e-8) mismatches.push("stress changed under dissimilarity scaling");
     for (let i = 0; i < base.points.values.length; i++) for (let j = 0; j < base.points.values[i]!.length; j++) {
-      const rel = Math.abs(scaled.points.values[i]![j]! / 1e150 - base.points.values[i]![j]!) / Math.max(1, Math.abs(base.points[i]![j]!));
+      const rel = Math.abs(scaled.points.values[i]![j]! / 1e150 - base.points.values[i]![j]!) / Math.max(1, Math.abs(base.points.values[i]![j]!));
       if (rel > 1e-8) mismatches.push(`coordinate scale equivariance [${i},${j}]`);
     }
     const errors: Array<[string, () => unknown]> = [
