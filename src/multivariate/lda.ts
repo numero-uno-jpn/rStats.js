@@ -94,7 +94,7 @@ export interface LdaFit {
   /** @internal Predictor column names. */
   _xNames: string[];
   /** @internal Rank tolerance used to fit the model. */
-  _tol: number[];
+  _tol: number;
 }
 /** Plug-in prediction from an LDA fit.
  * @category Multivariate analysis
