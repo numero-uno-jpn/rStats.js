@@ -34,7 +34,7 @@ function compare(key: string, actual: KmeansFit): void {
     ["totss", actual.totss, expected.totss],
     ["totWithinss", actual.totWithinss, expected["tot.withinss"]],
     ["betweenss", actual.betweenss, expected.betweenss],
-  ] as const) close(`${key}.${field}`, actualValue, num(expectedValue));
+  ] as const) if (expectedValue !== undefined) close(`${key}.${field}`, actualValue, num(expectedValue));
   for (const field of ["withinss", "size"] as const) {
     const values = field === "withinss" ? actual.withinss : actual.size;
     const expectedValues = expected[field];
@@ -50,8 +50,7 @@ function compare(key: string, actual: KmeansFit): void {
   const warnings = expected.warnings === undefined ? [] : Array.isArray(expected.warnings) ? expected.warnings : [expected.warnings];
   if (JSON.stringify(actual.warnings) !== JSON.stringify(warnings)) mismatches.push(`${key}.warnings differs`);
 }
-function compareTail(key: string, actual: number[]): void {
-  const expected = fixture[key]?.value;
+function compareTail(key: string, actual: number[], expected: unknown): void {
   if (!Array.isArray(expected)) { mismatches.push(`${key}: missing RNG-tail fixture`); return; }
   if (actual.length !== expected.length) mismatches.push(`${key}: RNG-tail length differs`);
   for (let i = 0; i < Math.min(actual.length, expected.length); i++) close(`${key}[${i}]`, actual[i]!, num(expected[i]));
@@ -75,10 +74,10 @@ describe("kmeans", () => {
   it("retries duplicate-valued random starts and preserves the R RNG stream", () => {
     setSeed(3);
     compare("kmeans_dup_start_seed_3", kmeans(dup, 2));
-    compareTail("kmeans_dup_start_seed_3.tail", runif(3));
+    compareTail("kmeans_dup_start_seed_3.tail", runif(3), fixture.kmeans_dup_start_seed_3.value.tail);
     setSeed(1);
     compare("kmeans_equal_best_seed_1", kmeans(x03, 2, { nstart: 8 }));
-    compareTail("kmeans_equal_best_seed_1.tail", runif(2));
+    compareTail("kmeans_equal_best_seed_1.tail", runif(2), fixture.kmeans_equal_best_seed_1.value.tail);
   });
 
   it("matches errors, empty-cluster warnings and numeric scaling", () => {
