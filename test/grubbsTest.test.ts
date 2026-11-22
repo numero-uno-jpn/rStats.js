@@ -145,6 +145,10 @@ describe("Grubbs type 10", () => {
     // mpmath (80 dps): solve I_x(4, 1/2) = 2/10, then transform x to G.
     expect(qgrubbs(0, 10)).toBeCloseTo(1.2602192323987674, 14);
     expect(qgrubbs(1, 10)).toBe((10 - 1) / Math.sqrt(10));
+    for (const p of [1e-8, 0.5, 1 - 1e-15]) {
+      const q = qgrubbs(p, 10);
+      expect(Math.abs(pgrubbs(q, 10) - p)).toBeLessThan(2e-15);
+    }
     expect(Number.isNaN(pgrubbs(1, 2))).toBe(true);
     expect(Number.isNaN(qgrubbs(0.5, 2))).toBe(true);
     expect(Number.isNaN(pgrubbs(1, 1e20))).toBe(true);
