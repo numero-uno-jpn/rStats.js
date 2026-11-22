@@ -69,7 +69,19 @@ R に合わせた乱数 `setSeed`・`sample` (`src/random/`)。`dist` はまだ�
   `fe401abd` だけ)。PR #557 が衝突して CI が動かず、main の CI も赤。中身は作業ブランチに取り込み、main では 2 つを revert
   (ユーザーの許可で push)。ChatGPT は「push した」と報告したが、届いた先を確かめていなかった → 依頼文に「push の後、
   `work/cluster-mds-1.10` の HEAD が自分のコミットか確かめる」を入れる
-- 次: ChatGPT が段階 2 (dist → hclust → kmeans → cmdscale → isoMDS)。1 つずつ CI 緑の報告が来たら私が点検
+- **段階 2 は完了 (2026-11-23、作業ブランチ `f6f18e89`、CI 緑):** ChatGPT が hclust・cutree・kmeans・cmdscale・isoMDS を
+  実装 (約 90 コミット)。kmeans と cmdscale は ChatGPT が収められず、**ユーザーの「token が限られる」の指示で私が直した:**
+  - kmeans: Lloyd の最初の割り当て、MacQueen の空のクラスタと iter、k = 1、空の中心 NaN、**Hartigan-Wong の
+    quick-transfer の段と「2 クラスタなら quick-transfer の後で止める」(論文)**、**R の初期値の規則** (nstart = 1 は行から
+    引き、重複したら重複のない行から 1 回引き直す。nstart >= 2 は全部の start を重複のない行から。後の乱数の状態で確定、
+    `experiments/cluster110-nstart-rng.*`)。全 fixture case が一致 (choices 7)
+  - cmdscale: テストの警告の読み方、固有値の同点が k をまたぐ case は直交の解であることを確かめる、共線の add は √ε の許容
+  - テストの誤りが多かった (警告を value の中から読む、R と違う入力、fixture に無い case)。点検では「テストが例外で途中で
+    止まって不一致が出ない」ことに注意 (私も一度「全部通った」と誤って報告した)
+- **isoMDS は次の版へ (ユーザーの決定 2026-11-23):** Kruskal の方法でも、厳しく収束させた R (`isomds_tight_*`) にも届かな
+  かった。実装は `work/isomds-next` に残し、1.10.0 の作業ブランチから外した (仕様書・oracle・fixture は残す)
+- 1.10.0 = dist・asDist・hclust・cutree・kmeans・cmdscale。次: 数値の点検 (`briefs/numerics-1.9.ja.md` の形) → 文書・デモ・訳
+  → 取り込み。指示書は「書き込んでよい場所」を先頭に (`feedback-chatgpt-write-scope-and-tokens`)
   (許容の大きさ・export・全 case)。option keys と r-functions は私が作り直す
 
 ### 進め方 (1.9.0 と同じ。教訓は下の「1.9.0 の教訓」を最初から指示書に入れる)
