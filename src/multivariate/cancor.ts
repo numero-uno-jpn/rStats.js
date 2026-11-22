@@ -6,6 +6,9 @@ import { qr } from "../linalg/qr.js";
 import { fromMat, toMatOrColumn, type VectorOrMatrix } from "../linalg/matrix.js";
 import { mean } from "../internal/summary.js";
 
+/** Options for canonical correlation.
+ * @category Linear models and ANOVA
+ */
 export interface CancorOptions {
   xcenter?: boolean | readonly number[];
   ycenter?: boolean | readonly number[];
@@ -13,6 +16,9 @@ export interface CancorOptions {
   xNames?: readonly string[];
   yNames?: readonly string[];
 }
+/** Result of canonical correlation.
+ * @category Linear models and ANOVA
+ */
 export interface CancorResult {
   cor: number[];
   xcoef: { rows: string[]; cols: string[]; values: number[][] };
@@ -54,13 +60,13 @@ function namesOrDefault(names: readonly string[] | undefined, p: number, prefix:
 }
 
 /**
- * Canonical correlation analysis. Coefficients use the unscaled cross-products, with deterministic paired signs.
+ * Canonical correlation analysis. Equivalent to R's `stats::cancor()`. Coefficients use the unscaled cross-products, with deterministic paired signs.
  *
  * @param x First data matrix or vector.
  * @param y Second data matrix or vector.
  * @param options Column centering, rank tolerance, and optional column names.
  *
- * @category Multivariate analysis
+ * @category Linear models and ANOVA
  */
 export function cancor(x: VectorOrMatrix, y: VectorOrMatrix, options: CancorOptions = {}): CancorResult {
   const xm = fromMat(toMatOrColumn(x)), ym = fromMat(toMatOrColumn(y));
