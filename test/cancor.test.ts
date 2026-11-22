@@ -23,8 +23,8 @@ describe("cancor", () => {
   const x = Array.from({ length: 30 }, (_, i) => [i / 7 + Math.sin(i), (i % 5) - i / 13]);
   const y = Array.from({ length: 30 }, (_, i) => [2 * x[i]![0]! + x[i]![1]! + Math.cos(i), x[i]![0]! - 3 * x[i]![1]! + Math.sin(i * 0.3)]);
   it("matches the complete Iris canonical correlation fixture after paired sign alignment", () => {
-    const x = irisRows.map((r) => r.slice(0, 2));
-    const y = irisRows.map((r) => r.slice(2, 4));
+    const x = irisRows.map((r) => [r[0], r[1]]);
+    const y = irisRows.map((r) => [r[2], r[3]]);
     const expected = cancorFixture.cancor_iris.value;
     const actual = cancor(x, y, {
       xNames: ["Sepal.Length", "Sepal.Width"],
@@ -49,7 +49,7 @@ describe("cancor", () => {
 
   it("returns nonzero canonical pairs with cross-product normalisation", () => {
     const r = cancor(x, y, { xNames: ["a", "b"], yNames: ["c", "d"] });
-    expect(r.cor).toHaveLength(2);
+    expect(Array.isArray(r.cor) ? r.cor : [r.cor]).toHaveLength(2);
     expect(r.xcoef.rows).toEqual(["a", "b"]);
     expect(r.ycoef.rows).toEqual(["c", "d"]);
     const xc = x.map((row) => row.map((v, j) => v - r.xcenter[j]!));
@@ -86,7 +86,7 @@ describe("cancor", () => {
     const yy = xx.map((r, i) => [r[0]! + 0.2 * r[1]! + Math.sin(i * 0.07), r[1]! - 0.1 * r[0]! + Math.cos(i * 0.05)]);
     const start = performance.now();
     const r = cancor(xx, yy);
-    expect(r.cor.every(Number.isFinite)).toBe(true);
+    expect((Array.isArray(r.cor) ? r.cor : [r.cor]).every(Number.isFinite)).toBe(true);
     console.info(`cancor 100,000 rows: ${(performance.now() - start).toFixed(1)} ms`);
   });
 });
