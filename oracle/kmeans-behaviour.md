@@ -15,12 +15,12 @@ Returned withinss contains Wj, tot.withinss is W, betweenss is B, and size conta
 
 ## Four update procedures
 
-- Lloyd / Forgy (same R result for a supplied initial-center matrix): assign every observation to its nearest current center, ci=argmin_j ||xi-μj||², resolving an exact tie by the first center; then replace each nonempty center by the mean of its assigned observations. Repeat assignment and mean updates until the assignment is unchanged or the iteration limit is reached. R returns the same cluster, center and sum-of-squares values for Lloyd and Forgy on the supplied-center cases (kmeans_iris_Lloyd, kmeans_iris_Forgy).
+- Lloyd / Forgy (R documents these as two names for the same method): assign every observation to its nearest current center, ci=argmin_j ||xi-μj||², resolving an exact tie by the first center; then replace each nonempty center by the mean of its assigned observations. Repeat assignment and mean updates until the assignment is unchanged or the iteration limit is reached. The public cases confirm identical cluster, center and sum-of-squares values (kmeans_iris_Lloyd, kmeans_iris_Forgy).
 - MacQueen (online updates): visit observations in input order; assign each to its nearest current center and update the selected center to the running mean of observations assigned to that cluster. For a cluster with current count nj, the update is μj ← μj + (xi-μj)/(nj+1). The public outputs confirm different results from batch Lloyd/Forgy for poor starts and one-pass cases (kmeans_iris_poor_start_MacQueen, kmeans_iris_iter1_MacQueen). The exact handling of the initial pseudo-count associated with a supplied center remains unverified.
 - Hartigan–Wong: use individual point transfers rather than simultaneous batch reassignment. For a point x currently in cluster A and candidate cluster B, with nA>1, the change in total within-cluster sum of squares is:
   ΔW = [nB/(nB+1)]*||x-μB||² - [nA/(nA-1)]*||x-μA||².
   Transfer when ΔW<0, update the two means and counts, and continue the optimal-transfer / quick-transfer phases described in Hartigan & Wong (1979) until no improving transfer remains or the iteration limit is reached. The transfer criterion is the direct difference of the two affected clusters' SSE terms. Full pass scheduling and all fault codes have not been independently reconstructed from the paper's prose and public outputs.
-- Forgy is accepted as a separate algorithm name but shares the batch result with Lloyd in tested supplied-center examples; any distinct initialization semantics when centers are requested numerically are not yet established.
+- Forgy is accepted as a name for the Lloyd batch method; it is not a distinct update procedure.
 
 ## Initialization and multiple starts
 
@@ -32,7 +32,7 @@ When nstart>1, R retains a solution with minimum W. The equal-best probes equal_
 
 ## Iteration and fault reporting observed in R
 
-- Hartigan–Wong reports ifault=0 on convergence and ifault=2 when the iteration limit is reached; at iter.max=1, warning is "did not converge in 1 iteration" (kmeans_iris_iter1_Hartigan-Wong, iter_Hartigan-Wong_1).
+- Hartigan–Wong reports ifault=0 on convergence and ifault=2 when the iteration limit is reached; ifault=4 is mentioned in the initial task notes but is not produced by any supplied or additional public-output case, so its condition is unconfirmed; at iter.max=1, warning is "did not converge in 1 iteration" (kmeans_iris_iter1_Hartigan-Wong, iter_Hartigan-Wong_1).
 - Lloyd/Forgy have the same cluster assignments and centers in supplied-center examples, but their reported iter differs from Hartigan–Wong. For iris, HW reports 2 and Lloyd/Forgy 4; for the small probe, Lloyd/Forgy report 2. At the limit, they warn and report ifault=2; on convergence ifault is NULL.
 - MacQueen reports ifault=NULL; the small probe reports iter=1, while iris reports iter=3.
 - Thus iter is algorithm-specific and cannot be inferred simply as the number of centroid recomputations. Exact accounting for all stopping paths remains unconfirmed.
