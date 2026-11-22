@@ -53,14 +53,14 @@ The number of dimensions must be in (1,\ldots,n-1); NA dissimilarities error. Tw
 
 ## Numerical checks
 
-The double-centering formula and eigenvalue ordering were independently checked on the small Euclidean, non-Euclidean, line, simplex and zero-distance cases. The Cailliez equation was independently checked on `cmdscale_non_euclidean_add`. `cmdscale_vs_pca` provides a further check: for Euclidean distances, the coordinates agree with principal-component scores up to orthogonal sign conventions.
+The double-centering formula and eigenvalue ordering were independently checked on the small Euclidean, non-Euclidean, line, simplex, zero-distance and asymmetric-matrix cases. The Cailliez equation was independently checked on `cmdscale_non_euclidean_add`. `cmdscale_vs_pca` provides a further check: for Euclidean distances, the coordinates agree with principal-component scores up to orthogonal sign conventions.
 
 ## Decisions for the user
 
 1. Return the full structured result on every call, or mirror R's matrix-only default and structured return only when requested. **Recommended:** always return `points`, `eig`, `x`, `ac`, and `GOF`; absent optional outputs can be empty/null. This makes the API stable.
 2. Use the deterministic column-sign convention already decided by the user; document the difference from R and sign-align tests.
 3. For `add=TRUE), set a numerically negligible Cailliez constant to zero using a scale-aware threshold. **Recommended:** stable PSD/root calculation, not R's roundoff-sized positive artifacts.
-4. For asymmetric matrix input, either reject it or symmetrize explicitly. **Recommended:** require symmetry within a scale-aware tolerance (or ask the user to call `asDist` after deciding which triangle is authoritative); do not silently invent a symmetrization rule until the extra R probe is reviewed.
+4. For asymmetric matrix input, either reproduce R's lower-triangle eigensolver convention after double-centering, or reject asymmetric matrices as mathematically ambiguous. **Recommended:** reproduce the observed R convention for compatibility, while documenting that the returned `x` is asymmetric and the eigensolver uses its lower triangle.
 5. For non-Euclidean inputs, retain all eigenvalues in `eig`, but construct points only from positive eigenvalues and warn when fewer than (k) are available.
 
 ## rStats.js's choices
