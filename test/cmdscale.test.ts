@@ -39,7 +39,7 @@ function compare(key: string, actual: CmdscaleResult, scale = 1): void {
   }
   for (let i = 0; i < Math.min(actual.points.values.length, points.length); i++) {
     if (actual.points.values[i]!.length !== points[i]!.length) mismatches.push(`${key}.points[${i}] columns differ`);
-    for (let j = 0; j < Math.min(actual.points[i]!.length, points[i]!.length); j++) {
+    for (let j = 0; j < Math.min(actual.points.values[i]!.length, points[i]!.length); j++) {
       compareNumbers(`${key}.points[${i},${j}]`, [actual.points.values[i]![j]!], points[i]![j], 1e-12);
     }
   }
@@ -48,6 +48,8 @@ function compare(key: string, actual: CmdscaleResult, scale = 1): void {
   if (expected.GOF !== undefined) compareNumbers(key + ".GOF", actual.GOF, expected.GOF);
   if (expected.x !== undefined && expected.x !== null) {
     const x = tableValues(expected.x);
+    if (actual.x === null) mismatches.push(`${key}.x unexpectedly null`);
+    if (actual.x !== null && (JSON.stringify(actual.x.rows) !== JSON.stringify(expected.x.rows ?? null) || JSON.stringify(actual.x.cols) !== JSON.stringify(expected.x.cols ?? null))) mismatches.push(`${key}.x labels differ`);
     for (let i = 0; i < x.length; i++) for (let j = 0; j < x[i]!.length; j++) {
       compareNumbers(`${key}.x[${i},${j}]`, [actual.x?.values[i]?.[j] ?? NaN], x[i]![j], 1e-12);
     }
@@ -96,7 +98,7 @@ describe("cmdscale", () => {
       if (Math.abs(b - e) / Math.max(1, Math.abs(e)) > 1e-10) mismatches.push(`small scale points[${i},${j}]`);
     }
     const fewer = cmdscale(asDist(nonE), { k: 3 });
-    if (fewer.points[0]!.length !== 2 || fewer.warnings.length !== 1) mismatches.push("fewer positive eigenvalues warning");
+    if (fewer.points.values[0]!.length !== 2 || fewer.warnings.length !== 1) mismatches.push("fewer positive eigenvalues warning");
     const errors: Array<[string, () => unknown]> = [
       ["cmdscale_k_zero", () => cmdscale(ds, { k: 0 })],
       ["cmdscale_k_too_big", () => cmdscale(ds, { k: 5 })],
