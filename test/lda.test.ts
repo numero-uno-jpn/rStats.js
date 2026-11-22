@@ -17,6 +17,42 @@ const irisData = {
   Species: irisRows.map((r) => r[4]),
 };
 const ldaFixture = JSON.parse(readFileSync(new URL("./fixtures/lda.json", import.meta.url), "utf8")) as Record<string, any>;
+const mtRows = JSON.parse(readFileSync(new URL("./fixtures/mtcars.json", import.meta.url), "utf8")) as number[][];
+function compareLdaFit(actual: ReturnType<typeof lda>, expected: any, warnings: any = []): void {
+  expect(actual.prior.length).toBe(expected.prior.length);
+  expected.prior.forEach((v: number, i: number) => expect(actual.prior[i]).toBeCloseTo(v, 9));
+  expect(actual.counts).toEqual(expected.counts);
+  expect(actual.means.rows).toEqual(expected.means.rows);
+  expect(actual.means.cols).toEqual(expected.means.cols);
+  expectMatrixClose(actual.means.values, expected.means.values, 1e-8);
+  expect(actual.scaling.rows).toEqual(expected.scaling.rows);
+  expect(actual.scaling.cols).toEqual(expected.scaling.cols);
+  const signs = expected.scaling.values[0]!.map((_: number, j: number) => {
+    const dot = actual.scaling.values.reduce((s, row, i) => s + row[j]! * expected.scaling.values[i]![j]!, 0);
+    return dot < 0 ? -1 : 1;
+  });
+  expectMatrixClose(actual.scaling.values.map((row) => row.map((v, j) => v * signs[j]!)), expected.scaling.values, 1e-8);
+  const svd = Array.isArray(actual.svd) ? actual.svd : [actual.svd];
+  const expectedSvd = Array.isArray(expected.svd) ? expected.svd : [expected.svd];
+  expect(svd).toHaveLength(expectedSvd.length);
+  expectedSvd.forEach((v: number, i: number) => expect(svd[i]).toBeCloseTo(v, 8));
+  expect(actual.N).toBe(expected.N);
+  expect(actual.lev).toEqual(expected.lev);
+  const expectedWarnings = Array.isArray(warnings) ? warnings : warnings ? [warnings] : [];
+  expect(actual.warnings).toEqual(expectedWarnings);
+}
+function compareLdaPrediction(actual: ReturnType<typeof ldaPredict>, expected: any): void {
+  expect(actual.class).toEqual(expected.class);
+  expect(actual.posterior.cols).toEqual(expected.posterior.cols);
+  expectMatrixClose(actual.posterior.values, expected.posterior.values, 1e-8);
+  expect(actual.x.cols).toEqual(expected.x.cols);
+  const signs = expected.x.values[0]!.map((_: number, j: number) => {
+    const dot = actual.x.values.reduce((s, row, i) => s + row[j]! * expected.x.values[i]![j]!, 0);
+    return dot < 0 ? -1 : 1;
+  });
+  expectMatrixClose(actual.x.values.map((row) => row.map((v, j) => v * signs[j]!)), expected.x.values, 1e-8);
+}
+
 function expectMatrixClose(actual: number[][], expected: number[][], tol = 1e-8): void {
   expect(actual.length).toBe(expected.length);
   for (let i = 0; i < expected.length; i++) {
@@ -29,6 +65,29 @@ function expectMatrixClose(actual: number[][], expected: number[][], tol = 1e-8)
 }
 
 describe("lda", () => {
+  it("matches mtcars two-class, three-class and two-class CV fixtures", () => {
+    const col = (j: number) => mtRows.map((r) => r[j]!);
+    const x2 = mtRows.map((r) => [r[0]!, r[3]!, r[5]!]);
+    const g2 = col(8).map(String);
+    const fit2 = lda(x2, g2, { xNames: ["mpg", "hp", "wt"] });
+    const e2 = ldaFixture.lda_two_classes.value;
+    compareLdaFit(fit2, e2.fit, ldaFixture.lda_two_classes.warnings);
+    compareLdaPrediction(ldaPredict(fit2), e2.pred);
+
+    const x3 = mtRows.map((r) => [r[0]!, r[2]!, r[3]!, r[5]!]);
+    const g3 = col(1).map(String);
+    const fit3 = lda(x3, g3, { xNames: ["mpg", "disp", "hp", "wt"] });
+    const e3 = ldaFixture.lda_three_cyl.value;
+    compareLdaFit(fit3, e3.fit, ldaFixture.lda_three_cyl.warnings);
+    compareLdaPrediction(ldaPredict(fit3), e3.pred);
+
+    const cv = lda(x2, g2, { xNames: ["mpg", "hp", "wt"], CV: true });
+    const ecv = ldaFixture.lda_cv_two_classes.value;
+    expect(cv.class).toEqual(ecv.class);
+    expect(cv.posterior.cols).toEqual(ecv.posterior.cols);
+    expectMatrixClose(cv.posterior.values, ecv.posterior.values, 1e-8);
+  });
+
   it("matches the complete Iris LDA fit fixture after per-column sign alignment", () => {
     const expected = ldaFixture.lda_iris.value.fit;
     const fit = lda("Species ~ .", irisData);
