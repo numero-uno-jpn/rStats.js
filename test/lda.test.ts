@@ -123,6 +123,31 @@ describe("lda", () => {
     expectMatrixClose(cv.posterior.values, cvExpected.posterior.values, 1e-8);
   });
 
+  it("matches LDA empty-level, collinear, singleton, missing and scale fixtures", () => {
+    const names = ["Sepal.Length", "Sepal.Width", "Petal.Length", "Petal.Width"];
+    const xx = irisRows.map((r) => [r[0], r[1], r[2], r[3]]);
+    const gg = irisRows.map((r) => r[4]);
+    const empty = lda(xx, gg, { xNames: names, groupLevels: ["setosa", "versicolor", "virginica", "none"] });
+    compareLdaFit(empty, ldaFixture.lda_empty_level.value, ldaFixture.lda_empty_level.warnings);
+    const collinearX = xx.map((r) => [...r, r[0]! + r[1]!]);
+    const collinear = lda(collinearX, gg, { xNames: [...names, "s"] });
+    compareLdaFit(collinear, ldaFixture.lda_collinear.value, ldaFixture.lda_collinear.warnings);
+    const classOfOne = [...gg.slice(0, 149), "lone"];
+    compareLdaFit(lda(xx, classOfOne, { xNames: names }), ldaFixture.lda_class_of_one.value, ldaFixture.lda_class_of_one.warnings);
+    const missingData = { ...irisData, "Sepal.Width": irisData["Sepal.Width"].map((v, i) => i === 4 ? NaN : v) };
+    compareLdaFit(lda("Species ~ .", missingData), ldaFixture.lda_na.value, ldaFixture.lda_na.warnings);
+    const scaledX = xx.map((r) => [r[0]! * 1e100, r[1]!, r[2]!, r[3]!]);
+    const scaled = lda(scaledX, gg, { xNames: names });
+    compareLdaFit(scaled, ldaFixture.lda_scale.value.fit, ldaFixture.lda_scale.warnings);
+    compareLdaPrediction(ldaPredict(scaled), ldaFixture.lda_scale.value.pred);
+    const single = lda(xx.map((r) => [r[0]!]), gg, { xNames: ["Sepal.Length"] });
+    compareLdaFit(single, ldaFixture.lda_single_variable.value.fit, ldaFixture.lda_single_variable.warnings);
+    compareLdaPrediction(ldaPredict(single), ldaFixture.lda_single_variable.value.pred);
+    const constantX = xx.map((r, i) => [r[0]!, ["setosa", "versicolor", "virginica"].indexOf(gg[i]!) + 1, r[2]!, r[3]!]);
+    expect(() => lda(constantX, gg, { xNames: names })).toThrow("variable 2 appears to be constant within groups");
+    expect(() => lda(xx, gg, { xNames: names, tol: 0.5 })).toThrow("variables 2 3 4 appear to be constant within groups");
+  });
+
   it("fits moment LDA with metric-normalised directions and deterministic signs", () => {
     const fit = lda(x, g);
     expect(fit.lev).toEqual(["a", "b"]);
