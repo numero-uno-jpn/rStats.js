@@ -1,6 +1,8 @@
 # _cluster110cases.R: shared public-call cases for dist, hclust/cutree, kmeans, cmdscale and isoMDS.
 # Kept independent of experiments/: copied case definitions; oracle scripts select a named prefix into /out.
 # Public outputs only. No R object internals, source inspection, or private calls.
+library(MASS)
+library(jsonlite)
 library(jsonlite)
 # Helpers (the same in each script): run() records the value, the warnings, the messages and the error of one call
 run <- function(expr) {
@@ -191,7 +193,6 @@ run <- function(expr) {
   list(value = value, warnings = warns, messages = msgs)
 }
 tab <- function(m) list(rows = rownames(m), cols = colnames(m), values = unname(as.matrix(m)))
-out <- list()
 
 ## cmdscale: points, eigenvalues, the additive constant, the doubly centred matrix, the goodness of fit
 cm <- function(r) {
