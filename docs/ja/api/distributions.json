@@ -1377,22 +1377,22 @@
   "pgrubbs#@param n": {
     "hash": "5b92d87b81a3",
     "en": "Sample size.",
-    "ja": ""
+    "ja": "標本サイズ。"
   },
   "pgrubbs#@param q": {
     "hash": "3303fee735c2",
     "en": "Statistic value(s).",
-    "ja": ""
+    "ja": "統計量の値。"
   },
   "pgrubbs#@param type": {
     "hash": "7a06a3bc9cc0",
     "en": "Only 10 is supported; 11 and 20 are intentionally deferred.",
-    "ja": ""
+    "ja": "10 のみをサポートします。11 と 20 は意図的に後回しにしています。"
   },
   "pgrubbs#summary": {
     "hash": "b255bfec6d04",
     "en": "Cumulative distribution of the type-10 Grubbs statistic. Vectorised over q.\nEquivalent to R's `outliers::pgrubbs()`. Type 10 only.",
-    "ja": ""
+    "ja": "タイプ 10 の Grubbs 統計量の累積分布です。q に対してベクトル化されています。\nR の `outliers::pgrubbs()` と同等です。タイプ 10 のみをサポートします。"
   },
   "phyper#@example": {
     "hash": "f2167be5edf2",
@@ -2082,22 +2082,22 @@
   "qgrubbs#@param n": {
     "hash": "5b92d87b81a3",
     "en": "Sample size.",
-    "ja": ""
+    "ja": "標本サイズ。"
   },
   "qgrubbs#@param p": {
     "hash": "28524db39af5",
     "en": "Probability value(s).",
-    "ja": ""
+    "ja": "確率の値。"
   },
   "qgrubbs#@param type": {
     "hash": "7a06a3bc9cc0",
     "en": "Only 10 is supported; 11 and 20 are intentionally deferred.",
-    "ja": ""
+    "ja": "10 のみをサポートします。11 と 20 は意図的に後回しにしています。"
   },
   "qgrubbs#summary": {
     "hash": "7a825802ee37",
     "en": "Quantile of the type-10 Grubbs statistic. Vectorised over p.\nEquivalent to R's `outliers::qgrubbs()`. Type 10 only.",
-    "ja": ""
+    "ja": "タイプ 10 の Grubbs 統計量の分位点です。p に対してベクトル化されています。\nR の `outliers::qgrubbs()` と同等です。タイプ 10 のみをサポートします。"
   },
   "qhyper#@example": {
     "hash": "f2167be5edf2",
