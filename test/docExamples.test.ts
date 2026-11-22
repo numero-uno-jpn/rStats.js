@@ -22,6 +22,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import * as Mixed from "../src/entries/mixed.js";
 import * as Regression from "../src/entries/regression.js";
+import * as Multivariate from "../src/entries/multivariate.js";
 import * as R from "../src/index.js";
 import { collectFunctions, exampleBlocks } from "./helpers/docComments.js";
 
@@ -258,8 +259,8 @@ export function expectedValue(comment: string): Expected {
 
 // ---- Running a block ----
 
-/** Every export of the areas: src/index.ts and the areas that are not in it (src/entries/mixed.ts, src/entries/regression.ts) */
-const scope: Record<string, unknown> = { ...R, ...Mixed, ...Regression };
+/** Every export of the areas: src/index.ts and the areas that are not in it (src/entries/mixed.ts, src/entries/regression.ts, src/entries/multivariate.ts) */
+const scope: Record<string, unknown> = { ...R, ...Mixed, ...Regression, ...Multivariate };
 const names = Object.keys(scope);
 const values = names.map((n) => scope[n]);
 

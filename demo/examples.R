@@ -486,7 +486,19 @@ examples <- list(
   list(id = "glmnet-gaussian-path-coefficients-prediction", title = "Gaussian elastic net: penalty path, coefficients and predictions (glmnet)",
        value = function() { i <- 0:23; angle <- 2*pi*i/24; x1 <- sin(angle); x2 <- cos(angle); x <- cbind(x1, x2); y <- 2.5 + 1.1*x1 - 0.6*x2 + 0.04*sin(3*angle); fit <- glmnet::glmnet(x, y, family = "gaussian", alpha = 0.5, nlambda = 6, lambda.min.ratio = 0.05); lambda <- fit$lambda[3]; coefficients <- coef(fit, s = lambda); predictions <- predict(fit, newx = x[1:4,,drop=FALSE], s = lambda, type = "response"); c(fit$lambda, as.vector(coefficients), as.vector(predictions)) }),
   list(id = "glmnet-gaussian-cross-validation", title = "Gaussian elastic net: fixed-fold cross-validation (glmnet)",
-       value = function() { i <- 0:23; angle <- 2*pi*i/24; x1 <- sin(angle); x2 <- cos(angle); x <- cbind(x1, x2); y <- 2.5 + 1.1*x1 - 0.6*x2 + 0.04*sin(3*angle); foldid <- (0:23) %% 4 + 1; cv <- glmnet::cv.glmnet(x, y, family = "gaussian", alpha = 0.5, nlambda = 6, lambda.min.ratio = 0.05, foldid = foldid); c(cv$lambda, cv$cvm, cv$cvsd, cv$lambda.min, cv$lambda.1se) })
+       value = function() { i <- 0:23; angle <- 2*pi*i/24; x1 <- sin(angle); x2 <- cos(angle); x <- cbind(x1, x2); y <- 2.5 + 1.1*x1 - 0.6*x2 + 0.04*sin(3*angle); foldid <- (0:23) %% 4 + 1; cv <- glmnet::cv.glmnet(x, y, family = "gaussian", alpha = 0.5, nlambda = 6, lambda.min.ratio = 0.05, foldid = foldid); c(cv$lambda, cv$cvm, cv$cvsd, cv$lambda.min, cv$lambda.1se) }),
+  list(id = "tamhane-t2-demo", title = "Tamhane's T2 all-pairs comparisons",
+       value = function() local({ z <- PMCMRplus::tamhaneT2Test(list(c(12, 13, 14, 15), c(15, 16, 17, 18), c(18, 19, 20, 21))); c(z$p.value[1, 1], z$p.value[2, 1], z$p.value[2, 2]) })),
+  list(id = "page-test-demo", title = "Page's ordered aligned rank-sum test",
+       value = function() local({ y <- matrix(c(3, 5, 4, 4, 6, 5, 2, 4, 3, 5, 7, 6, 4, 6, 5), ncol = 3, byrow = TRUE); z <- PMCMRplus::pageTest(y, alternative = "greater"); c(z$statistic, z$p.value) })),
+  list(id = "grubbs-type10-demo", title = "Grubbs' test and its type-10 distribution",
+       value = function() local({ x <- c(10.1, 10.3, 9.9, 10.2, 10.0, 10.4, 9.8, 11.2); z <- outliers::grubbs.test(x, type = 10); c(unname(z$statistic), z$p.value, outliers::pgrubbs(unname(z$statistic[1]), length(x), type = 10), outliers::qgrubbs(0.95, length(x), type = 10)) })),
+  list(id = "manova-two-responses-demo", title = "Sequential MANOVA with four multivariate statistics",
+       value = function() local({ d <- data.frame(group = factor(rep(c("A", "B", "C"), each = 4)), y1 = c(2.1, 2.4, 1.8, 2.2, 4.2, 4.5, 3.9, 4.3, 6.1, 6.4, 5.8, 6.2), y2 = c(1.2, 1.5, 1.0, 1.4, 2.8, 2.5, 3.0, 2.7, 3.9, 4.2, 3.7, 4.0)); f <- stats::manova(cbind(y1, y2) ~ group, data = d); p <- summary(f, test = "Pillai")$stats; w <- summary(f, test = "Wilks")$stats; h <- summary(f, test = "Hotelling-Lawley")$stats; r <- summary(f, test = "Roy")$stats; c(p[1, "Pillai"], p[1, "approx F"], p[1, "Pr(>F)"], w[1, "Wilks"], h[1, "Hotelling-Lawley"], r[1, "Roy"]) })),
+  list(id = "lda-posterior-demo", title = "Linear discriminant analysis: posterior class probabilities",
+       value = function() local({ x <- matrix(c(1, 2, 1.2, 1.8, 0.8, 2.1, 1.1, 2.2, 3, 3, 3.2, 2.8, 2.8, 3.1, 3.1, 3.2, 5, 1, 5.2, 0.8, 4.8, 1.1, 5.1, 1.2), ncol = 2, byrow = TRUE); g <- factor(rep(c("A", "B", "C"), each = 4)); f <- MASS::lda(x, g); p <- predict(f, newdata = matrix(c(1, 2, 3, 3, 5, 1), ncol = 2, byrow = TRUE)); as.vector(t(p$posterior)) })),
+  list(id = "cancor-demo", title = "Canonical correlations between two sets of measurements",
+       value = function() local({ x <- matrix(c(1, 2, 2, 1, 3, 4, 4, 3, 5, 6, 6, 5, 7, 8, 8, 7), ncol = 2, byrow = TRUE); y <- matrix(c(2, 1, 1, 3, 4, 2, 3, 5, 6, 4, 5, 7, 8, 6, 7, 9), ncol = 2, byrow = TRUE); stats::cancor(x, y)$cor }))
 )
 
 if (!exists(".rstats_oracle")) {

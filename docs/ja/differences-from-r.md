@@ -1651,3 +1651,28 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
 - **局所解のプロファイル:** 計数がとても少ない Poisson では、Laplace 近似の当てはめが局所解になることがあります (点検で、
   切片を低く固定すると当てはめより小さい逸脱度になった)。R も rStats.js も警告を出さず、そこでの切片の下端には意味が
   ありません。両者の値は違います (−4.16 と −3.88)。
+
+
+## 小さな検定: Tamhane の T2・Page の検定・Grubbs の検定
+
+照合先は PMCMRplus と outliers です。各関数の詳細と決定は
+[oracle/tamhane-behaviour.md](../../oracle/tamhane-behaviour.md)、
+[oracle/page-behaviour.md](../../oracle/page-behaviour.md)、
+[oracle/grubbs-behaviour.md](../../oracle/grubbs-behaviour.md) にあります。
+
+- **非常に大きな尺度での Tamhane の T2:** rStats.js は Welch–Satterthwaite の自由度を求める前に群のモーメントを尺度化します。そのため観測値を 1e100 倍しても自由度と p 値は変わりません。R は計算がオーバーフローし、該当ケースの p 値が NaN になります。
+- **Tamhane の T2 の文字列ラベル:** rStats.js は文字列の群ラベルを受け付け、因子の水準順 (文字列はコードポイント順) に並べます。この呼び出しで R は文字列ラベルを拒否します。
+- **Page の検定の欠測値:** ブロック内に欠測値がある場合、rStats.js はエラーにします。R はそのブロック内で欠測値を最後の順位として扱います。
+- **Grubbs 検定の type:** 1.9.0 で対応するのは type 10 だけです。type 11 と 20 は明示的に未対応です。これらの R の近似値は、実装に使った公開出力から再現できません。type 10 以外を指定すると、検定と p/q 関数はエラーになります。
+- **type 10 の Grubbs 検定の小さな p 値:** rStats.js は 1 − F として計算せず、小さな裾の確率を直接計算するため、非常に小さい確率も丸め落としません。
+- **定数の Grubbs 標本:** 統計量と p 値は定義されないため、rStats.js は p 値を NaN にします。R は 0 を返します。この 1.9.0 の検定で R の不具合と判断したのは、このケースだけです。
+
+## 多変量解析: manova・lda・cancor
+
+照合先は R の stats と MASS です。詳細と決定は
+[oracle/manova-behaviour.md](../../oracle/manova-behaviour.md)、
+[oracle/lda-behaviour.md](../../oracle/lda-behaviour.md)、
+[oracle/cancor-behaviour.md](../../oracle/cancor-behaviour.md) にあります。
+
+- **LDA の判別方向:** 特異ベクトルの符号は一意に決まりません。rStats.js は、各方向で絶対値が最大の係数を正にする規則 (同点では先の係数) で符号を決定します。R は同じ方向を反対の符号で返すことがあります。予測クラスと事後確率は変わりません。
+- **正準相関係数の符号:** 正準相関の各組は、x と y の係数列を同時に反転しても同じです。rStats.js は x の係数列で絶対値が最大の係数を正にし (同点では先の係数)、対応する y の符号は相関が正になるようにします。R は両方の係数列を反転した組を返すことがあります。正準相関自体は変わりません。

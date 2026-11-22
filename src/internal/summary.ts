@@ -257,8 +257,13 @@ export function centered(x: readonly number[]): { d: DD[]; k: number; mean: DD }
 export function standardize(x: readonly number[]): number[] {
   const c = x.length < 2 ? undefined : centered(x);
   if (c === undefined) return x.map(() => NaN);
-  const sd = Math.sqrt(ddDivNum(crossSum(c.d, c.d), x.length - 1)[0]);
-  return c.d.map((v) => (sd > 0 ? v[0] / sd : NaN));
+  const variance = ddDivNum(crossSum(c.d, c.d), x.length - 1);
+  const sd = Math.sqrt(variance[0] + variance[1]);
+  return c.d.map((v) => {
+    if (!(sd > 0)) return NaN;
+    const z = ddDivNum(v, sd);
+    return z[0] + z[1];
+  });
 }
 
 /**

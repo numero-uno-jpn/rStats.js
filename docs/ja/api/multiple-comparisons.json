@@ -314,6 +314,16 @@
     "en": "Options for {@link pairwiseWilcoxTest}: those of the comparisons themselves, as for `wilcoxTest`.",
     "ja": "{@link pairwiseWilcoxTest} のオプション: 比較そのもののオプション (`wilcoxTest` と同じ)。"
   },
+  "TamhaneT2Options#summary": {
+    "hash": "5dcc501565e9",
+    "en": "Options of Tamhane's T2 and T2' all-pairs tests.",
+    "ja": "Tamhane の T2 および T2' の全対比較検定のオプション。"
+  },
+  "TamhaneT2Options.welch#summary": {
+    "hash": "c65494e09f46",
+    "en": "Use Welch–Satterthwaite degrees of freedom (T2); false uses n_i + n_j − 2 (T2'). Default true.",
+    "ja": "Welch–Satterthwaite の自由度を使用します (T2)。false の場合は n_i + n_j − 2 を使用します (T2')。既定: true。"
+  },
   "TukeyHSD#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -563,6 +573,26 @@
     "hash": "60f99285897e",
     "en": "Pairwise Wilcoxon rank sum (or signed rank, with `paired`) tests between groups, with adjusted p-values. Equivalent\nto R's `pairwise.wilcox.test()`. `method` is that of the last comparison, as in R.",
     "ja": "調整済みの p 値を用いた、群どうしのペアごとの比較です。Wilcoxon の順位和検定を行います (`paired` を指定すると、Wilcoxon の符号付き順位検定)。R の\n`pairwise.wilcox.test()` と同等です。`method` の値は最後の比較のものになり、R と同じです。"
+  },
+  "tamhaneT2Test#@param g": {
+    "hash": "fc2672d87677",
+    "en": "Group labels parallel to x; omit for a list of samples.",
+    "ja": "群のラベルです。x と対応させます。標本のリストを渡す場合は省略します。"
+  },
+  "tamhaneT2Test#@param options": {
+    "hash": "5cfbfc213028",
+    "en": "Set `welch: false` for T2'.",
+    "ja": "T2' の場合は `welch: false` を設定します。"
+  },
+  "tamhaneT2Test#@param x": {
+    "hash": "ffddc34be79d",
+    "en": "Observations, or a list of samples (one per group).",
+    "ja": "観測値、または標本のリスト (群ごとに 1 つ)。"
+  },
+  "tamhaneT2Test#summary": {
+    "hash": "0fb7dbcf2f9f",
+    "en": "Tamhane's T2 (Welch–Satterthwaite df) or T2' (pooled df) all-pairs test of means. Equivalent to\n`PMCMRplus::tamhaneT2Test()` in R. Character and numeric group labels are ordered as R's factor() levels; list input\nuses the one-based list positions as group labels.",
+    "ja": "Tamhane の T2 (Welch–Satterthwaite の自由度) または T2' (併合自由度) による平均の全対比較検定です。R の\n`PMCMRplus::tamhaneT2Test()` と同等です。文字列および数値の群ラベルは、R の factor() の水準と同じ順序に並びます。リスト入力では、\n1 から始まるリスト内の位置を群ラベルとして使用します。"
   },
   "tukeyTest#@example": {
     "hash": "f2167be5edf2",

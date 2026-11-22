@@ -1,5 +1,5 @@
-// rStats.js demo: loads the library (jsDelivr by default, ../dist/rstats.js with ?src=local), mixed models and regression,
-// which are separate area bundles (dist/mixed.js and dist/regression.js), and builds the tabs.
+// rStats.js demo: loads the library (jsDelivr by default, ../dist/rstats.js with ?src=local), mixed models, regression
+// and multivariate analysis, which are separate area bundles, and builds the tabs.
 
 import { applyI18n, getLang, initLang, setLang, t } from "./i18n.js";
 import { h, setChildren, storage } from "./util.js";
@@ -27,6 +27,8 @@ const libUrl = `${distUrl}rstats.js`;
 const mixedUrl = `${distUrl}mixed.js`;
 /** The regression area (polr, rlm, nls): a separate file, since it is not in dist/rstats.js */
 const regressionUrl = `${distUrl}regression.js`;
+/** The multivariate area (manova, lda, cancor): a separate file, since it is not in dist/rstats.js */
+const multivariateUrl = `${distUrl}multivariate.js`;
 
 const ALL_TABS = ["distributions", "descriptive", "special", "random", "tests", "linalg", "numerics", "compare"];
 /** Tabs that need functions newer than some builds: shown only when the loaded build has them */
@@ -201,17 +203,21 @@ async function start() {
   let lib;
   let mixed;
   let regression;
+  let multivariate;
   try {
-    [lib, mixed, regression] = await Promise.all([import(libUrl), import(mixedUrl), import(regressionUrl)]);
+    [lib, mixed, regression, multivariate] = await Promise.all([
+      import(libUrl), import(mixedUrl), import(regressionUrl), import(multivariateUrl),
+    ]);
   } catch (err) {
     showLoadError(err);
     return;
   }
   const mixedNames = new Set(Object.keys(mixed));
   const regressionNames = new Set(Object.keys(regression));
+  const multivariateNames = new Set(Object.keys(multivariate));
   const [examplesFile, rResults] = await Promise.all([fetchJSON("examples.json"), fetchJSON("r-results.json")]);
   const ctx = {
-    lib: { ...lib, ...mixed, ...regression },
+    lib: { ...lib, ...mixed, ...regression, ...multivariate },
     examples: Array.isArray(examplesFile?.examples) ? examplesFile.examples : null,
     rResults: rResults?.results ? rResults : null,
     refreshers: [],
@@ -219,11 +225,13 @@ async function start() {
       const unique = [...new Set(names)];
       const fromMixed = unique.filter((n) => mixedNames.has(n));
       const fromRegression = unique.filter((n) => regressionNames.has(n));
-      const fromMain = unique.filter((n) => !mixedNames.has(n) && !regressionNames.has(n));
+      const fromMultivariate = unique.filter((n) => multivariateNames.has(n));
+      const fromMain = unique.filter((n) => !mixedNames.has(n) && !regressionNames.has(n) && !multivariateNames.has(n));
       return [
         ...(fromMain.length ? [`const { ${fromMain.join(", ")} } = await import("${libUrl}");`] : []),
         ...(fromMixed.length ? [`const { ${fromMixed.join(", ")} } = await import("${mixedUrl}");`] : []),
         ...(fromRegression.length ? [`const { ${fromRegression.join(", ")} } = await import("${regressionUrl}");`] : []),
+        ...(fromMultivariate.length ? [`const { ${fromMultivariate.join(", ")} } = await import("${multivariateUrl}");`] : []),
       ].join("\n");
     },
   };

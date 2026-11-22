@@ -78,8 +78,8 @@ export {
 export { mcnemarTest, type McnemarTestOptions, type McnemarTestResult } from "../htest/mcnemarTest.js";
 export { varTest, bartlettTest, type VarTestOptions, type VarTestResult, type BartlettTestResult } from "../htest/varTest.js";
 export {
-  kruskalTest, friedmanTest, cochranQTest, quadeTest, flignerTest, moodTest,
-  type ChisqStatTestResult, type QuadeTestResult, type MoodTestOptions,
+  kruskalTest, friedmanTest, cochranQTest, quadeTest, flignerTest, moodTest, pageTest,
+  type ChisqStatTestResult, type QuadeTestResult, type MoodTestOptions, type PageTestOptions,
 } from "../htest/rankTests.js";
 export { onewayTest, shapiroTest, type OnewayTestOptions, type OnewayTestResult } from "../htest/onewayTest.js";
 export { mantelhaenTest, type MantelhaenTestOptions, type MantelhaenTestResult } from "../htest/mantelhaenTest.js";
@@ -395,3 +395,7 @@ export {
   type ConfintRmaOptions, type PredictRmaOptions, type RegtestOptions,
   type ModeratorMatrix, type NumericMatrix,
 } from "../models/metaAnalysis.js";
+
+export { tamhaneT2Test, type TamhaneT2Options } from "../htest/multipleComparisons.js";
+
+export { grubbsTest, pgrubbs, qgrubbs, type GrubbsTestOptions, type GrubbsTestResult } from "../htest/grubbs.js";
