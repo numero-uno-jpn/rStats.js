@@ -67,7 +67,7 @@ and effect measures with their confidence intervals, not only p-values. The list
 a statistics web application for medical and psychological research (2026-11-06). In order of priority; the R
 function or package that each item is checked against is given in brackets.
 
-2. **Remaining:** non-metric multidimensional scaling (MASS `isoMDS`); correspondence analysis (ca); time series [`acf`, `arima`].
+2. **Remaining:** non-metric multidimensional scaling (MASS `isoMDS`, Sammon mapping); correspondence analysis (ca); time series [`acf`, `arima`].
 
 Mixed models continued (the former item 1) were done for 1.6.0: `confintLmer`, `confintGlmer`, `simulateLmer` and
 `simulateGlmer` after lme4's `confint` (profile likelihood and Wald) and `simulate`. Left out, as decided in the

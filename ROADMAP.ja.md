@@ -66,7 +66,7 @@ SciPy (`scipy.stats`、`scipy.special`、`scipy.linalg`) は移植元のコー�
 指標とその信頼区間を出せることを重視します。この一覧は、医学・心理学の研究向けの統計ウェブアプリの手法と
 照らし合わせて作りました (2026-11-06)。優先度の高い順です。括弧内は、各項目の照合先の R の関数またはパッケージです。
 
-2. **残り:** 非計量多次元尺度法 (MASS `isoMDS`)、対応分析 (ca)、時系列 [`acf`、`arima`]。
+2. **残り:** 非計量多次元尺度法 (MASS `isoMDS`・Sammon 法)、対応分析 (ca)、時系列 [`acf`・`arima`]。
 
 混合モデルの続き (以前の項目 1) は 1.6.0 に向けて済ませました: lme4 の `confint` (プロファイル尤度と Wald) と
 `simulate` に合わせた `confintLmer`、`confintGlmer`、`simulateLmer`、`simulateGlmer`。
