@@ -45,8 +45,10 @@ pg_result <- PMCMRplus::pageTest(pg_matrix, alternative = "greater")
 gb_x <- c(seq(-1, 1, length.out = 199), 300)
 gb_result <- tryCatch(outliers::grubbs.test(gb_x, type = 10),
                       error = function(e) list(error = conditionMessage(e)))
-gb_cdf <- tryCatch(outliers::pgrubbs(c(0, 0.5, 1, 2, 5, Inf), n = 10, type = 10),
-                   error = function(e) list(error = conditionMessage(e)))
+gb_cdf <- lapply(c(0, 0.5, 1, 2, 5, Inf), function(qv) {
+  tryCatch(suppressWarnings(outliers::pgrubbs(qv, n = 10, type = 10)),
+           error = function(e) list(error = conditionMessage(e)))
+})
 gb_quantile <- lapply(c(0, 1e-16, 1e-8, 0.5, 1 - 1e-15, 1), function(pp) {
   tryCatch(suppressWarnings(outliers::qgrubbs(pp, n = 10, type = 10)),
            error = function(e) list(error = conditionMessage(e)))
