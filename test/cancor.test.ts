@@ -79,7 +79,7 @@ describe("cancor", () => {
   it("matches the remaining mtcars canonical-correlation fixtures", () => {
     const col = (j: number) => mtRows.map((r) => r[j]!);
     const cases = [
-      ["cancor_one_x", col(5).map((v) => [v]), [col(0), col(3), col(6)], ["wt"], ["mpg", "hp", "qsec"]],
+      ["cancor_one_x", col(5).map((v) => [v]), mtRows.map((r) => [r[0]!, r[3]!, r[6]!]), ["wt"], ["mpg", "hp", "qsec"]],
       ["cancor_more_x_than_y", mtRows.map((r) => [r[5]!, r[2]!, r[4]!, r[6]!]), mtRows.map((r) => [r[0]!, r[3]!]), ["wt", "disp", "drat", "qsec"], ["mpg", "hp"]],
       ["cancor_collinear", mtRows.map((r) => [r[5]!, r[2]!, r[5]! + r[2]!]), mtRows.map((r) => [r[0]!, r[3]!]), ["a", "b", "c"], ["mpg", "hp"]],
       ["cancor_n_small", mtRows.slice(0, 4).map((r) => [r[5]!, r[2]!, r[4]!]), mtRows.slice(0, 4).map((r) => [r[0]!, r[3]!]), ["wt", "disp", "drat"], ["mpg", "hp"]],
@@ -109,13 +109,13 @@ describe("cancor", () => {
   });
   it("supports uncentered and explicitly centered vectors", () => {
     const r = cancor([1, 2, 4, 8, 9], [2, 4, 5, 7, 12], { xcenter: false, ycenter: [1] });
-    expect(r.xcenter).toEqual([0]);
-    expect(r.ycenter).toEqual([1]);
+    expect(Array.isArray(r.xcenter) ? r.xcenter : [r.xcenter]).toEqual([0]);
+    expect(Array.isArray(r.ycenter) ? r.ycenter : [r.ycenter]).toEqual([1]);
     expect(Number.isFinite(r.cor)).toBe(true);
   });
   it("reduces collinear columns and is invariant to response scaling", () => {
     const xx = x.map((r) => [r[0]!, r[1]!, r[0]! + r[1]!]);
-    const r = cancor(xx, y);
+    const r = cancor(xx, y, { xNames: ["x1", "x2", "x3"] });
     expect(r.xcoef.rows).toHaveLength(2);
     const scaled = cancor(x.map((r) => r.map((v) => v * 1e100)), y.map((r) => r.map((v) => v * 1e-100)));
     const scaledFirst = Array.isArray(scaled.cor) ? scaled.cor[0]! : scaled.cor;
