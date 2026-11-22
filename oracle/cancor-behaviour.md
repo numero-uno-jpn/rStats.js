@@ -1,54 +1,25 @@
 # Canonical correlation analysis
 
-Issue #549. Reference: R 4.6.2 \`stats::cancor\`. Evidence: Hotelling (1936); Mardia, Kent & Bibby, *Multivariate Analysis*; public R outputs and independent Cholesky/SVD calculations. No R source was inspected.
+Issue #549. Reference R 4.6.2 stats::cancor. Evidence: Hotelling (1936); Mardia, Kent & Bibby, Multivariate Analysis; public outputs and independent calculations in `experiments/multivariate19-stage1-lda-cancor.R`; complete public-call cases in `experiments/multivariate19.R`. No R source or fit internals were inspected.
 
-## Canonical roots and coefficients
+## Definition and normalization
 
-For centered or explicitly centered matrices \(X_c,Y_c\), define
+For centered/user-centered Xc,Yc, define Sxx=Xc'Xc, Syy=Yc'Yc, Sxy=Xc'Yc. Canonical correlations are nonzero singular values of `Sxx^(−1/2) Sxy Syy^(−1/2)` on retained column spaces, equivalently square roots of nonzero eigenvalues of `Sxx⁻¹ Sxy Syy⁻¹ Syx`. Coefficients a_j,b_j satisfy `a_j'Sxx a_j=1`, `b_j'Syy b_j=1`; paired signs make the sample canonical correlation nonnegative. Each pair retains simultaneous sign indeterminacy: (a,b) and (−a,−b) represent the same canonical variates.
 
-\[
-S_{xx}=X_c^\mathsf TX_c,\quad S_{yy}=Y_c^\mathsf TY_c,\quad
-S_{xy}=X_c^\mathsf TY_c.
-\]
+## Centers
 
-Let \(R_x^\mathsf TR_x=S_{xx}\) and \(R_y^\mathsf TR_y=S_{yy}\). The singular values of
+TRUE subtracts column means; FALSE uses zero centers; numeric vectors specify explicit centers. Returned centers are those used. Vector inputs are one-column matrices.
 
-\[
-C=R_x^{-\mathsf T}S_{xy}R_y^{-1}=UDV^\mathsf T
-\]
+## Numerical verification
 
-are the canonical correlations. The coefficient matrices are
-
-\[
-xcoef=R_x^{-1}U,\qquad ycoef=R_y^{-1}V.
-\]
-
-They satisfy
-
-\[
-xcoef^\mathsf TS_{xx}xcoef=I,\quad
-ycoef^\mathsf TS_{yy}ycoef=I,\quad
-xcoef^\mathsf TS_{xy}ycoef=D.
-\]
-
-Normalization uses cross-products, not cross-products divided by \(n-1\). Each canonical pair's x/y coefficient signs may be flipped together; the paired sign is arbitrary while correlation remains nonnegative.
-
-For \`xcenter=TRUE\` / \`ycenter=TRUE\`, subtract respective column means; FALSE uses zero centers; numeric vectors supply explicit centers. Vector inputs are one-column matrices.
-
-## R-observed contract and numerical checks
-
-- The number of canonical pairs is at most \(\min(\operatorname{rank}(X_c),\operatorname{rank}(Y_c))\). Collinear columns are reduced; center vectors retain original input dimensions.
-- All 10 cases were checked: \`cancor_lifecycle\`, \`cancor_lifecycle_nocenter\`, \`cancor_lifecycle_given_center\`, \`cancor_iris\`, \`cancor_one_x\`, \`cancor_more_x\`, \`cancor_collinear\`, \`cancor_n_small\`, \`cancor_scale\`, and \`cancor_vectors\`.
-- Canonical correlations agree with R to maximum absolute difference \(2.22\cdot10^{-15}\). All xcoef/ycoef entries agree after paired sign flips; maximum absolute coefficient difference \(1.53\cdot10^{-14}\) (ordinary cases at most \(3.3\cdot10^{-15}\)). For the \(10^{100}/10^{-100}\) scale case, relative coefficient errors are \(3.6\cdot10^{-15}\) and \(3.4\cdot10^{-15}\).
-- \(xcoef^\mathsf TS_{xx}xcoef\) and \(ycoef^\mathsf TS_{yy}ycoef\) are identity. The user-provided local check independently confirms LifeCycleSavings roots \(0.824796611247416,0.365276151485138\).
-- In \`cancor_n_small\`, two roots are 1 because the sample is underdetermined; a near-zero coefficient makes relative error uninformative, but absolute coefficient error is \(1.53\cdot10^{-14}\). Collinear and vector cases are included.
+All 10 cases compared: `cancor_lifecycle`, `cancor_lifecycle_nocenter`, `cancor_lifecycle_given_center`, `cancor_iris`, `cancor_one_x`, `cancor_more_x_than_y`, `cancor_collinear`, `cancor_n_small`, `cancor_scale`, `cancor_vectors`. Correlation max absolute difference ≤2.2e−15. After simultaneous pairwise sign alignment, all xcoef/ycoef entries differ by ≤1.53e−14 (ordinary cases ≤3.3e−15); both coefficient metric products are identity to floating-point precision. Centers were also compared. In n-small, sample correlations can equal 1; collinear columns reduce coefficient rows while centers retain original columns. `cancor_na` errors with `NA/NaN/Inf in foreign function call (arg 1)`.
 
 ## Decisions for the user
 
-1. Default both center options to TRUE; accept FALSE or finite vectors of matching dimension.
-2. Use rank-revealing decomposition and return only nonzero canonical pairs; preserve original variable names and full center vectors.
-3. Normalize with unscaled cross-products so each coefficient vector has unit cross-product norm.
-4. Preserve SVD signs as deterministic convention; document that paired x/y sign flips are mathematically equivalent.
+1. Default both centers TRUE; accept FALSE or finite vectors of matching dimensions.
+2. Use rank-revealing decomposition; return only nonzero pairs while preserving original names and centers.
+3. Normalize with unscaled cross-products, not covariance matrices divided by n−1; this convention matches R coefficient entries.
+4. Treat signs as an equivalence class: a pair may differ by simultaneous sign reversal; do not promise a universal deterministic rule reproducing R internals.
 
 ## rStats.js's choices
 
