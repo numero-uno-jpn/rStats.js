@@ -25,7 +25,7 @@ function compare(key: string, actual: IsoMDSResult, stressTol = 1e-8): void {
   const error = Math.abs(actual.stress - e);
   maxStressError = Math.max(maxStressError, error);
   if (key.startsWith("isomds_tight_")) {
-    const expectedMax = points.reduce((m: number, row: unknown[]) => row.reduce((v, x) => Math.max(v, Math.abs(num(x))), m), 0);
+    const expectedMax = points.reduce((m: number, row: unknown[]) => row.reduce<number>((v, x) => Math.max(v, Math.abs(num(x))), m), 0);
     const dim = points[0]?.length ?? 0;
     const actualPoints = actual.points.values.map((row) => [...row]);
     if (key.includes("_p1") || key.includes("_p3")) {
