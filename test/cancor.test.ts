@@ -9,7 +9,29 @@ function cross(a: number[][]): number[][] {
 const irisRows = JSON.parse(readFileSync(new URL("./fixtures/iris.json", import.meta.url), "utf8")) as [number, number, number, number, string][];
 const cancorFixture = JSON.parse(readFileSync(new URL("./fixtures/cancor.json", import.meta.url), "utf8")) as Record<string, any>;
 const mtRows = JSON.parse(readFileSync(new URL("./fixtures/mtcars.json", import.meta.url), "utf8")) as number[][];
-function compareCancor(actual: ReturnType<typeof cancor>, expected: any): void {
+function scoreProjector(scores: number[][]): number[][] {
+  const gram = cross(scores), n = gram.length;
+  const aug = gram.map((row, i) => [...row, ...Array.from({ length: n }, (_, j) => i === j ? 1 : 0)]);
+  for (let k = 0; k < n; k++) {
+    let pivot = k;
+    for (let i = k + 1; i < n; i++) if (Math.abs(aug[i]![k]!) > Math.abs(aug[pivot]![k]!)) pivot = i;
+    [aug[k], aug[pivot]] = [aug[pivot]!, aug[k]!];
+    const d = aug[k]![k]!;
+    for (let j = 0; j < 2 * n; j++) aug[k]![j]! /= d;
+    for (let i = 0; i < n; i++) if (i !== k) {
+      const f = aug[i]![k]!;
+      for (let j = 0; j < 2 * n; j++) aug[i]![j]! -= f * aug[k]![j]!;
+    }
+  }
+  const inv = aug.map((row) => row.slice(n));
+  return scores.map((a) => scores.map((b) => {
+    let value = 0;
+    for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) value += a[i]! * inv[i]![j]! * b[j]!;
+    return value;
+  }));
+}
+
+function compareCancor(actual: ReturnType<typeof cancor>, expected: any, x?: number[][], y?: number[][]): void {
   const cor = Array.isArray(actual.cor) ? actual.cor : [actual.cor];
   const expectedCor = Array.isArray(expected.cor) ? expected.cor : [expected.cor];
   expect(cor.length).toBe(expectedCor.length);
@@ -29,6 +51,21 @@ function compareCancor(actual: ReturnType<typeof cancor>, expected: any): void {
   const expectedY = expected.ycoef.values.map((row: number[]) => row.slice(0, ncan));
   expect(actual.xcoef.values[0]!.length).toBe(ncan);
   expect(actual.ycoef.values[0]!.length).toBe(ncan);
+  const repeated = expectedCor.some((v: number, i: number) => i > 0 && Math.abs(v - expectedCor[i - 1]!) <= 1e-12);
+  if (repeated && x !== undefined && y !== undefined) {
+    const centeredScores = (data: number[][], center: number[], coef: number[][]) => {
+      const centered = data.map((row) => row.map((v, j) => v - center[j]!));
+      return centered.map((row) => Array.from({ length: ncan }, (_, k) =>
+        row.reduce((s, v, j) => s + v * coef[j]![k]!, 0)));
+    };
+    const actualX = centeredScores(x, xc, actual.xcoef.values);
+    const expectedXScores = centeredScores(x, xce, expectedX);
+    const actualY = centeredScores(y, yc, actual.ycoef.values);
+    const expectedYScores = centeredScores(y, yce, expectedY);
+    expectMatrixClose(scoreProjector(actualX), scoreProjector(expectedXScores), 1e-8);
+    expectMatrixClose(scoreProjector(actualY), scoreProjector(expectedYScores), 1e-8);
+    return;
+  }
   const sx = expectedX[0]!.map((_: number, j: number) => {
     const dot = actual.xcoef.values.reduce((s, row, i) => s + row[j]! * expectedX[i]![j]!, 0);
     return dot < 0 ? -1 : 1;
@@ -89,7 +126,7 @@ describe("cancor", () => {
       ["cancor_n_small", mtRows.slice(0, 4).map((r) => [r[5]!, r[2]!, r[4]!]), mtRows.slice(0, 4).map((r) => [r[0]!, r[3]!]), ["wt", "disp", "drat"], ["mpg", "hp"]],
     ] as const;
     for (const [key, x, y, xNames, yNames] of cases) {
-      compareCancor(cancor(x, y, { xNames, yNames }), cancorFixture[key].value);
+      compareCancor(cancor(x, y, { xNames, yNames }), cancorFixture[key].value, x, y);
     }
     compareCancor(cancor(col(5), col(0)), cancorFixture.cancor_vectors.value);
   });
