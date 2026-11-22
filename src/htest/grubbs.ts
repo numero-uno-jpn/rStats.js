@@ -39,16 +39,21 @@ export interface GrubbsTestResult {
   warnings: string[];
 }
 
-/** Pearson–Sekar CDF of the type-10 Grubbs statistic. */
-function pgrubbs10(q: number, n: number): number {
+/** Upper tail probability of the type-10 Grubbs statistic. */
+function grubbsTail10(q: number, n: number): number {
   if (Number.isNaN(q) || Number.isNaN(n)) return NaN;
   if (!Number.isInteger(n) || n < 3) return NaN;
-  if (q <= 0) return 0;
+  if (q <= 0) return 1;
   const den = (n - 1) ** 2 - n * q * q;
-  if (den <= 0) return 1;
+  if (den <= 0) return 0;
   const t = q * Math.sqrt((n * (n - 2)) / den);
-  const p = 1 - n * pt(-t, n - 2);
-  return Math.max(0, Math.min(1, p));
+  return Math.min(1, n * pt(t, n - 2, { lowerTail: false }));
+}
+
+/** Pearson–Sekar CDF of the type-10 Grubbs statistic. */
+function pgrubbs10(q: number, n: number): number {
+  const tail = grubbsTail10(q, n);
+  return Number.isNaN(tail) ? NaN : 1 - tail;
 }
 
 /**
@@ -128,8 +133,9 @@ export function grubbsTest(x: Sample, options: GrubbsTestOptions = {}): GrubbsTe
   rest.splice(index, 1);
   const moments = groupMoments([values, rest]);
   const U = ((n - 2) * moments.variance[1]!) / ((n - 1) * moments.variance[0]!);
-  const cdf = pgrubbs10(G, n);
-  const pValue = Number.isNaN(G) ? NaN : twoSided ? 2 * Math.min(cdf, 1 - cdf) : 1 - cdf;
+  const tail = grubbsTail10(G, n);
+  const cdf = 1 - tail;
+  const pValue = Number.isNaN(G) ? NaN : Math.min(1, twoSided ? 2 * Math.min(cdf, tail) : tail);
   const direction = opposite ? "lowest" : "highest";
   return {
     method: "Grubbs test for one outlier",
