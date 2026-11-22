@@ -52,8 +52,10 @@ describe("cancor", () => {
     expect(Array.isArray(r.cor) ? r.cor : [r.cor]).toHaveLength(2);
     expect(r.xcoef.rows).toEqual(["a", "b"]);
     expect(r.ycoef.rows).toEqual(["c", "d"]);
-    const xc = x.map((row) => row.map((v, j) => v - r.xcenter[j]!));
-    const yc = y.map((row) => row.map((v, j) => v - r.ycenter[j]!));
+    const xcenter = Array.isArray(r.xcenter) ? r.xcenter : [r.xcenter];
+    const ycenter = Array.isArray(r.ycenter) ? r.ycenter : [r.ycenter];
+    const xc = x.map((row) => row.map((v, j) => v - xcenter[j]!));
+    const yc = y.map((row) => row.map((v, j) => v - ycenter[j]!));
     const sx = cross(xc), sy = cross(yc);
     const a0 = r.xcoef.values.map((row) => row[0]!);
     const b0 = r.ycoef.values.map((row) => row[0]!);
