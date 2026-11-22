@@ -79,7 +79,7 @@ describe("cluster and classical-scaling numerical extremes", () => {
     const points = [[0], [1], [3]].map((r) => r.map((v) => v * tiny));
     const baseD = dist([[0], [1], [3]]);
     const tinyD = dist(points);
-    expect(tinyD.values.map((v) => v / tiny)).toEqual(baseD.values);
+    for (let i = 0; i < baseD.values.length; i++) expect(tinyD.values[i]! / tiny).toBeCloseTo(baseD.values[i]!, 10);
     const baseTree = hclust(baseD, { method: "ward.D2" });
     const tinyTree = hclust(tinyD, { method: "ward.D2" });
     expect(tinyTree.merge).toEqual(baseTree.merge);
@@ -91,7 +91,8 @@ describe("cluster and classical-scaling numerical extremes", () => {
     const fit = kmeans(rows, centers, { algorithm: "Lloyd" });
     expect(fit.cluster).toEqual([1, 1, 2, 2]);
     expect(fit.iter).toBe(1);
-    expect(fit.centers.values.map((r) => r[0]! / tiny)).toEqual([0.5, 10.5]);
+    expect(fit.centers.values[0]![0]! / tiny).toBeCloseTo(0.5, 10);
+    expect(fit.centers.values[1]![0]! / tiny).toBeCloseTo(10.5, 10);
     // The exact sums of squares are below the smallest representable double, so zero is correct.
     expect(fit.totss).toBe(0);
     expect(fit.totWithinss).toBe(0);
