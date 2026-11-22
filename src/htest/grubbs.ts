@@ -112,7 +112,10 @@ export function grubbsTest(x: Sample, options: GrubbsTestOptions = {}): GrubbsTe
   if (n < 3) throw new RangeError("sample size must be at least 3");
   const opposite = options.opposite ?? false;
   const twoSided = options.twoSided ?? false;
-  const extreme = opposite ? Math.min(...values) : Math.max(...values);
+  let extreme = values[0]!;
+  for (let i = 1; i < values.length; i++) {
+    if (opposite ? values[i]! < extreme : values[i]! > extreme) extreme = values[i]!;
+  }
   const z = standardize(values);
   const index = values.indexOf(extreme);
   const G = Math.abs(z[index]!);
