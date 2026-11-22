@@ -20,10 +20,10 @@ for (alg in c("Hartigan-Wong", "Lloyd", "Forgy", "MacQueen")) out[[paste0("midpo
        tot.withinss = fit$tot.withinss, iter = fit$iter, ifault = fit$ifault)
 })
 xx <- matrix(0:3, ncol = 1)
-for (se in 1:8) out[[paste0("equal_best_start_", se)]] <- run({
-  set.seed(se)
+for (seed_value in 1:8) out[[paste0("equal_best_start_", seed_value)]] <- run({
+  seed_valuet.seed_valueed(seed_value)
   first_draw <- sample.int(nrow(xx), 2)
-  set.seed(se)
+  seed_valuet.seed_valueed(seed_value)
   fit <- kmeans(xx, 2, nstart = 8)
   list(first_draw = first_draw, cluster = fit$cluster, centers = tab(fit$centers),
        tot.withinss = fit$tot.withinss, iter = fit$iter, tail = runif(2))
