@@ -4,5 +4,5 @@
 # experiments/multivariate19-stage1-grubbs.R
 # experiments/multivariate19-stage1-manova.R
 # experiments/multivariate19-stage1-lda-cancor.R
-# This stub intentionally contains no experiment variables; it exits successfully.
-invisible(NULL)
+# Emit a valid JSON marker; no experiment variables or calculations remain.
+cat('{"superseded":true}')
