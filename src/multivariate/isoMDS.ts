@@ -28,7 +28,7 @@ function readD(input: DistResult | readonly (readonly number[])[]): { d: number[
     const n = input.length;
     if (n < 2 || input.some((r) => r.length !== n)) throw new RangeError("dissimilarity matrix must be square");
     const d = input.map((r) => Array.from(r, Number));
-    return { d, missing: d.some((r) => r.some(Number.isNaN)) };
+    return { d, missing: d.some((r) => r.some((v) => !Number.isFinite(v))) };
   }
   if (typeof input !== "object" || input === null || !Array.isArray((input as DistResult).values)) {
     throw new TypeError("d must be a dist object or a square matrix");
@@ -66,12 +66,12 @@ function pairsFor(d: number[][], missing: boolean): { pairs: Pair[]; groups: num
   let scale = 0;
   for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) {
     const delta = d[i]![j]!;
-    if (Number.isNaN(delta)) continue;
-    if (!Number.isFinite(delta) || delta <= 0) throw new RangeError("zero or negative distance between objects");
+    if (!Number.isFinite(delta)) continue;
+    if (delta <= 0) throw new RangeError("zero or negative distance between objects");
     scale = Math.max(scale, delta);
     pairs.push({ i, j, delta, group: 0 });
   }
-  if (missing && pairs.length === n * (n - 1) / 2) throw new RangeError("missing dissimilarities require an initial configuration");
+  void missing;
   pairs.sort((a, b) => a.delta - b.delta || a.i - b.i || a.j - b.j);
   let groups = 0, last = NaN;
   for (const pair of pairs) {
@@ -166,13 +166,16 @@ export function isoMDS(
   const tol = options.tol ?? 1e-3;
   if (!Number.isInteger(maxit) || maxit < 0) throw new RangeError("'maxit' must be non-negative");
   if (!Number.isFinite(tol) || tol <= 0) throw new RangeError("'tol' must be positive");
+  if (parsed.missing && options.y === undefined) throw new RangeError("an initial configuration must be supplied with NA/Infs in 'd'");
+  if (Array.isArray(input)) throw new TypeError("d must be a dist object");
   const built = pairsFor(parsed.d, parsed.missing);
   if (options.y !== undefined && (options.y.length !== n || options.y.some((r) => r.length !== k))) {
     throw new RangeError("invalid initial configuration");
   }
+  const condensed: number[] = [];
+  for (let j = 0; j < n - 1; j++) for (let i = j + 1; i < n; i++) condensed.push(parsed.d[i]![j]!);
   let y = options.y === undefined
-    ? cmdscale({ values: parsed.d.flatMap((row, i) => row.slice(0, i).reverse()), size: n, labels: null,
-      method: null, diag: false, upper: false, warnings: [] }, { k }).points
+    ? cmdscale({ values: condensed, size: n, labels: null, method: null, diag: false, upper: false, warnings: [] }, { k }).points
     : options.y.map((r) => Array.from(r));
   if (y.length !== n || y.some((r) => r.length !== k)) throw new RangeError("invalid initial configuration");
   if (y.some((r) => r.some((v) => !Number.isFinite(v)))) throw new RangeError("initial configuration must be finite");
@@ -182,7 +185,9 @@ export function isoMDS(
   let current = evaluate(y, built.pairs, Array.from({ length: built.groups }, (_, i) => i), p);
   const trace: IsoMDSTrace[] = [{ iteration: 0, stress: current.stress, converged: maxit === 0 }];
   let converged = maxit === 0;
+  let lastIter = 0;
   for (let iteration = 1; iteration <= maxit && !converged; iteration++) {
+    lastIter = iteration;
     const grad = gradient(y, built.pairs, current);
     let norm = 0;
     for (const row of grad) for (const v of row) norm += v * v;
@@ -203,9 +208,8 @@ export function isoMDS(
     if (iteration % 5 === 0) trace.push({ iteration, stress: current.stress, converged: false });
     if (improvement <= tol * Math.max(1, current.stress)) converged = true;
   }
-  if (trace[trace.length - 1]!.iteration !== maxit || trace[trace.length - 1]!.converged !== converged) {
-    trace.push({ iteration: Math.min(maxit, trace[trace.length - 1]!.iteration === 0 ? maxit : trace[trace.length - 1]!.iteration),
-      stress: current.stress, converged });
+  if (trace[trace.length - 1]!.iteration !== lastIter || trace[trace.length - 1]!.converged !== converged) {
+    trace.push({ iteration: lastIter, stress: current.stress, converged });
   }
   orient(y);
   return { points: y.map((r) => r.map((v) => v * scale)), stress: current.stress, trace };
