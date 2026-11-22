@@ -2,12 +2,15 @@
 import { eigen } from "../linalg/eigen.js";
 import type { DistResult } from "./dist.js";
 
+/** @category Multivariate analysis */
 export interface CmdscaleOptions {
   k?: number;
   add?: boolean;
   xRet?: boolean;
 }
+/** @category Multivariate analysis */
 export interface CmdscaleMatrix { rows: string[] | null; cols: string[] | null; values: number[][]; }
+/** @category Multivariate analysis */
 export interface CmdscaleResult {
   points: CmdscaleMatrix;
   eig: number[];
@@ -113,7 +116,6 @@ function orient(points: number[][]): void {
 }
 
 /**
- * Classical multidimensional scaling of a dissimilarity matrix.
  * Equivalent to R's stats::cmdscale().
  * @category Multivariate analysis
  */
@@ -143,6 +145,6 @@ export function cmdscale(
   const retained = positive.slice(0, dimensions).reduce((s, v) => s + v, 0);
   const warnings = dimensions < k ? [`only ${dimensions} of the first ${k} eigenvalues are > 0`] : [];
   return { points: { rows: parsed.labels, cols: null, values: points }, eig: [...decomposition.values],
-    x: options.xRet ? { rows: parsed.labels, cols: parsed.labels, values: centered.x } : null, ac,
+    x: options.xRet ? { rows: null, cols: null, values: centered.x } : null, ac,
     GOF: [absSum === 0 ? NaN : retained / absSum, positiveSum === 0 ? NaN : retained / positiveSum], warnings };
 }
