@@ -241,8 +241,6 @@ export function manovaSummary(fit: ManovaFit, options: ManovaSummaryOptions = {}
   if (!(Number.isFinite(tol) && tol >= 0)) throw new RangeError("'tol' must be a non-negative finite number");
   const p = fit.responseNames.length;
   const v = fit.residualDf;
-  const p = fit.responseNames.length;
-  const v = fit.residualDf;
   const terms = Object.keys(fit.termSSP).filter((x) => x !== "(Intercept)");
   const names = options.intercept && fit.termSSP["(Intercept)"] ? ["(Intercept)", ...terms] : terms;
   const rootsByTerm: Record<string, number[]> = {};
