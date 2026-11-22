@@ -52,7 +52,9 @@ function compare(key: string, actual: IsoMDSResult, stressTol = 1e-8): void {
   }
 }
 const small = [[1, 2, 0], [4, 0, 3], [-1, 5, 2], [2, 7, 0], [0, 0, 1]];
-const ds = dist(small);
+const smallLabels = ["a", "b", "c", "d", "e"];
+const gridLabels = Array.from({ length: 9 }, (_, i) => "g" + (i + 1));
+const ds = dist(small, { labels: smallLabels });
 const grid = Array.from({ length: 9 }, (_, i) => [i % 3, Math.floor(i / 3)]);
 const perturbed = grid.map((r, i) => [r[0]! + 0.1 * Math.sin(i + 1), r[1]! + 0.1 * Math.cos(i + 1)]);
 const nonE = asDist([[0, 1, 1, 3], [1, 0, 1, 1], [1, 1, 0, 1], [3, 1, 1, 0]]);
@@ -61,7 +63,7 @@ describe("isoMDS", () => {
   it("matches Kruskal stress on exact Euclidean and low-dimensional fixtures", () => {
     compare("isomds_small", isoMDS(ds));
     compare("isomds_small_k1", isoMDS(ds, { k: 1 }), 1e-5);
-    compare("isomds_perfect", isoMDS(dist(small.map((r) => r.slice(0, 2)))));
+    compare("isomds_perfect", isoMDS(dist(small.map((r) => r.slice(0, 2)), { labels: smallLabels })));
     compare("isomds_line", isoMDS(dist([0, 1, 3, 6, 10]), { k: 1 }));
     compare("isomds_three", isoMDS(dist([0, 1, 3]), { k: 1 }));
     compare("isomds_two", isoMDS(dist([0, 1]), { k: 1 }));
@@ -137,9 +139,9 @@ describe("isoMDS: swiss, eurodist and USArrests R fixtures", () => {
   });
 
   it("matches the small, non-Euclidean, tied and degenerate fixtures", () => {
-    const smallD = dist(small);
+    const smallD = dist(small, { labels: smallLabels });
     const grid = Array.from({ length: 9 }, (_, i) => [i % 3, Math.floor(i / 3)]);
-    const gridD = dist(grid);
+    const gridD = dist(grid, { labels: gridLabels });
     const perturbed = grid.map((r, i) => [r[0]! + 0.1 * Math.sin(i + 1), r[1]! + 0.1 * Math.cos(i + 1)]);
     const nonE = asDist([[0, 1, 1, 3], [1, 0, 1, 1], [1, 1, 0, 1], [3, 1, 1, 0]]);
     compare("isomds_small", isoMDS(smallD));
