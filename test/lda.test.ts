@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
-import { lda, ldaPredict } from "../src/entries/multivariate.js";
+import { lda, ldaPredict, type LdaFit } from "../src/entries/multivariate.js";
 
 const x = [
   [1, 2], [1.2, 2.1], [0.8, 1.8], [1.1, 2.2], [0.9, 1.9], [1.3, 2.0],
@@ -18,7 +18,7 @@ const irisData = {
 };
 const ldaFixture = JSON.parse(readFileSync(new URL("./fixtures/lda.json", import.meta.url), "utf8")) as Record<string, any>;
 const mtRows = JSON.parse(readFileSync(new URL("./fixtures/mtcars.json", import.meta.url), "utf8")) as number[][];
-function compareLdaFit(actual: ReturnType<typeof lda>, expected: any, warnings: any = []): void {
+function compareLdaFit(actual: LdaFit, expected: any, warnings: any = []): void {
   expect(actual.prior.length).toBe(expected.prior.length);
   expected.prior.forEach((v: number, i: number) => expect(actual.prior[i]).toBeCloseTo(v, 9));
   expect(actual.counts).toEqual(expected.counts);
