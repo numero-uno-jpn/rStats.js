@@ -63,7 +63,7 @@ large_summary <- summary(large_mv, test = "Pillai")$stats
 cat(toJSON(list(
   offsets = offset_result,
   tamhane = t2_result,
-  page = list(z = unname(pg_result$statistic), p = unname(pg_result$p.value)),
+  page_result = list(z = unname(pg_result$statistic), p = unname(pg_result$p.value)),
   grubbs = list(statistic = unname(gb_result$statistic), p = unname(gb_result$p.value),
                 cdf = gb_cdf, quantiles = gb_quantile),
   large_manova = list(pillai = unname(large_summary[1, "Pillai"]),
