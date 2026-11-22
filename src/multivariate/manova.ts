@@ -19,7 +19,7 @@ export interface ManovaOptions { tol?: number; }
 /** Options for MANOVA summary tables.
  * @category Linear models and ANOVA
  */
-export interface ManovaSummaryOptions { test?: ManovaTestName | "all"; intercept?: boolean; }
+export interface ManovaSummaryOptions { intercept?: boolean; }
 /** A labelled matrix table.
  * @category Linear models and ANOVA
  */
