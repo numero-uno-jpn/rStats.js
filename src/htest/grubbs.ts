@@ -90,6 +90,7 @@ export function pgrubbs<T extends Vectorizable>(q: T, n: number, type: number = 
 function qgrubbs10(p: number, n: number): number {
   if (Number.isNaN(p) || Number.isNaN(n)) return NaN;
   if (!Number.isSafeInteger(n) || n < 3 || p < 0 || p > 1) return NaN;
+  if (p === 0) return 0;
   if (p === 1) return (n - 1) / Math.sqrt(n);
   let lo = 0;
   let hi = (n - 1) / Math.sqrt(n);
