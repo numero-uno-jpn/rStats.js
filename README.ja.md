@@ -16,7 +16,7 @@ JavaScript とブラウザで使える、R と互換の統計関数のライブ�
 - **どこでも動きます。** ESM のみで、依存パッケージはなく、Node 専用の API も使っていません。
   tree-shaking が効きます (`pnorm` だけなら gzip で 1.6 KB)。
 
-状態: **1.8.0。** R の stats パッケージの数値計算の中心
+状態: **1.9.0。** R の stats パッケージの数値計算の中心
 (分布・記述統計・検定・線形モデル・特殊関数・数値計算・線形代数の基本) を、R と同じ結果でカバーすることを目指しています。残っている作業は
 [ROADMAP.ja.md](ROADMAP.ja.md)、変更履歴は [CHANGELOG.md](CHANGELOG.md) (英語) にあります。
 
@@ -315,7 +315,7 @@ minify 済みの ES モジュール、gzip で 322 KB) を jsDelivr から読み
 
 ```html
 <script type="module">
-  import { pnorm } from "https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@1.8.0/dist/rstats.js";
+  import { pnorm } from "https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@1.9.0/dist/rstats.js";
   console.log(pnorm(1.96)); // ≈ 0.9750021049
 </script>
 ```
@@ -329,14 +329,14 @@ minify 済みの ES モジュール、gzip で 322 KB) を jsDelivr から読み
 
 一部の分野だけを使うページでは、代わりに分野ごとのバンドルを読み込めます。`dist/distributions.js`、
 `dist/tests.js`、`dist/linalg.js`、`dist/descriptive.js`、`dist/numerics.js`、`dist/special.js`、
-`dist/mixed.js`、`dist/regression.js` は上のサブパスと同じ関数を export し、共通のコードを `dist/chunks/` で共有します。そのため、
+`dist/mixed.js`、`dist/regression.js`、`dist/multivariate.js` は上のサブパスと同じ関数を export し、共通のコードを `dist/chunks/` で共有します。そのため、
 2 つの分野を読み込んでも共通部分は 1 回しか読み込まれません。chunk を含めた 1 分野の転送量は、gzip で
 39 KB (`special`) から 288 KB (`tests`) です。
 
 1 つのページでは、`dist/rstats.js` か分野ごとのバンドルのどちらか一方だけを使ってください。両者は別々の
 モジュールの集まりなので、混ぜると共通のコードが 2 回読み込まれ、乱数の状態も 2 つになります (一方の `setSeed`
-は他方の乱数に効きません)。`dist/rstats.js` と `dist/mixed.js` や `dist/regression.js` を一緒に読み込む場合も、
-`dist/mixed.js` と `dist/regression.js` は共通のコードを別に持ち込みます。
+は他方の乱数に効きません)。`dist/rstats.js` と `dist/mixed.js`・`dist/regression.js`・`dist/multivariate.js` を一緒に読み込む場合も、
+これらは共通のコードを別に持ち込みます。
 
 npm を元にしたほかの CDN も使えます。たとえば `https://esm.sh/@numero-uno-jpn/rstats` です。ビルド結果
 (`dist/`) は main ブランチにはなく、リリースのタグにも入っていますが、jsDelivr の GitHub 経由の配信
