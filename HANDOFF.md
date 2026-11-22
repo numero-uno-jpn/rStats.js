@@ -1,6 +1,6 @@
 # 引継ぎ: rStats.js (外部レビュー対応 2026-10-30〜11-04、1.0.0 への準備 11-04〜)
 
-最終更新: 2026-11-22 (セッション 26 の終わり、Mac mini: **1.8.0 を公開** (rq・geeglm・glmnet)。次は 1.9.0 = 小さな検定 3 つ + 多変量 3 つ (ユーザーの決定)、範囲を決めるところから)。以前: 2026-11-20 夜 (セッション 26 の始め: 1.8.0 の範囲を決め、準備)。以前: 2026-11-20 夕 (セッション 25 の終わり、Mac mini: **1.7.0 を公開** (回帰 polr・rlm・nls、`/regression`)。次の作業は未定 (ROADMAP の 2 = 1.8.0)。以前: 2026-11-20 昼 (セッション 25、Mac mini: 段階 3 の端の入力の直しも済み (最後は私が引き継いだ)。次は「nls の後」の配線と文書)。以前: 2026-11-19 深夜 (セッション 24、polr・rlm は完了、nls を ChatGPT に依頼)。以前: 2026-11-19 (セッション 23、1.6.0 を公開 (混合モデルの confint と simulate))。以前: 2026-11-17 (セッション 22、1.5.0 を公開)。その前: 2026-11-16 (セッション 21、Mac mini: 1.4.0 を公開、同時刻の Gray の検定を ChatGPT がクリーンルームで修正 (1.4.1 に入る、未公開)、外注用の R の実験の仕組みを作った。次は ROADMAP の 1 番)
+最終更新: 2026-11-22 (セッション 27 の始め、Mac mini: 1.9.0 の範囲を決め、準備中)。以前: 2026-11-22 (セッション 26 の終わり、Mac mini: **1.8.0 を公開** (rq・geeglm・glmnet)。次は 1.9.0 = 小さな検定 3 つ + 多変量 3 つ (ユーザーの決定)、範囲を決めるところから)。以前: 2026-11-20 夜 (セッション 26 の始め: 1.8.0 の範囲を決め、準備)。以前: 2026-11-20 夕 (セッション 25 の終わり、Mac mini: **1.7.0 を公開** (回帰 polr・rlm・nls、`/regression`)。次の作業は未定 (ROADMAP の 2 = 1.8.0)。以前: 2026-11-20 昼 (セッション 25、Mac mini: 段階 3 の端の入力の直しも済み (最後は私が引き継いだ)。次は「nls の後」の配線と文書)。以前: 2026-11-19 深夜 (セッション 24、polr・rlm は完了、nls を ChatGPT に依頼)。以前: 2026-11-19 (セッション 23、1.6.0 を公開 (混合モデルの confint と simulate))。以前: 2026-11-17 (セッション 22、1.5.0 を公開)。その前: 2026-11-16 (セッション 21、Mac mini: 1.4.0 を公開、同時刻の Gray の検定を ChatGPT がクリーンルームで修正 (1.4.1 に入る、未公開)、外注用の R の実験の仕組みを作った。次は ROADMAP の 1 番)
 
 ## まず読むこと (セッション 16 から)
 
@@ -8,8 +8,17 @@
 
 ### 1.9.0 の計画 (ユーザーの決定 2026-11-22: 「小さな検定 3 つ + 多変量 3 つ」をまとめて 1.9.0)
 
-ROADMAP の「残っていること」の 2 (順不同の一覧) から選んだ。**範囲の細部は新しいセッションの最初にユーザーと決める。**
-私の案 (推奨つきで聞く):
+ROADMAP の「残っていること」の 2 (順不同の一覧) から選んだ。
+**範囲の決定 (ユーザー、2026-11-22 セッション 27 の始め、全部推奨どおり):**
+- 小さな検定 3 つは既存の `/tests` に足す (T2 は `src/htest/multipleComparisons.ts`、Page は `rankTests.ts` の隣)。ルートと
+  `dist/rstats.js` にも入る
+- 多変量 3 つは新しい `/multivariate` (ルートと `dist/rstats.js` には入れない)
+- lda は `method = "moment"`・`prior`・`predict` (事後確率・判別得点・クラス)・`CV = TRUE`。mle・mve・t は後回し。判別得点の
+  符号は R に合わせる
+- Page の検定の p 値は PMCMRplus `pageTest` の既定に合わせる (正確な分布か近似か・同順位の扱いを R の出力で確かめる)
+- 聞かなかった細部 (Grubbs の type 10/11/20 と `opposite`、MANOVA の 4 統計量、cancor の `xcenter`・`ycenter`) は下の案のまま
+
+私の案 (推奨つきで聞いたもの):
 - **小さな検定** (外の分野の検定と同じく `/tests` 相当の既存の分野に足すか、新しい分野にするかも決める)
   - Tamhane の T2 (PMCMRplus `tamhaneT2Test`): 等分散を仮定しない多重比較。p 値の調整の種類、`welchANOVA` との組み合わせ
   - Page の検定 (PMCMRplus `pageTest`): 順序のある対立仮説の Friedman 型。正確な分布か正規近似か、同順位の扱い
@@ -23,6 +32,22 @@ ROADMAP の「残っていること」の 2 (順不同の一覧) から選んだ
 - 照合先: R 4.6.2 の stats と MASS 7.3.66 (既にある)、**PMCMRplus と outliers を `oracle/Dockerfile.r46` と
   `oracle/Dockerfile.experiments` に足す** (版は CRAN の日付 2026-10-23 のもの。`scripts/r-experiment-check.mjs` に
   関数の一覧も)。どれも GPL なのでクリーンルーム (論文と出力だけ)
+
+### セッション 27 でしたこと (2026-11-22)
+
+- 範囲をユーザーが決めた (上)。**準備 (main にコミット、未 push):** `oracle/Dockerfile.r46` に outliers 0.15 の層
+  (PMCMRplus 1.9.12 は前から)、`oracle/Dockerfile.experiments` に PMCMRplus・outliers (と依存 7 つ、libgmp・libmpfr) の層。
+  手元の `rstats-oracle:4.6.2`・`rstats-oracle-amd64:4.6.2`・`rstats-experiments:4.6.2` は作り直し済み。
+  `scripts/r-experiment-check.mjs` に PMCMRplus (export と S3 メソッド 277)・outliers (10)・stats の `manova`・
+  `summary.manova`・`cancor`。**r-experiments.yml は main の Dockerfile とチェッカーを使うので、作業ブランチより先に main を push**
+- 私が流した R の実験 `experiments/tests19-small.{R,json}`・`experiments/multivariate19.{R,json}`。分かったこと: T2 は
+  `alternative`・`p.adjust.method` を無視 (両側・Šidák)、Page は小標本でも正規近似の z だけ、`pgrubbs`・`qgrubbs` は
+  スカラーだけ・type 20 は Grubbs (1950) の表の補間 (n 3〜30)・type 11 は `uniroot` で q により失敗。詳しくは指示書 1 節
+- 指示書 `briefs/tests-multivariate-1.9.ja.md` と入口 `briefs/tests-multivariate-1.9-status.ja.md` (Issue・PR の番号は
+  `#ISSUE`・`#PR` の仮置き)。作業ブランチは `work/multivariate-1.9` の予定。`/multivariate` の配線 (package.json・
+  scripts・typedoc.json) は段階 2 で私がする
+- 次: main の push → 作業ブランチ・Issue・draft PR を作る (どれもユーザーに確認してから) → 番号を指示書に入れる →
+  ChatGPT への最初の依頼文をユーザーに渡す
 
 ### 進め方 (1.8.0 の経験から。ガイド「ChatGPT を外注先に使う開発の進め方」https://claude.ai/artifact/XeAnCSwZUrejZhzx5a7BxV)
 

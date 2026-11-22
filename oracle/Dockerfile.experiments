@@ -65,3 +65,17 @@ RUN install2.r --error --skipinstalled quantreg geepack glmnet \
                    got <- sapply(names(want), function(p) as.character(packageVersion(p))); \
                    cat(sprintf("%s %s\n", names(got), got), sep = ""); \
                    if (!identical(unname(got), unname(want))) quit(status = 1)'
+
+# Small tests and multivariate analysis (1.9.0): PMCMRplus (tamhaneT2Test, pageTest) and outliers (grubbs.test), in a
+# layer of their own, at the versions of the fixtures. PMCMRplus imports gmp and Rmpfr, whose binary packages link to
+# libgmp and libmpfr. manova and cancor are R's own (stats), lda is MASS's (above).
+RUN apt-get update && apt-get install -y --no-install-recommends libmpfr6 libgmp10 \
+    && rm -rf /var/lib/apt/lists/* \
+    && install2.r --error --skipinstalled PMCMRplus outliers \
+    && Rscript -e 'want <- c(PMCMRplus = "1.9.12", outliers = "0.15", mvtnorm = "1.4.2", multcompView = "0.1.12", \
+                            gmp = "0.7.5.1", Rmpfr = "1.1.3", SuppDists = "1.1.9.9", kSamples = "1.2.12", \
+                            BWStest = "0.2.3"); \
+                   for (p in names(want)) suppressPackageStartupMessages(library(p, character.only = TRUE)); \
+                   got <- sapply(names(want), function(p) as.character(packageVersion(p))); \
+                   cat(sprintf("%s %s\n", names(got), got), sep = ""); \
+                   if (!identical(unname(got), unname(want))) quit(status = 1)'
