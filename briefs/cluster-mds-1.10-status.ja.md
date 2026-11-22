@@ -2,6 +2,23 @@
 
 更新 2026-11-22。新しい会話はこの文書と指示書 (`briefs/cluster-mds-1.10.ja.md`)、**段階 2 の指示 (`briefs/cluster-mds-1.10-stage2.ja.md`)** を読んで始める。
 
+## 書き込んでよい場所 (最重要。これ以外には書かない)
+
+- **リポジトリ:** `numero-uno-jpn/rStats.js` の**ブランチ `work/cluster-mds-1.10` だけ。** main・ほかのブランチ・タグには
+  push もコミットも PR のマージもしない (2026-11-22 に main へ直接 push する事故があった)。新しいブランチも作らない
+- **ファイル (このブランチの中):**
+  - `src/multivariate/` の `dist.ts`・`hclust.ts`・`kmeans.ts`・`cmdscale.ts`・`isoMDS.ts` (と、それだけが使う補助の新しいファイル)
+  - `src/entries/multivariate.ts` (export の行を足すだけ)
+  - `test/` の新しいテスト (`dist.test.ts`・`hclust.test.ts`・`kmeans.test.ts`・`cmdscale.test.ts`・`isoMDS.test.ts`) と
+    `test/demo.test.ts` の `NOT_IN_DEMO_YET`
+  - `oracle/` の 1.10.0 の仕様書 5 つ (「rStats.js's choices」の節を除く) と `oracle/_cluster110cases.R`・5 つの oracle
+  - `experiments/` の新しい R の実験 (`cluster110-*.R`・`mds110-*.R`)
+- **GitHub:** Issue #556 へのコメントだけ。PR #557 は読むだけ (Checks を見る)
+- **それ以外は書かない:** `HANDOFF.md`、`test/fixtures/`、`test/helpers/`、生成のブロック (`*_KEYS`・`checkOptions` の
+  import)、`docs/`、`scripts/`、`.github/`、`package.json`、`CHANGELOG.md`、`ROADMAP*.md`、`demo/`、既存の関数のファイル
+- **push の後に毎回確かめる:** `work/cluster-mds-1.10` の HEAD が自分のコミットで、変更したファイルが入っていること
+  (2026-11-22 に、中身の無いコミットだけが届き、直しは別の所に行っていた)
+
 ## クリーンルームの規則 (最重要。毎回守る)
 
 - 照合先の R 自身 (stats の `dist`・`as.dist`・`hclust`・`cutree`・`kmeans`・`cmdscale`) と MASS (`isoMDS`) は GPL。
