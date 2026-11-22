@@ -91,7 +91,7 @@ cat(toJSON(list(
                 cdf = gb_cdf, quantiles = gb_quantile),
   large_manova = list(pillai = unname(large_summary[1, "Pillai"]),
                       f = unname(large_summary[1, "approx F"]),
-                      p = unname(large_summary[1, "Pr(>F)")),
+                      p = unname(large_summary[1, "Pr(>F)"])),
   large_manova20_wilks = list(value = unname(multi_wilks[1, "Wilks"]),
                               f = unname(multi_wilks[1, "approx F"]),
                               p = unname(multi_wilks[1, "Pr(>F)"]))

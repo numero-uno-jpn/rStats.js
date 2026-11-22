@@ -203,8 +203,8 @@ function statRow(roots0: readonly number[], p: number, q: number, v: number, nam
   switch (name) {
     case "Pillai":
       value = pillai; df1 = s * (2 * m + s + 1); df2 = s * (2 * n0 + s + 1);
-      const complement = s - value > 0 ? s - value : pillaiComplement;
-      f = ((2 * n0 + s + 1) / (2 * m + s + 1)) * value / complement; break;
+      // s - V as the sum of 1 / (1 + root): exact, while s - V cancels when the roots are large
+      f = ((2 * n0 + s + 1) / (2 * m + s + 1)) * value / pillaiComplement; break;
     case "Wilks": {
       value = wilks; const t = p * q > 2 ? Math.sqrt((p * p * q * q - 4) / (p * p + q * q - 5)) : 1;
       const u = (p * q - 2) / 4; df1 = p * q; df2 = (v - (p - q + 1) / 2) * t - 2 * u;

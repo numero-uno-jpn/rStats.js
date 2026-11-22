@@ -163,47 +163,51 @@ describe("manova", () => {
     expect(tinySummary.Pillai.values[0]![2]).toBeCloseTo(base.Pillai.values[0]![2]!, 8);
   });
 
-  it("keeps Pillai and Wilks F approximations finite when roots dwarf residuals", () => {
-    const pattern1 = Array.from({ length: 50 }, (_, i) => (i % 5 - 2) * 1e135);
-    const pattern2 = Array.from({ length: 50 }, (_, i) => ([2, -1, 1, -2, 0][i % 5]!) * 1e135);
-    const d = {
-      y1: [...pattern1, ...pattern1.map((v) => 1e150 + v)],
-      y2: [...pattern2, ...pattern2.map((v) => 1e150 + v)],
+  it("keeps Pillai and Wilks F approximations finite and exact when roots dwarf residuals", () => {
+    // Integer data (exact in binary64): group b is 1e12 above group a, with small integer noise, so the sole root is
+    // about 1e22 and 1 - V cancels. Multiplying by 2^450 changes no bit of the values relative to each other, so the
+    // results must equal those of the unscaled data (and stay finite near the top of the range).
+    const p1 = Array.from({ length: 50 }, (_, i) => i % 5 - 2);
+    const p2 = Array.from({ length: 50 }, (_, i) => [2, -1, 1, -2, 0][i % 5]!);
+    const data = (k: number) => ({
+      y1: [...p1, ...p1.map((v) => 1e12 + v)].map((v) => v * k),
+      y2: [...p2, ...p2.map((v) => 1e12 + v)].map((v) => v * k),
       group: [...Array(50).fill("a"), ...Array(50).fill("b")],
-    };
-    const summary = manovaSummary(manova("cbind(y1, y2) ~ group", d));
-    // mpmath (100 dps) on the exact binary64 input gives the sole root
-    // 4.81602749170450028027e29 and Pillai F = (98 - 1) * root.
-    const expectedPillaiF = 4.671546666953365e31;
-    expect(Number.isFinite(summary.Pillai.values[0]![2])).toBe(true);
-    expect(summary.Pillai.values[0]![2] / expectedPillaiF).toBeCloseTo(1, 8);
-    expect(Number.isFinite(summary.Wilks.values[0]![2])).toBe(true);
-    expect(summary.Wilks.values[0]![2]).toBeGreaterThan(1e28);
-    expect(summary.Pillai.values[0]![5]).toBe(0);
+    });
+    const base = manovaSummary(manova("cbind(y1, y2) ~ group", data(1)));
+    const big = manovaSummary(manova("cbind(y1, y2) ~ group", data(2 ** 450)));
+    for (const test of ["Pillai", "Wilks", "Hotelling-Lawley", "Roy"] as const) {
+      const f0 = base[test].values[0]![2]!, f1 = big[test].values[0]![2]!;
+      expect(Number.isFinite(f0) && f0 > 1e20).toBe(true);
+      expect(Math.abs(f1 / f0 - 1)).toBeLessThanOrEqual(1e-12);
+    }
+    // Pillai's F = (2 n0 + s + 1) / (2 m + s + 1) * V / (1 - V) with 1 - V = 1 / (1 + root): 97 / 2 * root for the one
+    // root (p = 2, q = 1, 98 residual df)
+    const root = base.Eigenvalues.values[0]![0]!;
+    expect(Math.abs(base.Pillai.values[0]![2]! / ((97 / 2) * root) - 1)).toBeLessThanOrEqual(1e-12);
+    expect(big.Pillai.values[0]![5]).toBe(0);
   });
 
   it("computes a finite Wilks F approximation after the Wilks product underflows", () => {
-    const p = 20, groups = 21, perGroup = 25;
-    const columns: Record<string, number[]> = {};
+    // Exact data: 20 responses, 21 groups of 32; group j + 1 is 1e9 above the others in response j, and the noise is
+    // the Walsh function (-1)^popcount(i & (j + 1)), orthogonal over a group, so the residual correlation matrix is the
+    // identity. Each of the 20 roots is 16e18, so the Wilks product (about 1e-385) underflows.
+    const p = 20, groups = 21, perGroup = 32;
+    const popcount = (v: number) => { let c = 0; for (; v; v &= v - 1) c++; return c; };
+    const columns: Record<string, number[] | string[]> = {};
     for (let j = 0; j < p; j++) {
       const values: number[] = [];
       for (let g = 0; g < groups; g++) {
-        for (let i = 0; i < perGroup; i++) {
-          const angle = (2 * Math.PI * ((j % 10) + 1) * (i + 0.5)) / perGroup;
-          const noise = (j < 10 ? Math.sin(angle) : Math.cos(angle)) * 1e135;
-          values.push((g === j + 1 ? 1e150 : 0) + noise);
-        }
+        for (let i = 0; i < perGroup; i++) values.push((g === j + 1 ? 1e9 : 0) + (popcount(i & (j + 1)) % 2 ? -1 : 1));
       }
       columns[`y${j + 1}`] = values;
     }
-    columns.group = Array.from({ length: groups * perGroup }, (_, i) => Math.floor(i / perGroup));
+    columns.group = Array.from({ length: groups * perGroup }, (_, i) => `g${Math.floor(i / perGroup)}`);
     const formula = `cbind(${Array.from({ length: p }, (_, i) => `y${i + 1}`).join(", ")}) ~ group`;
     const summary = manovaSummary(manova(formula, columns));
-    // Each of the 20 independent between-group roots is about 1e30, so their Wilks product underflows.
-    // The log-Wilks F approximation remains finite; the upper-tail probability is below binary64 range.
     expect(summary.Wilks.values[0]![1]).toBe(0);
     expect(Number.isFinite(summary.Wilks.values[0]![2])).toBe(true);
-    expect(summary.Wilks.values[0]![2]).toBeGreaterThan(1e80);
+    expect(summary.Wilks.values[0]![2]).toBeGreaterThan(1e15);
     expect(summary.Wilks.values[0]![5]).toBe(0);
   });
 
