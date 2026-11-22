@@ -38,8 +38,9 @@ Independent Lance-Williams calculations reproduce every merge, height, and tree-
 
 This tie rule is an empirical characterization of tested public outputs, not a claim about R's internal search data structure. It is deliberately stated in terms of clusters and their original observation indices.
 
-## Heights, members, and input conditions
+## Returned fields, heights, members, and input conditions
 
+- merge is an (n-1)×2 matrix with the negative-singleton / positive-merge-row encoding described above. height has one value per merge. order is the leaf traversal. labels are copied from the input dissimilarity labels (or absent); method is the canonical linkage name; distMethod is the input distance method attribute (NULL for as.dist inputs). These are the public hclust fields required by the requested API.
 - members supplies the initial sizes of the n objects and changes size-weighted updates. Its length must equal the number of initial objects (hclust_members_wrong_length).
 - Median and centroid can produce a non-monotone height sequence; e.g. hclust_small_centroid and hclust_triangle_centroid. Height is not forced to be monotone.
 - cutree(h=) rejects a tree whose heights are not increasing: cutree_inversion_h. cutree(k=) remains usable: cutree_inversion_k.
