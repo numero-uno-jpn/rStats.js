@@ -24,14 +24,14 @@ function compareLdaFit(actual: LdaFit, expected: any, warnings: any = []): void 
   expect(actual.counts).toEqual(expected.counts);
   expect(actual.means.rows).toEqual(expected.means.rows);
   expect(actual.means.cols).toEqual(expected.means.cols);
-  expectMatrixClose(actual.means.values, expected.means.values, 1e-8);
+  expectMatrixClose(actual.means.values, expected.means.values, 1e-11);
   expect(actual.scaling.rows).toEqual(expected.scaling.rows);
   expect(actual.scaling.cols).toEqual(expected.scaling.cols);
   const signs = expected.scaling.values[0]!.map((_: number, j: number) => {
     const dot = actual.scaling.values.reduce((s, row, i) => s + row[j]! * expected.scaling.values[i]![j]!, 0);
     return dot < 0 ? -1 : 1;
   });
-  expectMatrixClose(actual.scaling.values.map((row) => row.map((v, j) => v * signs[j]!)), expected.scaling.values, 1e-8);
+  expectMatrixClose(actual.scaling.values.map((row) => row.map((v, j) => v * signs[j]!)), expected.scaling.values, 1e-11);
   const svd = Array.isArray(actual.svd) ? actual.svd : [actual.svd];
   const expectedSvd = Array.isArray(expected.svd) ? expected.svd : [expected.svd];
   expect(svd).toHaveLength(expectedSvd.length);
@@ -49,16 +49,16 @@ function compareLdaPrediction(actual: ReturnType<typeof ldaPredict>, expected: a
   if (classDiffs.length) console.log("LDA class differences", JSON.stringify(classDiffs));
   expect(actual.class).toEqual(expected.class);
   expect(actual.posterior.cols).toEqual(expected.posterior.cols);
-  expectMatrixClose(actual.posterior.values, expected.posterior.values, 1e-8);
+  expectMatrixClose(actual.posterior.values, expected.posterior.values, 1e-11);
   expect(actual.x.cols).toEqual(expected.x.cols);
   const signs = expected.x.values[0]!.map((_: number, j: number) => {
     const dot = actual.x.values.reduce((s, row, i) => s + row[j]! * expected.x.values[i]![j]!, 0);
     return dot < 0 ? -1 : 1;
   });
-  expectMatrixClose(actual.x.values.map((row) => row.map((v, j) => v * signs[j]!)), expected.x.values, 1e-8);
+  expectMatrixClose(actual.x.values.map((row) => row.map((v, j) => v * signs[j]!)), expected.x.values, 1e-11);
 }
 
-function expectMatrixClose(actual: number[][], expected: number[][], tol = 1e-8): void {
+function expectMatrixClose(actual: number[][], expected: number[][], tol = 1e-11): void {
   expect(actual.length).toBe(expected.length);
   for (let i = 0; i < expected.length; i++) {
     expect(actual[i]!.length).toBe(expected[i]!.length);
@@ -90,7 +90,7 @@ describe("lda", () => {
     const ecv = ldaFixture.lda_cv_two_classes.value;
     expect(cv.class).toEqual(ecv.class);
     expect(cv.posterior.cols).toEqual(ecv.posterior.cols);
-    expectMatrixClose(cv.posterior.values, ecv.posterior.values, 1e-8);
+    expectMatrixClose(cv.posterior.values, ecv.posterior.values, 1e-11);
   });
 
   it("matches the complete Iris LDA fit fixture after per-column sign alignment", () => {
@@ -112,20 +112,20 @@ describe("lda", () => {
     const pred = ldaPredict(fit, { newdata });
     expect(pred.class).toEqual(expected.class);
     expect(pred.posterior.cols).toEqual(expected.posterior.cols);
-    expectMatrixClose(pred.posterior.values, expected.posterior.values, 1e-8);
+    expectMatrixClose(pred.posterior.values, expected.posterior.values, 1e-11);
     expect(pred.x.cols).toEqual(expected.x.cols);
     const expectedScores = expected.x.values as number[][];
     const signs = expectedScores[0]!.map((_, j) => {
       const dot = pred.x.values.reduce((s, row, i) => s + row[j]! * expectedScores[i]![j]!, 0);
       return dot < 0 ? -1 : 1;
     });
-    expectMatrixClose(pred.x.values.map((row) => row.map((v, j) => v * signs[j]!)), expectedScores, 1e-8);
+    expectMatrixClose(pred.x.values.map((row) => row.map((v, j) => v * signs[j]!)), expectedScores, 1e-11);
 
     const cvExpected = ldaFixture.lda_iris_cv.value;
     const cv = lda("Species ~ .", irisData, { CV: true });
     expect(cv.class).toEqual(cvExpected.class);
     expect(cv.posterior.cols).toEqual(cvExpected.posterior.cols);
-    expectMatrixClose(cv.posterior.values, cvExpected.posterior.values, 1e-8);
+    expectMatrixClose(cv.posterior.values, cvExpected.posterior.values, 1e-11);
   });
 
   it("matches LDA empty-level, collinear, singleton, missing and scale fixtures", () => {
@@ -141,7 +141,7 @@ describe("lda", () => {
     expect(collinear.counts).toEqual(colExpected.counts);
     expect(collinear.means.rows).toEqual(colExpected.means.rows);
     expect(collinear.means.cols).toEqual(colExpected.means.cols);
-    expectMatrixClose(collinear.means.values, colExpected.means.values, 1e-8);
+    expectMatrixClose(collinear.means.values, colExpected.means.values, 1e-11);
     expect(collinear.scaling.rows).toEqual(colExpected.scaling.rows);
     expect(collinear.scaling.cols).toEqual(colExpected.scaling.cols);
     const colSvd = Array.isArray(collinear.svd) ? collinear.svd : [collinear.svd];
@@ -157,7 +157,7 @@ describe("lda", () => {
       const dot = colPred.x.values.reduce((s, row, i) => s + row[j]! * expectedScores[i]![j]!, 0);
       return dot < 0 ? -1 : 1;
     });
-    expectMatrixClose(colPred.x.values.map((row) => row.map((v, j) => v * scoreSigns[j]!)), expectedScores, 1e-8);
+    expectMatrixClose(colPred.x.values.map((row) => row.map((v, j) => v * scoreSigns[j]!)), expectedScores, 1e-11);
     const within = Array.from({ length: 5 }, () => Array(5).fill(0) as number[]);
     for (let i = 0; i < collinearX.length; i++) {
       const group = ["setosa", "versicolor", "virginica"].indexOf(gg[i]!);
@@ -199,7 +199,7 @@ describe("lda", () => {
     const cv = lda(xx, gg, { xNames: names, CV: true, prior: [0.2, 0.5, 0.3] });
     const cvExpected = ldaFixture.lda_iris_cv_prior.value;
     expect(cv.class).toEqual(cvExpected.class);
-    expectMatrixClose(cv.posterior.values, cvExpected.posterior.values, 1e-8);
+    expectMatrixClose(cv.posterior.values, cvExpected.posterior.values, 1e-11);
 
     const base = lda(xx, gg, { xNames: names });
     compareLdaPrediction(ldaPredict(base, { prior: [0.1, 0.1, 0.8] }), ldaFixture.lda_iris_predict_prior.value);

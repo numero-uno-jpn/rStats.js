@@ -62,8 +62,8 @@ function compareCancor(actual: ReturnType<typeof cancor>, expected: any, x?: num
     const expectedXScores = centeredScores(x, xce, expectedX);
     const actualY = centeredScores(y, yc, actual.ycoef.values);
     const expectedYScores = centeredScores(y, yce, expectedY);
-    expectMatrixClose(scoreProjector(actualX), scoreProjector(expectedXScores), 1e-8);
-    expectMatrixClose(scoreProjector(actualY), scoreProjector(expectedYScores), 1e-8);
+    expectMatrixClose(scoreProjector(actualX), scoreProjector(expectedXScores), 1e-12);
+    expectMatrixClose(scoreProjector(actualY), scoreProjector(expectedYScores), 1e-12);
     return;
   }
   const sx = expectedX[0]!.map((_: number, j: number) => {
@@ -74,11 +74,11 @@ function compareCancor(actual: ReturnType<typeof cancor>, expected: any, x?: num
     const dot = actual.ycoef.values.reduce((s, row, i) => s + row[j]! * expectedY[i]![j]!, 0);
     return dot < 0 ? -1 : 1;
   });
-  expectMatrixClose(actual.xcoef.values.map((row) => row.map((v, j) => v * sx[j]!)), expectedX, 1e-8);
-  expectMatrixClose(actual.ycoef.values.map((row) => row.map((v, j) => v * sy[j]!)), expectedY, 1e-8);
+  expectMatrixClose(actual.xcoef.values.map((row) => row.map((v, j) => v * sx[j]!)), expectedX, 1e-12);
+  expectMatrixClose(actual.ycoef.values.map((row) => row.map((v, j) => v * sy[j]!)), expectedY, 1e-12);
 }
 
-function expectMatrixClose(actual: number[][], expected: number[][], tol = 1e-8): void {
+function expectMatrixClose(actual: number[][], expected: number[][], tol = 1e-12): void {
   expect(actual.length).toBe(expected.length);
   for (let i = 0; i < expected.length; i++) {
     expect(actual[i]!.length).toBe(expected[i]!.length);
@@ -113,8 +113,8 @@ describe("cancor", () => {
       const dot = actual.xcoef.values.reduce((s, row, i) => s + row[j]! * expected.xcoef.values[i]![j]!, 0);
       return dot < 0 ? -1 : 1;
     });
-    expectMatrixClose(actual.xcoef.values.map((row) => row.map((v, j) => v * signs[j]!)), expected.xcoef.values, 1e-8);
-    expectMatrixClose(actual.ycoef.values.map((row) => row.map((v, j) => v * signs[j]!)), expected.ycoef.values, 1e-8);
+    expectMatrixClose(actual.xcoef.values.map((row) => row.map((v, j) => v * signs[j]!)), expected.xcoef.values, 1e-12);
+    expectMatrixClose(actual.ycoef.values.map((row) => row.map((v, j) => v * signs[j]!)), expected.ycoef.values, 1e-12);
   });
 
   it("matches the remaining mtcars canonical-correlation fixtures", () => {

@@ -42,7 +42,9 @@ function compareTable(actual: { rows: string[] | string; cols: string[] | string
       const e = expected.values[i]![j];
       const a = actual.values[i]![j]!;
       if (e === "NA" || e === "NaN" || e === null) expect(Number.isNaN(a)).toBe(true);
-      else expect(Math.abs(a - e)).toBeLessThanOrEqual(1e-10 + 1e-8 * Math.abs(e));
+      // relative 1e-10: the (Intercept) row of manova_iris_intercept (F about 5e3) differs from R by 1.8e-11 relative; the
+      // other rows agree to about 1e-14 (oracle/manova-behaviour.md)
+      else expect(Math.abs(a - e)).toBeLessThanOrEqual(1e-10 + 1e-10 * Math.abs(e));
     }
   }
 }
