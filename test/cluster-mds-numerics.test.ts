@@ -115,6 +115,23 @@ describe("cluster and classical-scaling numerical extremes", () => {
     expect(fit.totWithinss).toBe(0);
   });
 
+  it("preserves cmdscale coordinates and Cailliez constant when squared distances underflow", () => {
+    const tiny = 1e-310;
+    const matrix = [[0, 1, 1, 3], [1, 0, 1, 1], [1, 1, 0, 1], [3, 1, 1, 0]];
+    const reference = cmdscale(asDist(matrix), { k: 2, add: true });
+    const scaled = cmdscale(asDist(matrix.map((row) => row.map((v) => v * tiny))), { k: 2, add: true });
+    expect(scaled.ac / tiny).toBeCloseTo(reference.ac, 8);
+    expect(scaled.GOF).toEqual(reference.GOF);
+    expect(scaled.eig.every((value) => value === 0)).toBe(true);
+    for (let i = 0; i < reference.points.values.length; i++) for (let j = i + 1; j < reference.points.values.length; j++) {
+      const a = reference.points.values[i]!, b = reference.points.values[j]!;
+      const x = scaled.points.values[i]!, y = scaled.points.values[j]!;
+      const referenceDistance = Math.hypot(a[0]! - b[0]!, a[1]! - b[1]!);
+      const scaledDistance = Math.hypot(x[0]! - y[0]!, x[1]! - y[1]!) / tiny;
+      expect(scaledDistance).toBeCloseTo(referenceDistance, 7);
+    }
+  });
+
   it("keeps distances and clustering invariant under exactly representable translation", () => {
     const rows = [[0, 0], [2, 0], [0, 3], [2, 3]];
     const kmRows = [[0, 0], [1, 1], [10, 10], [11, 11]];
