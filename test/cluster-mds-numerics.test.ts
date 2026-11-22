@@ -36,7 +36,16 @@ describe("cluster and classical-scaling numerical extremes", () => {
     for (const scale of [2 ** 500, 2 ** -500]) {
       const scaled = cmdscale({ ...source, values: source.values.map((v) => v * scale) }, { k: 2, add: true });
       expect(scaled.ac / scale).toBeCloseTo(reference.ac, 8);
-      for (let i = 0; i < reference.points.values.length; i++) for (let j = 0; j < 2; j++) expect(scaled.points.values[i]![j]! / scale).toBeCloseTo(reference.points.values[i]![j]!, 7);
+      // Eigenvectors in a repeated eigenspace may rotate or flip sign across scales.
+      // Compare the invariant Gram matrix rather than a platform-dependent basis.
+      for (let i = 0; i < reference.points.values.length; i++) for (let j = 0; j < reference.points.values.length; j++) {
+        let actual = 0, expected = 0;
+        for (let q = 0; q < 2; q++) {
+          actual += scaled.points.values[i]![q]! * scaled.points.values[j]![q]!;
+          expected += reference.points.values[i]![q]! * reference.points.values[j]![q]!;
+        }
+        expect(actual / (scale * scale)).toBeCloseTo(expected, 7);
+      }
       for (let i = 0; i < reference.eig.length; i++) expect(scaled.eig[i]! / (scale * scale)).toBeCloseTo(reference.eig[i]!, 7);
     }
   });
