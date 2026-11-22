@@ -987,57 +987,57 @@
   "GrubbsTestOptions#summary": {
     "hash": "c0e1eac8b729",
     "en": "Options for {@link grubbsTest}.",
-    "ja": ""
+    "ja": "{@link grubbsTest} のオプション。"
   },
   "GrubbsTestOptions.opposite#summary": {
     "hash": "5c9b65fdf3d5",
     "en": "Test the lowest rather than the highest observation. Default false.",
-    "ja": ""
+    "ja": "最大値ではなく最小値を検定します。既定: false。"
   },
   "GrubbsTestOptions.twoSided#summary": {
     "hash": "f3cd9fe09fee",
     "en": "Use a two-sided p-value. Default false.",
-    "ja": ""
+    "ja": "両側 p 値を使用します。既定: false。"
   },
   "GrubbsTestOptions.type#summary": {
     "hash": "14e70d7139b5",
     "en": "Grubbs test type. Only 10 is supported in 1.9.0. Default 10.",
-    "ja": ""
+    "ja": "Grubbs 検定のタイプです。1.9.0 では 10 のみをサポートします。既定: 10。"
   },
   "GrubbsTestResult#summary": {
     "hash": "bb591cbd8d7b",
     "en": "Result of Grubbs' test for one outlier.",
-    "ja": ""
+    "ja": "1 つの外れ値に対する Grubbs 検定の結果。"
   },
   "GrubbsTestResult.alternative#summary": {
     "hash": "1d048e805dd4",
     "en": "Text description of the alternative hypothesis.",
-    "ja": ""
+    "ja": "対立仮説のテキストによる説明。"
   },
   "GrubbsTestResult.method#summary": {
     "hash": "ad31a71008c5",
     "en": "Description of the test (R's `method`).",
-    "ja": ""
+    "ja": "検定の説明 (R の `method`)。"
   },
   "GrubbsTestResult.pValue#summary": {
     "hash": "d6aa3f93334c",
     "en": "P-value for the selected tail and sidedness.",
-    "ja": ""
+    "ja": "選択した裾と片側・両側の設定に対する p 値。"
   },
   "GrubbsTestResult.statistic#summary": {
     "hash": "41863003b078",
     "en": "Grubbs G and U statistics, in that order.",
-    "ja": ""
+    "ja": "この順序で Grubbs の G 統計量と U 統計量。"
   },
   "GrubbsTestResult.statisticName#summary": {
     "hash": "a9993f2fee52",
     "en": "Names corresponding to the two entries of `statistic`.",
-    "ja": ""
+    "ja": "`statistic` の 2 つの要素に対応する名前。"
   },
   "GrubbsTestResult.warnings#summary": {
     "hash": "0ec6d897b817",
     "en": "Warnings produced while evaluating the test.",
-    "ja": ""
+    "ja": "検定の評価中に発生した警告。"
   },
   "HTest#summary": {
     "hash": "d0b8741cc39f",
@@ -1417,12 +1417,12 @@
   "PageTestOptions#summary": {
     "hash": "f1e55605110d",
     "en": "Options for {@link pageTest}.",
-    "ja": ""
+    "ja": "{@link pageTest} のオプション。"
   },
   "PageTestOptions.alternative#summary": {
     "hash": "b2598e251cbf",
     "en": "Alternative hypothesis. Abbreviations are accepted. Default \"two.sided\".",
-    "ja": ""
+    "ja": "対立仮説です。省略形も使用できます。既定: \"two.sided\"。"
   },
   "PearsonTestOptions#summary": {
     "hash": "b77dddc8f92b",
@@ -3022,17 +3022,17 @@
   "grubbsTest#@param options": {
     "hash": "c22ecc206573",
     "en": "Type, tail and sidedness.",
-    "ja": ""
+    "ja": "タイプ、裾、および片側・両側の設定。"
   },
   "grubbsTest#@param x": {
     "hash": "7893aee21b24",
     "en": "Numeric sample.",
-    "ja": ""
+    "ja": "数値標本。"
   },
   "grubbsTest#summary": {
     "hash": "a476b02db39b",
     "en": "Grubbs' test for one outlier. Type 10 selects the highest or lowest observation and reports G and U.\nNaN observations are omitted; infinities are rejected. A constant sample has undefined statistics and p = NaN.\n\nEquivalent to R's `outliers::grubbs.test()`. Type 10 only.",
-    "ja": ""
+    "ja": "1 つの外れ値に対する Grubbs 検定です。タイプ 10 では最大値または最小値を選び、G 統計量と U 統計量を報告します。\nNaN の観測値は除外し、無限大は受け付けません。定数標本では統計量は未定義となり、p = NaN です。\n\nR の `outliers::grubbs.test()` と同等です。タイプ 10 のみをサポートします。"
   },
   "jonckheereTest#@example": {
     "hash": "f2167be5edf2",
@@ -3337,62 +3337,62 @@
   "pageTest(0)#@param options": {
     "hash": "bd7083d6b7bc",
     "en": "Alternative hypothesis.",
-    "ja": ""
+    "ja": "対立仮説。"
   },
   "pageTest(0)#@param y": {
     "hash": "e974e0d63288",
     "en": "A blocks-by-treatments matrix in the hypothesised treatment order.",
-    "ja": ""
+    "ja": "仮定した処理の順序に並べた、ブロック数 × 処理数の行列。"
   },
   "pageTest(0)#summary": {
     "hash": "9aa7a82a7ec1",
     "en": "Page's ordered aligned rank-sum test. Equivalent to R's `PMCMRplus::pageTest()`.",
-    "ja": ""
+    "ja": "Page の順序付き整列順位和検定です。R の `PMCMRplus::pageTest()` と同等です。"
   },
   "pageTest(1)#@param blocks": {
     "hash": "42c1ef965525",
     "en": "Block labels, parallel to x.",
-    "ja": ""
+    "ja": "ブロックのラベルです。x と対応させます。"
   },
   "pageTest(1)#@param groups": {
     "hash": "4ec3ebb7f711",
     "en": "Treatment labels, parallel to x.",
-    "ja": ""
+    "ja": "処理のラベルです。x と対応させます。"
   },
   "pageTest(1)#@param options": {
     "hash": "bd7083d6b7bc",
     "en": "Alternative hypothesis.",
-    "ja": ""
+    "ja": "対立仮説。"
   },
   "pageTest(1)#@param x": {
     "hash": "0513b7dd05f8",
     "en": "Numeric observations.",
-    "ja": ""
+    "ja": "数値観測値。"
   },
   "pageTest(1)#summary": {
     "hash": "ed05e0506c66",
     "en": "Page's test from long-form observations. Treatment and block labels follow R's factor() level order.",
-    "ja": ""
+    "ja": "長形式の観測値に対する Page 検定です。処理とブロックのラベルは、R の factor() の水準順に従います。"
   },
   "pageTest(2)#@param data": {
     "hash": "41fb976d58fa",
     "en": "Data frame.",
-    "ja": ""
+    "ja": "データフレーム。"
   },
   "pageTest(2)#@param formula": {
     "hash": "1c9111754f01",
     "en": "Formula with one treatment and one block variable.",
-    "ja": ""
+    "ja": "処理変数 1 つとブロック変数 1 つを含む式。"
   },
   "pageTest(2)#@param options": {
     "hash": "bd7083d6b7bc",
     "en": "Alternative hypothesis.",
-    "ja": ""
+    "ja": "対立仮説。"
   },
   "pageTest(2)#summary": {
     "hash": "29f856866344",
     "en": "Page's test from a formula and data frame: `\"y ~ treatment | block\"`.",
-    "ja": ""
+    "ja": "式とデータフレームによる Page 検定です。例: `\"y ~ treatment | block\"`。"
   },
   "pearsonTest#@example": {
     "hash": "f2167be5edf2",
