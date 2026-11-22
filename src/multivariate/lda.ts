@@ -1,6 +1,7 @@
 // Linear discriminant analysis using weighted between-class moments and the pooled within-class metric.
 
 import { eigen } from "../linalg/eigen.js";
+import { qr } from "../linalg/qr.js";
 import { fromMat, toMatOrColumn, type VectorOrMatrix } from "../linalg/matrix.js";
 import { mean } from "../internal/summary.js";
 import { compareLabels, factorLabels, type GroupLabel } from "../htest/groups.js";
@@ -122,8 +123,10 @@ function fitCore(x0: number[][], g0: readonly GroupLabel[], options: LdaOptions,
   const prior = normalisePrior(options.prior, counts);
   const center = Array.from({ length: p }, (_, j) => prior.reduce((s, w, i) => s + w * means[i]![j]!, 0));
   const within = zeros(p, p), between = zeros(p, p);
+  const allDeviations: number[][] = [];
   for (let k = 0; k < g; k++) {
     const deviations = by[k]!.map((r) => r.map((v, j) => v - means[k]![j]!));
+    allDeviations.push(...deviations);
     const w = cross(deviations);
     for (let i = 0; i < p; i++) for (let j = 0; j < p; j++) within[i]![j]! += w[i]![j]!;
     const d = means[k]!.map((v, j) => v - center[j]!);
@@ -131,10 +134,19 @@ function fitCore(x0: number[][], g0: readonly GroupLabel[], options: LdaOptions,
   }
   const tol = options.tol ?? 1e-4;
   if (!(Number.isFinite(tol) && tol >= 0)) throw new RangeError("'tol' must be a non-negative finite number");
+  const constant = within.map((row, i) => row[i]! === 0 ? i + 1 : 0).filter((i) => i > 0);
+  if (constant.length) throw new RangeError(`variable${constant.length > 1 ? "s" : ""} ${constant.join(" ")} appear${constant.length === 1 ? "s" : ""} to be constant within groups`);
+  const exactRank = qr(allDeviations, { tol: 1e-12 }).rank;
+  const toleranceQr = qr(allDeviations, { tol }).rank;
+  if (toleranceQr < exactRank) {
+    const q = qr(allDeviations, { tol });
+    const dropped = q.pivot.slice(q.rank).map((i) => i + 1).sort((a, b) => a - b);
+    throw new RangeError(`variables ${dropped.join(" ")} appear to be constant within groups`);
+  }
   const metric = inverseFromEigen(within, tol);
   if (metric.rank === 0) throw new RangeError("variables are constant within groups");
   const warnings: string[] = [];
-  if (metric.rank < p) warnings.push("variables are collinear; rank reduced");
+  if (exactRank < p || metric.rank < p) warnings.push("variables are collinear");
   const whitened = mul(mul(metric.inverseSqrt, between), metric.inverseSqrt);
   const be = eigen(whitened, { symmetric: true });
   const max = Math.max(0, ...be.values);
