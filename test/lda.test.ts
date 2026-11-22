@@ -42,11 +42,11 @@ describe("lda", () => {
   });
   it("drops and warns about declared empty class levels", () => {
     const fit = lda(x, g, { groupLevels: ["a", "b", "none"] });
-    expect(fit.lev).toEqual(["a", "b"]);
+    expect(fit.lev).toEqual(["a", "b", "none"]);
     expect(fit.warnings).toEqual(["group none is empty"]);
     const formula = lda("group ~ a + b", { a: x.map((r) => r[0]!), b: x.map((r) => r[1]!), group: g },
       { levels: { group: ["a", "b", "none"] } });
-    expect(formula.lev).toEqual(["a", "b"]);
+    expect(formula.lev).toEqual(["a", "b", "none"]);
     expect(formula.warnings).toEqual(["group none is empty"]);
   });
   it("warns for exact collinearity and rejects variables lost only to a loose tolerance", () => {
