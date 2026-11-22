@@ -13,9 +13,9 @@ The 12 `grubbs_x1_type{10,11,20}_opp{0,1}_two{0,1}` cases and corresponding x2/x
 
 ## Tail options and p values
 
-`opposite=FALSE` selects high extreme(s); TRUE selects low extreme(s) for types 10 and 20. Type 11 always uses both endpoints, so opposite does not change its statistic, p or alternative. For types 10 and 11, `two.sided=TRUE` doubles the one-tail probability in the observed direction, capped at 1. Type 20's two-sided behavior is twice its lower-tail table probability, capped at 1. The alternative string names the selected observation(s). The 12-per-sample cases cover all combinations.
+`opposite=FALSE` selects high extreme(s); TRUE selects low extreme(s) for types 10 and 20. Type 11 always uses both endpoints, so opposite does not change its statistic, p or alternative. For type 10, the one-sided p is `1−F₁₀(G)` and the two-sided p is `2·min(F₁₀(G),1−F₁₀(G))`. For type 11, the one-sided p is `1−pgrubbs(G,n,11)` and the two-sided p is twice that upper-tail probability. For type 20, the one-sided p is `pgrubbs(U,n,20)` and the two-sided p is `2·min(pgrubbs(U,n,20),1−pgrubbs(U,n,20))`. These rules are capped to [0,1]. The alternative string names the selected observation(s). The 12-per-sample cases cover all combinations.
 
-Type 10's CDF is independently reproduced by the Pearson–Sekar approximation (t distribution, df n−2); all tested q/n pairs agree within 3.89e−15. Type 11 uses the David–Hartley–Pearson relation and numerical inversion; the public helper can fail at `pgrubbs_type11_n10` q=3 with a root-bracketing error. Preserve this failure rather than inventing a probability.
+Type 10's Pearson–Sekar transform is `t=q·sqrt[n(n−2)/((n−1)²−nq²)]`, with `F₁₀(q)=1−n·Pr(T_(n−2)≤−t)`. The one-sided p is `1−F₁₀(G)`; the two-sided p is `2·min(F₁₀(G),1−F₁₀(G))`. All tested q/n pairs agree with public `pgrubbs` within 3.89e−15. Type 11 uses the David–Hartley–Pearson relation and numerical inversion, but the completed independent calculation did not reproduce its full probability equation. Record `pgrubbs(q,n,11)` as the reference probability function rather than inventing a closed form; it can fail at `pgrubbs_type11_n10` q=3 with a root-bracketing error, which must be preserved as an error case.
 
 ## Type 20 table grid and interpolation
 
@@ -34,7 +34,7 @@ Type 20 accepts 3≤n≤30; n=31 errors `n must be in range 3-30`. Type 11's q=3
 ## Decisions for the user
 
 1. Export scalar pgrubbs/qgrubbs only if needed; recommendation: yes, to make the distribution independently testable.
-2. Type 11: propagate a clear convergence/bracketing error where no root can be bracketed.
+2. Type 11: the full David–Hartley–Pearson probability equation was not independently reconstructed; either accept the public-helper numerical contract for implementation or defer type 11. Propagate a clear convergence/bracketing error where no root can be bracketed.
 3. Type 20: defer exact table compatibility until native probability knots are identified, or explicitly approve a documented approximation tolerance.
 4. Constant samples: return NaN p (or a validation error), not the reference's p=0 defect.
 
