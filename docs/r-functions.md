@@ -10,22 +10,37 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | --- | --- | --- |
 | `anova.nls()` | `nlsAnova` | Analysis of variance for nested nonlinear least-squares fits. |
 | `anova.polr()` | `polrAnova` | Equivalent to R's `anova.polr()`. |
+| `anova.rq()` | `rqAnova` | Wald comparisons for nested models or slopes across multiple quantiles. |
+| `anova()` | `geeAnova` | Compare GEE terms or nested models using Wald tests. |
+| `coef.glmnet()` | `glmnetCoef` | Extract coefficients at selected penalty values. |
 | `confint.nls()` | `nlsConfint` | Wald or profile confidence intervals for nonlinear parameters. |
 | `confint.polr()` | `polrConfint` | Equivalent to R's `confint.polr()`. |
+| `cv.glmnet()` | `cvGlmnet` | Cross-validate a penalized generalized linear model. |
+| `geepack::geeglm()` | `geeglm` | Fit a marginal generalized estimating equation model. |
+| `glmnet::glmnet()` | `glmnet` | Fit a penalized generalized linear model path. |
 | `nls()` | `nls` | Nonlinear least-squares regression. |
 | `MASS::polr()` | `polr` | Fit a cumulative-link ordinal regression. |
+| `predict.geeglm()` | `geePredict` | Predict marginal means on the link or response scale. |
+| `predict.glmnet()` | `glmnetPredict` | Predict from a penalized generalized linear model. |
 | `predict.nls()` | `nlsPredict` | Predictions from a nonlinear least-squares fit. |
 | `predict.polr()` | `polrPredict` | Predict ordinal categories or their probabilities for new observations. |
+| `quantreg::predict.rq()` | `rqPredict` | Predict conditional quantiles for new observations. |
+| `predict.rq()` | `rqPredictInterval` | Confidence intervals for conditional quantile predictions using nid or direct quantile refits. |
 | `MASS::psi.bisquare()` | `psiBisquare` | Tukey's bisquare psi function. |
 | `MASS::psi.hampel()` | `psiHampel` | Hampel's three-part psi function. |
 | `MASS::psi.huber()` | `psiHuber` | Huber's psi function. |
+| `geepack::QIC()` | `geeQIC` | Calculate quasi-likelihood information criteria for a GEE fit. |
 | `MASS::rlm()` | `rlm` | Robust M regression. |
+| `quantreg::rq()` | `rq` | Fit a linear conditional quantile model. |
+| `summary.geeglm()` | `geeSummary` | Summarize the coefficient estimates of a GEE fit. |
 | `summary.nls()` | `nlsSummary` | Summary of a nonlinear least-squares fit. |
 | `summary.polr()` | `polrSummary` | Summary table of the slope and cut-point estimates. |
 | `summary.rlm()` | `rlmSummary` | Coefficient table of a robust fit. |
+| `summary.rq()` | `rqSummary` | Coefficient summary with Hall–Sheather bandwidth and the nid sandwich covariance. |
 | `vcov.nls()` | `nlsVcov` | Covariance matrix of a nonlinear least-squares fit. |
 | `vcov.polr()` | `polrVcov` | Covariance matrix of the slopes and cut-points. |
 | `vcov.rlm()` | `rlmVcov` | Covariance matrix of robust-regression coefficients. |
+| `vcov()` | `geeVcov` | Return robust or model-based coefficient covariance. |
 
 ## Special functions (`rStats.js/special`)
 

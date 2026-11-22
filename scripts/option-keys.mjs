@@ -353,6 +353,8 @@ const CONDITIONS = {
   wilcoxTest: { 1: formulaOrOptions },
   onewayTest: { 1: formulaOrOptions },
   roc: { 1: formulaOrOptions },
+  // geeAnova(fit, reduced) compares two fits; geeAnova(fit, options) is the sequential table
+  geeAnova: { 1: (p) => `!isGeeResult(${p[1]})` },
 };
 
 /**

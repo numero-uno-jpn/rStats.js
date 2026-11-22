@@ -432,5 +432,20 @@
   "simulateLmer": "lmer の当てはめからの応答のシミュレーション (R と同じ乱数の流れ)",
   "simulateGlmer": "glmer の当てはめからの応答のシミュレーション (R と同じ乱数の流れ)",
   "survreg": "パラメトリック生存時間回帰モデルを当てはめる",
-  "survregPredict": "パラメトリック生存時間回帰モデルの予測値と標準誤差"
+  "survregPredict": "パラメトリック生存時間回帰モデルの予測値と標準誤差",
+  "cvGlmnet": "罰則つき回帰の交差検証 (分割を与える foldid、lambda.min と lambda.1se)",
+  "geeAnova": "一般化推定方程式の Wald 検定 (項を順に足す表と、入れ子の当てはめどうし)",
+  "geeglm": "一般化推定方程式 (作業相関 independence・exchangeable・ar1・unstructured・userdefined・fixed、サンドイッチ分散)",
+  "geePredict": "一般化推定方程式の線形予測子と平均の予測 (新しいデータも)",
+  "geeQIC": "一般化推定方程式の QIC・QICu・準尤度・CIC",
+  "geeSummary": "一般化推定方程式の係数・相関・尺度の要約",
+  "geeVcov": "一般化推定方程式の係数のサンドイッチ共分散行列",
+  "glmnet": "罰則つき一般化線形モデル (lasso・elastic net・ridge) の λ の経路 (gaussian・binomial・poisson・multinomial)",
+  "glmnetCoef": "罰則つき回帰の係数 (経路の外の λ は線形補間)",
+  "glmnetPredict": "罰則つき回帰の予測 (線形予測子・応答・クラス・非ゼロの係数)",
+  "rq": "分位点回帰 (Barrodale-Roberts の単体法 br と内点法 fn、複数の τ、重み)",
+  "rqAnova": "分位点回帰の Wald 検定 (入れ子の当てはめどうし、複数の τ での傾きの等しさ)",
+  "rqPredict": "分位点回帰の当てはめ値と新しいデータでの予測",
+  "rqPredictInterval": "分位点回帰の予測の信頼区間 (nid による none と、τ をずらした当てはめの direct)",
+  "rqSummary": "分位点回帰の係数の要約 (順位検定の反転による区間 rank と、局所の疎さによるサンドイッチの nid)"
 }

@@ -33,7 +33,16 @@ import { qbeta } from "@numero-uno-jpn/rstats/distributions";       // or one ar
                                                                      // descriptive, linalg, numerics, special
 import { lmer, glmer } from "@numero-uno-jpn/rstats/mixed";        // mixed models: only from this area
 import { polr, rlm, nls } from "@numero-uno-jpn/rstats/regression"; // regression: only from this area
+import { rq, rqSummary, rqPredict, rqPredictInterval, rqAnova } from "@numero-uno-jpn/rstats/regression";
+import { geeglm, geeSummary, geeVcov, geePredict, geeAnova, geeQIC } from "@numero-uno-jpn/rstats/regression";
+import { glmnet, glmnetCoef, glmnetPredict, cvGlmnet } from "@numero-uno-jpn/rstats/regression";
 ```
+
+The `/regression` area also provides quantile regression (`rq`), generalized estimating equations (`geeglm`) and
+penalized regression (`glmnet`). For example, `rq("y ~ x", data, { tau: 0.5 })` fits a conditional median;
+`geeglm("y ~ x", data, { id: "subject", corstr: "exchangeable" })` fits a marginal model; and
+`glmnet(x, y, { family: "gaussian", alpha: 1 })` fits a lasso path. Use `rqSummary` / `rqPredictInterval`,
+`geeSummary` / `geeVcov` / `geeQIC`, and `glmnetCoef` / `glmnetPredict` / `cvGlmnet` for their methods.
 
 Without a bundler, `https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@1.7.0/dist/rstats.js` is one ES module with
 every function except mixed models and regression, which are in `dist/mixed.js` and `dist/regression.js`. Keep a version in the URL (an exact one, or a

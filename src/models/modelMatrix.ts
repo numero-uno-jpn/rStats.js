@@ -69,6 +69,8 @@ export interface ModelMatrixResult {
 /**
  * A contrast the internal model-matrix code accepts: those of {@link ContrastName} and R's `contr.poly` (orthogonal
  * polynomials in the level scores 1, 2, ..., columns `.L`, `.Q`, `.C`, `^4`, ...), which lmer's fixed effects may use.
+ *
+ * @category Regression
  */
 export type DesignContrast = ContrastName | "contr.poly";
 
