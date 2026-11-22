@@ -11,6 +11,27 @@ const irisData = {
   Species: irisRows.map((r) => r[4]),
 };
 const manovaFixture = JSON.parse(readFileSync(new URL("./fixtures/manova.json", import.meta.url), "utf8")) as Record<string, any>;
+const mtRows = JSON.parse(readFileSync(new URL("./fixtures/mtcars.json", import.meta.url), "utf8")) as number[][];
+const mtcarsData = {
+  mpg: mtRows.map((r) => r[0]!),
+  cyl: mtRows.map((r) => String(r[1]!)),
+  disp: mtRows.map((r) => r[2]!),
+  hp: mtRows.map((r) => r[3]!),
+  drat: mtRows.map((r) => r[4]!),
+  wt: mtRows.map((r) => r[5]!),
+  qsec: mtRows.map((r) => r[6]!),
+  vs: mtRows.map((r) => r[7]!),
+  am: mtRows.map((r) => String(r[8]!)),
+  gear: mtRows.map((r) => String(r[9]!)),
+  carb: mtRows.map((r) => r[10]!),
+};
+function compareManovaSummary(actual: ReturnType<typeof summaryManova>, expected: any): void {
+  for (const key of ["Pillai", "Wilks", "Hotelling-Lawley", "Roy"] as const) compareTable(actual[key], expected[key].value);
+  for (const key of Object.keys(expected.SS)) compareTable(actual.SS[key]!, expected.SS[key]);
+  compareTable(actual.Eigenvalues, expected.Eigenvalues);
+  compareTable(actual.coef, expected.coef);
+}
+
 function compareTable(actual: { rows: string[] | string; cols: string[] | string | null; values: number[][] }, expected: any): void {
   expect(actual.rows).toEqual(expected.rows);
   expect(actual.cols).toEqual(expected.cols);
@@ -68,6 +89,30 @@ describe("manova", () => {
     const collinear = { ...data, y2: data.y1.map((v) => 2 * v) };
     expect(() => manova("cbind(y1, y2) ~ group", collinear)).toThrow(/residuals have rank/);
   });
+  it("matches the full set of two-factor, interaction, covariate and df MANOVA fixtures", () => {
+    const cases: Array<[string, string, Record<string, any>, { tol?: number }?]> = [
+      ["manova_two_factors", "cbind(mpg, disp, hp) ~ cyl + am", mtcarsData],
+      ["manova_two_factors_reversed", "cbind(mpg, disp, hp) ~ am + cyl", mtcarsData],
+      ["manova_interaction", "cbind(mpg, qsec) ~ am * gear", mtcarsData],
+      ["manova_covariate", "cbind(mpg, disp, hp) ~ wt + cyl", mtcarsData],
+      ["manova_two_responses_two_groups", "cbind(mpg, hp) ~ am", mtcarsData],
+      ["manova_p_gt_df", "cbind(mpg, disp, hp, drat, wt) ~ am", mtcarsData],
+      ["manova_tol", "cbind(mpg, disp, hp) ~ cyl", mtcarsData, { tol: 0.5 }],
+    ];
+    for (const [key, formula, data, options] of cases) {
+      const fit = manova(formula, data, options ?? {});
+      compareManovaSummary(summaryManova(fit), manovaFixture[key].value);
+    }
+    const missing = { ...mtcarsData, mpg: mtcarsData.mpg.map((v, i) => i === 2 ? NaN : v) };
+    compareManovaSummary(summaryManova(manova("cbind(mpg, disp, hp) ~ cyl", missing)), manovaFixture.manova_na.value);
+    compareManovaSummary(summaryManova(manova("cbind(mpg * 1e100, disp, hp * 1e-100) ~ cyl", mtcarsData)), manovaFixture.manova_scale.value);
+    expect(() => manova("cbind(mpg) ~ cyl", mtcarsData)).toThrow(/need multiple responses/);
+    expect(() => manova("cbind(mpg, disp, hp, drat, wt, qsec) ~ cyl", Object.fromEntries(
+      Object.entries(mtcarsData).map(([k, v]) => [k, v.slice(0, 8)]),
+    ))).toThrow(/residuals have rank/);
+    expect(() => manova("cbind(mpg, disp, I(mpg + disp)) ~ cyl", mtcarsData)).toThrow(/residuals have rank 2 < 3/);
+  });
+
   it("handles 100,000 observations", () => {
     const n = 100_000;
     const d = {
