@@ -89,6 +89,11 @@ describe("manova", () => {
     const collinear = { ...data, y2: data.y1.map((v) => 2 * v) };
     expect(() => manova("cbind(y1, y2) ~ group", collinear)).toThrow(/residuals have rank/);
   });
+  it("matches the Iris MANOVA fixture with the sequential intercept row", () => {
+    const fit = manova("cbind(Sepal.Length, Sepal.Width, Petal.Length, Petal.Width) ~ Species", irisData);
+    compareManovaSummary(manovaSummary(fit, { intercept: true }), manovaFixture.manova_iris_intercept.value);
+  });
+
   it("matches the full set of two-factor, interaction, covariate and df MANOVA fixtures", () => {
     const cases: Array<[string, string, Record<string, any>, { tol?: number }?]> = [
       ["manova_two_factors", "cbind(mpg, disp, hp) ~ cyl + am", mtcarsData],
