@@ -1,75 +1,39 @@
 # Grubbs outlier tests
 
-Issue #549. Reference: R 4.6.2 / outliers 0.15. Evidence: Grubbs (1950), *Annals of Mathematical Statistics* 21, 27–58; Pearson & Sekar (1936); David, Hartley & Pearson (1954); public R outputs from \`grubbs.test\`, \`pgrubbs\`, and \`qgrubbs\`. No package/R source or source-derived table was used.
+Issue #549. Reference R 4.6.2 / outliers 0.15. Evidence: Grubbs (1950), Ann. Math. Stat. 21, 27–58; Pearson & Sekar (1936); David, Hartley & Pearson (1954); public R outputs and independent calculations in `experiments/multivariate19-stage1-grubbs.R`; full public-call cases in `experiments/tests19-small.R`. No GPL source or source-derived table was used.
 
 ## Statistics
 
-Let \(s\) be the sample standard deviation.
+Let n be the number of finite observations, s² the unbiased sample variance, and x_(1)≤…≤x_(n) the order statistics.
 
-**Type 10 (one extreme).** Select the maximum when \`opposite=FALSE\`, the minimum when \`opposite=TRUE\). With selected observation \(x_{(e)}\),
+- Type 10 selects the high or low extreme x*: `G=|x*−xbar|/s`. Let s²_(−*) be the sample variance after removing that one extreme. `U=(n−2)s²_(−*)/[(n−1)s²]`.
+- Type 11 uses both extremes: `G=(x_(n)−x_(1))/s`. Let s²_mid be the sample variance of x_(2),…,x_(n−1). `U=(n−3)s²_mid/[(n−1)s²]`.
+- Type 20 selects the two high or two low extremes and reports U (not G): `U=(n−3)s²_rest/[(n−1)s²]`, where s²_rest is the sample variance after removing the selected two extremes.
 
-\[
-G_{10}=\frac{|x_{(e)}-\bar{x}|}{s},\qquad
-U_{10}=\frac{(n-2)s_{(-e)}^2}{(n-1)s^2}
-      =1-\frac{nG_{10}^2}{(n-1)^2}.
-\]
+The 12 `grubbs_x1_type{10,11,20}_opp{0,1}_two{0,1}` cases and the corresponding x2/x3 cases compare G/U, p and alternative text. Type 10's independently calculated Pearson–Sekar t transform agrees with `pgrubbs` for n=3,4,5,7,10,20,30,50 at all seven tested q values; maximum absolute CDF difference is 3.89e−15. The three x1 reference examples are: type10 G=2.46876461121245, U=0.00493082357959803, p=1.50131933551734e−7; type11 G=2.91813985536907, U=0.00337251643826531, p=0.628552325970718; type20 U=0.00374504032103939, p=0.
 
-The Pearson–Sekar approximation uses
+## Tail options and p values
 
-\[
-t=\frac{G_{10}\sqrt{n(n-2)}}{\sqrt{(n-1)^2-nG_{10}^2}},\qquad
-F_{10}(G;n)=\max(0,\min(1,1-nP(T_{n-2}\ge t))).
-\]
+`opposite=FALSE` selects the high extreme(s); TRUE selects the low extreme(s) for types 10 and 20. Type 11 always considers both extremes, so opposite does not change its G, U, p, or alternative. For types 10 and 11, `two.sided=TRUE` doubles the one-tail probability in the direction opposite the observed statistic, capped at 1; type 20's two-sided behavior is likewise observed as twice its lower-tail table probability, capped at 1. The descriptive alternative names the selected high/low observation(s); type 11 names both endpoints. The supplied 12-per-sample cases cover all combinations.
 
-One-sided p is \(1-F_{10}\); two-sided p is \(2\min(F_{10},1-F_{10})\).
+Type 10's CDF is independently reproduced by the Pearson–Sekar approximation (t distribution, df n−2) and the experiment records all tested q/n pairs. Type 11 is based on the David–Hartley–Pearson relation and numerical inversion; the public helper can fail at `pgrubbs_type11_n10` q=3 with the reported root-bracketing error. Do not replace that failure with an invented probability. Type 20 is tabulated and interpolated; see the table-grid qualification below.
 
-**Type 11 (two opposite extremes).** Let \(x_{\min},x_{\max}\) be the selected extremes:
+## Type 20 table-grid qualification
 
-\[
-G_{11}=\frac{x_{\max}-x_{\min}}s,\qquad
-U_{11}=\frac{(n-3)s_{(-\min,-\max)}^2}{(n-1)s^2}.
-\]
+The experiment's self-generated U=0.001 grid is only a numerical approximation and is **not** evidence of the reference table's native probability knots. The public `qgrubbs(p,n,type=20)` calls in the recorded experiment use p values `0.001, 0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99, 0.999`; these are sampled probabilities, not a verified exhaustive native grid. Independently, `pgrubbs(u,n,20)` and `qgrubbs(u,n,20,rev=TRUE)` agree exactly on the tested off-grid U values (maximum difference 0), confirming the reverse-quantile interpretation. Linear interpolation on the artificial 0.001 U grid has maximum off-grid error 2.06e−4 (n=11); sqrt(U), log(U), and logit probability transformations did not give one uniformly best coordinate across n.
 
-The p-value law is the David–Hartley–Pearson standardized-range distribution. Define \(F_{11}(G;n)=pgrubbs(G,n,11)\), with quantile \(Q_{11}(p;n)=qgrubbs(p,n,11)\); the public p function numerically inverts this quantile relation. One-sided p is \(1-F_{11}\); two-sided p is \(2\min(F_{11},1-F_{11})\). \`opposite\` has no effect on type 11.
+**Therefore the native table probability knots have not been identified by the completed experiment.** This is deliberately left unresolved rather than relabeling the artificial 0.001 grid as the table. The correct next experiment, if needed, is to query public qgrubbs at candidate probability knots and verify each returned q against pgrubbs; no table values may be copied from source.
 
-**Type 20 (two same-side extremes).** Remove the two largest values (\`opposite=FALSE\`) or the two smallest (\`opposite=TRUE\)):
+## Boundary observations
 
-\[
-U_{20}=\frac{(n-3)s_{(-e_1,-e_2)}^2}{(n-1)s^2}.
-\]
-
-There is no G statistic in the returned result. The lower-tail probability is
-
-\[
-F_{20}(U;n)=pgrubbs(U,n,20)=qgrubbs(U,n,20,\mathrm{rev}=TRUE).
-\]
-
-This equality was observed exactly on the supplied grids and additional off-grid points. One-sided p is \(F_{20}\); two-sided p is \(2\min(F_{20},1-F_{20})\).
-
-## Type-20 table and interpolation
-
-Do not invert the default \`rev=FALSE\` qgrubbs quantile table by simple linear interpolation: that gave maximum errors about 0.018 on the supplied grids. Generate the CDF table from public \`qgrubbs(U,n,20,rev=TRUE)\) outputs at the selected U probabilities.
-
-Sampling this reverse table on \(U=0,0.001,\ldots,1\) and interpolating linearly in U gave off-grid maximum absolute errors for \(n=4,6,8,9,11,15,16,25,29\) of \(5.05\cdot10^{-5},1.17\cdot10^{-6},7.97\cdot10^{-7},8.56\cdot10^{-7},2.061\cdot10^{-4},1.75\cdot10^{-4},2.75\cdot10^{-6},5.91\cdot10^{-6},7.90\cdot10^{-6}\). The maximum was \(2.061\cdot10^{-4}\). sqrt(U), log(U), and logit(p) transforms were also tested; no single transform improved every n. The reverse qgrubbs function itself is the exact oracle; use a denser table for tighter tolerances.
-
-## R-observed behavior and numerical checks
-
-- For \`grubbs_x1_*\`, \`grubbs_x2_*\`, and \`grubbs_x3_*\`: all 36 type/opposite/two-sided combinations were checked. G and U match exactly; maximum p absolute difference \(9.99\cdot10^{-16}\).
-- Type-10 pgrubbs formula matches every tested q point for \(n=3,4,5,7,10,20,30,50\); maximum absolute difference \(3.89\cdot10^{-15}\).
-- \`grubbs_x1_type10_opp0_two0\`: \(G=2.46876461121245,U=0.00493082357959803,p=1.50131933551734\cdot10^{-7}\). \`grubbs_x1_type11_opp0_two0\`: \(G=2.91813985536907,U=0.00337251643826531,p=0.628552325970718\). \`grubbs_x1_type20_opp0_two0\`: \(U=0.00374504032103939,p=0\).
-- \`opposite\` changes the selected extreme(s), statistics, and alternative text for types 10 and 20; it does not change type 11. \`two.sided\` changes only p.
-- \`pgrubbs_type11_n10\` at q=3 fails with \`f() values at end points not of opposite sign\`; \(qgrubbs(0.001,10,11)=3.00006058009131\). This is a root-bracketing failure just below the lower probability boundary.
-- \`grubbs_n2\` returns \(G=0.707106781186547,U=NA,p=NaN\) with a warning; it is not an error. \`grubbs_n3\` is accepted. \`grubbs_n3_type11\` returns \(U=NA\) but finite p. Type 20 accepts \(3\le n\le30\); \`grubbs_n31_type20\` errors with \`n must be in range 3-30\`.
-- \`grubbs_na\` omits NA and returns a finite result. \`grubbs_tie_extremes\`, \`grubbs_symmetric\`, \`grubbs_large_n\`, \`grubbs_scale\`, and \`grubbs_shift\` are in the oracle.
-- \`grubbs_constant\` returns NaN G/U but p=0. This p-value is not mathematically defined and is treated as a reference defect, not a desired contract.
+Type 20 accepts 3≤n≤30; n=31 errors `n must be in range 3-30`. Type 11's q=3 inversion failure is retained as a documented error case. Constant input gives undefined G/U but the reference reports p=0; this is mathematically inconsistent with an ordinary finite statistic and is treated as a reference defect, not a target behavior. `grubbs_n2`, `grubbs_n3`, `grubbs_n3_type11`, `grubbs_n4_type20`, `grubbs_n30_type20`, `grubbs_n31_type20`, `grubbs_constant`, `grubbs_na`, `grubbs_large_n`, `grubbs_tie_extremes`, `grubbs_symmetric`, `grubbs_scale`, and `grubbs_shift` record the remaining boundaries.
 
 ## Decisions for the user
 
-1. Export scalar \`pgrubbs\` and \`qgrubbs\` alongside \`grubbsTest\`.
-2. Generate type-20 CDF table values only from R \`qgrubbs(U,n,20,rev=TRUE)\); use a dense U grid and document interpolation error. Do not invert the default quantile table.
-3. For type-11 values below the lower root bracket, return boundary probability 0 rather than propagating R's uniroot error.
-4. Return NaN p for a constant sample with undefined G/U rather than R's p=0 artifact. Preserve the type-20 n=3..30 support boundary.
-5. Preserve type-11 \`opposite\` as ignored and keep \`two.sided\` as a p-value-only option.
+1. Export scalar `pgrubbs` and `qgrubbs` only if required; recommendation: keep them public to make the distribution law independently testable.
+2. Type 11 numerical inversion: propagate a clear convergence/bracketing error where the defining root cannot be bracketed.
+3. Type 20: do not claim exact R table compatibility until native probability knots are identified. Recommendation: defer type 20 implementation or explicitly approve a documented approximation tolerance.
+4. Constant samples: return NaN statistic and NaN p (or a validation error), not the reference's p=0 defect.
 
 ## rStats.js's choices
 
