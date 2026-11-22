@@ -19,7 +19,7 @@ export interface CmdscaleResult {
 
 interface DistanceInput { matrix: number[][]; labels: string[] | null; }
 
-function readDistances(input: DistResult | readonly (readonly number[])[]): DistanceInput {
+function readDistances(input: DistResult | readonly (readonly number[])[] | CmdscaleMatrix): DistanceInput {
   if (Array.isArray(input)) {
     const n = input.length;
     if (n === 0 || input.some((r) => r.length !== n)) throw new RangeError("distance matrix must be square");
@@ -29,6 +29,15 @@ function readDistances(input: DistResult | readonly (readonly number[])[]): Dist
   }
   if (typeof input !== "object" || input === null || !Array.isArray((input as DistResult).values)) {
     throw new TypeError("d must be a dist object or a square matrix");
+  }
+  const rawValues = (input as { values: unknown[] }).values;
+  if (rawValues.length > 0 && Array.isArray(rawValues[0])) {
+    const table = input as CmdscaleMatrix;
+    const n = table.values.length;
+    if (n === 0 || table.values.some((r) => r.length !== n)) throw new RangeError("distance matrix must be square");
+    const matrix = table.values.map((r) => Array.from(r, Number));
+    if (matrix.some((r) => r.some((v) => !Number.isFinite(v)))) throw new RangeError("NA values not allowed in 'd'");
+    return { matrix, labels: table.rows === null ? null : [...table.rows] };
   }
   const d = input as DistResult;
   const n = d.size;
@@ -109,7 +118,7 @@ function orient(points: number[][]): void {
  * @category Multivariate analysis
  */
 export function cmdscale(
-  input: DistResult | readonly (readonly number[])[],
+  input: DistResult | readonly (readonly number[])[] | CmdscaleMatrix,
   options: CmdscaleOptions = {},
 ): CmdscaleResult {
   const parsed = readDistances(input);
