@@ -10,7 +10,7 @@ describe("cluster and classical-scaling numerical extremes", () => {
     const base = dist([[0, 0], [3, 0], [0, 4], [3, 4]]);
     for (const method of ["ward.D2", "median", "centroid"] as const) {
       const reference = hclust(base, { method });
-      for (const scale of [2 ** 500, 2 ** -500, 2 ** 1000, 2 ** -1000, 1e100, 1e-100]) {
+      for (const scale of [2 ** 500, 2 ** -500, 2 ** 1000, 2 ** -1000, 1e100, 1e-100, 1e200, 1e-200]) {
         const scaled = hclust({ ...base, values: base.values.map((v) => v * scale) }, { method });
         expect(scaled.merge).toEqual(reference.merge);
         expect(scaled.order).toEqual(reference.order);
@@ -114,6 +114,22 @@ describe("cluster and classical-scaling numerical extremes", () => {
     // The exact sums of squares are below the smallest representable double, so zero is correct.
     expect(fit.totss).toBe(0);
     expect(fit.totWithinss).toBe(0);
+  });
+
+  it("preserves cmdscale coordinates when large squared distances overflow", () => {
+    const scale = 1e200;
+    const matrix = [[0, 1, 1, 3], [1, 0, 1, 1], [1, 1, 0, 1], [3, 1, 1, 0]];
+    const reference = cmdscale(asDist(matrix), { k: 2, add: true });
+    const scaled = cmdscale(asDist(matrix.map((row) => row.map((v) => v * scale))), { k: 2, add: true });
+    expect(scaled.ac / scale).toBeCloseTo(reference.ac, 8);
+    for (let i = 0; i < 2; i++) expect(scaled.GOF[i]!).toBeCloseTo(reference.GOF[i]!, 8);
+    for (let i = 0; i < reference.points.values.length; i++) for (let j = i + 1; j < reference.points.values.length; j++) {
+      const a = reference.points.values[i]!, b = reference.points.values[j]!;
+      const x = scaled.points.values[i]!, y = scaled.points.values[j]!;
+      const referenceDistance = Math.hypot(a[0]! - b[0]!, a[1]! - b[1]!);
+      const scaledDistance = Math.hypot(x[0]! - y[0]!, x[1]! - y[1]!) / scale;
+      expect(scaledDistance).toBeCloseTo(referenceDistance, 7);
+    }
   });
 
   it("preserves cmdscale coordinates and Cailliez constant when squared distances underflow", () => {
