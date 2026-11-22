@@ -34,7 +34,10 @@ describe("cancor", () => {
     const r = cancor(xx, y);
     expect(r.xcoef.rows).toHaveLength(2);
     const scaled = cancor(x.map((r) => r.map((v) => v * 1e100)), y.map((r) => r.map((v) => v * 1e-100)));
-    expect(scaled.cor[0]).toBeCloseTo(cancor(x, y).cor[0]!, 10);
+    const scaledFirst = Array.isArray(scaled.cor) ? scaled.cor[0]! : scaled.cor;
+    const baseCor = cancor(x, y).cor;
+    const baseFirst = Array.isArray(baseCor) ? baseCor[0]! : baseCor;
+    expect(scaledFirst).toBeCloseTo(baseFirst, 10);
   });
   it("rejects non-finite inputs", () => {
     expect(() => cancor([[1], [NaN]], [[2], [3]])).toThrow(/NA\/NaN\/Inf/);
