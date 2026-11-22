@@ -42,6 +42,11 @@ function compareLdaFit(actual: LdaFit, expected: any, warnings: any = []): void 
   expect(actual.warnings).toEqual(expectedWarnings);
 }
 function compareLdaPrediction(actual: ReturnType<typeof ldaPredict>, expected: any): void {
+  const classDiffs = expected.class.flatMap((value: string, i: number) => actual.class[i] === value ? [] : [{
+    i, actual: actual.class[i], expected: value,
+    actualPosterior: actual.posterior.values[i], expectedPosterior: expected.posterior.values[i],
+  }]);
+  if (classDiffs.length) console.log("LDA class differences", JSON.stringify(classDiffs));
   expect(actual.class).toEqual(expected.class);
   expect(actual.posterior.cols).toEqual(expected.posterior.cols);
   expectMatrixClose(actual.posterior.values, expected.posterior.values, 1e-8);
