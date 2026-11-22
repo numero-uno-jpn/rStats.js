@@ -148,6 +148,33 @@ describe("lda", () => {
     expect(() => lda(xx, gg, { xNames: names, tol: 0.5 })).toThrow("variables 2 3 4 appear to be constant within groups");
   });
 
+  it("matches LDA prior, CV-prior, prediction-prior and dimen fixtures", () => {
+    const xx = irisRows.map((r) => [r[0], r[1], r[2], r[3]]);
+    const gg = irisRows.map((r) => r[4]);
+    const names = ["Sepal.Length", "Sepal.Width", "Petal.Length", "Petal.Width"];
+    const fit = lda(xx, gg, { xNames: names, prior: [0.6, 0.3, 0.1] });
+    const expected = ldaFixture.lda_iris_prior.value;
+    compareLdaFit(fit, expected.fit, ldaFixture.lda_iris_prior.warnings);
+    compareLdaPrediction(ldaPredict(fit), expected.pred);
+
+    const cv = lda(xx, gg, { xNames: names, CV: true, prior: [0.2, 0.5, 0.3] });
+    const cvExpected = ldaFixture.lda_iris_cv_prior.value;
+    expect(cv.class).toEqual(cvExpected.class);
+    expectMatrixClose(cv.posterior.values, cvExpected.posterior.values, 1e-8);
+
+    const base = lda(xx, gg, { xNames: names });
+    compareLdaPrediction(ldaPredict(base, { prior: [0.1, 0.1, 0.8] }), ldaFixture.lda_iris_predict_prior.value);
+    const oneDim = ldaPredict(base, { dimen: 1 });
+    const oneDimExpected = ldaFixture.lda_iris_dimen1.value;
+    expect(oneDim.class).toEqual(oneDimExpected.class);
+    expect(oneDim.posterior.cols).toEqual(oneDimExpected.posterior.cols);
+    expectMatrixClose(oneDim.posterior.values, oneDimExpected.posterior.values, 1e-8);
+    expect(oneDim.x.cols).toEqual(oneDimExpected.x.cols);
+    expectMatrixClose(oneDim.x.values, oneDimExpected.x.values, 1e-8);
+    expect(() => ldaPredict(base, { method: "predictive" } as any)).toThrow(/plug-in/);
+    expect(() => ldaPredict(base, { method: "debiased" } as any)).toThrow(/plug-in/);
+  });
+
   it("fits moment LDA with metric-normalised directions and deterministic signs", () => {
     const fit = lda(x, g);
     expect(fit.lev).toEqual(["a", "b"]);
