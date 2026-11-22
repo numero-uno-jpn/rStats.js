@@ -1,20 +1,24 @@
 // K-means clustering: batch Lloyd/Forgy, online MacQueen, and point-transfer Hartigan-Wong.
 import { sampleInt } from "../random/sample.js";
 
+/** @category Multivariate analysis */
 export interface KmeansOptions {
   algorithm?: "Hartigan-Wong" | "Lloyd" | "Forgy" | "MacQueen" | string;
   iterMax?: number;
   nstart?: number;
 }
 
+/** @category Multivariate analysis */
 export interface KmeansMatrixInput { rows: string[] | null; cols: string[] | null; values: readonly (readonly number[])[]; }
 
+/** @category Multivariate analysis */
 export interface KmeansTable {
   rows: string[];
   cols: string[] | null;
   values: number[][];
 }
 
+/** @category Multivariate analysis */
 export interface KmeansFit {
   cluster: number[];
   names?: string[];
@@ -181,7 +185,6 @@ function hartiganWong(rows: number[][], initial: number[][], iterMax: number): {
 }
 
 /**
- * Partition observations into k clusters by minimizing within-cluster sum of squares.
  * Equivalent to R's stats::kmeans().
  * @category Multivariate analysis
  */
