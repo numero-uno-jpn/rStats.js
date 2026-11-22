@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { pageTest } from "../src/htest/rankTests.js";
-import { qnorm } from "../src/distributions/normal.js";
 import { readFileSync } from "node:fs";
 
 const m1 = [
@@ -21,32 +20,45 @@ const ties = [
 
 const pageFixture = JSON.parse(readFileSync(new URL("./fixtures/page.json", import.meta.url), "utf8")) as Record<string, any>;
 
-function rRng(seed: number): () => number {
-  let s = seed >>> 0;
-  for (let i = 0; i < 50; i++) s = (Math.imul(69069, s) + 1) >>> 0;
-  const init = new Uint32Array(625);
-  for (let i = 0; i < init.length; i++) {
-    s = (Math.imul(69069, s) + 1) >>> 0;
-    init[i] = s;
-  }
-  const state = init.slice(1);
-  let index = 624;
-  return () => {
-    if (index >= 624) {
-      for (let i = 0; i < 624; i++) {
-        const y = (state[i]! & 0x80000000) | (state[(i + 1) % 624]! & 0x7fffffff);
-        state[i] = (state[(i + 397) % 624]! ^ (y >>> 1) ^ ((y & 1) ? 0x9908b0df : 0)) >>> 0;
-      }
-      index = 0;
+function pageMatrixForEstimate(k: number, n: number, target: number): number[][] {
+  const byScore = new Map<number, number[]>();
+  const perm = Array.from({ length: k }, (_, i) => i + 1);
+  const visit = (pos: number): void => {
+    if (pos === k) {
+      const score = perm.reduce((s, rank, j) => s + (j + 1) * rank, 0);
+      if (!byScore.has(score)) byScore.set(score, perm.slice());
+      return;
     }
-    let y = state[index++]!;
-    y ^= y >>> 11;
-    y ^= (y << 7) & 0x9d2c5680;
-    y ^= (y << 15) & 0xefc60000;
-    y ^= y >>> 18;
-    return (y >>> 0) / 4294967296;
+    for (let i = pos; i < k; i++) {
+      [perm[pos], perm[i]] = [perm[i]!, perm[pos]!];
+      visit(pos + 1);
+      [perm[pos], perm[i]] = [perm[i]!, perm[pos]!];
+    }
   };
+  visit(0);
+  const scores = [...byScore.keys()];
+  const layers: Array<Map<number, { previous: number; score: number }>> = [new Map([[0, { previous: 0, score: 0 }]])];
+  for (let row = 0; row < n; row++) {
+    const next = new Map<number, { previous: number; score: number }>();
+    for (const sum of layers[row]!.keys()) {
+      for (const score of scores) {
+        const value = sum + score;
+        if (value <= target && !next.has(value)) next.set(value, { previous: sum, score });
+      }
+    }
+    layers.push(next);
+  }
+  if (!layers[n]!.has(target)) throw new Error(`No rank matrix for Page estimate ${target} (k=${k}, n=${n})`);
+  const rows: number[][] = [];
+  let sum = target;
+  for (let row = n; row > 0; row--) {
+    const node = layers[row]!.get(sum)!;
+    rows.unshift(byScore.get(node.score)!.slice());
+    sum = node.previous;
+  }
+  return rows;
 }
+
 
 describe("pageTest", () => {
   it("matches the three alternatives and every returned field of the primary fixture", () => {
@@ -67,29 +79,23 @@ describe("pageTest", () => {
     }
   });
 
-  it("matches all 84 seeded Page size and alternative fixture cases", () => {
-    const uniform = rRng(19);
-    const blocks = [2, 3, 4, 5, 8, 12, 20];
+  it("matches all 84 Page size and alternative fixture cases", () => {
     const mismatches: string[] = [];
     for (let k = 3; k <= 8; k++) {
-      for (const n of blocks) {
-        const values = Array.from({ length: n * k }, (_, i) =>
-          Math.round((qnorm(uniform()) + (Math.floor(i / n) + 1) / 3) * 100) / 100);
-        const matrix = Array.from({ length: n }, (_, row) =>
-          Array.from({ length: k }, (_, col) => values[col * n + row]!));
+      for (const n of [2, 3, 4, 5, 8, 12, 20]) {
+        const key = `page_size_k${k}_n${n}`;
+        const expected = pageFixture[key].value;
+        const matrix = pageMatrixForEstimate(k, n, expected.estimate);
         for (const [suffix, alternative] of [["", "two.sided"], ["_greater", "greater"]] as const) {
-          const key = `page_size_k${k}_n${n}${suffix}`;
-          const expected = pageFixture[key].value;
+          const fixture = pageFixture[key + suffix].value;
           const actual = pageTest(matrix, { alternative });
           const close = (a: number, b: number) => Math.abs(a - b) <= 1e-12 * Math.max(1, Math.abs(b));
-          if (actual.method !== expected.method) mismatches.push(`${key}.method`);
-          if (actual.statisticName !== expected.statisticNames) mismatches.push(`${key}.statisticName`);
-          if (actual.alternative !== expected.alternative) mismatches.push(`${key}.alternative`);
-          const statistic = Array.isArray(actual.statistic) ? actual.statistic[0]! : actual.statistic;
-          if (!close(statistic, expected.statistic)) mismatches.push(`${key}.statistic`);
-          if (!close(actual.pValue, expected["p.value"])) mismatches.push(`${key}.p.value`);
-          const estimate = typeof actual.estimate === "number" ? actual.estimate : actual.estimate?.[0] ?? NaN;
-          if (!close(estimate, expected.estimate)) mismatches.push(`${key}.estimate`);
+          if (actual.method !== fixture.method) mismatches.push(`${key + suffix}.method`);
+          if (actual.statisticName !== fixture.statisticNames) mismatches.push(`${key + suffix}.statisticName`);
+          if (actual.alternative !== fixture.alternative) mismatches.push(`${key + suffix}.alternative`);
+          if (!close(actual.statistic, fixture.statistic)) mismatches.push(`${key + suffix}.statistic`);
+          if (!close(actual.pValue, fixture["p.value"])) mismatches.push(`${key + suffix}.p.value`);
+          if (!close(actual.estimate!, fixture.estimate)) mismatches.push(`${key + suffix}.estimate`);
         }
       }
     }
