@@ -40,6 +40,8 @@ export interface LdaFit {
   /** @internal */
   _covInverse: number[][];
   /** @internal */
+  _scale: number[];
+  /** @internal */
   _x: number[][];
   /** @internal */
   _xNames: string[];
@@ -129,15 +131,14 @@ function fitCore(x0: number[][], g0: readonly GroupLabel[], options: LdaOptions,
   const scaling = scalingNorm.map((r, i) => r.map((v) => v / scale[i]!));
   const originalMeans = means.map((r) => r.map((v, j) => v * scale[j]!));
   const originalCenter = center.map((v, j) => v * scale[j]!);
-  const covInverse = metric.inverse.map((r) => r.map((v, j) => v * (n - g) / (scale[r.indexOf(v)] || 1))); // replaced below
-  const covInv = metric.inverse.map((r, i) => r.map((v, j) => v * (n - g) / (scale[i]! * scale[j]!)));
+  const covInv = metric.inverse.map((r) => r.map((v) => v * (n - g)));
   const names = xNames.length === p ? xNames : Array.from({ length: p }, (_, i) => `x${i + 1}`);
   return {
     prior, counts, means: { rows: levels, cols: names, values: originalMeans },
     scaling: { rows: names, cols: keepRoots.map((_, i) => `LD${i + 1}`), values: scaling },
     svd: keepRoots.map((i) => Math.sqrt(Math.max(0, be.values[i]!) * (n - g) / Math.max(1, g - 1))),
     N: n, lev: levels, warnings, _means: means, _center: center, _scaling: scalingNorm, _covInverse: covInv,
-    _x: xs, _xNames: names, _tol: tol,
+    _scale: scale, _x: xs, _xNames: names, _tol: tol,
   };
 }
 
@@ -202,7 +203,8 @@ export function lda(x: VectorOrMatrix | string, grouping: readonly GroupLabel[] 
  */
 export function predictLda(fit: LdaFit, options: LdaPredictionOptions = {}): LdaPrediction {
   if (options.method !== undefined && options.method !== "plug-in") throw new RangeError("only method = 'plug-in' is supported");
-  const x = options.newdata === undefined ? fit._x : matrixInput(options.newdata);
+  const raw = options.newdata === undefined ? undefined : matrixInput(options.newdata);
+  const x = raw === undefined ? fit._x : raw.map((r) => r.map((v, j) => v / fit._scale[j]!));
   const p = fit._xNames.length;
   if (x.some((r) => r.length !== p || r.some((v) => !Number.isFinite(v)))) throw new RangeError("newdata must be a finite matrix with the fitted number of columns");
   const prior = normalisePrior(options.prior, fit.counts);
@@ -210,12 +212,10 @@ export function predictLda(fit: LdaFit, options: LdaPredictionOptions = {}): Lda
   const maxDim = fit._scaling[0]?.length ?? 0;
   const dimen = options.dimen ?? maxDim;
   if (!Number.isInteger(dimen) || dimen < 1 || dimen > maxDim) throw new RangeError("dimen must be between 1 and the number of discriminant dimensions");
-  const scores = x.map((r) => {
-    const xs = r.map((v, j) => v / (fit.means.cols.length ? (fit.means.values[0]![j] === 0 ? 1 : Math.max(...fit._x.map((row) => Math.abs(row[j]!))) ) : 1));
-    return Array.from({ length: dimen }, (_, k) => xs.reduce((s, v, j) => s + (v - center[j]!) * fit._scaling[j]![k]!, 0));
-  });
+  const scores = x.map((r) => Array.from({ length: dimen }, (_, k) =>
+    r.reduce((s, v, j) => s + (v - center[j]!) * fit._scaling[j]![k]!, 0)));
   const logp = x.map((r) => fit.lev.map((_, g) => {
-    const d = r.map((v, j) => v / (fit.means.cols.length ? (fit.means.values[0]![j] === 0 ? 1 : Math.max(...fit._x.map((row) => Math.abs(row[j]!))) ) : 1) - fit._means[g]![j]!);
+    const d = r.map((v, j) => v - fit._means[g]![j]!);
     let quad = 0;
     for (let i = 0; i < p; i++) for (let j = 0; j < p; j++) quad += d[i]! * fit._covInverse[i]![j]! * d[j]!;
     return Math.log(prior[g]!) - 0.5 * quad;
