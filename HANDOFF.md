@@ -1,8 +1,50 @@
 # 引継ぎ: rStats.js (外部レビュー対応 2026-10-30〜11-04、1.0.0 への準備 11-04〜)
 
-最終更新: 2026-11-22 夜 (セッション 27 の終わり、Mac mini: **1.9.0 を公開** (T2・Page・Grubbs、manova・lda・cancor)。次は未定 (ROADMAP の 2 から))。以前: 2026-11-22 (セッション 27 の始め、Mac mini: 1.9.0 の範囲を決め、準備中)。以前: 2026-11-22 (セッション 26 の終わり、Mac mini: **1.8.0 を公開** (rq・geeglm・glmnet)。次は 1.9.0 = 小さな検定 3 つ + 多変量 3 つ (ユーザーの決定)、範囲を決めるところから)。以前: 2026-11-20 夜 (セッション 26 の始め: 1.8.0 の範囲を決め、準備)。以前: 2026-11-20 夕 (セッション 25 の終わり、Mac mini: **1.7.0 を公開** (回帰 polr・rlm・nls、`/regression`)。次の作業は未定 (ROADMAP の 2 = 1.8.0)。以前: 2026-11-20 昼 (セッション 25、Mac mini: 段階 3 の端の入力の直しも済み (最後は私が引き継いだ)。次は「nls の後」の配線と文書)。以前: 2026-11-19 深夜 (セッション 24、polr・rlm は完了、nls を ChatGPT に依頼)。以前: 2026-11-19 (セッション 23、1.6.0 を公開 (混合モデルの confint と simulate))。以前: 2026-11-17 (セッション 22、1.5.0 を公開)。その前: 2026-11-16 (セッション 21、Mac mini: 1.4.0 を公開、同時刻の Gray の検定を ChatGPT がクリーンルームで修正 (1.4.1 に入る、未公開)、外注用の R の実験の仕組みを作った。次は ROADMAP の 1 番)
+最終更新: 2026-11-22 夜 (セッション 27 の終わり、Mac mini: **1.9.0 を公開** (T2・Page・Grubbs、manova・lda・cancor)。次は 1.10.0 = クラスタ分析と多次元尺度法 (ユーザーの決定)、範囲を決めるところから)。以前: 2026-11-22 (セッション 27 の始め、Mac mini: 1.9.0 の範囲を決め、準備中)。以前: 2026-11-22 (セッション 26 の終わり、Mac mini: **1.8.0 を公開** (rq・geeglm・glmnet)。次は 1.9.0 = 小さな検定 3 つ + 多変量 3 つ (ユーザーの決定)、範囲を決めるところから)。以前: 2026-11-20 夜 (セッション 26 の始め: 1.8.0 の範囲を決め、準備)。以前: 2026-11-20 夕 (セッション 25 の終わり、Mac mini: **1.7.0 を公開** (回帰 polr・rlm・nls、`/regression`)。次の作業は未定 (ROADMAP の 2 = 1.8.0)。以前: 2026-11-20 昼 (セッション 25、Mac mini: 段階 3 の端の入力の直しも済み (最後は私が引き継いだ)。次は「nls の後」の配線と文書)。以前: 2026-11-19 深夜 (セッション 24、polr・rlm は完了、nls を ChatGPT に依頼)。以前: 2026-11-19 (セッション 23、1.6.0 を公開 (混合モデルの confint と simulate))。以前: 2026-11-17 (セッション 22、1.5.0 を公開)。その前: 2026-11-16 (セッション 21、Mac mini: 1.4.0 を公開、同時刻の Gray の検定を ChatGPT がクリーンルームで修正 (1.4.1 に入る、未公開)、外注用の R の実験の仕組みを作った。次は ROADMAP の 1 番)
 
 ## まず読むこと (セッション 16 から)
+
+## 次のセッションで最初にやること: 1.10.0 の始め (セッション 27 → 28、2026-11-22 夜に作成)
+
+### 1.10.0 の計画 (ユーザーの決定 2026-11-22: 「多変量のつながり」= クラスタ分析と多次元尺度法を 1.10.0 に)
+
+ROADMAP の「残っていること」の 2 (順不同) のうち、1.9.0 の `/multivariate` に続く 2 つ。**範囲の細部は新しいセッションの
+最初にユーザーと決める** (1.9.0 と同じく推奨つきで AskUserQuestion)。今あるもの: `eigen`・`svd`・`prcomp` (`src/linalg/`)、
+R に合わせた乱数 `setSeed`・`sample` (`src/random/`)。`dist` はまだない。照合用のイメージには cluster 2.1.8.3 と MASS 7.3.66
+が入っていて、ca は入っていない (`oracle/Dockerfile.r46`・`Dockerfile.experiments` の両方を確かめる)。
+
+私の案 (推奨つきで聞く):
+- **置き場所:** 全部 `/multivariate` (推奨)。`dist` も同じ所 (ほかの分野から使うなら後で移す)
+- **距離:** `dist` の method 6 つ (euclidean・maximum・manhattan・canberra・binary・minkowski と `p`)、`diag`・`upper` は
+  表示だけなので返す形で決める。NA の扱い (R は対ごとに除いて尺度を直す) を R の出力で確かめる
+- **階層クラスタ:** `hclust` の method 8 つ (ward.D・ward.D2・single・complete・average・mcquitty・median・centroid) と
+  `members`、`cutree` (`k`・`h`)。**同じ高さの併合の順 (同点) と `merge`・`order` の向きを R と全く同じにするのが最大の
+  難所** (R の出力から規則を決める。ソースは読まない)。median・centroid の高さの逆転も R どおりに
+- **k-means:** `kmeans` の algorithm 4 つ (Hartigan-Wong (既定)・Lloyd・Forgy・MacQueen)、`iter.max`、`nstart`。初期の中心は
+  R の乱数で選ぶので、**`setSeed` + `sample` が R の `sample.int` と同じ列を出すか最初に確かめる** (x86_64 の R で。
+  乱数の fixture は `rstats-oracle-amd64:4.6.2`)。centers に行列を与えた場合は乱数なしで比べる。Hartigan-Wong の
+  「empty cluster」「did not converge」の警告とエラー
+- **多次元尺度法:** `cmdscale` (`k`・`eig`・`add` (Cailliez の定数)・`x.ret`)。固有ベクトルの符号は 1.9.0 の lda・cancor と
+  同じく決まった規則で、R との既知の違いにするか聞く。MASS の `isoMDS` (非計量、`y` の初期値・`maxit`・`tol`・`p`) と
+  `sammon` は入れるか聞く (推奨: `isoMDS` は入れる、`sammon` は後回し)。isoMDS の配置は回転・反転で R と比べる
+- **対応分析 (ca パッケージ):** 1.10.0 では外すのを推奨 (イメージに ca を足す手間と、多変量の範囲が広がりすぎるため)。
+  入れるなら照合先の版を CRAN の日付 2026-10-23 で決める
+- 照合先: R 4.6.2 の stats と MASS 7.3.66 (と cluster は照合に使わない見込み)。どれも GPL なのでクリーンルーム
+
+### 進め方 (1.9.0 と同じ。教訓は下の「1.9.0 の教訓」を最初から指示書に入れる)
+
+1. 準備 (私): チェッカーの関数の一覧 (`hclust`・`cutree`・`kmeans`・`dist`・`cmdscale` は stats、`isoMDS`・`sammon` は MASS で
+   一覧にあるか確かめる)、私が流す R の実験 `experiments/cluster110-*.R`/`.json`・`mds110-*.R`/`.json`、指示書
+   `briefs/cluster-mds-1.10.ja.md` と入口 `briefs/cluster-mds-1.10-status.ja.md` (手本は `briefs/tests-multivariate-1.9*.ja.md`)、
+   作業ブランチ `work/cluster-mds-1.10`・Issue・draft PR (マージしない)
+2. ChatGPT: 段階 1 (仕様書 + oracle。**oracle は `oracle/_<名前>cases.R` の補助ファイル方式**) → Decisions をユーザーに →
+   私が choices と fixture → 段階 2 (実装、途中で止まらない) → **数値の点検 (`briefs/numerics-1.9.ja.md` の形)** →
+   文書・デモ・訳 (`briefs/release-1.9.ja.md` の形)
+3. 取り込みの前に私が点検する: 許容の大きさ (1e-8 などは締める)、export 漏れ、戻り値がいつも配列か (auto_unbox を写して
+   いないか)、デモを R で流す。取り込み (squash の PR) → 版の PR → タグ → ユーザーが `npm stage approve`
+- 指示書に最初から書くこと: 作業ブランチで HANDOFF を触らない、戻り値はいつも配列、群・ラベルは R の `factor()` の順
+  (`labelledGroups`)、名前は前例 (`hclust`・`cutree`・`kmeans`・`cmdscale`・`isoMDS` は R と同じ名前で、付属の関数は
+  `manovaSummary`・`ldaPredict` の形)、ウェブ検索禁止、R の実験の変数名に関数名を使わない (`dist`・`order`・`sample` などに注意)
 
 ## 1.9.0 の後 (セッション 27 の終わり、2026-11-22 夜)
 
