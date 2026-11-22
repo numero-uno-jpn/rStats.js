@@ -22,7 +22,7 @@ import { pgamma1 } from "../distributions/gamma.js";
 import { pnorm, qnorm } from "../distributions/normal.js";
 import { rank, scaleToUnit, tieCounts, variance } from "../internal/summary.js";
 import type { DataFrame } from "../models/modelFrame.js";
-import { completeRows, median, toGroups, type GroupLabel } from "./groups.js";
+import { completeRows, median, toGroups, factorLabels, compareLabels, type GroupLabel } from "./groups.js";
 import { blockData, kSampleData, twoGroupData } from "./testFormula.js";
 import { matchAlternative, type Alternative, type HTest, type Sample } from "./types.js";
 import { maxOf, minOf } from "../internal/extremes.js";
@@ -156,6 +156,123 @@ export function friedmanTest(y: readonly (readonly number[])[] | string, data?: 
   for (const s of colSums) ss += (s - (n * (k + 1)) / 2) ** 2;
   const stat = (12 * ss) / (n * k * (k + 1) - ties / (k - 1));
   return chisqResult("Friedman rank sum test", "Friedman chi-squared", stat, k - 1);
+}
+
+/**
+ * Options for {@link pageTest}.
+ *
+ * @category Hypothesis tests
+ */
+export interface PageTestOptions {
+  /** Alternative hypothesis. Abbreviations are accepted. Default "two.sided". */
+  alternative?: Alternative | "two" | "l" | "g";
+}
+
+/**
+ * Page's ordered aligned rank-sum test. Equivalent to the public R function `PMCMRplus::pageTest()`.
+ *
+ * @param y A blocks-by-treatments matrix in the hypothesised treatment order.
+ * @param options Alternative hypothesis.
+ *
+ * @category Hypothesis tests
+ */
+export function pageTest(y: readonly (readonly number[])[], options?: PageTestOptions): HTest;
+/**
+ * Page's test from long-form observations. Treatment and block labels follow R's factor() level order.
+ *
+ * @param x Numeric observations.
+ * @param groups Treatment labels, parallel to x.
+ * @param blocks Block labels, parallel to x.
+ * @param options Alternative hypothesis.
+ *
+ * @category Hypothesis tests
+ */
+export function pageTest(x: Sample, groups: readonly GroupLabel[], blocks: readonly GroupLabel[], options?: PageTestOptions): HTest;
+/**
+ * Page's test from a formula and data frame: `"y ~ treatment | block"`.
+ *
+ * @param formula Formula with one treatment and one block variable.
+ * @param data Data frame.
+ * @param options Alternative hypothesis.
+ */
+export function pageTest(formula: string, data: DataFrame, options?: PageTestOptions): HTest;
+export function pageTest(
+  y: readonly (readonly number[])[] | Sample | string,
+  groupsOrOptions: readonly GroupLabel[] | DataFrame | PageTestOptions = {},
+  blocks?: readonly GroupLabel[],
+  maybeOptions: PageTestOptions = {},
+): HTest {
+  let matrix: number[][];
+  let options: PageTestOptions;
+  if (typeof y === "string") {
+    matrix = blockData(y, groupsOrOptions as DataFrame);
+    options = blocks as unknown as PageTestOptions ?? {};
+  } else if (blocks !== undefined) {
+    const x = Array.from(y as Sample);
+    const groups = groupsOrOptions as readonly GroupLabel[];
+    if (x.length !== groups.length || x.length !== blocks.length) {
+      throw new RangeError("'x', 'groups' and 'blocks' must have the same length");
+    }
+    if (!x.every(Number.isFinite)) throw new RangeError("missing or non-finite values are not allowed");
+    const treatmentLabels = factorLabels(groups);
+    const blockLabels = factorLabels(blocks);
+    if (treatmentLabels.some((v) => typeof v === "number" && Number.isNaN(v)) ||
+        blockLabels.some((v) => typeof v === "number" && Number.isNaN(v))) {
+      throw new RangeError("missing treatment or block labels are not allowed");
+    }
+    const ts = Array.from(new Set(treatmentLabels)).sort(compareLabels);
+    const bs = Array.from(new Set(blockLabels)).sort(compareLabels);
+    if (ts.length < 2 || bs.length < 1) throw new RangeError("at least two treatments and one block are required");
+    const ti = new Map(ts.map((v, i) => [v, i]));
+    const bi = new Map(bs.map((v, i) => [v, i]));
+    matrix = bs.map(() => new Array<number>(ts.length).fill(NaN));
+    for (let i = 0; i < x.length; i++) {
+      const r = bi.get(blockLabels[i]!)!;
+      const col = ti.get(treatmentLabels[i]!)!;
+      if (!Number.isNaN(matrix[r]![col]!)) throw new RangeError("not an unreplicated complete block design");
+      matrix[r]![col] = x[i]!;
+    }
+    if (matrix.some((row) => row.some((v) => Number.isNaN(v)))) {
+      throw new RangeError("not an unreplicated complete block design");
+    }
+    options = maybeOptions;
+  } else {
+    matrix = (y as readonly (readonly number[])[]).map((row) => Array.from(row));
+    options = groupsOrOptions as PageTestOptions;
+  }
+  const n = matrix.length;
+  const k = matrix[0]?.length ?? 0;
+  if (n < 1 || k < 2 || matrix.some((row) => row.length !== k)) {
+    throw new RangeError("'y' must be a non-empty matrix with at least two columns");
+  }
+  if (matrix.some((row) => row.some((v) => !Number.isFinite(v)))) {
+    throw new RangeError("missing or non-finite values are not allowed in a block");
+  }
+  const alternative = matchAlternative(options.alternative);
+  const sums = new Array<number>(k).fill(0);
+  for (const row of matrix) {
+    const ranks = rank(row);
+    for (let j = 0; j < k; j++) sums[j]! += ranks[j]!;
+  }
+  let estimate = 0;
+  for (let j = 0; j < k; j++) estimate += (j + 1) * sums[j]!;
+  const expected = n * k * (k + 1) ** 2 / 4;
+  const v = n * k ** 2 * (k - 1) * (k + 1) ** 2 / 144;
+  const statistic = (estimate - expected - 0.5) / Math.sqrt(v);
+  const pValue = alternative === "less"
+    ? pnorm(statistic)
+    : alternative === "greater"
+      ? pnorm(statistic, { lowerTail: false })
+      : 2 * pnorm(-Math.abs(statistic));
+  return {
+    method: "Page's ordered aligned rank sum test",
+    alternative,
+    statistic,
+    statisticName: "z",
+    pValue,
+    estimate,
+    warnings: [],
+  };
 }
 
 /**
