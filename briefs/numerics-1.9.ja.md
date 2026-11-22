@@ -6,7 +6,7 @@
 
 - 対象: `tamhaneT2Test`・`pageTest`・`grubbsTest`・`pgrubbs`・`qgrubbs` (`src/htest/`)、`manova`・`manovaSummary`・`lda`・
   `ldaPredict`・`cancor` (`src/multivariate/`)
-- ブランチ `work/numerics-1.9` (main から) にだけ push する。draft PR #PR で CI が流れる。Issue は #549
+- ブランチ `work/numerics-1.9` (main から) にだけ push する。draft PR #553 で CI が流れる。Issue は #549
 - **途中で止まらない。** 全部済んだら Issue #549 に 1 回だけ報告する。ウェブ検索は使わない。HANDOFF.md は触らない
 
 ## 1. こちらで見つけたこと (必ず直す)
