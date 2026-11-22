@@ -11,7 +11,7 @@ The null moments are
 and
 `Var₀(L)=n k² (k−1)(k+1)²/144`.
 The standardized statistic uses a directional 0.5 continuity correction:
-`z=[L−E₀(L)−0.5 sign(L−E₀(L))]/sqrt(Var₀(L))`.
+`z=[L−E₀(L)−0.5]/sqrt(Var₀(L))`. The correction is always −0.5, including when L is below its null mean.
 For the alternatives, p is respectively `2Φ(−|z|)`, `1−Φ(z)`, and `Φ(z)` (two.sided, greater, less). The returned estimate is L; statistic is z; no df parameter is returned.
 
 ## Numerical verification
@@ -20,7 +20,7 @@ The independent implementation was compared with R over every generated size `k=
 
 ## Missing and small inputs
 
-`page_one_block` is not an error: one block with four treatments returns L=30, z=1.55884572681199, p=0.119032898457008. Two treatments are accepted (`page_two_treatments`: L=19, z=0.5, p=0.617075077451974). A missing cell is not dropped as a whole block: `page_na` returns L=147, z=3.33076567773838, p=0.000866074730533341. The missing-value case is therefore recorded as a special compatibility behavior; the simple complete-block moment formula above is not asserted as a complete description of its NA handling. Vector input, explicit blocks, and factor treatment order are covered by `page_vectors` and `page_factor_order`.
+`page_one_block` is not an error: one block with four treatments returns L=30, z=1.55884572681199, p=0.119032898457008. Two treatments are accepted (`page_two_treatments`: L=19, z=0.5, p=0.617075077451974). A missing cell is not dropped as a whole block: it is assigned the last within-block rank. `page_na` returns L=147, z=3.33076567773838, p=0.000866074730533341. This is a compatibility rule; the rank total and null moments continue to use the block count in the tested case. Vector input, explicit blocks, and factor treatment order are covered by `page_vectors` and `page_factor_order`.
 
 ## Decisions for the user
 
