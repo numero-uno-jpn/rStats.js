@@ -152,6 +152,32 @@ function rootsFor(e: number[][], h: number[][], tol: number): number[] {
   for (let i = 0; i < a.length; i++) for (let j = i + 1; j < a.length; j++) a[i]![j] = a[j]![i] = (a[i]![j]! + a[j]![i]!) / 2;
   return eigen(a, { symmetric: true }).values;
 }
+function statRow(roots0: readonly number[], p: number, q: number, v: number, name: ManovaTestName): number[] {
+  const roots = roots0.slice(0, Math.min(p, q)).map((x) => Math.max(0, x));
+  const s = Math.min(p, q), m = (Math.abs(p - q) - 1) / 2, n0 = (v - p - 1) / 2;
+  const pillai = roots.reduce((a, x) => a + x / (1 + x), 0);
+  const wilks = roots.reduce((a, x) => a / (1 + x), 1);
+  const hotelling = roots.reduce((a, x) => a + x, 0);
+  const roy = roots[0] ?? 0;
+  let value = NaN, df1 = NaN, df2 = NaN, f = NaN;
+  switch (name) {
+    case "Pillai":
+      value = pillai; df1 = s * (2 * m + s + 1); df2 = s * (2 * n0 + s + 1);
+      f = ((2 * n0 + s + 1) / (2 * m + s + 1)) * value / (s - value); break;
+    case "Wilks": {
+      value = wilks; const t = p * q > 2 ? Math.sqrt((p * p * q * q - 4) / (p * p + q * q - 5)) : 1;
+      const u = (p * q - 2) / 4; df1 = p * q; df2 = (v - (p - q + 1) / 2) * t - 2 * u;
+      const wt = value ** (1 / t); f = ((1 - wt) / wt) * (df2 / df1); break;
+    }
+    case "Hotelling-Lawley":
+      value = hotelling; df1 = s * (2 * m + s + 1); df2 = 2 * (s * n0 + 1);
+      f = (df2 / (df1 * s)) * value; break;
+    case "Roy":
+      value = roy; df1 = Math.max(p, q); df2 = v - Math.max(p, q) + q;
+      f = (df2 / df1) * value; break;
+  }
+  return [q, value, f, df1, df2, pf1(f, df1, df2, false, false)];
+}
 /**
  * Fit a multivariate analysis of variance model with sequential (Type I) terms. Equivalent to R's `stats::manova()`.
  * The response is `cbind(y1, y2, ...)`; all four classical MANOVA statistics are available in {@link manovaSummary}.
