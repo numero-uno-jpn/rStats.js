@@ -7,14 +7,25 @@ While the version is 0.x, a minor release (0.y.0) may contain breaking changes;
 they are listed under **Breaking** for each release. From 1.0.0 the project follows
 [Semantic Versioning](https://semver.org/).
 
-## Unreleased
+## 1.9.0 - 2026-11-22
 
 ### Added
 
-- **Small-sample tests:** Tamhane's T2/T2' all-pairs comparisons (`tamhaneT2Test`), Page's ordered aligned rank-sum test (`pageTest`), and type-10 Grubbs' test with its CDF and quantile (`grubbsTest`, `pgrubbs`, `qgrubbs`).
-- **Multivariate analysis** in the separate `/multivariate` area: sequential MANOVA (`manova`, `manovaSummary`), linear discriminant analysis (`lda`, `ldaPredict`) and canonical correlation (`cancor`). The area remains outside the root entry point and `dist/rstats.js`.
-- The deliberate differences from R, including the deterministic signs of LDA and canonical coefficients, are documented in [the differences page](docs/differences-from-r.md#small-tests-tamhanes-t2-pages-test-and-grubbs-test) and the linked function specifications.
-- Checked against R 4.6.2, PMCMRplus, outliers and MASS, comparing returned values, labels and warnings, and independently checking extreme scales, rank deficiency, missing values and large samples.
+- **Small tests** in `/tests`: Tamhane's T2 and T2' all-pairs comparisons (`tamhaneT2Test`), Page's ordered
+  aligned rank-sum test (`pageTest`) and Grubbs' test for one outlier with its distribution (`grubbsTest`,
+  `pgrubbs`, `qgrubbs`). Grubbs' types 11 and 20 are not included in 1.9.0 (R's p values for them are
+  approximations that cannot be reproduced from its outputs).
+- **Multivariate analysis** in the separate `/multivariate` area: sequential MANOVA with the four tests (`manova`,
+  `manovaSummary`), linear discriminant analysis by the moment method with plug-in prediction and leave-one-out CV
+  (`lda`, `ldaPredict`) and canonical correlation (`cancor`). The area remains outside the root entry point and
+  `dist/rstats.js`.
+- The deliberate differences from R (Welch's df without overflow, an error on a missing cell in Page's test,
+  Grubbs' p for constant data and small p without cancellation, the signs of the LDA and canonical coefficients)
+  are documented in [the differences page](docs/differences-from-r.md#small-tests-tamhanes-t2-pages-test-and-grubbs-test).
+- Checked against R 4.6.2 with PMCMRplus 1.9.12, outliers 0.15 and MASS 7.3.66, comparing every returned element,
+  label and warning, and against independent computations (scales of 2^+-500, offsets of 1e8 and 1e12, subnormal
+  tails, 100,000 rows, NaN and Infinity, degenerate designs). The bundle of everything except `/mixed`,
+  `/regression` and `/multivariate` is 324 KB gzipped; `/multivariate` is 50 KB.
 
 ## 1.8.0 - 2026-11-22
 

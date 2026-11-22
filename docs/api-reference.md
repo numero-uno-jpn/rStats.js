@@ -44,10 +44,11 @@ penalized regression (`glmnet`). For example, `rq("y ~ x", data, { tau: 0.5 })` 
 `glmnet(x, y, { family: "gaussian", alpha: 1 })` fits a lasso path. Use `rqSummary` / `rqPredictInterval`,
 `geeSummary` / `geeVcov` / `geeQIC`, and `glmnetCoef` / `glmnetPredict` / `cvGlmnet` for their methods.
 
-Without a bundler, `https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@1.8.0/dist/rstats.js` is one ES module with
-every function except mixed models and regression, which are in `dist/mixed.js` and `dist/regression.js`. Keep a version in the URL (an exact one, or a
+Without a bundler, `https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@1.9.0/dist/rstats.js` is one ES module with
+every function except mixed models, regression and multivariate analysis, which are in `dist/mixed.js`,
+`dist/regression.js` and `dist/multivariate.js`. Keep a version in the URL (an exact one, or a
 major version such as `@1` from 1.0.0 on): a URL without one follows every new release, breaking changes included.
-Use either `dist/rstats.js` or the per-area bundles (`dist/tests.js`, `dist/mixed.js`, `dist/regression.js`, ...) on one page: mixing them
+Use either `dist/rstats.js` or the per-area bundles (`dist/tests.js`, `dist/mixed.js`, `dist/regression.js`, `dist/multivariate.js`, ...) on one page: mixing them
 loads the common code twice, with two random number states.
 
 ## Conventions
