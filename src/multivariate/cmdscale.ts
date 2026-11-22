@@ -104,7 +104,8 @@ function cailliez(d: readonly (readonly number[])[]): number {
     const gram = gramFromDistances(adjusted).gram;
     return Math.min(...eigen(gram, { symmetric: true, onlyValues: true }).values);
   };
-  let lo = 0, hi = Math.max(largest, Number.MIN_VALUE);
+  const distanceScale = Math.max(0, ...d.flatMap((row) => row.map(Math.abs)));
+  let lo = 0, hi = largest > 0 ? largest : distanceScale;
   if (minEigen(0) >= 0) return 0;
   let upperValue = minEigen(hi);
   for (let i = 0; upperValue < 0 && i < 64; i++) {
