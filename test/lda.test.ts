@@ -283,14 +283,17 @@ describe("lda", () => {
       const shifted = xx.map((row) => row.map((v) => v + shift));
       const fit = lda(shifted, gg, { xNames: names });
       const pred = ldaPredict(fit);
-      const relTol = shift === 1e8 ? 2e-6 : 2e-3;
+      const relTol = shift === 1e8 ? 1e-7 : 3e-4;
+      let diff2 = 0, norm2 = 0;
       for (let i = 0; i < base.scaling.values.length; i++) {
         for (let j = 0; j < base.scaling.values[i]!.length; j++) {
           const expected = base.scaling.values[i]![j]!;
-          expect(Math.abs(fit.scaling.values[i]![j]! - expected))
-            .toBeLessThanOrEqual(relTol * Math.max(Math.abs(expected), 1e-12));
+          const delta = fit.scaling.values[i]![j]! - expected;
+          diff2 += delta * delta;
+          norm2 += expected * expected;
         }
       }
+      expect(Math.sqrt(diff2 / norm2)).toBeLessThan(relTol);
       for (let i = 0; i < basePred.posterior.values.length; i++) {
         for (let j = 0; j < basePred.posterior.values[i]!.length; j++) {
           expect(Math.abs(pred.posterior.values[i]![j]! - basePred.posterior.values[i]![j]!)).toBeLessThan(relTol);
