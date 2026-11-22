@@ -149,7 +149,7 @@ function normalisePrior(prior: readonly number[] | undefined, counts: readonly n
   if (p.length !== counts.length || p.some((v) => !Number.isFinite(v) || v <= 0)) throw new RangeError("prior must contain one positive finite value per group");
   const sum = p.reduce((a, b) => a + b, 0);
   if (Number.isFinite(sum)) return p.map((v) => v / sum);
-  const max = Math.max(...p);
+  const max = p.reduce((a, b) => Math.max(a, b), 0);
   const scaled = p.map((v) => v / max);
   const scaledSum = scaled.reduce((a, b) => a + b, 0);
   return scaled.map((v) => v / scaledSum);
