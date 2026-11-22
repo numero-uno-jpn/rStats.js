@@ -75,6 +75,14 @@ describe("dist and asDist", () => {
 
   it("uses R's ordinary arithmetic order and rescales only extreme pairs", () => {
     const base = dist(small);
+    const large100 = dist(small.map((r) => r.map((v) => v * 1e100)));
+    const tiny100 = dist(small.map((r) => r.map((v) => v * 1e-100)));
+    const shifted = dist(small.map((r) => r.map((v) => v + 1e8)));
+    for (let i = 0; i < base.values.length; i++) {
+      expect(large100.values[i]! / 1e100).toBeCloseTo(base.values[i]!, 12);
+      expect(tiny100.values[i]! / 1e-100).toBeCloseTo(base.values[i]!, 12);
+      expect(shifted.values[i]).toBe(base.values[i]);
+    }
     const large = dist(small.map((r) => r.map((v) => v * 1e200)));
     const tiny = dist(small.map((r) => r.map((v) => v * 1e-200)));
     for (let i = 0; i < base.values.length; i++) {
@@ -84,6 +92,17 @@ describe("dist and asDist", () => {
     expect(() => dist(small, { method: "minkowski", p: 0 })).toThrow("distance(): invalid p");
     expect(() => dist(small, { method: "minkowski", p: Infinity })).toThrow("distance(): invalid p");
     expect(() => dist(small, { method: "cosine" })).toThrow("invalid distance method");
+  });
+
+  it("handles 5,000 observations and reports the quadratic workload time", () => {
+    const n = 5_000;
+    const rows = Array.from({ length: n }, (_, i) => [i % 127, Math.sin(i * 0.01)]);
+    const start = performance.now();
+    const result = dist(rows);
+    const elapsed = performance.now() - start;
+    expect(result.values).toHaveLength(n * (n - 1) / 2);
+    expect(result.values.every(Number.isFinite)).toBe(true);
+    console.info(`dist 5,000 rows (12.5 million distances): ${elapsed.toFixed(1)} ms`);
   });
 
   it("matches as.dist lower-triangle conversion and identity input", () => {
