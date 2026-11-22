@@ -1,4 +1,4 @@
-# 現状の要約: クラスタ分析と多次元尺度法 (1.10.0: dist・hclust・cutree・kmeans、cmdscale・isoMDS)、Issue #ISSUE
+# 現状の要約: クラスタ分析と多次元尺度法 (1.10.0: dist・hclust・cutree・kmeans、cmdscale・isoMDS)、Issue #556
 
 更新 2026-11-22。新しい会話はこの文書と指示書 (`briefs/cluster-mds-1.10.ja.md`) を読んで始める。
 
@@ -39,7 +39,7 @@
 - `/multivariate` の配線は済んでいる。新しい関数は `src/entries/multivariate.ts` に export を足し、テストはそこから import
 - **会話はよく途中で切れる。** 区切りごとに push し、Issue に数行の途中経過 (何をしたか、次に何をするか、コミット) を
   書く。会話が切れても、こちらがブランチ・CI・Issue を見て再開の依頼文を書く
-- **R の実験はあなたが流す** (指示書 3 節。`# issue: #ISSUE の番号` を先頭 5 行に)
+- **R の実験はあなたが流す** (指示書 3 節。`# issue: 556` を先頭 5 行に)
 - こちらがすること: fixture と生成物の作成、数値の点検 (独立の計算)、ユーザーへの Decisions の確認、取り込みと公開
 - 判断に迷ったら、推測で進めず Issue に質問を書いて止まる。小さな判断は推奨を書いて進めてよい
 
