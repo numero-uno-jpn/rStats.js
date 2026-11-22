@@ -194,6 +194,8 @@ export function pageTest(x: Sample, groups: readonly GroupLabel[], blocks: reado
  * @param formula Formula with one treatment and one block variable.
  * @param data Data frame.
  * @param options Alternative hypothesis.
+ *
+ * @category Hypothesis tests
  */
 export function pageTest(formula: string, data: DataFrame, options?: PageTestOptions): HTest;
 export function pageTest(
