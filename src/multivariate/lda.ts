@@ -18,6 +18,8 @@ export interface LdaOptions {
   tol?: number;
   CV?: boolean;
   xNames?: readonly string[];
+  groupLevels?: readonly GroupLabel[];
+  levels?: Record<string, readonly string[]>;
 }
 /** Options for LDA prediction.
  * @category Linear models and ANOVA
@@ -104,12 +106,17 @@ function normalisePrior(prior: readonly number[] | undefined, counts: readonly n
   return p.map((v) => v / sum);
 }
 function matrixInput(x: VectorOrMatrix): number[][] { return fromMat(toMatOrColumn(x)); }
-function fitCore(x0: number[][], g0: readonly GroupLabel[], options: LdaOptions, xNames: string[]): LdaFit {
+function fitCore(x0: number[][], g0: readonly GroupLabel[], options: LdaOptions, xNames: string[], declaredLevels?: readonly GroupLabel[]): LdaFit {
   if (x0.length !== g0.length) throw new RangeError("x and grouping factor must have the same length");
   const keep = x0.map((r, i) => ({ r, g: g0[i]! })).filter(({ r, g }) => !r.some(Number.isNaN) && !(typeof g === "number" && Number.isNaN(g)));
   if (keep.some(({ r }) => r.some((v) => !Number.isFinite(v)))) throw new RangeError("x must contain finite values");
   const labels = factorLabels(keep.map((v) => v.g));
-  const levels = Array.from(new Set(labels)).sort(compareLabels).map(String);
+  const observed = new Set(labels.map(String));
+  const declared = declaredLevels === undefined ? undefined : Array.from(new Set(factorLabels(declaredLevels).map(String)));
+  const levels = declared === undefined
+    ? Array.from(observed).sort((a, b) => compareLabels(a, b))
+    : declared.filter((level) => observed.has(level));
+  const emptyLevels = declared?.filter((level) => !observed.has(level)) ?? [];
   if (levels.length < 2) throw new RangeError("grouping factor must have at least 2 levels");
   const x = keep.map((v) => v.r);
   const groups = labels.map(String);
@@ -120,7 +127,11 @@ function fitCore(x0: number[][], g0: readonly GroupLabel[], options: LdaOptions,
   const by = levels.map((l) => xs.filter((_, i) => groups[i] === l));
   const counts = by.map((a) => a.length);
   const means = by.map((a) => Array.from({ length: p }, (_, j) => mean(a.map((r) => r[j]!))));
-  const prior = normalisePrior(options.prior, counts);
+  let priorInput = options.prior;
+  if (priorInput !== undefined && declared !== undefined && priorInput.length === declared.length && declared.length !== levels.length) {
+    priorInput = declared.map((level, i) => observed.has(level) ? priorInput![i]! : 0).filter((v) => v > 0);
+  }
+  const prior = normalisePrior(priorInput, counts);
   const center = Array.from({ length: p }, (_, j) => prior.reduce((s, w, i) => s + w * means[i]![j]!, 0));
   const within = zeros(p, p), between = zeros(p, p);
   const allDeviations: number[][] = [];
@@ -145,7 +156,7 @@ function fitCore(x0: number[][], g0: readonly GroupLabel[], options: LdaOptions,
   }
   const metric = inverseFromEigen(within, tol);
   if (metric.rank === 0) throw new RangeError("variables are constant within groups");
-  const warnings: string[] = [];
+  const warnings: string[] = emptyLevels.map((level) => `group ${level} is empty`);
   if (exactRank < p || metric.rank < p) warnings.push("variables are collinear");
   const whitened = mul(mul(metric.inverseSqrt, between), metric.inverseSqrt);
   const be = eigen(whitened, { symmetric: true });
@@ -199,7 +210,7 @@ export function lda(x: VectorOrMatrix | string, grouping: readonly GroupLabel[] 
   if (options.method !== undefined && options.method !== "moment") throw new RangeError("only method = 'moment' is supported");
   let values: number[][], groups: GroupLabel[], names: string[];
   if (typeof x === "string") {
-    const d = design(parseFormula(x), grouping as DataFrame, { dropUnusedLevels: true });
+    const d = design(parseFormula(x), grouping as DataFrame, { dropUnusedLevels: false, levels: options.levels });
     const response = d.terms.variables[0]!;
     const raw = (grouping as DataFrame)[response];
     if (raw === undefined) throw new RangeError(`object '${response}' not found`);
@@ -207,6 +218,22 @@ export function lda(x: VectorOrMatrix | string, grouping: readonly GroupLabel[] 
     const offset = d.terms.intercept ? 1 : 0;
     values = d.x.map((r) => r.slice(offset));
     names = d.colNames.slice(offset);
+    const responseVariable = d.frame.variables[0];
+    const declared = options.groupLevels ?? (responseVariable?.kind === "factor" ? responseVariable.levels : undefined);
+    const fit = fitCore(values, groups, options, names, declared);
+    if (!options.CV) return fit;
+    const classes: string[] = [];
+    const posterior: number[][] = [];
+    const fullPrior = fit.prior;
+    for (let i = 0; i < values.length; i++) {
+      const xx = values.filter((_, j) => j !== i);
+      const gg = groups.filter((_, j) => j !== i);
+      const sub = fitCore(xx, gg, { ...options, prior: fullPrior, CV: false }, names, declared);
+      const pred = predictLda(sub, { newdata: [values[i]!], prior: fullPrior });
+      classes.push(pred.class[0]!);
+      posterior.push(pred.posterior.values[0]!);
+    }
+    return { class: classes, posterior: { rows: null, cols: fit.lev, values: posterior } };
   } else {
     values = matrixInput(x);
     groups = Array.from(grouping as readonly GroupLabel[]);
@@ -220,7 +247,7 @@ export function lda(x: VectorOrMatrix | string, grouping: readonly GroupLabel[] 
   for (let i = 0; i < values.length; i++) {
     const xx = values.filter((_, j) => j !== i);
     const gg = groups.filter((_, j) => j !== i);
-    const sub = fitCore(xx, gg, { ...options, prior: fullPrior, CV: false }, names);
+    const sub = fitCore(xx, gg, { ...options, prior: fullPrior, CV: false }, names, options.groupLevels);
     const pred = predictLda(sub, { newdata: [values[i]!], prior: fullPrior });
     classes.push(pred.class[0]!);
     posterior.push(pred.posterior.values[0]!);
