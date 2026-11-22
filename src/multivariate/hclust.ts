@@ -15,6 +15,7 @@ export interface HclustFit {
   labels: string[] | null;
   method: HclustMethod;
   distMethod: string | null;
+  warnings: string[];
 }
 
 export interface CutreeOptions {
@@ -192,17 +193,21 @@ export function cutree(tree: HclustFit, options: CutreeOptions = {}): CutreeResu
     } else {
       while (merges < n - 1 && tree.height[merges]! <= v) merges++;
     }
-    const parent = new Int32Array(n);
-    for (let i = 0; i < n; i++) parent[i] = i;
-    const find = (x: number): number => { while (parent[x] !== x) { parent[x] = parent[parent[x]!]!; x = parent[x]!; } return x; };
+    const parent = new Int32Array(2 * n - 1);
+    for (let i = 0; i < parent.length; i++) parent[i] = i;
+    const find = (x: number): number => {
+      let root = x;
+      while (parent[root] !== root) root = parent[root]!;
+      while (parent[x] !== x) { const next = parent[x]!; parent[x] = root; x = next; }
+      return root;
+    };
     for (let i = 0; i < merges; i++) {
       const pair = tree.merge[i]!;
       const root = n + i;
-      const l = pair[0]! < 0 ? -pair[0]! - 1 : pair[0]! + n - 1;
-      const r = pair[1]! < 0 ? -pair[1]! - 1 : pair[1]! + n - 1;
-      const rl = l < n ? find(l) : find(rootOf(l, i, tree.merge, n));
-      const rr = r < n ? find(r) : find(rootOf(r, i, tree.merge, n));
-      parent[rr] = rl;
+      const l = pair[0]! < 0 ? -pair[0]! - 1 : n + pair[0]! - 1;
+      const r = pair[1]! < 0 ? -pair[1]! - 1 : n + pair[1]! - 1;
+      parent[find(l)] = root;
+      parent[find(r)] = root;
     }
     const labels: number[] = [];
     const map = new Map<number, number>();
@@ -219,16 +224,3 @@ export function cutree(tree: HclustFit, options: CutreeOptions = {}): CutreeResu
     ...(matrix ? { columns: values.map(String) } : {}) };
 }
 
-function rootOf(node: number, before: number, merge: readonly number[][], n: number): number {
-  let current = node;
-  while (current >= n && current - n < before) {
-    const pair = merge[current - n]!;
-    const l = pair[0]! < 0 ? -pair[0]! - 1 : pair[0]! + n - 1;
-    const r = pair[1]! < 0 ? -pair[1]! - 1 : pair[1]! + n - 1;
-    // The encoded merge node is itself the union representative. Its children are resolved by find().
-    if (l < n && r < n) break;
-    current = current;
-    break;
-  }
-  return current < n ? current : current;
-}
