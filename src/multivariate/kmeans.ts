@@ -112,7 +112,7 @@ function lloyd(rows: number[][], initial: number[][], iterMax: number): { cluste
     for (let g = 0; g < k; g++) if (stats.size[g]! > 0) centers[g] = stats.centers[g]!;
     cluster = next;
     iter = pass + 1;
-    if (!changed) { converged = true; break; }
+    if (!changed && pass > 0) { converged = true; break; }
   }
   return { cluster, iter: iter + (converged ? 0 : 1), converged };
 }
@@ -133,7 +133,7 @@ function macqueen(rows: number[][], initial: number[][], iterMax: number): { clu
     }
     const changed = next.some((v, i) => v !== cluster[i]);
     cluster = next; iter = pass + 1;
-    if (!changed && pass > 0) { converged = true; break; }
+    if (!changed) { converged = true; break; }
   }
   return { cluster, iter: iter + (converged ? 0 : 1), converged };
 }
