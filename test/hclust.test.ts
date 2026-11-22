@@ -165,3 +165,46 @@ describe("hclust and cutree", () => {
     console.info(`hclust 5,000 observations (12.5 million distances): ${elapsed.toFixed(1)} ms`);
   });
 });
+
+describe("hclust and cutree: USArrests R fixtures", () => {
+  it("matches both original and squared USArrests distances for all eight methods", () => {
+    const usNames = fixture.hclust_usarrests_ward.D.value.labels as string[];
+    const du = dist([[13.2,236,58,21.2],[10,263,48,44.5],[8.1,294,80,31],[8.8,190,50,19.5],[9,276,91,40.6],[7.9,204,78,38.7],[3.3,110,77,11.1],[5.9,238,72,15.8],[15.4,335,80,31.9],[17.4,211,60,25.8],[5.3,46,83,20.2],[2.6,120,54,14.2],[10.4,249,83,24],[7.2,113,65,21],[2.2,56,57,11.3],[6,115,66,18],[9.7,109,52,16.3],[15.4,249,66,22.2],[2.1,83,51,7.8],[11.3,300,67,27.8],[4.4,149,85,16.3],[12.1,255,74,35.1],[2.7,72,66,14.9],[16.1,259,44,17.1],[9,178,70,28.2],[6,109,53,16.4],[4.3,102,62,16.5],[12.2,252,81,46],[2.1,57,56,9.5],[7.4,159,89,18.8],[11.4,285,70,32.1],[11.1,254,86,26.1],[13,337,45,16.1],[0.8,45,44,7.3],[7.3,120,75,21.4],[6.6,151,68,20],[4.9,159,67,29.3],[6.3,106,72,14.9],[3.4,174,87,8.3],[14.4,279,48,22.5],[3.8,86,45,12.8],[13.2,188,59,26.9],[12.7,201,80,25.5],[3.2,120,80,22.9],[2.2,48,32,11.2],[8.5,156,63,20.7],[4,145,73,26.2],[5.7,81,39,9.3],[2.6,53,66,10.8],[6.8,161,60,15.6]], { labels: usNames });
+    const du2 = { ...du, values: du.values.map((v) => v * v) };
+    for (const method of methods) {
+      compareTree("hclust_usarrests_" + method, hclust(du, { method }));
+      compareTree("hclust_usarrests_sq_" + method, hclust(du2, { method }));
+    }
+    expect(mismatches).toEqual([]);
+  });
+
+  it("matches all cutree partitions, labels, matrix dimensions and errors", () => {
+    const usNames = fixture.hclust_usarrests_average.value.labels as string[];
+    const hu = hclust(dist([[13.2,236,58,21.2],[10,263,48,44.5],[8.1,294,80,31],[8.8,190,50,19.5],[9,276,91,40.6],[7.9,204,78,38.7],[3.3,110,77,11.1],[5.9,238,72,15.8],[15.4,335,80,31.9],[17.4,211,60,25.8],[5.3,46,83,20.2],[2.6,120,54,14.2],[10.4,249,83,24],[7.2,113,65,21],[2.2,56,57,11.3],[6,115,66,18],[9.7,109,52,16.3],[15.4,249,66,22.2],[2.1,83,51,7.8],[11.3,300,67,27.8],[4.4,149,85,16.3],[12.1,255,74,35.1],[2.7,72,66,14.9],[16.1,259,44,17.1],[9,178,70,28.2],[6,109,53,16.4],[4.3,102,62,16.5],[12.2,252,81,46],[2.1,57,56,9.5],[7.4,159,89,18.8],[11.4,285,70,32.1],[11.1,254,86,26.1],[13,337,45,16.1],[0.8,45,44,7.3],[7.3,120,75,21.4],[6.6,151,68,20],[4.9,159,67,29.3],[6.3,106,72,14.9],[3.4,174,87,8.3],[14.4,279,48,22.5],[3.8,86,45,12.8],[13.2,188,59,26.9],[12.7,201,80,25.5],[3.2,120,80,22.9],[2.2,48,32,11.2],[8.5,156,63,20.7],[4,145,73,26.2],[5.7,81,39,9.3],[2.6,53,66,10.8],[6.8,161,60,15.6]], { labels: usNames }), { method: "average" });
+    compareCutree("cutree_k", cutree(hu, { k: 4 }));
+    compareCutree("cutree_k_vector", cutree(hu, { k: [1, 3, 5, 50] }));
+    compareCutree("cutree_h", cutree(hu, { h: 100 }));
+    compareCutree("cutree_h_vector", cutree(hu, { h: [200, 50, 0] }));
+    compareCutree("cutree_k_and_h", cutree(hu, { k: 3, h: 100 }));
+    compareCutree("cutree_k_fraction", cutree(hu, { k: 2.5 }));
+    compareCutree("cutree_h_exact", cutree(hu, { h: hu.height[39]! }));
+    compareCutree("cutree_h_negative", cutree(hu, { h: -1 }));
+    const hg = hclust(dist(grid), { method: "single" });
+    for (let k = 1; k <= 9; k++) compareCutree("cutree_grid_ties_k" + k, cutree(hg, { k }));
+    compareCutree("cutree_grid_ties_h", cutree(hg, { h: 1 }));
+    const inv = hclust(triangle, { method: "centroid" });
+    compareCutree("cutree_inversion_k", cutree(inv, { k: 2 }));
+    compareCutree("cutree_no_labels", cutree(hclust(dist(small), { method: "average" }), { k: 2 }));
+    compareCutree("cutree_vector_labels", cutree(hclust(dist([3, 1, 4, 1, 5])), { k: 2 }));
+    for (const [key, action] of [
+      ["cutree_k_zero", () => cutree(hu, { k: 0 })],
+      ["cutree_k_too_big", () => cutree(hu, { k: 51 })],
+      ["cutree_none", () => cutree(hu, {})],
+      ["cutree_inversion_h", () => cutree(inv, { h: 1 })],
+    ] as const) {
+      if (!fixture[key]?.error) mismatches.push(key + ": missing error fixture");
+      else { try { action(); mismatches.push(key + ": expected error"); } catch { /* expected */ } }
+    }
+    expect(mismatches).toEqual([]);
+  });
+});
