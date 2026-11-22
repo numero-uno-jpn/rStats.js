@@ -1,0 +1,232 @@
+// Linear discriminant analysis using weighted between-class moments and the pooled within-class metric.
+
+import { eigen } from "../linalg/eigen.js";
+import { fromMat, toMatOrColumn, type VectorOrMatrix } from "../linalg/matrix.js";
+import { mean } from "../internal/summary.js";
+import { compareLabels, factorLabels, type GroupLabel } from "../htest/groups.js";
+import { design } from "../models/modelMatrix.js";
+import { parseFormula } from "../models/formula.js";
+import type { DataFrame } from "../models/modelFrame.js";
+
+export interface LdaOptions {
+  method?: "moment" | string;
+  prior?: readonly number[];
+  tol?: number;
+  CV?: boolean;
+  xNames?: readonly string[];
+}
+export interface LdaPredictionOptions {
+  method?: "plug-in" | string;
+  newdata?: VectorOrMatrix;
+  prior?: readonly number[];
+  dimen?: number;
+}
+export interface LdaTable { rows: string[]; cols: string[]; values: number[][]; }
+export interface LdaFit {
+  prior: number[];
+  counts: number[];
+  means: LdaTable;
+  scaling: LdaTable;
+  svd: number[];
+  N: number;
+  lev: string[];
+  warnings: string[];
+  /** @internal */
+  _means: number[][];
+  /** @internal */
+  _center: number[];
+  /** @internal */
+  _scaling: number[][];
+  /** @internal */
+  _covInverse: number[][];
+  /** @internal */
+  _x: number[][];
+  /** @internal */
+  _xNames: string[];
+  /** @internal */
+  _tol: number;
+}
+export interface LdaPrediction {
+  class: string[];
+  posterior: LdaTable;
+  x: LdaTable;
+}
+export interface LdaCVResult { class: string[]; posterior: LdaTable; }
+
+function zeros(r: number, c: number): number[][] { return Array.from({ length: r }, () => new Array<number>(c).fill(0)); }
+function cross(a: number[][]): number[][] {
+  const out = zeros(a[0]?.length ?? 0, a[0]?.length ?? 0);
+  for (const row of a) for (let i = 0; i < row.length; i++) for (let j = 0; j < row.length; j++) out[i]![j]! += row[i]! * row[j]!;
+  return out;
+}
+function mul(a: number[][], b: number[][]): number[][] {
+  const out = zeros(a.length, b[0]?.length ?? 0);
+  for (let i = 0; i < a.length; i++) for (let k = 0; k < (a[0]?.length ?? 0); k++) for (let j = 0; j < (b[0]?.length ?? 0); j++) out[i]![j]! += a[i]![k]! * b[k]![j]!;
+  return out;
+}
+function inverseFromEigen(a: number[][], tol: number): { inverse: number[][]; inverseSqrt: number[][]; rank: number; values: number[]; vectors: number[][] } {
+  const e = eigen(a, { symmetric: true });
+  const max = Math.max(0, ...e.values);
+  const keep = e.values.map((v, i) => v > max * tol ? i : -1).filter((i) => i >= 0);
+  const q = e.vectors!;
+  const inv = zeros(a.length, a.length), invs = zeros(a.length, a.length);
+  for (const k of keep) for (let i = 0; i < a.length; i++) for (let j = 0; j < a.length; j++) {
+    inv[i]![j]! += q[i]![k]! * q[j]![k]! / e.values[k]!;
+    invs[i]![j]! += q[i]![k]! * q[j]![k]! / Math.sqrt(e.values[k]!);
+  }
+  return { inverse: inv, inverseSqrt: invs, rank: keep.length, values: e.values, vectors: q };
+}
+function normalisePrior(prior: readonly number[] | undefined, counts: readonly number[]): number[] {
+  const p = prior === undefined ? counts.map((n) => n / counts.reduce((a, b) => a + b, 0)) : Array.from(prior);
+  if (p.length !== counts.length || p.some((v) => !Number.isFinite(v) || v <= 0)) throw new RangeError("prior must contain one positive finite value per group");
+  const sum = p.reduce((a, b) => a + b, 0);
+  return p.map((v) => v / sum);
+}
+function matrixInput(x: VectorOrMatrix): number[][] { return fromMat(toMatOrColumn(x)); }
+function fitCore(x0: number[][], g0: readonly GroupLabel[], options: LdaOptions, xNames: string[]): LdaFit {
+  if (x0.length !== g0.length) throw new RangeError("x and grouping factor must have the same length");
+  const keep = x0.map((r, i) => ({ r, g: g0[i]! })).filter(({ r, g }) => !r.some(Number.isNaN) && !(typeof g === "number" && Number.isNaN(g)));
+  if (keep.some(({ r }) => r.some((v) => !Number.isFinite(v)))) throw new RangeError("x must contain finite values");
+  const labels = factorLabels(keep.map((v) => v.g));
+  const levels = Array.from(new Set(labels)).sort(compareLabels).map(String);
+  if (levels.length < 2) throw new RangeError("grouping factor must have at least 2 levels");
+  const x = keep.map((v) => v.r);
+  const groups = labels.map(String);
+  const p = x[0]?.length ?? 0, n = x.length, g = levels.length;
+  if (p === 0 || x.some((r) => r.length !== p)) throw new RangeError("x must be a non-empty matrix with equal row lengths");
+  const scale = Array.from({ length: p }, (_, j) => { let m = 0; for (const r of x) m = Math.max(m, Math.abs(r[j]!)); return m || 1; });
+  const xs = x.map((r) => r.map((v, j) => v / scale[j]!));
+  const by = levels.map((l) => xs.filter((_, i) => groups[i] === l));
+  const counts = by.map((a) => a.length);
+  const means = by.map((a) => Array.from({ length: p }, (_, j) => mean(a.map((r) => r[j]!))));
+  const prior = normalisePrior(options.prior, counts);
+  const center = Array.from({ length: p }, (_, j) => prior.reduce((s, w, i) => s + w * means[i]![j]!, 0));
+  const within = zeros(p, p), between = zeros(p, p);
+  for (let k = 0; k < g; k++) {
+    const deviations = by[k]!.map((r) => r.map((v, j) => v - means[k]![j]!));
+    const w = cross(deviations);
+    for (let i = 0; i < p; i++) for (let j = 0; j < p; j++) within[i]![j]! += w[i]![j]!;
+    const d = means[k]!.map((v, j) => v - center[j]!);
+    for (let i = 0; i < p; i++) for (let j = 0; j < p; j++) between[i]![j]! += prior[k]! * d[i]! * d[j]!;
+  }
+  const tol = options.tol ?? 1e-4;
+  if (!(Number.isFinite(tol) && tol >= 0)) throw new RangeError("'tol' must be a non-negative finite number");
+  const metric = inverseFromEigen(within, tol);
+  if (metric.rank === 0) throw new RangeError("variables are constant within groups");
+  const warnings: string[] = [];
+  if (metric.rank < p) warnings.push("variables are collinear; rank reduced");
+  const whitened = mul(mul(metric.inverseSqrt, between), metric.inverseSqrt);
+  const be = eigen(whitened, { symmetric: true });
+  const max = Math.max(0, ...be.values);
+  const keepRoots = be.values.map((v, i) => v > max * tol ? i : -1).filter((i) => i >= 0).slice(0, g - 1);
+  const scaleFactor = Math.sqrt(Math.max(0, n - g));
+  const scalingNorm = mul(metric.inverseSqrt, be.vectors!.map((r) => keepRoots.map((j) => r[j]!))).map((r) => r.map((v) => v * scaleFactor));
+  for (let j = 0; j < (scalingNorm[0]?.length ?? 0); j++) {
+    let imax = 0;
+    for (let i = 1; i < scalingNorm.length; i++) if (Math.abs(scalingNorm[i]![j]!) > Math.abs(scalingNorm[imax]![j]!)) imax = i;
+    if (scalingNorm[imax]![j]! < 0) for (const row of scalingNorm) row[j] = -row[j]!;
+  }
+  const scaling = scalingNorm.map((r, i) => r.map((v) => v / scale[i]!));
+  const originalMeans = means.map((r) => r.map((v, j) => v * scale[j]!));
+  const originalCenter = center.map((v, j) => v * scale[j]!);
+  const covInverse = metric.inverse.map((r) => r.map((v, j) => v * (n - g) / (scale[r.indexOf(v)] || 1))); // replaced below
+  const covInv = metric.inverse.map((r, i) => r.map((v, j) => v * (n - g) / (scale[i]! * scale[j]!)));
+  const names = xNames.length === p ? xNames : Array.from({ length: p }, (_, i) => `x${i + 1}`);
+  return {
+    prior, counts, means: { rows: levels, cols: names, values: originalMeans },
+    scaling: { rows: names, cols: keepRoots.map((_, i) => `LD${i + 1}`), values: scaling },
+    svd: keepRoots.map((i) => Math.sqrt(Math.max(0, be.values[i]!) * (n - g) / Math.max(1, g - 1))),
+    N: n, lev: levels, warnings, _means: means, _center: center, _scaling: scalingNorm, _covInverse: covInv,
+    _x: xs, _xNames: names, _tol: tol,
+  };
+}
+
+/**
+ * Linear discriminant analysis (moment method). Supports matrix/group and formula/data-frame inputs.
+ * Directions are metric-normalised and their signs are deterministic.
+ *
+ * @param x Predictor matrix.
+ * @param grouping Class labels.
+ * @param options Prior probabilities, tolerance, and leave-one-out CV.
+ * @category Multivariate analysis
+ */
+export function lda(x: VectorOrMatrix, grouping: readonly GroupLabel[], options?: LdaOptions): LdaFit | LdaCVResult;
+/**
+ * Linear discriminant analysis from a formula, e.g. `"class ~ x1 + x2"` or `"class ~ ."`.
+ *
+ * @param formula Formula.
+ * @param data Data frame.
+ * @param options Prior probabilities, tolerance, and leave-one-out CV.
+ * @category Multivariate analysis
+ */
+export function lda(formula: string, data: DataFrame, options?: LdaOptions): LdaFit | LdaCVResult;
+export function lda(x: VectorOrMatrix | string, grouping: readonly GroupLabel[] | DataFrame, options: LdaOptions = {}): LdaFit | LdaCVResult {
+  if (options.method !== undefined && options.method !== "moment") throw new RangeError("only method = 'moment' is supported");
+  let values: number[][], groups: GroupLabel[], names: string[];
+  if (typeof x === "string") {
+    const d = design(parseFormula(x), grouping as DataFrame, { dropUnusedLevels: true });
+    const response = d.terms.variables[0]!;
+    const raw = (grouping as DataFrame)[response];
+    if (raw === undefined) throw new RangeError(`object '${response}' not found`);
+    groups = d.frame.rows.map((i) => raw[i] as GroupLabel);
+    const offset = d.terms.intercept ? 1 : 0;
+    values = d.x.map((r) => r.slice(offset));
+    names = d.colNames.slice(offset);
+  } else {
+    values = matrixInput(x);
+    groups = Array.from(grouping as readonly GroupLabel[]);
+    names = options.xNames ? Array.from(options.xNames) : Array.from({ length: values[0]?.length ?? 0 }, (_, i) => `x${i + 1}`);
+  }
+  const fit = fitCore(values, groups, options, names);
+  if (!options.CV) return fit;
+  const classes: string[] = [];
+  const posterior: number[][] = [];
+  const fullPrior = fit.prior;
+  for (let i = 0; i < values.length; i++) {
+    const xx = values.filter((_, j) => j !== i);
+    const gg = groups.filter((_, j) => j !== i);
+    const sub = fitCore(xx, gg, { ...options, prior: fullPrior, CV: false }, names);
+    const pred = predictLda(sub, { newdata: [values[i]!], prior: fullPrior });
+    classes.push(pred.class[0]!);
+    posterior.push(pred.posterior.values[0]!);
+  }
+  return { class: classes, posterior: { rows: classes.map((_, i) => String(i + 1)), cols: fit.lev, values: posterior } };
+}
+
+/**
+ * Plug-in prediction for a fitted {@link lda} model.
+ *
+ * @param fit A fitted LDA model.
+ * @param options New observations, prior override, and number of discriminant scores.
+ * @category Multivariate analysis
+ */
+export function predictLda(fit: LdaFit, options: LdaPredictionOptions = {}): LdaPrediction {
+  if (options.method !== undefined && options.method !== "plug-in") throw new RangeError("only method = 'plug-in' is supported");
+  const x = options.newdata === undefined ? fit._x : matrixInput(options.newdata);
+  const p = fit._xNames.length;
+  if (x.some((r) => r.length !== p || r.some((v) => !Number.isFinite(v)))) throw new RangeError("newdata must be a finite matrix with the fitted number of columns");
+  const prior = normalisePrior(options.prior, fit.counts);
+  const center = Array.from({ length: p }, (_, j) => prior.reduce((s, w, i) => s + w * fit._means[i]![j]!, 0));
+  const maxDim = fit._scaling[0]?.length ?? 0;
+  const dimen = options.dimen ?? maxDim;
+  if (!Number.isInteger(dimen) || dimen < 1 || dimen > maxDim) throw new RangeError("dimen must be between 1 and the number of discriminant dimensions");
+  const scores = x.map((r) => {
+    const xs = r.map((v, j) => v / (fit.means.cols.length ? (fit.means.values[0]![j] === 0 ? 1 : Math.max(...fit._x.map((row) => Math.abs(row[j]!))) ) : 1));
+    return Array.from({ length: dimen }, (_, k) => xs.reduce((s, v, j) => s + (v - center[j]!) * fit._scaling[j]![k]!, 0));
+  });
+  const logp = x.map((r) => fit.lev.map((_, g) => {
+    const d = r.map((v, j) => v / (fit.means.cols.length ? (fit.means.values[0]![j] === 0 ? 1 : Math.max(...fit._x.map((row) => Math.abs(row[j]!))) ) : 1) - fit._means[g]![j]!);
+    let quad = 0;
+    for (let i = 0; i < p; i++) for (let j = 0; j < p; j++) quad += d[i]! * fit._covInverse[i]![j]! * d[j]!;
+    return Math.log(prior[g]!) - 0.5 * quad;
+  }));
+  const posterior = logp.map((row) => {
+    const m = Math.max(...row), ex = row.map((v) => Math.exp(v - m)), sum = ex.reduce((a, b) => a + b, 0);
+    return ex.map((v) => v / sum);
+  });
+  return {
+    class: posterior.map((r) => fit.lev[r.indexOf(Math.max(...r))]!),
+    posterior: { rows: posterior.map((_, i) => String(i + 1)), cols: fit.lev, values: posterior },
+    x: { rows: scores.map((_, i) => String(i + 1)), cols: Array.from({ length: dimen }, (_, i) => `LD${i + 1}`), values: scores },
+  };
+}
