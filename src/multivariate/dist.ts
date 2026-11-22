@@ -118,8 +118,17 @@ function pairDistance(a: readonly number[], b: readonly number[], method: DistMe
     if (method === "canberra") {
       if (x === y && !Number.isFinite(x)) continue;
       if (!Number.isFinite(x) || !Number.isFinite(y)) { canberra.push(1); continue; }
-      const den = Math.abs(x) + Math.abs(y);
-      if (den > 0) canberra.push(Math.abs(x - y) / den);
+      const ax = Math.abs(x), ay = Math.abs(y);
+      const den = ax + ay;
+      if (den > 0) {
+        const numerator = Math.abs(x - y);
+        if (Number.isFinite(den) && Number.isFinite(numerator)) canberra.push(numerator / den);
+        else {
+          // Scale only the overflow case; ordinary values retain the fixture arithmetic.
+          const scale = Math.max(ax, ay);
+          canberra.push(Math.abs(x / scale - y / scale) / (ax / scale + ay / scale));
+        }
+      }
       continue;
     }
     diffs.push(Math.abs(x - y));

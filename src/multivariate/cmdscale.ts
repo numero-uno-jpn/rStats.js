@@ -85,11 +85,16 @@ function gramFromDistances(d: readonly (readonly number[])[]): { x: number[][]; 
 
 function cailliez(d: readonly (readonly number[])[]): number {
   const n = d.length;
+  let scale = 0;
+  for (const row of d) for (const value of row) scale = Math.max(scale, Math.abs(value));
+  const rescale = scale > 2 ** 450 || (scale > 0 && scale < 2 ** -450);
+  const work = rescale ? d.map((row) => row.map((value) => value / scale)) : d;
+  const multiplier = rescale ? scale : 1;
   // Cailliez (1983): c is the largest real eigenvalue of
   // [[0, 2 B0], [-I, -4 B1]], with B0/B1 the double-centered D^2/D
   // matrices multiplied by -1/2.
-  const B0 = centerMatrix(d.map((row) => row.map((v) => v * v))).map((row) => row.map((v) => -v / 2));
-  const B1 = centerMatrix(d).map((row) => row.map((v) => -v / 2));
+  const B0 = centerMatrix(work.map((row) => row.map((v) => v * v))).map((row) => row.map((v) => -v / 2));
+  const B1 = centerMatrix(work).map((row) => row.map((v) => -v / 2));
   const size = 2 * n;
   const companion = Array.from({ length: size }, () => new Array<number>(size).fill(0));
   for (let i = 0; i < n; i++) {
@@ -106,7 +111,7 @@ function cailliez(d: readonly (readonly number[])[]): number {
     const imaginary = values.valuesIm?.[i] ?? 0;
     if (Math.abs(imaginary) <= 1e-10 * Math.max(1, Math.abs(real)) && real > largest) largest = real;
   }
-  return largest;
+  return largest * multiplier;
 }
 function orient(points: number[][]): void {
   if (points.length === 0) return;
