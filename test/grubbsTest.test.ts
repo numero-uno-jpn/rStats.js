@@ -142,7 +142,8 @@ describe("Grubbs type 10", () => {
 
   it("handles CDF and quantile endpoints and invalid sample sizes", () => {
     expect(pgrubbs([-Infinity, 0, Infinity, 1e308], 10)).toEqual([0, 0, 1, 1]);
-    expect(qgrubbs(0, 10)).toBe(0);
+    // mpmath (80 dps): solve I_x(4, 1/2) = 2/10, then transform x to G.
+    expect(qgrubbs(0, 10)).toBeCloseTo(1.2602192323987674, 14);
     expect(qgrubbs(1, 10)).toBe((10 - 1) / Math.sqrt(10));
     expect(Number.isNaN(pgrubbs(1, 2))).toBe(true);
     expect(Number.isNaN(qgrubbs(0.5, 2))).toBe(true);
