@@ -49,6 +49,21 @@
     "en": "Canonical coefficients for x, with original variable names in rows.",
     "ja": "x の正準係数。行には元の変数名が入ります。"
   },
+  "CancorResult.xcoef.cols#summary": {
+    "hash": "46f00bbfd8fd",
+    "en": "Always `null`: R gives the columns (the canonical variates) no names.",
+    "ja": "いつも `null` です。R は列 (正準変量) に名前を付けません。"
+  },
+  "CancorResult.xcoef.rows#summary": {
+    "hash": "36e36eea4ede",
+    "en": "Names of the x variables (one name as a string, `null` without names), as R's row names.",
+    "ja": "x の変数の名前です (名前が 1 つなら文字列、名前がなければ `null`)。R の行名に当たります。"
+  },
+  "CancorResult.xcoef.values#summary": {
+    "hash": "72d786462412",
+    "en": "The coefficients: one row per x variable, one column per canonical variate.",
+    "ja": "係数です。行が x の変数、列が正準変量に対応します。"
+  },
   "CancorResult.ycenter#summary": {
     "hash": "cb38d7e6a350",
     "en": "Centers applied to the columns of y.",
@@ -58,6 +73,21 @@
     "hash": "ac990b3afb37",
     "en": "Canonical coefficients for y, with original variable names in rows.",
     "ja": "y の正準係数。行には元の変数名が入ります。"
+  },
+  "CancorResult.ycoef.cols#summary": {
+    "hash": "46f00bbfd8fd",
+    "en": "Always `null`: R gives the columns (the canonical variates) no names.",
+    "ja": "いつも `null` です。R は列 (正準変量) に名前を付けません。"
+  },
+  "CancorResult.ycoef.rows#summary": {
+    "hash": "16a8688e17cf",
+    "en": "Names of the y variables (one name as a string, `null` without names), as R's row names.",
+    "ja": "y の変数の名前です (名前が 1 つなら文字列、名前がなければ `null`)。R の行名に当たります。"
+  },
+  "CancorResult.ycoef.values#summary": {
+    "hash": "7aa90b17e047",
+    "en": "The coefficients: one row per y variable, one column per canonical variate.",
+    "ja": "係数です。行が y の変数、列が正準変量に対応します。"
   },
   "LdaCVResult#summary": {
     "hash": "391dbec9cdbe",

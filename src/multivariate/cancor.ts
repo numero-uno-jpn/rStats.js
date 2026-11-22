@@ -32,9 +32,23 @@ export interface CancorResult {
   /** Canonical correlations, ordered from largest to smallest. */
   cor: number[] | number;
   /** Canonical coefficients for x, with original variable names in rows. */
-  xcoef: { rows: string[] | string | null; cols: null; values: number[][] };
+  xcoef: {
+    /** Names of the x variables (one name as a string, `null` without names), as R's row names. */
+    rows: string[] | string | null;
+    /** Always `null`: R gives the columns (the canonical variates) no names. */
+    cols: null;
+    /** The coefficients: one row per x variable, one column per canonical variate. */
+    values: number[][];
+  };
   /** Canonical coefficients for y, with original variable names in rows. */
-  ycoef: { rows: string[] | string | null; cols: null; values: number[][] };
+  ycoef: {
+    /** Names of the y variables (one name as a string, `null` without names), as R's row names. */
+    rows: string[] | string | null;
+    /** Always `null`: R gives the columns (the canonical variates) no names. */
+    cols: null;
+    /** The coefficients: one row per y variable, one column per canonical variate. */
+    values: number[][];
+  };
   /** Centers applied to the columns of x. */
   xcenter: number[] | number;
   /** Centers applied to the columns of y. */
