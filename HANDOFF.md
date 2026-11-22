@@ -53,7 +53,19 @@ ROADMAP の「残っていること」の 2 (順不同の一覧) から選んだ
   変えて流した (`experiments/multivariate19-stage1-check-local.*`): T2 (Welch + Šidák)、**T2' は自由度 n_i + n_j − 2**
   (chickwts で確認)、Pillai、lda の svd² = λ(N − g)/(g − 1)、cancor の相関は R と一致。差し戻しは作業ブランチの
   `briefs/tests-multivariate-1.9-stage1-review.ja.md` (`6b208bee`)
-- 次: ユーザーが ChatGPT に差し戻しの依頼文を貼る → 段階 1 の報告 (仕様書 6 つ + Decisions) を Issue #549 で点検 →
+- **段階 1 は完了 (2026-11-22、ChatGPT `5ba63b6f`、私 `acc261cf`):** ChatGPT は 1 回タイムアウトの後、式を全部 R と照合した
+  (T2・T2'・Page は完全一致、MANOVA の F 4 つ・lda・cancor は 1e-9〜1e-15)。**Decisions (ユーザー、全部推奨どおり):** T2 と
+  T2' の両方 (Welch の自由度は溢れない計算)、Page の NA はエラー、**Grubbs は type 10 だけ** (type 11 は R が近似を uniroot で
+  逆に解き 1e-5 揺れる、type 20 は表の補間の曲線が出力から特定できない → 既知の未対応)、lda・cancor の符号は決まった規則
+  (列の絶対値最大の成分を正) で R との既知の違い (R の符号は LAPACK の SVD で決まり、rStats.js の SVD は符号が違いうる)。
+  choices は私が書いた。ChatGPT の oracle は `experiments/` を読み標準出力に出していて動かなかったので、ケースを
+  `oracle/_tests19cases.R`・`_multivariate19cases.R` に移して直した。fixture 6 つ (実験の JSON と全件同じ)。段階 2 の指示は
+  `briefs/tests-multivariate-1.9-stage2.ja.md`
+- PR の CI は `oracle/`・`experiments/`・`briefs/` だけの push では動かない (コードの変更がないため。正常)
+- 次: ChatGPT が段階 2 (T2 → Page → Grubbs → manova → lda → cancor)。「配線の依頼」が来たら `/multivariate` を配線
+  (`package.json`・`scripts/bundle.mjs`・`scripts/size.mjs`・`typedoc.json`・`src/api-reference.ts`・テストの一覧。1.7.0 の
+  `8778e17c` が手本)。1 つずつ CI 緑の報告が来たら私が数値を点検
+- (以前) 次: ユーザーが ChatGPT に差し戻しの依頼文を貼る → 段階 1 の報告 (仕様書 6 つ + Decisions) を Issue #549 で点検 →
   Decisions をユーザーに聞いて choices を書く → fixture を作る (x86_64 の版も)
 
 ### 進め方 (1.8.0 の経験から。ガイド「ChatGPT を外注先に使う開発の進め方」https://claude.ai/artifact/XeAnCSwZUrejZhzx5a7BxV)
