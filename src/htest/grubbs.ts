@@ -109,7 +109,7 @@ export function grubbsTest(x: Sample, options: GrubbsTestOptions = {}): GrubbsTe
   const values = Array.from(x).filter((v) => !Number.isNaN(v));
   if (values.some((v) => !Number.isFinite(v))) throw new RangeError("x must contain finite values");
   const n = values.length;
-  if (n < 3) throw new RangeError("sample size must be at least 3");
+  if (n < 2) throw new RangeError("sample size must be at least 2");
   const opposite = options.opposite ?? false;
   const twoSided = options.twoSided ?? false;
   let extreme = values[0]!;
@@ -132,6 +132,6 @@ export function grubbsTest(x: Sample, options: GrubbsTestOptions = {}): GrubbsTe
     statisticName: ["G", "U"],
     pValue,
     alternative: `${direction} value ${String(extreme)} is an outlier`,
-    warnings: [],
+    warnings: n === 2 ? ["NaNs produced"] : [],
   };
 }
