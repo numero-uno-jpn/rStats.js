@@ -150,7 +150,7 @@ function fitCore(x0: number[][], g0: readonly GroupLabel[], options: LdaOptions,
     const w = cross(deviations);
     for (let i = 0; i < p; i++) for (let j = 0; j < p; j++) within[i]![j]! += w[i]![j]!;
     const d = means[k]!.map((v, j) => v - center[j]!);
-    for (let i = 0; i < p; i++) for (let j = 0; j < p; j++) between[i]![j]! += counts[k]! * d[i]! * d[j]!;
+    for (let i = 0; i < p; i++) for (let j = 0; j < p; j++) between[i]![j]! += n * prior[k]! * d[i]! * d[j]!;
   }
   const tol = options.tol ?? 1e-4;
   if (!(Number.isFinite(tol) && tol >= 0)) throw new RangeError("'tol' must be a non-negative finite number");
@@ -287,7 +287,7 @@ export function ldaPredict(fit: LdaFit, options: LdaPredictionOptions = {}): Lda
   const x = raw === undefined ? fit._x : raw.map((r) => r.map((v, j) => v / fit._scale[j]!));
   const p = fit._xNames.length;
   if (x.some((r) => r.length !== p || r.some((v) => !Number.isFinite(v)))) throw new RangeError("newdata must be a finite matrix with the fitted number of columns");
-  const prior = normalisePrior(options.prior, fit.counts);
+  const prior = normalisePrior(options.prior ?? fit.prior, fit.counts);
   const center = Array.from({ length: p }, (_, j) => prior.reduce((s, w, i) => s + w * fit._means[i]![j]!, 0));
   const maxDim = fit._scaling[0]?.length ?? 0;
   const dimen = options.dimen ?? maxDim;
