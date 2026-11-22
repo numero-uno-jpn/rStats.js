@@ -137,4 +137,45 @@ describe("manova", () => {
     const scaled = { ...data, y1: data.y1.map((v) => v * 1e100), y2: data.y2.map((v) => v * 1e-100) };
     expect(() => manova("cbind(y1, y2) ~ group", scaled)).not.toThrow();
   });
+
+  it("preserves MANOVA statistics at extreme response scales and tiny within-group residuals", () => {
+    const base = manovaSummary(manova("cbind(y1, y2) ~ group", data));
+    for (const exponent of [500, -500, 1000, -1000]) {
+      const factor = 2 ** exponent;
+      const scaled = {
+        ...data,
+        y1: data.y1.map((v) => v * factor),
+        y2: data.y2.map((v) => v / factor),
+      };
+      const summary = manovaSummary(manova("cbind(y1, y2) ~ group", scaled));
+      for (const key of ["Pillai", "Wilks", "Hotelling-Lawley", "Roy"] as const) {
+        expect(summary[key].values[0]![1]).toBeCloseTo(base[key].values[0]![1]!, 8);
+        expect(summary[key].values[0]![2]).toBeCloseTo(base[key].values[0]![2]!, 8);
+      }
+    }
+    const tiny = {
+      ...data,
+      y1: data.y1.map((v) => v * 1e-310),
+      y2: data.y2.map((v) => v * 1e-310),
+    };
+    const tinySummary = manovaSummary(manova("cbind(y1, y2) ~ group", tiny));
+    expect(tinySummary.Pillai.values[0]![1]).toBeCloseTo(base.Pillai.values[0]![1]!, 8);
+    expect(tinySummary.Pillai.values[0]![2]).toBeCloseTo(base.Pillai.values[0]![2]!, 8);
+  });
+
+  it("keeps Pillai and Wilks F approximations finite when roots dwarf residuals", () => {
+    const pattern1 = Array.from({ length: 50 }, (_, i) => (i % 5 - 2) * 1e135);
+    const pattern2 = Array.from({ length: 50 }, (_, i) => ([2, -1, 1, -2, 0][i % 5]!) * 1e135);
+    const d = {
+      y1: [...pattern1, ...pattern1.map((v) => 1e150 + v)],
+      y2: [...pattern2, ...pattern2.map((v) => 1e150 + v)],
+      group: [...Array(50).fill("a"), ...Array(50).fill("b")],
+    };
+    const summary = manovaSummary(manova("cbind(y1, y2) ~ group", d));
+    expect(Number.isFinite(summary.Pillai.values[0]![2])).toBe(true);
+    expect(summary.Pillai.values[0]![2]).toBeGreaterThan(1e28);
+    expect(Number.isFinite(summary.Wilks.values[0]![2])).toBe(true);
+    expect(summary.Wilks.values[0]![2]).toBeGreaterThan(1e58);
+    expect(summary.Pillai.values[0]![5]).toBe(0);
+  });
 });
