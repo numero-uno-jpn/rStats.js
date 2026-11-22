@@ -49,6 +49,29 @@ describe("cluster and classical-scaling numerical extremes", () => {
       for (let i = 0; i < reference.eig.length; i++) expect(scaled.eig[i]! / (scale * scale)).toBeCloseTo(reference.eig[i]!, 7);
     }
   });
+  it("preserves distance and kmeans assignments at subnormal magnitudes", () => {
+    const tiny = 1e-310;
+    const points = [[0], [1], [3]].map((r) => r.map((v) => v * tiny));
+    const baseD = dist([[0], [1], [3]]);
+    const tinyD = dist(points);
+    expect(tinyD.values.map((v) => v / tiny)).toEqual(baseD.values);
+    const baseTree = hclust(baseD, { method: "ward.D2" });
+    const tinyTree = hclust(tinyD, { method: "ward.D2" });
+    expect(tinyTree.merge).toEqual(baseTree.merge);
+    expect(tinyTree.order).toEqual(baseTree.order);
+    for (let i = 0; i < baseTree.height.length; i++) expect(tinyTree.height[i]! / tiny).toBeCloseTo(baseTree.height[i]!, 10);
+
+    const rows = [[0], [1], [10], [11]].map((r) => r.map((v) => v * tiny));
+    const centers = [[0], [10]].map((r) => r.map((v) => v * tiny));
+    const fit = kmeans(rows, centers, { algorithm: "Lloyd" });
+    expect(fit.cluster).toEqual([1, 1, 2, 2]);
+    expect(fit.iter).toBe(2);
+    expect(fit.centers.values.map((r) => r[0]! / tiny)).toEqual([0.5, 10.5]);
+    // The exact sums of squares are below the smallest representable double, so zero is correct.
+    expect(fit.totss).toBe(0);
+    expect(fit.totWithinss).toBe(0);
+  });
+
   it("keeps distances and clustering invariant under exactly representable translation", () => {
     const rows = [[0, 0], [2, 0], [0, 3], [2, 3]], shifted = rows.map((r) => r.map((v) => v + 1e12));
     expect(dist(shifted).values).toEqual(dist(rows).values);

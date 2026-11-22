@@ -317,24 +317,44 @@ export function kmeans(
   }
   const k = initialSets[0]!.length;
   if (algorithm === "Hartigan-Wong" && k === n) throw new RangeError("number of cluster centres must lie between 1 and nrow(x)");
+
+  // Normalize only extreme magnitudes before computing squared distances. This keeps assignments and
+  // center updates scale-equivariant when squaring would overflow or underflow; ordinary inputs keep
+  // the exact arithmetic path used by the R fixtures. Starts are selected above from the original rows,
+  // so this transformation does not alter the random stream or duplicate-row decisions.
+  let magnitude = 0;
+  for (const row of rows) for (const value of row) magnitude = Math.max(magnitude, Math.abs(value));
+  for (const initial of initialSets) for (const row of initial) for (const value of row) magnitude = Math.max(magnitude, Math.abs(value));
+  const rescale = magnitude > 2 ** 450 || (magnitude > 0 && magnitude < 2 ** -450);
+  const workRows = rescale ? rows.map((row) => row.map((value) => value / magnitude)) : rows;
+  const workInitialSets = rescale ? initialSets.map((set) => set.map((row) => row.map((value) => value / magnitude))) : initialSets;
   let best: KmeansFit | null = null;
   let bestW = Infinity;
   let anyNotConverged = false;
-  for (const initial of initialSets) {
+  for (const initial of workInitialSets) {
     // One cluster: R does no iteration (iter 1, ifault NULL for every algorithm; kmeans_k1_*)
     const result = k === 1 ? { cluster: new Array<number>(n).fill(0), iter: 1, converged: true }
-      : algorithm === "Hartigan-Wong" ? hartiganWong(rows, initial, maxIterations)
-      : algorithm === "MacQueen" ? macqueen(rows, initial, maxIterations) : lloyd(rows, initial, maxIterations);
+      : algorithm === "Hartigan-Wong" ? hartiganWong(workRows, initial, maxIterations)
+      : algorithm === "MacQueen" ? macqueen(workRows, initial, maxIterations) : lloyd(workRows, initial, maxIterations);
     const warnings: string[] = [];
-    const stats = means(rows, result.cluster, k, p);
+    const stats = means(workRows, result.cluster, k, p);
     if (stats.size.some((v) => v === 0)) {
       if (algorithm === "Hartigan-Wong") throw new RangeError("empty cluster: try a better set of initial centers");
       warnings.push("empty cluster: try a better set of initial centers", "empty cluster: try a better set of initial centers");
     }
     if (!result.converged) anyNotConverged = true;
-    const fit = fitStats(rows, result.cluster, k, data.colNames, data.rowNames, result.iter,
+    const fit = fitStats(workRows, result.cluster, k, data.colNames, data.rowNames, result.iter,
       algorithm === "Hartigan-Wong" && k > 1 ? (result.converged ? 0 : 2) : (result.converged ? null : 2), warnings);
     if (fit.totWithinss < bestW) { best = fit; bestW = fit.totWithinss; }
+  }
+  // Return centers and sums of squares on the caller's original scale.
+  if (rescale) {
+    const restoreSquare = (value: number): number => value === 0 ? 0 : (value * magnitude) * magnitude;
+    best!.centers.values = best!.centers.values.map((row) => row.map((value) => value * magnitude));
+    best!.totss = restoreSquare(best!.totss);
+    best!.withinss = best!.withinss.map(restoreSquare);
+    best!.totWithinss = restoreSquare(best!.totWithinss);
+    best!.betweenss = restoreSquare(best!.betweenss);
   }
   // R warns once when any start stopped at iter.max, even when the kept start converged (kmeans_seed_nstart_lloyd)
   if (anyNotConverged) best!.warnings.push(`did not converge in ${maxIterations} ${maxIterations === 1 ? "iteration" : "iterations"}`);
