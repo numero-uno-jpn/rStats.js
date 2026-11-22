@@ -37,10 +37,9 @@ export interface ManovaSummary {
 }
 
 function zeros(r: number, c: number): number[][] { return Array.from({ length: r }, () => new Array<number>(c).fill(0)); }
-function transpose(a: number[][]): number[][] { return a.length ? a[0]!.map((_, j) => a.map((r) => r[j]!)) : []; }
 function cross(a: number[][], b: number[][] = a): number[][] {
   const out = zeros(a[0]?.length ?? 0, b[0]?.length ?? 0);
-  for (const [i, row] of a.entries()) for (const [j, v] of row.entries()) for (let k = 0; k < out[i]!.length; k++) out[i]![k]! += v * b[j]![k]!;
+  for (const [i, row] of a.entries()) for (const [j, v] of row.entries()) for (let k = 0; k < out[j]!.length; k++) out[j]![k]! += v * b[i]![k]!;
   return out;
 }
 function mul(a: number[][], b: number[][]): number[][] {
@@ -164,7 +163,6 @@ export function manova(formula: string, data: DataFrame, options: ManovaOptions 
   const maxEig = Math.max(0, ...eig.values);
   const rank = eig.values.filter((v) => v > maxEig * tol).length;
   if (rank < p) throw new RangeError(`residuals have rank ${rank} < ${p}`);
-  const fitted = qrFitted(full, ys) as number[][];
   const coef = qrCoef(full, ys) as number[][];
   const termSSP: Record<string, number[][]> = {};
   const termRoots: Record<string, number[]> = {};
