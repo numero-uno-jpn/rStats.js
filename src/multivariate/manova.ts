@@ -112,7 +112,7 @@ function statRow(roots0: readonly number[], p: number, q: number, v: number, nam
   const wilks = roots.reduce((a, x) => a / (1 + x), 1);
   const hotelling = roots.reduce((a, x) => a + x, 0);
   const roy = roots[0] ?? 0;
-  let value: number, df1: number, df2: number, f: number;
+  let value = NaN, df1 = NaN, df2 = NaN, f = NaN;
   switch (name) {
     case "Pillai":
       value = pillai; df1 = s * (2 * m + s + 1); df2 = s * (2 * n0 + s + 1);
