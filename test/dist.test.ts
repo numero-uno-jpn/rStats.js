@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
-import { asDist, dist, type DistObject } from "../src/entries/multivariate.js";
+import { asDist, dist, type DistResult } from "../src/entries/multivariate.js";
 
 let maxRelativeError = 0;
 const fixture = JSON.parse(readFileSync(new URL("./fixtures/dist.json", import.meta.url), "utf8")) as Record<string, any>;
@@ -24,7 +24,7 @@ function num(v: unknown): number {
   if (v === "-Inf") return -Infinity;
   return Number(v);
 }
-function compare(key: string, actual: DistObject): void {
+function compare(key: string, actual: DistResult): void {
   const expected = fixture[key];
   expect(actual.size, key + ".size").toBe(expected.value.size);
   expect(actual.labels, key + ".labels").toEqual(expected.value.labels === null ? null :
