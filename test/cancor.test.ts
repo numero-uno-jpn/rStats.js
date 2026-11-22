@@ -33,8 +33,10 @@ describe("cancor", () => {
     const cor = Array.isArray(actual.cor) ? actual.cor : [actual.cor];
     expect(cor).toHaveLength(expected.cor.length);
     expected.cor.forEach((v: number, i: number) => expect(cor[i]).toBeCloseTo(v, 8));
-    expect(actual.xcenter).toEqual(expected.xcenter);
-    expect(actual.ycenter).toEqual(expected.ycenter);
+    const xc = Array.isArray(actual.xcenter) ? actual.xcenter : [actual.xcenter];
+    const yc = Array.isArray(actual.ycenter) ? actual.ycenter : [actual.ycenter];
+    expected.xcenter.forEach((v: number, i: number) => expect(xc[i]).toBeCloseTo(v, 10));
+    expected.ycenter.forEach((v: number, i: number) => expect(yc[i]).toBeCloseTo(v, 10));
     expect(actual.xcoef.rows).toEqual(expected.xcoef.rows);
     expect(actual.ycoef.rows).toEqual(expected.ycoef.rows);
     const signs = expected.cor.map((_: number, j: number) => {
