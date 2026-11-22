@@ -323,6 +323,12 @@ export function lda(x: VectorOrMatrix | string, grouping: readonly GroupLabel[] 
     values = matrixInput(x);
     groups = Array.from(grouping as readonly GroupLabel[]);
     names = options.xNames ? Array.from(options.xNames) : Array.from({ length: values[0]?.length ?? 0 }, (_, i) => `x${i + 1}`);
+    if (values.some((row) => row.some((v) => !Number.isFinite(v)))) {
+      throw new RangeError("infinite, NA or NaN values in 'x'");
+    }
+    if (groups.some((v) => typeof v === "number" && Number.isNaN(v))) {
+      throw new RangeError("missing value where TRUE/FALSE needed");
+    }
   }
   const fit = fitCore(values, groups, options, names, options.groupLevels);
   if (!options.CV) return fit;
