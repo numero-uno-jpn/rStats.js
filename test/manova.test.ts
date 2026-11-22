@@ -186,7 +186,8 @@ describe("manova", () => {
       const values: number[] = [];
       for (let g = 0; g < groups; g++) {
         for (let i = 0; i < perGroup; i++) {
-          const noise = Math.sin((i + 1) * (j + 1) * 0.17) * 1e135;
+          const angle = (2 * Math.PI * ((j % 10) + 1) * (i + 0.5)) / perGroup;
+          const noise = (j < 10 ? Math.sin(angle) : Math.cos(angle)) * 1e135;
           values.push((g === j + 1 ? 1e150 : 0) + noise);
         }
       }
