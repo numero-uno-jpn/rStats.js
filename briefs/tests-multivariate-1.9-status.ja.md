@@ -62,3 +62,12 @@
   `await` しない
 - 端の入力 (尺度 1e±100・ずらし 1e8、10 万件、NaN・Infinity、縮退) は指示書 5 節が合格の条件
 - 配列を関数の引数に展開しない (`Math.max(...列)`)
+
+## 段階 1 の作業メモ (2026-11-22)
+
+- 仕様書: `oracle/{tamhane,page,grubbs,manova,lda,cancor}-behaviour.md` を追加。全て Decisions for the user と空の rStats.js's choices を持つ。choices は変更していない
+- R oracle: `oracle/{tamhane,page,grubbs,manova,lda,cancor}.R` を追加。JSON には公開関数から取り出した数値・文字列・行列だけを入れる
+- 独立式チェック用 `experiments/multivariate19-stage1-check.R` を追加し、Issue #549 で実行結果を受け取る予定。2026-11-22 11:09 JST 時点で Actions は queued
+- 数値確認済み: Page の L・帰無平均・分散・連続性補正 z と正規 p (page_m1_two.sided、page_size_k3_n2、page_ties)
+- 追加検証が必要: T2/T2' の df・調整確率 (特に T2')、Grubbs 3 type の U/p と type 20 補間、MANOVA 4 統計量の F/df、lda の scaling の正規化・符号と CV、cancor の係数正規化・符号
+- 現段階は仕様書の初稿。未確認式を明示しており、段階 1 完了とはまだ扱わない。R 実験の結果を反映し、必要な追加実験を済ませてから Issue に正式報告する
