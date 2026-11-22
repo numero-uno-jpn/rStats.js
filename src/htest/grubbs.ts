@@ -48,8 +48,7 @@ function grubbsTail10(q: number, n: number): number {
   if (den <= 0) return 0;
   const t = q * Math.sqrt((n * (n - 2)) / den);
   const lower = pt(-t, n - 2);
-  const upper = pt(t, n - 2, { lowerTail: false });
-  return Math.min(1, n * (lower + upper) / 2);
+  return Math.min(1, n * lower);
 }
 
 /** Pearson–Sekar CDF of the type-10 Grubbs statistic. */
