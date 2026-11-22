@@ -25,7 +25,7 @@ const mtcarsData = {
   gear: mtRows.map((r) => String(r[9]!)),
   carb: mtRows.map((r) => r[10]!),
 };
-function compareManovaSummary(actual: ReturnType<typeof summaryManova>, expected: any): void {
+function compareManovaSummary(actual: ReturnType<typeof manovaSummary>, expected: any): void {
   for (const key of ["Pillai", "Wilks", "Hotelling-Lawley", "Roy"] as const) compareTable(actual[key], expected[key].value);
   for (const key of Object.keys(expected.SS)) compareTable(actual.SS[key]!, expected.SS[key]);
   compareTable(actual.Eigenvalues, expected.Eigenvalues);
@@ -101,11 +101,11 @@ describe("manova", () => {
     ];
     for (const [key, formula, data, options] of cases) {
       const fit = manova(formula, data, options ?? {});
-      compareManovaSummary(summaryManova(fit), manovaFixture[key].value);
+      compareManovaSummary(manovaSummary(fit), manovaFixture[key].value);
     }
     const missing = { ...mtcarsData, mpg: mtcarsData.mpg.map((v, i) => i === 2 ? NaN : v) };
-    compareManovaSummary(summaryManova(manova("cbind(mpg, disp, hp) ~ cyl", missing)), manovaFixture.manova_na.value);
-    compareManovaSummary(summaryManova(manova("cbind(mpg * 1e100, disp, hp * 1e-100) ~ cyl", mtcarsData)), manovaFixture.manova_scale.value);
+    compareManovaSummary(manovaSummary(manova("cbind(mpg, disp, hp) ~ cyl", missing)), manovaFixture.manova_na.value);
+    compareManovaSummary(manovaSummary(manova("cbind(mpg * 1e100, disp, hp * 1e-100) ~ cyl", mtcarsData)), manovaFixture.manova_scale.value);
     expect(() => manova("cbind(mpg) ~ cyl", mtcarsData)).toThrow(/need multiple responses/);
     expect(() => manova("cbind(mpg, disp, hp, drat, wt, qsec) ~ cyl", Object.fromEntries(
       Object.entries(mtcarsData).map(([k, v]) => [k, v.slice(0, 8)]),
