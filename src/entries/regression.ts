@@ -84,6 +84,7 @@ export {
   type RqModel,
   type RqResult,
 } from "../models/rq.js";
+export type { DesignContrast } from "../models/modelMatrix.js";
 
 
 // Generalized estimating equations (rStats.js/regression)

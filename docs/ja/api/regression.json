@@ -1,4 +1,939 @@
 {
+  "CvGlmnetOptions#summary": {
+    "hash": "de9acedfe20c",
+    "en": "Options for {@link cvGlmnet}; fold assignments are required.",
+    "ja": ""
+  },
+  "CvGlmnetOptions.foldid#summary": {
+    "hash": "0eaca2620cb2",
+    "en": "Fixed fold assignment for deterministic cross-validation.",
+    "ja": ""
+  },
+  "CvGlmnetOptions.grouped#summary": {
+    "hash": "728366b9a477",
+    "en": "Whether fold-level scores are summarized before the cross-validation mean and standard error.",
+    "ja": ""
+  },
+  "CvGlmnetOptions.keep#summary": {
+    "hash": "83a763f579dc",
+    "en": "Whether held-out predictions are retained.",
+    "ja": ""
+  },
+  "CvGlmnetOptions.typeMeasure#summary": {
+    "hash": "da2d1401cef4",
+    "en": "Loss or performance measure evaluated on held-out folds.",
+    "ja": ""
+  },
+  "CvGlmnetResult#summary": {
+    "hash": "ac7c80e99e89",
+    "en": "Cross-validation summary returned by {@link cvGlmnet}.",
+    "ja": ""
+  },
+  "CvGlmnetResult.cvlo#summary": {
+    "hash": "015c8fa084b2",
+    "en": "Lower one-standard-error bound for the cross-validated loss.",
+    "ja": ""
+  },
+  "CvGlmnetResult.cvm#summary": {
+    "hash": "94d89940f3e2",
+    "en": "Mean cross-validated loss at each penalty value.",
+    "ja": ""
+  },
+  "CvGlmnetResult.cvsd#summary": {
+    "hash": "7ed8c05a921c",
+    "en": "Estimated standard error of the cross-validated loss.",
+    "ja": ""
+  },
+  "CvGlmnetResult.cvup#summary": {
+    "hash": "2effed816942",
+    "en": "Upper one-standard-error bound for the cross-validated loss.",
+    "ja": ""
+  },
+  "CvGlmnetResult.fit#summary": {
+    "hash": "af14cee53366",
+    "en": "Full-data penalized fit associated with cross-validation.",
+    "ja": ""
+  },
+  "CvGlmnetResult.fitPreval#summary": {
+    "hash": "5c4c66e4a4ec",
+    "en": "Held-out predictions retained when keep is enabled.",
+    "ja": ""
+  },
+  "CvGlmnetResult.foldid#summary": {
+    "hash": "0eaca2620cb2",
+    "en": "Fixed fold assignment for deterministic cross-validation.",
+    "ja": ""
+  },
+  "CvGlmnetResult.lambda#summary": {
+    "hash": "9baf9bef6e44",
+    "en": "Decreasing penalty values defining the fitted regularization path.",
+    "ja": ""
+  },
+  "CvGlmnetResult.lambda1se#summary": {
+    "hash": "0e9543884c7e",
+    "en": "Largest penalty within one standard error of the minimum loss.",
+    "ja": ""
+  },
+  "CvGlmnetResult.lambdaMin#summary": {
+    "hash": "a02739d2f103",
+    "en": "Penalty value minimizing the mean cross-validated loss.",
+    "ja": ""
+  },
+  "CvGlmnetResult.name#summary": {
+    "hash": "041718dc8420",
+    "en": "Name of the cross-validation measure used.",
+    "ja": ""
+  },
+  "CvGlmnetResult.nzero#summary": {
+    "hash": "6e31c9c920a7",
+    "en": "Number of nonzero coefficients at each penalty value.",
+    "ja": ""
+  },
+  "CvGlmnetResult.warnings#summary": {
+    "hash": "1caf53387317",
+    "en": "Warnings generated during cross-validation.",
+    "ja": ""
+  },
+  "DesignContrast#summary": {
+    "hash": "a60d441d2578",
+    "en": "A contrast the internal model-matrix code accepts: those of {@link ContrastName} and R's `contr.poly` (orthogonal\npolynomials in the level scores 1, 2, ..., columns `.L`, `.Q`, `.C`, `^4`, ...), which lmer's fixed effects may use.",
+    "ja": ""
+  },
+  "GeeAnovaOptions#summary": {
+    "hash": "6dc497748d96",
+    "en": "Options for a GEE Wald analysis of variance.",
+    "ja": ""
+  },
+  "GeeAnovaOptions.test#summary": {
+    "hash": "753a892c20ac",
+    "en": "Wald test used for the sequential term comparison.",
+    "ja": ""
+  },
+  "GeeAnovaResult#summary": {
+    "hash": "9d5fbddc729f",
+    "en": "Wald comparison table for GEE models.",
+    "ja": ""
+  },
+  "GeeAnovaResult.columns#summary": {
+    "hash": "d15e9785c501",
+    "en": "Column labels for the returned summary table.",
+    "ja": ""
+  },
+  "GeeAnovaResult.rows#summary": {
+    "hash": "4fa2bc7327f5",
+    "en": "Original data-row indices retained in the model frame.",
+    "ja": ""
+  },
+  "GeeAnovaResult.values#summary": {
+    "hash": "7d50f6066cab",
+    "en": "Numeric values in the returned summary table.",
+    "ja": ""
+  },
+  "GeeCorrelation#summary": {
+    "hash": "ef1074e288d2",
+    "en": "Working correlation structures supported by a GEE fit.",
+    "ja": ""
+  },
+  "GeeId#summary": {
+    "hash": "d3ea0bdd97b7",
+    "en": "Cluster identifiers may be numeric, character, or logical.",
+    "ja": ""
+  },
+  "GeeOptions#summary": {
+    "hash": "8509bbf71d3d",
+    "en": "Options for a marginal generalized estimating equation fit.",
+    "ja": ""
+  },
+  "GeeOptions.corstr#summary": {
+    "hash": "0924e900cbbb",
+    "en": "Working correlation structure.",
+    "ja": ""
+  },
+  "GeeOptions.epsilon#summary": {
+    "hash": "a6e62a9ebdce",
+    "en": "Convergence tolerance for coefficient updates.",
+    "ja": ""
+  },
+  "GeeOptions.family#summary": {
+    "hash": "ae9889eec53a",
+    "en": "Response distribution used by the estimating equations.",
+    "ja": ""
+  },
+  "GeeOptions.id#summary": {
+    "hash": "8590892f43cf",
+    "en": "Cluster identifier column or values.",
+    "ja": ""
+  },
+  "GeeOptions.link#summary": {
+    "hash": "c100ba9c2c86",
+    "en": "Link function for the response mean.",
+    "ja": ""
+  },
+  "GeeOptions.maxit#summary": {
+    "hash": "004a1a56b777",
+    "en": "Maximum number of fitting iterations.",
+    "ja": ""
+  },
+  "GeeOptions.offset#summary": {
+    "hash": "4251dec3b88b",
+    "en": "Known contribution to the linear predictor.",
+    "ja": ""
+  },
+  "GeeOptions.scale.fix#summary": {
+    "hash": "9985d0baf79f",
+    "en": "Whether to hold the scale parameter fixed at scale.value.",
+    "ja": ""
+  },
+  "GeeOptions.scale.value#summary": {
+    "hash": "c6c67b4e81c3",
+    "en": "Fixed scale parameter value when scale.fix is enabled.",
+    "ja": ""
+  },
+  "GeeOptions.std.err#summary": {
+    "hash": "d79a55c910b9",
+    "en": "Standard-error estimator requested for the coefficient covariance.",
+    "ja": ""
+  },
+  "GeeOptions.waves#summary": {
+    "hash": "7c441b66bd9a",
+    "en": "Within-cluster observation order or wave values.",
+    "ja": ""
+  },
+  "GeeOptions.weights#summary": {
+    "hash": "578942b05ef2",
+    "en": "Prior observation weights.",
+    "ja": ""
+  },
+  "GeeOptions.zcor#summary": {
+    "hash": "9d9b191c37c5",
+    "en": "User-supplied or fixed pairwise working-correlation values.",
+    "ja": ""
+  },
+  "GeePredictOptions#summary": {
+    "hash": "15f4844effa3",
+    "en": "Prediction options for a GEE fit.",
+    "ja": ""
+  },
+  "GeePredictOptions.newdata#summary": {
+    "hash": "ef136c244839",
+    "en": "Optional data frame used to construct predictions.",
+    "ja": ""
+  },
+  "GeePredictOptions.newoffset#summary": {
+    "hash": "eb462e681c20",
+    "en": "Offset values for new observations.",
+    "ja": ""
+  },
+  "GeePredictOptions.type#summary": {
+    "hash": "01c818f6d7ed",
+    "en": "Prediction scale or covariance selection.",
+    "ja": ""
+  },
+  "GeeQICResult#summary": {
+    "hash": "bf665a776d1c",
+    "en": "Quasi-likelihood information criteria returned by geeQIC.",
+    "ja": ""
+  },
+  "GeeQICResult.CIC#summary": {
+    "hash": "767909595df2",
+    "en": "Correlation information criterion.",
+    "ja": ""
+  },
+  "GeeQICResult.Q#summary": {
+    "hash": "ebb31522aa39",
+    "en": "Quasi-likelihood component.",
+    "ja": ""
+  },
+  "GeeQICResult.QIC#summary": {
+    "hash": "3eed4ad2e8cc",
+    "en": "Quasi-likelihood under the independence model criterion.",
+    "ja": ""
+  },
+  "GeeQICResult.QICC#summary": {
+    "hash": "af8e6d65e054",
+    "en": "Finite-sample corrected QIC.",
+    "ja": ""
+  },
+  "GeeQICResult.QICu#summary": {
+    "hash": "1cce30d4e9c2",
+    "en": "Uncorrected quasi-likelihood information criterion.",
+    "ja": ""
+  },
+  "GeeQICResult.params#summary": {
+    "hash": "ed1461276f1e",
+    "en": "Number of fitted mean-model parameters.",
+    "ja": ""
+  },
+  "GeeResult#summary": {
+    "hash": "9cf246ddf17f",
+    "en": "A fitted generalized estimating equation model.",
+    "ja": ""
+  },
+  "GeeResult.alpha#summary": {
+    "hash": "8520b6a74e8e",
+    "en": "Estimated working-correlation parameter values.",
+    "ja": ""
+  },
+  "GeeResult.clusterIds#summary": {
+    "hash": "3d1539c52dcf",
+    "en": "Cluster identifiers corresponding to retained rows.",
+    "ja": ""
+  },
+  "GeeResult.coefficients#summary": {
+    "hash": "86af97ab8ddd",
+    "en": "Estimated marginal-model coefficients.",
+    "ja": ""
+  },
+  "GeeResult.columnNames#summary": {
+    "hash": "11045377ffda",
+    "en": "Names of the model-matrix columns.",
+    "ja": ""
+  },
+  "GeeResult.converged#summary": {
+    "hash": "926552c1e505",
+    "en": "Whether the coefficient iteration met its convergence criterion.",
+    "ja": ""
+  },
+  "GeeResult.corstr#summary": {
+    "hash": "0924e900cbbb",
+    "en": "Working correlation structure.",
+    "ja": ""
+  },
+  "GeeResult.covariance#summary": {
+    "hash": "348c0b33ad5c",
+    "en": "Robust sandwich covariance matrix of the coefficient estimates.",
+    "ja": ""
+  },
+  "GeeResult.family#summary": {
+    "hash": "ae9889eec53a",
+    "en": "Response distribution used by the estimating equations.",
+    "ja": ""
+  },
+  "GeeResult.fittedValues#summary": {
+    "hash": "5ea1b1d4f3b7",
+    "en": "Fitted marginal means for the original input rows.",
+    "ja": ""
+  },
+  "GeeResult.independenceCovariance#summary": {
+    "hash": "66fe5f3e5a69",
+    "en": "Model-based covariance matrix under independence working correlation.",
+    "ja": ""
+  },
+  "GeeResult.iterations#summary": {
+    "hash": "4d5819b10bbb",
+    "en": "Number of coefficient-update iterations performed.",
+    "ja": ""
+  },
+  "GeeResult.linearPredictors#summary": {
+    "hash": "1334e983617e",
+    "en": "Fitted linear predictors for the original input rows.",
+    "ja": ""
+  },
+  "GeeResult.link#summary": {
+    "hash": "c100ba9c2c86",
+    "en": "Link function for the response mean.",
+    "ja": ""
+  },
+  "GeeResult.model#summary": {
+    "hash": "857138ba33fc",
+    "en": "Model-frame, design, and cluster information retained for downstream methods.",
+    "ja": ""
+  },
+  "GeeResult.model.corstr#summary": {
+    "hash": "0924e900cbbb",
+    "en": "Working correlation structure.",
+    "ja": ""
+  },
+  "GeeResult.model.data#summary": {
+    "hash": "399626afda86",
+    "en": "Data frame retained for prediction and model comparisons.",
+    "ja": ""
+  },
+  "GeeResult.model.epsilon#summary": {
+    "hash": "a6e62a9ebdce",
+    "en": "Convergence tolerance for coefficient updates.",
+    "ja": ""
+  },
+  "GeeResult.model.family#summary": {
+    "hash": "ae9889eec53a",
+    "en": "Response distribution used by the estimating equations.",
+    "ja": ""
+  },
+  "GeeResult.model.formula#summary": {
+    "hash": "fa221b20354f",
+    "en": "Original model formula.",
+    "ja": ""
+  },
+  "GeeResult.model.hasExternalOffset#summary": {
+    "hash": "d9d5d75ed1f3",
+    "en": "Whether an offset was supplied outside the formula.",
+    "ja": ""
+  },
+  "GeeResult.model.ids#summary": {
+    "hash": "7a25e8dd5518",
+    "en": "Cluster identifiers for retained observations.",
+    "ja": ""
+  },
+  "GeeResult.model.intercept#summary": {
+    "hash": "93327e8193cc",
+    "en": "Whether the mean model includes an intercept.",
+    "ja": ""
+  },
+  "GeeResult.model.link#summary": {
+    "hash": "c100ba9c2c86",
+    "en": "Link function for the response mean.",
+    "ja": ""
+  },
+  "GeeResult.model.maxit#summary": {
+    "hash": "004a1a56b777",
+    "en": "Maximum number of fitting iterations.",
+    "ja": ""
+  },
+  "GeeResult.model.meanFormula#summary": {
+    "hash": "b25ec7ff2658",
+    "en": "Mean-model formula after offset terms are separated.",
+    "ja": ""
+  },
+  "GeeResult.model.offset#summary": {
+    "hash": "4251dec3b88b",
+    "en": "Known contribution to the linear predictor.",
+    "ja": ""
+  },
+  "GeeResult.model.offsetOptionColumn#summary": {
+    "hash": "40d8f6a1f8e5",
+    "en": "Name of the data column supplied through the offset option, if any.",
+    "ja": ""
+  },
+  "GeeResult.model.responseVariable#summary": {
+    "hash": "678c45597679",
+    "en": "Name of the response variable.",
+    "ja": ""
+  },
+  "GeeResult.model.scaleFix#summary": {
+    "hash": "701438dac704",
+    "en": "Whether the scale parameter is fixed.",
+    "ja": ""
+  },
+  "GeeResult.model.scaleValue#summary": {
+    "hash": "06177156f379",
+    "en": "Scale value used when scale is fixed.",
+    "ja": ""
+  },
+  "GeeResult.model.termAssign#summary": {
+    "hash": "c5b37a136a5d",
+    "en": "Model-matrix column to formula-term assignment.",
+    "ja": ""
+  },
+  "GeeResult.model.termLabels#summary": {
+    "hash": "cc152eeb83cf",
+    "en": "Labels of the formula terms.",
+    "ja": ""
+  },
+  "GeeResult.model.waves#summary": {
+    "hash": "7c441b66bd9a",
+    "en": "Within-cluster observation order or wave values.",
+    "ja": ""
+  },
+  "GeeResult.model.weights#summary": {
+    "hash": "578942b05ef2",
+    "en": "Prior observation weights.",
+    "ja": ""
+  },
+  "GeeResult.model.x#summary": {
+    "hash": "2ed5314930c2",
+    "en": "Model matrix for retained observations.",
+    "ja": ""
+  },
+  "GeeResult.model.y#summary": {
+    "hash": "fe18c8c5f457",
+    "en": "Response values for retained observations.",
+    "ja": ""
+  },
+  "GeeResult.model.zcor#summary": {
+    "hash": "9d9b191c37c5",
+    "en": "User-supplied or fixed pairwise working-correlation values.",
+    "ja": ""
+  },
+  "GeeResult.modelCovariance#summary": {
+    "hash": "392f31075341",
+    "en": "Model-based covariance matrix under the working correlation.",
+    "ja": ""
+  },
+  "GeeResult.pearsonResiduals#summary": {
+    "hash": "28647a88b071",
+    "en": "Pearson residuals for the original input rows.",
+    "ja": ""
+  },
+  "GeeResult.residuals#summary": {
+    "hash": "c26432f3e76d",
+    "en": "Response residuals for the original input rows.",
+    "ja": ""
+  },
+  "GeeResult.rows#summary": {
+    "hash": "4fa2bc7327f5",
+    "en": "Original data-row indices retained in the model frame.",
+    "ja": ""
+  },
+  "GeeResult.scale#summary": {
+    "hash": "bf6f7d31f35f",
+    "en": "Scale or dispersion parameter.",
+    "ja": ""
+  },
+  "GeeResult.stdErr#summary": {
+    "hash": "3841102d4d30",
+    "en": "Standard-error estimator used by the fit.",
+    "ja": ""
+  },
+  "GeeResult.warnings#summary": {
+    "hash": "a0387e7372bd",
+    "en": "Warnings recorded while fitting or summarizing the model.",
+    "ja": ""
+  },
+  "GeeResult.waves#summary": {
+    "hash": "7c441b66bd9a",
+    "en": "Within-cluster observation order or wave values.",
+    "ja": ""
+  },
+  "GeeStdErr#summary": {
+    "hash": "5e270c353c03",
+    "en": "Coefficient covariance estimators.",
+    "ja": ""
+  },
+  "GeeSummaryResult#summary": {
+    "hash": "815559322639",
+    "en": "Coefficient and nuisance-parameter summary of a GEE fit.",
+    "ja": ""
+  },
+  "GeeSummaryResult.columns#summary": {
+    "hash": "d15e9785c501",
+    "en": "Column labels for the returned summary table.",
+    "ja": ""
+  },
+  "GeeSummaryResult.correlation#summary": {
+    "hash": "bb7c97f1f7cd",
+    "en": "Estimated working-correlation summary.",
+    "ja": ""
+  },
+  "GeeSummaryResult.correlation.estimate#summary": {
+    "hash": "08082c27673a",
+    "en": "Estimated working-correlation values.",
+    "ja": ""
+  },
+  "GeeSummaryResult.correlation.rows#summary": {
+    "hash": "2ef706a7fc1a",
+    "en": "Labels for the reported working-correlation rows.",
+    "ja": ""
+  },
+  "GeeSummaryResult.rows#summary": {
+    "hash": "4fa2bc7327f5",
+    "en": "Original data-row indices retained in the model frame.",
+    "ja": ""
+  },
+  "GeeSummaryResult.scale#summary": {
+    "hash": "bf6f7d31f35f",
+    "en": "Scale or dispersion parameter.",
+    "ja": ""
+  },
+  "GeeSummaryResult.values#summary": {
+    "hash": "7d50f6066cab",
+    "en": "Numeric values in the returned summary table.",
+    "ja": ""
+  },
+  "GeeSummaryResult.warnings#summary": {
+    "hash": "a0387e7372bd",
+    "en": "Warnings recorded while fitting or summarizing the model.",
+    "ja": ""
+  },
+  "GeeVcovOptions#summary": {
+    "hash": "8230184e24ca",
+    "en": "Options for selecting the covariance matrix returned by geeVcov.",
+    "ja": ""
+  },
+  "GeeVcovOptions.type#summary": {
+    "hash": "7c730c0dd38a",
+    "en": "Covariance matrix to return: robust sandwich or model-based.",
+    "ja": ""
+  },
+  "GeeVcovResult#summary": {
+    "hash": "63afdb777077",
+    "en": "A GEE coefficient covariance matrix.",
+    "ja": ""
+  },
+  "GeeVcovResult.columns#summary": {
+    "hash": "d15e9785c501",
+    "en": "Column labels for the returned summary table.",
+    "ja": ""
+  },
+  "GeeVcovResult.rows#summary": {
+    "hash": "4fa2bc7327f5",
+    "en": "Original data-row indices retained in the model frame.",
+    "ja": ""
+  },
+  "GeeVcovResult.values#summary": {
+    "hash": "7d50f6066cab",
+    "en": "Numeric values in the returned summary table.",
+    "ja": ""
+  },
+  "GlmnetFamily#summary": {
+    "hash": "05e10f41a731",
+    "en": "Family used for the penalized generalized linear model.",
+    "ja": ""
+  },
+  "GlmnetMultiType#summary": {
+    "hash": "33181d141a5e",
+    "en": "Multinomial penalty structure.",
+    "ja": ""
+  },
+  "GlmnetMultinomialResult#summary": {
+    "hash": "e09629875ac2",
+    "en": "Result of a multinomial {@link glmnet} fit.",
+    "ja": ""
+  },
+  "GlmnetMultinomialResult.a0#summary": {
+    "hash": "cf308cfd44c2",
+    "en": "Intercept estimates for each penalty value.",
+    "ja": ""
+  },
+  "GlmnetMultinomialResult.alpha#summary": {
+    "hash": "e7392a7c0d11",
+    "en": "Elastic-net mixing parameter between ridge and lasso penalties.",
+    "ja": ""
+  },
+  "GlmnetMultinomialResult.beta#summary": {
+    "hash": "b5a2bd814aa9",
+    "en": "Predictor coefficient estimates for each penalty value.",
+    "ja": ""
+  },
+  "GlmnetMultinomialResult.converged#summary": {
+    "hash": "00e95f14f02f",
+    "en": "Whether each penalty value met the convergence criterion.",
+    "ja": ""
+  },
+  "GlmnetMultinomialResult.devRatio#summary": {
+    "hash": "2d16defedd17",
+    "en": "Fraction of null deviance explained at each penalty value.",
+    "ja": ""
+  },
+  "GlmnetMultinomialResult.dfmat#summary": {
+    "hash": "a3a3120f6c0a",
+    "en": "Class-specific degrees of freedom at each penalty value.",
+    "ja": ""
+  },
+  "GlmnetMultinomialResult.family#summary": {
+    "hash": "7f9922d708b0",
+    "en": "Response distribution used for the penalized fit.",
+    "ja": ""
+  },
+  "GlmnetMultinomialResult.kktResidual#summary": {
+    "hash": "855c0c5cd157",
+    "en": "Maximum Karush-Kuhn-Tucker residual at each penalty value.",
+    "ja": ""
+  },
+  "GlmnetMultinomialResult.lambda#summary": {
+    "hash": "9baf9bef6e44",
+    "en": "Decreasing penalty values defining the fitted regularization path.",
+    "ja": ""
+  },
+  "GlmnetMultinomialResult.model#summary": {
+    "hash": "f88e3b8dcf74",
+    "en": "Design, response, and preprocessing information retained by the fit.",
+    "ja": ""
+  },
+  "GlmnetMultinomialResult.model.classes#summary": {
+    "hash": "115bf578506d",
+    "en": "Class labels represented by the multinomial response.",
+    "ja": ""
+  },
+  "GlmnetMultinomialResult.model.columns#summary": {
+    "hash": "f8fc5395e1a5",
+    "en": "Number of predictor columns.",
+    "ja": ""
+  },
+  "GlmnetMultinomialResult.model.intercept#summary": {
+    "hash": "45b375ca099b",
+    "en": "Whether an unpenalized intercept is included.",
+    "ja": ""
+  },
+  "GlmnetMultinomialResult.model.offset#summary": {
+    "hash": "4251dec3b88b",
+    "en": "Known contribution to the linear predictor.",
+    "ja": ""
+  },
+  "GlmnetMultinomialResult.model.typeMultinomial#summary": {
+    "hash": "1e1299f069e6",
+    "en": "Penalty structure used for a multinomial fit.",
+    "ja": ""
+  },
+  "GlmnetMultinomialResult.model.weights#summary": {
+    "hash": "a9288ebe2d8e",
+    "en": "Nonnegative prior observation weights.",
+    "ja": ""
+  },
+  "GlmnetMultinomialResult.model.x#summary": {
+    "hash": "346beb97be74",
+    "en": "Original predictor matrix used by the fit.",
+    "ja": ""
+  },
+  "GlmnetMultinomialResult.model.xMean#summary": {
+    "hash": "05dbf4ec35c9",
+    "en": "Predictor means used for standardization.",
+    "ja": ""
+  },
+  "GlmnetMultinomialResult.model.xScale#summary": {
+    "hash": "d7747e30c6a0",
+    "en": "Predictor scales used for standardization.",
+    "ja": ""
+  },
+  "GlmnetMultinomialResult.model.y#summary": {
+    "hash": "e3ca5ef7fd57",
+    "en": "Response values used by the fit.",
+    "ja": ""
+  },
+  "GlmnetMultinomialResult.npasses#summary": {
+    "hash": "d4a0168397fc",
+    "en": "Total number of coordinate-descent passes.",
+    "ja": ""
+  },
+  "GlmnetMultinomialResult.nullDev#summary": {
+    "hash": "f3ed81131f8b",
+    "en": "Null-model deviance for the fitted family.",
+    "ja": ""
+  },
+  "GlmnetOptions#summary": {
+    "hash": "2b42dbdadac6",
+    "en": "Options for {@link glmnet}.",
+    "ja": ""
+  },
+  "GlmnetOptions.alpha#summary": {
+    "hash": "e7392a7c0d11",
+    "en": "Elastic-net mixing parameter between ridge and lasso penalties.",
+    "ja": ""
+  },
+  "GlmnetOptions.devmax#summary": {
+    "hash": "85e947988ad2",
+    "en": "Maximum fraction of null deviance explained before path stopping.",
+    "ja": ""
+  },
+  "GlmnetOptions.dfmax#summary": {
+    "hash": "d5bbfe9d7dc0",
+    "en": "Maximum number of active coefficients allowed in the path.",
+    "ja": ""
+  },
+  "GlmnetOptions.family#summary": {
+    "hash": "7f9922d708b0",
+    "en": "Response distribution used for the penalized fit.",
+    "ja": ""
+  },
+  "GlmnetOptions.fdev#summary": {
+    "hash": "19c8c5521161",
+    "en": "Minimum fractional deviance improvement used for path stopping.",
+    "ja": ""
+  },
+  "GlmnetOptions.intercept#summary": {
+    "hash": "45b375ca099b",
+    "en": "Whether an unpenalized intercept is included.",
+    "ja": ""
+  },
+  "GlmnetOptions.lambda#summary": {
+    "hash": "9baf9bef6e44",
+    "en": "Decreasing penalty values defining the fitted regularization path.",
+    "ja": ""
+  },
+  "GlmnetOptions.lambdaMinRatio#summary": {
+    "hash": "914fc0d2db06",
+    "en": "Ratio of the final to initial penalty in the automatic path.",
+    "ja": ""
+  },
+  "GlmnetOptions.lowerLimits#summary": {
+    "hash": "11314885ac14",
+    "en": "Lower bounds imposed on coefficient values.",
+    "ja": ""
+  },
+  "GlmnetOptions.maxit#summary": {
+    "hash": "cc89c57d907e",
+    "en": "Maximum number of optimization iterations per penalty value.",
+    "ja": ""
+  },
+  "GlmnetOptions.nlambda#summary": {
+    "hash": "40eebd93521f",
+    "en": "Requested number of penalty values in the automatic path.",
+    "ja": ""
+  },
+  "GlmnetOptions.offset#summary": {
+    "hash": "4251dec3b88b",
+    "en": "Known contribution to the linear predictor.",
+    "ja": ""
+  },
+  "GlmnetOptions.penaltyFactor#summary": {
+    "hash": "48e92104435e",
+    "en": "Nonnegative coefficient-specific penalty multipliers.",
+    "ja": ""
+  },
+  "GlmnetOptions.pmax#summary": {
+    "hash": "6c49d9789dc5",
+    "en": "Maximum number of ever-active coefficients allowed in the path.",
+    "ja": ""
+  },
+  "GlmnetOptions.standardize#summary": {
+    "hash": "4146a2c1eb2b",
+    "en": "Whether predictor columns are standardized before fitting.",
+    "ja": ""
+  },
+  "GlmnetOptions.thresh#summary": {
+    "hash": "5c48ded8453a",
+    "en": "Convergence tolerance for the penalized optimization.",
+    "ja": ""
+  },
+  "GlmnetOptions.typeMultinomial#summary": {
+    "hash": "1e1299f069e6",
+    "en": "Penalty structure used for a multinomial fit.",
+    "ja": ""
+  },
+  "GlmnetOptions.upperLimits#summary": {
+    "hash": "534c07f401e6",
+    "en": "Upper bounds imposed on coefficient values.",
+    "ja": ""
+  },
+  "GlmnetOptions.weights#summary": {
+    "hash": "a9288ebe2d8e",
+    "en": "Nonnegative prior observation weights.",
+    "ja": ""
+  },
+  "GlmnetPredictOptions#summary": {
+    "hash": "b1cdf4ffffd7",
+    "en": "Options for {@link glmnetPredict}.",
+    "ja": ""
+  },
+  "GlmnetPredictOptions.offset#summary": {
+    "hash": "4251dec3b88b",
+    "en": "Known contribution to the linear predictor.",
+    "ja": ""
+  },
+  "GlmnetPredictOptions.s#summary": {
+    "hash": "25a7605210bd",
+    "en": "Penalty value or values at which coefficients or predictions are requested.",
+    "ja": ""
+  },
+  "GlmnetPredictOptions.type#summary": {
+    "hash": "ab5af058ad9b",
+    "en": "Prediction scale or output representation.",
+    "ja": ""
+  },
+  "GlmnetPredictType#summary": {
+    "hash": "6373abacb78c",
+    "en": "Scale or coefficient selection returned by a penalized-model prediction.",
+    "ja": ""
+  },
+  "GlmnetResult#summary": {
+    "hash": "c73e1d55ae6b",
+    "en": "Union of scalar-family and multinomial regularization paths.",
+    "ja": ""
+  },
+  "GlmnetScalarResult#summary": {
+    "hash": "850aadef9f77",
+    "en": "Result of a scalar-family {@link glmnet} fit.",
+    "ja": ""
+  },
+  "GlmnetScalarResult.a0#summary": {
+    "hash": "cf308cfd44c2",
+    "en": "Intercept estimates for each penalty value.",
+    "ja": ""
+  },
+  "GlmnetScalarResult.alpha#summary": {
+    "hash": "e7392a7c0d11",
+    "en": "Elastic-net mixing parameter between ridge and lasso penalties.",
+    "ja": ""
+  },
+  "GlmnetScalarResult.beta#summary": {
+    "hash": "b5a2bd814aa9",
+    "en": "Predictor coefficient estimates for each penalty value.",
+    "ja": ""
+  },
+  "GlmnetScalarResult.converged#summary": {
+    "hash": "00e95f14f02f",
+    "en": "Whether each penalty value met the convergence criterion.",
+    "ja": ""
+  },
+  "GlmnetScalarResult.devRatio#summary": {
+    "hash": "2d16defedd17",
+    "en": "Fraction of null deviance explained at each penalty value.",
+    "ja": ""
+  },
+  "GlmnetScalarResult.df#summary": {
+    "hash": "2cf91bf75f72",
+    "en": "Number of nonzero predictor coefficients at each penalty value.",
+    "ja": ""
+  },
+  "GlmnetScalarResult.family#summary": {
+    "hash": "7f9922d708b0",
+    "en": "Response distribution used for the penalized fit.",
+    "ja": ""
+  },
+  "GlmnetScalarResult.kktResidual#summary": {
+    "hash": "855c0c5cd157",
+    "en": "Maximum Karush-Kuhn-Tucker residual at each penalty value.",
+    "ja": ""
+  },
+  "GlmnetScalarResult.lambda#summary": {
+    "hash": "9baf9bef6e44",
+    "en": "Decreasing penalty values defining the fitted regularization path.",
+    "ja": ""
+  },
+  "GlmnetScalarResult.model#summary": {
+    "hash": "f88e3b8dcf74",
+    "en": "Design, response, and preprocessing information retained by the fit.",
+    "ja": ""
+  },
+  "GlmnetScalarResult.model.columns#summary": {
+    "hash": "f8fc5395e1a5",
+    "en": "Number of predictor columns.",
+    "ja": ""
+  },
+  "GlmnetScalarResult.model.intercept#summary": {
+    "hash": "45b375ca099b",
+    "en": "Whether an unpenalized intercept is included.",
+    "ja": ""
+  },
+  "GlmnetScalarResult.model.offset#summary": {
+    "hash": "4251dec3b88b",
+    "en": "Known contribution to the linear predictor.",
+    "ja": ""
+  },
+  "GlmnetScalarResult.model.weights#summary": {
+    "hash": "a9288ebe2d8e",
+    "en": "Nonnegative prior observation weights.",
+    "ja": ""
+  },
+  "GlmnetScalarResult.model.x#summary": {
+    "hash": "346beb97be74",
+    "en": "Original predictor matrix used by the fit.",
+    "ja": ""
+  },
+  "GlmnetScalarResult.model.xMean#summary": {
+    "hash": "05dbf4ec35c9",
+    "en": "Predictor means used for standardization.",
+    "ja": ""
+  },
+  "GlmnetScalarResult.model.xScale#summary": {
+    "hash": "d7747e30c6a0",
+    "en": "Predictor scales used for standardization.",
+    "ja": ""
+  },
+  "GlmnetScalarResult.model.y#summary": {
+    "hash": "e3ca5ef7fd57",
+    "en": "Response values used by the fit.",
+    "ja": ""
+  },
+  "GlmnetScalarResult.npasses#summary": {
+    "hash": "d4a0168397fc",
+    "en": "Total number of coordinate-descent passes.",
+    "ja": ""
+  },
+  "GlmnetScalarResult.nullDev#summary": {
+    "hash": "f3ed81131f8b",
+    "en": "Null-model deviance for the fitted family.",
+    "ja": ""
+  },
   "NlsAlgorithm#summary": {
     "hash": "5186605eace4",
     "en": "Algorithm used to fit a nonlinear least-squares model.",
@@ -1139,6 +2074,396 @@
     "en": "Warnings produced while computing the covariance.",
     "ja": "共分散の計算中に発生した警告です。"
   },
+  "RqCoefficientSummary#summary": {
+    "hash": "de51db2a3407",
+    "en": "A coefficient row in an rq summary.",
+    "ja": ""
+  },
+  "RqCoefficientSummary.estimate#summary": {
+    "hash": "90107f894a8f",
+    "en": "Estimated coefficient value.",
+    "ja": ""
+  },
+  "RqCoefficientSummary.lower#summary": {
+    "hash": "3d5c91588c00",
+    "en": "The confidence limits of `se = \"rank\"` (R's `lower bd` and `upper bd`).",
+    "ja": ""
+  },
+  "RqCoefficientSummary.pValue#summary": {
+    "hash": "f71f87259103",
+    "en": "Two-sided p-value associated with the coefficient statistic.",
+    "ja": ""
+  },
+  "RqCoefficientSummary.statistic#summary": {
+    "hash": "4e3230de27c8",
+    "en": "Wald test statistic for the coefficient.",
+    "ja": ""
+  },
+  "RqCoefficientSummary.stdError#summary": {
+    "hash": "aae435e62b7e",
+    "en": "NaN for `se = \"rank\"`, which gives an interval (`lower`, `upper`) instead.",
+    "ja": ""
+  },
+  "RqCoefficientSummary.tau#summary": {
+    "hash": "d919c08888f9",
+    "en": "Quantile probability or probabilities to fit.",
+    "ja": ""
+  },
+  "RqCoefficientSummary.term#summary": {
+    "hash": "862e8a806219",
+    "en": "Model term represented by this coefficient row.",
+    "ja": ""
+  },
+  "RqCoefficientSummary.upper#summary": {
+    "hash": "3daadaafd357",
+    "en": "Upper confidence limit for the coefficient.",
+    "ja": ""
+  },
+  "RqMethod#summary": {
+    "hash": "a4768dafba17",
+    "en": "Algorithm used to fit a quantile-regression model.",
+    "ja": ""
+  },
+  "RqModel#summary": {
+    "hash": "8fca82a606b7",
+    "en": "Model data retained by a quantile-regression fit.",
+    "ja": ""
+  },
+  "RqModel.columnNames#summary": {
+    "hash": "3511cdd1b282",
+    "en": "Names of the columns in the model matrix.",
+    "ja": ""
+  },
+  "RqModel.formula#summary": {
+    "hash": "6787c0a0c75a",
+    "en": "Model formula used to define the response and predictors.",
+    "ja": ""
+  },
+  "RqModel.method#summary": {
+    "hash": "328f5433a181",
+    "en": "Quantile-regression optimization method.",
+    "ja": ""
+  },
+  "RqModel.rows#summary": {
+    "hash": "4fa2bc7327f5",
+    "en": "Original data-row indices retained in the model frame.",
+    "ja": ""
+  },
+  "RqModel.tau#summary": {
+    "hash": "d919c08888f9",
+    "en": "Quantile probability or probabilities to fit.",
+    "ja": ""
+  },
+  "RqModel.weights#summary": {
+    "hash": "a9288ebe2d8e",
+    "en": "Nonnegative prior observation weights.",
+    "ja": ""
+  },
+  "RqModel.x#summary": {
+    "hash": "64f46cb210ce",
+    "en": "Numeric model matrix used by the fit.",
+    "ja": ""
+  },
+  "RqModel.y#summary": {
+    "hash": "67dae596d34a",
+    "en": "Observed response values.",
+    "ja": ""
+  },
+  "RqOptions#summary": {
+    "hash": "c411d5959ff3",
+    "en": "Options for {@link rq}.",
+    "ja": ""
+  },
+  "RqOptions.contrasts#summary": {
+    "hash": "c5b9d6e5cc15",
+    "en": "Contrast coding specifications for factor predictors.",
+    "ja": ""
+  },
+  "RqOptions.eps#summary": {
+    "hash": "97d440c1b34e",
+    "en": "Convergence tolerance for the optimization.",
+    "ja": ""
+  },
+  "RqOptions.levels#summary": {
+    "hash": "93e94df841af",
+    "en": "Explicit level order for factor predictors.",
+    "ja": ""
+  },
+  "RqOptions.maxit#summary": {
+    "hash": "b95499125702",
+    "en": "Maximum number of optimization iterations.",
+    "ja": ""
+  },
+  "RqOptions.method#summary": {
+    "hash": "328f5433a181",
+    "en": "Quantile-regression optimization method.",
+    "ja": ""
+  },
+  "RqOptions.tau#summary": {
+    "hash": "d919c08888f9",
+    "en": "Quantile probability or probabilities to fit.",
+    "ja": ""
+  },
+  "RqOptions.weights#summary": {
+    "hash": "a9288ebe2d8e",
+    "en": "Nonnegative prior observation weights.",
+    "ja": ""
+  },
+  "RqPredictOptions#summary": {
+    "hash": "c17d6383b526",
+    "en": "Options for confidence prediction intervals.",
+    "ja": ""
+  },
+  "RqPredictOptions.interval#summary": {
+    "hash": "34e21d971e29",
+    "en": "Whether prediction output includes confidence intervals.",
+    "ja": ""
+  },
+  "RqPredictOptions.level#summary": {
+    "hash": "b45aec5d34bf",
+    "en": "Confidence level for reported intervals.",
+    "ja": ""
+  },
+  "RqPredictOptions.type#summary": {
+    "hash": "424347b701fd",
+    "en": "Prediction scale or confidence-interval construction method.",
+    "ja": ""
+  },
+  "RqPredictResult#summary": {
+    "hash": "6778a96ad178",
+    "en": "Result of confidence prediction.",
+    "ja": ""
+  },
+  "RqPredictResult.fit#summary": {
+    "hash": "f81cd1c1fee3",
+    "en": "Predicted conditional quantiles or fitted values.",
+    "ja": ""
+  },
+  "RqPredictResult.level#summary": {
+    "hash": "b45aec5d34bf",
+    "en": "Confidence level for reported intervals.",
+    "ja": ""
+  },
+  "RqPredictResult.lower#summary": {
+    "hash": "156094149f8f",
+    "en": "Lower confidence limit for the coefficient.",
+    "ja": ""
+  },
+  "RqPredictResult.type#summary": {
+    "hash": "424347b701fd",
+    "en": "Prediction scale or confidence-interval construction method.",
+    "ja": ""
+  },
+  "RqPredictResult.upper#summary": {
+    "hash": "3daadaafd357",
+    "en": "Upper confidence limit for the coefficient.",
+    "ja": ""
+  },
+  "RqResult#summary": {
+    "hash": "4937e87c91b2",
+    "en": "Result returned by {@link rq}.",
+    "ja": ""
+  },
+  "RqResult.coefficients#summary": {
+    "hash": "4580f5a33d23",
+    "en": "Estimated regression coefficients.",
+    "ja": ""
+  },
+  "RqResult.converged#summary": {
+    "hash": "3fe4b2668f04",
+    "en": "Whether the numerical fitting procedure met its convergence criterion.",
+    "ja": ""
+  },
+  "RqResult.fittedValues#summary": {
+    "hash": "489200a98fb7",
+    "en": "Fitted conditional means or quantiles for the input rows.",
+    "ja": ""
+  },
+  "RqResult.iterations#summary": {
+    "hash": "7cd8c62a9d13",
+    "en": "Number of iterations used by the fitting procedure.",
+    "ja": ""
+  },
+  "RqResult.model#summary": {
+    "hash": "869531d6d4c4",
+    "en": "Model-frame and design information retained for downstream methods.",
+    "ja": ""
+  },
+  "RqResult.residuals#summary": {
+    "hash": "02049355030d",
+    "en": "Response residuals for the input rows.",
+    "ja": ""
+  },
+  "RqResult.rho#summary": {
+    "hash": "3c49f14f8ea4",
+    "en": "Quantile check-loss objective value.",
+    "ja": ""
+  },
+  "RqResult.warnings#summary": {
+    "hash": "a0387e7372bd",
+    "en": "Warnings recorded while fitting or summarizing the model.",
+    "ja": ""
+  },
+  "RqSummaryOptions#summary": {
+    "hash": "949e15b79ae2",
+    "en": "Options for rqSummary.",
+    "ja": ""
+  },
+  "RqSummaryOptions.covariance#summary": {
+    "hash": "fe8c9488dde0",
+    "en": "Estimated coefficient covariance matrix or matrices.",
+    "ja": ""
+  },
+  "RqSummaryOptions.iid#summary": {
+    "hash": "33273aba3708",
+    "en": "The iid form of the rank test (R's `iid`). Only `true` (the default) is supported in 1.8.0.",
+    "ja": ""
+  },
+  "RqSummaryOptions.level#summary": {
+    "hash": "b45aec5d34bf",
+    "en": "Confidence level for reported intervals.",
+    "ja": ""
+  },
+  "RqSummaryOptions.se#summary": {
+    "hash": "d56af1f5cff6",
+    "en": "Standard-error or interval method used for the summary.",
+    "ja": ""
+  },
+  "RqSummaryResult#summary": {
+    "hash": "88e2340f6bb0",
+    "en": "Result of rqSummary.",
+    "ja": ""
+  },
+  "RqSummaryResult.coefficients#summary": {
+    "hash": "4580f5a33d23",
+    "en": "Estimated regression coefficients.",
+    "ja": ""
+  },
+  "RqSummaryResult.covariance#summary": {
+    "hash": "fe8c9488dde0",
+    "en": "Estimated coefficient covariance matrix or matrices.",
+    "ja": ""
+  },
+  "RqSummaryResult.se#summary": {
+    "hash": "d56af1f5cff6",
+    "en": "Standard-error or interval method used for the summary.",
+    "ja": ""
+  },
+  "RqSummaryResult.warnings#summary": {
+    "hash": "a0387e7372bd",
+    "en": "Warnings recorded while fitting or summarizing the model.",
+    "ja": ""
+  },
+  "RqWaldResult#summary": {
+    "hash": "e12d45281d6a",
+    "en": "Result of a quantile-regression Wald comparison.",
+    "ja": ""
+  },
+  "RqWaldResult.df#summary": {
+    "hash": "f26411345fae",
+    "en": "Numerator degrees of freedom for the Wald test.",
+    "ja": ""
+  },
+  "RqWaldResult.dfResidual#summary": {
+    "hash": "6433941f1058",
+    "en": "Residual degrees of freedom used for the reference distribution.",
+    "ja": ""
+  },
+  "RqWaldResult.method#summary": {
+    "hash": "543ffad38d66",
+    "en": "Wald comparison method used for the multi-quantile test.",
+    "ja": ""
+  },
+  "RqWaldResult.pValue#summary": {
+    "hash": "c4f3e8adb418",
+    "en": "P-value for the joint Wald comparison.",
+    "ja": ""
+  },
+  "RqWaldResult.statistic#summary": {
+    "hash": "fe3a44d72b2e",
+    "en": "Joint Wald statistic for the tested slope restrictions across quantiles.",
+    "ja": ""
+  },
+  "cvGlmnet(0)#summary": {
+    "hash": "557e4be1ca2a",
+    "en": "Cross-validate a penalized generalized linear model. Equivalent to R's `cv.glmnet()`.",
+    "ja": ""
+  },
+  "cvGlmnet(1)#summary": {
+    "hash": "557e4be1ca2a",
+    "en": "Cross-validate a penalized generalized linear model. Equivalent to R's `cv.glmnet()`.",
+    "ja": ""
+  },
+  "geeAnova#summary": {
+    "hash": "c2d9d329e02e",
+    "en": "Compare GEE terms or nested models using Wald tests.\nEquivalent to R's `anova()`.",
+    "ja": ""
+  },
+  "geePredict#summary": {
+    "hash": "a31572eafa8a",
+    "en": "Predict marginal means on the link or response scale.\nEquivalent to R's `predict.geeglm()`.",
+    "ja": ""
+  },
+  "geeQIC#summary": {
+    "hash": "b6947939598c",
+    "en": "Calculate quasi-likelihood information criteria for a GEE fit (Pan, 2001).\nEquivalent to `geepack::QIC()` in R.",
+    "ja": ""
+  },
+  "geeSummary#summary": {
+    "hash": "10a9373ff5a0",
+    "en": "Summarize the coefficient estimates of a GEE fit.\nEquivalent to R's `summary.geeglm()`.",
+    "ja": ""
+  },
+  "geeVcov#summary": {
+    "hash": "6b4db336344d",
+    "en": "Return robust or model-based coefficient covariance.\nEquivalent to R's `vcov()`.",
+    "ja": ""
+  },
+  "geeglm#summary": {
+    "hash": "ad312ae80d7f",
+    "en": "Fit a marginal generalized estimating equation model.\nEquivalent to `geepack::geeglm()` in R.",
+    "ja": ""
+  },
+  "glmnet(0)#summary": {
+    "hash": "692d4eef9734",
+    "en": "Fit a penalized generalized linear model path. Equivalent to R's `glmnet::glmnet()`.",
+    "ja": ""
+  },
+  "glmnet(1)#summary": {
+    "hash": "692d4eef9734",
+    "en": "Fit a penalized generalized linear model path. Equivalent to R's `glmnet::glmnet()`.",
+    "ja": ""
+  },
+  "glmnet(2)#summary": {
+    "hash": "692d4eef9734",
+    "en": "Fit a penalized generalized linear model path. Equivalent to R's `glmnet::glmnet()`.",
+    "ja": ""
+  },
+  "glmnetCoef(0)#summary": {
+    "hash": "cc6bacebf439",
+    "en": "Extract coefficients at selected penalty values. Equivalent to R's `coef.glmnet()`.",
+    "ja": ""
+  },
+  "glmnetCoef(1)#summary": {
+    "hash": "cc6bacebf439",
+    "en": "Extract coefficients at selected penalty values. Equivalent to R's `coef.glmnet()`.",
+    "ja": ""
+  },
+  "glmnetPredict(0)#summary": {
+    "hash": "f95fa91f356b",
+    "en": "Predict from a penalized generalized linear model. Equivalent to R's `predict.glmnet()`.",
+    "ja": ""
+  },
+  "glmnetPredict(1)#summary": {
+    "hash": "f95fa91f356b",
+    "en": "Predict from a penalized generalized linear model. Equivalent to R's `predict.glmnet()`.",
+    "ja": ""
+  },
+  "glmnetPredict(2)#summary": {
+    "hash": "f95fa91f356b",
+    "en": "Predict from a penalized generalized linear model. Equivalent to R's `predict.glmnet()`.",
+    "ja": ""
+  },
   "nls#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -1553,5 +2878,70 @@
     "hash": "2c052cb7fae7",
     "en": "Covariance matrix of robust-regression coefficients. Equivalent to R's `vcov.rlm()`.",
     "ja": "ロバスト回帰係数の共分散行列です。R の `vcov.rlm()` と同等です。"
+  },
+  "rq#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "rq#@param data": {
+    "hash": "437f55a9b5e7",
+    "en": "A data frame of columns.",
+    "ja": ""
+  },
+  "rq#@param formula": {
+    "hash": "49791e5dcd2a",
+    "en": "A formula such as `y ~ x`.",
+    "ja": ""
+  },
+  "rq#@param options": {
+    "hash": "8295d4cc6c12",
+    "en": "Quantile, algorithm, and prior weights.",
+    "ja": ""
+  },
+  "rq#summary": {
+    "hash": "bfc165362a76",
+    "en": "Fit a linear conditional quantile model. Equivalent to `quantreg::rq()` in R.\nUses the formula/model-matrix interface of other regression models.",
+    "ja": ""
+  },
+  "rqAnova(0)#summary": {
+    "hash": "1c74a07f397f",
+    "en": "Wald comparisons for nested models or slopes across multiple quantiles. Equivalent to R's `anova.rq()`.",
+    "ja": ""
+  },
+  "rqAnova(1)#summary": {
+    "hash": "1c74a07f397f",
+    "en": "Wald comparisons for nested models or slopes across multiple quantiles. Equivalent to R's `anova.rq()`.",
+    "ja": ""
+  },
+  "rqAnova(2)#summary": {
+    "hash": "1c74a07f397f",
+    "en": "Wald comparisons for nested models or slopes across multiple quantiles. Equivalent to R's `anova.rq()`.",
+    "ja": ""
+  },
+  "rqAnova(3)#summary": {
+    "hash": "1c74a07f397f",
+    "en": "Wald comparisons for nested models or slopes across multiple quantiles. Equivalent to R's `anova.rq()`.",
+    "ja": ""
+  },
+  "rqAnova(4)#summary": {
+    "hash": "1c74a07f397f",
+    "en": "Wald comparisons for nested models or slopes across multiple quantiles. Equivalent to R's `anova.rq()`.",
+    "ja": ""
+  },
+  "rqPredict#summary": {
+    "hash": "9bbd637758e6",
+    "en": "Predict conditional quantiles for new observations. Equivalent to `quantreg::predict.rq()` in R.",
+    "ja": ""
+  },
+  "rqPredictInterval#summary": {
+    "hash": "f27ef87d0263",
+    "en": "Confidence intervals for conditional quantile predictions using nid or direct quantile refits. Equivalent to R's `predict.rq()`.",
+    "ja": ""
+  },
+  "rqSummary#summary": {
+    "hash": "72ee9977deaf",
+    "en": "Coefficient summary with Hall–Sheather bandwidth and the nid sandwich covariance. Equivalent to R's `summary.rq()`.",
+    "ja": ""
   }
 }

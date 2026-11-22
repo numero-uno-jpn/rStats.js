@@ -146,7 +146,9 @@ export interface GeeResult {
     formula: string;
     /** Mean-model formula after offset terms are separated. */
     meanFormula: string;
-    /** Offset terms extracted from the formula. */
+    /** Offset terms extracted from the formula.
+     * @internal
+     */
     offsetTerms: GeeOffsetTerm[];
     /** Name of the data column supplied through the offset option, if any. */
     offsetOptionColumn: string | undefined;
