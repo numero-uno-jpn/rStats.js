@@ -130,7 +130,6 @@ function fitCore(x0: number[][], g0: readonly GroupLabel[], options: LdaOptions,
   }
   const scaling = scalingNorm.map((r, i) => r.map((v) => v / scale[i]!));
   const originalMeans = means.map((r) => r.map((v, j) => v * scale[j]!));
-  const originalCenter = center.map((v, j) => v * scale[j]!);
   const covInv = metric.inverse.map((r) => r.map((v) => v * (n - g)));
   const names = xNames.length === p ? xNames : Array.from({ length: p }, (_, i) => `x${i + 1}`);
   return {
