@@ -149,6 +149,7 @@ function orient(y: number[][]): void {
 
 /**
  * Non-metric multidimensional scaling by minimizing Kruskal Stress-1.
+ * Equivalent to MASS::isoMDS().
  * @category Multivariate analysis
  */
 export function isoMDS(
