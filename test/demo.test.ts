@@ -1,6 +1,6 @@
-// The demo's examples (demo/examples.json): demo/examples.R is up to date and every export is
-// demonstrated. The 1.9.0 examples include their R source; their generated R results are added
-// separately by the maintainer when `npm run demo:r` is run.
+// The demo's examples (demo/examples.json): demo/examples.R is up to date, every export is
+// demonstrated, and each example's JavaScript gives R's numbers (demo/r-results.json, written
+// by oracle/demo.R; regenerate with `npm run demo:r`).
 
 import { execFileSync } from "node:child_process";
 import { readdirSync, readFileSync } from "node:fs";
@@ -35,7 +35,6 @@ const names = Object.keys(scope);
  * (with R results from `npm run demo:r`) are added when the next version is tagged; until then they are listed here
  */
 const NOT_IN_DEMO_YET: string[] = [];
-const NO_R_RESULT_YET = new Set(["tamhane-t2-demo", "page-test-demo", "grubbs-type10-demo", "manova-two-responses-demo", "lda-posterior-demo", "cancor-demo"]);
 
 /**
  * Exports that have no demo example: they return no value to compare with R's (an example evaluates to numbers).
@@ -60,10 +59,7 @@ describe("demo examples", () => {
 
   it("ids are unique and every example has an R result", () => {
     expect(new Set(examples.map((e) => e.id)).size).toBe(examples.length);
-    for (const e of examples) {
-      if (NO_R_RESULT_YET.has(e.id)) expect(rResults[e.id], e.id).toBeUndefined();
-      else expect(Array.isArray(rResults[e.id]), e.id).toBe(true);
-    }
+    for (const e of examples) expect(Array.isArray(rResults[e.id]), e.id).toBe(true);
   });
 
   it("every export of the areas appears in some example", () => {
@@ -83,7 +79,6 @@ describe("demo examples", () => {
   });
 
   for (const e of examples) {
-    if (NO_R_RESULT_YET.has(e.id)) continue;
     it(`${e.id} matches R`, () => {
       const expected = (rResults[e.id] as string[]).map(parseR);
       const actual = run(e.js);
