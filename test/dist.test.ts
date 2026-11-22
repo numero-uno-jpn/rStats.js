@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { asDist, dist, type DistObject } from "../src/entries/multivariate.js";
 
+let maxRelativeError = 0;
 const fixture = JSON.parse(readFileSync(new URL("./fixtures/dist.json", import.meta.url), "utf8")) as Record<string, any>;
 const small = [[1, 2, 0], [4, 0, 3], [-1, 5, 2], [2, 7, 0], [0, 0, 1]];
 const na = small.map((r) => [...r]); na[1]![0] = NaN; na[3]![2] = NaN;
@@ -36,7 +37,10 @@ function compare(key: string, actual: DistObject): void {
   for (let i = 0; i < values.length; i++) {
     const e = num(values[i]), a = actual.values[i]!;
     if (!Number.isFinite(e)) expect(Object.is(a, e) || (Number.isNaN(a) && Number.isNaN(e)), key + "[" + i + "]").toBe(true);
-    else expect(Math.abs(a - e), key + "[" + i + "]").toBeLessThanOrEqual(1e-12 * Math.max(Math.abs(e), 1e-300));
+    else {
+      maxRelativeError = Math.max(maxRelativeError, Math.abs(a - e) / Math.max(Math.abs(e), 1e-300));
+      expect(Math.abs(a - e), key + "[" + i + "]").toBeLessThanOrEqual(1e-12 * Math.max(Math.abs(e), 1e-300));
+    }
   }
   const warnings = expected.warnings === undefined ? [] : Array.isArray(expected.warnings) ? expected.warnings : [expected.warnings];
   expect(actual.warnings, key + ".warnings").toEqual(warnings);
@@ -55,6 +59,7 @@ describe("dist and asDist", () => {
     compare("dist_one_row", dist([small[0]!], { labels: ["a"] }));
     compare("dist_vector", dist([3, 1, 4, 1, 5]));
     compare("dist_data_frame", dist(us, { labels: ["Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado"] }));
+    console.info(`dist R fixtures: maximum relative error ${maxRelativeError.toExponential(3)}`);
   });
 
   it("matches all missing, NaN, infinite, Canberra and binary fixtures", () => {
