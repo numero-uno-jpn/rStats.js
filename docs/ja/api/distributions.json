@@ -1374,6 +1374,26 @@
     "en": "Distribution function of the geometric distribution (number of failures before the first success). Equivalent to R's `pgeom(q, prob, lower.tail = TRUE, log.p = FALSE)`.",
     "ja": "幾何分布の分布関数 (最初の成功までの失敗回数)。R の `pgeom(q, prob, lower.tail = TRUE, log.p = FALSE)` と同等です。"
   },
+  "pgrubbs#@param n": {
+    "hash": "5b92d87b81a3",
+    "en": "Sample size.",
+    "ja": ""
+  },
+  "pgrubbs#@param q": {
+    "hash": "3303fee735c2",
+    "en": "Statistic value(s).",
+    "ja": ""
+  },
+  "pgrubbs#@param type": {
+    "hash": "7a06a3bc9cc0",
+    "en": "Only 10 is supported; 11 and 20 are intentionally deferred.",
+    "ja": ""
+  },
+  "pgrubbs#summary": {
+    "hash": "b255bfec6d04",
+    "en": "Cumulative distribution of the type-10 Grubbs statistic. Vectorised over q.\nEquivalent to R's `outliers::pgrubbs()`. Type 10 only.",
+    "ja": ""
+  },
   "phyper#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -2058,6 +2078,26 @@
     "hash": "f8542800dd1b",
     "en": "Quantile function of the geometric distribution (number of failures before the first success). Equivalent to R's `qgeom(p, prob, lower.tail = TRUE, log.p = FALSE)`.",
     "ja": "幾何分布の分位点関数 (最初の成功までの失敗回数)。R の `qgeom(p, prob, lower.tail = TRUE, log.p = FALSE)` と同等です。"
+  },
+  "qgrubbs#@param n": {
+    "hash": "5b92d87b81a3",
+    "en": "Sample size.",
+    "ja": ""
+  },
+  "qgrubbs#@param p": {
+    "hash": "28524db39af5",
+    "en": "Probability value(s).",
+    "ja": ""
+  },
+  "qgrubbs#@param type": {
+    "hash": "7a06a3bc9cc0",
+    "en": "Only 10 is supported; 11 and 20 are intentionally deferred.",
+    "ja": ""
+  },
+  "qgrubbs#summary": {
+    "hash": "7a825802ee37",
+    "en": "Quantile of the type-10 Grubbs statistic. Vectorised over p.\nEquivalent to R's `outliers::qgrubbs()`. Type 10 only.",
+    "ja": ""
   },
   "qhyper#@example": {
     "hash": "f2167be5edf2",

@@ -1,0 +1,512 @@
+{
+  "CancorOptions#summary": {
+    "hash": "29a1c46366a1",
+    "en": "Options for canonical correlation.",
+    "ja": ""
+  },
+  "CancorOptions.tol#summary": {
+    "hash": "ab1d98fd7920",
+    "en": "Numerical tolerance used to determine the ranks of x and y. Default 1e-7.",
+    "ja": ""
+  },
+  "CancorOptions.xNames#summary": {
+    "hash": "9ee1ce3eca60",
+    "en": "Names for the columns of x.",
+    "ja": ""
+  },
+  "CancorOptions.xcenter#summary": {
+    "hash": "44c0cc3be8be",
+    "en": "Center the columns of x by their means, leave them uncentered, or supply explicit centers. Default true.",
+    "ja": ""
+  },
+  "CancorOptions.yNames#summary": {
+    "hash": "5c3eff260e4f",
+    "en": "Names for the columns of y.",
+    "ja": ""
+  },
+  "CancorOptions.ycenter#summary": {
+    "hash": "2c441b883f62",
+    "en": "Center the columns of y by their means, leave them uncentered, or supply explicit centers. Default true.",
+    "ja": ""
+  },
+  "CancorResult#summary": {
+    "hash": "dcb19ec6ea54",
+    "en": "Result of canonical correlation.",
+    "ja": ""
+  },
+  "CancorResult.cor#summary": {
+    "hash": "4b7ebf6a878f",
+    "en": "Canonical correlations, ordered from largest to smallest.",
+    "ja": ""
+  },
+  "CancorResult.xcenter#summary": {
+    "hash": "f517edef26d5",
+    "en": "Centers applied to the columns of x.",
+    "ja": ""
+  },
+  "CancorResult.xcoef#summary": {
+    "hash": "eb71fc6ac246",
+    "en": "Canonical coefficients for x, with original variable names in rows.",
+    "ja": ""
+  },
+  "CancorResult.ycenter#summary": {
+    "hash": "cb38d7e6a350",
+    "en": "Centers applied to the columns of y.",
+    "ja": ""
+  },
+  "CancorResult.ycoef#summary": {
+    "hash": "ac990b3afb37",
+    "en": "Canonical coefficients for y, with original variable names in rows.",
+    "ja": ""
+  },
+  "LdaCVResult#summary": {
+    "hash": "391dbec9cdbe",
+    "en": "Leave-one-out LDA predictions.",
+    "ja": ""
+  },
+  "LdaCVResult.class#summary": {
+    "hash": "bf0e4ca35843",
+    "en": "Leave-one-out predicted class label for each training observation.",
+    "ja": ""
+  },
+  "LdaCVResult.posterior#summary": {
+    "hash": "7ee188ca957c",
+    "en": "Leave-one-out posterior class probabilities, with classes in columns.",
+    "ja": ""
+  },
+  "LdaFit#summary": {
+    "hash": "6595a5b088e5",
+    "en": "A fitted linear discriminant model.",
+    "ja": ""
+  },
+  "LdaFit.N#summary": {
+    "hash": "c501556c079f",
+    "en": "Number of observations used to fit the model.",
+    "ja": ""
+  },
+  "LdaFit.counts#summary": {
+    "hash": "7635cd8fadc3",
+    "en": "Number of training observations in each class.",
+    "ja": ""
+  },
+  "LdaFit.lev#summary": {
+    "hash": "908f4717c898",
+    "en": "Class labels in prediction and prior order.",
+    "ja": ""
+  },
+  "LdaFit.means#summary": {
+    "hash": "28d85b562c90",
+    "en": "Class means, with classes in rows and predictors in columns.",
+    "ja": ""
+  },
+  "LdaFit.prior#summary": {
+    "hash": "fee5e7f9db37",
+    "en": "Prior class probabilities in the order of `lev`.",
+    "ja": ""
+  },
+  "LdaFit.scaling#summary": {
+    "hash": "909ed1832bbe",
+    "en": "Metric-normalised discriminant directions, with predictors in rows and dimensions in columns.",
+    "ja": ""
+  },
+  "LdaFit.svd#summary": {
+    "hash": "411d8508a898",
+    "en": "Singular values associated with the discriminant dimensions.",
+    "ja": ""
+  },
+  "LdaFit.warnings#summary": {
+    "hash": "eba97ad14dce",
+    "en": "Warnings produced while fitting the model.",
+    "ja": ""
+  },
+  "LdaOptions#summary": {
+    "hash": "d59f396258bb",
+    "en": "Options for LDA fitting.",
+    "ja": ""
+  },
+  "LdaOptions.CV#summary": {
+    "hash": "276cb114b040",
+    "en": "Return leave-one-out cross-validation predictions instead of a fitted model. Default false.",
+    "ja": ""
+  },
+  "LdaOptions.groupLevels#summary": {
+    "hash": "7c2141c09986",
+    "en": "Declared class levels; unused levels remain in `lev` and produce warnings.",
+    "ja": ""
+  },
+  "LdaOptions.levels#summary": {
+    "hash": "273f281ae9d8",
+    "en": "Explicit factor levels for formula variables.",
+    "ja": ""
+  },
+  "LdaOptions.method#summary": {
+    "hash": "4b7bf5f3ba55",
+    "en": "Fitting method; only \"moment\" is supported. Default \"moment\".",
+    "ja": ""
+  },
+  "LdaOptions.prior#summary": {
+    "hash": "471945b2a962",
+    "en": "Prior class probabilities, in class-level order. Defaults to observed class proportions.",
+    "ja": ""
+  },
+  "LdaOptions.tol#summary": {
+    "hash": "9dfce61ceffe",
+    "en": "Numerical tolerance for rank determination and within-class covariance calculations. Default 1e-4.",
+    "ja": ""
+  },
+  "LdaOptions.xNames#summary": {
+    "hash": "6fe4a6c35bdd",
+    "en": "Names for predictor columns in matrix input.",
+    "ja": ""
+  },
+  "LdaPrediction#summary": {
+    "hash": "dd89f41e9e83",
+    "en": "Plug-in prediction from an LDA fit.",
+    "ja": ""
+  },
+  "LdaPrediction.class#summary": {
+    "hash": "6254ce411a3d",
+    "en": "Predicted class label for each observation.",
+    "ja": ""
+  },
+  "LdaPrediction.posterior#summary": {
+    "hash": "6328e9c0b3df",
+    "en": "Posterior class probabilities, with classes in columns.",
+    "ja": ""
+  },
+  "LdaPrediction.x#summary": {
+    "hash": "a3d1da965e5f",
+    "en": "Discriminant scores for each observation.",
+    "ja": ""
+  },
+  "LdaPredictionOptions#summary": {
+    "hash": "5dfd67cfcbdd",
+    "en": "Options for LDA prediction.",
+    "ja": ""
+  },
+  "LdaPredictionOptions.dimen#summary": {
+    "hash": "605479ace7d3",
+    "en": "Number of discriminant score dimensions to return. Defaults to all available dimensions.",
+    "ja": ""
+  },
+  "LdaPredictionOptions.method#summary": {
+    "hash": "0ed5c4176e98",
+    "en": "Prediction method; only \"plug-in\" is supported. Default \"plug-in\".",
+    "ja": ""
+  },
+  "LdaPredictionOptions.newdata#summary": {
+    "hash": "44ad6a176a46",
+    "en": "New predictor rows; omitted to predict the observations used to fit the model.",
+    "ja": ""
+  },
+  "LdaPredictionOptions.prior#summary": {
+    "hash": "c77b4de8ec62",
+    "en": "Prior class probabilities for this prediction. Defaults to the fitted priors.",
+    "ja": ""
+  },
+  "LdaTable#summary": {
+    "hash": "bd1161ac1732",
+    "en": "A labelled LDA result matrix.",
+    "ja": ""
+  },
+  "LdaTable.cols#summary": {
+    "hash": "b4205bf264ba",
+    "en": "Column labels, or null when columns are not named.",
+    "ja": ""
+  },
+  "LdaTable.rows#summary": {
+    "hash": "b4df49a54efc",
+    "en": "Row labels, or null when rows are observations without labels.",
+    "ja": ""
+  },
+  "LdaTable.values#summary": {
+    "hash": "b213f0d3279d",
+    "en": "Numeric matrix entries in row-major order.",
+    "ja": ""
+  },
+  "ManovaFit#summary": {
+    "hash": "7eeec5b1d462",
+    "en": "A fitted sequential MANOVA model.",
+    "ja": ""
+  },
+  "ManovaFit.coefficientNames#summary": {
+    "hash": "06c4c7925579",
+    "en": "Names of the coefficient rows.",
+    "ja": ""
+  },
+  "ManovaFit.coefficients#summary": {
+    "hash": "5c1b8af96191",
+    "en": "Regression coefficient matrix, with terms in rows and responses in columns.",
+    "ja": ""
+  },
+  "ManovaFit.formula#summary": {
+    "hash": "d033cf7d6cea",
+    "en": "Formula used to fit the model.",
+    "ja": ""
+  },
+  "ManovaFit.residualDf#summary": {
+    "hash": "82eecb8e1b30",
+    "en": "Residual degrees of freedom.",
+    "ja": ""
+  },
+  "ManovaFit.residualSSP#summary": {
+    "hash": "37c58eba183f",
+    "en": "Residual sum-of-squares-and-cross-products matrix on the original response scales.",
+    "ja": ""
+  },
+  "ManovaFit.responseNames#summary": {
+    "hash": "000926761244",
+    "en": "Names or expressions of the response variables in formula order.",
+    "ja": ""
+  },
+  "ManovaFit.responseScales#summary": {
+    "hash": "ca15274f4808",
+    "en": "Power-of-two scale factors used internally for each response.",
+    "ja": ""
+  },
+  "ManovaFit.termDf#summary": {
+    "hash": "ebf597ea9189",
+    "en": "Degrees of freedom contributed by each sequential term.",
+    "ja": ""
+  },
+  "ManovaFit.termNames#summary": {
+    "hash": "7c4f509a2583",
+    "en": "Sequential model terms in formula order.",
+    "ja": ""
+  },
+  "ManovaFit.termRoots#summary": {
+    "hash": "4e90a3fea0d8",
+    "en": "Generalized roots for each fitted term, keyed by term name.",
+    "ja": ""
+  },
+  "ManovaFit.termSSP#summary": {
+    "hash": "97dd4dcf10da",
+    "en": "Sum-of-squares-and-cross-products matrix for each fitted term, keyed by term name.",
+    "ja": ""
+  },
+  "ManovaFit.warnings#summary": {
+    "hash": "eba97ad14dce",
+    "en": "Warnings produced while fitting the model.",
+    "ja": ""
+  },
+  "ManovaOptions#summary": {
+    "hash": "757c269795d6",
+    "en": "Numerical options for MANOVA.",
+    "ja": ""
+  },
+  "ManovaOptions.tol#summary": {
+    "hash": "8b3e0f891861",
+    "en": "Numerical tolerance used to determine matrix and residual ranks. Default 1e-7.",
+    "ja": ""
+  },
+  "ManovaSummary#summary": {
+    "hash": "76a9f8fed17d",
+    "en": "Four multivariate test tables and associated matrices.",
+    "ja": ""
+  },
+  "ManovaSummary.Eigenvalues#summary": {
+    "hash": "d5293ecb86c9",
+    "en": "Generalized roots for each displayed model term.",
+    "ja": ""
+  },
+  "ManovaSummary.Hotelling-Lawley#summary": {
+    "hash": "a7c43fbf295f",
+    "en": "Hotelling-Lawley trace test table.",
+    "ja": ""
+  },
+  "ManovaSummary.Pillai#summary": {
+    "hash": "dbb30adf84a4",
+    "en": "Pillai's trace test table.",
+    "ja": ""
+  },
+  "ManovaSummary.Roy#summary": {
+    "hash": "7672140e268d",
+    "en": "Roy's largest-root test table.",
+    "ja": ""
+  },
+  "ManovaSummary.SS#summary": {
+    "hash": "b48893693c86",
+    "en": "Sum-of-squares-and-cross-products matrices, keyed by model term and residuals.",
+    "ja": ""
+  },
+  "ManovaSummary.Wilks#summary": {
+    "hash": "bb7780ac1357",
+    "en": "Wilks' lambda test table.",
+    "ja": ""
+  },
+  "ManovaSummary.coef#summary": {
+    "hash": "d243d67b8490",
+    "en": "Regression coefficient matrix with labelled rows and response columns.",
+    "ja": ""
+  },
+  "ManovaSummary.royFIsUpperBound#summary": {
+    "hash": "7ed516917c86",
+    "en": "Roy largest-root F approximation is an upper bound.",
+    "ja": ""
+  },
+  "ManovaSummaryOptions#summary": {
+    "hash": "1509a153aab4",
+    "en": "Options for MANOVA summary tables.",
+    "ja": ""
+  },
+  "ManovaSummaryOptions.intercept#summary": {
+    "hash": "df256b1784a9",
+    "en": "Include the sequential intercept row when the fitted model has one. Default false.",
+    "ja": ""
+  },
+  "ManovaSummaryOptions.tol#summary": {
+    "hash": "f594875ac9ae",
+    "en": "Numerical tolerance used when recomputing the generalized roots. Default 1e-7.",
+    "ja": ""
+  },
+  "ManovaTestName#summary": {
+    "hash": "43bc0ebe15a2",
+    "en": "Name of a multivariate test statistic.",
+    "ja": ""
+  },
+  "MatrixTable#summary": {
+    "hash": "769d51d8a404",
+    "en": "A labelled matrix table.",
+    "ja": ""
+  },
+  "MatrixTable.cols#summary": {
+    "hash": "526aa2cccdf8",
+    "en": "Column labels, or null for a matrix without named columns.",
+    "ja": ""
+  },
+  "MatrixTable.rows#summary": {
+    "hash": "0ea2ea281d61",
+    "en": "Row labels; a scalar string is used for a one-row table.",
+    "ja": ""
+  },
+  "MatrixTable.values#summary": {
+    "hash": "b6badcdf8687",
+    "en": "Numeric table entries in row-major order.",
+    "ja": ""
+  },
+  "cancor#@param options": {
+    "hash": "27f966eb4a72",
+    "en": "Column centering, rank tolerance, and optional column names.",
+    "ja": ""
+  },
+  "cancor#@param x": {
+    "hash": "d4b0102e1b30",
+    "en": "First data matrix or vector.",
+    "ja": ""
+  },
+  "cancor#@param y": {
+    "hash": "c76ee91aa0eb",
+    "en": "Second data matrix or vector.",
+    "ja": ""
+  },
+  "cancor#summary": {
+    "hash": "ce7e0599090b",
+    "en": "Canonical correlation analysis. Equivalent to R's `stats::cancor()`. Coefficients use the unscaled cross-products, with deterministic paired signs.",
+    "ja": ""
+  },
+  "lda(0)#@param grouping": {
+    "hash": "28d37c45173b",
+    "en": "Class labels.",
+    "ja": ""
+  },
+  "lda(0)#@param options": {
+    "hash": "da6484c5b804",
+    "en": "Prior probabilities, tolerance, and leave-one-out CV.",
+    "ja": ""
+  },
+  "lda(0)#@param x": {
+    "hash": "780cdc563cbb",
+    "en": "Predictor matrix.",
+    "ja": ""
+  },
+  "lda(0)#summary": {
+    "hash": "8af7c4752885",
+    "en": "Linear discriminant analysis (moment method). Equivalent to R's `MASS::lda()`. The moment method only. Supports matrix/group and formula/data-frame inputs.\nDirections are metric-normalised and their signs are deterministic.",
+    "ja": ""
+  },
+  "lda(1)#summary": {
+    "hash": "10eb1ed0929a",
+    "en": "Leave-one-out cross-validation result overload.",
+    "ja": ""
+  },
+  "lda(2)#@param data": {
+    "hash": "41fb976d58fa",
+    "en": "Data frame.",
+    "ja": ""
+  },
+  "lda(2)#@param formula": {
+    "hash": "c3f554f49311",
+    "en": "Formula.",
+    "ja": ""
+  },
+  "lda(2)#@param options": {
+    "hash": "da6484c5b804",
+    "en": "Prior probabilities, tolerance, and leave-one-out CV.",
+    "ja": ""
+  },
+  "lda(2)#summary": {
+    "hash": "8010fd0081d3",
+    "en": "Linear discriminant analysis from a formula, e.g. `\"class ~ x1 + x2\"` or `\"class ~ .\"`.",
+    "ja": ""
+  },
+  "lda(3)#@param options": {
+    "hash": "da6484c5b804",
+    "en": "Prior probabilities, tolerance, and leave-one-out CV.",
+    "ja": ""
+  },
+  "lda(3)#summary": {
+    "hash": "8af7c4752885",
+    "en": "Linear discriminant analysis (moment method). Equivalent to R's `MASS::lda()`. The moment method only. Supports matrix/group and formula/data-frame inputs.\nDirections are metric-normalised and their signs are deterministic.",
+    "ja": ""
+  },
+  "ldaPredict#@param fit": {
+    "hash": "aa9aa4c51e62",
+    "en": "A fitted LDA model.",
+    "ja": ""
+  },
+  "ldaPredict#@param options": {
+    "hash": "c91887bbaaee",
+    "en": "New observations, prior override, and number of discriminant scores.",
+    "ja": ""
+  },
+  "ldaPredict#summary": {
+    "hash": "3e54d6541b73",
+    "en": "Plug-in prediction for a fitted {@link lda} model. Equivalent to R's `predict.lda()`. The plug-in method only.",
+    "ja": ""
+  },
+  "manova#@param data": {
+    "hash": "41fb976d58fa",
+    "en": "Data frame.",
+    "ja": ""
+  },
+  "manova#@param formula": {
+    "hash": "b0ae6b381875",
+    "en": "Multivariate formula, e.g. `\"cbind(y1, y2, y3) ~ group + covariate\"`.",
+    "ja": ""
+  },
+  "manova#@param options": {
+    "hash": "cb0bfdb74cfb",
+    "en": "Numerical rank tolerance.",
+    "ja": ""
+  },
+  "manova#summary": {
+    "hash": "72d1a44bbd47",
+    "en": "Fit a multivariate analysis of variance model with sequential (Type I) terms. Equivalent to R's `stats::manova()`.\nThe response is `cbind(y1, y2, ...)`; all four classical MANOVA statistics are available in {@link manovaSummary}.",
+    "ja": ""
+  },
+  "manovaSummary#@param fit": {
+    "hash": "89a3ed0bac52",
+    "en": "A result of {@link manova}.",
+    "ja": ""
+  },
+  "manovaSummary#@param options": {
+    "hash": "575d7d64094d",
+    "en": "Select a statistic or request the intercept row.",
+    "ja": ""
+  },
+  "manovaSummary#summary": {
+    "hash": "2be5813ace65",
+    "en": "Summary tables for all four MANOVA statistics, with optional sequential intercept row. Equivalent to R's `summary.manova()`.",
+    "ja": ""
+  }
+}
