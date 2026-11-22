@@ -88,6 +88,7 @@ function pairDistance(a: readonly number[], b: readonly number[], method: DistMe
   const canberra: number[] = [];
   let binaryUnion = 0;
   let binaryDifferent = 0;
+  let binaryObserved = 0;
   let binaryWarning = false;
   for (let j = 0; j < a.length; j++) {
     const x = a[j]!, y = b[j]!;
@@ -96,6 +97,7 @@ function pairDistance(a: readonly number[], b: readonly number[], method: DistMe
         if (x === Infinity || x === -Infinity || y === Infinity || y === -Infinity) binaryWarning = true;
         continue;
       }
+      binaryObserved++;
       const ax = x !== 0, by = y !== 0;
       if (ax || by) binaryUnion++;
       if (ax !== by) binaryDifferent++;
@@ -112,7 +114,7 @@ function pairDistance(a: readonly number[], b: readonly number[], method: DistMe
     }
     diffs.push(Math.abs(x - y));
   }
-  if (method === "binary") return binaryUnion === 0 ? 0 : binaryDifferent / binaryUnion;
+  if (method === "binary") return binaryObserved === 0 ? NaN : binaryUnion === 0 ? 0 : binaryDifferent / binaryUnion;
   if (method === "canberra") {
     if (canberra.length === 0) return NaN;
     return (a.length / canberra.length) * canberra.reduce((s, v) => s + v, 0);
