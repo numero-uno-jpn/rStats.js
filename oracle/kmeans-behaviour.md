@@ -11,7 +11,7 @@ W = sum over j of Wj
 T = sum over i of ||x_i-xbar||²
 B = T-W.
 
-Returned withinss contains Wj, tot.withinss is W, betweenss is B, and size contains |Cj|. Cluster labels refer to center order, not sorted data values. Numeric vector input is treated as a one-column matrix. Verified on kmeans_iris_Hartigan-Wong, kmeans_usarrests_Hartigan-Wong, kmeans_vector_Hartigan-Wong, kmeans_k1_Hartigan-Wong, and the other algorithm cases.
+Returned withinss contains Wj, tot.withinss is W, betweenss is B, and size contains |Cj|. Cluster labels refer to center order, not sorted data values. Numeric vector input is treated as a one-column matrix; data-frame input is accepted (kmeans_data_frame). Verified on kmeans_iris_Hartigan-Wong, kmeans_usarrests_Hartigan-Wong, kmeans_vector_Hartigan-Wong, kmeans_k1_Hartigan-Wong, and the other algorithm cases.
 
 ## Four update procedures
 
