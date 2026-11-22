@@ -70,7 +70,7 @@ function mul(a: number[][], b: number[][]): number[][] {
 function scaleRows(a: number[][], scales: readonly number[]): number[][] {
   return a.map((row) => row.map((v, j) => v * scales[j]!));
 }
-function table(rows: string[], cols: string[] | null, values: number[][]): MatrixTable { return { rows, cols, values }; }
+function table(rows: string[] | string, cols: string[] | string | null, values: number[][]): MatrixTable { return { rows, cols, values }; }
 function responseParts(formula: string): { names: string[]; rhs: string } {
   const m = /^\s*cbind\s*\((.*)\)\s*~\s*(.+)$/s.exec(formula);
   if (!m) throw new TypeError("the response must be cbind(y1, y2, ...) in a MANOVA formula");
