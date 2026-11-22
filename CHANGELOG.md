@@ -7,7 +7,7 @@ While the version is 0.x, a minor release (0.y.0) may contain breaking changes;
 they are listed under **Breaking** for each release. From 1.0.0 the project follows
 [Semantic Versioning](https://semver.org/).
 
-## Unreleased
+## 1.8.0 - 2026-11-22
 
 ### Added
 
@@ -19,6 +19,11 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   rq's `iid`, `ker`, `boot` and rank `iid: false`, and GEE's `jack`, `j1s`, `fij` are not included in 1.8.0.
 - **Cross-validation:** `cvGlmnet` requires explicit fixed folds (`foldid`) and supports grouped and ungrouped summaries.
   See [the documented differences from R](docs/differences-from-r.md#regression-rq-geeglm-and-glmnet).
+- Checked against R 4.6.2 with quantreg 6.1, geepack 1.3.13 and glmnet 5.1, comparing every returned element with
+  R's strict refits (R's defaults stop early: up to 2.3 away on the iris multinomial path), and against independent
+  computations (closed forms for orthogonal designs, scale equivariance at 1e+-100, 100,000 rows, NaN and Infinity,
+  zero and rescaled weights, degenerate designs). The bundle of everything except `/mixed` and `/regression` is still
+  322 KB gzipped; `/regression` is 123 KB.
 
 ## 1.7.0 - 2026-11-20
 
