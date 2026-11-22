@@ -271,4 +271,82 @@ describe("lda", () => {
     expect(fit.N).toBe(100_000);
     console.info(`lda 100,000 rows: ${(performance.now() - start).toFixed(1)} ms`);
   });
+
+  it("retains LDA precision under dominant offsets and extreme power-of-two scales", () => {
+    const xx = irisRows.map((r) => [r[0], r[1], r[2], r[3]]);
+    const gg = irisRows.map((r) => r[4]);
+    const names = ["Sepal.Length", "Sepal.Width", "Petal.Length", "Petal.Width"];
+    const base = lda(xx, gg, { xNames: names });
+    const basePred = ldaPredict(base);
+
+    for (const shift of [1e8, 1e12]) {
+      const shifted = xx.map((row) => row.map((v) => v + shift));
+      const fit = lda(shifted, gg, { xNames: names });
+      const pred = ldaPredict(fit);
+      const relTol = shift === 1e8 ? 1e-7 : 3e-4;
+      let diff2 = 0, norm2 = 0;
+      for (let i = 0; i < base.scaling.values.length; i++) {
+        for (let j = 0; j < base.scaling.values[i]!.length; j++) {
+          const expected = base.scaling.values[i]![j]!;
+          const delta = fit.scaling.values[i]![j]! - expected;
+          diff2 += delta * delta;
+          norm2 += expected * expected;
+        }
+      }
+      expect(Math.sqrt(diff2 / norm2)).toBeLessThan(relTol);
+      for (let i = 0; i < basePred.posterior.values.length; i++) {
+        for (let j = 0; j < basePred.posterior.values[i]!.length; j++) {
+          expect(Math.abs(pred.posterior.values[i]![j]! - basePred.posterior.values[i]![j]!)).toBeLessThan(relTol);
+        }
+        for (let j = 0; j < basePred.x.values[i]!.length; j++) {
+          expect(Math.abs(pred.x.values[i]![j]! - basePred.x.values[i]![j]!)).toBeLessThan(relTol * 3);
+        }
+      }
+    }
+
+    for (const exponent of [500, -500, 1000, -1000]) {
+      const factor = 2 ** exponent;
+      const fit = lda(xx.map((row) => row.map((v) => v * factor)), gg, { xNames: names });
+      const pred = ldaPredict(fit);
+      expect(fit.svd).toHaveLength(base.svd.length);
+      fit.svd.forEach((v, i) => expect(v).toBeCloseTo(base.svd[i]!, 9));
+      fit.scaling.values.forEach((row, i) => row.forEach((v, j) => {
+        expect(v * factor).toBeCloseTo(base.scaling.values[i]![j]!, 8);
+      }));
+      pred.posterior.values.forEach((row, i) => row.forEach((v, j) => {
+        expect(v).toBeCloseTo(basePred.posterior.values[i]![j]!, 10);
+      }));
+    }
+  });
+
+  it("rejects missing and infinite matrix inputs instead of silently omitting rows", () => {
+    const xx = irisRows.map((r) => [r[0], r[1], r[2], r[3]]);
+    const gg = irisRows.map((r) => r[4]);
+    const missing = xx.map((row) => row.slice());
+    missing[4]![0] = NaN;
+    expect(() => lda(missing, gg)).toThrow(/infinite, NA or NaN values in 'x'/);
+    const infinite = xx.map((row) => row.slice());
+    infinite[4]![0] = Infinity;
+    expect(() => lda(infinite, gg)).toThrow(/infinite, NA or NaN values in 'x'/);
+    const missingGroup = gg.slice();
+    (missingGroup as (string | number)[])[4] = NaN;
+    expect(() => lda(xx, missingGroup)).toThrow(/missing value where TRUE\/FALSE needed/);
+  });
+
+  it("keeps posterior probabilities finite for extreme finite prediction rows", () => {
+    const fit = lda(x, g);
+    const pred = ldaPredict(fit, { newdata: [[1e308, 1e308], [-1e308, -1e308]] });
+    for (const row of pred.posterior.values) {
+      expect(row.every(Number.isFinite)).toBe(true);
+      expect(row.reduce((a, b) => a + b, 0)).toBeCloseTo(1, 12);
+    }
+    expect(pred.x.values.flat().every((v) => !Number.isNaN(v))).toBe(true);
+  });
+
+  it("normalises finite priors whose direct sum overflows", () => {
+    const fit = lda(x, g, { prior: [1e308, 1e308] });
+    expect(fit.prior).toEqual([0.5, 0.5]);
+    const pred = ldaPredict(lda(x, g), { newdata: [[1, 2]], prior: [1e308, 1e308] });
+    expect(pred.posterior.values[0]!.reduce((a, b) => a + b, 0)).toBeCloseTo(1, 12);
+  });
 });

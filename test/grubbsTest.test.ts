@@ -104,16 +104,22 @@ describe("Grubbs type 10", () => {
     expect(() => qgrubbs(0.5, 5, 20)).toThrow(/type 20/);
   });
 
-  it("is scale invariant and robust to a large translation", () => {
+  it("is invariant to extreme scales and accurate to the input precision after translation", () => {
     const x = samples.x1;
     const base = grubbsTest(x);
-    for (const scale of [1e100, 1e-100]) {
-      const r = grubbsTest(x.map((v) => v * scale));
+    for (const exponent of [500, -500, 1000, -1000]) {
+      const factor = 2 ** exponent;
+      const r = grubbsTest(x.map((v) => v * factor));
       expect(r.statistic[0]).toBeCloseTo(base.statistic[0], 12);
       expect(r.statistic[1]).toBeCloseTo(base.statistic[1], 12);
+      expect(r.pValue).toBeCloseTo(base.pValue, 12);
     }
-    const shifted = grubbsTest(samples.x2.map((v) => v + 1e8));
-    expect(shifted.statistic[0]).toBeCloseTo(grubbsTest(samples.x2).statistic[0], 6);
+    const original = grubbsTest(samples.x2);
+    const shifted8 = grubbsTest(samples.x2.map((v) => v + 1e8));
+    const shifted12 = grubbsTest(samples.x2.map((v) => v + 1e12));
+    expect(shifted8.statistic[0]).toBeCloseTo(original.statistic[0], 6);
+    expect(shifted12.statistic[0]).toBeCloseTo(original.statistic[0], 3);
+    expect(shifted12.pValue).toBeCloseTo(original.pValue, 3);
   });
 
   it("handles 100,000 observations", () => {
@@ -123,5 +129,29 @@ describe("Grubbs type 10", () => {
     expect(Number.isFinite(r.statistic[0])).toBe(true);
     expect(Number.isFinite(r.pValue)).toBe(true);
     console.info(`grubbsTest 100,000 rows: ${(performance.now() - start).toFixed(1)} ms`);
+  });
+
+  it("retains a representable subnormal Grubbs upper tail", () => {
+    const x = [...Array.from({ length: 199 }, (_, i) => -1 + (2 * i) / 198), 300];
+    const result = grubbsTest(x);
+    // Independent mpmath calculation (200 exact binary64 inputs, 200 decimal digits):
+    // G = 14.066163616228295277..., t = 514.4190898479565575...,
+    // n * Pr(T_198 > t) = 1.7788307466033209183...e-309.
+    expect(result.pValue / 1.7788307466033209e-309).toBeCloseTo(1, 8);
+  });
+
+  it("handles CDF and quantile endpoints and invalid sample sizes", () => {
+    expect(pgrubbs([-Infinity, 0, Infinity, 1e308], 10)).toEqual([0, 0, 1, 1]);
+    // mpmath (80 dps): solve I_x(4, 1/2) = 2/10, then transform x to G.
+    expect(qgrubbs(0, 10)).toBeCloseTo(1.2602192323987674, 14);
+    expect(qgrubbs(1, 10)).toBe((10 - 1) / Math.sqrt(10));
+    for (const p of [1e-8, 0.5, 1 - 1e-15]) {
+      const q = qgrubbs(p, 10);
+      expect(Math.abs(pgrubbs(q, 10) - p)).toBeLessThan(2e-15);
+    }
+    expect(Number.isNaN(pgrubbs(1, 2))).toBe(true);
+    expect(Number.isNaN(qgrubbs(0.5, 2))).toBe(true);
+    expect(Number.isNaN(pgrubbs(1, 1e20))).toBe(true);
+    expect(Number.isNaN(qgrubbs(0.5, 1e20))).toBe(true);
   });
 });
