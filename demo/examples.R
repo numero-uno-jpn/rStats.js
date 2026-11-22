@@ -503,7 +503,7 @@ examples <- list(
 
 if (!exists(".rstats_oracle")) {
   for (ex in examples) {
-    cat(sprintf("%s: %s\\n", ex$id, ex$title))
-    cat(" ", sprintf("%.17g", ex$value()), "\\n")
+    cat(sprintf("%s: %s\n", ex$id, ex$title))
+    cat(" ", sprintf("%.17g", ex$value()), "\n")
   }
 }
