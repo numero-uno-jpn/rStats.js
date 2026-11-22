@@ -89,26 +89,15 @@ describe("lda", () => {
   });
 
   it("matches the complete Iris LDA fit fixture after per-column sign alignment", () => {
-    const expected = ldaFixture.lda_iris.value.fit;
-    const fit = lda("Species ~ .", irisData);
-    expect(fit.prior).toEqual(expected.prior);
-    expect(fit.counts).toEqual(expected.counts);
-    expect(fit.means.rows).toEqual(expected.means.rows);
-    expect(fit.means.cols).toEqual(expected.means.cols);
-    expectMatrixClose(fit.means.values, expected.means.values, 1e-12);
-    expect(fit.scaling.rows).toEqual(expected.scaling.rows);
-    expect(fit.scaling.cols).toEqual(expected.scaling.cols);
-    const signs = expected.scaling.values[0]!.map((_: number, j: number) => {
-      const dot = fit.scaling.values.reduce((s, row, i) => s + row[j]! * expected.scaling.values[i]![j]!, 0);
-      return dot < 0 ? -1 : 1;
-    });
-    expectMatrixClose(fit.scaling.values.map((row) => row.map((v, j) => v * signs[j]!)), expected.scaling.values, 1e-8);
-    expect(Array.isArray(fit.svd) ? fit.svd : [fit.svd]).toHaveLength(expected.svd.length);
-    const actualSvd = Array.isArray(fit.svd) ? fit.svd : [fit.svd];
-    expected.svd.forEach((v: number, i: number) => expect(actualSvd[i]).toBeCloseTo(v, 8));
-    expect(fit.N).toBe(expected.N);
-    expect(fit.lev).toEqual(expected.lev);
-    expect(fit.warnings).toEqual([]);
+    const x = irisRows.map((r) => [r[0], r[1], r[2], r[3]]);
+    const g = irisRows.map((r) => r[4]);
+    const names = ["Sepal.Length", "Sepal.Width", "Petal.Length", "Petal.Width"];
+    const fit = lda(x, g, { xNames: names });
+    compareLdaFit(fit, ldaFixture.lda_iris.value.fit, ldaFixture.lda_iris.warnings);
+    compareLdaPrediction(ldaPredict(fit), ldaFixture.lda_iris.value.pred);
+    const formulaFit = lda("Species ~ .", irisData);
+    compareLdaFit(formulaFit, ldaFixture.lda_iris_formula.value.fit, ldaFixture.lda_iris_formula.warnings);
+    compareLdaPrediction(ldaPredict(formulaFit), ldaFixture.lda_iris_formula.value.pred);
   });
 
   it("matches Iris LDA predictions and leave-one-out CV fixture values", () => {
