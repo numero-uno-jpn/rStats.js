@@ -148,7 +148,11 @@ function normalisePrior(prior: readonly number[] | undefined, counts: readonly n
   const p = prior === undefined ? counts.map((n) => n / counts.reduce((a, b) => a + b, 0)) : Array.from(prior);
   if (p.length !== counts.length || p.some((v) => !Number.isFinite(v) || v <= 0)) throw new RangeError("prior must contain one positive finite value per group");
   const sum = p.reduce((a, b) => a + b, 0);
-  return p.map((v) => v / sum);
+  if (Number.isFinite(sum)) return p.map((v) => v / sum);
+  const max = Math.max(...p);
+  const scaled = p.map((v) => v / max);
+  const scaledSum = scaled.reduce((a, b) => a + b, 0);
+  return scaled.map((v) => v / scaledSum);
 }
 function matrixInput(x: VectorOrMatrix): number[][] { return fromMat(toMatOrColumn(x)); }
 function fitCore(x0: number[][], g0: readonly GroupLabel[], options: LdaOptions, xNames: string[], declaredLevels?: readonly GroupLabel[]): LdaFit {
