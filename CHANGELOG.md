@@ -11,7 +11,7 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
 
 ### Added
 
-- **Cluster analysis and classical multidimensional scaling** in the separate `/multivariate` area:
+- **1.10.0 — cluster analysis and classical multidimensional scaling** in the separate `/multivariate` area:
   `dist`, `asDist`, `hclust`, `cutree`, `kmeans` and `cmdscale`. The non-metric `isoMDS` method is not part of this release.
 - Stable extreme-scale distance and Cailliez calculations, including scaled Canberra ratios for finite inputs whose direct numerator or denominator would overflow.
 
