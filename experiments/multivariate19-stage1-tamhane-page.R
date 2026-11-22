@@ -24,7 +24,7 @@ compare_pw <- function(d,welch=TRUE) {
  calc <- pair_calc(d,welch)
  got <- unlist(lapply(seq_along(calc),function(i) calc[[i]][c("t","p")]))
  obs <- c(); for(i in seq_len(length(d)-1)) for(j in (i+1):length(d)) {
-  obs<-c(obs,ref$statistic[j,i],ref$p.value[j,i])
+  obs<-c(obs,ref$statistic[j-1,i],ref$p.value[j-1,i])
  }
  list(max_abs=mdiff(got,obs),pairs=calc,method=ref$method)
 }

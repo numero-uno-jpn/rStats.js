@@ -29,13 +29,22 @@ lda_calc <- function(xx,gg,prior0=NULL,tol0=1e-10) {
  }
  ee <- eigen(ww,symmetric=TRUE)
  keep <- which(ee$values>max(ee$values)*tol0)
- zmat <- ee$vectors[,keep,drop=FALSE]%*%diag(1/sqrt(ee$values[keep]),nrow=length(keep))
- mid <- crossprod(zmat,bb%*%zmat)
- be <- eigen(mid,symmetric=TRUE)
- pos <- which(be$values>max(be$values)*tol0)
- scn <- sqrt(nn-ng)*zmat%*%be$vectors[,pos,drop=FALSE]
+ if(length(keep)==pp) {
+  rr <- chol(ww/(nn-ng)); ri <- solve(rr)
+  mm <- diag(sqrt(pr))%*%sweep(mu,2,cen,"-")%*%ri
+  ss <- svd(mm)
+  pos <- which(ss$d>max(ss$d)*sqrt(tol0))
+  scn <- ri%*%ss$v[,pos,drop=FALSE]
+  sv <- ss$d[pos]*sqrt(nn/(ng-1))
+ } else {
+  zmat <- ee$vectors[,keep,drop=FALSE]%*%diag(1/sqrt(ee$values[keep]),nrow=length(keep))
+  mid <- crossprod(zmat,bb%*%zmat)
+  ss <- svd(mid)
+  pos <- which(ss$d>max(ss$d)*tol0)
+  scn <- sqrt(nn-ng)*zmat%*%ss$v[,pos,drop=FALSE]
+  sv <- sqrt(pmax(0,ss$d[pos])*nn*(nn-ng)/(ng-1))
+ }
  sc <- sweep(scn,1,xscale,"/")
- sv <- sqrt(pmax(0,be$values[pos])*nn*(nn-ng)/(ng-1))
  rownames(sc)<-colnames(xx); colnames(sc)<-paste0("LD",seq_len(ncol(sc)))
  list(scaling=sc,scaling_norm=scn,svd=sv,means=sweep(mu,2,xscale,"*"),
       means_norm=mu,prior=pr,center=cen*xscale,center_norm=cen,
@@ -52,19 +61,25 @@ lda_compare <- function(xx,gg,prior0=NULL,tol0=1e-4,do_cv=FALSE,do_predict=TRUE)
  sgn <- vapply(seq_len(ns),function(j) sign(sum(refsc[,j]*csc[,j])),numeric(1))
  if(any(sgn==0)) sgn[sgn==0]<-1
  adj <- sweep(csc[,seq_len(ns),drop=FALSE],2,sgn,"*")
+ scn_adj <- sweep(calc$scaling_norm[,seq_len(ns),drop=FALSE],2,sgn,"*")
  cent <- calc$centroids[,seq_len(ns),drop=FALSE]*matrix(sgn,nrow=nrow(calc$centroids),ncol=ns,byrow=TRUE)
  max_centroid_sign <- vapply(seq_len(ns),function(j) {
   ix <- which.max(abs(cent[,j])); sign(cent[ix,j])
  },numeric(1))
+ xxn <- sweep(as.matrix(xx),2,calc$xscale,"/")
+ refsc_norm <- sweep(refsc[,seq_len(ns),drop=FALSE],1,calc$xscale,"*")
+ ref_scores <- sweep(xxn,2,calc$center_norm,"-")%*%refsc_norm
+ calc_scores <- sweep(xxn,2,calc$center_norm,"-")%*%scn_adj
  pred_error <- NULL
  if(do_predict) {
   predref <- predict(ref)
   predcalc <- function(newx,pr) {
-   xxn <- sweep(as.matrix(newx),2,calc$xscale,"/")
-   scx <- sweep(xxn,2,calc$center_norm,"-")%*%calc$scaling_norm
+   xxnew <- sweep(as.matrix(newx),2,calc$xscale,"/")
+   ctr <- as.numeric(crossprod(pr,calc$means_norm))
+   scx <- sweep(xxnew,2,ctr,"-")%*%scn_adj
    inv <- solve(calc$cov)
    logp <- sapply(seq_len(nrow(calc$means_norm)),function(j) {
-    dd <- sweep(xxn,2,calc$means_norm[j,],"-")
+    dd <- sweep(xxnew,2,calc$means_norm[j,],"-")
     log(pr[j])-0.5*rowSums((dd%*%inv)*dd)
    })
    colnames(logp)<-levs
@@ -86,18 +101,20 @@ lda_compare <- function(xx,gg,prior0=NULL,tol0=1e-4,do_cv=FALSE,do_predict=TRUE)
  cvdiff <- NULL
  if(do_cv) {
   cvclass <- character(nrow(as.matrix(xx))); cvpost <- matrix(NA_real_,nrow(as.matrix(xx)),length(levs))
+  cvprior <- ref$prior
   for(i in seq_len(nrow(as.matrix(xx)))) {
-   take <- setdiff(seq_len(nrow(as.matrix(xx))),i)
-   f0 <- if(is.null(prior0)) MASS::lda(xx[take,,drop=FALSE],gg[take],tol=tol0) else MASS::lda(xx[take,,drop=FALSE],gg[take],prior=prior0,tol=tol0)
+   take <- setdiff(seq_len(nrow(as.matrix(xx)),i)
+   f0 <- MASS::lda(xx[take,,drop=FALSE],gg[take],prior=cvprior,tol=tol0)
    p0 <- predict(f0,xx[i,,drop=FALSE])
    cvclass[i] <- as.character(p0$class[1])
    cvpost[i,] <- as.numeric(p0$posterior[1,levs])
   }
-  cvref <- if(is.null(prior0)) MASS::lda(xx,gg,CV=TRUE,tol=tol0) else MASS::lda(xx,gg,prior=prior0,CV=TRUE,tol=tol0)
+  cvref <- MASS::lda(xx,gg,CV=TRUE,prior=cvprior,tol=tol0)
   cvdiff <- list(class_mismatch=sum(cvclass!=as.character(cvref$class)),
                  posterior_max_abs=mdiff(cvpost,cvref$posterior))
  }
  list(scaling_max_abs_after_sign=mdiff(adj,refsc[,seq_len(ns),drop=FALSE]),
+      score_max_abs_after_sign=mdiff(calc_scores,ref_scores),
       signs_to_match_reference=sgn,svd_max_abs=mdiff(calc$svd,ref$svd),
       metric_norm=calc$norm,centroids=calc$centroids,
       largest_abs_centroid_sign=max_centroid_sign,prediction=pred_error,CV=cvdiff,
@@ -158,8 +175,10 @@ cc_compare <- function(x0,y0,xc=TRUE,yc=TRUE) {
  xsub <- calc$xmat[,xix,drop=FALSE]; ysub <- calc$ymat[,yix,drop=FALSE]
  xcsub <- sweep(xsub,2,ref$xcenter[xix],"-"); ycsub <- sweep(ysub,2,ref$ycenter[yix],"-")
  xvar_ref <- xcsub%*%rx; yvar_ref <- ycsub%*%ry
- xvar_calc <- sweep(calc$xmat[,calc$px,drop=FALSE],2,calc$xcenter[calc$px],"-")%*%cx
- yvar_calc <- sweep(calc$ymat[,calc$py,drop=FALSE],2,calc$ycenter[calc$py],"-")%*%cy
+ cx_adj <- sweep(cx[,seq_len(ncan),drop=FALSE],2,sx,"*")
+ cy_adj <- sweep(cy[,seq_len(ncan),drop=FALSE],2,sy,"*")
+ xvar_calc <- sweep(calc$xmat[,calc$px,drop=FALSE],2,calc$xcenter[calc$px],"-")%*%cx_adj
+ yvar_calc <- sweep(calc$ymat[,calc$py,drop=FALSE],2,calc$ycenter[calc$py],"-")%*%cy_adj
  list(cor_max_abs=mdiff(calc$cor,ref$cor),xcoef_signs=sx,ycoef_signs=sy,
   xcoef_max_abs=mdiff(sweep(cx[,seq_len(ncan),drop=FALSE],2,sx,"*"),rx[,seq_len(ncan),drop=FALSE]),
   ycoef_max_abs=mdiff(sweep(cy[,seq_len(ncan),drop=FALSE],2,sy,"*"),ry[,seq_len(ncan),drop=FALSE]),

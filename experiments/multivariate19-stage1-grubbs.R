@@ -42,11 +42,11 @@ for(nobs in c(3,4,5,7,10,20,30,50)) {
  qs <- c(.5,1,1.5,2,2.5,3,3.5)
  vals <- lapply(qs,function(q) {
    den <- (nobs-1)^2-nobs*q^2
-   tv <- q*sqrt(nobs*(nobs-2)/den)
-   cdf <- 1-nobs*pt(-tv,df=nobs-2)
+   tv <- if(den>0) q*sqrt(nobs*(nobs-2)/den) else Inf
+   cdf <- if(is.finite(tv)) max(0,min(1,1-nobs*pt(-tv,df=nobs-2))) else 1
    c(calc=cdf, reference=pgrubbs(q,nobs,type=10))
  })
- t10[[as.character(nobs)]] <- vals
+ t10[[as.character(nobs)]] <- list(values=vals,max_abs_error=max(abs(vapply(vals,function(z) z[1]-z[2],numeric(1))),na.rm=TRUE))
 }
 ## Type 11: public probability values at every requested grid point, including known uniroot failure.
 t11 <- list()
@@ -64,18 +64,24 @@ for(nobs in c(4,6,8,9,11,15,16,25,29)) {
  tabq <- vapply(pp,function(p) tryCatch(qgrubbs(p,nobs,type=20),error=function(e) NA_real_),numeric(1))
  qq <- seq(.02,.98,by=.04)
  direct <- vapply(qq,function(q) pgrubbs(q,nobs,type=20),numeric(1))
+ reverse <- vapply(qq,function(q) qgrubbs(q,nobs,type=20,rev=TRUE),numeric(1))
  ok <- is.finite(tabq) & tabq>0
  xx <- c(0,tabq[ok]); yy <- c(0,pp[ok])
  ord <- order(xx); xx <- xx[ord]; yy <- yy[ord]
  keep <- !duplicated(xx,fromLast=TRUE); xx <- xx[keep]; yy <- yy[keep]
  interp <- approx(x=xx,y=yy,xout=qq,rule=2)$y
  back <- vapply(direct,function(p) tryCatch(qgrubbs(p,nobs,type=20),error=function(e) NA_real_),numeric(1))
+ ugrid <- seq(0,1,by=.001)
+ cdf_tab <- vapply(ugrid,function(u) tryCatch(qgrubbs(u,nobs,type=20,rev=TRUE),error=function(e) NA_real_),numeric(1))
+ good <- is.finite(cdf_tab)
+ interp_rev <- approx(ugrid[good],cdf_tab[good],xout=qq,rule=2)$y
  log_ok <- xx>0
  log_interp <- approx(x=log(xx[log_ok]),y=yy[log_ok],xout=log(qq),rule=2)$y
  sample_ix <- match(c(.001,.01,.05,.1,.2,.3,.4,.5,.6,.7,.8,.9,.95,.99,.999),pp)
  t20[[as.character(nobs)]] <- list(p_sample=pp[sample_ix],q_sample=tabq[sample_ix],grid=qq,direct=direct,
   linear_on_U=interp,max_abs_error=max(abs(direct-interp),na.rm=TRUE),
-  logU_error=max(abs(direct-log_interp),na.rm=TRUE),roundtrip_q=back,
+  logU_error=max(abs(direct-log_interp),na.rm=TRUE),reverse_qgrubbs_max_abs=max(abs(direct-reverse),na.rm=TRUE),
+  reverse_table_linear_U_max_abs=max(abs(direct-interp_rev),na.rm=TRUE),roundtrip_q=back,
   roundtrip_max_abs=max(abs(back-qq),na.rm=TRUE))
 }
 cat(toJSON(list(grubbs=all_rows,type10=t10,type11=t11,type20=t20),

@@ -106,7 +106,10 @@ cases <- list(
  na=list(f=cbind(mpg,disp,hp)~cyl,d=transform(mt,mpg=replace(mpg,3,NA))),
  tol=list(f=cbind(mpg,disp,hp)~cyl,d=mt,t=.5),
  scale=list(f=cbind(mpg*1e100,disp,hp*1e-100)~cyl,d=mt),
- npk=list(f=cbind(yield,as.numeric(block))~N*P,d=npk))
+ npk=list(f=cbind(yield,as.numeric(block))~N*P,d=npk),
+ one_response=list(f=cbind(mpg)~cyl,d=mt),
+ few_df=list(f=cbind(mpg,disp,hp,drat,wt,qsec)~cyl,d=mt[1:8,]),
+ collinear=list(f=cbind(mpg,disp,I(mpg+disp))~cyl,d=mt))
 results <- lapply(cases,function(z) tryCatch(one_fit(z$f,z$d,isTRUE(z$i),if(is.null(z$t)) 1e-7 else z$t),
  error=function(e) list(error=conditionMessage(e))))
 cat(toJSON(results,digits=NA,auto_unbox=TRUE,na="string",null="null"))
