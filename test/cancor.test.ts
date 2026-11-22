@@ -1,13 +1,50 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
 import { cancor } from "../src/entries/multivariate.js";
 
 function cross(a: number[][]): number[][] {
   return a[0]!.map((_, i) => a[0]!.map((__, j) => a.reduce((s, r) => s + r[i]! * r[j]!, 0)));
 }
 
+const irisRows = JSON.parse(readFileSync(new URL("./fixtures/iris.json", import.meta.url), "utf8")) as [number, number, number, number, string][];
+const cancorFixture = JSON.parse(readFileSync(new URL("./fixtures/cancor.json", import.meta.url), "utf8")) as Record<string, any>;
+function expectMatrixClose(actual: number[][], expected: number[][], tol = 1e-8): void {
+  expect(actual.length).toBe(expected.length);
+  for (let i = 0; i < expected.length; i++) {
+    expect(actual[i]!.length).toBe(expected[i]!.length);
+    for (let j = 0; j < expected[i]!.length; j++) {
+      const e = expected[i]![j]!;
+      expect(Math.abs(actual[i]![j]! - e)).toBeLessThanOrEqual(tol * Math.max(Math.abs(e), 1e-300));
+    }
+  }
+}
+
 describe("cancor", () => {
   const x = Array.from({ length: 30 }, (_, i) => [i / 7 + Math.sin(i), (i % 5) - i / 13]);
   const y = Array.from({ length: 30 }, (_, i) => [2 * x[i]![0]! + x[i]![1]! + Math.cos(i), x[i]![0]! - 3 * x[i]![1]! + Math.sin(i * 0.3)]);
+  it("matches the complete Iris canonical correlation fixture after paired sign alignment", () => {
+    const x = irisRows.map((r) => r.slice(0, 2));
+    const y = irisRows.map((r) => r.slice(2, 4));
+    const expected = cancorFixture.cancor_iris.value;
+    const actual = cancor(x, y, {
+      xNames: ["Sepal.Length", "Sepal.Width"],
+      yNames: ["Petal.Length", "Petal.Width"],
+    });
+    const cor = Array.isArray(actual.cor) ? actual.cor : [actual.cor];
+    expect(cor).toHaveLength(expected.cor.length);
+    expected.cor.forEach((v: number, i: number) => expect(cor[i]).toBeCloseTo(v, 8));
+    expect(actual.xcenter).toEqual(expected.xcenter);
+    expect(actual.ycenter).toEqual(expected.ycenter);
+    expect(actual.xcoef.rows).toEqual(expected.xcoef.rows);
+    expect(actual.ycoef.rows).toEqual(expected.ycoef.rows);
+    const signs = expected.cor.map((_: number, j: number) => {
+      const dot = actual.xcoef.values.reduce((s, row, i) => s + row[j]! * expected.xcoef.values[i]![j]!, 0);
+      return dot < 0 ? -1 : 1;
+    });
+    expectMatrixClose(actual.xcoef.values.map((row) => row.map((v, j) => v * signs[j]!)), expected.xcoef.values, 1e-8);
+    expectMatrixClose(actual.ycoef.values.map((row) => row.map((v, j) => v * signs[j]!)), expected.ycoef.values, 1e-8);
+  });
+
   it("returns nonzero canonical pairs with cross-product normalisation", () => {
     const r = cancor(x, y, { xNames: ["a", "b"], yNames: ["c", "d"] });
     expect(r.cor).toHaveLength(2);
