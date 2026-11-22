@@ -103,7 +103,7 @@ function fitStats(rows: number[][], cluster: number[], k: number, colNames: stri
 function lloyd(rows: number[][], initial: number[][], iterMax: number): { cluster: number[]; iter: number; converged: boolean } {
   const k = initial.length;
   let centers = initial.map((r) => [...r]);
-  let cluster = new Array<number>(rows.length).fill(-1);
+  let cluster = rows.map((row) => nearest(row, centers));
   let converged = false, iter = 0;
   for (let pass = 0; pass < iterMax; pass++) {
     const next = rows.map((row) => nearest(row, centers));
@@ -112,14 +112,14 @@ function lloyd(rows: number[][], initial: number[][], iterMax: number): { cluste
     for (let g = 0; g < k; g++) if (stats.size[g]! > 0) centers[g] = stats.centers[g]!;
     cluster = next;
     iter = pass + 1;
-    if (!changed && pass > 0) { converged = true; break; }
+    if (!changed) { converged = true; break; }
   }
-  return { cluster, iter: iter + (converged ? 1 : 0), converged };
+  return { cluster, iter: iter + (converged ? 0 : 1), converged };
 }
 function macqueen(rows: number[][], initial: number[][], iterMax: number): { cluster: number[]; iter: number; converged: boolean } {
   const k = initial.length, p = rows[0]!.length;
   let centers = initial.map((r) => [...r]);
-  let cluster = new Array<number>(rows.length).fill(-1);
+  let cluster = rows.map((row) => nearest(row, centers));
   let converged = false, iter = 0;
   for (let pass = 0; pass < iterMax; pass++) {
     const next = new Array<number>(rows.length).fill(-1);
@@ -135,7 +135,7 @@ function macqueen(rows: number[][], initial: number[][], iterMax: number): { clu
     cluster = next; iter = pass + 1;
     if (!changed && pass > 0) { converged = true; break; }
   }
-  return { cluster, iter, converged };
+  return { cluster, iter: iter + (converged ? 0 : 1), converged };
 }
 function hartiganWong(rows: number[][], initial: number[][], iterMax: number): { cluster: number[]; iter: number; converged: boolean } {
   const k = initial.length, p = rows[0]!.length;
@@ -168,7 +168,7 @@ function hartiganWong(rows: number[][], initial: number[][], iterMax: number): {
     iter = pass + 1;
     if (!moved) { converged = true; break; }
   }
-  return { cluster, iter, converged };
+  return { cluster, iter: iter + (converged ? 0 : 1), converged };
 }
 
 /**
