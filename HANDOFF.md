@@ -1,6 +1,6 @@
 # 引継ぎ: rStats.js (外部レビュー対応 2026-10-30〜11-04、1.0.0 への準備 11-04〜)
 
-最終更新: 2026-11-22 夜 (セッション 28、Mac mini: 1.10.0 の範囲をユーザーが決め (全部推奨どおり)、準備 (チェッカー・R の実験・指示書) を main に置いた。未コミット・未 push)。以前: 2026-11-22 夜 (セッション 27 の終わり、Mac mini: **1.9.0 を公開** (T2・Page・Grubbs、manova・lda・cancor)。次は 1.10.0 = クラスタ分析と多次元尺度法 (ユーザーの決定)、範囲を決めるところから)。以前: 2026-11-22 (セッション 27 の始め、Mac mini: 1.9.0 の範囲を決め、準備中)。以前: 2026-11-22 (セッション 26 の終わり、Mac mini: **1.8.0 を公開** (rq・geeglm・glmnet)。次は 1.9.0 = 小さな検定 3 つ + 多変量 3 つ (ユーザーの決定)、範囲を決めるところから)。以前: 2026-11-20 夜 (セッション 26 の始め: 1.8.0 の範囲を決め、準備)。以前: 2026-11-20 夕 (セッション 25 の終わり、Mac mini: **1.7.0 を公開** (回帰 polr・rlm・nls、`/regression`)。次の作業は未定 (ROADMAP の 2 = 1.8.0)。以前: 2026-11-20 昼 (セッション 25、Mac mini: 段階 3 の端の入力の直しも済み (最後は私が引き継いだ)。次は「nls の後」の配線と文書)。以前: 2026-11-19 深夜 (セッション 24、polr・rlm は完了、nls を ChatGPT に依頼)。以前: 2026-11-19 (セッション 23、1.6.0 を公開 (混合モデルの confint と simulate))。以前: 2026-11-17 (セッション 22、1.5.0 を公開)。その前: 2026-11-16 (セッション 21、Mac mini: 1.4.0 を公開、同時刻の Gray の検定を ChatGPT がクリーンルームで修正 (1.4.1 に入る、未公開)、外注用の R の実験の仕組みを作った。次は ROADMAP の 1 番)
+最終更新: 2026-11-22 夜 (セッション 28、Mac mini: 1.10.0 の範囲をユーザーが決め (全部推奨どおり)、準備 (チェッカー・R の実験・指示書) を main に置き、Issue #556・draft PR #557 を作った。次は ChatGPT の段階 1)。以前: 2026-11-22 夜 (セッション 27 の終わり、Mac mini: **1.9.0 を公開** (T2・Page・Grubbs、manova・lda・cancor)。次は 1.10.0 = クラスタ分析と多次元尺度法 (ユーザーの決定)、範囲を決めるところから)。以前: 2026-11-22 (セッション 27 の始め、Mac mini: 1.9.0 の範囲を決め、準備中)。以前: 2026-11-22 (セッション 26 の終わり、Mac mini: **1.8.0 を公開** (rq・geeglm・glmnet)。次は 1.9.0 = 小さな検定 3 つ + 多変量 3 つ (ユーザーの決定)、範囲を決めるところから)。以前: 2026-11-20 夜 (セッション 26 の始め: 1.8.0 の範囲を決め、準備)。以前: 2026-11-20 夕 (セッション 25 の終わり、Mac mini: **1.7.0 を公開** (回帰 polr・rlm・nls、`/regression`)。次の作業は未定 (ROADMAP の 2 = 1.8.0)。以前: 2026-11-20 昼 (セッション 25、Mac mini: 段階 3 の端の入力の直しも済み (最後は私が引き継いだ)。次は「nls の後」の配線と文書)。以前: 2026-11-19 深夜 (セッション 24、polr・rlm は完了、nls を ChatGPT に依頼)。以前: 2026-11-19 (セッション 23、1.6.0 を公開 (混合モデルの confint と simulate))。以前: 2026-11-17 (セッション 22、1.5.0 を公開)。その前: 2026-11-16 (セッション 21、Mac mini: 1.4.0 を公開、同時刻の Gray の検定を ChatGPT がクリーンルームで修正 (1.4.1 に入る、未公開)、外注用の R の実験の仕組みを作った。次は ROADMAP の 1 番)
 
 ## まず読むこと (セッション 16 から)
 
@@ -37,7 +37,7 @@ R に合わせた乱数 `setSeed`・`sample` (`src/random/`)。`dist` はまだ�
   後回し)、対応分析 (ca) は外す、cmdscale・isoMDS の符号は決まった規則 (列の絶対値最大の成分を正) で R との既知の違い。
   聞かなかった細部 (dist の 6 method、hclust の 8 method と members、cutree の k・h、kmeans の 4 algorithm・nstart、
   cmdscale の k・eig・add・x.ret、isoMDS の y・k・maxit・tol・p) は上の案のまま
-- **準備 (main の作業ツリー、未コミット):** `scripts/r-experiment-check.mjs` に stats の `dist`・`as.dist`・`hclust`・
+- **準備 (main、`694320f3`):** `scripts/r-experiment-check.mjs` に stats の `dist`・`as.dist`・`hclust`・
   `cutree`・`kmeans`・`cmdscale` など (isoMDS・sammon は MASS の一覧に前からある)。R の実験 `experiments/cluster110.{R,json}`
   (x86_64 の `rstats-oracle-amd64:4.6.2`。エミュレーションで数分) と `experiments/mds110.{R,json}` (arm64)。指示書
   `briefs/cluster-mds-1.10.ja.md` と入口 `briefs/cluster-mds-1.10-status.ja.md` (Issue・PR は `#ISSUE`・`#PR` の仮置き)。
@@ -47,8 +47,10 @@ R に合わせた乱数 `setSeed`・`sample` (`src/random/`)。`dist` はまだ�
   median・centroid は距離を二乗しない。**R 4.6.2 自身が `hclust(d * 1e200, method = "ward.D2")` で落ちる** (arm64 で
   segfault、x86_64 で止まらない → 実験から外した)。isoMDS は 1e150 倍で収束の判定がすぐ成り立つ (尺度に依存)。
   チェッカーは `methods`・`hc`・`trace` (引数名でも) を止める → isoMDS は `capture.output` で表示を受ける
-- 次: ユーザーの許可で main をコミット・push → 作業ブランチ `work/cluster-mds-1.10`・Issue・draft PR を作り、番号を入口に
-  入れる → ChatGPT に段階 1 の依頼文 (クリーンルームの要点を毎回書く)
+- ユーザーの許可で main をコミット・push (`694320f3`)、作業ブランチ `work/cluster-mds-1.10`、**Issue #556**、**draft PR #557**
+  (マージしない) を作り、番号を入口に入れた (ブランチの `fede7b7c`)。PR の CI は動いている
+- 次: ユーザーが ChatGPT に段階 1 の依頼文を貼る → 段階 1 の報告 (仕様書 5 つ + Decisions) を Issue #556 で点検 → Decisions を
+  ユーザーに聞いて choices を書く → oracle を直して fixture を作る (kmeans の乱数は x86_64 で)
 
 ### 進め方 (1.9.0 と同じ。教訓は下の「1.9.0 の教訓」を最初から指示書に入れる)
 
