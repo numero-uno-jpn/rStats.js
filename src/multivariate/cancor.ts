@@ -96,7 +96,8 @@ export function cancor(x: VectorOrMatrix, y: VectorOrMatrix, options: CancorOpti
   const sxx = cross(xr), syy = cross(yr), sxy = cross(xr, yr);
   const ix = inverseSqrt(sxx, tol), iy = inverseSqrt(syy, tol);
   const k = mul(mul(ix, sxy), iy);
-  const dec = svd(k, { nu: qx.rank, nv: qy.rank });
+  const ncan = Math.min(qx.rank, qy.rank);
+  const dec = svd(k, { nu: ncan, nv: ncan });
   const ncan = Math.min(qx.rank, qy.rank, dec.d.length);
   const u = dec.u!, v = dec.v!;
   // Convert coefficients from scaled columns back to original units.
