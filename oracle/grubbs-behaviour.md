@@ -17,11 +17,15 @@ The 12 `grubbs_x1_type{10,11,20}_opp{0,1}_two{0,1}` cases and corresponding x2/x
 
 Type 10's CDF is independently reproduced by the Pearson–Sekar approximation (t distribution, df n−2); all tested q/n pairs agree within 3.89e−15. Type 11 uses the David–Hartley–Pearson relation and numerical inversion; the public helper can fail at `pgrubbs_type11_n10` q=3 with a root-bracketing error. Preserve this failure rather than inventing a probability.
 
-## Type 20 interpolation: unresolved native knots
+## Type 20 table grid and interpolation
 
-The self-generated U=0.001 grid is only an approximation and is **not** evidence of the reference table's native probability knots. Public `qgrubbs(p,n,type=20)` was sampled at p=`0.001, 0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99, 0.999`; these are sampled probabilities, not a verified exhaustive native grid. Independently, `pgrubbs(u,n,20)` and `qgrubbs(u,n,20,rev=TRUE)` agree exactly on tested off-grid U values (maximum difference 0), confirming the reverse-quantile interpretation. Linear interpolation on the artificial 0.001 U grid has maximum off-grid error 2.06e−4 (n=11); sqrt(U), log(U), and logit-probability transforms did not give one uniformly best coordinate across n.
+The completed public-call experiment identifies the supported table-probability knots by calling `qgrubbs(p,n,type=20)` directly. For every tested n=4,6,8,9,11,15,16,25,29, numeric quantiles were returned at
+`p = 0.001, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.8, 0.9, 0.99, 0.999`.
+Calls at p=0.01, 0.7 and 0.95 did not return numeric quantiles in these runs. The corresponding q values are the R outputs in `experiments/multivariate19-stage1-grubbs.R`; the oracle fixture now records qgrubbs at this probability grid and the paired pgrubbs evaluations. These are R-observed table knots, not values read from source.
 
-**The native table probability knots have not been identified by the completed experiment.** Do not relabel the artificial grid as the table. A follow-up must query public qgrubbs at candidate probability knots and verify each returned q against pgrubbs. No table values may be copied from source.
+Separately, `pgrubbs(u,n,20)` and `qgrubbs(u,n,20,rev=TRUE)` agree exactly at all tested on-grid and off-grid U values (maximum difference 0). This establishes the reverse-call identity for the public CDF calculation. It does **not** justify replacing the table by a self-generated U=0.001 grid. Linear interpolation on that artificial grid has maximum off-grid error 2.06e−4 (n=11); sqrt(U), log(U), and logit-probability transforms were also tested, with no single transformed coordinate uniformly best across n. The default `qgrubbs(p)` values and the `rev=TRUE` CDF path must not be conflated.
+
+The native probability knots are now identified, but the completed experiments do not establish that a simple piecewise-linear interpolation between the default qgrubbs quantiles reproduces every pgrubbs value. That mismatch is not papered over: retain the public R knot outputs, use the independently verified reverse-CDF relation for comparisons, and leave the exact interpolation implementation as a decision rather than claiming unverified equivalence.
 
 ## Boundaries
 
