@@ -14,8 +14,9 @@ export interface IsoMDSTrace {
   stress: number;
   converged: boolean;
 }
+export interface IsoMDSMatrix { rows: string[] | null; cols: string[] | null; values: number[][]; }
 export interface IsoMDSResult {
-  points: number[][];
+  points: IsoMDSMatrix;
   stress: number;
   trace: IsoMDSTrace[];
 }
@@ -175,7 +176,7 @@ export function isoMDS(
   const condensed: number[] = [];
   for (let j = 0; j < n - 1; j++) for (let i = j + 1; i < n; i++) condensed.push(parsed.d[i]![j]!);
   let y = options.y === undefined
-    ? cmdscale({ values: condensed, size: n, labels: null, method: null, diag: false, upper: false, warnings: [] }, { k }).points
+    ? cmdscale({ values: condensed, size: n, labels: null, method: null, diag: false, upper: false, warnings: [] }, { k }).points.values
     : options.y.map((r) => Array.from(r));
   if (y.length !== n || y.some((r) => r.length !== k)) throw new RangeError("invalid initial configuration");
   if (y.some((r) => r.some((v) => !Number.isFinite(v)))) throw new RangeError("initial configuration must be finite");
@@ -212,5 +213,6 @@ export function isoMDS(
     trace.push({ iteration: lastIter, stress: current.stress, converged });
   }
   orient(y);
-  return { points: y.map((r) => r.map((v) => v * scale)), stress: current.stress, trace };
+  return { points: { rows: (input as DistResult).labels === undefined ? null : (input as DistResult).labels, cols: null,
+    values: y.map((r) => r.map((v) => v * scale)) }, stress: current.stress, trace };
 }
