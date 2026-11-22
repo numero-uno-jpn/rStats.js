@@ -64,6 +64,25 @@ large_data <- data.frame(
 large_mv <- stats::manova(cbind(y1, y2) ~ group, data = large_data)
 large_summary <- summary(large_mv, test = "Pillai")$stats
 
+p20 <- 20
+groups20 <- 21
+per20 <- 25
+multi_data <- data.frame(group = factor(rep(0:(groups20 - 1), each = per20)))
+for (j in 0:(p20 - 1)) {
+  vals <- numeric()
+  for (g in 0:(groups20 - 1)) {
+    for (i in 0:(per20 - 1)) {
+      angle <- 2 * pi * ((j %% 10) + 1) * (i + 0.5) / per20
+      noise <- if (j < 10) sin(angle) else cos(angle)
+      vals <- c(vals, (if (g == j + 1) 1e150 else 0) + noise * 1e135)
+    }
+  }
+  multi_data[[paste0("y", j + 1)]] <- vals
+}
+multi_formula <- as.formula(paste0("cbind(", paste0("y", 1:p20, collapse = ", "), ") ~ group"))
+multi_mv <- stats::manova(multi_formula, data = multi_data)
+multi_wilks <- summary(multi_mv, test = "Wilks")$stats
+
 cat(toJSON(list(
   offsets = offset_result,
   tamhane = t2_result,
@@ -72,5 +91,8 @@ cat(toJSON(list(
                 cdf = gb_cdf, quantiles = gb_quantile),
   large_manova = list(pillai = unname(large_summary[1, "Pillai"]),
                       f = unname(large_summary[1, "approx F"]),
-                      p = unname(large_summary[1, "Pr(>F)"]))
+                      p = unname(large_summary[1, "Pr(>F)")),
+  large_manova20_wilks = list(value = unname(multi_wilks[1, "Wilks"]),
+                              f = unname(multi_wilks[1, "approx F"]),
+                              p = unname(multi_wilks[1, "Pr(>F)"]))
 ), digits = NA, auto_unbox = TRUE, na = "string"))
