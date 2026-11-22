@@ -90,7 +90,6 @@ export function cancor(x: VectorOrMatrix, y: VectorOrMatrix, options: CancorOpti
   const u = dec.u!, v = dec.v!;
   let ax = mul(ix, u.map((r) => r.slice(0, ncan)));
   let by = mul(iy, v.map((r) => r.slice(0, ncan)));
-  ax = ax.map((r) => r.map((z, j) => z / sx[px[r.indexOf(z)]!]!)); // replaced below with explicit row scales
   // Convert coefficients from scaled columns back to original units.
   ax = mul(ix, u.map((r) => r.slice(0, ncan))).map((r, i) => r.map((z) => z / sx[px[i]!]!));
   by = mul(iy, v.map((r) => r.slice(0, ncan))).map((r, i) => r.map((z) => z / sy[py[i]!]!));
