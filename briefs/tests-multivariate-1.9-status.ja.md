@@ -83,6 +83,6 @@
 - MANOVA: 15 case、計算可能な12 caseの全行・4検定を照合。df差 0、F最大相対差 (1.91\times10^{-11})、p最大相対差 (1.37\times10^{-9})、SSP/eigen 最大相対差 (4.56\times10^{-15})。残差 rank 不足と単一応答のエラーも照合
 - LDA: iris・prior・2クラス・3クラス・単一変数・class-of-one・共線・NA・尺度を照合。full-rank scaling 最大差 (3.25\times10^{-14})、svd (4.27\times10^{-14})。予測 posterior 最大差 (9.5\times10^{-15})、CV 明示的再当てはめと class 完全一致、posterior 最大差 (7.2\times10^{-15})。共線では係数非一意だが判別得点は (1.7\times10^{-14}) 差
 - cancor: 10 case の相関最大差 (2.22\times10^{-15})、全係数はペア符号反転後に最大絶対差 (1.53\times10^{-14})。係数の cross-product metric は単位行列
-- oracle: `oracle/{tamhane,page,grubbs,manova,lda,cancor}.R` を実験ファイルの全 case に拡張。Grubbs oracle は R の `qgrubbs` 公開出力だけから type-20 reverse CDF table を生成する
+- oracle: `oracle/{tamhane,page,grubbs,manova,lda,cancor}.R` を実験ファイルの全 case に拡張。Grubbs oracle は R の `qgrubbs` 公開出力だけから type-20 reverse CDF の sampled grid を生成する。native knot の位置は未確定で、0.001 格子を native table と見なさない
 - 仕様書6件を式・照合 case 名・一致桁・Decisions for the user 付きに更新。全ての `rStats.js's choices` は空欄のまま保持。初回チェッカー停止スクリプトは安全な案内 stub に置換
 - クリーンルーム: PMCMRplus・outliers・MASS・R stats のソースやソース由来表は読まず、思い出しても写してもいない。ウェブ検索なし。実験は上記4本とユーザー提供 local JSON。実装ファイルには変更なし
