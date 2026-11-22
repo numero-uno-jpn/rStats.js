@@ -97,9 +97,9 @@ function responseColumns(data: DataFrame, names: readonly string[]): { data: Dat
       const vals = Array.from(v);
       if (vals.every((x) => typeof x === "number")) out[key] = vals as number[];
       else {
-        const levels = [...new Set(vals.map(String))].sort();
+        const levels = [...new Set(vals.filter((x) => x !== null).map(String))].sort();
         const codes = new Map(levels.map((x, j) => [x, j + 1]));
-        out[key] = vals.map((x) => codes.get(String(x))!);
+        out[key] = vals.map((x) => x === null ? NaN : codes.get(String(x))!);
       }
     } else throw new TypeError(`unsupported MANOVA response expression: ${name}`);
     internal.push(key);
