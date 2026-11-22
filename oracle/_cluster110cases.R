@@ -180,19 +180,7 @@ out$kmeans_seed_state_after_matrix <- run({ set.seed(1); kmeans(X, c3); runif(3)
 
 
 
-# cmdscale and isoMDS cases (same out list and serialization helpers).
-library(jsonlite)
-# Helpers (the same in each script): run() records the value, the warnings, the messages and the error of one call
-run <- function(expr) {
-  warns <- character(0); msgs <- character(0)
-  value <- withCallingHandlers(
-    tryCatch(expr, error = function(e) structure(list(message = conditionMessage(e)), class = "caught")),
-    warning = function(w) { warns <<- c(warns, conditionMessage(w)); invokeRestart("muffleWarning") },
-    message = function(m) { msgs <<- c(msgs, conditionMessage(m)); invokeRestart("muffleMessage") })
-  if (inherits(value, "caught")) return(list(error = value$message, warnings = warns, messages = msgs))
-  list(value = value, warnings = warns, messages = msgs)
-}
-tab <- function(m) list(rows = rownames(m), cols = colnames(m), values = unname(as.matrix(m)))
+# cmdscale and isoMDS cases; share the helpers and out list above.
 
 ## cmdscale: points, eigenvalues, the additive constant, the doubly centred matrix, the goodness of fit
 cm <- function(r) {
@@ -263,7 +251,7 @@ out$isomds_usarrests <- run(im(isoMDS(du)))
 out$isomds_small <- run(im(isoMDS(ds)))
 out$isomds_small_k1 <- run(im(isoMDS(ds, k = 1)))
 out$isomds_non_euclidean <- run(im(isoMDS(nonE)))
-# ties in the dissimilarities (isoMDS uses the primary approach to ties or another one: compare)
+# ties in the dissimilarities (Kruskal's primary approach groups equal input dissimilarities)
 grid <- as.matrix(expand.grid(x = 0:2, y = 0:2)); rownames(grid) <- paste0("g", 1:9)
 out$isomds_grid_ties <- run(im(isoMDS(dist(grid), y = grid + 0.1 * cbind(sin(1:9), cos(1:9)))))
 out$isomds_grid_ties_default <- run(im(isoMDS(dist(grid))))
