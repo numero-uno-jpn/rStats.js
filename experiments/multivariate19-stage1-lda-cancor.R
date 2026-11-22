@@ -133,6 +133,26 @@ lda_cases <- list(
  na_formula=function() { keep<-complete.cases(xx0); keep[5]<-FALSE; lda_compare(xx0[keep,,drop=FALSE],gg0[keep]) },
  scale=function() { xs<-xx0; xs[,1]<-xs[,1]*1e100; lda_compare(xs,gg0,do_predict=FALSE) })
 lda_res <- lapply(lda_cases,function(fn) tryCatch(fn(),error=function(e) list(error=conditionMessage(e))))
+## Scalar one-variable LDA check, avoiding matrix-dimension edge cases in the generic harness.
+lda_scalar <- function() {
+ xv <- as.numeric(iris$Sepal.Length); levs <- levels(iris$Species); gg <- iris$Species
+ ref <- MASS::lda(matrix(xv,ncol=1,dimnames=list(NULL,"Sepal.Length")),gg)
+ mu <- as.numeric(ref$means[,1]); pr <- as.numeric(ref$prior); names(mu)<-levs
+ sw <- sum((xv-mu[gg])^2)/(length(xv)-length(levs))
+ ctr <- sum(pr*mu); sc <- 1/sqrt(sw)
+ sgn <- sign(sc*as.numeric(ref$scaling[1,1])); if(sgn==0) sgn<-1
+ sc <- sc*sgn
+ mm <- sqrt(pr)*(mu-ctr)/sqrt(sw)
+ sv <- sqrt(sum(mm^2))*sqrt(length(xv)/(length(levs)-1))
+ logp <- sapply(seq_along(levs),function(j) log(pr[j])-0.5*(xv-mu[j])^2/sw)
+ post <- exp(logp-apply(logp,1,max)); post <- post/rowSums(post)
+ pred <- predict(ref)
+ list(scaling_abs=abs(sc-ref$scaling[1,1]),svd_abs=abs(sv-ref$svd),
+      x_abs=mdiff((xv-ctr)*sc,pred$x[,1]),posterior_abs=mdiff(post,pred$posterior),
+      class_mismatch=sum(levs[max.col(post)]!=as.character(pred$class)),
+      reference_scaling=as.numeric(ref$scaling[1,1]),reference_svd=ref$svd)
+}
+lda_res$single_variable <- lda_scalar()
 ## Canonical correlation from SVD of Cholesky-whitened cross-products.
 cc_calc <- function(x0,y0,xc=TRUE,yc=TRUE) {
  xmat <- if(is.vector(x0)) matrix(x0,ncol=1) else as.matrix(x0)
@@ -180,11 +200,12 @@ cc_compare <- function(x0,y0,xc=TRUE,yc=TRUE) {
  xvar_calc <- sweep(calc$xmat[,calc$px,drop=FALSE],2,calc$xcenter[calc$px],"-")%*%cx_adj
  yvar_calc <- sweep(calc$ymat[,calc$py,drop=FALSE],2,calc$ycenter[calc$py],"-")%*%cy_adj
  list(cor_max_abs=mdiff(calc$cor,ref$cor),xcoef_signs=sx,ycoef_signs=sy,
-  xcoef_max_abs=mdiff(sweep(cx[,seq_len(ncan),drop=FALSE],2,sx,"*"),rx[,seq_len(ncan),drop=FALSE]),
-  ycoef_max_abs=mdiff(sweep(cy[,seq_len(ncan),drop=FALSE],2,sy,"*"),ry[,seq_len(ncan),drop=FALSE]),
+  xcoef_max_abs=mdiff(cx_adj,rx[,seq_len(ncan),drop=FALSE]),
+  ycoef_max_abs=mdiff(cy_adj,ry[,seq_len(ncan),drop=FALSE]),
+  xcoef_max_rel=max(abs(cx_adj-rx[,seq_len(ncan),drop=FALSE])/pmax(abs(rx[,seq_len(ncan),drop=FALSE]),1e-300)),
+  ycoef_max_rel=max(abs(cy_adj-ry[,seq_len(ncan),drop=FALSE])/pmax(abs(ry[,seq_len(ncan),drop=FALSE]),1e-300)),
+  x_scores_max_abs=mdiff(xvar_calc,xvar_ref),y_scores_max_abs=mdiff(yvar_calc,yvar_ref),
   x_metric=crossprod(rx,crossprod(xcsub)%*%rx),y_metric=crossprod(ry,crossprod(ycsub)%*%ry),
-  x_subspace_max_abs=mdiff(proj(xvar_calc),proj(xvar_ref)),
-  y_subspace_max_abs=mdiff(proj(yvar_calc),proj(yvar_ref)),
   reference=list(cor=ref$cor,xcoef=tab(ref$xcoef),ycoef=tab(ref$ycoef)))
 }
 pop <- LifeCycleSavings[,2:3]; oec <- LifeCycleSavings[,-(2:3)]
