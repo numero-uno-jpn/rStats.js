@@ -39,6 +39,13 @@ function readData(x: readonly unknown[] | readonly (readonly unknown[])[] | Reco
     return { rows: raw.map((r) => r.map(Number)), rowNames: null, colNames: null };
   }
   if (typeof x === "object" && x !== null) {
+    const table = x as { values?: readonly (readonly unknown[])[]; rows?: string[] | null; cols?: string[] | null };
+    if (Array.isArray(table.values)) {
+      const raw = table.values;
+      const p = raw[0]?.length ?? 0;
+      if (p === 0 || raw.some((r) => r.length !== p)) throw new RangeError("x must be a non-empty matrix with equal row lengths");
+      return { rows: raw.map((r) => r.map(Number)), rowNames: table.rows ?? null, colNames: table.cols ?? null };
+    }
     const cols = Object.entries(x as Record<string, ArrayLike<unknown>>);
     if (cols.length === 0) throw new RangeError("x must have at least one column");
     const n = cols[0]![1].length;
@@ -178,7 +185,7 @@ function hartiganWong(rows: number[][], initial: number[][], iterMax: number): {
  */
 export function kmeans(
   x: readonly unknown[] | readonly (readonly unknown[])[] | Record<string, ArrayLike<unknown>>,
-  centersInput: number | readonly (readonly number[])[],
+  centersInput: number | readonly number[] | readonly (readonly number[])[],
   options: KmeansOptions = {},
 ): KmeansFit {
   const data = readData(x);
@@ -213,7 +220,9 @@ export function kmeans(
       initialSets.push(chosen);
     }
   } else {
-    const initial = centersInput.map((r) => Array.from(r, Number));
+    const initial = centersInput.length > 0 && typeof centersInput[0] === "number"
+      ? (centersInput as readonly number[]).map((v) => [Number(v)])
+      : (centersInput as readonly (readonly number[])[]).map((r) => Array.from(r, Number));
     if (initial.length < 1 || initial.some((r) => r.length !== p)) throw new RangeError("must have same number of columns in 'x' and 'centers'");
     if (initial.some((r) => r.some((v) => !Number.isFinite(v)))) throw new RangeError("initial centers must be finite");
     for (let i = 0; i < initial.length; i++) for (let j = 0; j < i; j++) {
