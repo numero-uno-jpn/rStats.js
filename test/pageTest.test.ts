@@ -85,7 +85,8 @@ describe("pageTest", () => {
           if (actual.method !== expected.method) mismatches.push(`${key}.method`);
           if (actual.statisticName !== expected.statisticNames) mismatches.push(`${key}.statisticName`);
           if (actual.alternative !== expected.alternative) mismatches.push(`${key}.alternative`);
-          if (!close(actual.statistic, expected.statistic)) mismatches.push(`${key}.statistic`);
+          const statistic = Array.isArray(actual.statistic) ? actual.statistic[0]! : actual.statistic;
+          if (!close(statistic, expected.statistic)) mismatches.push(`${key}.statistic`);
           if (!close(actual.pValue, expected["p.value"])) mismatches.push(`${key}.p.value`);
           if (!close(actual.estimate!, expected.estimate)) mismatches.push(`${key}.estimate`);
         }
