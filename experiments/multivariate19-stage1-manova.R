@@ -13,30 +13,37 @@ one_fit <- function(formula,data,with_intercept=FALSE,tol=1e-7) {
  sum0 <- summary(fit_formula,intercept=with_intercept)
  tests <- c("Pillai","Wilks","Hotelling-Lawley","Roy")
  full_mf <- model.frame(formula,data=data,na.action=na.omit)
- yy <- as.matrix(model.response(full_mf))
+ yy0 <- as.matrix(model.response(full_mf))
+ scale_y <- apply(abs(yy0),2,max); scale_y[scale_y==0] <- 1
+ yy <- sweep(yy0,2,scale_y,"/")
  tt <- terms(formula)
  xx <- model.matrix(tt,full_mf)
  aa <- attr(xx,"assign")
  labs <- attr(tt,"term.labels")
- qfull <- qr(xx,tol=tol)
+ qfull <- qr(xx)
  err <- crossprod(qr.resid(qfull,yy))
  p <- ncol(yy); v <- nrow(yy)-qfull$rank
- base_fit <- matrix(0,nrow(yy),p)
- prev_rank <- 0L
+ if(with_intercept) {
+  base_fit <- matrix(0,nrow(yy),p); prev_rank <- 0L; first <- 0L
+ } else {
+  xbase <- xx[,aa==0L,drop=FALSE]
+  qbase <- qr(xbase)
+  base_fit <- qr.fitted(qbase,yy); prev_rank <- qbase$rank; first <- 1L
+ }
  calc_rows <- list()
  hdiff <- list()
  eigdiff <- list()
- first <- if(with_intercept) 0L else 1L
  for(j in first:length(labs)) {
    take <- if(j==0L) aa==0L else aa<=j
    xxj <- xx[,take,drop=FALSE]
-   qj <- qr(xxj,tol=tol)
+   qj <- qr(xxj)
    cur_fit <- qr.fitted(qj,yy)
    hmat <- crossprod(cur_fit-base_fit)
    qterm <- qj$rank-prev_rank
-   if(j==0L) qterm <- qj$rank
    term_name <- if(j==0L) "(Intercept)" else labs[j]
-   if(j==0L && !with_intercept) next
+   if(qterm<=0L || is.null(sum0$SS[[term_name]])) {
+    base_fit <- cur_fit; prev_rank <- qj$rank; next
+   }
    ev <- eigen(solve(err,hmat),only.values=TRUE)$values
    roots <- sort(Re(ev[Re(ev)>1e-10]),decreasing=TRUE)
    ss <- sum(roots); ww <- prod(1/(1+roots)); hh <- sum(roots); rr <- if(length(roots)) max(roots) else 0
@@ -65,19 +72,20 @@ one_fit <- function(formula,data,with_intercept=FALSE,tol=1e-7) {
    observed <- t(vapply(tests,function(t) as.numeric(ref[[t]][row_idx,3:6]),numeric(4)))
    rownames(observed)<-tests
    ssref <- sum0$SS[[term_name]]
+   hmat_raw <- hmat * outer(scale_y,scale_y)
    eigref <- sum0$Eigenvalues[term_name,,drop=FALSE]
    calc_rows[[term_name]] <- list(q=qterm,roots=roots,statistics=vv,
      predicted=pred,observed=observed,
      max_F_abs=maxdiff(pred[,1],observed[,1]),
      max_df_abs=maxdiff(pred[,2:3],observed[,2:3]),
      max_p_abs=maxdiff(pred[,4],observed[,4]))
-   hdiff[[term_name]] <- maxdiff(hmat,ssref)
+   hdiff[[term_name]] <- maxdiff(hmat_raw,ssref)
    eigdiff[[term_name]] <- maxdiff(roots,as.numeric(eigref)[seq_along(roots)])
    base_fit <- cur_fit
    prev_rank <- qj$rank
  }
  list(rows=calc_rows,SS_max_abs=hdiff,Eigen_max_abs=eigdiff,
-      residual_df=v,residual_SSP=tab(err),SSP_rank=qr(err,tol=tol)$rank,
+      residual_df=v,residual_SSP=tab(err*outer(scale_y,scale_y)),SSP_rank=qr(err)$rank,
       reference=lapply(tests,function(t) {
        z<-summary(fit_formula,test=t,intercept=with_intercept)$stats
        list(rows=rownames(z),cols=colnames(z),values=unname(z))
