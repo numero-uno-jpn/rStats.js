@@ -219,7 +219,7 @@ describe("manova", () => {
         "Petal.Width": irisData["Petal.Width"].map((v) => v + shift),
       };
       const actual = manovaSummary(manova(formula, shiftedData)).Pillai.values[0]![1]!;
-      expect(Math.abs(actual - base)).toBeLessThan(shift === 1e8 ? 1e-6 : 1e-3);
+      expect(Math.abs(actual - base)).toBeLessThan(shift === 1e8 ? 1e-7 : 2e-4);
     }
   });
 });
