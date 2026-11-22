@@ -62,4 +62,23 @@ describe("1.9.0 numerical tails", () => {
       expect(shifted.pValue).toBe(base.pValue);
     }
   });
+
+  it("applies Sidak adjustment without losing tiny pairwise tails", () => {
+    const eps = 2 ** -53;
+    const groups = [
+      Array.from({ length: 11 }, (_, i) => -0.5 + i * eps),
+      Array.from({ length: 11 }, (_, i) => i * eps),
+      Array.from({ length: 11 }, (_, i) => 0.5 + i * eps),
+    ];
+    const result = tamhaneT2Test(groups);
+    const values = result.pValue.flat().sort((a, b) => a - b);
+    // mpmath (100 dps): for df=20, the two 0.5-separated pairs have
+    // p=1.5682058174223194e-298, and the 1-separated pair has
+    // p=1.4955576109145350e-304. Sidak with m=3 is 1-(1-p)^3.
+    expect(values[0]! / 4.486672832743605e-304).toBeCloseTo(1, 7);
+    expect(values[1]! / 4.704617452266958e-298).toBeCloseTo(1, 7);
+    expect(values[2]! / 4.704617452266958e-298).toBeCloseTo(1, 7);
+    const tied = tamhaneT2Test([groups[0]!, groups[0]!, groups[0]!]);
+    expect(tied.pValue.flat()).toEqual([1, 1, 1]);
+  });
 });
