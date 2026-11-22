@@ -111,7 +111,7 @@ describe("cancor", () => {
     const r = cancor([1, 2, 4, 8, 9], [2, 4, 5, 7, 12], { xcenter: false, ycenter: [1] });
     expect(Array.isArray(r.xcenter) ? r.xcenter : [r.xcenter]).toEqual([0]);
     expect(Array.isArray(r.ycenter) ? r.ycenter : [r.ycenter]).toEqual([1]);
-    expect(Number.isFinite(r.cor)).toBe(true);
+    expect(r.cor.every(Number.isFinite)).toBe(true);
   });
   it("reduces collinear columns and is invariant to response scaling", () => {
     const xx = x.map((r) => [r[0]!, r[1]!, r[0]! + r[1]!]);
