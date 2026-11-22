@@ -197,6 +197,18 @@ describe("cancor", () => {
       }));
     }
 
+    for (const exponent of [1000, -1000]) {
+      const factor = 2 ** exponent;
+      const fit = cancor(xx.map((row) => row.map((v) => v * factor)), yy.map((row) => row.map((v) => v * factor)));
+      fit.cor.forEach((v, i) => expect(v).toBeCloseTo(base.cor[i]!, 9));
+      fit.xcoef.values.forEach((row, i) => row.forEach((v, j) => {
+        expect(v * factor).toBeCloseTo(base.xcoef.values[i]![j]!, 7);
+      }));
+      fit.ycoef.values.forEach((row, i) => row.forEach((v, j) => {
+        expect(v * factor).toBeCloseTo(base.ycoef.values[i]![j]!, 7);
+      }));
+    }
+
     for (const shift of [1e8, 1e12]) {
       const fit = cancor(
         xx.map((row) => row.map((v) => v + shift)),
