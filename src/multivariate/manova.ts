@@ -23,7 +23,7 @@ export interface ManovaSummaryOptions { test?: ManovaTestName | "all"; intercept
 /** A labelled matrix table.
  * @category Linear models and ANOVA
  */
-export interface MatrixTable { rows: string[]; cols: string[] | null; values: number[][]; }
+export interface MatrixTable { rows: string[] | string; cols: string[] | string | null; values: number[][]; }
 /** A fitted sequential MANOVA model.
  * @category Linear models and ANOVA
  */
@@ -254,7 +254,7 @@ export function summaryManova(fit: ManovaFit, options: ManovaSummaryOptions = {}
     const raw = name === "Residuals" ? fit.residualSSP : fit.termSSP[name]!;
     SS[name] = table(fit.responseNames, fit.responseNames, raw);
   }
-  const Eigenvalues = table(names, null, names.map((name) => fit.termRoots[name] ?? []));
+  const Eigenvalues = table(names.length === 1 ? names[0]! : names, null, names.map((name) => fit.termRoots[name] ?? []));
   const coef = table(fit.coefficientNames, fit.responseNames, fit.coefficients);
   return {
     Pillai: make("Pillai"), Wilks: make("Wilks"), "Hotelling-Lawley": make("Hotelling-Lawley"), Roy: make("Roy"),
