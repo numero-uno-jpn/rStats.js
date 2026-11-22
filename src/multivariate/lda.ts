@@ -89,6 +89,10 @@ export interface LdaFit {
   _covInverse: number[][];
   /** @internal Predictor scale factors used internally. */
   _scale: number[];
+  /** @internal Column origins in coordinates divided by `_scale`. */
+  _origin: number[];
+  /** @internal Column spread factors after removing a dominant offset. */
+  _spread: number[];
   /** @internal Scaled training predictor matrix. */
   _x: number[][];
   /** @internal Predictor column names. */
@@ -164,7 +168,20 @@ function fitCore(x0: number[][], g0: readonly GroupLabel[], options: LdaOptions,
   const p = x[0]?.length ?? 0, n = x.length, g = levels.length;
   if (p === 0 || x.some((r) => r.length !== p)) throw new RangeError("x must be a non-empty matrix with equal row lengths");
   const scale = Array.from({ length: p }, (_, j) => { let m = 0; for (const r of x) m = Math.max(m, Math.abs(r[j]!)); return m || 1; });
-  const xs = x.map((r) => r.map((v, j) => v / scale[j]!));
+  const origin = new Array<number>(p).fill(0);
+  const spread = new Array<number>(p).fill(1);
+  for (let j = 0; j < p; j++) {
+    const first = x[0]![j]! / scale[j]!;
+    let range = 0;
+    for (const row of x) range = Math.max(range, Math.abs(row[j]! / scale[j]! - first));
+    // When a large common offset dwarfs the within-column variation, subtract it before
+    // computing class means and cross-products. Keep the historical coordinates otherwise.
+    if (range > 0 && range < 1e-4) {
+      origin[j] = first;
+      spread[j] = range;
+    }
+  }
+  const xs = x.map((r) => r.map((v, j) => (v / scale[j]! - origin[j]!) / spread[j]!));
   const by = levels.map((l) => xs.filter((_, i) => groups[i] === l));
   const counts = by.map((a) => a.length);
   const means = by.map((a) => Array.from({ length: p }, (_, j) => mean(a.map((r) => r[j]!))));
@@ -186,8 +203,16 @@ function fitCore(x0: number[][], g0: readonly GroupLabel[], options: LdaOptions,
   }
   const tol = options.tol ?? 1e-4;
   if (!(Number.isFinite(tol) && tol >= 0)) throw new RangeError("'tol' must be a non-negative finite number");
-  const withinSd = Array.from({ length: p }, (_, j) =>
-    Math.sqrt(within[j]![j]! * scale[j]! * scale[j]! / Math.max(1, n - g)));
+  const withinSd = Array.from({ length: p }, (_, j) => {
+    const df = Math.max(1, n - g);
+    if (origin[j] !== 0 || spread[j] !== 1) {
+      return Math.sqrt(within[j]![j]! / df) * spread[j]! * scale[j]!;
+    }
+    if (scale[j]! >= 1e-100 && scale[j]! <= 1e100) {
+      return Math.sqrt(within[j]![j]! * scale[j]! * scale[j]! / df);
+    }
+    return Math.sqrt(within[j]![j]! / df) * scale[j]!;
+  });
   const constant = withinSd.map((sd, i) => sd === 0 ? i + 1 : 0).filter((i) => i > 0);
   const belowTolerance = options.tol === undefined ? [] : withinSd.map((sd, i) => sd < tol ? i + 1 : 0).filter((i) => i > 0);
   const rejected = Array.from(new Set([...constant, ...belowTolerance])).sort((a, b) => a - b);
@@ -211,7 +236,7 @@ function fitCore(x0: number[][], g0: readonly GroupLabel[], options: LdaOptions,
   const keepRoots = be.values.map((v, i) => v > max * tol ? i : -1).filter((i) => i >= 0).slice(0, g - 1);
   const scaleFactor = Math.sqrt(Math.max(0, n - g));
   const scalingNorm = mul(metric.inverseSqrt, be.vectors!.map((r) => keepRoots.map((j) => r[j]!))).map((r) => r.map((v) => v * scaleFactor));
-  const scaling = scalingNorm.map((r, i) => r.map((v) => v / scale[i]!));
+  const scaling = scalingNorm.map((r, i) => r.map((v) => v / spread[i]! / scale[i]!));
   for (let j = 0; j < (scaling[0]?.length ?? 0); j++) {
     let imax = 0;
     for (let i = 1; i < scaling.length; i++) if (Math.abs(scaling[i]![j]!) > Math.abs(scaling[imax]![j]!)) imax = i;
@@ -220,7 +245,7 @@ function fitCore(x0: number[][], g0: readonly GroupLabel[], options: LdaOptions,
       for (const row of scaling) row[j] = -row[j]!;
     }
   }
-  const originalMeans = means.map((r) => r.map((v, j) => v * scale[j]!));
+  const originalMeans = means.map((r) => r.map((v, j) => (origin[j]! + v * spread[j]!) * scale[j]!));
   const covInv = metric.inverse.map((r) => r.map((v) => v * (n - g)));
   const names = xNames.length === p ? xNames : Array.from({ length: p }, (_, i) => `x${i + 1}`);
   return {
@@ -228,7 +253,7 @@ function fitCore(x0: number[][], g0: readonly GroupLabel[], options: LdaOptions,
     scaling: { rows: names, cols: keepRoots.map((_, i) => `LD${i + 1}`), values: scaling },
     svd: (() => { const v = keepRoots.map((i) => Math.sqrt(Math.max(0, be.values[i]!) * (n - g) / Math.max(1, g - 1))); return v; })(),
     N: n, lev: declared ?? levels, warnings, _means: means, _activeLev: levels, _center: center, _scaling: scalingNorm, _covInverse: covInv,
-    _scale: scale, _x: xs, _xNames: names, _tol: tol,
+    _scale: scale, _origin: origin, _spread: spread, _x: xs, _xNames: names, _tol: tol,
   };
 }
 
@@ -322,7 +347,8 @@ export function ldaPredict(fit: LdaFit, options: LdaPredictionOptions = {}): Lda
   checkOptions(options, LDA_PREDICT_KEYS, "ldaPredict"); // generated: option-keys.mjs
   if (options.method !== undefined && options.method !== "plug-in") throw new RangeError("only method = 'plug-in' is supported");
   const raw = options.newdata === undefined ? undefined : matrixInput(options.newdata);
-  const x = raw === undefined ? fit._x : raw.map((r) => r.map((v, j) => v / fit._scale[j]!));
+  const x = raw === undefined ? fit._x : raw.map((r) =>
+    r.map((v, j) => (v / fit._scale[j]! - fit._origin[j]!) / fit._spread[j]!));
   const p = fit._xNames.length;
   if (x.some((r) => r.length !== p || r.some((v) => !Number.isFinite(v)))) throw new RangeError("newdata must be a finite matrix with the fitted number of columns");
   const prior = normalisePrior(options.prior ?? fit.prior, fit.counts);
