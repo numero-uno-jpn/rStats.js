@@ -124,4 +124,23 @@ describe("Grubbs type 10", () => {
     expect(Number.isFinite(r.pValue)).toBe(true);
     console.info(`grubbsTest 100,000 rows: ${(performance.now() - start).toFixed(1)} ms`);
   });
+
+  it("retains a representable subnormal Grubbs upper tail", () => {
+    const x = [...Array.from({ length: 199 }, (_, i) => -1 + (2 * i) / 198), 300];
+    const result = grubbsTest(x);
+    // Independent mpmath calculation (200 exact binary64 inputs, 200 decimal digits):
+    // G = 14.066163616228295277..., t = 514.4190898479565575...,
+    // n * Pr(T_198 > t) = 1.7788307466033209183...e-309.
+    expect(result.pValue / 1.7788307466033209e-309).toBeCloseTo(1, 8);
+  });
+
+  it("handles CDF and quantile endpoints and invalid sample sizes", () => {
+    expect(pgrubbs([-Infinity, 0, Infinity], 10)).toEqual([0, 0, 1]);
+    expect(qgrubbs(0, 10)).toBe(0);
+    expect(qgrubbs(1, 10)).toBe((10 - 1) / Math.sqrt(10));
+    expect(Number.isNaN(pgrubbs(1, 2))).toBe(true);
+    expect(Number.isNaN(qgrubbs(0.5, 2))).toBe(true);
+    expect(Number.isNaN(pgrubbs(1, 1e20))).toBe(true);
+    expect(Number.isNaN(qgrubbs(0.5, 1e20))).toBe(true);
+  });
 });
