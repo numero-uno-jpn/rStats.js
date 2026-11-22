@@ -325,7 +325,7 @@ export function kmeans(
   let magnitude = 0;
   for (const row of rows) for (const value of row) magnitude = Math.max(magnitude, Math.abs(value));
   for (const initial of initialSets) for (const row of initial) for (const value of row) magnitude = Math.max(magnitude, Math.abs(value));
-  const rescale = magnitude > 2 ** 450 || (magnitude > 0 && magnitude < 2 ** -450);
+  const rescale = magnitude > 2 ** 512 || (magnitude > 0 && magnitude < 2 ** -512);
   const workRows = rescale ? rows.map((row) => row.map((value) => value / magnitude)) : rows;
   const workInitialSets = rescale ? initialSets.map((set) => set.map((row) => row.map((value) => value / magnitude))) : initialSets;
   let best: KmeansFit | null = null;
