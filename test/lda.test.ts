@@ -39,7 +39,7 @@ describe("lda", () => {
     expectMatrixClose(fit.means.values, expected.means.values, 1e-12);
     expect(fit.scaling.rows).toEqual(expected.scaling.rows);
     expect(fit.scaling.cols).toEqual(expected.scaling.cols);
-    const signs = expected.scaling.values[0]!.map((_, j) => {
+    const signs = expected.scaling.values[0]!.map((_: number, j: number) => {
       const dot = fit.scaling.values.reduce((s, row, i) => s + row[j]! * expected.scaling.values[i]![j]!, 0);
       return dot < 0 ? -1 : 1;
     });
@@ -55,7 +55,7 @@ describe("lda", () => {
   it("matches Iris LDA predictions and leave-one-out CV fixture values", () => {
     const fit = lda("Species ~ .", irisData);
     const expected = ldaFixture.lda_iris_newdata.value;
-    const newdata = [0, 50, 100, 149].map((i) => irisRows[i]!.slice(0, 4));
+    const newdata = [0, 50, 100, 149].map((i) => { const r = irisRows[i]!; return [r[0], r[1], r[2], r[3]]; });
     const pred = ldaPredict(fit, { newdata });
     expect(pred.class).toEqual(expected.class);
     expect(pred.posterior.cols).toEqual(expected.posterior.cols);
@@ -86,12 +86,12 @@ describe("lda", () => {
     expect(Number.isFinite(fit.svd)).toBe(true);
   });
   it("predicts classes, posterior probabilities and discriminant scores", () => {
-    const fit = lda(x, g) as ReturnType<typeof lda> & { prior: number[] };
-    const p = ldaPredict(fit as any, { newdata: [[1, 2], [4, 5]] });
+    const fit = lda(x, g, { CV: false });
+    const p = ldaPredict(fit, { newdata: [[1, 2], [4, 5]] });
     expect(p.class).toEqual(["a", "b"]);
     expect(p.posterior.values[0]!.reduce((a, b) => a + b, 0)).toBeCloseTo(1, 12);
     expect(p.x.values).toHaveLength(2);
-    const prior = ldaPredict(fit as any, { newdata: [[1, 2]], prior: [0.2, 0.8] });
+    const prior = ldaPredict(fit, { newdata: [[1, 2]], prior: [0.2, 0.8] });
     expect(prior.posterior.values[0]!.reduce((a, b) => a + b, 0)).toBeCloseTo(1, 12);
   });
   it("supports formula input and leave-one-out CV", () => {
