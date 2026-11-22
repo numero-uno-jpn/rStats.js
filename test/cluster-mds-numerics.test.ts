@@ -63,6 +63,23 @@ describe("cluster and classical-scaling numerical extremes", () => {
     }
   });
 
+  it("retains the nearest-neighbor path on a 5,000-object worst-case chain", () => {
+    const n = 5000;
+    const values = new Array<number>(n * (n - 1) / 2);
+    let p = 0;
+    const level = (i: number) => 1 + (n - i) / n;
+    for (let j = 0; j < n - 1; j++) for (let i = j + 1; i < n; i++) values[p++] = level(j);
+    const start = performance.now();
+    const tree = hclust({ values, size: n, labels: null, method: "euclidean", diag: false, upper: false, warnings: [] }, { method: "complete" });
+    const elapsed = performance.now() - start;
+    const expectedMerge = Array.from({ length: n - 1 }, (_, step) => [-(n - step - 1), step === 0 ? -n : step]);
+    const expectedHeight = Array.from({ length: n - 1 }, (_, step) => level(n - step - 2));
+    expect(tree.merge).toEqual(expectedMerge);
+    expect(tree.height).toEqual(expectedHeight);
+    expect(tree.order).toEqual(Array.from({ length: n }, (_, i) => i + 1));
+    console.info(`hclust 5,000-object decreasing-ultrametric chain: ${elapsed.toFixed(1)} ms`);
+  });
+
   it("keeps kmeans assignments at 2^±1000 even when squared sums are unrepresentable", () => {
     const rows = [[0, 0], [1, 1], [10, 10], [11, 11]], centers = [[0, 0], [10, 10]];
     const reference = kmeans(rows, centers, { algorithm: "Lloyd" });
