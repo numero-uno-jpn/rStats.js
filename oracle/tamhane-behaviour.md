@@ -1,53 +1,49 @@
 # Tamhane T2 and T2' pairwise comparisons
 
-Issue #549. Reference: R 4.6.2, PMCMRplus 1.9.12. Evidence: Tamhane (1979), *JASA* 74, 768–771, public R function outputs, and independent pairwise calculations. No package or R source was read or copied.
+Issue #549. Reference R 4.6.2 / PMCMRplus 1.9.12. Evidence: Tamhane (1979), JASA 74, 768–771; public R outputs and independent calculations in `experiments/multivariate19-stage1-tamhane-page.R`, with complete public-call cases in `experiments/tests19-small.R`. No GPL source or source-derived code/table was used.
 
-## Pairwise formulas
+## Equations
 
-For groups \(i<j\), with sizes \(n_i,n_j\), means \(\bar{x}_i,\bar{x}_j\), and unbiased sample variances \(s_i^2,s_j^2\), define
+For groups i,j, let n_i,n_j be sample sizes, xbar_i,xbar_j means, and s_i²,s_j² unbiased sample variances. Put a=s_i²/n_i, b=s_j²/n_j and m=k(k−1)/2.
 
-\[
-A_i=s_i^2/n_i,\quad A_j=s_j^2/n_j,\quad
-SE_{ij}=\sqrt{A_i+A_j},\quad
-t_{ji}=(\bar{x}_j-\bar{x}_i)/SE_{ij}.
-\]
+Both variants use
+`t_ij=(xbar_j−xbar_i)/sqrt(a+b)`
+and two-sided unadjusted probability
+`p_ij=2 Pr(T_df >= |t_ij|)`.
+The reported pairwise probability is Šidák:
+`p_adj=1−(1−p_ij)^m`.
+The method label is Tamhane's T2-test for unequal variances (T2) or Tamhane's T2'-test for unequal variances (T2').
 
-For T2 (Welch),
+For T2 (`welch=TRUE`), the df is Welch–Satterthwaite:
+`df=(a+b)^2 / [a²/(n_i−1)+b²/(n_j−1)]`.
+For T2' (`welch=FALSE`), the df is pooled:
+`df=n_i+n_j−2`.
+This second df is confirmed directly; it is not the Welch df. Both use the same t and Šidák family adjustment.
 
-\[
-\nu_{ij}=\frac{(A_i+A_j)^2}{A_i^2/(n_i-1)+A_j^2/(n_j-1)}.
-\]
+## Numerical verification
 
-For T2', the statistic and standard error are unchanged, but
+Independent pairwise reconstruction compared all t, df, raw p and adjusted p for:
+- `PlantGrowth_T2`, `PlantGrowth_T2prime`
+- `InsectSprays_T2`, `InsectSprays_T2prime`
+- `chickwts_T2`, `chickwts_T2prime`
 
-\[
-\nu'_{ij}=n_i+n_j-2.
-\]
+The experiment reports maximum absolute difference 0 for every pair and every compared quantity in all six cases (R output at 17 significant digits). In `PlantGrowth_T2`, ctrl–trt1: t=−1.1912603818487, df=16.5235850568593, raw p=0.250382508587548, adjusted p=0.578770154093608. In `PlantGrowth_T2prime`, the same t has df=18, raw p=0.249023165973005, adjusted p=0.576474444686735.
 
-Both use \(p_{ij}=2P(T_{\nu_{ij}}\ge |t_{ji}|)\), followed by Šidák adjustment over \(m=k(k-1)/2\) pairs:
+Additional public-output cases: `t2_formula_na`, `t2_list`, `t2_aov`, `t2_alternative_greater`, `t2_p_adjust_holm`, `t2_group_of_one`, `t2_zero_variance`, `t2_all_equal`, `t2_large_scale`, `t2_shift`. Passing `alternative="greater"` or `p.adjust.method="holm"` leaves the result unchanged. Plain character groups error; factor groups work.
 
-\[
-p^{\mathrm{adj}}_{ij}=1-(1-p_{ij})^m.
-\]
+## Boundary behavior
 
-The returned statistic and p-value matrices are lower triangular: row \(j\) corresponds to group \(j\), column \(i\) to group \(i\).
+A pair containing a group of size one has NA statistic and p. Zero variance in one group is permitted if the combined standard error is positive. When both groups are constant at the same value, t and p are NaN. At scale 1e100, t remains finite but T2 p-values become NaN: direct evaluation of the Welch df numerator and denominator overflows to Inf, producing Inf/Inf. This is a numerical artifact, not a statistical property; use a scale-normalized df computation so the finite mathematical df is retained. T2' uses its finite integer df and does not need that calculation. Adding 1e8 causes ordinary floating-point cancellation in group means; do not claim exact translation invariance beyond floating-point precision.
 
-## R-observed contract and numerical checks
+## R-observed contract
 
-- \`welch=TRUE\` is T2; \`welch=FALSE\` is T2'. T2' does not use Welch df, \(N-k\), or \(N-2\): the pairwise df is exactly \(n_i+n_j-2\).
-- PlantGrowth, InsectSprays, and chickwts: every pair in both modes agrees with the independent formula; maximum absolute difference in t and adjusted p is 0 at serialized precision. The user-provided \`experiments/multivariate19-stage1-check-local.json\` independently confirms PlantGrowth and chickwts.
-- PlantGrowth first pair: \(t=-1.1912603818487\); adjusted T2 p \(=0.578770154093608\); adjusted T2' p \(=0.576474444686735\).
-- \`t2_group_of_one\`: pairs involving the singleton group return NA. \`t2_zero_variance\`: a zero-variance group versus a variable group can give finite t/df/p. \`t2_all_equal\`: t, df and p are NaN.
-- \`t2_large_scale\`: at scale \(10^{100}\), \(A_i,A_j\) are about \(10^{200}\); R's squared intermediates overflow to Inf and df becomes Inf/Inf = NaN. Rescaling \(A_i,A_j\) by \(\max(A_i,A_j)\) before squaring gives finite Welch df \(16.5235850568593\), matching the ordinary-scale calculation.
-- Formula, list-of-samples, and aov inputs are recorded. A raw character grouping vector errors with \`all group levels must be finite\`; factor labels work. \`alternative="greater"\` and \`p.adjust.method="holm"\` do not change the two-sided Šidák result.
-- Other oracle cases: \`t2_formula_na\`, \`t2_list\`, \`t2_aov\`, \`t2_two_groups\`, \`t2_alternative_greater\`, and \`t2_p_adjust_holm\`.
+The output is a lower-triangular pairwise matrix with group labels, `dist="t"`, `alternative="two.sided"`, and `p.adjust.method="T2 (Sidak)"`. Formula, list-of-groups and aov inputs are present in the experiment. The supplied experiment also records errors, warnings and messages for every case.
 
 ## Decisions for the user
 
-1. Keep both T2 and T2' in scope; implement T2' with pair-specific df \(n_i+n_j-2\).
-2. Compute Welch df with scale-normalized \(A_i,A_j\) to avoid intermediate overflow.
-3. Preserve factor level order and reject unsupported raw character grouping with a clear message.
-4. Return NA for pairs with \(n<2\), and NaN when the pairwise statistic is mathematically undefined.
+1. Implement both T2 and T2' with the df formulas above; recommendation: yes, because all six data-set/variant comparisons agree exactly at the recorded precision.
+2. Use a scaled evaluation of Welch df to avoid the R overflow artifact at `t2_large_scale`; report this deliberate numerical improvement.
+3. Reject non-factor character group labels with a clear validation error, or normalize them to a factor before analysis. Recommendation: normalize while preserving first-seen level order.
 
 ## rStats.js's choices
 
