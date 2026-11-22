@@ -108,8 +108,10 @@ describe("cluster and classical-scaling numerical extremes", () => {
     expect(mdsB.eig).toEqual(mdsA.eig);
     expect(mdsB.points.values).toEqual(mdsA.points.values);
 
-    const kmA = kmeans(rows, [[0, 0], [10, 10]], { algorithm: "Lloyd" });
-    const kmB = kmeans(shifted, [[1e12, 1e12], [1e12 + 10, 1e12 + 10]], { algorithm: "Lloyd" });
+    const kmRows = [[0, 0], [1, 1], [10, 10], [11, 11]];
+    const kmShifted = kmRows.map((r) => r.map((v) => v + 1e12));
+    const kmA = kmeans(kmRows, [[0, 0], [10, 10]], { algorithm: "Lloyd" });
+    const kmB = kmeans(kmShifted, [[1e12, 1e12], [1e12 + 10, 1e12 + 10]], { algorithm: "Lloyd" });
     expect(kmB.cluster).toEqual(kmA.cluster);
     expect(kmB.iter).toBe(kmA.iter);
     expect(kmB.withinss).toEqual(kmA.withinss);
