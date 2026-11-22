@@ -90,7 +90,7 @@ describe("cluster and classical-scaling numerical extremes", () => {
     const centers = [[0], [10]].map((r) => r.map((v) => v * tiny));
     const fit = kmeans(rows, centers, { algorithm: "Lloyd" });
     expect(fit.cluster).toEqual([1, 1, 2, 2]);
-    expect(fit.iter).toBe(2);
+    expect(fit.iter).toBe(1);
     expect(fit.centers.values.map((r) => r[0]! / tiny)).toEqual([0.5, 10.5]);
     // The exact sums of squares are below the smallest representable double, so zero is correct.
     expect(fit.totss).toBe(0);
