@@ -229,7 +229,7 @@ export function lda(x: VectorOrMatrix | string, grouping: readonly GroupLabel[] 
     const rhsText = x.slice(tilde + 1).replace(/(^|[\\s+*:/()-])\\.(?=$|[\\s+*:/()-])/g, (_match, prefix: string) =>
       prefix + predictors.join(" + "));
     const d = design(parseFormula(`~ ${rhsText}`), grouping as DataFrame, {
-      extraVariables: [response], dropUnusedLevels: false, levels: options.levels,
+      extraVariables: [response], dropUnusedLevels: false, ...(options.levels === undefined ? {} : { levels: options.levels }),
     });
     const offset = d.terms.intercept ? 1 : 0;
     const values = d.x.map((row) => row.slice(offset));
