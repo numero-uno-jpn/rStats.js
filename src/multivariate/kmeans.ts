@@ -173,6 +173,7 @@ function hartiganWong(rows: number[][], initial: number[][], iterMax: number): {
 
 /**
  * Partition observations into k clusters by minimizing within-cluster sum of squares.
+ * Equivalent to R's stats::kmeans().
  * @category Multivariate analysis
  */
 export function kmeans(
