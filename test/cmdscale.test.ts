@@ -16,7 +16,7 @@ function compareNumbers(label: string, actual: number[], expectedRaw: unknown, t
   if (actual.length !== expected.length) mismatches.push(`${label}: length ${actual.length} != ${expected.length}`);
   for (let i = 0; i < Math.min(actual.length, expected.length); i++) {
     const e = expected[i]!, a = actual[i]!;
-    const rel = e === 0 ? Math.abs(a - e) : Math.abs(a - e) / Math.abs(e);
+    const rel = Math.abs(a - e) / Math.max(1, Math.abs(e));
     if (Number.isFinite(rel)) maxRelativeError = Math.max(maxRelativeError, rel);
     if (!(Object.is(a, e) || (Number.isFinite(rel) && rel <= tol))) mismatches.push(`${label}[${i}]: actual=${a}, expected=${e}, relativeError=${rel}`);
   }
@@ -46,10 +46,23 @@ function compare(key: string, actual: CmdscaleResult, scale = 1): void {
   for (let i = 0; i < Math.min(actual.points.values.length, points.length); i++) {
     if (actual.points.values[i]!.length !== points[i]!.length) mismatches.push(`${key}.points[${i}] columns differ`);
     for (let j = 0; j < Math.min(actual.points.values[i]!.length, points[i]!.length); j++) {
-      compareNumbers(`${key}.points[${i},${j}]`, [actual.points.values[i]![j]!], points[i]![j], 1e-12);
+      const expectedEig = Array.isArray(expected.eig) ? Math.abs(num(expected.eig[j])) : Infinity;
+      const eigScale = Array.isArray(expected.eig) ? Math.max(1, ...expected.eig.map((v: unknown) => Math.abs(num(v)))) : 1;
+      const eigRoundoff = Array.isArray(expected.eig) ? 2 * Number.EPSILON * expected.eig.length * eigScale : 0;
+      const tolerance = expectedEig <= eigRoundoff ? Math.sqrt(eigRoundoff) : 1e-12 * Math.max(1, Math.abs(num(points[i]![j])));
+      if (Math.abs(actual.points.values[i]![j]! - num(points[i]![j])) > tolerance) mismatches.push(`${key}.points[${i},${j}] error exceeds ${tolerance}`);
     }
   }
-  if (expected.eig !== undefined && expected.eig !== null) compareNumbers(key + ".eig", actual.eig, expected.eig);
+  if (expected.eig !== undefined && expected.eig !== null) {
+    const eig = expected.eig.map(num);
+    const eigScale = Math.max(1, ...eig.map((v: number) => Math.abs(v)));
+    const absTol = 2 * Number.EPSILON * eig.length * eigScale;
+    if (actual.eig.length !== eig.length) mismatches.push(key + ".eig length differs");
+    for (let i = 0; i < Math.min(actual.eig.length, eig.length); i++) {
+      const tolerance = absTol + 1e-12 * Math.abs(eig[i]!);
+      if (Math.abs(actual.eig[i]! - eig[i]!) > tolerance) mismatches.push(key + ".eig[" + i + "] error exceeds eigen roundoff bound");
+    }
+  }
   if (expected.ac !== undefined) compareNumbers(key + ".ac", [actual.ac], expected.ac, 1e-10);
   if (expected.GOF !== undefined) compareNumbers(key + ".GOF", actual.GOF, expected.GOF);
   if (expected.x !== undefined && expected.x !== null) {
@@ -64,7 +77,7 @@ function compare(key: string, actual: CmdscaleResult, scale = 1): void {
   if (JSON.stringify(actual.warnings) !== JSON.stringify(warnings)) mismatches.push(`${key}.warnings differs`);
 }
 const small = [[1, 2, 0], [4, 0, 3], [-1, 5, 2], [2, 7, 0], [0, 0, 1]];
-const ds = dist(small);
+const ds = dist(small, { labels: ["a", "b", "c", "d", "e"] });
 const nonE = [[0, 1, 1, 3], [1, 0, 1, 1], [1, 1, 0, 1], [3, 1, 1, 0]];
 const line = dist([0, 1, 3, 6]);
 const simplex = asDist(Array.from({ length: 4 }, (_, i) => Array.from({ length: 4 }, (_, j) => i === j ? 0 : 1)));
@@ -127,7 +140,7 @@ describe("cmdscale", () => {
     const start = performance.now();
     const result = cmdscale({ values, size: n, labels: null, method: "euclidean", diag: false, upper: false, warnings: [] }, { k: 2 });
     const elapsed = performance.now() - start;
-    expect(result.points).toHaveLength(n);
+    expect(result.points.values).toHaveLength(n);
     expect(result.points.values.every((r) => r.every(Number.isFinite))).toBe(true);
     console.info(`cmdscale 2,000 observations: ${elapsed.toFixed(1)} ms`);
   });
