@@ -64,6 +64,27 @@ describe("Grubbs type 10", () => {
     expect(Number.isNaN(constant.pValue)).toBe(true); // choice: constant samples have p = NaN, not R's p = 0
   });
 
+  it("matches the remaining supported type-10 boundary fixtures", () => {
+    const cases = [
+      ["grubbs_n2", [1, 2], {}],
+      ["grubbs_n3", [1, 2, 10], {}],
+      ["grubbs_tie_extremes", [1, 1, 2, 3, 4, 9, 9], {}],
+      ["grubbs_symmetric", [-5, 0, 0.1, -0.1, 0.2, -0.2, 5], {}],
+      ["grubbs_large_n", [...Array.from({ length: 199 }, (_, i) => -2 + (4 * i) / 198), 6], {}],
+    ] as const;
+    const mismatches: string[] = [];
+    for (const [key, x, options] of cases) {
+      const expected = fixture[key].value;
+      const actual = grubbsTest(x, options);
+      close(actual.statistic[0], expected.statistic[0], `${key}.G`, mismatches);
+      close(actual.statistic[1], expected.statistic[1], `${key}.U`, mismatches);
+      close(actual.pValue, expected["p.value"], `${key}.p`, mismatches);
+      if (actual.alternative !== expected.alternative) mismatches.push(`${key}.alternative`);
+    }
+    expect(mismatches).toEqual([]);
+    expect(grubbsTest([1, 2]).warnings).toEqual(["NaNs produced"]);
+  });
+
   it("rejects unsupported types 11 and 20 with the type in the error", () => {
     expect(() => grubbsTest([1, 2, 3, 4], { type: 11 })).toThrow(/type 11/);
     expect(() => grubbsTest([1, 2, 3, 4], { type: 20 })).toThrow(/type 20/);
