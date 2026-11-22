@@ -124,15 +124,16 @@ function evaluate(y: number[][], pairs: readonly Pair[], groups: number[], p: nu
   }
   return { stress: denominator === 0 ? 0 : 100 * Math.sqrt(numerator / denominator), distances, disparities };
 }
-function gradient(y: number[][], pairs: readonly Pair[], current: Evaluation): number[][] {
+function gradient(y: number[][], pairs: readonly Pair[], current: Evaluation, p: number): number[][] {
   const n = y.length, p = y[0]!.length;
   const out = Array.from({ length: n }, () => new Array<number>(p).fill(0));
   for (let at = 0; at < pairs.length; at++) {
     const pair = pairs[at]!, d = current.distances[at]!;
     if (d === 0) continue;
-    const factor = (d - current.disparities[at]!) / d;
-    for (let q = 0; q < p; q++) {
-      const v = factor * (y[pair.i]![q]! - y[pair.j]![q]!);
+    const factor = (d - current.disparities[at]!) / (d ** (p - 1));
+    for (let q = 0; q < y[0]!.length; q++) {
+      const diff = y[pair.i]![q]! - y[pair.j]![q]!;
+      const v = factor * Math.sign(diff) * (Math.abs(diff) ** (p - 1));
       out[pair.i]![q] = out[pair.i]![q]! + v;
       out[pair.j]![q] = out[pair.j]![q]! - v;
     }
@@ -191,7 +192,7 @@ export function isoMDS(
   let lastIter = 0;
   for (let iteration = 1; iteration <= maxit && !converged; iteration++) {
     lastIter = iteration;
-    const grad = gradient(y, built.pairs, current);
+    const grad = gradient(y, built.pairs, current, p);
     let norm = 0;
     for (const row of grad) for (const v of row) norm += v * v;
     if (norm <= Number.EPSILON * Number.EPSILON) { converged = true; break; }
