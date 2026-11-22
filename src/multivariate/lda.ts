@@ -141,12 +141,15 @@ function fitCore(x0: number[][], g0: readonly GroupLabel[], options: LdaOptions,
   const keepRoots = be.values.map((v, i) => v > max * tol ? i : -1).filter((i) => i >= 0).slice(0, g - 1);
   const scaleFactor = Math.sqrt(Math.max(0, n - g));
   const scalingNorm = mul(metric.inverseSqrt, be.vectors!.map((r) => keepRoots.map((j) => r[j]!))).map((r) => r.map((v) => v * scaleFactor));
-  for (let j = 0; j < (scalingNorm[0]?.length ?? 0); j++) {
-    let imax = 0;
-    for (let i = 1; i < scalingNorm.length; i++) if (Math.abs(scalingNorm[i]![j]!) > Math.abs(scalingNorm[imax]![j]!)) imax = i;
-    if (scalingNorm[imax]![j]! < 0) for (const row of scalingNorm) row[j] = -row[j]!;
-  }
   const scaling = scalingNorm.map((r, i) => r.map((v) => v / scale[i]!));
+  for (let j = 0; j < (scaling[0]?.length ?? 0); j++) {
+    let imax = 0;
+    for (let i = 1; i < scaling.length; i++) if (Math.abs(scaling[i]![j]!) > Math.abs(scaling[imax]![j]!)) imax = i;
+    if (scaling[imax]![j]! < 0) {
+      for (const row of scalingNorm) row[j] = -row[j]!;
+      for (const row of scaling) row[j] = -row[j]!;
+    }
+  }
   const originalMeans = means.map((r) => r.map((v, j) => v * scale[j]!));
   const covInv = metric.inverse.map((r) => r.map((v) => v * (n - g)));
   const names = xNames.length === p ? xNames : Array.from({ length: p }, (_, i) => `x${i + 1}`);
