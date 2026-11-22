@@ -93,6 +93,13 @@ describe("hclust and cutree", () => {
       const rel = Math.abs(scaled.height[i]! / 1e100 - base.height[i]!) / Math.max(1, Math.abs(base.height[i]!));
       if (rel > 1e-10) mismatches.push(`ward.D2 scale height[${i}] relativeError=${rel}`);
     }
+    const extremeWard = hclust({ ...ds, values: ds.values.map((v) => v * 1e200) }, { method: "ward.D2" });
+    same("ward.D2 1e200 merge", JSON.stringify(extremeWard.merge), JSON.stringify(base.merge));
+    same("ward.D2 1e200 order", JSON.stringify(extremeWard.order), JSON.stringify(base.order));
+    for (let i = 0; i < base.height.length; i++) {
+      const rel = Math.abs(extremeWard.height[i]! / 1e200 - base.height[i]!) / Math.max(1, Math.abs(base.height[i]!));
+      if (rel > 1e-10) mismatches.push(`ward.D2 1e200 height[${i}] relativeError=${rel}`);
+    }
     const baseSingle = hclust(ds, { method: "single" });
     const scaledSingle = hclust(largeSingle, { method: "single" });
     same("single scaled merge", JSON.stringify(scaledSingle.merge), JSON.stringify(baseSingle.merge));
