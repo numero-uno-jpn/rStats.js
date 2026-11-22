@@ -7,7 +7,7 @@ Reference: R 4.6.2 stats::dist and stats::as.dist, public help and public-call o
 For n rows and m columns, the result contains n(n-1)/2 values in lower-triangle column order:
 d(2,1), d(3,1), ..., d(n,1), d(3,2), ..., d(n,2), ..., d(n,n-1).
 
-Labels are the row names when present; otherwise labels are absent. R's diag and upper attributes control printing only, not the stored vector. Defaults are diag=FALSE and upper=FALSE. The method attribute is the canonical method name for dist and NULL for as.dist.
+Labels are the row names when present; otherwise labels are absent. R's diag and upper attributes control printing only, not the stored vector. Defaults are diag=FALSE and upper=FALSE. The method attribute is the canonical method name for dist and NULL for as.dist. A numeric vector is treated as n observations in one column (dist_vector); data frames are accepted (dist_data_frame).
 
 ## Six distance methods
 
