@@ -8,9 +8,9 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 
 | R | rStats.js | Description |
 | --- | --- | --- |
-| `stats::as.dist()` | `asDist` | Equivalent to R's `stats::as.dist()`. |
+| `as.dist()` | `asDist` | Convert a square matrix using only its lower triangle. |
 | `stats::cancor()` | `cancor` | Canonical correlation analysis. |
-| `stats::dist()` | `dist` | Equivalent to R's `stats::dist()`. |
+| `dist()` | `dist` | Compute pairwise dissimilarities in lower-triangle column order. |
 | `MASS::lda()` | `lda` | Linear discriminant analysis. |
 | `stats::manova()` | `manova` | Fit a multivariate analysis of variance model with sequential terms. |
 | `predict.lda()` | `ldaPredict` | Plug-in prediction for a fitted `lda` model. |

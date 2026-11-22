@@ -1,4 +1,5 @@
 # issue: 556
+# oracle-platform: amd64
 # Public hclust and cutree outputs for test/fixtures/hclust.json
 source("/oracle/_cluster110cases.R")
 selected <- out[grepl("^(hclust_|cutree_)", names(out))]

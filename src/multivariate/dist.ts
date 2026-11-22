@@ -127,7 +127,7 @@ function pairDistance(a: readonly number[], b: readonly number[], method: DistMe
   if (method === "binary") return binaryObserved === 0 ? NaN : binaryUnion === 0 ? 0 : binaryDifferent / binaryUnion;
   if (method === "canberra") {
     if (canberra.length === 0) return NaN;
-    return (a.length / canberra.length) * canberra.reduce((s, v) => s + v, 0);
+    return canberra.reduce((s, v) => s + v, 0) / (canberra.length / a.length);
   }
   if (diffs.length === 0) return NaN;
   if (diffs.some((d) => d === Infinity)) return Infinity;
@@ -139,7 +139,7 @@ function pairDistance(a: readonly number[], b: readonly number[], method: DistMe
   if (method === "manhattan") {
     let sum = 0;
     for (const d of diffs) sum += d;
-    const result = (a.length / diffs.length) * sum;
+    const result = sum / (diffs.length / a.length);
     if (Number.isFinite(result) || !diffs.some((d) => Number.isFinite(d))) return result;
     let scale = 0;
     for (const d of diffs) scale = Math.max(scale, d);
@@ -149,7 +149,9 @@ function pairDistance(a: readonly number[], b: readonly number[], method: DistMe
   let sum = 0;
   for (const d of diffs) sum += method === "minkowski" ? d ** p : d * d;
   const power = method === "minkowski" ? p : 2;
-  const ordinary = ((a.length / diffs.length) * sum) ** (1 / power);
+  const ordinary = method === "euclidean"
+    ? Math.sqrt(sum / (diffs.length / a.length))
+    : (sum / (diffs.length / a.length)) ** (1 / power);
   const nonzero = diffs.some((d) => d !== 0);
   if (Number.isFinite(ordinary) && !(ordinary === 0 && nonzero) && !(sum > 0 && sum < MIN_NORMAL)) return ordinary;
   const stable = scaledPowerSum(diffs, power) * (a.length / diffs.length) ** (1 / power);
@@ -157,7 +159,7 @@ function pairDistance(a: readonly number[], b: readonly number[], method: DistMe
 }
 
 /**
- * Equivalent to R's `stats::dist()`. Compute pairwise dissimilarities in lower-triangle column order.
+ * Compute pairwise dissimilarities in lower-triangle column order. Equivalent to R's `dist()`.
  *
  * @param x Numeric vector, matrix (rows are observations), or data-frame-like object of columns.
  * @param options Distance method and display metadata.
@@ -192,7 +194,7 @@ export function dist(
 }
 
 /**
- * Equivalent to R's `stats::as.dist()`. Convert a square matrix using only its lower triangle.
+ * Convert a square matrix using only its lower triangle. Equivalent to R's `as.dist()`.
  * An existing DistResult is returned unchanged.
  * @category Multivariate analysis
  */

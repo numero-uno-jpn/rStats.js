@@ -1,4 +1,5 @@
 # issue: 556
+# oracle-platform: amd64
 # Public cmdscale outputs for test/fixtures/cmdscale.json
 source("/oracle/_cluster110cases.R")
 selected <- out[startsWith(names(out), "cmdscale_")]

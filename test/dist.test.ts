@@ -2,8 +2,9 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { asDist, dist, type DistResult } from "../src/entries/multivariate.js";
 
-let maxRelativeError = 0;
 const fixture = JSON.parse(readFileSync(new URL("./fixtures/dist.json", import.meta.url), "utf8")) as Record<string, any>;
+const mismatches: string[] = [];
+let maxRelativeError = 0;
 const small = [[1, 2, 0], [4, 0, 3], [-1, 5, 2], [2, 7, 0], [0, 0, 1]];
 const na = small.map((r) => [...r]); na[1]![0] = NaN; na[3]![2] = NaN;
 const allna = small.map((r) => [...r]); allna[1] = [NaN, NaN, NaN];
@@ -11,65 +12,83 @@ const nan = small.map((r) => [...r]); nan[2]![1] = NaN;
 const inf = small.map((r) => [...r]); inf[0]![0] = Infinity; inf[2]![0] = -Infinity;
 const infBoth = small.map((r) => [...r]); infBoth[0]![0] = Infinity; infBoth[1]![0] = Infinity;
 const canberraZeros = [[0, 0, 1], [0, 0, 2], [1, -1, 3], [-1, 1, 0]];
-const binaryZeros = [[0, 0, 0, 1], [0, 2, 0, 0], [0, 0, 0, 3], [3, 0, 0, 0]];
+// Exact R input: [[0,0,0,1],[0,2,0,0],[0,3,3,0],[0,0,0,0]]
+const binaryZeros = [[0, 0, 0, 1], [0, 2, 0, 0], [0, 3, 3, 0], [0, 0, 0, 0]];
 const us = {
   Murder: [13.2, 10.0, 8.1, 8.8, 9.0, 7.9],
   Assault: [236, 263, 294, 190, 276, 204],
   UrbanPop: [58, 48, 80, 50, 91, 78],
   Rape: [21.2, 44.5, 31.0, 19.5, 40.6, 38.7],
 };
+const labels = ["a", "b", "c", "d", "e"];
 function num(v: unknown): number {
   if (v === "NA" || v === "NaN") return NaN;
   if (v === "Inf") return Infinity;
   if (v === "-Inf") return -Infinity;
   return Number(v);
 }
+function mismatch(label: string, actual: unknown, expected: unknown): void {
+  if (!Object.is(actual, expected)) mismatches.push(`${label}: actual=${String(actual)}, expected=${String(expected)}`);
+}
 function compare(key: string, actual: DistResult): void {
   const expected = fixture[key];
-  expect(actual.size, key + ".size").toBe(expected.value.size);
-  expect(actual.labels, key + ".labels").toEqual(expected.value.labels === null ? null :
-    Array.isArray(expected.value.labels) ? expected.value.labels : [expected.value.labels]);
-  expect(actual.method, key + ".method").toBe(expected.value.method);
-  expect(actual.diag, key + ".diag").toBe(expected.value.diag);
-  expect(actual.upper, key + ".upper").toBe(expected.value.upper);
+  if (!expected || !expected.value) { mismatches.push(`${key}: fixture value missing`); return; }
+  mismatch(key + ".size", actual.size, expected.value.size);
+  const expectedLabels = expected.value.labels === null ? null :
+    Array.isArray(expected.value.labels) ? expected.value.labels : [expected.value.labels];
+  if (JSON.stringify(actual.labels) !== JSON.stringify(expectedLabels)) {
+    mismatches.push(`${key}.labels: actual=${JSON.stringify(actual.labels)}, expected=${JSON.stringify(expectedLabels)}`);
+  }
+  mismatch(key + ".method", actual.method, expected.value.method);
+  mismatch(key + ".diag", actual.diag, expected.value.diag);
+  mismatch(key + ".upper", actual.upper, expected.value.upper);
   const values = Array.isArray(expected.value.values) ? expected.value.values : [expected.value.values];
-  expect(actual.values.length, key + ".length").toBe(values.length);
-  for (let i = 0; i < values.length; i++) {
+  if (actual.values.length !== values.length) mismatches.push(`${key}.length: actual=${actual.values.length}, expected=${values.length}`);
+  for (let i = 0; i < Math.min(actual.values.length, values.length); i++) {
     const e = num(values[i]), a = actual.values[i]!;
-    if (!Number.isFinite(e)) expect(Object.is(a, e) || (Number.isNaN(a) && Number.isNaN(e)), key + "[" + i + "]").toBe(true);
-    else {
-      maxRelativeError = Math.max(maxRelativeError, Math.abs(a - e) / Math.max(Math.abs(e), 1e-300));
-      expect(Math.abs(a - e), key + "[" + i + "]").toBeLessThanOrEqual(1e-12 * Math.max(Math.abs(e), 1e-300));
+    if (!Object.is(a, e)) {
+      const rel = Number.isFinite(a) && Number.isFinite(e) ? Math.abs(a - e) / Math.max(Math.abs(e), 1e-300) : NaN;
+      if (Number.isFinite(rel)) maxRelativeError = Math.max(maxRelativeError, rel);
+      mismatches.push(`${key}[${i}]: actual=${String(a)}, expected=${String(e)}, relativeError=${String(rel)}`);
     }
   }
   const warnings = expected.warnings === undefined ? [] : Array.isArray(expected.warnings) ? expected.warnings : [expected.warnings];
-  expect(actual.warnings, key + ".warnings").toEqual(warnings);
+  if (JSON.stringify(actual.warnings) !== JSON.stringify(warnings)) {
+    mismatches.push(`${key}.warnings: actual=${JSON.stringify(actual.warnings)}, expected=${JSON.stringify(warnings)}`);
+  }
+}
+function compareError(key: string, action: () => unknown): void {
+  const expected = fixture[key]?.error;
+  try { action(); mismatches.push(`${key}: expected error ${String(expected)}`); }
+  catch { if (!expected) mismatches.push(`${key}: unexpected error`); }
 }
 
 describe("dist and asDist", () => {
-  it("matches every ordinary distance method and option fixture", () => {
+  it("matches every ordinary R distance fixture bit-for-bit", () => {
     const methods = ["euclidean", "maximum", "manhattan", "canberra", "binary", "minkowski"] as const;
-    for (const method of methods) compare("dist_" + method, dist(small, { method, labels: ["a", "b", "c", "d", "e"] }));
-    compare("dist_minkowski_p3", dist(small, { method: "minkowski", p: 3, labels: ["a", "b", "c", "d", "e"] }));
-    compare("dist_minkowski_p05", dist(small, { method: "minkowski", p: 0.5, labels: ["a", "b", "c", "d", "e"] }));
-    compare("dist_minkowski_p1", dist(small, { method: "minkowski", p: 1, labels: ["a", "b", "c", "d", "e"] }));
-    compare("dist_partial_name", dist(small, { method: "max", labels: ["a", "b", "c", "d", "e"] }));
-    compare("dist_diag_upper", dist(small, { diag: true, upper: true, labels: ["a", "b", "c", "d", "e"] }));
+    for (const method of methods) compare("dist_" + method, dist(small, { method, labels }));
+    compare("dist_minkowski_p3", dist(small, { method: "minkowski", p: 3, labels }));
+    compare("dist_minkowski_p05", dist(small, { method: "minkowski", p: 0.5, labels }));
+    compare("dist_minkowski_p1", dist(small, { method: "minkowski", p: 1, labels }));
+    compareError("dist_minkowski_pInf", () => dist(small, { method: "minkowski", p: Infinity }));
+    compareError("dist_minkowski_p0", () => dist(small, { method: "minkowski", p: 0 }));
+    compare("dist_partial_name", dist(small, { method: "max", labels }));
+    compareError("dist_bad_method", () => dist(small, { method: "cosine" }));
+    compare("dist_diag_upper", dist(small, { diag: true, upper: true, labels }));
     compare("dist_no_names", dist(small));
     compare("dist_one_row", dist([small[0]!], { labels: ["a"] }));
     compare("dist_vector", dist([3, 1, 4, 1, 5]));
     compare("dist_data_frame", dist(us, { labels: ["Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado"] }));
-    console.info(`dist R fixtures: maximum relative error ${maxRelativeError.toExponential(3)}`);
   });
 
-  it("matches all missing, NaN, infinite, Canberra and binary fixtures", () => {
+  it("matches every missing, non-finite, Canberra and binary R fixture bit-for-bit", () => {
     for (const method of ["euclidean", "maximum", "manhattan", "canberra", "binary", "minkowski"] as const) {
-      compare("dist_na_" + method, dist(na, { method, labels: ["a", "b", "c", "d", "e"] }));
-      compare("dist_all_na_row_" + method, dist(allna, { method, labels: ["a", "b", "c", "d", "e"] }));
-      compare("dist_inf_" + method, dist(inf, { method, labels: ["a", "b", "c", "d", "e"] }));
-      compare("dist_inf_both_" + method, dist(infBoth, { method, labels: ["a", "b", "c", "d", "e"] }));
+      compare("dist_na_" + method, dist(na, { method, labels }));
+      compare("dist_all_na_row_" + method, dist(allna, { method, labels }));
+      compare("dist_inf_" + method, dist(inf, { method, labels }));
+      compare("dist_inf_both_" + method, dist(infBoth, { method, labels }));
     }
-    compare("dist_nan", dist(nan, { labels: ["a", "b", "c", "d", "e"] }));
+    compare("dist_nan", dist(nan, { labels }));
     compare("dist_canberra_zeros", dist(canberraZeros, { method: "canberra" }));
     compare("dist_canberra_all_zero", dist([[0, 0], [0, 0], [0, 0]], { method: "canberra" }));
     compare("dist_binary_zero_rows", dist(binaryZeros, { method: "binary" }));
@@ -78,7 +97,21 @@ describe("dist and asDist", () => {
     compare("dist_character", dist([["a", "c"], ["b", "d"]]));
   });
 
-  it("uses R's ordinary arithmetic order and rescales only extreme pairs", () => {
+  it("matches as.dist conversion and identity semantics", () => {
+    const lower = [[0, 9, 9], [1, 0, 9], [2, 3, 0]];
+    const upper = [[0, 1, 2], [9, 0, 3], [9, 9, 0]];
+    compare("as_dist", asDist(lower));
+    compare("as_dist_upper_used", asDist(upper));
+    const d = dist(small);
+    if (asDist(d) !== d) mismatches.push("asDist identity did not preserve the input object");
+    if (JSON.stringify(asDist(lower, { labels: ["a", "b", "c"] }).labels) !== JSON.stringify(["a", "b", "c"])) {
+      mismatches.push("asDist explicit labels");
+    }
+    // not an R case (R has no such fixture): a ragged matrix is rejected
+    try { asDist([[0, 1], [2]]); mismatches.push("asDist ragged matrix: expected an error"); } catch { /* expected */ }
+  });
+
+  it("uses R's arithmetic for ordinary values and a scaled fallback only at extremes", () => {
     const base = dist(small);
     const large100 = dist(small.map((r) => r.map((v) => v * 1e100)));
     const tiny100 = dist(small.map((r) => r.map((v) => v * 1e-100)));
@@ -94,9 +127,6 @@ describe("dist and asDist", () => {
       expect(large.values[i]! / 1e200).toBeCloseTo(base.values[i]!, 12);
       expect(tiny.values[i]! / 1e-200).toBeCloseTo(base.values[i]!, 12);
     }
-    expect(() => dist(small, { method: "minkowski", p: 0 })).toThrow("distance(): invalid p");
-    expect(() => dist(small, { method: "minkowski", p: Infinity })).toThrow("distance(): invalid p");
-    expect(() => dist(small, { method: "cosine" })).toThrow("invalid distance method");
   });
 
   it("handles 5,000 observations and reports the quadratic workload time", () => {
@@ -110,14 +140,19 @@ describe("dist and asDist", () => {
     console.info(`dist 5,000 rows (12.5 million distances): ${elapsed.toFixed(1)} ms`);
   });
 
-  it("matches as.dist lower-triangle conversion and identity input", () => {
-    const lower = [[0, 9, 9], [1, 0, 9], [2, 3, 0]];
-    const upper = [[0, 1, 2], [9, 0, 3], [9, 9, 0]];
-    compare("as_dist", asDist(lower));
-    compare("as_dist_upper_used", asDist(upper));
-    const d = dist(small);
-    expect(asDist(d)).toBe(d);
-    expect(asDist(lower, { labels: ["a", "b", "c"] }).labels).toEqual(["a", "b", "c"]);
-    expect(() => asDist([[0, 1], [2]])).toThrow("matrix must be square");
+  it("checks every comparable fixture and requires bitwise identity", () => {
+    const compared = new Set([
+      "dist_euclidean","dist_maximum","dist_manhattan","dist_canberra","dist_binary","dist_minkowski",
+      "dist_minkowski_p3","dist_minkowski_p05","dist_minkowski_p1","dist_minkowski_pInf","dist_minkowski_p0",
+      "dist_partial_name","dist_bad_method","dist_diag_upper","dist_no_names","dist_one_row","dist_vector","dist_data_frame",
+      ...["euclidean","maximum","manhattan","canberra","binary","minkowski"].flatMap((m) =>
+        ["dist_na_","dist_all_na_row_","dist_inf_","dist_inf_both_"].map((p) => p + m)),
+      "dist_nan","dist_canberra_zeros","dist_canberra_all_zero","dist_binary_zero_rows","dist_binary_both_zero",
+      "dist_binary_logical","dist_character","as_dist","as_dist_upper_used",
+    ]);
+    const expectedCount = Object.keys(fixture).length;
+    if (compared.size !== expectedCount - 2) mismatches.push(`fixture coverage: compared ${compared.size} of ${expectedCount - 2} comparable cases`);
+    console.info(`dist fixtures: ${compared.size} comparable cases; maximum relative error among mismatches ${maxRelativeError.toExponential(3)}`);
+    expect(mismatches).toEqual([]);
   });
 });

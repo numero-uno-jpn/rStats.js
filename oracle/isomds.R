@@ -1,4 +1,5 @@
 # issue: 556
+# oracle-platform: amd64
 # Public MASS::isoMDS outputs for test/fixtures/isomds.json
 source("/oracle/_cluster110cases.R")
 selected <- out[startsWith(names(out), "isomds_")]

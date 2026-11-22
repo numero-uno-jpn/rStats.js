@@ -8,9 +8,9 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 
 | R | rStats.js | 説明 |
 | --- | --- | --- |
-| `stats::as.dist()` | `asDist` | 正方行列の下三角から距離の形を作る |
+| `as.dist()` | `asDist` | 正方行列の下三角から距離の形を作る |
 | `stats::cancor()` | `cancor` | 正準相関分析 |
-| `stats::dist()` | `dist` | 行どうしの距離 (非類似度) を下三角の順に計算する |
+| `dist()` | `dist` | 行どうしの距離 (非類似度) を下三角の順に計算する |
 | `MASS::lda()` | `lda` | 線形判別分析 (moment 法) |
 | `stats::manova()` | `manova` | 多変量分散分析 (逐次の型 I の項) |
 | `predict.lda()` | `ldaPredict` | 線形判別分析によるクラス・事後確率・判別得点の予測 |
