@@ -46,8 +46,10 @@ ROADMAP の「残っていること」の 2 (順不同の一覧) から選んだ
 - 指示書 `briefs/tests-multivariate-1.9.ja.md` と入口 `briefs/tests-multivariate-1.9-status.ja.md` (Issue・PR の番号は
   `#ISSUE`・`#PR` の仮置き)。作業ブランチは `work/multivariate-1.9` の予定。`/multivariate` の配線 (package.json・
   scripts・typedoc.json) は段階 2 で私がする
-- 次: main の push → 作業ブランチ・Issue・draft PR を作る (どれもユーザーに確認してから) → 番号を指示書に入れる →
-  ChatGPT への最初の依頼文をユーザーに渡す
+- ユーザーの許可で main を push (`7bd3b074`)、作業ブランチ `work/multivariate-1.9`、**Issue #549**、**draft PR #550**
+  (マージしない) を作り、番号を入口に入れた
+- 次: ユーザーが ChatGPT に段階 1 の依頼文を貼る → 段階 1 の報告 (仕様書 6 つ + Decisions) を Issue #549 で点検 →
+  Decisions をユーザーに聞いて choices を書く → fixture を作る (x86_64 の版も)
 
 ### 進め方 (1.8.0 の経験から。ガイド「ChatGPT を外注先に使う開発の進め方」https://claude.ai/artifact/XeAnCSwZUrejZhzx5a7BxV)
 

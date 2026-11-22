@@ -26,7 +26,7 @@
 ## 進め方
 
 - **作業ブランチ `work/multivariate-1.9` にだけ push する。main には push しない。**
-- **CI は自分で読む。** draft の PR #PR (`work/multivariate-1.9` → main、マージしない) で、push のたびに型チェックと
+- **CI は自分で読む。** draft の PR #550 (`work/multivariate-1.9` → main、マージしない) で、push のたびに型チェックと
   全テストが流れる。push したら PR の Checks を見て、型エラーとテストの失敗は自分で直してから報告する。Checks が見えない
   ときは、Issue に「CI の確認の依頼」と書いて次の作業へ進む。CI は今、全部通る状態 (基準のコミット)
 - **「手元の環境がない」で止まらない。** GitHub への直接の push、Actions の R (指示書 3 節)、PR の CI を使う
