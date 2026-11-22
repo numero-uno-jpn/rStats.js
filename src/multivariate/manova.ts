@@ -92,10 +92,16 @@ function responseColumns(data: DataFrame, names: readonly string[]): { data: Dat
     if (simple) { internal.push(name); continue; }
     const sum = /^I\(\s*([A-Za-z.][A-Za-z0-9._]*)\s*\+\s*([A-Za-z.][A-Za-z0-9._]*)\s*\)$/.exec(name);
     const numeric = /^as\.numeric\(\s*([A-Za-z.][A-Za-z0-9._]*)\s*\)$/.exec(name);
+    const multiply = /^([A-Za-z.][A-Za-z0-9._]*)\s*\*\s*(-?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?)$/.exec(name);
+    const multiplyReverse = /^(-?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?)\s*\*\s*([A-Za-z.][A-Za-z0-9._]*)$/.exec(name);
     const key = `.__manova_response_${i}`;
     if (sum) {
       const a = dataColumn(data, sum[1]!); const b = dataColumn(data, sum[2]!);
       out[key] = a.map((v, j) => v + b[j]!);
+    } else if (multiply || multiplyReverse) {
+      const variable = multiply ? multiply[1]! : multiplyReverse![2]!;
+      const factor = Number(multiply ? multiply[2]! : multiplyReverse![1]!);
+      out[key] = dataColumn(data, variable).map((v) => v * factor);
     } else if (numeric) {
       const v = data[numeric[1]!];
       if (v === undefined) throw new RangeError(`object '${numeric[1]}' not found`);
