@@ -1,0 +1,136 @@
+// Classical multidimensional scaling (Torgerson-Gower) with the Cailliez additive constant.
+import { eigen } from "../linalg/eigen.js";
+import type { DistResult } from "./dist.js";
+
+export interface CmdscaleOptions {
+  k?: number;
+  add?: boolean;
+  xRet?: boolean;
+}
+export interface CmdscaleResult {
+  points: number[][];
+  eig: number[];
+  x: number[][] | null;
+  ac: number;
+  GOF: [number, number];
+  warnings: string[];
+}
+
+interface DistanceInput { matrix: number[][]; labels: string[] | null; }
+
+function readDistances(input: DistResult | readonly (readonly number[])[]): DistanceInput {
+  if (Array.isArray(input)) {
+    const n = input.length;
+    if (n === 0 || input.some((r) => r.length !== n)) throw new RangeError("distance matrix must be square");
+    const matrix = input.map((r) => Array.from(r, Number));
+    if (matrix.some((r) => r.some((v) => !Number.isFinite(v)))) throw new RangeError("NA values not allowed in 'd'");
+    return { matrix, labels: null };
+  }
+  if (typeof input !== "object" || input === null || !Array.isArray((input as DistResult).values)) {
+    throw new TypeError("d must be a dist object or a square matrix");
+  }
+  const d = input as DistResult;
+  const n = d.size;
+  if (!Number.isInteger(n) || n < 1 || d.values.length !== n * (n - 1) / 2) throw new RangeError("invalid dissimilarity object");
+  if (d.values.some((v) => !Number.isFinite(v))) throw new RangeError("NA values not allowed in 'd'");
+  const matrix = Array.from({ length: n }, () => new Array<number>(n).fill(0));
+  let p = 0;
+  for (let j = 0; j < n - 1; j++) for (let i = j + 1; i < n; i++) {
+    matrix[i]![j] = d.values[p]!;
+    matrix[j]![i] = d.values[p]!;
+    p++;
+  }
+  return { matrix, labels: d.labels === null ? null : [...d.labels] };
+}
+
+function centerMatrix(d: readonly (readonly number[])[]): number[][] {
+  const n = d.length;
+  const rowMeans = new Array<number>(n).fill(0);
+  const colMeans = new Array<number>(n).fill(0);
+  let grand = 0;
+  for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) {
+    rowMeans[i] = rowMeans[i]! + d[i]![j]!;
+    colMeans[j] = colMeans[j]! + d[i]![j]!;
+  }
+  for (let i = 0; i < n; i++) { rowMeans[i] = rowMeans[i]! / n; colMeans[i] = colMeans[i]! / n; grand += rowMeans[i]!; }
+  grand /= n;
+  return d.map((row, i) => row.map((v, j) => v - rowMeans[i]! - colMeans[j]! + grand));
+}
+
+function gramFromDistances(d: readonly (readonly number[])[]): { x: number[][]; gram: number[][] } {
+  const squared = d.map((row) => row.map((v) => v * v));
+  const x = centerMatrix(squared);
+  const n = d.length;
+  const gram = Array.from({ length: n }, (_, i) => Array.from({ length: n }, (_, j) =>
+    i >= j ? -x[i]![j]! / 2 : -x[j]![i]! / 2));
+  return { x, gram };
+}
+
+function cailliez(d: readonly (readonly number[])[]): number {
+  const n = d.length;
+  const A = centerMatrix(d.map((row) => row.map((v) => v * v))).map((row) => row.map((v) => -v / 2));
+  const C = centerMatrix(d).map((row) => row.map((v) => -v));
+  const size = 2 * n;
+  const companion = Array.from({ length: size }, () => new Array<number>(size).fill(0));
+  for (let i = 0; i < n; i++) {
+    companion[i]![n + i] = 1;
+    for (let j = 0; j < n; j++) {
+      companion[n + i]![j] = -2 * A[i]![j]!;
+      companion[n + i]![n + j] = -2 * C[i]![j]!;
+    }
+  }
+  const values = eigen(companion, { symmetric: false, onlyValues: true });
+  let largest = 0;
+  const imag = values.valuesIm;
+  for (let i = 0; i < values.values.length; i++) {
+    if (imag !== undefined && Math.abs(imag[i]!) > 1e-9 * Math.max(1, Math.abs(values.values[i]!))) continue;
+    largest = Math.max(largest, values.values[i]!);
+  }
+  return largest;
+}
+
+function orient(points: number[][]): void {
+  if (points.length === 0) return;
+  const k = points[0]!.length;
+  for (let j = 0; j < k; j++) {
+    let at = 0, largest = -1;
+    for (let i = 0; i < points.length; i++) {
+      const value = Math.abs(points[i]![j]!);
+      if (value > largest) { largest = value; at = i; }
+    }
+    if (points[at]![j]! < 0) for (let i = 0; i < points.length; i++) points[i]![j] = -points[i]![j]!;
+  }
+}
+
+/**
+ * Classical multidimensional scaling of a dissimilarity matrix.
+ * @category Multivariate analysis
+ */
+export function cmdscale(
+  input: DistResult | readonly (readonly number[])[],
+  options: CmdscaleOptions = {},
+): CmdscaleResult {
+  const parsed = readDistances(input);
+  const n = parsed.matrix.length;
+  if (n < 2) throw new RangeError("'k' must be in {1, 2, ..  n - 1}");
+  const k = options.k ?? 2;
+  if (!Number.isFinite(k) || !Number.isInteger(k) || k < 1 || k >= n) {
+    throw new RangeError(`'k' must be in {1, 2, ..  ${n - 1}}`);
+  }
+  let ac = options.add ? cailliez(parsed.matrix) : 0;
+  const adjusted = parsed.matrix.map((row, i) => row.map((v, j) => i === j ? v : v + ac));
+  const centered = gramFromDistances(adjusted);
+  const decomposition = eigen(centered.gram, { symmetric: true });
+  const positive = decomposition.values.filter((v) => v > 0);
+  const dimensions = Math.min(k, positive.length);
+  const vectors = decomposition.vectors!;
+  const points = Array.from({ length: n }, (_, i) => Array.from({ length: dimensions }, (_, j) =>
+    vectors[i]![j]! * Math.sqrt(positive[j]!)));
+  orient(points);
+  const absSum = decomposition.values.reduce((s, v) => s + Math.abs(v), 0);
+  const positiveSum = positive.reduce((s, v) => s + v, 0);
+  const retained = positive.slice(0, dimensions).reduce((s, v) => s + v, 0);
+  const warnings = dimensions < k ? [`only ${dimensions} of the first ${k} eigenvalues are > 0`] : [];
+  return { points, eig: [...decomposition.values], x: options.xRet ? centered.x : null, ac,
+    GOF: [absSum === 0 ? NaN : retained / absSum, positiveSum === 0 ? NaN : retained / positiveSum], warnings };
+}
