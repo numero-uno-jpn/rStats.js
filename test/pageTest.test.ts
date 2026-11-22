@@ -50,7 +50,7 @@ describe("pageTest", () => {
   });
 
   it("orders vector treatments and blocks by R factor levels", () => {
-    const x = m1.flatMap((_, i) => m1.map((row) => row[i]));
+    const x = m1.flatMap((_, i) => m1.map((row) => row[i]!));
     const groups = Array.from({ length: 4 }, (_, j) => Array(5).fill(j + 1)).flat();
     const blocks = Array.from({ length: 4 }, () => [1, 2, 3, 4, 5]).flat();
     const vector = pageTest(x, groups, blocks);
