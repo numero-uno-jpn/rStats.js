@@ -7,10 +7,11 @@ export interface CmdscaleOptions {
   add?: boolean;
   xRet?: boolean;
 }
+export interface CmdscaleMatrix { rows: string[] | null; cols: string[] | null; values: number[][]; }
 export interface CmdscaleResult {
-  points: number[][];
+  points: CmdscaleMatrix;
   eig: number[];
-  x: number[][] | null;
+  x: CmdscaleMatrix | null;
   ac: number;
   GOF: [number, number];
   warnings: string[];
@@ -132,6 +133,7 @@ export function cmdscale(
   const positiveSum = positive.reduce((s, v) => s + v, 0);
   const retained = positive.slice(0, dimensions).reduce((s, v) => s + v, 0);
   const warnings = dimensions < k ? [`only ${dimensions} of the first ${k} eigenvalues are > 0`] : [];
-  return { points, eig: [...decomposition.values], x: options.xRet ? centered.x : null, ac,
+  return { points: { rows: parsed.labels, cols: null, values: points }, eig: [...decomposition.values],
+    x: options.xRet ? { rows: parsed.labels, cols: parsed.labels, values: centered.x } : null, ac,
     GOF: [absSum === 0 ? NaN : retained / absSum, positiveSum === 0 ? NaN : retained / positiveSum], warnings };
 }
