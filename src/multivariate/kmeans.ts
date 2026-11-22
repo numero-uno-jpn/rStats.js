@@ -7,6 +7,8 @@ export interface KmeansOptions {
   nstart?: number;
 }
 
+export interface KmeansMatrixInput { rows: string[] | null; cols: string[] | null; values: readonly (readonly number[])[]; }
+
 export interface KmeansTable {
   rows: string[];
   cols: string[] | null;
@@ -184,7 +186,7 @@ function hartiganWong(rows: number[][], initial: number[][], iterMax: number): {
  * @category Multivariate analysis
  */
 export function kmeans(
-  x: readonly unknown[] | readonly (readonly unknown[])[] | Record<string, ArrayLike<unknown>>,
+  x: readonly unknown[] | readonly (readonly unknown[])[] | Record<string, ArrayLike<unknown>> | KmeansMatrixInput,
   centersInput: number | readonly number[] | readonly (readonly number[])[],
   options: KmeansOptions = {},
 ): KmeansFit {
