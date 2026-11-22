@@ -55,15 +55,17 @@ SciPy (`scipy.stats`、`scipy.special`、`scipy.linalg`) は移植元のコー�
 一覧は [README](README.ja.md#含まれるもの) に、R との既知の違いは
 [docs/ja/differences-from-r.md](docs/ja/differences-from-r.md) にあります。
 
+回帰 (以前の項目 2) は 1.8.0 に向けて完了しました: 分位点回帰 (`rq`)、一般化推定方程式 (`geeglm`)、
+正則化回帰 (`glmnet`) です。[変更履歴](CHANGELOG.md#unreleased) と
+[R との違い](docs/ja/differences-from-r.md) を参照してください。
+
 ## 残っていること
 
 優先するのは、医学・心理学の研究で正しい手法を使えることです。小標本で正確な方法と、p 値だけでなく効果の
 指標とその信頼区間を出せることを重視します。この一覧は、医学・心理学の研究向けの統計ウェブアプリの手法と
 照らし合わせて作りました (2026-11-06)。優先度の高い順です。括弧内は、各項目の照合先の R の関数またはパッケージです。
 
-2. **1.8.0 の回帰:** 分位点回帰 [quantreg `rq`]、GEE [geepack]、正則化回帰 [glmnet]。線形計画法・作業相関・座標
-   降下法が要り、R との合わせ込みに手間がかかります。
-3. **その後 (順不同):** MANOVA [`manova`]、判別分析 [MASS `lda`]、正準相関 [`cancor`]。クラスタ分析 [`hclust`、
+2. **その後 (順不同):** MANOVA [`manova`]、判別分析 [MASS `lda`]、正準相関 [`cancor`]。クラスタ分析 [`hclust`、
    `kmeans`]。多次元尺度法と対応分析 [`cmdscale`、MASS `isoMDS`、ca]。Tamhane の T2 と Page の検定 [PMCMRplus]、
    Grubbs の検定 [outliers]。時系列 [`acf`、`arima`]。
 

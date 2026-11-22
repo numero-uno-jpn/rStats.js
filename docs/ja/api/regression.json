@@ -1,4 +1,939 @@
 {
+  "CvGlmnetOptions#summary": {
+    "hash": "de9acedfe20c",
+    "en": "Options for {@link cvGlmnet}; fold assignments are required.",
+    "ja": "{@link cvGlmnet} のオプションです。交差検証の分割割り当てが必要です。"
+  },
+  "CvGlmnetOptions.foldid#summary": {
+    "hash": "0eaca2620cb2",
+    "en": "Fixed fold assignment for deterministic cross-validation.",
+    "ja": "再現可能な交差検証のための固定された分割割り当てです。"
+  },
+  "CvGlmnetOptions.grouped#summary": {
+    "hash": "728366b9a477",
+    "en": "Whether fold-level scores are summarized before the cross-validation mean and standard error.",
+    "ja": "交差検証の平均と標準誤差を計算する前に、分割ごとのスコアを要約するかどうかです。"
+  },
+  "CvGlmnetOptions.keep#summary": {
+    "hash": "83a763f579dc",
+    "en": "Whether held-out predictions are retained.",
+    "ja": "検証用データの予測値を保持するかどうかです。"
+  },
+  "CvGlmnetOptions.typeMeasure#summary": {
+    "hash": "da2d1401cef4",
+    "en": "Loss or performance measure evaluated on held-out folds.",
+    "ja": "検証用データで評価する損失または性能の指標です。"
+  },
+  "CvGlmnetResult#summary": {
+    "hash": "ac7c80e99e89",
+    "en": "Cross-validation summary returned by {@link cvGlmnet}.",
+    "ja": "{@link cvGlmnet} が返す交差検証の要約です。"
+  },
+  "CvGlmnetResult.cvlo#summary": {
+    "hash": "015c8fa084b2",
+    "en": "Lower one-standard-error bound for the cross-validated loss.",
+    "ja": "交差検証した損失の 1 標準誤差下限です。"
+  },
+  "CvGlmnetResult.cvm#summary": {
+    "hash": "94d89940f3e2",
+    "en": "Mean cross-validated loss at each penalty value.",
+    "ja": "各ペナルティ値における交差検証した損失の平均です。"
+  },
+  "CvGlmnetResult.cvsd#summary": {
+    "hash": "7ed8c05a921c",
+    "en": "Estimated standard error of the cross-validated loss.",
+    "ja": "交差検証した損失の推定標準誤差です。"
+  },
+  "CvGlmnetResult.cvup#summary": {
+    "hash": "2effed816942",
+    "en": "Upper one-standard-error bound for the cross-validated loss.",
+    "ja": "交差検証した損失の 1 標準誤差上限です。"
+  },
+  "CvGlmnetResult.fit#summary": {
+    "hash": "af14cee53366",
+    "en": "Full-data penalized fit associated with cross-validation.",
+    "ja": "交差検証に関連付けられた全データによるペナルティ付き当てはめです。"
+  },
+  "CvGlmnetResult.fitPreval#summary": {
+    "hash": "5c4c66e4a4ec",
+    "en": "Held-out predictions retained when keep is enabled.",
+    "ja": "keep が有効な場合に保持される検証用データの予測値です。"
+  },
+  "CvGlmnetResult.foldid#summary": {
+    "hash": "0eaca2620cb2",
+    "en": "Fixed fold assignment for deterministic cross-validation.",
+    "ja": "再現可能な交差検証のための固定された分割割り当てです。"
+  },
+  "CvGlmnetResult.lambda#summary": {
+    "hash": "9baf9bef6e44",
+    "en": "Decreasing penalty values defining the fitted regularization path.",
+    "ja": "当てはめた正則化パスを定義する、降順のペナルティ値です。"
+  },
+  "CvGlmnetResult.lambda1se#summary": {
+    "hash": "0e9543884c7e",
+    "en": "Largest penalty within one standard error of the minimum loss.",
+    "ja": "最小損失から 1 標準誤差以内にある最大のペナルティです。"
+  },
+  "CvGlmnetResult.lambdaMin#summary": {
+    "hash": "a02739d2f103",
+    "en": "Penalty value minimizing the mean cross-validated loss.",
+    "ja": "交差検証した損失の平均を最小にするペナルティ値です。"
+  },
+  "CvGlmnetResult.name#summary": {
+    "hash": "041718dc8420",
+    "en": "Name of the cross-validation measure used.",
+    "ja": "使用した交差検証指標の名前です。"
+  },
+  "CvGlmnetResult.nzero#summary": {
+    "hash": "6e31c9c920a7",
+    "en": "Number of nonzero coefficients at each penalty value.",
+    "ja": "各ペナルティ値における 0 でない係数の数です。"
+  },
+  "CvGlmnetResult.warnings#summary": {
+    "hash": "1caf53387317",
+    "en": "Warnings generated during cross-validation.",
+    "ja": "交差検証中に生成された警告です。"
+  },
+  "DesignContrast#summary": {
+    "hash": "a60d441d2578",
+    "en": "A contrast the internal model-matrix code accepts: those of {@link ContrastName} and R's `contr.poly` (orthogonal\npolynomials in the level scores 1, 2, ..., columns `.L`, `.Q`, `.C`, `^4`, ...), which lmer's fixed effects may use.",
+    "ja": "内部のモデル行列コードが受け入れるコントラストです。{@link ContrastName} のものと、R の `contr.poly` (水準スコア 1, 2, ... に関する直交多項式で、列は `.L`, `.Q`, `.C`, `^4`, ... です) があり、lmer の固定効果で使用される場合があります。"
+  },
+  "GeeAnovaOptions#summary": {
+    "hash": "6dc497748d96",
+    "en": "Options for a GEE Wald analysis of variance.",
+    "ja": "GEE の Wald 分散分析のオプションです。"
+  },
+  "GeeAnovaOptions.test#summary": {
+    "hash": "753a892c20ac",
+    "en": "Wald test used for the sequential term comparison.",
+    "ja": "項を逐次比較するために使用する Wald 検定です。"
+  },
+  "GeeAnovaResult#summary": {
+    "hash": "9d5fbddc729f",
+    "en": "Wald comparison table for GEE models.",
+    "ja": "GEE モデルの Wald 比較表です。"
+  },
+  "GeeAnovaResult.columns#summary": {
+    "hash": "d15e9785c501",
+    "en": "Column labels for the returned summary table.",
+    "ja": "返される要約表の列ラベルです。"
+  },
+  "GeeAnovaResult.rows#summary": {
+    "hash": "4fa2bc7327f5",
+    "en": "Original data-row indices retained in the model frame.",
+    "ja": "モデルフレームに保持された元データの行インデックスです。"
+  },
+  "GeeAnovaResult.values#summary": {
+    "hash": "7d50f6066cab",
+    "en": "Numeric values in the returned summary table.",
+    "ja": "返される要約表の数値です。"
+  },
+  "GeeCorrelation#summary": {
+    "hash": "ef1074e288d2",
+    "en": "Working correlation structures supported by a GEE fit.",
+    "ja": "GEE の当てはめでサポートされる作業相関構造です。"
+  },
+  "GeeId#summary": {
+    "hash": "d3ea0bdd97b7",
+    "en": "Cluster identifiers may be numeric, character, or logical.",
+    "ja": "クラスター識別子には、数値、文字、または論理値を指定できます。"
+  },
+  "GeeOptions#summary": {
+    "hash": "8509bbf71d3d",
+    "en": "Options for a marginal generalized estimating equation fit.",
+    "ja": "周辺一般化推定方程式の当てはめのオプションです。"
+  },
+  "GeeOptions.corstr#summary": {
+    "hash": "0924e900cbbb",
+    "en": "Working correlation structure.",
+    "ja": "作業相関構造です。"
+  },
+  "GeeOptions.epsilon#summary": {
+    "hash": "a6e62a9ebdce",
+    "en": "Convergence tolerance for coefficient updates.",
+    "ja": "係数更新の収束許容誤差です。"
+  },
+  "GeeOptions.family#summary": {
+    "hash": "ae9889eec53a",
+    "en": "Response distribution used by the estimating equations.",
+    "ja": "推定方程式で使用する応答分布です。"
+  },
+  "GeeOptions.id#summary": {
+    "hash": "8590892f43cf",
+    "en": "Cluster identifier column or values.",
+    "ja": "クラスター識別子の列または値です。"
+  },
+  "GeeOptions.link#summary": {
+    "hash": "c100ba9c2c86",
+    "en": "Link function for the response mean.",
+    "ja": "応答平均のリンク関数です。"
+  },
+  "GeeOptions.maxit#summary": {
+    "hash": "004a1a56b777",
+    "en": "Maximum number of fitting iterations.",
+    "ja": "当てはめの反復回数の最大値です。"
+  },
+  "GeeOptions.offset#summary": {
+    "hash": "4251dec3b88b",
+    "en": "Known contribution to the linear predictor.",
+    "ja": "線形予測子への既知の寄与です。"
+  },
+  "GeeOptions.scale.fix#summary": {
+    "hash": "9985d0baf79f",
+    "en": "Whether to hold the scale parameter fixed at scale.value.",
+    "ja": "尺度パラメータを scale.value に固定するかどうかです。"
+  },
+  "GeeOptions.scale.value#summary": {
+    "hash": "c6c67b4e81c3",
+    "en": "Fixed scale parameter value when scale.fix is enabled.",
+    "ja": "scale.fix が有効な場合の固定尺度パラメータ値です。"
+  },
+  "GeeOptions.std.err#summary": {
+    "hash": "d79a55c910b9",
+    "en": "Standard-error estimator requested for the coefficient covariance.",
+    "ja": "係数の共分散に要求する標準誤差推定量です。"
+  },
+  "GeeOptions.waves#summary": {
+    "hash": "7c441b66bd9a",
+    "en": "Within-cluster observation order or wave values.",
+    "ja": "クラスター内の観測順序または時点の値です。"
+  },
+  "GeeOptions.weights#summary": {
+    "hash": "578942b05ef2",
+    "en": "Prior observation weights.",
+    "ja": "事前の観測値の重みです。"
+  },
+  "GeeOptions.zcor#summary": {
+    "hash": "9d9b191c37c5",
+    "en": "User-supplied or fixed pairwise working-correlation values.",
+    "ja": "ユーザー指定または固定されたペアごとの作業相関値です。"
+  },
+  "GeePredictOptions#summary": {
+    "hash": "15f4844effa3",
+    "en": "Prediction options for a GEE fit.",
+    "ja": "GEE の当てはめに対する予測オプションです。"
+  },
+  "GeePredictOptions.newdata#summary": {
+    "hash": "ef136c244839",
+    "en": "Optional data frame used to construct predictions.",
+    "ja": "予測値の計算に使用する任意のデータフレームです。"
+  },
+  "GeePredictOptions.newoffset#summary": {
+    "hash": "eb462e681c20",
+    "en": "Offset values for new observations.",
+    "ja": "新しい観測値のオフセット値です。"
+  },
+  "GeePredictOptions.type#summary": {
+    "hash": "01c818f6d7ed",
+    "en": "Prediction scale or covariance selection.",
+    "ja": "予測の尺度または共分散の選択です。"
+  },
+  "GeeQICResult#summary": {
+    "hash": "bf665a776d1c",
+    "en": "Quasi-likelihood information criteria returned by geeQIC.",
+    "ja": "geeQIC が返す準尤度情報量規準です。"
+  },
+  "GeeQICResult.CIC#summary": {
+    "hash": "767909595df2",
+    "en": "Correlation information criterion.",
+    "ja": "相関情報量規準です。"
+  },
+  "GeeQICResult.Q#summary": {
+    "hash": "ebb31522aa39",
+    "en": "Quasi-likelihood component.",
+    "ja": "準尤度の成分です。"
+  },
+  "GeeQICResult.QIC#summary": {
+    "hash": "3eed4ad2e8cc",
+    "en": "Quasi-likelihood under the independence model criterion.",
+    "ja": "独立モデルを基準とする準尤度情報量規準です。"
+  },
+  "GeeQICResult.QICC#summary": {
+    "hash": "af8e6d65e054",
+    "en": "Finite-sample corrected QIC.",
+    "ja": "有限標本補正済み QIC です。"
+  },
+  "GeeQICResult.QICu#summary": {
+    "hash": "1cce30d4e9c2",
+    "en": "Uncorrected quasi-likelihood information criterion.",
+    "ja": "補正なしの準尤度情報量規準です。"
+  },
+  "GeeQICResult.params#summary": {
+    "hash": "ed1461276f1e",
+    "en": "Number of fitted mean-model parameters.",
+    "ja": "当てはめた平均モデルのパラメータ数です。"
+  },
+  "GeeResult#summary": {
+    "hash": "9cf246ddf17f",
+    "en": "A fitted generalized estimating equation model.",
+    "ja": "当てはめた一般化推定方程式モデルです。"
+  },
+  "GeeResult.alpha#summary": {
+    "hash": "8520b6a74e8e",
+    "en": "Estimated working-correlation parameter values.",
+    "ja": "推定された作業相関パラメータの値です。"
+  },
+  "GeeResult.clusterIds#summary": {
+    "hash": "3d1539c52dcf",
+    "en": "Cluster identifiers corresponding to retained rows.",
+    "ja": "保持された行に対応するクラスター識別子です。"
+  },
+  "GeeResult.coefficients#summary": {
+    "hash": "86af97ab8ddd",
+    "en": "Estimated marginal-model coefficients.",
+    "ja": "周辺モデルの推定係数です。"
+  },
+  "GeeResult.columnNames#summary": {
+    "hash": "11045377ffda",
+    "en": "Names of the model-matrix columns.",
+    "ja": "モデル行列の列名です。"
+  },
+  "GeeResult.converged#summary": {
+    "hash": "926552c1e505",
+    "en": "Whether the coefficient iteration met its convergence criterion.",
+    "ja": "係数の反復計算が収束基準を満たしたかどうかです。"
+  },
+  "GeeResult.corstr#summary": {
+    "hash": "0924e900cbbb",
+    "en": "Working correlation structure.",
+    "ja": "作業相関構造です。"
+  },
+  "GeeResult.covariance#summary": {
+    "hash": "348c0b33ad5c",
+    "en": "Robust sandwich covariance matrix of the coefficient estimates.",
+    "ja": "係数推定値のロバストなサンドイッチ共分散行列です。"
+  },
+  "GeeResult.family#summary": {
+    "hash": "ae9889eec53a",
+    "en": "Response distribution used by the estimating equations.",
+    "ja": "推定方程式で使用する応答分布です。"
+  },
+  "GeeResult.fittedValues#summary": {
+    "hash": "5ea1b1d4f3b7",
+    "en": "Fitted marginal means for the original input rows.",
+    "ja": "元の入力行に対する当てはめた周辺平均です。"
+  },
+  "GeeResult.independenceCovariance#summary": {
+    "hash": "66fe5f3e5a69",
+    "en": "Model-based covariance matrix under independence working correlation.",
+    "ja": "独立作業相関の下でのモデルベース共分散行列です。"
+  },
+  "GeeResult.iterations#summary": {
+    "hash": "4d5819b10bbb",
+    "en": "Number of coefficient-update iterations performed.",
+    "ja": "実行した係数更新の反復回数です。"
+  },
+  "GeeResult.linearPredictors#summary": {
+    "hash": "1334e983617e",
+    "en": "Fitted linear predictors for the original input rows.",
+    "ja": "元の入力行に対する当てはめた線形予測子です。"
+  },
+  "GeeResult.link#summary": {
+    "hash": "c100ba9c2c86",
+    "en": "Link function for the response mean.",
+    "ja": "応答平均のリンク関数です。"
+  },
+  "GeeResult.model#summary": {
+    "hash": "857138ba33fc",
+    "en": "Model-frame, design, and cluster information retained for downstream methods.",
+    "ja": "後続のメソッドで使用するために保持されたモデルフレーム、計画、およびクラスター情報です。"
+  },
+  "GeeResult.model.corstr#summary": {
+    "hash": "0924e900cbbb",
+    "en": "Working correlation structure.",
+    "ja": "作業相関構造です。"
+  },
+  "GeeResult.model.data#summary": {
+    "hash": "399626afda86",
+    "en": "Data frame retained for prediction and model comparisons.",
+    "ja": "予測とモデル比較のために保持されたデータフレームです。"
+  },
+  "GeeResult.model.epsilon#summary": {
+    "hash": "a6e62a9ebdce",
+    "en": "Convergence tolerance for coefficient updates.",
+    "ja": "係数更新の収束許容誤差です。"
+  },
+  "GeeResult.model.family#summary": {
+    "hash": "ae9889eec53a",
+    "en": "Response distribution used by the estimating equations.",
+    "ja": "推定方程式で使用する応答分布です。"
+  },
+  "GeeResult.model.formula#summary": {
+    "hash": "fa221b20354f",
+    "en": "Original model formula.",
+    "ja": "元のモデル式です。"
+  },
+  "GeeResult.model.hasExternalOffset#summary": {
+    "hash": "d9d5d75ed1f3",
+    "en": "Whether an offset was supplied outside the formula.",
+    "ja": "式の外でオフセットが指定されたかどうかです。"
+  },
+  "GeeResult.model.ids#summary": {
+    "hash": "7a25e8dd5518",
+    "en": "Cluster identifiers for retained observations.",
+    "ja": "保持された観測値のクラスター識別子です。"
+  },
+  "GeeResult.model.intercept#summary": {
+    "hash": "93327e8193cc",
+    "en": "Whether the mean model includes an intercept.",
+    "ja": "平均モデルに切片が含まれるかどうかです。"
+  },
+  "GeeResult.model.link#summary": {
+    "hash": "c100ba9c2c86",
+    "en": "Link function for the response mean.",
+    "ja": "応答平均のリンク関数です。"
+  },
+  "GeeResult.model.maxit#summary": {
+    "hash": "004a1a56b777",
+    "en": "Maximum number of fitting iterations.",
+    "ja": "当てはめの反復回数の最大値です。"
+  },
+  "GeeResult.model.meanFormula#summary": {
+    "hash": "b25ec7ff2658",
+    "en": "Mean-model formula after offset terms are separated.",
+    "ja": "オフセット項を分離した後の平均モデルの式です。"
+  },
+  "GeeResult.model.offset#summary": {
+    "hash": "4251dec3b88b",
+    "en": "Known contribution to the linear predictor.",
+    "ja": "線形予測子への既知の寄与です。"
+  },
+  "GeeResult.model.offsetOptionColumn#summary": {
+    "hash": "40d8f6a1f8e5",
+    "en": "Name of the data column supplied through the offset option, if any.",
+    "ja": "offset オプションで指定されたデータ列の名前です (指定されている場合)。"
+  },
+  "GeeResult.model.responseVariable#summary": {
+    "hash": "678c45597679",
+    "en": "Name of the response variable.",
+    "ja": "応答変数の名前です。"
+  },
+  "GeeResult.model.scaleFix#summary": {
+    "hash": "701438dac704",
+    "en": "Whether the scale parameter is fixed.",
+    "ja": "尺度パラメータが固定されているかどうかです。"
+  },
+  "GeeResult.model.scaleValue#summary": {
+    "hash": "06177156f379",
+    "en": "Scale value used when scale is fixed.",
+    "ja": "尺度を固定した場合に使用する値です。"
+  },
+  "GeeResult.model.termAssign#summary": {
+    "hash": "c5b37a136a5d",
+    "en": "Model-matrix column to formula-term assignment.",
+    "ja": "モデル行列の列と式の項との対応付けです。"
+  },
+  "GeeResult.model.termLabels#summary": {
+    "hash": "cc152eeb83cf",
+    "en": "Labels of the formula terms.",
+    "ja": "式の項のラベルです。"
+  },
+  "GeeResult.model.waves#summary": {
+    "hash": "7c441b66bd9a",
+    "en": "Within-cluster observation order or wave values.",
+    "ja": "クラスター内の観測順序または時点の値です。"
+  },
+  "GeeResult.model.weights#summary": {
+    "hash": "578942b05ef2",
+    "en": "Prior observation weights.",
+    "ja": "事前の観測値の重みです。"
+  },
+  "GeeResult.model.x#summary": {
+    "hash": "2ed5314930c2",
+    "en": "Model matrix for retained observations.",
+    "ja": "保持された観測値のモデル行列です。"
+  },
+  "GeeResult.model.y#summary": {
+    "hash": "fe18c8c5f457",
+    "en": "Response values for retained observations.",
+    "ja": "保持された観測値の応答値です。"
+  },
+  "GeeResult.model.zcor#summary": {
+    "hash": "9d9b191c37c5",
+    "en": "User-supplied or fixed pairwise working-correlation values.",
+    "ja": "ユーザー指定または固定されたペアごとの作業相関値です。"
+  },
+  "GeeResult.modelCovariance#summary": {
+    "hash": "392f31075341",
+    "en": "Model-based covariance matrix under the working correlation.",
+    "ja": "作業相関の下でのモデルベース共分散行列です。"
+  },
+  "GeeResult.pearsonResiduals#summary": {
+    "hash": "28647a88b071",
+    "en": "Pearson residuals for the original input rows.",
+    "ja": "元の入力行に対するPearson 残差です。"
+  },
+  "GeeResult.residuals#summary": {
+    "hash": "c26432f3e76d",
+    "en": "Response residuals for the original input rows.",
+    "ja": "元の入力行に対する応答残差です。"
+  },
+  "GeeResult.rows#summary": {
+    "hash": "4fa2bc7327f5",
+    "en": "Original data-row indices retained in the model frame.",
+    "ja": "モデルフレームに保持された元データの行インデックスです。"
+  },
+  "GeeResult.scale#summary": {
+    "hash": "bf6f7d31f35f",
+    "en": "Scale or dispersion parameter.",
+    "ja": "尺度または分散パラメータです。"
+  },
+  "GeeResult.stdErr#summary": {
+    "hash": "3841102d4d30",
+    "en": "Standard-error estimator used by the fit.",
+    "ja": "当てはめで使用した標準誤差推定量です。"
+  },
+  "GeeResult.warnings#summary": {
+    "hash": "a0387e7372bd",
+    "en": "Warnings recorded while fitting or summarizing the model.",
+    "ja": "モデルの当てはめまたは要約中に記録された警告です。"
+  },
+  "GeeResult.waves#summary": {
+    "hash": "7c441b66bd9a",
+    "en": "Within-cluster observation order or wave values.",
+    "ja": "クラスター内の観測順序または時点の値です。"
+  },
+  "GeeStdErr#summary": {
+    "hash": "5e270c353c03",
+    "en": "Coefficient covariance estimators.",
+    "ja": "係数の共分散推定量です。"
+  },
+  "GeeSummaryResult#summary": {
+    "hash": "815559322639",
+    "en": "Coefficient and nuisance-parameter summary of a GEE fit.",
+    "ja": "GEE の当てはめにおける係数と補助パラメータの要約です。"
+  },
+  "GeeSummaryResult.columns#summary": {
+    "hash": "d15e9785c501",
+    "en": "Column labels for the returned summary table.",
+    "ja": "返される要約表の列ラベルです。"
+  },
+  "GeeSummaryResult.correlation#summary": {
+    "hash": "bb7c97f1f7cd",
+    "en": "Estimated working-correlation summary.",
+    "ja": "推定された作業相関の要約です。"
+  },
+  "GeeSummaryResult.correlation.estimate#summary": {
+    "hash": "08082c27673a",
+    "en": "Estimated working-correlation values.",
+    "ja": "推定された作業相関の値です。"
+  },
+  "GeeSummaryResult.correlation.rows#summary": {
+    "hash": "2ef706a7fc1a",
+    "en": "Labels for the reported working-correlation rows.",
+    "ja": "報告される作業相関の行ラベルです。"
+  },
+  "GeeSummaryResult.rows#summary": {
+    "hash": "4fa2bc7327f5",
+    "en": "Original data-row indices retained in the model frame.",
+    "ja": "モデルフレームに保持された元データの行インデックスです。"
+  },
+  "GeeSummaryResult.scale#summary": {
+    "hash": "bf6f7d31f35f",
+    "en": "Scale or dispersion parameter.",
+    "ja": "尺度または分散パラメータです。"
+  },
+  "GeeSummaryResult.values#summary": {
+    "hash": "7d50f6066cab",
+    "en": "Numeric values in the returned summary table.",
+    "ja": "返される要約表の数値です。"
+  },
+  "GeeSummaryResult.warnings#summary": {
+    "hash": "a0387e7372bd",
+    "en": "Warnings recorded while fitting or summarizing the model.",
+    "ja": "モデルの当てはめまたは要約中に記録された警告です。"
+  },
+  "GeeVcovOptions#summary": {
+    "hash": "8230184e24ca",
+    "en": "Options for selecting the covariance matrix returned by geeVcov.",
+    "ja": "geeVcov が返す共分散行列を選択するためのオプションです。"
+  },
+  "GeeVcovOptions.type#summary": {
+    "hash": "7c730c0dd38a",
+    "en": "Covariance matrix to return: robust sandwich or model-based.",
+    "ja": "返す共分散行列です。ロバストなサンドイッチ型またはモデルベースです。"
+  },
+  "GeeVcovResult#summary": {
+    "hash": "63afdb777077",
+    "en": "A GEE coefficient covariance matrix.",
+    "ja": "GEE の係数共分散行列です。"
+  },
+  "GeeVcovResult.columns#summary": {
+    "hash": "d15e9785c501",
+    "en": "Column labels for the returned summary table.",
+    "ja": "返される要約表の列ラベルです。"
+  },
+  "GeeVcovResult.rows#summary": {
+    "hash": "4fa2bc7327f5",
+    "en": "Original data-row indices retained in the model frame.",
+    "ja": "モデルフレームに保持された元データの行インデックスです。"
+  },
+  "GeeVcovResult.values#summary": {
+    "hash": "7d50f6066cab",
+    "en": "Numeric values in the returned summary table.",
+    "ja": "返される要約表の数値です。"
+  },
+  "GlmnetFamily#summary": {
+    "hash": "05e10f41a731",
+    "en": "Family used for the penalized generalized linear model.",
+    "ja": "ペナルティ付き一般化線形モデルで使用する分布族です。"
+  },
+  "GlmnetMultiType#summary": {
+    "hash": "33181d141a5e",
+    "en": "Multinomial penalty structure.",
+    "ja": "多項モデルのペナルティ構造です。"
+  },
+  "GlmnetMultinomialResult#summary": {
+    "hash": "e09629875ac2",
+    "en": "Result of a multinomial {@link glmnet} fit.",
+    "ja": "多項 {@link glmnet} の当てはめ結果です。"
+  },
+  "GlmnetMultinomialResult.a0#summary": {
+    "hash": "cf308cfd44c2",
+    "en": "Intercept estimates for each penalty value.",
+    "ja": "各ペナルティ値に対する切片の推定値です。"
+  },
+  "GlmnetMultinomialResult.alpha#summary": {
+    "hash": "e7392a7c0d11",
+    "en": "Elastic-net mixing parameter between ridge and lasso penalties.",
+    "ja": "リッジペナルティと Lasso ペナルティの間の Elastic Net 混合パラメータです。"
+  },
+  "GlmnetMultinomialResult.beta#summary": {
+    "hash": "b5a2bd814aa9",
+    "en": "Predictor coefficient estimates for each penalty value.",
+    "ja": "各ペナルティ値に対する説明変数係数の推定値です。"
+  },
+  "GlmnetMultinomialResult.converged#summary": {
+    "hash": "00e95f14f02f",
+    "en": "Whether each penalty value met the convergence criterion.",
+    "ja": "各ペナルティ値で収束基準を満たしたかどうかです。"
+  },
+  "GlmnetMultinomialResult.devRatio#summary": {
+    "hash": "2d16defedd17",
+    "en": "Fraction of null deviance explained at each penalty value.",
+    "ja": "各ペナルティ値で帰無モデルの逸脱度が説明された割合です。"
+  },
+  "GlmnetMultinomialResult.dfmat#summary": {
+    "hash": "a3a3120f6c0a",
+    "en": "Class-specific degrees of freedom at each penalty value.",
+    "ja": "各ペナルティ値におけるクラス固有の自由度です。"
+  },
+  "GlmnetMultinomialResult.family#summary": {
+    "hash": "7f9922d708b0",
+    "en": "Response distribution used for the penalized fit.",
+    "ja": "ペナルティ付き当てはめで使用する応答分布です。"
+  },
+  "GlmnetMultinomialResult.kktResidual#summary": {
+    "hash": "855c0c5cd157",
+    "en": "Maximum Karush-Kuhn-Tucker residual at each penalty value.",
+    "ja": "各ペナルティ値における Karush-Kuhn-Tucker 残差の最大値です。"
+  },
+  "GlmnetMultinomialResult.lambda#summary": {
+    "hash": "9baf9bef6e44",
+    "en": "Decreasing penalty values defining the fitted regularization path.",
+    "ja": "当てはめた正則化パスを定義する、降順のペナルティ値です。"
+  },
+  "GlmnetMultinomialResult.model#summary": {
+    "hash": "f88e3b8dcf74",
+    "en": "Design, response, and preprocessing information retained by the fit.",
+    "ja": "当てはめによって保持された計画、応答、および前処理の情報です。"
+  },
+  "GlmnetMultinomialResult.model.classes#summary": {
+    "hash": "115bf578506d",
+    "en": "Class labels represented by the multinomial response.",
+    "ja": "多項応答が表すクラスラベルです。"
+  },
+  "GlmnetMultinomialResult.model.columns#summary": {
+    "hash": "f8fc5395e1a5",
+    "en": "Number of predictor columns.",
+    "ja": "説明変数の列数です。"
+  },
+  "GlmnetMultinomialResult.model.intercept#summary": {
+    "hash": "45b375ca099b",
+    "en": "Whether an unpenalized intercept is included.",
+    "ja": "ペナルティを課さない切片を含めるかどうかです。"
+  },
+  "GlmnetMultinomialResult.model.offset#summary": {
+    "hash": "4251dec3b88b",
+    "en": "Known contribution to the linear predictor.",
+    "ja": "線形予測子への既知の寄与です。"
+  },
+  "GlmnetMultinomialResult.model.typeMultinomial#summary": {
+    "hash": "1e1299f069e6",
+    "en": "Penalty structure used for a multinomial fit.",
+    "ja": "多項モデルの当てはめで使用したペナルティ構造です。"
+  },
+  "GlmnetMultinomialResult.model.weights#summary": {
+    "hash": "a9288ebe2d8e",
+    "en": "Nonnegative prior observation weights.",
+    "ja": "0 以上の事前の観測値の重みです。"
+  },
+  "GlmnetMultinomialResult.model.x#summary": {
+    "hash": "346beb97be74",
+    "en": "Original predictor matrix used by the fit.",
+    "ja": "当てはめで使用した元の説明変数行列です。"
+  },
+  "GlmnetMultinomialResult.model.xMean#summary": {
+    "hash": "05dbf4ec35c9",
+    "en": "Predictor means used for standardization.",
+    "ja": "標準化に使用した説明変数の平均です。"
+  },
+  "GlmnetMultinomialResult.model.xScale#summary": {
+    "hash": "d7747e30c6a0",
+    "en": "Predictor scales used for standardization.",
+    "ja": "標準化に使用した説明変数の尺度です。"
+  },
+  "GlmnetMultinomialResult.model.y#summary": {
+    "hash": "e3ca5ef7fd57",
+    "en": "Response values used by the fit.",
+    "ja": "当てはめで使用した応答値です。"
+  },
+  "GlmnetMultinomialResult.npasses#summary": {
+    "hash": "d4a0168397fc",
+    "en": "Total number of coordinate-descent passes.",
+    "ja": "座標降下法の反復回数の合計です。"
+  },
+  "GlmnetMultinomialResult.nullDev#summary": {
+    "hash": "f3ed81131f8b",
+    "en": "Null-model deviance for the fitted family.",
+    "ja": "当てはめた分布族に対する帰無モデルの逸脱度です。"
+  },
+  "GlmnetOptions#summary": {
+    "hash": "2b42dbdadac6",
+    "en": "Options for {@link glmnet}.",
+    "ja": "{@link glmnet} のオプションです。"
+  },
+  "GlmnetOptions.alpha#summary": {
+    "hash": "e7392a7c0d11",
+    "en": "Elastic-net mixing parameter between ridge and lasso penalties.",
+    "ja": "リッジペナルティと Lasso ペナルティの間の Elastic Net 混合パラメータです。"
+  },
+  "GlmnetOptions.devmax#summary": {
+    "hash": "85e947988ad2",
+    "en": "Maximum fraction of null deviance explained before path stopping.",
+    "ja": "パスを停止する前に説明する帰無モデルの逸脱度の割合の最大値です。"
+  },
+  "GlmnetOptions.dfmax#summary": {
+    "hash": "d5bbfe9d7dc0",
+    "en": "Maximum number of active coefficients allowed in the path.",
+    "ja": "パスで許容されるアクティブな係数の最大数です。"
+  },
+  "GlmnetOptions.family#summary": {
+    "hash": "7f9922d708b0",
+    "en": "Response distribution used for the penalized fit.",
+    "ja": "ペナルティ付き当てはめで使用する応答分布です。"
+  },
+  "GlmnetOptions.fdev#summary": {
+    "hash": "19c8c5521161",
+    "en": "Minimum fractional deviance improvement used for path stopping.",
+    "ja": "パスの停止に使用する逸脱度改善率の最小値です。"
+  },
+  "GlmnetOptions.intercept#summary": {
+    "hash": "45b375ca099b",
+    "en": "Whether an unpenalized intercept is included.",
+    "ja": "ペナルティを課さない切片を含めるかどうかです。"
+  },
+  "GlmnetOptions.lambda#summary": {
+    "hash": "9baf9bef6e44",
+    "en": "Decreasing penalty values defining the fitted regularization path.",
+    "ja": "当てはめた正則化パスを定義する、降順のペナルティ値です。"
+  },
+  "GlmnetOptions.lambdaMinRatio#summary": {
+    "hash": "914fc0d2db06",
+    "en": "Ratio of the final to initial penalty in the automatic path.",
+    "ja": "自動パスにおける最終ペナルティと初期ペナルティの比です。"
+  },
+  "GlmnetOptions.lowerLimits#summary": {
+    "hash": "11314885ac14",
+    "en": "Lower bounds imposed on coefficient values.",
+    "ja": "係数値に課す下限です。"
+  },
+  "GlmnetOptions.maxit#summary": {
+    "hash": "cc89c57d907e",
+    "en": "Maximum number of optimization iterations per penalty value.",
+    "ja": "各ペナルティ値に対する最適化反復回数の最大値です。"
+  },
+  "GlmnetOptions.nlambda#summary": {
+    "hash": "40eebd93521f",
+    "en": "Requested number of penalty values in the automatic path.",
+    "ja": "自動パスで要求するペナルティ値の数です。"
+  },
+  "GlmnetOptions.offset#summary": {
+    "hash": "4251dec3b88b",
+    "en": "Known contribution to the linear predictor.",
+    "ja": "線形予測子への既知の寄与です。"
+  },
+  "GlmnetOptions.penaltyFactor#summary": {
+    "hash": "48e92104435e",
+    "en": "Nonnegative coefficient-specific penalty multipliers.",
+    "ja": "係数ごとの 0 以上のペナルティ乗数です。"
+  },
+  "GlmnetOptions.pmax#summary": {
+    "hash": "6c49d9789dc5",
+    "en": "Maximum number of ever-active coefficients allowed in the path.",
+    "ja": "パスで許容される、これまでにアクティブになった係数の最大数です。"
+  },
+  "GlmnetOptions.standardize#summary": {
+    "hash": "4146a2c1eb2b",
+    "en": "Whether predictor columns are standardized before fitting.",
+    "ja": "当てはめる前に説明変数の列を標準化するかどうかです。"
+  },
+  "GlmnetOptions.thresh#summary": {
+    "hash": "5c48ded8453a",
+    "en": "Convergence tolerance for the penalized optimization.",
+    "ja": "ペナルティ付き最適化の収束許容誤差です。"
+  },
+  "GlmnetOptions.typeMultinomial#summary": {
+    "hash": "1e1299f069e6",
+    "en": "Penalty structure used for a multinomial fit.",
+    "ja": "多項モデルのペナルティ構造です。"
+  },
+  "GlmnetOptions.upperLimits#summary": {
+    "hash": "534c07f401e6",
+    "en": "Upper bounds imposed on coefficient values.",
+    "ja": "係数値に課す上限です。"
+  },
+  "GlmnetOptions.weights#summary": {
+    "hash": "a9288ebe2d8e",
+    "en": "Nonnegative prior observation weights.",
+    "ja": "0 以上の事前の観測値の重みです。"
+  },
+  "GlmnetPredictOptions#summary": {
+    "hash": "b1cdf4ffffd7",
+    "en": "Options for {@link glmnetPredict}.",
+    "ja": "{@link glmnetPredict} のオプションです。"
+  },
+  "GlmnetPredictOptions.offset#summary": {
+    "hash": "4251dec3b88b",
+    "en": "Known contribution to the linear predictor.",
+    "ja": "線形予測子への既知の寄与です。"
+  },
+  "GlmnetPredictOptions.s#summary": {
+    "hash": "25a7605210bd",
+    "en": "Penalty value or values at which coefficients or predictions are requested.",
+    "ja": "係数または予測値を要求するペナルティ値です (1 つまたは複数)。"
+  },
+  "GlmnetPredictOptions.type#summary": {
+    "hash": "ab5af058ad9b",
+    "en": "Prediction scale or output representation.",
+    "ja": "予測の尺度または出力表現です。"
+  },
+  "GlmnetPredictType#summary": {
+    "hash": "6373abacb78c",
+    "en": "Scale or coefficient selection returned by a penalized-model prediction.",
+    "ja": "ペナルティ付きモデルの予測で返される尺度または係数の選択です。"
+  },
+  "GlmnetResult#summary": {
+    "hash": "c73e1d55ae6b",
+    "en": "Union of scalar-family and multinomial regularization paths.",
+    "ja": "スカラー分布族と多項正則化パスの和集合型です。"
+  },
+  "GlmnetScalarResult#summary": {
+    "hash": "850aadef9f77",
+    "en": "Result of a scalar-family {@link glmnet} fit.",
+    "ja": "スカラー分布族の {@link glmnet} の当てはめ結果です。"
+  },
+  "GlmnetScalarResult.a0#summary": {
+    "hash": "cf308cfd44c2",
+    "en": "Intercept estimates for each penalty value.",
+    "ja": "各ペナルティ値に対する切片の推定値です。"
+  },
+  "GlmnetScalarResult.alpha#summary": {
+    "hash": "e7392a7c0d11",
+    "en": "Elastic-net mixing parameter between ridge and lasso penalties.",
+    "ja": "リッジペナルティと Lasso ペナルティの間の Elastic Net 混合パラメータです。"
+  },
+  "GlmnetScalarResult.beta#summary": {
+    "hash": "b5a2bd814aa9",
+    "en": "Predictor coefficient estimates for each penalty value.",
+    "ja": "各ペナルティ値に対する説明変数係数の推定値です。"
+  },
+  "GlmnetScalarResult.converged#summary": {
+    "hash": "00e95f14f02f",
+    "en": "Whether each penalty value met the convergence criterion.",
+    "ja": "各ペナルティ値で収束基準を満たしたかどうかです。"
+  },
+  "GlmnetScalarResult.devRatio#summary": {
+    "hash": "2d16defedd17",
+    "en": "Fraction of null deviance explained at each penalty value.",
+    "ja": "各ペナルティ値で帰無モデルの逸脱度が説明された割合です。"
+  },
+  "GlmnetScalarResult.df#summary": {
+    "hash": "2cf91bf75f72",
+    "en": "Number of nonzero predictor coefficients at each penalty value.",
+    "ja": "各ペナルティ値における 0 でない説明変数係数の数です。"
+  },
+  "GlmnetScalarResult.family#summary": {
+    "hash": "7f9922d708b0",
+    "en": "Response distribution used for the penalized fit.",
+    "ja": "ペナルティ付き当てはめで使用する応答分布です。"
+  },
+  "GlmnetScalarResult.kktResidual#summary": {
+    "hash": "855c0c5cd157",
+    "en": "Maximum Karush-Kuhn-Tucker residual at each penalty value.",
+    "ja": "各ペナルティ値における Karush-Kuhn-Tucker 残差の最大値です。"
+  },
+  "GlmnetScalarResult.lambda#summary": {
+    "hash": "9baf9bef6e44",
+    "en": "Decreasing penalty values defining the fitted regularization path.",
+    "ja": "当てはめた正則化パスを定義する、降順のペナルティ値です。"
+  },
+  "GlmnetScalarResult.model#summary": {
+    "hash": "f88e3b8dcf74",
+    "en": "Design, response, and preprocessing information retained by the fit.",
+    "ja": "当てはめによって保持された計画、応答、および前処理の情報です。"
+  },
+  "GlmnetScalarResult.model.columns#summary": {
+    "hash": "f8fc5395e1a5",
+    "en": "Number of predictor columns.",
+    "ja": "説明変数の列数です。"
+  },
+  "GlmnetScalarResult.model.intercept#summary": {
+    "hash": "45b375ca099b",
+    "en": "Whether an unpenalized intercept is included.",
+    "ja": "ペナルティを課さない切片を含めるかどうかです。"
+  },
+  "GlmnetScalarResult.model.offset#summary": {
+    "hash": "4251dec3b88b",
+    "en": "Known contribution to the linear predictor.",
+    "ja": "線形予測子への既知の寄与です。"
+  },
+  "GlmnetScalarResult.model.weights#summary": {
+    "hash": "a9288ebe2d8e",
+    "en": "Nonnegative prior observation weights.",
+    "ja": "0 以上の事前の観測値の重みです。"
+  },
+  "GlmnetScalarResult.model.x#summary": {
+    "hash": "346beb97be74",
+    "en": "Original predictor matrix used by the fit.",
+    "ja": "当てはめで使用した元の説明変数行列です。"
+  },
+  "GlmnetScalarResult.model.xMean#summary": {
+    "hash": "05dbf4ec35c9",
+    "en": "Predictor means used for standardization.",
+    "ja": "標準化に使用した説明変数の平均です。"
+  },
+  "GlmnetScalarResult.model.xScale#summary": {
+    "hash": "d7747e30c6a0",
+    "en": "Predictor scales used for standardization.",
+    "ja": "標準化に使用した説明変数の尺度です。"
+  },
+  "GlmnetScalarResult.model.y#summary": {
+    "hash": "e3ca5ef7fd57",
+    "en": "Response values used by the fit.",
+    "ja": "当てはめで使用した応答値です。"
+  },
+  "GlmnetScalarResult.npasses#summary": {
+    "hash": "d4a0168397fc",
+    "en": "Total number of coordinate-descent passes.",
+    "ja": "座標降下法の反復回数の合計です。"
+  },
+  "GlmnetScalarResult.nullDev#summary": {
+    "hash": "f3ed81131f8b",
+    "en": "Null-model deviance for the fitted family.",
+    "ja": "当てはめた分布族に対する帰無モデルの逸脱度です。"
+  },
   "NlsAlgorithm#summary": {
     "hash": "5186605eace4",
     "en": "Algorithm used to fit a nonlinear least-squares model.",
@@ -1139,6 +2074,396 @@
     "en": "Warnings produced while computing the covariance.",
     "ja": "共分散の計算中に発生した警告です。"
   },
+  "RqCoefficientSummary#summary": {
+    "hash": "de51db2a3407",
+    "en": "A coefficient row in an rq summary.",
+    "ja": "rq の要約における係数の行です。"
+  },
+  "RqCoefficientSummary.estimate#summary": {
+    "hash": "90107f894a8f",
+    "en": "Estimated coefficient value.",
+    "ja": "係数の推定値です。"
+  },
+  "RqCoefficientSummary.lower#summary": {
+    "hash": "3d5c91588c00",
+    "en": "The confidence limits of `se = \"rank\"` (R's `lower bd` and `upper bd`).",
+    "ja": "`se = \"rank\"` の信頼限界です (R の `lower bd` と `upper bd`)。"
+  },
+  "RqCoefficientSummary.pValue#summary": {
+    "hash": "f71f87259103",
+    "en": "Two-sided p-value associated with the coefficient statistic.",
+    "ja": "係数の統計量に対応する両側 p 値です。"
+  },
+  "RqCoefficientSummary.statistic#summary": {
+    "hash": "4e3230de27c8",
+    "en": "Wald test statistic for the coefficient.",
+    "ja": "係数の Wald 検定統計量です。"
+  },
+  "RqCoefficientSummary.stdError#summary": {
+    "hash": "aae435e62b7e",
+    "en": "NaN for `se = \"rank\"`, which gives an interval (`lower`, `upper`) instead.",
+    "ja": "`se = \"rank\"` の場合は NaN です。この方法では代わりに区間 (`lower`, `upper`) が返されます。"
+  },
+  "RqCoefficientSummary.tau#summary": {
+    "hash": "d919c08888f9",
+    "en": "Quantile probability or probabilities to fit.",
+    "ja": "当てはめる分位点確率です (1 つまたは複数)。"
+  },
+  "RqCoefficientSummary.term#summary": {
+    "hash": "862e8a806219",
+    "en": "Model term represented by this coefficient row.",
+    "ja": "この係数行が表すモデル項です。"
+  },
+  "RqCoefficientSummary.upper#summary": {
+    "hash": "3daadaafd357",
+    "en": "Upper confidence limit for the coefficient.",
+    "ja": "係数の上側信頼限界です。"
+  },
+  "RqMethod#summary": {
+    "hash": "a4768dafba17",
+    "en": "Algorithm used to fit a quantile-regression model.",
+    "ja": "分位点回帰モデルの当てはめに使用するアルゴリズムです。"
+  },
+  "RqModel#summary": {
+    "hash": "8fca82a606b7",
+    "en": "Model data retained by a quantile-regression fit.",
+    "ja": "分位点回帰の当てはめで保持されるモデルデータです。"
+  },
+  "RqModel.columnNames#summary": {
+    "hash": "3511cdd1b282",
+    "en": "Names of the columns in the model matrix.",
+    "ja": "モデル行列の列名です。"
+  },
+  "RqModel.formula#summary": {
+    "hash": "6787c0a0c75a",
+    "en": "Model formula used to define the response and predictors.",
+    "ja": "応答と説明変数を定義するために使用したモデル式です。"
+  },
+  "RqModel.method#summary": {
+    "hash": "328f5433a181",
+    "en": "Quantile-regression optimization method.",
+    "ja": "分位点回帰の最適化方法です。"
+  },
+  "RqModel.rows#summary": {
+    "hash": "4fa2bc7327f5",
+    "en": "Original data-row indices retained in the model frame.",
+    "ja": "モデルフレームに保持された元データの行インデックスです。"
+  },
+  "RqModel.tau#summary": {
+    "hash": "d919c08888f9",
+    "en": "Quantile probability or probabilities to fit.",
+    "ja": "当てはめる分位点確率です (1 つまたは複数)。"
+  },
+  "RqModel.weights#summary": {
+    "hash": "a9288ebe2d8e",
+    "en": "Nonnegative prior observation weights.",
+    "ja": "0 以上の事前の観測値の重みです。"
+  },
+  "RqModel.x#summary": {
+    "hash": "64f46cb210ce",
+    "en": "Numeric model matrix used by the fit.",
+    "ja": "当てはめに使用した数値のモデル行列です。"
+  },
+  "RqModel.y#summary": {
+    "hash": "67dae596d34a",
+    "en": "Observed response values.",
+    "ja": "観測された応答値です。"
+  },
+  "RqOptions#summary": {
+    "hash": "c411d5959ff3",
+    "en": "Options for {@link rq}.",
+    "ja": "{@link rq} のオプションです。"
+  },
+  "RqOptions.contrasts#summary": {
+    "hash": "c5b9d6e5cc15",
+    "en": "Contrast coding specifications for factor predictors.",
+    "ja": "因子説明変数のコントラスト符号化の指定です。"
+  },
+  "RqOptions.eps#summary": {
+    "hash": "97d440c1b34e",
+    "en": "Convergence tolerance for the optimization.",
+    "ja": "最適化の収束許容誤差です。"
+  },
+  "RqOptions.levels#summary": {
+    "hash": "93e94df841af",
+    "en": "Explicit level order for factor predictors.",
+    "ja": "因子説明変数に対する明示的な水準順序です。"
+  },
+  "RqOptions.maxit#summary": {
+    "hash": "b95499125702",
+    "en": "Maximum number of optimization iterations.",
+    "ja": "最適化反復回数の最大値です。"
+  },
+  "RqOptions.method#summary": {
+    "hash": "328f5433a181",
+    "en": "Quantile-regression optimization method.",
+    "ja": "分位点回帰の最適化方法です。"
+  },
+  "RqOptions.tau#summary": {
+    "hash": "d919c08888f9",
+    "en": "Quantile probability or probabilities to fit.",
+    "ja": "当てはめる分位点確率です (1 つまたは複数)。"
+  },
+  "RqOptions.weights#summary": {
+    "hash": "a9288ebe2d8e",
+    "en": "Nonnegative prior observation weights.",
+    "ja": "0 以上の事前の観測値の重みです。"
+  },
+  "RqPredictOptions#summary": {
+    "hash": "c17d6383b526",
+    "en": "Options for confidence prediction intervals.",
+    "ja": "予測の信頼区間に関するオプションです。"
+  },
+  "RqPredictOptions.interval#summary": {
+    "hash": "34e21d971e29",
+    "en": "Whether prediction output includes confidence intervals.",
+    "ja": "予測出力に信頼区間を含めるかどうかです。"
+  },
+  "RqPredictOptions.level#summary": {
+    "hash": "b45aec5d34bf",
+    "en": "Confidence level for reported intervals.",
+    "ja": "報告する区間の信頼水準です。"
+  },
+  "RqPredictOptions.type#summary": {
+    "hash": "424347b701fd",
+    "en": "Prediction scale or confidence-interval construction method.",
+    "ja": "予測の尺度または信頼区間の構成方法です。"
+  },
+  "RqPredictResult#summary": {
+    "hash": "6778a96ad178",
+    "en": "Result of confidence prediction.",
+    "ja": "信頼区間付き予測の結果です。"
+  },
+  "RqPredictResult.fit#summary": {
+    "hash": "f81cd1c1fee3",
+    "en": "Predicted conditional quantiles or fitted values.",
+    "ja": "予測された条件付き分位点または当てはめ値です。"
+  },
+  "RqPredictResult.level#summary": {
+    "hash": "b45aec5d34bf",
+    "en": "Confidence level for reported intervals.",
+    "ja": "報告する区間の信頼水準です。"
+  },
+  "RqPredictResult.lower#summary": {
+    "hash": "156094149f8f",
+    "en": "Lower confidence limit for the coefficient.",
+    "ja": "係数の下側信頼限界です。"
+  },
+  "RqPredictResult.type#summary": {
+    "hash": "424347b701fd",
+    "en": "Prediction scale or confidence-interval construction method.",
+    "ja": "予測の尺度または信頼区間の構成方法です。"
+  },
+  "RqPredictResult.upper#summary": {
+    "hash": "3daadaafd357",
+    "en": "Upper confidence limit for the coefficient.",
+    "ja": "係数の上側信頼限界です。"
+  },
+  "RqResult#summary": {
+    "hash": "4937e87c91b2",
+    "en": "Result returned by {@link rq}.",
+    "ja": "{@link rq} が返す結果です。"
+  },
+  "RqResult.coefficients#summary": {
+    "hash": "4580f5a33d23",
+    "en": "Estimated regression coefficients.",
+    "ja": "回帰係数の推定値です。"
+  },
+  "RqResult.converged#summary": {
+    "hash": "3fe4b2668f04",
+    "en": "Whether the numerical fitting procedure met its convergence criterion.",
+    "ja": "数値的な当てはめ手順が収束基準を満たしたかどうかです。"
+  },
+  "RqResult.fittedValues#summary": {
+    "hash": "489200a98fb7",
+    "en": "Fitted conditional means or quantiles for the input rows.",
+    "ja": "入力行に対する当てはめた条件付き平均または分位点です。"
+  },
+  "RqResult.iterations#summary": {
+    "hash": "7cd8c62a9d13",
+    "en": "Number of iterations used by the fitting procedure.",
+    "ja": "当てはめ手順で使用した反復回数です。"
+  },
+  "RqResult.model#summary": {
+    "hash": "869531d6d4c4",
+    "en": "Model-frame and design information retained for downstream methods.",
+    "ja": "後続のメソッドで使用するために保持されたモデルフレームと計画の情報です。"
+  },
+  "RqResult.residuals#summary": {
+    "hash": "02049355030d",
+    "en": "Response residuals for the input rows.",
+    "ja": "入力行に対する応答残差です。"
+  },
+  "RqResult.rho#summary": {
+    "hash": "3c49f14f8ea4",
+    "en": "Quantile check-loss objective value.",
+    "ja": "分位点チェック損失の目的関数値です。"
+  },
+  "RqResult.warnings#summary": {
+    "hash": "a0387e7372bd",
+    "en": "Warnings recorded while fitting or summarizing the model.",
+    "ja": "モデルの当てはめまたは要約中に記録された警告です。"
+  },
+  "RqSummaryOptions#summary": {
+    "hash": "949e15b79ae2",
+    "en": "Options for rqSummary.",
+    "ja": "rqSummary のオプションです。"
+  },
+  "RqSummaryOptions.covariance#summary": {
+    "hash": "fe8c9488dde0",
+    "en": "Estimated coefficient covariance matrix or matrices.",
+    "ja": "係数の推定共分散行列 (または複数の行列) です。"
+  },
+  "RqSummaryOptions.iid#summary": {
+    "hash": "33273aba3708",
+    "en": "The iid form of the rank test (R's `iid`). Only `true` (the default) is supported in 1.8.0.",
+    "ja": "順位検定の iid 形式です (R の `iid`)。1.8.0 では `true` (既定) のみサポートされます。"
+  },
+  "RqSummaryOptions.level#summary": {
+    "hash": "b45aec5d34bf",
+    "en": "Confidence level for reported intervals.",
+    "ja": "報告する区間の信頼水準です。"
+  },
+  "RqSummaryOptions.se#summary": {
+    "hash": "d56af1f5cff6",
+    "en": "Standard-error or interval method used for the summary.",
+    "ja": "要約で使用する標準誤差または区間の方法です。"
+  },
+  "RqSummaryResult#summary": {
+    "hash": "88e2340f6bb0",
+    "en": "Result of rqSummary.",
+    "ja": "rqSummary の結果です。"
+  },
+  "RqSummaryResult.coefficients#summary": {
+    "hash": "4580f5a33d23",
+    "en": "Estimated regression coefficients.",
+    "ja": "回帰係数の推定値です。"
+  },
+  "RqSummaryResult.covariance#summary": {
+    "hash": "fe8c9488dde0",
+    "en": "Estimated coefficient covariance matrix or matrices.",
+    "ja": "係数の推定共分散行列 (または複数の行列) です。"
+  },
+  "RqSummaryResult.se#summary": {
+    "hash": "d56af1f5cff6",
+    "en": "Standard-error or interval method used for the summary.",
+    "ja": "要約で使用した標準誤差または区間の方法です。"
+  },
+  "RqSummaryResult.warnings#summary": {
+    "hash": "a0387e7372bd",
+    "en": "Warnings recorded while fitting or summarizing the model.",
+    "ja": "モデルの当てはめまたは要約中に記録された警告です。"
+  },
+  "RqWaldResult#summary": {
+    "hash": "e12d45281d6a",
+    "en": "Result of a quantile-regression Wald comparison.",
+    "ja": "分位点回帰の Wald 比較の結果です。"
+  },
+  "RqWaldResult.df#summary": {
+    "hash": "f26411345fae",
+    "en": "Numerator degrees of freedom for the Wald test.",
+    "ja": "Wald 検定の分子の自由度です。"
+  },
+  "RqWaldResult.dfResidual#summary": {
+    "hash": "6433941f1058",
+    "en": "Residual degrees of freedom used for the reference distribution.",
+    "ja": "参照分布に使用した残差自由度です。"
+  },
+  "RqWaldResult.method#summary": {
+    "hash": "543ffad38d66",
+    "en": "Wald comparison method used for the multi-quantile test.",
+    "ja": "複数分位点の検定で使用した Wald 比較方法です。"
+  },
+  "RqWaldResult.pValue#summary": {
+    "hash": "c4f3e8adb418",
+    "en": "P-value for the joint Wald comparison.",
+    "ja": "同時 Wald 比較の p 値です。"
+  },
+  "RqWaldResult.statistic#summary": {
+    "hash": "fe3a44d72b2e",
+    "en": "Joint Wald statistic for the tested slope restrictions across quantiles.",
+    "ja": "複数の分位点にわたる検定対象の傾きの制約に対する同時 Wald 統計量です。"
+  },
+  "cvGlmnet(0)#summary": {
+    "hash": "557e4be1ca2a",
+    "en": "Cross-validate a penalized generalized linear model. Equivalent to R's `cv.glmnet()`.",
+    "ja": "ペナルティ付き一般化線形モデルの交差検証を行います。R の `cv.glmnet()` と同等です。"
+  },
+  "cvGlmnet(1)#summary": {
+    "hash": "557e4be1ca2a",
+    "en": "Cross-validate a penalized generalized linear model. Equivalent to R's `cv.glmnet()`.",
+    "ja": "ペナルティ付き一般化線形モデルの交差検証を行います。R の `cv.glmnet()` と同等です。"
+  },
+  "geeAnova#summary": {
+    "hash": "c2d9d329e02e",
+    "en": "Compare GEE terms or nested models using Wald tests.\nEquivalent to R's `anova()`.",
+    "ja": "Wald 検定を使用して GEE の項または入れ子モデルを比較します。\nR の `anova()` と同等です。"
+  },
+  "geePredict#summary": {
+    "hash": "a31572eafa8a",
+    "en": "Predict marginal means on the link or response scale.\nEquivalent to R's `predict.geeglm()`.",
+    "ja": "リンク尺度または応答尺度で周辺平均を予測します。\nR の `predict.geeglm()` と同等です。"
+  },
+  "geeQIC#summary": {
+    "hash": "b6947939598c",
+    "en": "Calculate quasi-likelihood information criteria for a GEE fit (Pan, 2001).\nEquivalent to `geepack::QIC()` in R.",
+    "ja": "GEE の当てはめに対する準尤度情報量規準を計算します (Pan, 2001)。\nR の `geepack::QIC()` と同等です。"
+  },
+  "geeSummary#summary": {
+    "hash": "10a9373ff5a0",
+    "en": "Summarize the coefficient estimates of a GEE fit.\nEquivalent to R's `summary.geeglm()`.",
+    "ja": "GEE の当てはめの係数推定値を要約します。\nR の `summary.geeglm()` と同等です。"
+  },
+  "geeVcov#summary": {
+    "hash": "6b4db336344d",
+    "en": "Return robust or model-based coefficient covariance.\nEquivalent to R's `vcov()`.",
+    "ja": "ロバストまたはモデルベースの係数共分散を返します。\nR の `vcov()` と同等です。"
+  },
+  "geeglm#summary": {
+    "hash": "ad312ae80d7f",
+    "en": "Fit a marginal generalized estimating equation model.\nEquivalent to `geepack::geeglm()` in R.",
+    "ja": "周辺一般化推定方程式モデルを当てはめます。\nR の `geepack::geeglm()` と同等です。"
+  },
+  "glmnet(0)#summary": {
+    "hash": "692d4eef9734",
+    "en": "Fit a penalized generalized linear model path. Equivalent to R's `glmnet::glmnet()`.",
+    "ja": "ペナルティ付き一般化線形モデルのパスを当てはめます。R の `glmnet::glmnet()` と同等です。"
+  },
+  "glmnet(1)#summary": {
+    "hash": "692d4eef9734",
+    "en": "Fit a penalized generalized linear model path. Equivalent to R's `glmnet::glmnet()`.",
+    "ja": "ペナルティ付き一般化線形モデルのパスを当てはめます。R の `glmnet::glmnet()` と同等です。"
+  },
+  "glmnet(2)#summary": {
+    "hash": "692d4eef9734",
+    "en": "Fit a penalized generalized linear model path. Equivalent to R's `glmnet::glmnet()`.",
+    "ja": "ペナルティ付き一般化線形モデルのパスを当てはめます。R の `glmnet::glmnet()` と同等です。"
+  },
+  "glmnetCoef(0)#summary": {
+    "hash": "cc6bacebf439",
+    "en": "Extract coefficients at selected penalty values. Equivalent to R's `coef.glmnet()`.",
+    "ja": "選択したペナルティ値における係数を抽出します。R の `coef.glmnet()` と同等です。"
+  },
+  "glmnetCoef(1)#summary": {
+    "hash": "cc6bacebf439",
+    "en": "Extract coefficients at selected penalty values. Equivalent to R's `coef.glmnet()`.",
+    "ja": "選択したペナルティ値における係数を抽出します。R の `coef.glmnet()` と同等です。"
+  },
+  "glmnetPredict(0)#summary": {
+    "hash": "f95fa91f356b",
+    "en": "Predict from a penalized generalized linear model. Equivalent to R's `predict.glmnet()`.",
+    "ja": "ペナルティ付き一般化線形モデルから予測します。R の `predict.glmnet()` と同等です。"
+  },
+  "glmnetPredict(1)#summary": {
+    "hash": "f95fa91f356b",
+    "en": "Predict from a penalized generalized linear model. Equivalent to R's `predict.glmnet()`.",
+    "ja": "ペナルティ付き一般化線形モデルから予測します。R の `predict.glmnet()` と同等です。"
+  },
+  "glmnetPredict(2)#summary": {
+    "hash": "f95fa91f356b",
+    "en": "Predict from a penalized generalized linear model. Equivalent to R's `predict.glmnet()`.",
+    "ja": "ペナルティ付き一般化線形モデルから予測します。R の `predict.glmnet()` と同等です。"
+  },
   "nls#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -1553,5 +2878,70 @@
     "hash": "2c052cb7fae7",
     "en": "Covariance matrix of robust-regression coefficients. Equivalent to R's `vcov.rlm()`.",
     "ja": "ロバスト回帰係数の共分散行列です。R の `vcov.rlm()` と同等です。"
+  },
+  "rq#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": "⟦code1⟧"
+  },
+  "rq#@param data": {
+    "hash": "437f55a9b5e7",
+    "en": "A data frame of columns.",
+    "ja": "列を含むデータフレームです。"
+  },
+  "rq#@param formula": {
+    "hash": "49791e5dcd2a",
+    "en": "A formula such as `y ~ x`.",
+    "ja": "`y ~ x` のような式です。"
+  },
+  "rq#@param options": {
+    "hash": "8295d4cc6c12",
+    "en": "Quantile, algorithm, and prior weights.",
+    "ja": "分位点、アルゴリズム、および事前の重みです。"
+  },
+  "rq#summary": {
+    "hash": "bfc165362a76",
+    "en": "Fit a linear conditional quantile model. Equivalent to `quantreg::rq()` in R.\nUses the formula/model-matrix interface of other regression models.",
+    "ja": "線形条件付き分位点モデルを当てはめます。R の `quantreg::rq()` と同等です。\n他の回帰モデルと同じ式・モデル行列インターフェースを使用します。"
+  },
+  "rqAnova(0)#summary": {
+    "hash": "1c74a07f397f",
+    "en": "Wald comparisons for nested models or slopes across multiple quantiles. Equivalent to R's `anova.rq()`.",
+    "ja": "入れ子モデル、または複数の分位点にわたる傾きを Wald 検定で比較します。R の `anova.rq()` と同等です。"
+  },
+  "rqAnova(1)#summary": {
+    "hash": "1c74a07f397f",
+    "en": "Wald comparisons for nested models or slopes across multiple quantiles. Equivalent to R's `anova.rq()`.",
+    "ja": "入れ子モデル、または複数の分位点にわたる傾きを Wald 検定で比較します。R の `anova.rq()` と同等です。"
+  },
+  "rqAnova(2)#summary": {
+    "hash": "1c74a07f397f",
+    "en": "Wald comparisons for nested models or slopes across multiple quantiles. Equivalent to R's `anova.rq()`.",
+    "ja": "入れ子モデル、または複数の分位点にわたる傾きを Wald 検定で比較します。R の `anova.rq()` と同等です。"
+  },
+  "rqAnova(3)#summary": {
+    "hash": "1c74a07f397f",
+    "en": "Wald comparisons for nested models or slopes across multiple quantiles. Equivalent to R's `anova.rq()`.",
+    "ja": "入れ子モデル、または複数の分位点にわたる傾きを Wald 検定で比較します。R の `anova.rq()` と同等です。"
+  },
+  "rqAnova(4)#summary": {
+    "hash": "1c74a07f397f",
+    "en": "Wald comparisons for nested models or slopes across multiple quantiles. Equivalent to R's `anova.rq()`.",
+    "ja": "入れ子モデル、または複数の分位点にわたる傾きを Wald 検定で比較します。R の `anova.rq()` と同等です。"
+  },
+  "rqPredict#summary": {
+    "hash": "9bbd637758e6",
+    "en": "Predict conditional quantiles for new observations. Equivalent to `quantreg::predict.rq()` in R.",
+    "ja": "新しい観測値に対する条件付き分位点を予測します。R の `quantreg::predict.rq()` と同等です。"
+  },
+  "rqPredictInterval#summary": {
+    "hash": "f27ef87d0263",
+    "en": "Confidence intervals for conditional quantile predictions using nid or direct quantile refits. Equivalent to R's `predict.rq()`.",
+    "ja": "nid または直接的な分位点の再当てはめを使用した、条件付き分位点予測の信頼区間です。R の `predict.rq()` と同等です。"
+  },
+  "rqSummary#summary": {
+    "hash": "72ee9977deaf",
+    "en": "Coefficient summary with Hall–Sheather bandwidth and the nid sandwich covariance. Equivalent to R's `summary.rq()`.",
+    "ja": "Hall–Sheather の帯域幅と nid のサンドイッチ共分散を使用した係数の要約です。R の `summary.rq()` と同等です。"
   }
 }
