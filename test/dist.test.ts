@@ -69,7 +69,7 @@ describe("dist and asDist", () => {
     compare("dist_canberra_all_zero", dist([[0, 0], [0, 0], [0, 0]], { method: "canberra" }));
     compare("dist_binary_zero_rows", dist(binaryZeros, { method: "binary" }));
     compare("dist_binary_both_zero", dist([[0, 0, 0], [0, 0, 0], [1, 0, 0]], { method: "binary" }));
-    compare("dist_binary_logical", dist([[true, false], [false, true], [true, false]], { method: "binary" }));
+    compare("dist_binary_logical", dist([[true, true], [false, false], [true, false]], { method: "binary" }));
     compare("dist_character", dist([["a", "c"], ["b", "d"]]));
   });
 
