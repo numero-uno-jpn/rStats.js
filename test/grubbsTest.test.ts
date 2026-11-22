@@ -12,12 +12,20 @@ const samples = {
 function num(v: number | string): number {
   return v === "NaN" || v === "NA" ? NaN : v === "Inf" ? Infinity : Number(v);
 }
-function close(actual: number, expected: number, label: string, mismatches: string[]): void {
+function close(actual: number, expected: number, label: string, mismatches: string[], absolute = 0): void {
   const e = num(expected);
   const ok = Number.isNaN(e) ? Number.isNaN(actual) : actual === e ||
-    (Number.isFinite(actual) && Number.isFinite(e) && Math.abs(actual - e) <= 1e-12 * Math.max(Math.abs(e), 1e-300));
+    (Number.isFinite(actual) && Number.isFinite(e) &&
+      Math.abs(actual - e) <= Math.max(1e-12 * Math.max(Math.abs(e), 1e-300), absolute));
   if (!ok) mismatches.push(`${label}: expected ${e}, got ${actual}`);
 }
+
+/**
+ * R's cancellation in 1 - F (see the first test). For grubbs_large_n (n = 200) grubbs.test gives 6.4406587219068e-5,
+ * 6.9e-15 from the tail computed directly in R, n * pt(-t, n - 2) = 6.4406587212188332e-5, which rStats.js matches to
+ * 1e-16 relative; hence 1e-14
+ */
+const P_ABSOLUTE = 1e-14;
 
 describe("Grubbs type 10", () => {
   it("matches all 12 type-10 fixture calls for each of the three samples", () => {
@@ -32,12 +40,9 @@ describe("Grubbs type 10", () => {
         if (actual.alternative !== expected.alternative) mismatches.push(`${key}.alternative: ${actual.alternative}`);
         close(actual.statistic[0], expected.statistic[0], `${key}.G`, mismatches);
         close(actual.statistic[1], expected.statistic[1], `${key}.U`, mismatches);
-        // R's outliers tail differs at these extreme values; keep its fixture untouched (Issue #551).
-        if (key === "grubbs_x1_type10_opp0_two0" || key === "grubbs_x1_type10_opp0_two1") {
-          close(actual.pValue, Math.min(1, pgrubbs(actual.statistic[0], x.length) * (twoSided ? 2 : 1)), key + ".mathematicalP", mismatches);
-        } else {
-          close(actual.pValue, expected["p.value"], key + ".p", mismatches);
-        }
+        // R takes the p value as 1 - F, which loses digits when p is small (about 1e-16 absolute: relative 4e-9 at
+        // p = 1.5e-7, grubbs_x1_*); rStats.js evaluates the tail directly. Hence an absolute allowance (P_ABSOLUTE)
+        close(actual.pValue, expected["p.value"], key + ".p", mismatches, P_ABSOLUTE);
       }
     }
     expect(mismatches).toEqual([]);
@@ -85,11 +90,7 @@ describe("Grubbs type 10", () => {
       const actual = grubbsTest(x, options);
       close(actual.statistic[0], expected.statistic[0], `${key}.G`, mismatches);
       close(actual.statistic[1], expected.statistic[1], `${key}.U`, mismatches);
-      if (key === "grubbs_large_n") {
-        close(actual.pValue, pgrubbs(actual.statistic[0], x.length), key + ".mathematicalP", mismatches);
-      } else {
-        close(actual.pValue, expected["p.value"], key + ".p", mismatches);
-      }
+      close(actual.pValue, expected["p.value"], key + ".p", mismatches, P_ABSOLUTE); // as above
       if (actual.alternative !== expected.alternative) mismatches.push(`${key}.alternative`);
     }
     expect(mismatches).toEqual([]);
