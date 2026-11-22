@@ -40,6 +40,15 @@ describe("lda", () => {
     expect(singleton.counts).toEqual([6, 6, 1]);
     expect(() => lda([[1], [1], [2], [2]], ["a", "a", "b", "b"])).toThrow(/constant within groups/);
   });
+  it("drops and warns about declared empty class levels", () => {
+    const fit = lda(x, g, { groupLevels: ["a", "b", "none"] });
+    expect(fit.lev).toEqual(["a", "b"]);
+    expect(fit.warnings).toEqual(["group none is empty"]);
+    const formula = lda("group ~ a + b", { a: x.map((r) => r[0]!), b: x.map((r) => r[1]!), group: g },
+      { levels: { group: ["a", "b", "none"] } });
+    expect(formula.lev).toEqual(["a", "b"]);
+    expect(formula.warnings).toEqual(["group none is empty"]);
+  });
   it("warns for exact collinearity and rejects variables lost only to a loose tolerance", () => {
     const xx = x.map((r) => [r[0]!, r[1]!, r[0]! + r[1]!]);
     const fit = lda(xx, g);
