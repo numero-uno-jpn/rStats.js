@@ -214,7 +214,7 @@ describe("cancor", () => {
         xx.map((row) => row.map((v) => v + shift)),
         yy.map((row) => row.map((v) => v + shift)),
       );
-      const tolerance = shift === 1e8 ? 5e-8 : 5e-4;
+      const tolerance = shift === 1e8 ? 2e-9 : 5e-6;
       fit.cor.forEach((v, i) => expect(Math.abs(v - base.cor[i]!)).toBeLessThan(tolerance));
     }
   });
