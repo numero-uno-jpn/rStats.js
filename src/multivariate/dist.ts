@@ -118,6 +118,7 @@ function pairDistance(a: readonly number[], b: readonly number[], method: DistMe
     return (a.length / canberra.length) * canberra.reduce((s, v) => s + v, 0);
   }
   if (diffs.length === 0) return NaN;
+  if (diffs.some((d) => d === Infinity)) return Infinity;
   if (method === "maximum") {
     let max = 0;
     for (const d of diffs) max = Math.max(max, d);
