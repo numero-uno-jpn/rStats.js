@@ -226,7 +226,7 @@ export function lda(x: VectorOrMatrix | string, grouping: readonly GroupLabel[] 
     const tilde = x.indexOf("~");
     if (tilde < 0) throw new SyntaxError("invalid LDA formula");
     const predictors = Object.keys(grouping as object).filter((name) => name !== response);
-    const rhsText = x.slice(tilde + 1).replace(/(^|[\\s+*:/()-])\\.(?=$|[\\s+*:/()-])/g, (_match, prefix: string) =>
+    const rhsText = x.slice(tilde + 1).replace(/(^|[\s+*:/()-])\.(?=$|[\s+*:/()-])/g, (_match, prefix: string) =>
       prefix + predictors.join(" + "));
     const d = design(parseFormula(`~ ${rhsText}`), grouping as DataFrame, {
       extraVariables: [response], dropUnusedLevels: false, ...(options.levels === undefined ? {} : { levels: options.levels }),
