@@ -45,26 +45,26 @@ function compare(key: string, actual: DistObject): void {
 describe("dist and asDist", () => {
   it("matches every ordinary distance method and option fixture", () => {
     const methods = ["euclidean", "maximum", "manhattan", "canberra", "binary", "minkowski"] as const;
-    for (const method of methods) compare("dist_" + method, dist(small, { method }));
-    compare("dist_minkowski_p3", dist(small, { method: "minkowski", p: 3 }));
-    compare("dist_minkowski_p05", dist(small, { method: "minkowski", p: 0.5 }));
-    compare("dist_minkowski_p1", dist(small, { method: "minkowski", p: 1 }));
-    compare("dist_partial_name", dist(small, { method: "max" }));
-    compare("dist_diag_upper", dist(small, { diag: true, upper: true }));
+    for (const method of methods) compare("dist_" + method, dist(small, { method, labels: ["a", "b", "c", "d", "e"] }));
+    compare("dist_minkowski_p3", dist(small, { method: "minkowski", p: 3, labels: ["a", "b", "c", "d", "e"] }));
+    compare("dist_minkowski_p05", dist(small, { method: "minkowski", p: 0.5, labels: ["a", "b", "c", "d", "e"] }));
+    compare("dist_minkowski_p1", dist(small, { method: "minkowski", p: 1, labels: ["a", "b", "c", "d", "e"] }));
+    compare("dist_partial_name", dist(small, { method: "max", labels: ["a", "b", "c", "d", "e"] }));
+    compare("dist_diag_upper", dist(small, { diag: true, upper: true, labels: ["a", "b", "c", "d", "e"] }));
     compare("dist_no_names", dist(small));
     compare("dist_one_row", dist([small[0]!], { labels: ["a"] }));
     compare("dist_vector", dist([3, 1, 4, 1, 5]));
-    compare("dist_data_frame", dist(us));
+    compare("dist_data_frame", dist(us, { labels: ["Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado"] }));
   });
 
   it("matches all missing, NaN, infinite, Canberra and binary fixtures", () => {
     for (const method of ["euclidean", "maximum", "manhattan", "canberra", "binary", "minkowski"] as const) {
-      compare("dist_na_" + method, dist(na, { method }));
-      compare("dist_all_na_row_" + method, dist(allna, { method }));
-      compare("dist_inf_" + method, dist(inf, { method }));
-      compare("dist_inf_both_" + method, dist(infBoth, { method }));
+      compare("dist_na_" + method, dist(na, { method, labels: ["a", "b", "c", "d", "e"] }));
+      compare("dist_all_na_row_" + method, dist(allna, { method, labels: ["a", "b", "c", "d", "e"] }));
+      compare("dist_inf_" + method, dist(inf, { method, labels: ["a", "b", "c", "d", "e"] }));
+      compare("dist_inf_both_" + method, dist(infBoth, { method, labels: ["a", "b", "c", "d", "e"] }));
     }
-    compare("dist_nan", dist(nan));
+    compare("dist_nan", dist(nan, { labels: ["a", "b", "c", "d", "e"] }));
     compare("dist_canberra_zeros", dist(canberraZeros, { method: "canberra" }));
     compare("dist_canberra_all_zero", dist([[0, 0], [0, 0], [0, 0]], { method: "canberra" }));
     compare("dist_binary_zero_rows", dist(binaryZeros, { method: "binary" }));
