@@ -57,13 +57,7 @@ describe("manova", () => {
     const expected = manovaFixture.manova_iris.value;
     const fit = manova("cbind(Sepal.Length, Sepal.Width, Petal.Length, Petal.Width) ~ Species", irisData);
     const summary = manovaSummary(fit);
-    compareTable(summary.Pillai, expected.Pillai);
-    compareTable(summary.Wilks, expected.Wilks);
-    compareTable(summary["Hotelling-Lawley"], expected["Hotelling-Lawley"]);
-    compareTable(summary.Roy, expected.Roy);
-    for (const key of Object.keys(expected.SS)) compareTable(summary.SS[key]!, expected.SS[key]);
-    compareTable(summary.Eigenvalues, expected.Eigenvalues);
-    compareTable(summary.coef, expected.coef);
+    compareManovaSummary(summary, expected);
     expect(summary.royFIsUpperBound).toBe(true);
   });
 
