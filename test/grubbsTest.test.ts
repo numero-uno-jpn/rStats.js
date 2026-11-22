@@ -42,10 +42,12 @@ describe("Grubbs type 10", () => {
     const mismatches: string[] = [];
     for (const n of [3, 4, 5, 7, 10, 20, 30, 50]) {
       const pcase = fixture[`pgrubbs_type10_n${n}`];
-      const pgot = pgrubbs(pcase.q, n);
+      const pgot0 = pgrubbs(pcase.q, n);
+      const pgot = typeof pgot0 === "number" ? [pgot0] : Array.from(pgot0);
       pcase.p.forEach((entry: any, i: number) => close(pgot[i]!, entry.value, `pgrubbs n=${n} q=${pcase.q[i]}`, mismatches));
       const qcase = fixture[`qgrubbs_type10_n${n}`];
-      const qgot = qgrubbs(qcase.p, n);
+      const qgot0 = qgrubbs(qcase.p, n);
+      const qgot = typeof qgot0 === "number" ? [qgot0] : Array.from(qgot0);
       qcase.q.forEach((entry: any, i: number) => close(qgot[i]!, entry.value, `qgrubbs n=${n} p=${qcase.p[i]}`, mismatches));
 
     }
