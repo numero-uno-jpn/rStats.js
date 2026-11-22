@@ -87,10 +87,21 @@ export function pgrubbs<T extends Vectorizable>(q: T, n: number, type: number = 
 }
 
 /** Invert the monotone type-10 CDF by bisection on the bounded Grubbs statistic. */
+function qgrubbsLowerBound(n: number): number {
+  let lo = 0, hi = (n - 1) / Math.sqrt(n);
+  for (let i = 0; i < 80; i++) {
+    const mid = lo + (hi - lo) / 2;
+    if (mid === lo || mid === hi) break;
+    if (grubbsTail10(mid, n) >= 1) lo = mid;
+    else hi = mid;
+  }
+  return hi;
+}
+
 function qgrubbs10(p: number, n: number): number {
   if (Number.isNaN(p) || Number.isNaN(n)) return NaN;
   if (!Number.isSafeInteger(n) || n < 3 || p < 0 || p > 1) return NaN;
-  if (p === 0) return 0;
+  if (p === 0) return qgrubbsLowerBound(n);
   if (p === 1) return (n - 1) / Math.sqrt(n);
   let lo = 0;
   let hi = (n - 1) / Math.sqrt(n);
