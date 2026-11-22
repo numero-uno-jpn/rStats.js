@@ -8,10 +8,28 @@ import { design } from "../models/modelMatrix.js";
 import { parseFormula } from "../models/formula.js";
 import type { DataFrame } from "../models/modelFrame.js";
 
+/** Name of a multivariate test statistic.
+ * @category Linear models and ANOVA
+ */
 export type ManovaTestName = "Pillai" | "Wilks" | "Hotelling-Lawley" | "Roy";
+/** Numerical options for MANOVA.
+ * @category Linear models and ANOVA
+ */
 export interface ManovaOptions { tol?: number; }
+/** Options for MANOVA summary tables.
+ * @category Linear models and ANOVA
+ */
+/** Four multivariate test tables and associated matrices.
+ * @category Linear models and ANOVA
+ */
 export interface ManovaSummaryOptions { test?: ManovaTestName | "all"; intercept?: boolean; }
+/** A labelled matrix table.
+ * @category Linear models and ANOVA
+ */
 export interface MatrixTable { rows: string[]; cols: string[] | null; values: number[][]; }
+/** A fitted sequential MANOVA model.
+ * @category Linear models and ANOVA
+ */
 export interface ManovaFit {
   formula: string;
   responseNames: string[];
@@ -133,14 +151,14 @@ function statRow(roots0: readonly number[], p: number, q: number, v: number, nam
 }
 
 /**
- * Fit a multivariate analysis of variance model with sequential (Type I) terms.
+ * Fit a multivariate analysis of variance model with sequential (Type I) terms. Equivalent to R's `stats::manova()`.
  * The response is `cbind(y1, y2, ...)`; all four classical MANOVA statistics are available in {@link summaryManova}.
  *
  * @param formula Multivariate formula, e.g. `"cbind(y1, y2, y3) ~ group + covariate"`.
  * @param data Data frame.
  * @param options Numerical rank tolerance.
  *
- * @category Multivariate analysis
+ * @category Linear models and ANOVA
  */
 export function manova(formula: string, data: DataFrame, options: ManovaOptions = {}): ManovaFit {
   const { names, rhs } = responseParts(formula);
@@ -207,12 +225,12 @@ export function manova(formula: string, data: DataFrame, options: ManovaOptions 
 }
 
 /**
- * Summary tables for all four MANOVA statistics, with optional sequential intercept row.
+ * Summary tables for all four MANOVA statistics, with optional sequential intercept row. Equivalent to R's `summary.manova()`.
  *
  * @param fit A result of {@link manova}.
  * @param options Select a statistic or request the intercept row.
  *
- * @category Multivariate analysis
+ * @category Linear models and ANOVA
  */
 export function summaryManova(fit: ManovaFit, options: ManovaSummaryOptions = {}): ManovaSummary {
   const testNames: ManovaTestName[] = ["Pillai", "Wilks", "Hotelling-Lawley", "Roy"];
