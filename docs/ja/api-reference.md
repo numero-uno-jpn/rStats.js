@@ -105,3 +105,27 @@ R の名前が JavaScript の予約語である場合や、一般的すぎてそ
 ### 乱数
 
 `setSeed(42)` の後では、`rnorm`、`runif`、`sample` などは、R で `set.seed(42)` とした後と同じ数値を返します。
+
+
+## 多変量解析
+
+この分野は独立した `/multivariate` から import します。パッケージのルートには含まれません。
+
+```ts
+import { manova, manovaSummary, lda, ldaPredict, cancor } from "@numero-uno-jpn/rstats/multivariate";
+
+const d = {
+  group: ["A", "A", "A", "B", "B", "B", "C", "C", "C"],
+  y1: [2.1, 2.4, 1.8, 4.2, 4.5, 3.9, 6.1, 6.4, 5.8],
+  y2: [1.2, 1.5, 1.0, 2.8, 2.5, 3.0, 3.9, 4.2, 3.7],
+};
+const fit = manova("cbind(y1, y2) ~ group", d);
+manovaSummary(fit); // Pillai、Wilks、Hotelling-Lawley、Roy、SSP、固有値、係数
+
+const discriminant = lda([[1, 2], [1.2, 1.8], [4, 3], [4.2, 2.8]], ["A", "A", "B", "B"]);
+ldaPredict(discriminant, { newdata: [[2, 2], [4, 3]] }); // クラス、事後確率、判別得点
+
+cancor([[1, 2], [2, 1], [3, 4], [4, 3]], [[2, 1], [1, 3], [4, 2], [3, 5]]);
+```
+
+`manova` は逐次 (Type I) の項を当てはめます。`lda` は moment 法と leave-one-out 交差検証に対応し、`ldaPredict` は plug-in 法で予測します。`cancor` は非ゼロの正準相関と使用した中心を返します。
