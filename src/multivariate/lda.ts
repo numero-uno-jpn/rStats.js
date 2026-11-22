@@ -218,7 +218,7 @@ export function lda(x: VectorOrMatrix | string, grouping: readonly GroupLabel[] 
   if (options.method !== undefined && options.method !== "moment") throw new RangeError("only method = 'moment' is supported");
   let values: number[][], groups: GroupLabel[], names: string[];
   if (typeof x === "string") {
-    const d = design(parseFormula(x), grouping as DataFrame, { dropUnusedLevels: false, levels: options.levels });
+    const d = design(parseFormula(x), grouping as DataFrame, { dropUnusedLevels: false, ...(options.levels === undefined ? {} : { levels: options.levels }) });
     const response = d.terms.variables[0]!;
     const raw = (grouping as DataFrame)[response];
     if (raw === undefined) throw new RangeError(`object '${response}' not found`);
