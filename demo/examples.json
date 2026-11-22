@@ -2512,21 +2512,21 @@
       "id": "dist-hclust-cutree-demo",
       "tab": "tests",
       "title": {
-        "en": "Distances, hierarchical clustering and a three-cluster cut",
-        "ja": "距離・階層的クラスタ分析・3 クラスタへの分割"
+        "en": "USArrests: distances, hierarchical clustering and a three-cluster cut",
+        "ja": "USArrests の距離・階層的クラスタ分析・3 クラスタへの分割"
       },
       "js": "(() => { const x = [[13.2, 236, 58, 21.2], [10, 263, 48, 44.5], [8.1, 294, 80, 31], [8.8, 190, 50, 19.5], [9, 276, 91, 40.6], [7.9, 204, 78, 38.7]]; const d = dist(x); const h = hclust(d, { method: \"average\" }); const g = cutree(h, { k: 3 }); return [...d.values.slice(0, 5), ...h.height, ...h.merge.flat(), ...g.values]; })()",
-      "r": "local({ x <- matrix(c(13.2,236,58,21.2, 10,263,48,44.5, 8.1,294,80,31, 8.8,190,50,19.5, 9,276,91,40.6, 7.9,204,78,38.7), ncol = 4, byrow = TRUE); d <- stats::dist(x); h <- stats::hclust(d, method = \"average\"); g <- stats::cutree(h, k = 3); c(as.vector(d)[1:5], h$height, as.vector(t(h$merge)), g) })"
+      "r": "local({ data(USArrests); x <- as.matrix(USArrests)[1:6, ]; d <- stats::dist(x); h <- stats::hclust(d, method = \"average\"); g <- stats::cutree(h, k = 3); c(as.vector(d)[1:5], h$height, as.vector(t(h$merge)), g) })"
     },
     {
       "id": "kmeans-fixed-centers-demo",
       "tab": "tests",
       "title": {
-        "en": "K-means with explicit starting centers (no random initialization)",
-        "ja": "初期中心を明示した k-means (乱数による初期化なし)"
+        "en": "Iris sepal measurements: k-means with an explicit center matrix",
+        "ja": "iris のがく片データ: 中心行列を明示した k-means"
       },
-      "js": "(() => { const x = [[5.1, 3.5], [4.9, 3.0], [5.0, 3.6], [6.4, 3.2], [6.9, 3.1], [6.5, 3.0], [5.9, 3.0], [6.3, 2.9], [5.8, 2.7]]; const centers = [[5.0, 3.4], [6.6, 3.1], [5.9, 2.8]]; const f = kmeans(x, centers, { algorithm: \"Hartigan-Wong\" }); return [...f.cluster, ...f.centers.values.flat(), ...f.withinss, f.totWithinss]; })()",
-      "r": "local({ x <- matrix(c(5.1,3.5, 4.9,3.0, 5.0,3.6, 6.4,3.2, 6.9,3.1, 6.5,3.0, 5.9,3.0, 6.3,2.9, 5.8,2.7), ncol = 2, byrow = TRUE); centers <- matrix(c(5.0,3.4, 6.6,3.1, 5.9,2.8), ncol = 2, byrow = TRUE); f <- stats::kmeans(x, centers, algorithm = \"Hartigan-Wong\"); c(f$cluster, as.vector(t(f$centers)), f$withinss, f$tot.withinss) })"
+      "js": "(() => { const x = [[5.1, 3.5], [4.9, 3.0], [4.7, 3.2], [4.6, 3.1], [5.0, 3.6], [5.4, 3.9], [4.6, 3.4], [5.0, 3.4], [4.4, 2.9]]; const centers = [[5.1, 3.5], [4.6, 3.1], [4.6, 3.4]]; const f = kmeans(x, centers, { algorithm: \"Hartigan-Wong\" }); return [...f.cluster, ...f.centers.values.flat(), ...f.withinss, f.totWithinss]; })()",
+      "r": "local({ data(iris); x <- as.matrix(iris[1:9, 1:2]); centers <- as.matrix(iris[c(1,4,7), 1:2]); f <- stats::kmeans(x, centers, algorithm = \"Hartigan-Wong\"); c(f$cluster, as.vector(t(f$centers)), f$withinss, f$tot.withinss) })"
     },
     {
       "id": "cmdscale-eurodist-demo",
