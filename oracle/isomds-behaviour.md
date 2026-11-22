@@ -59,3 +59,8 @@ The user's decisions of 2026-11-22 (Issue #556), written by Claude. They take pr
    align column signs, stress is compared directly
 5. The 1e150 behaviour of R (`isomds_scale`: stops at the start) is not copied: rStats.js's stopping is scale invariant;
    a documented difference, tested by equivariance
+7. **Switch of the pass condition (2026-11-23, under choice 2):** ChatGPT reported that Kruskal's method did not reach R's
+   printed progress. The pass condition is now agreement with R run to tight convergence (`isomds_tight_*`: `tol = 1e-10`,
+   `maxit = 5000`, all converged): stress within 1e-6 relative, points within 1e-5 of R's largest absolute coordinate after
+   an orthogonal Procrustes alignment (p = 2) or column reflections and permutations (other p). At the default settings
+   the points are a documented difference; rStats.js's default stress must be at most 1.01 times R's
