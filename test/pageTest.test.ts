@@ -41,6 +41,8 @@ describe("pageTest", () => {
     expect(r.estimate).toBe(171.5);
     expect(r.statistic).toBeCloseTo(2.9698484809835, 12);
     expect(r.pValue).toBeCloseTo(0.00297946665633299, 12);
+    const greater = pageTest(ties, { alternative: "greater" });
+    expect(greater.pValue).toBeCloseTo(0.00148973332816649, 12);
     const one = pageTest([[1, 2, 3, 4]]);
     expect(one.estimate).toBe(30);
     expect(one.statistic).toBeCloseTo(1.55884572681199, 12);
@@ -56,6 +58,9 @@ describe("pageTest", () => {
     const vector = pageTest(x, groups, blocks);
     expect(vector.estimate).toBe(148);
     expect(vector.statistic).toBeCloseTo(3.48568501158668, 12);
+    const reversed = pageTest(m1.map((row) => row.slice().reverse()));
+    expect(reversed.estimate).toBe(102);
+    expect(reversed.statistic).toBeCloseTo(-3.64060434543497, 12);
     const reverseGroups = ["d", "c", "b", "a"].flatMap((g) => Array(5).fill(g));
     const factor = pageTest(x, reverseGroups, blocks);
     expect(factor.estimate).toBe(102);
