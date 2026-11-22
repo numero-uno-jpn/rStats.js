@@ -21,9 +21,6 @@ export interface LdaOptions {
 /** Options for LDA prediction.
  * @category Linear models and ANOVA
  */
-/** Plug-in prediction from an LDA fit.
- * @category Linear models and ANOVA
- */
 export interface LdaPredictionOptions {
   method?: "plug-in" | string;
   newdata?: VectorOrMatrix;
@@ -63,6 +60,9 @@ export interface LdaFit {
   /** @internal */
   _tol: number;
 }
+/** Plug-in prediction from an LDA fit.
+ * @category Linear models and ANOVA
+ */
 export interface LdaPrediction {
   class: string[];
   posterior: LdaTable;
