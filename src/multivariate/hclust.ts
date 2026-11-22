@@ -175,6 +175,7 @@ export function hclust(d: DistResult, options: HclustOptions = {}): HclustFit & 
 }
 
 /** Cut a hierarchical clustering tree by cluster count or merge height. */
+/** Cut a hierarchical clustering tree by cluster count or merge height. Equivalent to R's stats::cutree(). */
 export function cutree(tree: HclustFit, options: CutreeOptions = {}): CutreeResult {
   const n = tree.order.length;
   if (options.k === undefined && options.h === undefined) throw new RangeError("either 'k' or 'h' must be specified");
