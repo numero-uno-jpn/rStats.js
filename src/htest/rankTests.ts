@@ -199,7 +199,7 @@ export function pageTest(formula: string, data: DataFrame, options?: PageTestOpt
 export function pageTest(
   y: readonly (readonly number[])[] | Sample | string,
   groupsOrOptions: readonly GroupLabel[] | DataFrame | PageTestOptions = {},
-  blocks?: readonly GroupLabel[],
+  blocks?: readonly GroupLabel[] | PageTestOptions,
   maybeOptions: PageTestOptions = {},
 ): HTest {
   let matrix: number[][];
@@ -207,15 +207,16 @@ export function pageTest(
   if (typeof y === "string") {
     matrix = blockData(y, groupsOrOptions as DataFrame);
     options = blocks as unknown as PageTestOptions ?? {};
-  } else if (blocks !== undefined) {
+  } else if (Array.isArray(blocks)) {
     const x = Array.from(y as Sample);
     const groups = groupsOrOptions as readonly GroupLabel[];
-    if (x.length !== groups.length || x.length !== blocks.length) {
+    const blockLabelsInput = blocks as readonly GroupLabel[];
+    if (x.length !== groups.length || x.length !== blockLabelsInput.length) {
       throw new RangeError("'x', 'groups' and 'blocks' must have the same length");
     }
     if (!x.every(Number.isFinite)) throw new RangeError("missing or non-finite values are not allowed");
     const treatmentLabels = factorLabels(groups);
-    const blockLabels = factorLabels(blocks);
+    const blockLabels = factorLabels(blockLabelsInput);
     if (treatmentLabels.some((v) => typeof v === "number" && Number.isNaN(v)) ||
         blockLabels.some((v) => typeof v === "number" && Number.isNaN(v))) {
       throw new RangeError("missing treatment or block labels are not allowed");
@@ -236,6 +237,9 @@ export function pageTest(
       throw new RangeError("not an unreplicated complete block design");
     }
     options = maybeOptions;
+  } else if (typeof y === "string") {
+    options = blocks as PageTestOptions ?? {};
+    matrix = blockData(y, groupsOrOptions as DataFrame);
   } else {
     matrix = (y as readonly (readonly number[])[]).map((row) => Array.from(row));
     options = groupsOrOptions as PageTestOptions;
