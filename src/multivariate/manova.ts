@@ -253,7 +253,8 @@ export function manovaSummary(fit: ManovaFit, options: ManovaSummaryOptions = {}
   checkOptions(options, MANOVA_SUMMARY_KEYS, "manovaSummary"); // generated: option-keys.mjs
   const tol = options.tol ?? 1e-7;
   if (!(Number.isFinite(tol) && tol >= 0)) throw new RangeError("'tol' must be a non-negative finite number");
-  const testNames: ManovaTestName[] = ["Pillai", "Wilks", "Hotelling-Lawley", "Roy"];
+  const p = fit.responseNames.length;
+  const v = fit.residualDf;
   const terms = Object.keys(fit.termSSP).filter((x) => x !== "(Intercept)");
   const names = options.intercept && fit.termSSP["(Intercept)"] ? ["(Intercept)", ...terms] : terms;
   const rootsByTerm: Record<string, number[]> = {};
