@@ -52,6 +52,8 @@ export interface ManovaSummary {
   SS: Record<string, MatrixTable>;
   Eigenvalues: MatrixTable;
   coef: MatrixTable;
+  /** Roy largest-root F approximation is an upper bound. */
+  royFIsUpperBound: true;
 }
 
 function zeros(r: number, c: number): number[][] { return Array.from({ length: r }, () => new Array<number>(c).fill(0)); }
@@ -256,6 +258,6 @@ export function summaryManova(fit: ManovaFit, options: ManovaSummaryOptions = {}
   const coef = table(fit.coefficientNames, fit.responseNames, fit.coefficients);
   return {
     Pillai: make("Pillai"), Wilks: make("Wilks"), "Hotelling-Lawley": make("Hotelling-Lawley"), Roy: make("Roy"),
-    SS, Eigenvalues, coef,
+    SS, Eigenvalues, coef, royFIsUpperBound: true,
   };
 }
