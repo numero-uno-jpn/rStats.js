@@ -2,502 +2,502 @@
   "CvGlmnetOptions#summary": {
     "hash": "de9acedfe20c",
     "en": "Options for {@link cvGlmnet}; fold assignments are required.",
-    "ja": ""
+    "ja": "{@link cvGlmnet} のオプションです。交差検証の分割割り当てが必要です。"
   },
   "CvGlmnetOptions.foldid#summary": {
     "hash": "0eaca2620cb2",
     "en": "Fixed fold assignment for deterministic cross-validation.",
-    "ja": ""
+    "ja": "再現可能な交差検証のための固定された分割割り当てです。"
   },
   "CvGlmnetOptions.grouped#summary": {
     "hash": "728366b9a477",
     "en": "Whether fold-level scores are summarized before the cross-validation mean and standard error.",
-    "ja": ""
+    "ja": "交差検証の平均と標準誤差を計算する前に、分割ごとのスコアを要約するかどうかです。"
   },
   "CvGlmnetOptions.keep#summary": {
     "hash": "83a763f579dc",
     "en": "Whether held-out predictions are retained.",
-    "ja": ""
+    "ja": "検証用データの予測値を保持するかどうかです。"
   },
   "CvGlmnetOptions.typeMeasure#summary": {
     "hash": "da2d1401cef4",
     "en": "Loss or performance measure evaluated on held-out folds.",
-    "ja": ""
+    "ja": "検証用データで評価する損失または性能の指標です。"
   },
   "CvGlmnetResult#summary": {
     "hash": "ac7c80e99e89",
     "en": "Cross-validation summary returned by {@link cvGlmnet}.",
-    "ja": ""
+    "ja": "{@link cvGlmnet} が返す交差検証の要約です。"
   },
   "CvGlmnetResult.cvlo#summary": {
     "hash": "015c8fa084b2",
     "en": "Lower one-standard-error bound for the cross-validated loss.",
-    "ja": ""
+    "ja": "交差検証した損失の 1 標準誤差下限です。"
   },
   "CvGlmnetResult.cvm#summary": {
     "hash": "94d89940f3e2",
     "en": "Mean cross-validated loss at each penalty value.",
-    "ja": ""
+    "ja": "各ペナルティ値における交差検証した損失の平均です。"
   },
   "CvGlmnetResult.cvsd#summary": {
     "hash": "7ed8c05a921c",
     "en": "Estimated standard error of the cross-validated loss.",
-    "ja": ""
+    "ja": "交差検証した損失の推定標準誤差です。"
   },
   "CvGlmnetResult.cvup#summary": {
     "hash": "2effed816942",
     "en": "Upper one-standard-error bound for the cross-validated loss.",
-    "ja": ""
+    "ja": "交差検証した損失の 1 標準誤差上限です。"
   },
   "CvGlmnetResult.fit#summary": {
     "hash": "af14cee53366",
     "en": "Full-data penalized fit associated with cross-validation.",
-    "ja": ""
+    "ja": "交差検証に関連付けられた全データによるペナルティ付き当てはめです。"
   },
   "CvGlmnetResult.fitPreval#summary": {
     "hash": "5c4c66e4a4ec",
     "en": "Held-out predictions retained when keep is enabled.",
-    "ja": ""
+    "ja": "keep が有効な場合に保持される検証用データの予測値です。"
   },
   "CvGlmnetResult.foldid#summary": {
     "hash": "0eaca2620cb2",
     "en": "Fixed fold assignment for deterministic cross-validation.",
-    "ja": ""
+    "ja": "再現可能な交差検証のための固定された分割割り当てです。"
   },
   "CvGlmnetResult.lambda#summary": {
     "hash": "9baf9bef6e44",
     "en": "Decreasing penalty values defining the fitted regularization path.",
-    "ja": ""
+    "ja": "当てはめた正則化パスを定義する、降順のペナルティ値です。"
   },
   "CvGlmnetResult.lambda1se#summary": {
     "hash": "0e9543884c7e",
     "en": "Largest penalty within one standard error of the minimum loss.",
-    "ja": ""
+    "ja": "最小損失から 1 標準誤差以内にある最大のペナルティです。"
   },
   "CvGlmnetResult.lambdaMin#summary": {
     "hash": "a02739d2f103",
     "en": "Penalty value minimizing the mean cross-validated loss.",
-    "ja": ""
+    "ja": "交差検証した損失の平均を最小にするペナルティ値です。"
   },
   "CvGlmnetResult.name#summary": {
     "hash": "041718dc8420",
     "en": "Name of the cross-validation measure used.",
-    "ja": ""
+    "ja": "使用した交差検証指標の名前です。"
   },
   "CvGlmnetResult.nzero#summary": {
     "hash": "6e31c9c920a7",
     "en": "Number of nonzero coefficients at each penalty value.",
-    "ja": ""
+    "ja": "各ペナルティ値における 0 でない係数の数です。"
   },
   "CvGlmnetResult.warnings#summary": {
     "hash": "1caf53387317",
     "en": "Warnings generated during cross-validation.",
-    "ja": ""
+    "ja": "交差検証中に生成された警告です。"
   },
   "DesignContrast#summary": {
     "hash": "a60d441d2578",
     "en": "A contrast the internal model-matrix code accepts: those of {@link ContrastName} and R's `contr.poly` (orthogonal\npolynomials in the level scores 1, 2, ..., columns `.L`, `.Q`, `.C`, `^4`, ...), which lmer's fixed effects may use.",
-    "ja": ""
+    "ja": "内部のモデル行列コードが受け入れるコントラストです。{@link ContrastName} のものと、R の `contr.poly` (水準スコア 1, 2, ... に関する直交多項式で、列は `.L`, `.Q`, `.C`, `^4`, ... です) があり、lmer の固定効果で使用される場合があります。"
   },
   "GeeAnovaOptions#summary": {
     "hash": "6dc497748d96",
     "en": "Options for a GEE Wald analysis of variance.",
-    "ja": ""
+    "ja": "GEE の Wald 分散分析のオプションです。"
   },
   "GeeAnovaOptions.test#summary": {
     "hash": "753a892c20ac",
     "en": "Wald test used for the sequential term comparison.",
-    "ja": ""
+    "ja": "項を逐次比較するために使用する Wald 検定です。"
   },
   "GeeAnovaResult#summary": {
     "hash": "9d5fbddc729f",
     "en": "Wald comparison table for GEE models.",
-    "ja": ""
+    "ja": "GEE モデルの Wald 比較表です。"
   },
   "GeeAnovaResult.columns#summary": {
     "hash": "d15e9785c501",
     "en": "Column labels for the returned summary table.",
-    "ja": ""
+    "ja": "返される要約表の列ラベルです。"
   },
   "GeeAnovaResult.rows#summary": {
     "hash": "4fa2bc7327f5",
     "en": "Original data-row indices retained in the model frame.",
-    "ja": ""
+    "ja": "モデルフレームに保持された元データの行インデックスです。"
   },
   "GeeAnovaResult.values#summary": {
     "hash": "7d50f6066cab",
     "en": "Numeric values in the returned summary table.",
-    "ja": ""
+    "ja": "返される要約表の数値です。"
   },
   "GeeCorrelation#summary": {
     "hash": "ef1074e288d2",
     "en": "Working correlation structures supported by a GEE fit.",
-    "ja": ""
+    "ja": "GEE の当てはめでサポートされる作業相関構造です。"
   },
   "GeeId#summary": {
     "hash": "d3ea0bdd97b7",
     "en": "Cluster identifiers may be numeric, character, or logical.",
-    "ja": ""
+    "ja": "クラスター識別子には、数値、文字、または論理値を指定できます。"
   },
   "GeeOptions#summary": {
     "hash": "8509bbf71d3d",
     "en": "Options for a marginal generalized estimating equation fit.",
-    "ja": ""
+    "ja": "周辺一般化推定方程式の当てはめのオプションです。"
   },
   "GeeOptions.corstr#summary": {
     "hash": "0924e900cbbb",
     "en": "Working correlation structure.",
-    "ja": ""
+    "ja": "作業相関構造です。"
   },
   "GeeOptions.epsilon#summary": {
     "hash": "a6e62a9ebdce",
     "en": "Convergence tolerance for coefficient updates.",
-    "ja": ""
+    "ja": "係数更新の収束許容誤差です。"
   },
   "GeeOptions.family#summary": {
     "hash": "ae9889eec53a",
     "en": "Response distribution used by the estimating equations.",
-    "ja": ""
+    "ja": "推定方程式で使用する応答分布です。"
   },
   "GeeOptions.id#summary": {
     "hash": "8590892f43cf",
     "en": "Cluster identifier column or values.",
-    "ja": ""
+    "ja": "クラスター識別子の列または値です。"
   },
   "GeeOptions.link#summary": {
     "hash": "c100ba9c2c86",
     "en": "Link function for the response mean.",
-    "ja": ""
+    "ja": "応答平均のリンク関数です。"
   },
   "GeeOptions.maxit#summary": {
     "hash": "004a1a56b777",
     "en": "Maximum number of fitting iterations.",
-    "ja": ""
+    "ja": "当てはめの反復回数の最大値です。"
   },
   "GeeOptions.offset#summary": {
     "hash": "4251dec3b88b",
     "en": "Known contribution to the linear predictor.",
-    "ja": ""
+    "ja": "線形予測子への既知の寄与です。"
   },
   "GeeOptions.scale.fix#summary": {
     "hash": "9985d0baf79f",
     "en": "Whether to hold the scale parameter fixed at scale.value.",
-    "ja": ""
+    "ja": "尺度パラメータを scale.value に固定するかどうかです。"
   },
   "GeeOptions.scale.value#summary": {
     "hash": "c6c67b4e81c3",
     "en": "Fixed scale parameter value when scale.fix is enabled.",
-    "ja": ""
+    "ja": "scale.fix が有効な場合の固定尺度パラメータ値です。"
   },
   "GeeOptions.std.err#summary": {
     "hash": "d79a55c910b9",
     "en": "Standard-error estimator requested for the coefficient covariance.",
-    "ja": ""
+    "ja": "係数の共分散に要求する標準誤差推定量です。"
   },
   "GeeOptions.waves#summary": {
     "hash": "7c441b66bd9a",
     "en": "Within-cluster observation order or wave values.",
-    "ja": ""
+    "ja": "クラスター内の観測順序または時点の値です。"
   },
   "GeeOptions.weights#summary": {
     "hash": "578942b05ef2",
     "en": "Prior observation weights.",
-    "ja": ""
+    "ja": "事前の観測値の重みです。"
   },
   "GeeOptions.zcor#summary": {
     "hash": "9d9b191c37c5",
     "en": "User-supplied or fixed pairwise working-correlation values.",
-    "ja": ""
+    "ja": "ユーザー指定または固定されたペアごとの作業相関値です。"
   },
   "GeePredictOptions#summary": {
     "hash": "15f4844effa3",
     "en": "Prediction options for a GEE fit.",
-    "ja": ""
+    "ja": "GEE の当てはめに対する予測オプションです。"
   },
   "GeePredictOptions.newdata#summary": {
     "hash": "ef136c244839",
     "en": "Optional data frame used to construct predictions.",
-    "ja": ""
+    "ja": "予測値の計算に使用する任意のデータフレームです。"
   },
   "GeePredictOptions.newoffset#summary": {
     "hash": "eb462e681c20",
     "en": "Offset values for new observations.",
-    "ja": ""
+    "ja": "新しい観測値のオフセット値です。"
   },
   "GeePredictOptions.type#summary": {
     "hash": "01c818f6d7ed",
     "en": "Prediction scale or covariance selection.",
-    "ja": ""
+    "ja": "予測の尺度または共分散の選択です。"
   },
   "GeeQICResult#summary": {
     "hash": "bf665a776d1c",
     "en": "Quasi-likelihood information criteria returned by geeQIC.",
-    "ja": ""
+    "ja": "geeQIC が返す準尤度情報量規準です。"
   },
   "GeeQICResult.CIC#summary": {
     "hash": "767909595df2",
     "en": "Correlation information criterion.",
-    "ja": ""
+    "ja": "相関情報量規準です。"
   },
   "GeeQICResult.Q#summary": {
     "hash": "ebb31522aa39",
     "en": "Quasi-likelihood component.",
-    "ja": ""
+    "ja": "準尤度の成分です。"
   },
   "GeeQICResult.QIC#summary": {
     "hash": "3eed4ad2e8cc",
     "en": "Quasi-likelihood under the independence model criterion.",
-    "ja": ""
+    "ja": "独立モデルを基準とする準尤度情報量規準です。"
   },
   "GeeQICResult.QICC#summary": {
     "hash": "af8e6d65e054",
     "en": "Finite-sample corrected QIC.",
-    "ja": ""
+    "ja": "有限標本補正済み QIC です。"
   },
   "GeeQICResult.QICu#summary": {
     "hash": "1cce30d4e9c2",
     "en": "Uncorrected quasi-likelihood information criterion.",
-    "ja": ""
+    "ja": "補正なしの準尤度情報量規準です。"
   },
   "GeeQICResult.params#summary": {
     "hash": "ed1461276f1e",
     "en": "Number of fitted mean-model parameters.",
-    "ja": ""
+    "ja": "当てはめた平均モデルのパラメータ数です。"
   },
   "GeeResult#summary": {
     "hash": "9cf246ddf17f",
     "en": "A fitted generalized estimating equation model.",
-    "ja": ""
+    "ja": "当てはめた一般化推定方程式モデルです。"
   },
   "GeeResult.alpha#summary": {
     "hash": "8520b6a74e8e",
     "en": "Estimated working-correlation parameter values.",
-    "ja": ""
+    "ja": "推定された作業相関パラメータの値です。"
   },
   "GeeResult.clusterIds#summary": {
     "hash": "3d1539c52dcf",
     "en": "Cluster identifiers corresponding to retained rows.",
-    "ja": ""
+    "ja": "保持された行に対応するクラスター識別子です。"
   },
   "GeeResult.coefficients#summary": {
     "hash": "86af97ab8ddd",
     "en": "Estimated marginal-model coefficients.",
-    "ja": ""
+    "ja": "周辺モデルの推定係数です。"
   },
   "GeeResult.columnNames#summary": {
     "hash": "11045377ffda",
     "en": "Names of the model-matrix columns.",
-    "ja": ""
+    "ja": "モデル行列の列名です。"
   },
   "GeeResult.converged#summary": {
     "hash": "926552c1e505",
     "en": "Whether the coefficient iteration met its convergence criterion.",
-    "ja": ""
+    "ja": "係数の反復計算が収束基準を満たしたかどうかです。"
   },
   "GeeResult.corstr#summary": {
     "hash": "0924e900cbbb",
     "en": "Working correlation structure.",
-    "ja": ""
+    "ja": "作業相関構造です。"
   },
   "GeeResult.covariance#summary": {
     "hash": "348c0b33ad5c",
     "en": "Robust sandwich covariance matrix of the coefficient estimates.",
-    "ja": ""
+    "ja": "係数推定値のロバストなサンドイッチ共分散行列です。"
   },
   "GeeResult.family#summary": {
     "hash": "ae9889eec53a",
     "en": "Response distribution used by the estimating equations.",
-    "ja": ""
+    "ja": "推定方程式で使用する応答分布です。"
   },
   "GeeResult.fittedValues#summary": {
     "hash": "5ea1b1d4f3b7",
     "en": "Fitted marginal means for the original input rows.",
-    "ja": ""
+    "ja": "元の入力行に対する当てはめた周辺平均です。"
   },
   "GeeResult.independenceCovariance#summary": {
     "hash": "66fe5f3e5a69",
     "en": "Model-based covariance matrix under independence working correlation.",
-    "ja": ""
+    "ja": "独立作業相関の下でのモデルベース共分散行列です。"
   },
   "GeeResult.iterations#summary": {
     "hash": "4d5819b10bbb",
     "en": "Number of coefficient-update iterations performed.",
-    "ja": ""
+    "ja": "実行した係数更新の反復回数です。"
   },
   "GeeResult.linearPredictors#summary": {
     "hash": "1334e983617e",
     "en": "Fitted linear predictors for the original input rows.",
-    "ja": ""
+    "ja": "元の入力行に対する当てはめた線形予測子です。"
   },
   "GeeResult.link#summary": {
     "hash": "c100ba9c2c86",
     "en": "Link function for the response mean.",
-    "ja": ""
+    "ja": "応答平均のリンク関数です。"
   },
   "GeeResult.model#summary": {
     "hash": "857138ba33fc",
     "en": "Model-frame, design, and cluster information retained for downstream methods.",
-    "ja": ""
+    "ja": "後続のメソッドで使用するために保持されたモデルフレーム、計画、およびクラスター情報です。"
   },
   "GeeResult.model.corstr#summary": {
     "hash": "0924e900cbbb",
     "en": "Working correlation structure.",
-    "ja": ""
+    "ja": "作業相関構造です。"
   },
   "GeeResult.model.data#summary": {
     "hash": "399626afda86",
     "en": "Data frame retained for prediction and model comparisons.",
-    "ja": ""
+    "ja": "予測とモデル比較のために保持されたデータフレームです。"
   },
   "GeeResult.model.epsilon#summary": {
     "hash": "a6e62a9ebdce",
     "en": "Convergence tolerance for coefficient updates.",
-    "ja": ""
+    "ja": "係数更新の収束許容誤差です。"
   },
   "GeeResult.model.family#summary": {
     "hash": "ae9889eec53a",
     "en": "Response distribution used by the estimating equations.",
-    "ja": ""
+    "ja": "推定方程式で使用する応答分布です。"
   },
   "GeeResult.model.formula#summary": {
     "hash": "fa221b20354f",
     "en": "Original model formula.",
-    "ja": ""
+    "ja": "元のモデル式です。"
   },
   "GeeResult.model.hasExternalOffset#summary": {
     "hash": "d9d5d75ed1f3",
     "en": "Whether an offset was supplied outside the formula.",
-    "ja": ""
+    "ja": "式の外でオフセットが指定されたかどうかです。"
   },
   "GeeResult.model.ids#summary": {
     "hash": "7a25e8dd5518",
     "en": "Cluster identifiers for retained observations.",
-    "ja": ""
+    "ja": "保持された観測値のクラスター識別子です。"
   },
   "GeeResult.model.intercept#summary": {
     "hash": "93327e8193cc",
     "en": "Whether the mean model includes an intercept.",
-    "ja": ""
+    "ja": "平均モデルに切片が含まれるかどうかです。"
   },
   "GeeResult.model.link#summary": {
     "hash": "c100ba9c2c86",
     "en": "Link function for the response mean.",
-    "ja": ""
+    "ja": "応答平均のリンク関数です。"
   },
   "GeeResult.model.maxit#summary": {
     "hash": "004a1a56b777",
     "en": "Maximum number of fitting iterations.",
-    "ja": ""
+    "ja": "当てはめの反復回数の最大値です。"
   },
   "GeeResult.model.meanFormula#summary": {
     "hash": "b25ec7ff2658",
     "en": "Mean-model formula after offset terms are separated.",
-    "ja": ""
+    "ja": "オフセット項を分離した後の平均モデルの式です。"
   },
   "GeeResult.model.offset#summary": {
     "hash": "4251dec3b88b",
     "en": "Known contribution to the linear predictor.",
-    "ja": ""
+    "ja": "線形予測子への既知の寄与です。"
   },
   "GeeResult.model.offsetOptionColumn#summary": {
     "hash": "40d8f6a1f8e5",
     "en": "Name of the data column supplied through the offset option, if any.",
-    "ja": ""
+    "ja": "offset オプションで指定されたデータ列の名前です (指定されている場合)。"
   },
   "GeeResult.model.responseVariable#summary": {
     "hash": "678c45597679",
     "en": "Name of the response variable.",
-    "ja": ""
+    "ja": "応答変数の名前です。"
   },
   "GeeResult.model.scaleFix#summary": {
     "hash": "701438dac704",
     "en": "Whether the scale parameter is fixed.",
-    "ja": ""
+    "ja": "尺度パラメータが固定されているかどうかです。"
   },
   "GeeResult.model.scaleValue#summary": {
     "hash": "06177156f379",
     "en": "Scale value used when scale is fixed.",
-    "ja": ""
+    "ja": "尺度を固定した場合に使用する値です。"
   },
   "GeeResult.model.termAssign#summary": {
     "hash": "c5b37a136a5d",
     "en": "Model-matrix column to formula-term assignment.",
-    "ja": ""
+    "ja": "モデル行列の列と式の項との対応付けです。"
   },
   "GeeResult.model.termLabels#summary": {
     "hash": "cc152eeb83cf",
     "en": "Labels of the formula terms.",
-    "ja": ""
+    "ja": "式の項のラベルです。"
   },
   "GeeResult.model.waves#summary": {
     "hash": "7c441b66bd9a",
     "en": "Within-cluster observation order or wave values.",
-    "ja": ""
+    "ja": "クラスター内の観測順序または時点の値です。"
   },
   "GeeResult.model.weights#summary": {
     "hash": "578942b05ef2",
     "en": "Prior observation weights.",
-    "ja": ""
+    "ja": "事前の観測値の重みです。"
   },
   "GeeResult.model.x#summary": {
     "hash": "2ed5314930c2",
     "en": "Model matrix for retained observations.",
-    "ja": ""
+    "ja": "保持された観測値のモデル行列です。"
   },
   "GeeResult.model.y#summary": {
     "hash": "fe18c8c5f457",
     "en": "Response values for retained observations.",
-    "ja": ""
+    "ja": "保持された観測値の応答値です。"
   },
   "GeeResult.model.zcor#summary": {
     "hash": "9d9b191c37c5",
     "en": "User-supplied or fixed pairwise working-correlation values.",
-    "ja": ""
+    "ja": "ユーザー指定または固定されたペアごとの作業相関値です。"
   },
   "GeeResult.modelCovariance#summary": {
     "hash": "392f31075341",
     "en": "Model-based covariance matrix under the working correlation.",
-    "ja": ""
+    "ja": "作業相関の下でのモデルベース共分散行列です。"
   },
   "GeeResult.pearsonResiduals#summary": {
     "hash": "28647a88b071",
     "en": "Pearson residuals for the original input rows.",
-    "ja": ""
+    "ja": "元の入力行に対するPearson 残差です。"
   },
   "GeeResult.residuals#summary": {
     "hash": "c26432f3e76d",
     "en": "Response residuals for the original input rows.",
-    "ja": ""
+    "ja": "元の入力行に対する応答残差です。"
   },
   "GeeResult.rows#summary": {
     "hash": "4fa2bc7327f5",
     "en": "Original data-row indices retained in the model frame.",
-    "ja": ""
+    "ja": "モデルフレームに保持された元データの行インデックスです。"
   },
   "GeeResult.scale#summary": {
     "hash": "bf6f7d31f35f",
     "en": "Scale or dispersion parameter.",
-    "ja": ""
+    "ja": "尺度または分散パラメータです。"
   },
   "GeeResult.stdErr#summary": {
     "hash": "3841102d4d30",
     "en": "Standard-error estimator used by the fit.",
-    "ja": ""
+    "ja": "当てはめで使用した標準誤差推定量です。"
   },
   "GeeResult.warnings#summary": {
     "hash": "a0387e7372bd",
     "en": "Warnings recorded while fitting or summarizing the model.",
-    "ja": ""
+    "ja": "モデルの当てはめまたは要約中に記録された警告です。"
   },
   "GeeResult.waves#summary": {
     "hash": "7c441b66bd9a",
     "en": "Within-cluster observation order or wave values.",
-    "ja": ""
+    "ja": "クラスター内の観測順序または時点の値です。"
   },
   "GeeStdErr#summary": {
     "hash": "5e270c353c03",
     "en": "Coefficient covariance estimators.",
-    "ja": ""
+    "ja": "係数の共分散推定量です。"
   },
   "GeeSummaryResult#summary": {
     "hash": "815559322639",
