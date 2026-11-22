@@ -265,7 +265,7 @@ describe("rStats.js 1.8.0 public-output completeness against the pinned R oracle
     vectorWithROracleUncertainty(cv.cvsd, cvExpected.groupedFalseT16.cvsd, cvExpected.groupedFalse.cvsd);
     vector(cv.nzero, cvExpected.nzero);
     matrixWithROracleUncertainty(cv.fitPreval as number[][],
-      flatTable(cvExpected.groupedFalseT16.preval), flatTable(cvExpected.groupedFalse.preval));
+      cvExpected.groupedFalseT16.preval.values, cvExpected.groupedFalse.preval.values);
     vector(cv.cvup, cvExpected.groupedFalse.cvm.map((v: number, i: number) => v + cvExpected.groupedFalse.cvsd[i]!), 1e-7);
     vector(cv.cvlo, cvExpected.groupedFalse.cvm.map((v: number, i: number) => v - cvExpected.groupedFalse.cvsd[i]!), 1e-7);
     let minIndex = 0;
