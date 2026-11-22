@@ -24,7 +24,7 @@ export interface ManovaOptions { tol?: number; }
 /** Options for MANOVA summary tables.
  * @category Multivariate analysis
  */
-export interface ManovaSummaryOptions { intercept?: boolean; }
+export interface ManovaSummaryOptions { tol?: number; intercept?: boolean; }
 /** A labelled matrix table.
  * @category Multivariate analysis
  */
@@ -45,6 +45,10 @@ export interface ManovaFit {
   coefficientNames: string[];
   responseScales: number[];
   warnings: string[];
+  /** @internal */
+  _residualSSPScaled: number[][];
+  /** @internal */
+  _termSSPScaled: Record<string, number[][]>;
 }
 /** Four multivariate test tables and associated matrices.
  * @category Multivariate analysis
@@ -126,8 +130,7 @@ function dataColumn(data: DataFrame, name: string): number[] {
 }
 function rootsFor(e: number[][], h: number[][], tol: number): number[] {
   const ee = eigen(e, { symmetric: true });
-  const max = Math.max(0, ...ee.values);
-  const keep = ee.values.map((v, i) => v > max * tol ? i : -1).filter((i) => i >= 0);
+  const keep = ee.values.map((v, i) => v > tol ? i : -1).filter((i) => i >= 0);
   if (keep.length !== e.length) throw new RangeError(`residuals have rank ${keep.length} < ${e.length}`);
   const q = ee.vectors!;
   const inv = zeros(e.length, e.length);
@@ -192,8 +195,7 @@ export function manova(formula: string, data: DataFrame, options: ManovaOptions 
   const residual = qrResid(full, ys) as number[][];
   const e = cross(residual);
   const eig = eigen(e, { symmetric: true });
-  const maxEig = Math.max(0, ...eig.values);
-  const rank = eig.values.filter((v) => v > maxEig * tol).length;
+  const rank = eig.values.filter((v) => v > tol).length;
   if (rank < p) throw new RangeError(`residuals have rank ${rank} < ${p}`);
   const coef = qrCoef(full, ys) as number[][];
   const termSSP: Record<string, number[][]> = {};
@@ -235,6 +237,7 @@ export function manova(formula: string, data: DataFrame, options: ManovaOptions 
     termSSP: Object.fromEntries(Object.entries(termSSP).map(([k, v]) => [k, unscale(v)])),
     termRoots, coefficients: coef.map((r) => r.map((v, j) => v * scales[j]!)),
     coefficientNames: d.colNames, responseScales: scales, warnings: d.warnings,
+    _residualSSPScaled: e, _termSSPScaled: termSSP,
   };
 }
 
@@ -248,14 +251,19 @@ export function manova(formula: string, data: DataFrame, options: ManovaOptions 
  */
 export function manovaSummary(fit: ManovaFit, options: ManovaSummaryOptions = {}): ManovaSummary {
   checkOptions(options, MANOVA_SUMMARY_KEYS, "manovaSummary"); // generated: option-keys.mjs
+  const tol = options.tol ?? 1e-7;
+  if (!(Number.isFinite(tol) && tol >= 0)) throw new RangeError("'tol' must be a non-negative finite number");
   const testNames: ManovaTestName[] = ["Pillai", "Wilks", "Hotelling-Lawley", "Roy"];
   const terms = Object.keys(fit.termSSP).filter((x) => x !== "(Intercept)");
   const names = options.intercept && fit.termSSP["(Intercept)"] ? ["(Intercept)", ...terms] : terms;
-  const p = fit.responseNames.length, v = fit.residualDf;
+  const rootsByTerm: Record<string, number[]> = {};
+  for (const name of Object.keys(fit.termSSP)) {
+    rootsByTerm[name] = rootsFor(fit._residualSSPScaled, fit._termSSPScaled[name]!, tol);
+  }
   const make = (test: ManovaTestName): MatrixTable => {
     const col = test === "Pillai" ? "Pillai" : test === "Wilks" ? "Wilks" : test;
     const rows = names.map((term) => {
-      const roots = fit.termRoots[term] ?? [];
+      const roots = rootsByTerm[term] ?? [];
       const q = term === "(Intercept)" ? 1 : fit.termDf[fit.termNames.indexOf(term)]!;
       return statRow(roots, p, q, v, test);
     });
@@ -267,7 +275,7 @@ export function manovaSummary(fit: ManovaFit, options: ManovaSummaryOptions = {}
     const raw = name === "Residuals" ? fit.residualSSP : fit.termSSP[name]!;
     SS[name] = table(fit.responseNames, fit.responseNames, raw);
   }
-  const Eigenvalues = table(names.length === 1 ? names[0]! : names, null, names.map((name) => fit.termRoots[name] ?? []));
+  const Eigenvalues = table(names.length === 1 ? names[0]! : names, null, names.map((name) => rootsByTerm[name] ?? []));
   const coef = table(fit.coefficientNames, fit.responseNames, fit.coefficients);
   return {
     Pillai: make("Pillai"), Wilks: make("Wilks"), "Hotelling-Lawley": make("Hotelling-Lawley"), Roy: make("Roy"),
