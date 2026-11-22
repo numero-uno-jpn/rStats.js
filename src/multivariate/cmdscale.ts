@@ -164,7 +164,7 @@ export function cmdscale(
   // retain the original operation order and bit patterns.
   let magnitude = 0;
   for (const row of parsed.matrix) for (const value of row) magnitude = Math.max(magnitude, Math.abs(value));
-  const rescale = magnitude > 2 ** 500 || (magnitude > 0 && magnitude < 2 ** -500);
+  const rescale = magnitude > 2 ** 512 || (magnitude > 0 && magnitude < 2 ** -512);
   const workMatrix = rescale ? parsed.matrix.map((row) => row.map((value) => value / magnitude)) : parsed.matrix;
   const acWork = options.add ? cailliez(workMatrix) : 0;
   const adjusted = workMatrix.map((row, i) => row.map((v, j) => i === j ? v : v + acWork));
