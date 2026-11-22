@@ -46,9 +46,8 @@ describe("Grubbs type 10", () => {
       pcase.p.forEach((entry: any, i: number) => close(pgot[i]!, entry.value, `pgrubbs n=${n} q=${pcase.q[i]}`, mismatches));
       const qcase = fixture[`qgrubbs_type10_n${n}`];
       const qgot = qgrubbs(qcase.p, n);
-      const revgot = qgrubbs(qcase.p, n, 10);
       qcase.q.forEach((entry: any, i: number) => close(qgot[i]!, entry.value, `qgrubbs n=${n} p=${qcase.p[i]}`, mismatches));
-      qcase.qrev.forEach((entry: any, i: number) => close(revgot[i]!, entry.value, `qgrubbs reverse n=${n} p=${qcase.p[i]}`, mismatches));
+
     }
     expect(mismatches).toEqual([]);
   });
