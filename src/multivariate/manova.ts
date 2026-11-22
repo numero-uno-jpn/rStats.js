@@ -283,10 +283,11 @@ export function manovaSummary(fit: ManovaFit, options: ManovaSummaryOptions = {}
     rows.push([v, NaN, NaN, NaN, NaN, NaN]);
     return table([...names, "Residuals"], ["Df", col, "approx F", "num Df", "den Df", "Pr(>F)"], rows);
   };
+  const responseLabels = fit.responseNames.map((name) => /^[A-Za-z.][A-Za-z0-9._]*$/.test(name) ? name : "");
   const SS: Record<string, MatrixTable> = {};
   for (const name of [...names, "Residuals"]) {
     const raw = name === "Residuals" ? fit.residualSSP : fit.termSSP[name]!;
-    SS[name] = table(fit.responseNames, fit.responseNames, raw);
+    SS[name] = table(responseLabels, responseLabels, raw);
   }
   const Eigenvalues = table(names.length === 1 ? names[0]! : names, null, names.map((name) => rootsByTerm[name] ?? []));
   const coef = table(fit.coefficientNames, fit.responseNames, fit.coefficients);
