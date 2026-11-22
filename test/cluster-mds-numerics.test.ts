@@ -102,5 +102,19 @@ describe("cluster and classical-scaling numerical extremes", () => {
     expect(dist(shifted).values).toEqual(dist(rows).values);
     const a = hclust(dist(rows), { method: "average" }), b = hclust(dist(shifted), { method: "average" });
     expect(b.merge).toEqual(a.merge); expect(b.order).toEqual(a.order); expect(b.height).toEqual(a.height);
+
+    const mdsA = cmdscale(dist(rows), { k: 2 }), mdsB = cmdscale(dist(shifted), { k: 2 });
+    expect(mdsB.eig).toEqual(mdsA.eig);
+    expect(mdsB.points.values).toEqual(mdsA.points.values);
+
+    const kmA = kmeans(rows, [[0, 0], [10, 10]], { algorithm: "Lloyd" });
+    const kmB = kmeans(shifted, [[1e12, 1e12], [1e12 + 10, 1e12 + 10]], { algorithm: "Lloyd" });
+    expect(kmB.cluster).toEqual(kmA.cluster);
+    expect(kmB.iter).toBe(kmA.iter);
+    expect(kmB.withinss).toEqual(kmA.withinss);
+    expect(kmB.totss).toBe(kmA.totss);
+    for (let g = 0; g < 2; g++) for (let j = 0; j < 2; j++) {
+      expect(kmB.centers.values[g]![j]! - 1e12).toBeCloseTo(kmA.centers.values[g]![j]!, 10);
+    }
   });
 });
