@@ -51,7 +51,7 @@ function grubbsTail10(q: number, n: number): number {
   if (Number.isNaN(q) || Number.isNaN(n)) return NaN;
   if (!Number.isSafeInteger(n) || n < 3) return NaN;
   if (q <= 0) return 1;
-  if (q === Infinity) return 0;
+  if (q >= (n - 1) / Math.sqrt(n)) return 0;
   const n1 = n - 1;
   const n1sq = twoProd(n1, n1);
   const nq2 = ddMulNum(twoProd(q, q), n);
