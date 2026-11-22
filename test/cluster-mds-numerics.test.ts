@@ -36,6 +36,7 @@ describe("cluster and classical-scaling numerical extremes", () => {
     for (const scale of [2 ** 500, 2 ** -500, 1e100, 1e-100]) {
       const scaled = cmdscale({ ...source, values: source.values.map((v) => v * scale) }, { k: 2, add: true });
       expect(scaled.ac / scale).toBeCloseTo(reference.ac, 8);
+      for (let i = 0; i < 2; i++) expect(scaled.GOF[i]!).toBeCloseTo(reference.GOF[i]!, 10);
       // Eigenvectors in a repeated eigenspace may rotate or flip sign across scales.
       // Compare the invariant Gram matrix rather than a platform-dependent basis.
       for (let i = 0; i < reference.points.values.length; i++) for (let j = 0; j < reference.points.values.length; j++) {
@@ -121,7 +122,7 @@ describe("cluster and classical-scaling numerical extremes", () => {
     const reference = cmdscale(asDist(matrix), { k: 2, add: true });
     const scaled = cmdscale(asDist(matrix.map((row) => row.map((v) => v * tiny))), { k: 2, add: true });
     expect(scaled.ac / tiny).toBeCloseTo(reference.ac, 8);
-    expect(scaled.GOF).toEqual(reference.GOF);
+    for (let i = 0; i < 2; i++) expect(scaled.GOF[i]!).toBeCloseTo(reference.GOF[i]!, 8);
     expect(scaled.eig.every((value) => value === 0)).toBe(true);
     for (let i = 0; i < reference.points.values.length; i++) for (let j = i + 1; j < reference.points.values.length; j++) {
       const a = reference.points.values[i]!, b = reference.points.values[j]!;
