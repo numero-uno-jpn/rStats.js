@@ -159,21 +159,34 @@ export function cmdscale(
   if (!Number.isFinite(k) || !Number.isInteger(k) || k < 1 || k >= n) {
     throw new RangeError(`'k' must be in {1, 2, ..  ${n - 1}}`);
   }
-  let ac = options.add ? cailliez(parsed.matrix) : 0;
-  const adjusted = parsed.matrix.map((row, i) => row.map((v, j) => i === j ? v : v + ac));
+  // Squaring extreme dissimilarities can erase their Gram matrix even when the coordinates
+  // themselves are representable. Normalize only outside the safe square range; ordinary inputs
+  // retain the original operation order and bit patterns.
+  let magnitude = 0;
+  for (const row of parsed.matrix) for (const value of row) magnitude = Math.max(magnitude, Math.abs(value));
+  const rescale = magnitude > 2 ** 450 || (magnitude > 0 && magnitude < 2 ** -450);
+  const workMatrix = rescale ? parsed.matrix.map((row) => row.map((value) => value / magnitude)) : parsed.matrix;
+  const acWork = options.add ? cailliez(workMatrix) : 0;
+  const adjusted = workMatrix.map((row, i) => row.map((v, j) => i === j ? v : v + acWork));
   const centered = gramFromDistances(adjusted);
   const decomposition = eigen(centered.gram, { symmetric: true });
   const positive = decomposition.values.filter((v) => v > 0);
   const dimensions = Math.min(k, positive.length);
   const vectors = decomposition.vectors!;
-  const points = Array.from({ length: n }, (_, i) => Array.from({ length: dimensions }, (_, j) =>
-    vectors[i]![j]! * Math.sqrt(positive[j]!)));
+  const points = Array.from({ length: n }, (_, i) => Array.from({ length: dimensions }, (_, j) => {
+    const coordinate = vectors[i]![j]! * Math.sqrt(positive[j]!);
+    return rescale ? coordinate * magnitude : coordinate;
+  }));
   orient(points);
   const absSum = decomposition.values.reduce((s, v) => s + Math.abs(v), 0);
   const positiveSum = positive.reduce((s, v) => s + v, 0);
   const retained = positive.slice(0, dimensions).reduce((s, v) => s + v, 0);
   const warnings = dimensions < k ? [`only ${dimensions} of the first ${k} eigenvalues are > 0`] : [];
-  return { points: { rows: parsed.labels, cols: null, values: points }, eig: [...decomposition.values],
-    x: options.xRet ? { rows: null, cols: null, values: centered.x } : null, ac,
+  const restoreSquare = (value: number): number => value === 0 ? 0 : (value * magnitude) * magnitude;
+  const eigenvalues = rescale ? decomposition.values.map(restoreSquare) : [...decomposition.values];
+  const x = rescale ? centered.x.map((row) => row.map(restoreSquare)) : centered.x;
+  const ac = rescale ? acWork * magnitude : acWork;
+  return { points: { rows: parsed.labels, cols: null, values: points }, eig: eigenvalues,
+    x: options.xRet ? { rows: null, cols: null, values: x } : null, ac,
     GOF: [absSum === 0 ? NaN : retained / absSum, positiveSum === 0 ? NaN : retained / positiveSum], warnings };
 }
