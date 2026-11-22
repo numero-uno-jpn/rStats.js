@@ -94,7 +94,7 @@ export function tamhaneT2Test(
       const a = vi / ni;
       const b = vj / nj;
       const se = Math.sqrt(a + b);
-      const t = (gm.mean[j]! - gm.mean[i]!) / se;
+      const t = (gm.mean[i]! - gm.mean[j]!) / se;
       const df = welch ? satterthwaiteDfPM([vi, vj], [ni, nj]) : ni + nj - 2;
       const raw = 2 * pt(Math.abs(t), df, { lowerTail: false });
       const adjusted = raw >= 1 ? 1 : -Math.expm1(m * Math.log1p(-raw));
