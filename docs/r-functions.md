@@ -338,6 +338,7 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `survival::survreg()` | `survreg` | Fit a parametric survival regression model. |
 | `TOSTER::t_TOST()` | `tTOST` | Two one-sided t tests of equivalence, or minimal-effect tests, for one sample, two samples or paired samples, with the standardised mean difference and its interval. |
 | `t.test()` | `tTest` | Student's t-test. |
+| `PMCMRplus::tamhaneT2Test()` | `tamhaneT2Test` | Tamhane's T2 or T2' all-pairs test of means. |
 | `cmprsk::timepoints()` | `timepoints` | Evaluate cumulative-incidence curves at requested times. |
 | `equivalence::tost()` | `tost` | Two one-sided t tests of equivalence of two means. |
 | `TOSTER::tsum_TOST()` | `tsumTOST` | `tTOST` from summary statistics: means, standard deviations, sample sizes and, for paired samples, the correlation of the pairs. |

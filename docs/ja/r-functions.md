@@ -338,6 +338,7 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `survival::survreg()` | `survreg` | パラメトリック生存時間回帰モデルを当てはめる |
 | `TOSTER::t_TOST()` | `tTOST` | 1 標本・2 標本・対応のある標本の平均についての同等性検定 (TOST) と最小効果検定、標準化平均差とその区間つき |
 | `t.test()` | `tTest` | Student の t 検定 |
+| `PMCMRplus::tamhaneT2Test()` | `tamhaneT2Test` | 等分散を仮定しない、平均の Tamhane の T2 (と T2') の全対比較検定 |
 | `cmprsk::timepoints()` | `timepoints` | 累積発生関数の曲線を指定した時点で求める |
 | `equivalence::tost()` | `tost` | 2 つの平均の同等性についての 2 つの片側 t 検定 (TOST) |
 | `TOSTER::tsum_TOST()` | `tsumTOST` | 要約統計量 (平均・標準偏差・標本の大きさ) からの `tTOST` |
