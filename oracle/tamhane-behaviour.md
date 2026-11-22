@@ -47,4 +47,13 @@ The output is a lower-triangular pairwise matrix with group labels, `dist="t"`, 
 
 ## rStats.js's choices
 
-(empty — reserved for user decisions)
+The user's decisions of 2026-11-22 (Issue #549), written by Claude. They take precedence over every other section.
+
+1. Both variants: `welch: true` (T2, the Welch–Satterthwaite df per pair) and `welch: false` (T2', df n_i + n_j − 2),
+   the two-sided t probability and Šidák's adjustment 1 − (1 − p)^m with m = k(k − 1)/2. `alternative` and
+   `p.adjust.method` are not options (R ignores them).
+2. Welch's df is computed without overflow (A = s_i²/n_i and B = s_j²/n_j divided by max(A, B) first), so the data
+   × 1e100 give the same df and p as the unscaled data. R returns NaN p there (`t2_large_scale`); a difference from R
+   to document.
+3. Character group labels are taken as a factor with the levels in order of first appearance (R errors with "all group
+   levels must be finite"). A group of size one gives NA for its pairs and constant data give NaN, as in R.

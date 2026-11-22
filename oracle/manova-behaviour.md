@@ -34,4 +34,9 @@ Terms are Type I sequential in formula order; reversing terms changes rows. `int
 
 ## rStats.js's choices
 
-(empty — reserved for user decisions)
+The user's decisions of 2026-11-22 (Issue #549), written by Claude. They take precedence over every other section.
+
+1. All four statistics with their F approximations and dfs as above; Roy's F is labelled an upper bound.
+2. Type I (sequential) terms in formula order; `intercept` adds the (Intercept) row as in R.
+3. A residual SSP of rank below the number of responses is an error (R's message); `tol` is an option. One response is
+   an error ("need multiple responses").

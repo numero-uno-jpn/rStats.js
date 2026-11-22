@@ -1,7 +1,7 @@
 # issue: 549
-# Full MANOVA fixture set, including every term table, SSP matrix and boundary error.
-library(jsonlite)
-env <- new.env(parent=globalenv())
-invisible(capture.output(sys.source("experiments/multivariate19.R", envir=env)))
-selected <- env$out[startsWith(names(env$out), "manova_")]
-cat(toJSON(selected, digits=NA, auto_unbox=TRUE, null="null", na="string", pretty=FALSE))
+# manova.R: the fixture test/fixtures/manova.json (1.9.0): every manova case of oracle/_multivariate19cases.R
+# (the same cases as experiments/multivariate19.R). Public calls only; numbers and strings only.
+source("/oracle/_multivariate19cases.R")
+selected <- out[startsWith(names(out), "manova_")]
+writeLines(toJSON(selected, digits = NA, auto_unbox = TRUE, null = "null", na = "string", pretty = FALSE),
+           file.path("/out", "manova.json"))

@@ -40,4 +40,14 @@ Type 20 accepts 3≤n≤30; n=31 errors `n must be in range 3-30`. Type 11's q=3
 
 ## rStats.js's choices
 
-(empty — reserved for user decisions)
+The user's decisions of 2026-11-22 (Issue #549), written by Claude. They take precedence over every other section.
+
+1. **Only type 10 in 1.9.0.** Types 11 and 20 are a known unsupported case and throw an error naming them: R's p values
+   for them are approximations that cannot be reproduced from R's outputs (type 11 solves an approximation with
+   `uniroot`, about 1e-5 off its own inverse, and fails for some q; type 20 interpolates Grubbs's 1950 table along a
+   curve not identified from the outputs). Recorded like 1.8.0's rq `se = "iid"`. The fixture keeps their cases.
+2. Type 10: G and U as above, p from the Pearson–Sekar transform, `opposite` and `two.sided` as above, the alternative
+   text as R's.
+3. `pgrubbs` and `qgrubbs` are exported for type 10 only (other types throw the same error), vectorised over q and p.
+4. Constant data give NaN statistics and **p = NaN** (R gives p = 0, a defect of the reference). A difference from R to
+   document.

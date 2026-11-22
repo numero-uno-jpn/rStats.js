@@ -1,7 +1,7 @@
 # issue: 549
-# Full T2/T2' fixture set. Reuse the checked public-call experiment; retain every T2 case.
-library(jsonlite)
-env <- new.env(parent=globalenv())
-invisible(capture.output(sys.source("experiments/tests19-small.R", envir=env)))
-selected <- env$out[startsWith(names(env$out), "t2_")]
-cat(toJSON(selected, digits=NA, auto_unbox=TRUE, null="null", na="string", pretty=FALSE))
+# tamhane.R: the fixture test/fixtures/tamhane.json (1.9.0): every t2 case of oracle/_tests19cases.R
+# (the same cases as experiments/tests19-small.R). Public calls only; numbers and strings only.
+source("/oracle/_tests19cases.R")
+selected <- out[startsWith(names(out), "t2_")]
+writeLines(toJSON(selected, digits = NA, auto_unbox = TRUE, null = "null", na = "string", pretty = FALSE),
+           file.path("/out", "tamhane.json"))

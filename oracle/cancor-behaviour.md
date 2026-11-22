@@ -23,4 +23,12 @@ All 10 cases compared: `cancor_lifecycle`, `cancor_lifecycle_nocenter`, `cancor_
 
 ## rStats.js's choices
 
-(empty — reserved for user decisions)
+The user's decisions of 2026-11-22 (Issue #549), written by Claude. They take precedence over every other section.
+
+1. `xcenter` and `ycenter`: TRUE (column means, the default), FALSE (zero) or finite vectors of matching length; the
+   centres used are returned.
+2. A rank-revealing decomposition; only the pairs of nonzero rank are returned, with the original names and centres.
+3. Coefficients normalised with the unscaled cross-products (a′ Sxx a = 1, not divided by n − 1), as R.
+4. **Signs:** as lda's choice 3: a deterministic rule on each x coefficient column (largest absolute entry positive),
+   with the y column taking the sign that makes the correlation positive. A pair may differ from R by a simultaneous
+   sign change: a difference from R to document. Tests compare every entry after aligning each pair's sign with R's.

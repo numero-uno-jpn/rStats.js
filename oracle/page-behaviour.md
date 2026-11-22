@@ -30,4 +30,10 @@ The independent implementation was compared with R over every generated size `k=
 
 ## rStats.js's choices
 
-(empty — reserved for user decisions)
+The user's decisions of 2026-11-22 (Issue #549), written by Claude. They take precedence over every other section.
+
+1. The statistic and p value as in the sections above: average within-block ranks, L = Σ j R_j, the null mean and
+   variance above, z = (L − E − 0.5)/√V with the correction always −0.5 (as R), normal tails for `alternative`.
+2. **A block with a missing value is an error** (R ranks NA last in its block without a warning, `page_na`). A
+   difference from R to document.
+3. Vector input: the treatments in factor level order; non-factor labels in order of first appearance.

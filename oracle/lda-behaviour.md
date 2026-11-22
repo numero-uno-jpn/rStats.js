@@ -31,4 +31,15 @@ All fit outputs and prediction outputs were compared for `lda_iris`, `lda_iris_f
 
 ## rStats.js's choices
 
-(empty — reserved for user decisions)
+The user's decisions of 2026-11-22 (Issue #549), written by Claude. They take precedence over every other section.
+
+1. `method = "moment"` only; `prior`, `tol`, `CV = TRUE` (leave-one-out with the full-data prior) and predict with
+   `method = "plug-in"` only (`newdata`, `prior`, `dimen`).
+2. Directions normalised by scaling′ S_W scaling = I, as above.
+3. **Signs:** R's column signs come from its singular value decomposition and no rule reproducing them was found. rStats.js
+   fixes each column of `scaling` by a deterministic rule (its entry of largest absolute value is positive; the first
+   such entry on ties) and the scores follow. A column may differ from R by its sign: a difference from R to document.
+   Tests compare every entry after aligning each column's sign with R's. For rank-deficient inputs the coefficients are
+   not unique; tests compare the scores.
+4. Warnings and errors as R: the empty-level warning (the level dropped), the collinearity warning with rank reduction,
+   a class of one accepted, the constant-within-groups error.

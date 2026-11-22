@@ -1,6 +1,6 @@
 # 現状の要約: 小さな検定 3 つと多変量 3 つ (1.9.0: T2・Page・Grubbs、manova・lda・cancor)、Issue #549
 
-更新 2026-11-22。新しい会話はこの文書と指示書 (`briefs/tests-multivariate-1.9.ja.md`) を読んで始める。
+更新 2026-11-22。新しい会話はこの文書と指示書 (`briefs/tests-multivariate-1.9.ja.md`)、**段階 2 の指示 (`briefs/tests-multivariate-1.9-stage2.ja.md`)** を読んで始める。
 
 ## クリーンルームの規則 (最重要。毎回守る)
 
@@ -46,12 +46,12 @@
 
 | 対象 | 状態 |
 | --- | --- |
-| tamhaneT2Test | これから (段階 1) |
-| pageTest | これから (段階 1) |
-| grubbsTest | これから (段階 1) |
-| manova | これから (段階 1) |
-| lda | これから (段階 1) |
-| cancor | これから (段階 1) |
+| tamhaneT2Test | 段階 2 (仕様と fixture は済み) |
+| pageTest | 段階 2 (仕様と fixture は済み) |
+| grubbsTest | 段階 2 (type 10 だけ。仕様と fixture は済み) |
+| manova | 段階 2 (仕様と fixture は済み) |
+| lda | 段階 2 (仕様と fixture は済み) |
+| cancor | 段階 2 (仕様と fixture は済み) |
 
 ## テストの書き方 (要点)
 
