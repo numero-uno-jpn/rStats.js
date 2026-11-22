@@ -1,80 +1,51 @@
 # Multivariate analysis of variance
 
-Issue #549. Reference: R 4.6.2 \`stats::manova\` / \`summary.manova\`. Evidence: Pillai (1955); Wilks (1932); Hotelling (1951); Roy (1953); Rao (1951); public R outputs and independent SSP/eigenvalue calculations. No R source was inspected.
+Issue #549. Reference R 4.6.2 stats::manova / summary.manova. Evidence: Pillai (1955); Wilks (1932); Hotelling (1951); Roy (1953); Rao (1951); public outputs and independent matrix/F calculations in `experiments/multivariate19-stage1-manova.R`; complete cases in `experiments/multivariate19.R`. No R source or fit internals were inspected.
 
-## SSP decomposition and roots
+## SSP matrices and roots
 
-For response matrix \(Y\) and sequential formula terms, each term has hypothesis SSP \(H\), formed by the incremental model-space projection for that term, and residual error SSP \(E\). The nonzero generalized roots satisfy
-
-\[
-Hv_i=\lambda_i Ev_i,\qquad s\le\min(p,q),
-\]
-
-where \(p\) is response dimension and \(q\) is the hypothesis rank increment. The four statistics are
-
-\[
-V=\sum_i\frac{\lambda_i}{1+\lambda_i},\quad
-\Lambda=\prod_i\frac1{1+\lambda_i},\quad
-U=\sum_i\lambda_i,\quad
-\Theta=\max_i\lambda_i.
-\]
-
-They are Pillai, Wilks, Hotelling–Lawley, and Roy.
+For a sequential model term, let H be its hypothesis SSP increment and E the residual SSP. Generalized roots are the nonzero eigenvalues of `E⁻¹H`, denoted λ₁,…,λ_s; p is the response dimension, q is the term rank (term df), v is residual df, and s=min(p,q). The four statistics are
+`V=Σ λ/(1+λ)` (Pillai),
+`Λ=Π 1/(1+λ)` (Wilks),
+`U=Σ λ` (Hotelling–Lawley), and
+`Θ=max λ` (Roy).
 
 ## F approximations
 
-Let \(v\) be residual df, \(s=\min(p,q)\), \(m=(|p-q|-1)/2\), and \(n_0=(v-p-1)/2\).
+Let `m=(|p−q|−1)/2`, `n₀=(v−p−1)/2`.
 
-**Pillai**
+Pillai:
+`df1=s(2m+s+1)`, `df2=s(2n₀+s+1)`,
+`F=[(2n₀+s+1)/(2m+s+1)]·V/(s−V)`.
 
-\[
-df_1=s(2m+s+1),\quad df_2=s(2n_0+s+1),\quad
-F=\frac{2n_0+s+1}{2m+s+1}\frac{V}{s-V}.
-\]
+Wilks (Rao):
+`t=sqrt((p²q²−4)/(p²+q²−5))` (when p q>2; otherwise t=1),
+`u=(pq−2)/4`,
+`df1=pq`, `df2=[v−(p−q+1)/2]t−2u`,
+`F=[(1−Λ^(1/t))/Λ^(1/t)]·df2/df1`.
 
-**Wilks (Rao's F)**
+Hotelling–Lawley:
+`df1=s(2m+s+1)`, `df2=2(sn₀+1)`,
+`F=[df2/(df1·s)]·U`.
 
-\[
-t=\sqrt{\frac{p^2q^2-4}{p^2+q^2-5}},\quad
-u=\frac{pq-2}{4},\quad df_1=pq,
-\]
-\[
-df_2=\left(v-\frac{p-q+1}{2}\right)t-2u,\quad
-F=\frac{1-\Lambda^{1/t}}{\Lambda^{1/t}}\frac{df_2}{df_1}.
-\]
+Roy upper-bound approximation:
+`df1=max(p,q)`, `df2=v−max(p,q)+q`,
+`F=(df2/df1)·Θ`.
+Use the upper-bound interpretation for Roy; it is not the exact omnibus distribution when multiple roots contribute.
 
-For \(pq=2\), the continuous limiting value is \(t=1\).
+## Numerical verification
 
-**Hotelling–Lawley**
+The independent calculation constructs the sequential model matrix, residual SSP, each term's incremental H, generalized roots and four F/df/p rows, then compares to the public R summary. It also compares every SSP matrix and eigenvalue. Verified cases are `manova_iris`, `manova_iris_intercept`, `manova_two_factors`, `manova_two_factors_reversed`, `manova_interaction`, `manova_covariate`, `manova_two_responses_two_groups`, `manova_p_gt_df`, `manova_na`, `manova_tol`, `manova_scale`, and `manova_npk`; all reported term rows and all four test columns were compared. The experiment output records per-case maximum F/df/p discrepancies and matrix/eigenvalue discrepancies; the iris baseline has F max absolute error 4.24e−12, df error 0, p max absolute error 5.30e−64, SSP max absolute error 9.67e−13 and eigenvalue max absolute error 3.56e−14. The intercept row's F discrepancy is at most 9.94e−8 because the intercept SSP is very large; the Species row remains at 4.24e−12. Boundary cases `manova_one_response`, `manova_few_df`, and `manova_collinear` are verified as errors, preserving their R error text.
 
-\[
-df_1=s(2m+s+1),\quad df_2=2(sn_0+1),\quad
-F=\frac{df_2}{s\,df_1}U.
-\]
+## R-observed contract and formula semantics
 
-**Roy (upper-bound approximation)**
-
-\[
-df_1=\max(p,q),\quad df_2=v-\max(p,q)+q,\quad
-F=\frac{df_2}{df_1}\Theta.
-\]
-
-All p-values are upper-tail F probabilities.
-
-## R-observed contract and numerical checks
-
-- Formula terms are Type I sequential in formula order. Reversing terms changes SSP and test rows. \`intercept=TRUE\` adds the intercept row; default omits it. \`tol\` controls numerical rank.
-- All 15 cases in \`multivariate19.json\` were checked: \`manova_iris\`, \`manova_iris_intercept\`, \`manova_two_factors\`, \`manova_two_factors_reversed\`, \`manova_interaction\`, \`manova_covariate\`, \`manova_two_responses_two_groups\`, \`manova_p_gt_df\`, \`manova_one_response\`, \`manova_few_df\`, \`manova_collinear\`, \`manova_na\`, \`manova_tol\`, \`manova_scale\`, and \`manova_npk\`.
-- The 12 estimable cases agree for every term and all four F tests: df difference 0; maximum relative F difference \(1.91\cdot10^{-11}\), p difference \(1.37\cdot10^{-9}\). SSP matrices and positive generalized roots agree to maximum relative difference \(4.56\cdot10^{-15}\).
-- Error cases match: one response gives \`need multiple responses\`; few residual df gives \`residuals have rank 5 < 6\`; collinear responses give \`residuals have rank 2 < 3\`.
-- The user-provided \`experiments/multivariate19-stage1-check-local.json\` independently confirms the iris Pillai statistic from H/E.
+Terms are Type I sequential in formula order; reversing two factors changes the rows. `intercept=TRUE` adds an (Intercept) row. The output includes all four test tables, SSP matrices, eigenvalues and model coefficients. One response errors `need multiple responses`; insufficient residual rank and collinear response matrices error. NA rows follow model-frame omission. `tol` controls numerical rank.
 
 ## Decisions for the user
 
-1. Implement Type I sequential terms only, in formula order; document that this is not Type II/III.
-2. Expose \`intercept\` and \`tol\`; reject residual SSP rank below response dimension.
-3. Implement all four statistic-specific F approximations above; do not substitute chi-square approximations.
-4. Use scale-normalized SSP/eigen calculations to avoid avoidable overflow.
+1. Implement all four statistics and the F approximations above, including Roy's upper bound; recommendation: yes, with Roy explicitly labelled as an upper-bound approximation.
+2. Keep Type I sequential term ordering and optional intercept row.
+3. Reject residual SSP rank below response dimension and expose `tol`.
 
 ## rStats.js's choices
 
