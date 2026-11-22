@@ -103,7 +103,7 @@ lda_compare <- function(xx,gg,prior0=NULL,tol0=1e-4,do_cv=FALSE,do_predict=TRUE)
   cvclass <- character(nrow(as.matrix(xx))); cvpost <- matrix(NA_real_,nrow(as.matrix(xx)),length(levs))
   cvprior <- ref$prior
   for(i in seq_len(nrow(as.matrix(xx)))) {
-   take <- setdiff(seq_len(nrow(as.matrix(xx)),i)
+   take <- setdiff(seq_len(nrow(as.matrix(xx))),i)
    f0 <- MASS::lda(xx[take,,drop=FALSE],gg[take],prior=cvprior,tol=tol0)
    p0 <- predict(f0,xx[i,,drop=FALSE])
    cvclass[i] <- as.character(p0$class[1])
