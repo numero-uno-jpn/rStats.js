@@ -150,7 +150,7 @@ function fitCore(x0: number[][], g0: readonly GroupLabel[], options: LdaOptions,
     const w = cross(deviations);
     for (let i = 0; i < p; i++) for (let j = 0; j < p; j++) within[i]![j]! += w[i]![j]!;
     const d = means[k]!.map((v, j) => v - center[j]!);
-    for (let i = 0; i < p; i++) for (let j = 0; j < p; j++) between[i]![j]! += prior[k]! * d[i]! * d[j]!;
+    for (let i = 0; i < p; i++) for (let j = 0; j < p; j++) between[i]![j]! += counts[k]! * d[i]! * d[j]!;
   }
   const tol = options.tol ?? 1e-4;
   if (!(Number.isFinite(tol) && tol >= 0)) throw new RangeError("'tol' must be a non-negative finite number");
@@ -188,7 +188,7 @@ function fitCore(x0: number[][], g0: readonly GroupLabel[], options: LdaOptions,
   return {
     prior, counts, means: { rows: levels, cols: names.length === 1 ? names[0]! : names, values: originalMeans },
     scaling: { rows: names.length === 1 ? names[0]! : names, cols: keepRoots.length === 1 ? "LD1" : keepRoots.map((_, i) => `LD${i + 1}`), values: scaling },
-    svd: (() => { const v = keepRoots.map((i) => Math.sqrt(Math.max(0, be.values[i]!) * n * (n - g) / Math.max(1, g - 1))); return v.length === 1 ? v[0]! : v; })(),
+    svd: (() => { const v = keepRoots.map((i) => Math.sqrt(Math.max(0, be.values[i]!) * (n - g) / Math.max(1, g - 1))); return v.length === 1 ? v[0]! : v; })(),
     N: n, lev: declared ?? levels, warnings, _means: means, _activeLev: levels, _center: center, _scaling: scalingNorm, _covInverse: covInv,
     _scale: scale, _x: xs, _xNames: names, _tol: tol,
   };
