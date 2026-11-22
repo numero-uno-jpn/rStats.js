@@ -1,5 +1,5 @@
 # issue: 549
-# Independent LDA calculations using weighted class moments and base linear algebra.
+# Independent LDA calculations using weighted class moments and base SVD.
 library(MASS); library(jsonlite)
 mdiff <- function(a,b) {
  if(length(a)!=length(b)) return(Inf)

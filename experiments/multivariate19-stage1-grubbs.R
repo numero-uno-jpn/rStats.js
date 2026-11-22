@@ -74,7 +74,7 @@ for(nobs in c(4,6,8,9,11,15,16,25,29)) {
  ugrid <- seq(0,1,by=.001)
  cdf_tab <- vapply(ugrid,function(u) tryCatch(qgrubbs(u,nobs,type=20,rev=TRUE),error=function(e) NA_real_),numeric(1))
  good <- is.finite(cdf_tab)
- testU <- seq(.017,.983,by=.037)
+ testU <- seq(.0173,.9837,by=.0371)
  test_direct <- vapply(testU,function(u) pgrubbs(u,nobs,type=20),numeric(1))
  test_reverse <- vapply(testU,function(u) qgrubbs(u,nobs,type=20,rev=TRUE),numeric(1))
  interp_rev <- approx(ugrid[good],cdf_tab[good],xout=testU,rule=2)$y
