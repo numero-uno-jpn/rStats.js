@@ -296,6 +296,7 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `psych::omega()` | `omega` | 斜交 minres 因子解の Schmid-Leiman 変換による McDonald の ω |
 | `oneway.test()` | `onewayTest` | 複数の正規標本の平均が等しいことの検定 (等分散を仮定しない場合と仮定する場合) |
 | `p.adjust()` | `pAdjust` | 多重比較のための p 値の調整 |
+| `PMCMRplus::pageTest()` | `pageTest` | 処理に順序のある対立仮説についての Page の順位和検定 (反復のない完全ブロック計画) |
 | `pairwise.prop.test()` | `pairwisePropTest` | 比率が等しいことについての群の対ごとの 2 群検定 (調整済み p 値つき) |
 | `pairwise.t.test()` | `pairwiseTTest` | 群間の対ごとの t 検定 (調整済み p 値つき) |
 | `pairwise.wilcox.test()` | `pairwiseWilcoxTest` | 群間の対ごとの Wilcoxon 順位和検定 (調整済み p 値つき) |

@@ -350,6 +350,7 @@ const OWN_CHECK = new Set(["lmerAnova", "glmerAnova"]);
 const formulaOrOptions = (p) => `typeof ${p[0]} !== "string" && isOptionsObject(${p[1]})`;
 const CONDITIONS = {
   tTest: { 1: formulaOrOptions },
+  pageTest: { 1: formulaOrOptions },
   wilcoxTest: { 1: formulaOrOptions },
   onewayTest: { 1: formulaOrOptions },
   roc: { 1: formulaOrOptions },

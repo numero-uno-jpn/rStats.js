@@ -223,6 +223,7 @@
   "fisherTest": "計数データに対する Fisher の正確検定",
   "flignerTest": "分散の均一性についての Fligner-Killeen 検定",
   "friedmanTest": "反復のない完全ブロック計画に対する Friedman の順位和検定",
+  "pageTest": "処理に順序のある対立仮説についての Page の順位和検定 (反復のない完全ブロック計画)",
   "gamesHowellTest": "Welch の標準誤差と自由度による、平均の Games-Howell の全対比較検定",
   "tamhaneT2Test": "等分散を仮定しない、平均の Tamhane の T2 (と T2') の全対比較検定",
   "grubbsTest": "外れ値 1 つについての Grubbs の検定 (type 10)",

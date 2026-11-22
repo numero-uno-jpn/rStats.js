@@ -296,6 +296,7 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `psych::omega()` | `omega` | McDonald's omega from a Schmid-Leiman transformation of an oblique minres factor solution. |
 | `oneway.test()` | `onewayTest` | Test that several normal samples have equal means, without or with the assumption of equal variances. |
 | `p.adjust()` | `pAdjust` | Adjusts p-values for multiple comparisons. |
+| `PMCMRplus::pageTest()` | `pageTest` | Page's ordered aligned rank-sum test. |
 | `pairwise.prop.test()` | `pairwisePropTest` | Pairwise two-group tests of equal proportions, with adjusted p-values. |
 | `pairwise.t.test()` | `pairwiseTTest` | Pairwise t tests between groups, with adjusted p-values. |
 | `pairwise.wilcox.test()` | `pairwiseWilcoxTest` | Pairwise Wilcoxon rank sum tests between groups, with adjusted p-values. |
