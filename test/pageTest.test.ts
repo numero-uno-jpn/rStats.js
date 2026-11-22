@@ -88,7 +88,8 @@ describe("pageTest", () => {
           const statistic = Array.isArray(actual.statistic) ? actual.statistic[0]! : actual.statistic;
           if (!close(statistic, expected.statistic)) mismatches.push(`${key}.statistic`);
           if (!close(actual.pValue, expected["p.value"])) mismatches.push(`${key}.p.value`);
-          if (!close(actual.estimate!, expected.estimate)) mismatches.push(`${key}.estimate`);
+          const estimate = Array.isArray(actual.estimate) ? actual.estimate[0]! : actual.estimate!;
+          if (!close(estimate, expected.estimate)) mismatches.push(`${key}.estimate`);
         }
       }
     }
