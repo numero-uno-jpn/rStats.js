@@ -58,6 +58,17 @@ R に合わせた乱数 `setSeed`・`sample` (`src/random/`)。`dist` はまだ�
   Kruskal (1964b) の方法で R の途中の stress と最終の座標を合わせる (届かなければ厳しく収束させた R と)、Cailliez の定数は
   0 に丸めず同じ量を計算、dist は R と同じ式 + 溢れた対だけ直す。残りの細部は ChatGPT の推奨 (警告は `warnings: string[]`)
 - fixture 5 つ (54・120・114・37・29 case、kmeans は x86_64)、段階 2 の指示 `briefs/cluster-mds-1.10-stage2.ja.md`
+- **段階 2 (dist) の点検 (2026-11-22 夜):** (1) **fixture は 17 桁に** (`jsonlite::toJSON(digits = NA)` は 15 桁に丸める。
+  プロジェクトの「17 桁」の注記は誤りだった。1.10.0 の oracle 5 つは `digits = I(17)`)。(2) **ビット単位の照合は x86_64 の
+  R で:** arm64 の R は積和を FMA でまとめ、`dist` の最後の桁が x86_64 の R・素朴な JS と違う (USArrests の 1 対で R arm64
+  …208、x86_64 と JS …194)。dist・hclust・cmdscale・isomds の oracle も `# oracle-platform: amd64` にした (hclust の高さの
+  69 個が arm64 と違った。merge・order は同じ)。(3) NA の尺度の直し方は `sum / (使えた数 / m)` の形で R とビット一致。
+  (4) 結果の型を `DistResult` に改めた (option-keys.mjs は `*Result` をデータとして扱う)。dist は全 case でビット一致
+  (`6076f5bb`)
+- **事故: ChatGPT が dist の直しを main に直接 push した** (`faa56636`・`76d20b32`。作業ブランチには中身の無いコミット
+  `fe401abd` だけ)。PR #557 が衝突して CI が動かず、main の CI も赤。中身は作業ブランチに取り込み、main では 2 つを revert
+  (ユーザーの許可で push)。ChatGPT は「push した」と報告したが、届いた先を確かめていなかった → 依頼文に「push の後、
+  `work/cluster-mds-1.10` の HEAD が自分のコミットか確かめる」を入れる
 - 次: ChatGPT が段階 2 (dist → hclust → kmeans → cmdscale → isoMDS)。1 つずつ CI 緑の報告が来たら私が点検
   (許容の大きさ・export・全 case)。option keys と r-functions は私が作り直す
 
