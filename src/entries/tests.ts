@@ -396,4 +396,4 @@ export {
   type ModeratorMatrix, type NumericMatrix,
 } from "../models/metaAnalysis.js";
 
-export { tamhaneT2Test, type TamhaneT2Options, type TamhaneT2Result } from "../htest/tamhaneT2Test.js";
+export { tamhaneT2Test, type TamhaneT2Options } from "../htest/multipleComparisons.js";
