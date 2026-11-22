@@ -88,8 +88,8 @@ export function cancor(x: VectorOrMatrix, y: VectorOrMatrix, options: CancorOpti
   const dec = svd(k);
   const ncan = Math.min(qx.rank, qy.rank, dec.d.length);
   const u = dec.u!, v = dec.v!;
-  let ax = mul(ix, u.map((r) => r.slice(0, ncan)));
-  let by = mul(iy, v.map((r) => r.slice(0, ncan)));
+  let ax: number[][];
+  let by: number[][];
   // Convert coefficients from scaled columns back to original units.
   ax = mul(ix, u.map((r) => r.slice(0, ncan))).map((r, i) => r.map((z) => z / sx[px[i]!]!));
   by = mul(iy, v.map((r) => r.slice(0, ncan))).map((r, i) => r.map((z) => z / sy[py[i]!]!));
