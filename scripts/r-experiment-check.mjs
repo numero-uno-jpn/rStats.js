@@ -233,6 +233,10 @@ const REFERENCE_FUNCTIONS = [
   "rm.outlier", "scores",
   // stats multivariate analysis (1.9.0): R's own code, GPL like the packages (lda is MASS's, above)
   "manova", "summary.manova", "cancor",
+  // stats cluster analysis and classical scaling (1.10.0): R's own code, GPL like the packages (isoMDS, sammon and
+  // Shepard are MASS's, above)
+  "dist", "as.dist", "hclust", "as.hclust", "cutree", "cophenetic", "rect.hclust", "identify.hclust", "as.dendrogram",
+  "order.dendrogram", "kmeans", "fitted.kmeans", "cmdscale",
 ];
 
 /** Names that reach code, namespaces, compiled routines, other programs or files: not allowed at all. */
