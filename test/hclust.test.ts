@@ -44,8 +44,10 @@ function compareCutree(key: string, actual: ReturnType<typeof cutree>): void {
   if (JSON.stringify(actual.values) !== JSON.stringify(expectedValues)) {
     mismatches.push(`${key}.values differs`);
   }
-  const expectedNames = expected.names ?? expected.rows ?? null;
+  const matrix = expected.rows !== undefined;
+  const expectedNames = expected.names ?? null;
   if (JSON.stringify(actual.names) !== JSON.stringify(expectedNames)) mismatches.push(`${key}.names differs`);
+  if (matrix && JSON.stringify(actual.rows ?? null) !== JSON.stringify(expected.rows ?? null)) mismatches.push(`${key}.rows differs`);
   const expectedColumns = expected.cols;
   if (JSON.stringify(actual.columns ?? null) !== JSON.stringify(expectedColumns ?? null)) mismatches.push(`${key}.columns differs`);
 }
