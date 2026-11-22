@@ -204,6 +204,7 @@ function fitCore(x0: number[][], g0: readonly GroupLabel[], options: LdaOptions,
  * @category Multivariate analysis
  */
 export function lda(x: VectorOrMatrix, grouping: readonly GroupLabel[], options?: LdaOptions & { CV?: false }): LdaFit;
+/** Leave-one-out cross-validation result overload. */
 export function lda(x: VectorOrMatrix, grouping: readonly GroupLabel[], options: LdaOptions & { CV: true }): LdaCVResult;
 /**
  * Linear discriminant analysis from a formula, e.g. `"class ~ x1 + x2"` or `"class ~ ."`.
