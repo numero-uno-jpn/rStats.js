@@ -151,7 +151,8 @@ function fitCore(x0: number[][], g0: readonly GroupLabel[], options: LdaOptions,
  * @param options Prior probabilities, tolerance, and leave-one-out CV.
  * @category Multivariate analysis
  */
-export function lda(x: VectorOrMatrix, grouping: readonly GroupLabel[], options?: LdaOptions): LdaFit | LdaCVResult;
+export function lda(x: VectorOrMatrix, grouping: readonly GroupLabel[], options?: LdaOptions & { CV?: false }): LdaFit;
+export function lda(x: VectorOrMatrix, grouping: readonly GroupLabel[], options: LdaOptions & { CV: true }): LdaCVResult;
 /**
  * Linear discriminant analysis from a formula, e.g. `"class ~ x1 + x2"` or `"class ~ ."`.
  *
@@ -160,7 +161,8 @@ export function lda(x: VectorOrMatrix, grouping: readonly GroupLabel[], options?
  * @param options Prior probabilities, tolerance, and leave-one-out CV.
  * @category Multivariate analysis
  */
-export function lda(formula: string, data: DataFrame, options?: LdaOptions): LdaFit | LdaCVResult;
+export function lda(formula: string, data: DataFrame, options?: LdaOptions & { CV?: false }): LdaFit;
+export function lda(formula: string, data: DataFrame, options: LdaOptions & { CV: true }): LdaCVResult;
 export function lda(x: VectorOrMatrix | string, grouping: readonly GroupLabel[] | DataFrame, options: LdaOptions = {}): LdaFit | LdaCVResult {
   if (options.method !== undefined && options.method !== "moment") throw new RangeError("only method = 'moment' is supported");
   let values: number[][], groups: GroupLabel[], names: string[];
