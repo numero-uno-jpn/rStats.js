@@ -1,10 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
-import { asDist, dist, isoMDS, type IsoMDSResult } from "../src/entries/multivariate.js";
+import { asDist, cmdscale, dist, isoMDS, type IsoMDSResult } from "../src/entries/multivariate.js";
 
 const fixture = JSON.parse(readFileSync(new URL("./fixtures/isomds.json", import.meta.url), "utf8")) as Record<string, any>;
 const mismatches: string[] = [];
 let maxStressError = 0;
+function close(label: string, actual: number, expected: number, tol: number): void {
+  const error = Math.abs(actual - expected);
+  if (error > tol) mismatches.push(label + ": " + actual + " != " + expected + " (abs=" + error + ")");
+}
 function num(v: unknown): number {
   if (v === "NA" || v === "NaN") return NaN;
   if (v === "Inf") return Infinity;
