@@ -20,11 +20,11 @@ export interface CancorOptions {
  * @category Linear models and ANOVA
  */
 export interface CancorResult {
-  cor: number[];
-  xcoef: { rows: string[]; cols: string[]; values: number[][] };
-  ycoef: { rows: string[]; cols: string[]; values: number[][] };
-  xcenter: number[];
-  ycenter: number[];
+  cor: number[] | number;
+  xcoef: { rows: string[] | string | null; cols: null; values: number[][] };
+  ycoef: { rows: string[] | string | null; cols: null; values: number[][] };
+  xcenter: number[] | number;
+  ycenter: number[] | number;
 }
 function cross(a: number[][], b: number[][] = a): number[][] {
   const out = Array.from({ length: a[0]?.length ?? 0 }, () => new Array<number>(b[0]?.length ?? 0).fill(0));
@@ -117,11 +117,14 @@ export function cancor(x: VectorOrMatrix, y: VectorOrMatrix, options: CancorOpti
   }
   const xNames = namesOrDefault(options.xNames, xm[0]!.length, "x");
   const yNames = namesOrDefault(options.yNames, ym[0]!.length, "y");
-  const cols = Array.from({ length: ncan }, (_, i) => `[,${i + 1}]`);
+  const xRows = options.xNames === undefined ? null : px.map((i) => xNames[i]!);
+  const yRows = options.yNames === undefined ? null : py.map((i) => yNames[i]!);
+  const cor = dec.d.slice(0, ncan);
   return {
-    cor: dec.d.slice(0, ncan),
-    xcoef: { rows: px.map((i) => xNames[i]!), cols, values: ax },
-    ycoef: { rows: py.map((i) => yNames[i]!), cols, values: by },
-    xcenter: xc, ycenter: yc,
+    cor: cor.length === 1 ? cor[0]! : cor,
+    xcoef: { rows: xRows === null ? null : xRows.length === 1 ? xRows[0]! : xRows, cols: null, values: ax },
+    ycoef: { rows: yRows === null ? null : yRows.length === 1 ? yRows[0]! : yRows, cols: null, values: by },
+    xcenter: xc.length === 1 ? xc[0]! : xc,
+    ycenter: yc.length === 1 ? yc[0]! : yc,
   };
 }
