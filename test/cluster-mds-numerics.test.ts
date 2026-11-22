@@ -10,7 +10,7 @@ describe("cluster and classical-scaling numerical extremes", () => {
     const base = dist([[0, 0], [3, 0], [0, 4], [3, 4]]);
     for (const method of ["ward.D2", "median", "centroid"] as const) {
       const reference = hclust(base, { method });
-      for (const scale of [2 ** 500, 2 ** -500]) {
+      for (const scale of [2 ** 500, 2 ** -500, 2 ** 1000, 2 ** -1000]) {
         const scaled = hclust({ ...base, values: base.values.map((v) => v * scale) }, { method });
         expect(scaled.merge).toEqual(reference.merge);
         expect(scaled.order).toEqual(reference.order);
@@ -49,6 +49,31 @@ describe("cluster and classical-scaling numerical extremes", () => {
       for (let i = 0; i < reference.eig.length; i++) expect(scaled.eig[i]! / (scale * scale)).toBeCloseTo(reference.eig[i]!, 7);
     }
   });
+  it("keeps dist and hclust equivariant at 2^±1000", () => {
+    const rows = [[0, 0], [3, 0], [0, 4], [3, 4]];
+    const base = dist(rows);
+    const reference = hclust(base, { method: "ward.D2" });
+    for (const scale of [2 ** 1000, 2 ** -1000]) {
+      const scaled = dist(rows.map((row) => row.map((v) => v * scale)));
+      for (let i = 0; i < base.values.length; i++) expect(scaled.values[i]! / scale).toBeCloseTo(base.values[i]!, 11);
+      const tree = hclust(scaled, { method: "ward.D2" });
+      expect(tree.merge).toEqual(reference.merge);
+      expect(tree.order).toEqual(reference.order);
+      for (let i = 0; i < reference.height.length; i++) expect(tree.height[i]! / scale).toBeCloseTo(reference.height[i]!, 10);
+    }
+  });
+
+  it("keeps kmeans assignments at 2^±1000 even when squared sums are unrepresentable", () => {
+    const rows = [[0, 0], [1, 1], [10, 10], [11, 11]], centers = [[0, 0], [10, 10]];
+    const reference = kmeans(rows, centers, { algorithm: "Lloyd" });
+    for (const scale of [2 ** 1000, 2 ** -1000]) {
+      const fit = kmeans(rows.map((r) => r.map((v) => v * scale)), centers.map((r) => r.map((v) => v * scale)), { algorithm: "Lloyd" });
+      expect(fit.cluster).toEqual(reference.cluster);
+      expect(fit.iter).toBe(reference.iter);
+      for (let g = 0; g < 2; g++) for (let j = 0; j < 2; j++) expect(fit.centers.values[g]![j]! / scale).toBeCloseTo(reference.centers.values[g]![j]!, 10);
+    }
+  });
+
   it("preserves distance and kmeans assignments at subnormal magnitudes", () => {
     const tiny = 1e-310;
     const points = [[0], [1], [3]].map((r) => r.map((v) => v * tiny));
