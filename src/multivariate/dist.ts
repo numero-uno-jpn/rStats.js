@@ -16,12 +16,19 @@ export type DistMethod = "euclidean" | "maximum" | "manhattan" | "canberra" | "b
  * @category Multivariate analysis
  */
 export interface DistResult {
+  /** Pairwise dissimilarities in lower-triangle column order. */
   values: number[];
+  /** Number of observations represented by the dissimilarities. */
   size: number;
+  /** Observation labels, or null when no labels were supplied. */
   labels: string[] | null;
+  /** Distance method used, or null for a matrix converted by asDist. */
   method: DistMethod | null;
+  /** Whether diagonal display was requested. */
   diag: boolean;
+  /** Whether upper-triangle display was requested. */
   upper: boolean;
+  /** Messages generated while coercing or processing the input. */
   warnings: string[];
 }
 
@@ -29,10 +36,15 @@ export interface DistResult {
  * @category Multivariate analysis
  */
 export interface DistOptions {
+  /** Distance metric; a unique prefix is accepted. */
   method?: DistMethod | string;
+  /** Minkowski power, required to be finite and positive when method is minkowski. */
   p?: number;
+  /** Store the diagonal display flag in the result. */
   diag?: boolean;
+  /** Store the upper-triangle display flag in the result. */
   upper?: boolean;
+  /** Labels for the observations (one per row). */
   labels?: readonly string[];
 }
 
@@ -40,8 +52,11 @@ export interface DistOptions {
  * @category Multivariate analysis
  */
 export interface AsDistOptions {
+  /** Labels for the rows and columns of the square matrix. */
   labels?: readonly string[];
+  /** Store the diagonal display flag in the result. */
   diag?: boolean;
+  /** Store the upper-triangle display flag in the result. */
   upper?: boolean;
 }
 
