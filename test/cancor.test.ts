@@ -8,6 +8,35 @@ function cross(a: number[][]): number[][] {
 
 const irisRows = JSON.parse(readFileSync(new URL("./fixtures/iris.json", import.meta.url), "utf8")) as [number, number, number, number, string][];
 const cancorFixture = JSON.parse(readFileSync(new URL("./fixtures/cancor.json", import.meta.url), "utf8")) as Record<string, any>;
+const mtRows = JSON.parse(readFileSync(new URL("./fixtures/mtcars.json", import.meta.url), "utf8")) as number[][];
+function compareCancor(actual: ReturnType<typeof cancor>, expected: any): void {
+  const cor = Array.isArray(actual.cor) ? actual.cor : [actual.cor];
+  const expectedCor = Array.isArray(expected.cor) ? expected.cor : [expected.cor];
+  expect(cor.length).toBe(expectedCor.length);
+  expectedCor.forEach((v: number, i: number) => expect(cor[i]).toBeCloseTo(v, 8));
+  const xc = Array.isArray(actual.xcenter) ? actual.xcenter : [actual.xcenter];
+  const yc = Array.isArray(actual.ycenter) ? actual.ycenter : [actual.ycenter];
+  const xce = Array.isArray(expected.xcenter) ? expected.xcenter : [expected.xcenter];
+  const yce = Array.isArray(expected.ycenter) ? expected.ycenter : [expected.ycenter];
+  xce.forEach((v: number, i: number) => expect(xc[i]).toBeCloseTo(v, 9));
+  yce.forEach((v: number, i: number) => expect(yc[i]).toBeCloseTo(v, 9));
+  expect(actual.xcoef.rows).toEqual(expected.xcoef.rows);
+  expect(actual.ycoef.rows).toEqual(expected.ycoef.rows);
+  expect(actual.xcoef.cols).toBe(expected.xcoef.cols);
+  expect(actual.ycoef.cols).toBe(expected.ycoef.cols);
+  const sx = expected.xcoef.values[0]!.map((_: number, j: number) => {
+    const dot = actual.xcoef.values.reduce((s, row, i) => s + row[j]! * expected.xcoef.values[i]![j]!, 0);
+    return dot < 0 ? -1 : 1;
+  });
+  const sy = expected.ycoef.values[0]!.map((_: number, j: number) => {
+    if (j < cor.length) return sx[j]!;
+    const dot = actual.ycoef.values.reduce((s, row, i) => s + row[j]! * expected.ycoef.values[i]![j]!, 0);
+    return dot < 0 ? -1 : 1;
+  });
+  expectMatrixClose(actual.xcoef.values.map((row) => row.map((v, j) => v * sx[j]!)), expected.xcoef.values, 1e-8);
+  expectMatrixClose(actual.ycoef.values.map((row) => row.map((v, j) => v * sy[j]!)), expected.ycoef.values, 1e-8);
+}
+
 function expectMatrixClose(actual: number[][], expected: number[][], tol = 1e-8): void {
   expect(actual.length).toBe(expected.length);
   for (let i = 0; i < expected.length; i++) {
@@ -45,6 +74,20 @@ describe("cancor", () => {
     });
     expectMatrixClose(actual.xcoef.values.map((row) => row.map((v, j) => v * signs[j]!)), expected.xcoef.values, 1e-8);
     expectMatrixClose(actual.ycoef.values.map((row) => row.map((v, j) => v * signs[j]!)), expected.ycoef.values, 1e-8);
+  });
+
+  it("matches the remaining mtcars canonical-correlation fixtures", () => {
+    const col = (j: number) => mtRows.map((r) => r[j]!);
+    const cases = [
+      ["cancor_one_x", col(5).map((v) => [v]), [col(0), col(3), col(6)], ["wt"], ["mpg", "hp", "qsec"]],
+      ["cancor_more_x_than_y", mtRows.map((r) => [r[5]!, r[2]!, r[4]!, r[6]!]), mtRows.map((r) => [r[0]!, r[3]!]), ["wt", "disp", "drat", "qsec"], ["mpg", "hp"]],
+      ["cancor_collinear", mtRows.map((r) => [r[5]!, r[2]!, r[5]! + r[2]!]), mtRows.map((r) => [r[0]!, r[3]!]), ["a", "b", "c"], ["mpg", "hp"]],
+      ["cancor_n_small", mtRows.slice(0, 4).map((r) => [r[5]!, r[2]!, r[4]!]), mtRows.slice(0, 4).map((r) => [r[0]!, r[3]!]), ["wt", "disp", "drat"], ["mpg", "hp"]],
+    ] as const;
+    for (const [key, x, y, xNames, yNames] of cases) {
+      compareCancor(cancor(x, y, { xNames, yNames }), cancorFixture[key].value);
+    }
+    compareCancor(cancor(col(5), col(0)), cancorFixture.cancor_vectors.value);
   });
 
   it("returns nonzero canonical pairs with cross-product normalisation", () => {
