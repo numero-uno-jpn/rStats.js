@@ -165,12 +165,7 @@ describe("lda", () => {
     const base = lda(xx, gg, { xNames: names });
     compareLdaPrediction(ldaPredict(base, { prior: [0.1, 0.1, 0.8] }), ldaFixture.lda_iris_predict_prior.value);
     const oneDim = ldaPredict(base, { dimen: 1 });
-    const oneDimExpected = ldaFixture.lda_iris_dimen1.value;
-    expect(oneDim.class).toEqual(oneDimExpected.class);
-    expect(oneDim.posterior.cols).toEqual(oneDimExpected.posterior.cols);
-    expectMatrixClose(oneDim.posterior.values, oneDimExpected.posterior.values, 1e-8);
-    expect(oneDim.x.cols).toEqual(oneDimExpected.x.cols);
-    expectMatrixClose(oneDim.x.values, oneDimExpected.x.values, 1e-8);
+    compareLdaPrediction(oneDim, ldaFixture.lda_iris_dimen1.value);
     expect(() => ldaPredict(base, { method: "predictive" } as any)).toThrow(/plug-in/);
     expect(() => ldaPredict(base, { method: "debiased" } as any)).toThrow(/plug-in/);
   });
