@@ -1,13 +1,16 @@
 // Hierarchical agglomerative clustering and tree cutting.
 import type { DistResult } from "./dist.js";
 
+/** @category Multivariate analysis */
 export type HclustMethod = "ward.D" | "ward.D2" | "single" | "complete" | "average" | "mcquitty" | "median" | "centroid";
 
+/** @category Multivariate analysis */
 export interface HclustOptions {
   method?: HclustMethod | string;
   members?: readonly number[];
 }
 
+/** @category Multivariate analysis */
 export interface HclustFit {
   merge: number[][];
   height: number[];
@@ -18,11 +21,13 @@ export interface HclustFit {
   warnings: string[];
 }
 
+/** @category Multivariate analysis */
 export interface CutreeOptions {
   k?: number | readonly number[];
   h?: number | readonly number[];
 }
 
+/** @category Multivariate analysis */
 export interface CutreeResult {
   values: number[] | number[][];
   names: string[] | null;
@@ -65,7 +70,6 @@ function updateDistance(method: HclustMethod, dAB: number, dAC: number, dBC: num
 function encode(node: number, n: number): number { return node < n ? -(node + 1) : node - n + 1; }
 
 /**
- * Lance-Williams hierarchical clustering of a condensed distance object.
  * Equivalent to R's stats::hclust().
  * @category Multivariate analysis
  */
@@ -180,7 +184,10 @@ export function hclust(d: DistResult, options: HclustOptions = {}): HclustFit & 
 }
 
 /** Cut a hierarchical clustering tree by cluster count or merge height. */
-/** Cut a hierarchical clustering tree by cluster count or merge height. Equivalent to R's stats::cutree(). */
+/**
+ * Equivalent to R's stats::cutree().
+ * @category Multivariate analysis
+ */
 export function cutree(tree: HclustFit, options: CutreeOptions = {}): CutreeResult {
   const n = tree.order.length;
   if (options.k === undefined && options.h === undefined) throw new RangeError("either 'k' or 'h' must be specified");
