@@ -8,6 +8,9 @@ import { design } from "../models/modelMatrix.js";
 import { parseFormula } from "../models/formula.js";
 import type { DataFrame } from "../models/modelFrame.js";
 
+/** Options for LDA fitting.
+ * @category Linear models and ANOVA
+ */
 export interface LdaOptions {
   method?: "moment" | string;
   prior?: readonly number[];
@@ -15,13 +18,25 @@ export interface LdaOptions {
   CV?: boolean;
   xNames?: readonly string[];
 }
+/** Options for LDA prediction.
+ * @category Linear models and ANOVA
+ */
+/** Plug-in prediction from an LDA fit.
+ * @category Linear models and ANOVA
+ */
 export interface LdaPredictionOptions {
   method?: "plug-in" | string;
   newdata?: VectorOrMatrix;
   prior?: readonly number[];
   dimen?: number;
 }
+/** A labelled LDA result matrix.
+ * @category Linear models and ANOVA
+ */
 export interface LdaTable { rows: string[]; cols: string[]; values: number[][]; }
+/** A fitted linear discriminant model.
+ * @category Linear models and ANOVA
+ */
 export interface LdaFit {
   prior: number[];
   counts: number[];
@@ -53,6 +68,9 @@ export interface LdaPrediction {
   posterior: LdaTable;
   x: LdaTable;
 }
+/** Leave-one-out LDA predictions.
+ * @category Linear models and ANOVA
+ */
 export interface LdaCVResult { class: string[]; posterior: LdaTable; }
 
 function zeros(r: number, c: number): number[][] { return Array.from({ length: r }, () => new Array<number>(c).fill(0)); }
@@ -142,13 +160,13 @@ function fitCore(x0: number[][], g0: readonly GroupLabel[], options: LdaOptions,
 }
 
 /**
- * Linear discriminant analysis (moment method). Supports matrix/group and formula/data-frame inputs.
+ * Linear discriminant analysis (moment method). Equivalent to `MASS::lda()` for the moment method. Supports matrix/group and formula/data-frame inputs.
  * Directions are metric-normalised and their signs are deterministic.
  *
  * @param x Predictor matrix.
  * @param grouping Class labels.
  * @param options Prior probabilities, tolerance, and leave-one-out CV.
- * @category Multivariate analysis
+ * @category Linear models and ANOVA
  */
 export function lda(x: VectorOrMatrix, grouping: readonly GroupLabel[], options?: LdaOptions & { CV?: false }): LdaFit;
 export function lda(x: VectorOrMatrix, grouping: readonly GroupLabel[], options: LdaOptions & { CV: true }): LdaCVResult;
@@ -158,7 +176,7 @@ export function lda(x: VectorOrMatrix, grouping: readonly GroupLabel[], options:
  * @param formula Formula.
  * @param data Data frame.
  * @param options Prior probabilities, tolerance, and leave-one-out CV.
- * @category Multivariate analysis
+ * @category Linear models and ANOVA
  */
 export function lda(formula: string, data: DataFrame, options?: LdaOptions & { CV?: false }): LdaFit;
 export function lda(formula: string, data: DataFrame, options: LdaOptions & { CV: true }): LdaCVResult;
@@ -196,11 +214,11 @@ export function lda(x: VectorOrMatrix | string, grouping: readonly GroupLabel[] 
 }
 
 /**
- * Plug-in prediction for a fitted {@link lda} model.
+ * Plug-in prediction for a fitted {@link lda} model. Equivalent to the plug-in `predict.lda()` method.
  *
  * @param fit A fitted LDA model.
  * @param options New observations, prior override, and number of discriminant scores.
- * @category Multivariate analysis
+ * @category Linear models and ANOVA
  */
 export function predictLda(fit: LdaFit, options: LdaPredictionOptions = {}): LdaPrediction {
   if (options.method !== undefined && options.method !== "plug-in") throw new RangeError("only method = 'plug-in' is supported");
