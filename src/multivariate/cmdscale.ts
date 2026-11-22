@@ -99,7 +99,26 @@ function cailliez(d: readonly (readonly number[])[]): number {
     if (imag !== undefined && Math.abs(imag[i]!) > 1e-9 * Math.max(1, Math.abs(values.values[i]!))) continue;
     largest = Math.max(largest, values.values[i]!);
   }
-  return largest;
+  const minEigen = (constant: number): number => {
+    const adjusted = d.map((row, i) => row.map((v, j) => i === j ? v : v + constant));
+    const gram = gramFromDistances(adjusted).gram;
+    return Math.min(...eigen(gram, { symmetric: true, onlyValues: true }).values);
+  };
+  let lo = 0, hi = Math.max(largest, Number.MIN_VALUE);
+  if (minEigen(0) >= 0) return 0;
+  let upperValue = minEigen(hi);
+  for (let i = 0; upperValue < 0 && i < 64; i++) {
+    hi *= 2;
+    upperValue = minEigen(hi);
+  }
+  if (!(upperValue >= 0)) return largest;
+  for (let i = 0; i < 64; i++) {
+    const mid = lo + (hi - lo) / 2;
+    if (mid === lo || mid === hi) break;
+    if (minEigen(mid) >= 0) hi = mid;
+    else lo = mid;
+  }
+  return hi;
 }
 
 function orient(points: number[][]): void {
