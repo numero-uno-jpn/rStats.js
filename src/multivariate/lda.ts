@@ -293,10 +293,10 @@ export function ldaPredict(fit: LdaFit, options: LdaPredictionOptions = {}): Lda
   const maxDim = fit._scaling[0]?.length ?? 0;
   const dimen = options.dimen ?? maxDim;
   if (!Number.isInteger(dimen) || dimen < 1 || dimen > maxDim) throw new RangeError("dimen must be between 1 and the number of discriminant dimensions");
-  const fullScores = x.map((r) => Array.from({ length: maxDim }, (_, k) =>
+  const fullScores = x.map((r) => Array.from({ length: dimen }, (_, k) =>
     r.reduce((s, v, j) => s + (v - center[j]!) * fit._scaling[j]![k]!, 0)));
   const scores = fullScores.map((row) => row.slice(0, dimen));
-  const meanScores = fit._means.map((mu) => Array.from({ length: maxDim }, (_, k) =>
+  const meanScores = fit._means.map((mu) => Array.from({ length: dimen }, (_, k) =>
     mu.reduce((s, v, j) => s + (v - center[j]!) * fit._scaling[j]![k]!, 0)));
   const logp = fullScores.map((row) => fit._activeLev.map((_, g) => {
     let distance = 0;
