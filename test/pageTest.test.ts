@@ -103,9 +103,11 @@ describe("pageTest", () => {
           if (actual.method !== fixture.method) mismatches.push(`${key + suffix}.method`);
           if (actual.statisticName !== fixture.statisticNames) mismatches.push(`${key + suffix}.statisticName`);
           if (actual.alternative !== fixture.alternative) mismatches.push(`${key + suffix}.alternative`);
-          if (!close(actual.statistic, fixture.statistic)) mismatches.push(`${key + suffix}.statistic`);
+          const statistic = typeof actual.statistic === "number" ? actual.statistic : actual.statistic[0]!;
+          if (!close(statistic, fixture.statistic)) mismatches.push(`${key + suffix}.statistic`);
           if (!close(actual.pValue, fixture["p.value"])) mismatches.push(`${key + suffix}.p.value`);
-          if (!close(actual.estimate!, fixture.estimate)) mismatches.push(`${key + suffix}.estimate`);
+          const estimate = typeof actual.estimate === "number" ? actual.estimate : actual.estimate?.[0] ?? NaN;
+          if (!close(estimate, fixture.estimate)) mismatches.push(`${key + suffix}.estimate`);
         }
       }
     }
