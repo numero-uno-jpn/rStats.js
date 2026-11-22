@@ -3,7 +3,6 @@
 # Public outputs only. No R object internals, source inspection, or private calls.
 library(MASS)
 library(jsonlite)
-library(jsonlite)
 # Helpers (the same in each script): run() records the value, the warnings, the messages and the error of one call
 run <- function(expr) {
   warns <- character(0); msgs <- character(0)
