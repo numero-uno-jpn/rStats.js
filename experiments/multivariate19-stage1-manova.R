@@ -53,7 +53,7 @@ one_fit <- function(formula,data,with_intercept=FALSE,tol=1e-7) {
     d1p <- s*(2*mm+s+1); d2p <- s*(2*nn+s+1)
     fp <- ((2*nn+s+1)/(2*mm+s+1))*vv["Pillai"]/(s-vv["Pillai"])
     d1w <- p*qterm
-    tw <- sqrt((p^2*qterm^2-4)/(p^2+qterm^2-5))
+    tw <- if(p*qterm==2) 1 else sqrt((p^2*qterm^2-4)/(p^2+qterm^2-5))
     uw <- (p*qterm-2)/4
     d2w <- (v-(p-qterm+1)/2)*tw-2*uw
     fw <- ((1-vv["Wilks"]^(1/tw))/vv["Wilks"]^(1/tw))*(d2w/d1w)

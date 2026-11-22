@@ -41,10 +41,10 @@ one <- c(1,2,3); two <- c(10,11,12); singleton <- c(5)
 zero <- c(1,1,1); variable <- c(5,6,7)
 a <- var(PlantGrowth$weight[PlantGrowth$group=="ctrl"])/sum(PlantGrowth$group=="ctrl")
 b <- var(PlantGrowth$weight[PlantGrowth$group=="trt1"])/sum(PlantGrowth$group=="trt1")
-as <- a*1e200; bs <- b*1e200
-raw_num <- (as+bs)^2
-raw_den <- as^2/(sum(PlantGrowth$group=="ctrl")-1)+bs^2/(sum(PlantGrowth$group=="trt1")-1)
-stable_a <- as/max(as,bs); stable_b <- bs/max(as,bs)
+aa_scaled <- a*1e200; bb_scaled <- b*1e200
+raw_num <- (aa_scaled+bb_scaled)^2
+raw_den <- aa_scaled^2/(sum(PlantGrowth$group=="ctrl")-1)+bb_scaled^2/(sum(PlantGrowth$group=="trt1")-1)
+stable_a <- aa_scaled/max(aa_scaled,bb_scaled); stable_b <- bb_scaled/max(aa_scaled,bb_scaled)
 stable_df <- (stable_a+stable_b)^2/(stable_a^2/(sum(PlantGrowth$group=="ctrl")-1)+stable_b^2/(sum(PlantGrowth$group=="trt1")-1))
 base_df <- (a+b)^2/(a^2/(sum(PlantGrowth$group=="ctrl")-1)+b^2/(sum(PlantGrowth$group=="trt1")-1))
 degenerate <- list(singleton=pair_calc(list(A=one,B=two,C=singleton)),
