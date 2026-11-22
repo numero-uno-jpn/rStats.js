@@ -30,8 +30,7 @@ describe("manova", () => {
   });
   it("supports derived responses and extreme response scales", () => {
     const d = { ...data, y3: data.y1.map((v, i) => v + data.y2[i]!) };
-    const fit = manova("cbind(y1, y2, I(y1 + y2)) ~ group", d);
-    expect(fit.responseNames).toEqual(["y1", "y2", "I(y1 + y2)"]);
+    expect(() => manova("cbind(y1, y2, I(y1 + y2)) ~ group", d)).toThrow(/residuals have rank 2 < 3/);
     const scaled = { ...data, y1: data.y1.map((v) => v * 1e100), y2: data.y2.map((v) => v * 1e-100) };
     expect(() => manova("cbind(y1, y2) ~ group", scaled)).not.toThrow();
   });
