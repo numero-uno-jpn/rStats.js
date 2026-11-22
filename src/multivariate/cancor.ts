@@ -91,29 +91,34 @@ export function cancor(x: VectorOrMatrix, y: VectorOrMatrix, options: CancorOpti
   const sxx = cross(xr), syy = cross(yr), sxy = cross(xr, yr);
   const ix = inverseSqrt(sxx, tol), iy = inverseSqrt(syy, tol);
   const k = mul(mul(ix, sxy), iy);
-  const dec = svd(k);
+  const dec = svd(k, { nu: qx.rank, nv: qy.rank });
   const ncan = Math.min(qx.rank, qy.rank, dec.d.length);
   const u = dec.u!, v = dec.v!;
-  let ax: number[][];
-  let by: number[][];
   // Convert coefficients from scaled columns back to original units.
-  ax = mul(ix, u.map((r) => r.slice(0, ncan))).map((r, i) => r.map((z) => z / sx[px[i]!]!));
-  by = mul(iy, v.map((r) => r.slice(0, ncan))).map((r, i) => r.map((z) => z / sy[py[i]!]!));
-  for (let j = 0; j < ncan; j++) {
-    let ixMax = 0;
-    for (let i = 1; i < ax.length; i++) if (Math.abs(ax[i]![j]!) > Math.abs(ax[ixMax]![j]!)) ixMax = i;
-    if (ax[ixMax]![j]! < 0) {
-      for (const r of ax) r[j] = -r[j]!;
-      for (const r of by) r[j] = -r[j]!;
+  const ax = mul(ix, u).map((r, i) => r.map((z) => z / sx[px[i]!]!));
+  const by = mul(iy, v).map((r, i) => r.map((z) => z / sy[py[i]!]!));
+  // Orient every X basis column by its largest absolute original-scale coefficient.
+  for (let j = 0; j < ax[0]!.length; j++) {
+    let imax = 0;
+    for (let i = 1; i < ax.length; i++) if (Math.abs(ax[i]![j]!) > Math.abs(ax[imax]![j]!)) imax = i;
+    if (ax[imax]![j]! < 0) for (const r of ax) r[j] = -r[j]!;
+  }
+  // Paired Y columns take the sign that makes canonical correlation positive; extra columns use a deterministic sign.
+  for (let j = 0; j < by[0]!.length; j++) {
+    if (j < ncan) {
+      let cov = 0;
+      for (let i = 0; i < xr.length; i++) {
+        let xv = 0, yv = 0;
+        for (let a = 0; a < ax.length; a++) xv += xr[i]![a]! * ax[a]![j]! * sx[px[a]]!;
+        for (let b = 0; b < by.length; b++) yv += yr[i]![b]! * by[b]![j]! * sy[py[b]]!;
+        cov += xv * yv;
+      }
+      if (cov < 0) for (const r of by) r[j] = -r[j]!;
+    } else {
+      let imax = 0;
+      for (let i = 1; i < by.length; i++) if (Math.abs(by[i]![j]!) > Math.abs(by[imax]![j]!)) imax = i;
+      if (by[imax]![j]! < 0) for (const r of by) r[j] = -r[j]!;
     }
-    let cov = 0;
-    for (let i = 0; i < xr.length; i++) {
-      let xv = 0, yv = 0;
-      for (let a = 0; a < ax.length; a++) xv += xr[i]![a]! * ax[a]![j]! * sx[px[a]]!;
-      for (let b = 0; b < by.length; b++) yv += yr[i]![b]! * by[b]![j]! * sy[py[b]]!;
-      cov += xv * yv;
-    }
-    if (cov < 0) for (const r of by) r[j] = -r[j]!;
   }
   const xNames = namesOrDefault(options.xNames, xm[0]!.length, "x");
   const yNames = namesOrDefault(options.yNames, ym[0]!.length, "y");
