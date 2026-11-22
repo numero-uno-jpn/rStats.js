@@ -26,6 +26,7 @@ export interface CutreeOptions {
 export interface CutreeResult {
   values: number[] | number[][];
   names: string[] | null;
+  rows?: string[] | null;
   columns?: string[];
 }
 
@@ -226,7 +227,7 @@ export function cutree(tree: HclustFit, options: CutreeOptions = {}): CutreeResu
   });
   const matrix = Array.isArray(requested);
   return { values: matrix ? columns[0]?.map((_, i) => columns.map((col) => col[i]!)) ?? [] : columns[0] ?? [],
-    names: tree.labels === null ? null : [...tree.labels],
-    ...(matrix ? { columns: values.map(String) } : {}) };
+    names: matrix || tree.labels === null ? null : [...tree.labels],
+    ...(matrix ? { rows: tree.labels === null ? null : [...tree.labels], columns: values.map(String) } : {}) };
 }
 
