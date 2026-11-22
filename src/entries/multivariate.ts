@@ -7,3 +7,4 @@ export { dist, asDist, type DistMethod, type DistResult, type DistOptions, type 
 export { hclust, cutree, type HclustMethod, type HclustFit, type HclustOptions, type CutreeOptions, type CutreeResult } from "../multivariate/hclust.js";
 export { kmeans, type KmeansFit, type KmeansOptions, type KmeansTable } from "../multivariate/kmeans.js";
 export { cmdscale, type CmdscaleOptions, type CmdscaleResult } from "../multivariate/cmdscale.js";
+export { isoMDS, type IsoMDSOptions, type IsoMDSResult, type IsoMDSTrace } from "../multivariate/isoMDS.js";
