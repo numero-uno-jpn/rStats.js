@@ -112,7 +112,7 @@ function fitCore(x0: number[][], g0: readonly GroupLabel[], options: LdaOptions,
   if (keep.some(({ r }) => r.some((v) => !Number.isFinite(v)))) throw new RangeError("x must contain finite values");
   const labels = factorLabels(keep.map((v) => v.g));
   const observed = new Set(labels.map(String));
-  const declared = declaredLevels === undefined ? undefined : Array.from(new Set(factorLabels(declaredLevels).map(String)));
+  const declared = declaredLevels === undefined ? undefined : Array.from(new Set(declaredLevels.map(String)));
   const levels = declared === undefined
     ? Array.from(observed).sort((a, b) => compareLabels(a, b))
     : declared.filter((level) => observed.has(level));
