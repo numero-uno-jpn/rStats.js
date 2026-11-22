@@ -6,9 +6,14 @@ const DIST_KEYS = ["method", "p", "diag", "upper", "labels"] as const;
 const AS_DIST_KEYS = ["labels", "diag", "upper"] as const;
 const MIN_NORMAL = 2 ** -1022;
 
+/** Distance metric used by {@link dist}.
+ * @category Multivariate analysis
+ */
 export type DistMethod = "euclidean" | "maximum" | "manhattan" | "canberra" | "binary" | "minkowski";
 
-/** A condensed dissimilarity object, in lower-triangle column order. */
+/** A condensed dissimilarity object, in lower-triangle column order.
+ * @category Multivariate analysis
+ */
 export interface DistObject {
   values: number[];
   size: number;
@@ -19,7 +24,9 @@ export interface DistObject {
   warnings: string[];
 }
 
-/** Options for pairwise dissimilarities. */
+/** Options for pairwise dissimilarities.
+ * @category Multivariate analysis
+ */
 export interface DistOptions {
   method?: DistMethod | string;
   p?: number;
@@ -28,7 +35,9 @@ export interface DistOptions {
   labels?: readonly string[];
 }
 
-/** Options for converting a square matrix to condensed dissimilarities. */
+/** Options for converting a square matrix to condensed dissimilarities.
+ * @category Multivariate analysis
+ */
 export interface AsDistOptions {
   labels?: readonly string[];
   diag?: boolean;
@@ -147,10 +156,11 @@ function pairDistance(a: readonly number[], b: readonly number[], method: DistMe
 }
 
 /**
- * Compute pairwise dissimilarities. The condensed values follow R's lower-triangle column order.
+ * Equivalent to R's `stats::dist()`. Compute pairwise dissimilarities in lower-triangle column order.
  *
  * @param x Numeric vector, matrix (rows are observations), or data-frame-like object of columns.
  * @param options Distance method and display metadata.
+ * @category Multivariate analysis
  */
 export function dist(
   x: readonly unknown[] | readonly (readonly unknown[])[] | Record<string, ArrayLike<unknown>>,
@@ -181,8 +191,9 @@ export function dist(
 }
 
 /**
- * Convert a square matrix to a condensed dissimilarity object, using only its lower triangle.
+ * Equivalent to R's `stats::as.dist()`. Convert a square matrix using only its lower triangle.
  * An existing DistObject is returned unchanged.
+ * @category Multivariate analysis
  */
 export function asDist(
   x: DistObject | readonly (readonly number[])[],
