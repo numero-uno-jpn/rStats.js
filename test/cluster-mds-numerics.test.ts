@@ -49,11 +49,11 @@ describe("cluster and classical-scaling numerical extremes", () => {
       for (let i = 0; i < reference.eig.length; i++) expect(scaled.eig[i]! / (scale * scale)).toBeCloseTo(reference.eig[i]!, 7);
     }
   });
-  it("keeps dist and hclust equivariant at 2^±1000", () => {
+  it("keeps dist and hclust equivariant at 2^±500 and 2^±1000", () => {
     const rows = [[0, 0], [3, 0], [0, 4], [3, 4]];
     const base = dist(rows);
     const reference = hclust(base, { method: "ward.D2" });
-    for (const scale of [2 ** 1000, 2 ** -1000]) {
+    for (const scale of [2 ** 500, 2 ** -500, 2 ** 1000, 2 ** -1000]) {
       const scaled = dist(rows.map((row) => row.map((v) => v * scale)));
       for (let i = 0; i < base.values.length; i++) expect(scaled.values[i]! / scale).toBeCloseTo(base.values[i]!, 11);
       const tree = hclust(scaled, { method: "ward.D2" });
