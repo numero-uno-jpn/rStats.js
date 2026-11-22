@@ -31,7 +31,7 @@ export interface KmeansFit {
 
 interface InputData { rows: number[][]; rowNames: string[] | null; colNames: string[] | null; }
 
-function readData(x: readonly unknown[] | readonly (readonly unknown[])[] | Record<string, ArrayLike<unknown>>): InputData {
+function readData(x: readonly unknown[] | readonly (readonly unknown[])[] | Record<string, ArrayLike<unknown>> | KmeansMatrixInput): InputData {
   if (Array.isArray(x)) {
     if (x.length === 0) throw new RangeError("x must be a non-empty numeric matrix");
     if (!Array.isArray(x[0])) return { rows: x.map((v) => [Number(v)]), rowNames: null, colNames: null };
