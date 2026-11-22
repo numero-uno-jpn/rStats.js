@@ -156,10 +156,11 @@ function fitCore(x0: number[][], g0: readonly GroupLabel[], options: LdaOptions,
   if (!(Number.isFinite(tol) && tol >= 0)) throw new RangeError("'tol' must be a non-negative finite number");
   const constant = within.map((row, i) => row[i]! === 0 ? i + 1 : 0).filter((i) => i > 0);
   if (constant.length) throw new RangeError(`variable${constant.length > 1 ? "s" : ""} ${constant.join(" ")} appear${constant.length === 1 ? "s" : ""} to be constant within groups`);
-  const exactRank = qr(allDeviations, { tol: 1e-12 }).rank;
-  const toleranceQr = qr(allDeviations, { tol }).rank;
+  const rankDeviations = allDeviations.map((row) => row.map((v, j) => v / Math.sqrt(within[j]![j]!)));
+  const exactRank = qr(rankDeviations, { tol: 1e-12 }).rank;
+  const toleranceQr = qr(rankDeviations, { tol }).rank;
   if (toleranceQr < exactRank) {
-    const q = qr(allDeviations, { tol });
+    const q = qr(rankDeviations, { tol });
     const dropped = q.pivot.slice(q.rank).map((i) => i + 1).sort((a, b) => a - b);
     throw new RangeError(`variables ${dropped.join(" ")} appear to be constant within groups`);
   }
