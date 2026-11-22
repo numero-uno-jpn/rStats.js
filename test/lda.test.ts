@@ -40,6 +40,13 @@ describe("lda", () => {
     expect(singleton.counts).toEqual([6, 6, 1]);
     expect(() => lda([[1], [1], [2], [2]], ["a", "a", "b", "b"])).toThrow(/constant within groups/);
   });
+  it("warns for exact collinearity and rejects variables lost only to a loose tolerance", () => {
+    const xx = x.map((r) => [r[0]!, r[1]!, r[0]! + r[1]!]);
+    const fit = lda(xx, g);
+    expect(fit.warnings).toEqual(["variables are collinear"]);
+    expect(fit.scaling.rows).toHaveLength(3);
+    expect(() => lda(xx, g, { tol: 0.5 })).toThrow(/constant within groups/);
+  });
   it("handles extreme scales and 100,000 observations", () => {
     const scaled = lda(x.map((r) => [r[0]! * 1e100, r[1]! * 1e-100]), g);
     expect((Array.isArray(scaled.svd) ? scaled.svd.every(Number.isFinite) : Number.isFinite(scaled.svd))).toBe(true);
