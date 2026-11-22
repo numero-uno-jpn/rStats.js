@@ -202,4 +202,20 @@ describe("manova", () => {
     expect(summary.Wilks.values[0]![2]).toBeGreaterThan(1e80);
     expect(summary.Wilks.values[0]![5]).toBe(0);
   });
+
+  it("keeps the Iris MANOVA Pillai statistic within input-quantisation error after translation", () => {
+    const formula = "cbind(Sepal.Length, Sepal.Width, Petal.Length, Petal.Width) ~ Species";
+    const base = manovaSummary(manova(formula, irisData)).Pillai.values[0]![1]!;
+    for (const shift of [1e8, 1e12]) {
+      const shiftedData = {
+        ...irisData,
+        "Sepal.Length": irisData["Sepal.Length"].map((v) => v + shift),
+        "Sepal.Width": irisData["Sepal.Width"].map((v) => v + shift),
+        "Petal.Length": irisData["Petal.Length"].map((v) => v + shift),
+        "Petal.Width": irisData["Petal.Width"].map((v) => v + shift),
+      };
+      const actual = manovaSummary(manova(formula, shiftedData)).Pillai.values[0]![1]!;
+      expect(Math.abs(actual - base)).toBeLessThan(shift === 1e8 ? 1e-6 : 1e-3);
+    }
+  });
 });
