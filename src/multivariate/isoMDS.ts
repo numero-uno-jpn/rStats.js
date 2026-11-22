@@ -181,8 +181,10 @@ export function isoMDS(
   if (y.length !== n || y.some((r) => r.length !== k)) throw new RangeError("invalid initial configuration");
   if (y.some((r) => r.some((v) => !Number.isFinite(v)))) throw new RangeError("initial configuration must be finite");
   const scale = built.scale;
-  y = y.map((r) => r.map((v) => v / scale));
   center(y);
+  let yScale = 0;
+  for (let i = 0; i < n - 1; i++) for (let j = i + 1; j < n; j++) yScale = Math.max(yScale, distance(y[i]!, y[j]!, p));
+  if (yScale > 0) y = y.map((r) => r.map((v) => v / yScale));
   let current = evaluate(y, built.pairs, Array.from({ length: built.groups }, (_, i) => i), p);
   const trace: IsoMDSTrace[] = [{ iteration: 0, stress: current.stress, converged: maxit === 0 }];
   let converged = maxit === 0;
@@ -209,9 +211,7 @@ export function isoMDS(
     if (iteration % 5 === 0) trace.push({ iteration, stress: current.stress, converged: false });
     if (improvement <= tol * Math.max(1, current.stress)) converged = true;
   }
-  if (trace[trace.length - 1]!.iteration !== lastIter || trace[trace.length - 1]!.converged !== converged) {
-    trace.push({ iteration: lastIter, stress: current.stress, converged });
-  }
+  if (maxit > 0) trace.push({ iteration: lastIter, stress: current.stress, converged });
   orient(y);
   return { points: { rows: (input as DistResult).labels === undefined ? null : (input as DistResult).labels, cols: null,
     values: y.map((r) => r.map((v) => v * scale)) }, stress: current.stress, trace };
