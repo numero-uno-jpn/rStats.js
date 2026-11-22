@@ -239,7 +239,7 @@ export function lda(x: VectorOrMatrix | string, grouping: readonly GroupLabel[] 
     groups = Array.from(grouping as readonly GroupLabel[]);
     names = options.xNames ? Array.from(options.xNames) : Array.from({ length: values[0]?.length ?? 0 }, (_, i) => `x${i + 1}`);
   }
-  const fit = fitCore(values, groups, options, names);
+  const fit = fitCore(values, groups, options, names, options.groupLevels);
   if (!options.CV) return fit;
   const classes: string[] = [];
   const posterior: number[][] = [];
