@@ -22,11 +22,21 @@ const pageFixture = JSON.parse(readFileSync(new URL("./fixtures/page.json", impo
 
 function pageMatrixForEstimate(k: number, n: number, target: number): number[][] {
   const byScore = new Map<number, number[]>();
+  const add = (ranks: number[]): void => {
+    const score2 = Math.round(2 * ranks.reduce((s, rank, j) => s + (j + 1) * rank, 0));
+    if (!byScore.has(score2)) byScore.set(score2, ranks.slice());
+  };
   const perm = Array.from({ length: k }, (_, i) => i + 1);
   const visit = (pos: number): void => {
     if (pos === k) {
-      const score = perm.reduce((s, rank, j) => s + (j + 1) * rank, 0);
-      if (!byScore.has(score)) byScore.set(score, perm.slice());
+      add(perm);
+      for (let j = 0; j < k - 1; j++) {
+        if (Math.abs(perm[j]! - perm[j + 1]!) === 1) {
+          const tied = perm.slice();
+          tied[j] = tied[j + 1] = (perm[j]! + perm[j + 1]!) / 2;
+          add(tied);
+        }
+      }
       return;
     }
     for (let i = pos; i < k; i++) {
@@ -37,20 +47,21 @@ function pageMatrixForEstimate(k: number, n: number, target: number): number[][]
   };
   visit(0);
   const scores = [...byScore.keys()];
+  const target2 = Math.round(2 * target);
   const layers: Array<Map<number, { previous: number; score: number }>> = [new Map([[0, { previous: 0, score: 0 }]])];
   for (let row = 0; row < n; row++) {
     const next = new Map<number, { previous: number; score: number }>();
     for (const sum of layers[row]!.keys()) {
       for (const score of scores) {
         const value = sum + score;
-        if (value <= target && !next.has(value)) next.set(value, { previous: sum, score });
+        if (value <= target2 && !next.has(value)) next.set(value, { previous: sum, score });
       }
     }
     layers.push(next);
   }
-  if (!layers[n]!.has(target)) throw new Error(`No rank matrix for Page estimate ${target} (k=${k}, n=${n})`);
+  if (!layers[n]!.has(target2)) throw new Error(`No rank matrix for Page estimate ${target} (k=${k}, n=${n})`);
   const rows: number[][] = [];
-  let sum = target;
+  let sum = target2;
   for (let row = n; row > 0; row--) {
     const node = layers[row]!.get(sum)!;
     rows.unshift(byScore.get(node.score)!.slice());
@@ -58,7 +69,6 @@ function pageMatrixForEstimate(k: number, n: number, target: number): number[][]
   }
   return rows;
 }
-
 
 describe("pageTest", () => {
   it("matches the three alternatives and every returned field of the primary fixture", () => {
