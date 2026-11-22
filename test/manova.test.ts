@@ -137,4 +137,93 @@ describe("manova", () => {
     const scaled = { ...data, y1: data.y1.map((v) => v * 1e100), y2: data.y2.map((v) => v * 1e-100) };
     expect(() => manova("cbind(y1, y2) ~ group", scaled)).not.toThrow();
   });
+
+  it("preserves MANOVA statistics at extreme response scales and tiny within-group residuals", () => {
+    const base = manovaSummary(manova("cbind(y1, y2) ~ group", data));
+    for (const exponent of [500, -500, 1000, -1000]) {
+      const factor = 2 ** exponent;
+      const scaled = {
+        ...data,
+        y1: data.y1.map((v) => v * factor),
+        y2: data.y2.map((v) => v / factor),
+      };
+      const summary = manovaSummary(manova("cbind(y1, y2) ~ group", scaled));
+      for (const key of ["Pillai", "Wilks", "Hotelling-Lawley", "Roy"] as const) {
+        expect(summary[key].values[0]![1]).toBeCloseTo(base[key].values[0]![1]!, 8);
+        expect(summary[key].values[0]![2]).toBeCloseTo(base[key].values[0]![2]!, 8);
+      }
+    }
+    const tiny = {
+      ...data,
+      y1: data.y1.map((v) => v * 1e-310),
+      y2: data.y2.map((v) => v * 1e-310),
+    };
+    const tinySummary = manovaSummary(manova("cbind(y1, y2) ~ group", tiny));
+    expect(tinySummary.Pillai.values[0]![1]).toBeCloseTo(base.Pillai.values[0]![1]!, 8);
+    expect(tinySummary.Pillai.values[0]![2]).toBeCloseTo(base.Pillai.values[0]![2]!, 8);
+  });
+
+  it("keeps Pillai and Wilks F approximations finite and exact when roots dwarf residuals", () => {
+    // Integer data (exact in binary64): group b is 1e12 above group a, with small integer noise, so the sole root is
+    // about 1e22 and 1 - V cancels. Multiplying by 2^450 changes no bit of the values relative to each other, so the
+    // results must equal those of the unscaled data (and stay finite near the top of the range).
+    const p1 = Array.from({ length: 50 }, (_, i) => i % 5 - 2);
+    const p2 = Array.from({ length: 50 }, (_, i) => [2, -1, 1, -2, 0][i % 5]!);
+    const data = (k: number) => ({
+      y1: [...p1, ...p1.map((v) => 1e12 + v)].map((v) => v * k),
+      y2: [...p2, ...p2.map((v) => 1e12 + v)].map((v) => v * k),
+      group: [...Array(50).fill("a"), ...Array(50).fill("b")],
+    });
+    const base = manovaSummary(manova("cbind(y1, y2) ~ group", data(1)));
+    const big = manovaSummary(manova("cbind(y1, y2) ~ group", data(2 ** 450)));
+    for (const test of ["Pillai", "Wilks", "Hotelling-Lawley", "Roy"] as const) {
+      const f0 = base[test].values[0]![2]!, f1 = big[test].values[0]![2]!;
+      expect(Number.isFinite(f0) && f0 > 1e20).toBe(true);
+      expect(Math.abs(f1 / f0 - 1)).toBeLessThanOrEqual(1e-12);
+    }
+    // Pillai's F = (2 n0 + s + 1) / (2 m + s + 1) * V / (1 - V) with 1 - V = 1 / (1 + root): 97 / 2 * root for the one
+    // root (p = 2, q = 1, 98 residual df)
+    const root = base.Eigenvalues.values[0]![0]!;
+    expect(Math.abs(base.Pillai.values[0]![2]! / ((97 / 2) * root) - 1)).toBeLessThanOrEqual(1e-12);
+    expect(big.Pillai.values[0]![5]).toBe(0);
+  });
+
+  it("computes a finite Wilks F approximation after the Wilks product underflows", () => {
+    // Exact data: 20 responses, 21 groups of 32; group j + 1 is 1e9 above the others in response j, and the noise is
+    // the Walsh function (-1)^popcount(i & (j + 1)), orthogonal over a group, so the residual correlation matrix is the
+    // identity. Each of the 20 roots is 16e18, so the Wilks product (about 1e-385) underflows.
+    const p = 20, groups = 21, perGroup = 32;
+    const popcount = (v: number) => { let c = 0; for (; v; v &= v - 1) c++; return c; };
+    const columns: Record<string, number[] | string[]> = {};
+    for (let j = 0; j < p; j++) {
+      const values: number[] = [];
+      for (let g = 0; g < groups; g++) {
+        for (let i = 0; i < perGroup; i++) values.push((g === j + 1 ? 1e9 : 0) + (popcount(i & (j + 1)) % 2 ? -1 : 1));
+      }
+      columns[`y${j + 1}`] = values;
+    }
+    columns.group = Array.from({ length: groups * perGroup }, (_, i) => `g${Math.floor(i / perGroup)}`);
+    const formula = `cbind(${Array.from({ length: p }, (_, i) => `y${i + 1}`).join(", ")}) ~ group`;
+    const summary = manovaSummary(manova(formula, columns));
+    expect(summary.Wilks.values[0]![1]).toBe(0);
+    expect(Number.isFinite(summary.Wilks.values[0]![2])).toBe(true);
+    expect(summary.Wilks.values[0]![2]).toBeGreaterThan(1e15);
+    expect(summary.Wilks.values[0]![5]).toBe(0);
+  });
+
+  it("keeps the Iris MANOVA Pillai statistic within input-quantisation error after translation", () => {
+    const formula = "cbind(Sepal.Length, Sepal.Width, Petal.Length, Petal.Width) ~ Species";
+    const base = manovaSummary(manova(formula, irisData)).Pillai.values[0]![1]!;
+    for (const shift of [1e8, 1e12]) {
+      const shiftedData = {
+        ...irisData,
+        "Sepal.Length": irisData["Sepal.Length"].map((v) => v + shift),
+        "Sepal.Width": irisData["Sepal.Width"].map((v) => v + shift),
+        "Petal.Length": irisData["Petal.Length"].map((v) => v + shift),
+        "Petal.Width": irisData["Petal.Width"].map((v) => v + shift),
+      };
+      const actual = manovaSummary(manova(formula, shiftedData)).Pillai.values[0]![1]!;
+      expect(Math.abs(actual - base)).toBeLessThan(shift === 1e8 ? 1e-7 : 2e-4);
+    }
+  });
 });

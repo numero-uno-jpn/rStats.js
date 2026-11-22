@@ -162,12 +162,16 @@ function dataColumn(data: DataFrame, name: string): number[] {
   if (a.some((x) => x !== null && typeof x !== "number")) throw new TypeError(`response '${name}' must be numeric`);
   return a.map((x) => x === null ? NaN : x as number);
 }
+function divideByProduct(v: number, a: number, b: number): number {
+  const product = a * b;
+  return product > 0 && Number.isFinite(product) ? v / product : (v / a) / b;
+}
 function correlationSSP(e: number[][]): { matrix: number[][]; scales: number[] } | null {
   const scales = e.map((row, i) => Math.sqrt(Math.max(0, row[i]!)));
   if (scales.some((v) => !(v > 0) || !Number.isFinite(v))) return null;
   return {
     scales,
-    matrix: e.map((row, i) => row.map((v, j) => v / (scales[i]! * scales[j]!))),
+    matrix: e.map((row, i) => row.map((v, j) => divideByProduct(v, scales[i]!, scales[j]!))),
   };
 }
 function rootsFor(e: number[][], h: number[][], tol: number): number[] {
@@ -181,7 +185,7 @@ function rootsFor(e: number[][], h: number[][], tol: number): number[] {
   for (const k of keep) for (let i = 0; i < e.length; i++) for (let j = 0; j < e.length; j++) {
     inv[i]![j]! += q[i]![k]! * q[j]![k]! / Math.sqrt(ce.values[k]!);
   }
-  const hs = h.map((row, i) => row.map((v, j) => v / (c.scales[i]! * c.scales[j]!)));
+  const hs = h.map((row, i) => row.map((v, j) => divideByProduct(v, c.scales[i]!, c.scales[j]!)));
   const a = mul(mul(inv, hs), inv);
   for (let i = 0; i < a.length; i++) for (let j = i + 1; j < a.length; j++) a[i]![j] = a[j]![i] = (a[i]![j]! + a[j]![i]!) / 2;
   return eigen(a, { symmetric: true }).values;
@@ -189,19 +193,26 @@ function rootsFor(e: number[][], h: number[][], tol: number): number[] {
 function statRow(roots0: readonly number[], p: number, q: number, v: number, name: ManovaTestName): number[] {
   const roots = roots0.slice(0, Math.min(p, q)).map((x) => Math.max(0, x));
   const s = Math.min(p, q), m = (Math.abs(p - q) - 1) / 2, n0 = (v - p - 1) / 2;
-  const pillai = roots.reduce((a, x) => a + x / (1 + x), 0);
-  const wilks = roots.reduce((a, x) => a / (1 + x), 1);
+  const pillai = roots.reduce((a, x) => a + (x > 1e150 ? 1 / (1 + 1 / x) : x / (1 + x)), 0);
+  const pillaiComplement = roots.reduce((a, x) => a + 1 / (1 + x), 0);
+  const logWilks = roots.reduce((a, x) => a - Math.log1p(x), 0);
+  const wilks = logWilks > -700 ? roots.reduce((a, x) => a / (1 + x), 1) : Math.exp(logWilks);
   const hotelling = roots.reduce((a, x) => a + x, 0);
   const roy = roots[0] ?? 0;
   let value = NaN, df1 = NaN, df2 = NaN, f = NaN;
   switch (name) {
     case "Pillai":
       value = pillai; df1 = s * (2 * m + s + 1); df2 = s * (2 * n0 + s + 1);
-      f = ((2 * n0 + s + 1) / (2 * m + s + 1)) * value / (s - value); break;
+      // s - V as the sum of 1 / (1 + root): exact, while s - V cancels when the roots are large
+      f = ((2 * n0 + s + 1) / (2 * m + s + 1)) * value / pillaiComplement; break;
     case "Wilks": {
       value = wilks; const t = p * q > 2 ? Math.sqrt((p * p * q * q - 4) / (p * p + q * q - 5)) : 1;
       const u = (p * q - 2) / 4; df1 = p * q; df2 = (v - (p - q + 1) / 2) * t - 2 * u;
-      const wt = value ** (1 / t); f = ((1 - wt) / wt) * (df2 / df1); break;
+      const wt = value ** (1 / t);
+      f = wt > 0 && wt < 1
+        ? ((1 - wt) / wt) * (df2 / df1)
+        : Math.expm1(-logWilks / t) * (df2 / df1);
+      break;
     }
     case "Hotelling-Lawley":
       value = hotelling; df1 = s * (2 * m + s + 1); df2 = 2 * (s * n0 + 1);
@@ -236,7 +247,10 @@ export function manova(formula: string, data: DataFrame, options: ManovaOptions 
   const p = names.length, n = y.length;
   if (p < 2) throw new RangeError("need multiple responses");
   const scales = names.map((_, j) => { let m = 0; for (const row of y) m = Math.max(m, Math.abs(row[j]!)); return m === 0 ? 1 : m; });
-  const ys = scaleRows(y, scales.map((s) => 1 / s));
+  const inverseScales = scales.map((s) => 1 / s);
+  const ys = inverseScales.every(Number.isFinite)
+    ? scaleRows(y, inverseScales)
+    : y.map((row) => row.map((v, j) => v / scales[j]!));
   const full = qr(d.x, { tol });
   const residual = qrResid(full, ys) as number[][];
   const e = cross(residual);
