@@ -30,7 +30,12 @@ function distMatrix(d: { values: number[]; size: number }): number[][] {
   for (let j = 0; j < n - 1; j++) for (let i = j + 1; i < n; i++) out[i]![j] = out[j]![i] = d.values[p++]!;
   return out;
 }
+// Collinear points with add = TRUE: the Cailliez constant is 0 in theory, a root of multiplicity > 1 of its 2n x 2n
+// eigenproblem, so roundoff moves it by about sqrt(eps) times the dissimilarities (R: 4.8e-17 on x86_64, 1.6e-8 on
+// arm64; rStats.js 3.7e-8). Everything that depends on it is compared to 1e-7 there
+const SQRT_EPS_CASES = new Set(["cmdscale_line_add"]);
 function compare(key: string, actual: CmdscaleResult, scale = 1): void {
+  const loose = SQRT_EPS_CASES.has(key) ? 1e-7 : 0;
   const expected = fixture[key]?.value;
   if (!expected) { mismatches.push(`${key}: missing fixture`); return; }
   const points = tableValues(expected.points);
@@ -55,6 +60,21 @@ function compare(key: string, actual: CmdscaleResult, scale = 1): void {
     j++;
   }
   for (const group of groups) {
+    // A tie that continues past the last kept column (cmdscale_simplex: 0.5 three times, k = 2): any 2 of the 3
+    // eigenvectors are a solution, so neither the points nor X X^T are determined. Check that the kept columns are an
+    // orthogonal solution with squared lengths equal to their eigenvalues instead of comparing with R
+    const last = group[group.length - 1]!;
+    const kept = actual.points.values[0]?.length ?? 0;
+    if (last === kept - 1 && last + 1 < actual.eig.length &&
+      Math.abs(actual.eig[last + 1]! - actual.eig[last]!) <= 1e-10 * Math.abs(actual.eig[last]!)) {
+      for (const a of group) for (const b of group) {
+        let dot = 0;
+        for (const row of actual.points.values) dot += row[a]! * row[b]!;
+        const want = a === b ? actual.eig[a]! : 0;
+        if (Math.abs(dot - want) > 1e-12 * Math.max(1, Math.abs(actual.eig[a]!))) mismatches.push(`${key}.columns ${a},${b} not an orthogonal solution`);
+      }
+      continue;
+    }
     if (group.length > 1 || group.some((j) => nearZero(j))) {
       // A repeated/near-zero eigenspace has no unique eigenvector basis:
       // LAPACK may rotate its columns. Compare its invariant X X^T contribution.
@@ -74,7 +94,7 @@ function compare(key: string, actual: CmdscaleResult, scale = 1): void {
       for (let i = 0; i < Math.min(points.length, actual.points.values.length); i++) dot += actual.points.values[i]![j]! * num(points[i]![j]);
       if (dot < 0) for (const row of actual.points.values) row[j] = -row[j]!;
       for (let i = 0; i < Math.min(points.length, actual.points.values.length); i++) {
-        const tolerance = 1e-12 * Math.max(1, Math.abs(num(points[i]![j])));
+        const tolerance = Math.max(1e-12, loose) * Math.max(1, Math.abs(num(points[i]![j])));
         if (Math.abs(actual.points.values[i]![j]! - num(points[i]![j])) > tolerance) mismatches.push(`${key}.points[${i},${j}] differs`);
       }
     }
@@ -85,12 +105,15 @@ function compare(key: string, actual: CmdscaleResult, scale = 1): void {
     const absTol = 2 * Number.EPSILON * eig.length * eigScale;
     if (actual.eig.length !== eig.length) mismatches.push(key + ".eig length differs");
     for (let i = 0; i < Math.min(actual.eig.length, eig.length); i++) {
-      const tolerance = absTol + 1e-12 * Math.abs(eig[i]!);
+      const tolerance = absTol + Math.max(1e-12, loose) * Math.max(Math.abs(eig[i]!), loose > 0 ? eigScale : 0);
       if (Math.abs(actual.eig[i]! - eig[i]!) > tolerance) mismatches.push(key + ".eig[" + i + "] error exceeds eigen roundoff bound");
     }
   }
-  if (expected.ac !== undefined) compareNumbers(key + ".ac", [actual.ac], expected.ac, 1e-10);
-  if (expected.GOF !== undefined) compareNumbers(key + ".GOF", actual.GOF, expected.GOF);
+  if (expected.ac !== undefined) {
+    if (loose > 0) { if (!(Math.abs(actual.ac - num(expected.ac)) <= loose)) mismatches.push(`${key}.ac: actual=${actual.ac}, expected=${expected.ac}`); }
+    else compareNumbers(key + ".ac", [actual.ac], expected.ac, 1e-10);
+  }
+  if (expected.GOF !== undefined) compareNumbers(key + ".GOF", actual.GOF, expected.GOF, Math.max(1e-12, loose));
   if (expected.x !== undefined && expected.x !== null) {
     const x = tableValues(expected.x);
     if (actual.x === null) mismatches.push(`${key}.x unexpectedly null`);
@@ -99,8 +122,14 @@ function compare(key: string, actual: CmdscaleResult, scale = 1): void {
       compareNumbers(`${key}.x[${i},${j}]`, [actual.x?.values[i]?.[j] ?? NaN], x[i]![j], 1e-12);
     }
   }
-  const warnings = expected.warnings === undefined ? [] : Array.isArray(expected.warnings) ? expected.warnings : [expected.warnings];
-  if (JSON.stringify(actual.warnings) !== JSON.stringify(warnings)) mismatches.push(`${key}.warnings differs`);
+  const caseWarnings = fixture[key]?.warnings; // R's warnings are beside the value, not in it
+  const warnings = caseWarnings === undefined ? [] : Array.isArray(caseWarnings) ? caseWarnings : [caseWarnings];
+  // "only m of the first k eigenvalues are > 0" depends on the sign roundoff gives an eigenvalue that is 0 in theory
+  // (cmdscale_k_n_minus_1: R's 4th is -6.7e-16): accept either when the eigenvalue at the boundary is within roundoff
+  const eigAll = Array.isArray(expected.eig) ? expected.eig.map(num) : [];
+  const eigMax = eigAll.reduce((m: number, v: number) => Math.max(m, Math.abs(v)), 0);
+  const boundaryRoundoff = eigAll.some((v: number) => v !== 0 && Math.abs(v) <= 2 * Number.EPSILON * eigAll.length * eigMax);
+  if (JSON.stringify(actual.warnings) !== JSON.stringify(warnings) && !boundaryRoundoff) mismatches.push(`${key}.warnings differs`);
 }
 const small = [[1, 2, 0], [4, 0, 3], [-1, 5, 2], [2, 7, 0], [0, 0, 1]];
 const ds = dist(small, { labels: ["a", "b", "c", "d", "e"] });
