@@ -39,7 +39,7 @@ function readData(x: readonly unknown[] | readonly (readonly unknown[])[] | Reco
     return { rows: raw.map((r) => r.map(Number)), rowNames: null, colNames: null };
   }
   if (typeof x === "object" && x !== null) {
-    const cols = Object.entries(x);
+    const cols = Object.entries(x as Record<string, ArrayLike<unknown>>);
     if (cols.length === 0) throw new RangeError("x must have at least one column");
     const n = cols[0]![1].length;
     if (cols.some(([, v]) => v.length !== n)) throw new RangeError("columns must have equal lengths");
