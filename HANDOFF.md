@@ -46,8 +46,15 @@ ROADMAP の「残っていること」の 2 (順不同の一覧) から選んだ
 - 指示書 `briefs/tests-multivariate-1.9.ja.md` と入口 `briefs/tests-multivariate-1.9-status.ja.md` (Issue・PR の番号は
   `#ISSUE`・`#PR` の仮置き)。作業ブランチは `work/multivariate-1.9` の予定。`/multivariate` の配線 (package.json・
   scripts・typedoc.json) は段階 2 で私がする
-- 次: main の push → 作業ブランチ・Issue・draft PR を作る (どれもユーザーに確認してから) → 番号を指示書に入れる →
-  ChatGPT への最初の依頼文をユーザーに渡す
+- ユーザーの許可で main を push (`7bd3b074`)、作業ブランチ `work/multivariate-1.9`、**Issue #549**、**draft PR #550**
+  (マージしない) を作り、番号を入口に入れた
+- **段階 1 の 1 回目 (`1b670c13`) は差し戻し:** 仕様書は各 30〜40 行で式が「未確認」のまま、Grubbs はほぼ手つかず、oracle は
+  1 本 3〜6 case。確かめの実験はチェッカーに止められていた (`ranks`・`page`) のに ChatGPT は queued と報告。私が名前を
+  変えて流した (`experiments/multivariate19-stage1-check-local.*`): T2 (Welch + Šidák)、**T2' は自由度 n_i + n_j − 2**
+  (chickwts で確認)、Pillai、lda の svd² = λ(N − g)/(g − 1)、cancor の相関は R と一致。差し戻しは作業ブランチの
+  `briefs/tests-multivariate-1.9-stage1-review.ja.md` (`6b208bee`)
+- 次: ユーザーが ChatGPT に差し戻しの依頼文を貼る → 段階 1 の報告 (仕様書 6 つ + Decisions) を Issue #549 で点検 →
+  Decisions をユーザーに聞いて choices を書く → fixture を作る (x86_64 の版も)
 
 ### 進め方 (1.8.0 の経験から。ガイド「ChatGPT を外注先に使う開発の進め方」https://claude.ai/artifact/XeAnCSwZUrejZhzx5a7BxV)
 
