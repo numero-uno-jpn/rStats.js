@@ -12,11 +12,11 @@ A と B を**この順に、途中で止まらずに**済ませ、最後に Issu
   形は変えない)、`test/` の新しいテスト `test/cluster-mds-numerics.test.ts`、`experiments/cluster110-numerics-*.R`
 - **B で書いてよいファイル:** 上の 4 つの `.ts` の **TSDoc のコメントだけ**、`README.md`・`README.ja.md`、`llms.txt`、
   `docs/api-reference.md`・`docs/ja/api-reference.md`、`docs/differences-from-r.md`・`docs/ja/differences-from-r.md`、
-  `CHANGELOG.md` (`## Unreleased` だけ)、`ROADMAP.md`・`ROADMAP.ja.md`、`demo/examples.R`・`demo/` のデモの定義 (1.9.0 で
-  lda などを足した所と同じファイル)、`test/demo.test.ts` の `NOT_IN_DEMO_YET`
+  `CHANGELOG.md` (`## Unreleased` だけ)、`ROADMAP.md`・`ROADMAP.ja.md`、`demo/examples.json` (デモの定義。1.9.0 の lda・cancor と同じ
+  形で、R の側のコードも同じ項目に書く)、`test/demo.test.ts` の `NOT_IN_DEMO_YET`
 - **GitHub:** Issue #556 へのコメントだけ。PR #557 は Checks を読むだけ
 - **書かない:** `HANDOFF.md`、`test/fixtures/`、既存のテスト (`test/{dist,hclust,kmeans,cmdscale}.test.ts` を含む)、生成のブロック
-  (`*_KEYS`・`checkOptions` の import)、`docs/r-functions*`・`docs/ja/api/*.json`・`demo/r-results.json` (生成物。こちらが作る)、
+  (`*_KEYS`・`checkOptions` の import)、`docs/r-functions*`・`docs/ja/api/*.json`・`demo/r-results.json`・`demo/examples.R` (生成物。こちらが作る)、
   `scripts/`、`.github/`、`package.json`、`oracle/` の choices の節、`src/multivariate/isoMDS.ts`
 - 手元で npm を流せなくてよい。テストは PR #557 の CI で確かめる。失敗したら直して push、を繰り返す
 
@@ -66,8 +66,8 @@ fixture との一致は、普通のデータで R と同じ値を返すことし
   0 のとき)・いつも全部の結果を返す (R の `list.`・`eig` は要らない)。警告は結果の `warnings`。**R の不具合と書いてよいのは
   ward.D2 の 1e200 で R が落ちることだけ。** ほかは「R と違う」「rStats.js はこうする」と書く。A で R と違う値にした所も
 - **R3 (デモ):** 6 つの関数から 3〜4 個 (例: USArrests の dist + hclust + cutree、iris の kmeans は**中心を行列で渡す**
-  (乱数を使わない)、eurodist の cmdscale は **eig と GOF だけ**を見せる (座標は符号が R と違いうる))。`demo/examples.R` の
-  R のコードを必ず書く (こちらが R で流して照らし合わせる)。デモに入れた関数を `NOT_IN_DEMO_YET` から外す
+  (乱数を使わない)、eurodist の cmdscale は **eig と GOF だけ**を見せる (座標は符号が R と違いうる))。`demo/examples.json` に
+  R のコードを必ず書く (こちらが `demo/examples.R` を生成し、R で流して照らし合わせる)。デモに入れた関数を `NOT_IN_DEMO_YET` から外す
 - 日本語の API の訳 (`docs/ja/api/*.json`) はこちらが別にする
 - 改行は LF。日本語の文書の表記: 括弧は半角 `( )`、コロンは半角 `:`、和文と英数字の間に半角スペース
 
