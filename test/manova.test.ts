@@ -20,7 +20,7 @@ function compareTable(actual: { rows: string[] | string; cols: string[] | string
     for (let j = 0; j < expected.values[i]!.length; j++) {
       const e = expected.values[i]![j];
       const a = actual.values[i]![j]!;
-      if (e === "NA" || e === null) expect(Number.isNaN(a)).toBe(true);
+      if (e === "NA" || e === "NaN" || e === null) expect(Number.isNaN(a)).toBe(true);
       else expect(Math.abs(a - e)).toBeLessThanOrEqual(1e-10 + 1e-8 * Math.abs(e));
     }
   }
