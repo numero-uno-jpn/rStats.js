@@ -371,18 +371,53 @@ export function ldaPredict(fit: LdaFit, options: LdaPredictionOptions = {}): Lda
   const scores = fullScores.map((row) => row.slice(0, dimen));
   const meanScores = fit._means.map((mu) => Array.from({ length: dimen }, (_, k) =>
     mu.reduce((s, v, j) => s + (v - center[j]!) * fit._scaling[j]![k]!, 0)));
-  const logp = fullScores.map((row) => fit._activeLev.map((_, g) => {
-    let distance = 0;
-    for (let k = 0; k < dimen; k++) {
-      const d = row[k]! - meanScores[g]![k]!;
-      distance += d * d;
+  const stableScores = (row: readonly number[]): { values: number[]; scale: number } => {
+    const scale = row.reduce((m, v, j) => Math.max(m, Math.abs(v - center[j]!)), 0);
+    if (scale === 0) return { values: new Array<number>(dimen).fill(0), scale: 0 };
+    return {
+      scale,
+      values: Array.from({ length: dimen }, (_, k) =>
+        row.reduce((sum, v, j) => sum + ((v - center[j]!) / scale) * fit._scaling[j]![k]!, 0)),
+    };
+  };
+  const posteriorRows = fullScores.map((row, i) => {
+    const distances = fit._activeLev.map((_, g) => {
+      let distance = 0;
+      for (let k = 0; k < dimen; k++) {
+        const d = row[k]! - meanScores[g]![k]!;
+        distance += d * d;
+      }
+      return distance;
+    });
+    if (distances.every(Number.isFinite)) {
+      const logp = distances.map((distance, g) => Math.log(prior[g]!) - 0.5 * distance);
+      const m = logp.reduce((a, b) => Math.max(a, b), -Infinity);
+      const ex = logp.map((v) => Math.exp(v - m));
+      const total = ex.reduce((a, b) => a + b, 0);
+      return { posterior: ex.map((v) => v / total), score: row };
     }
-    return Math.log(prior[g]!) - 0.5 * distance;
-  }));
-  const posterior = logp.map((row) => {
-    const m = Math.max(...row), ex = row.map((v) => Math.exp(v - m)), sum = ex.reduce((a, b) => a + b, 0);
-    return ex.map((v) => v / sum);
+    // For extreme new observations, the squared score distances can overflow even though the input is finite.
+    // Cancel the common -||score||^2 / 2 term and form the discriminant log weights in scaled score coordinates.
+    const z = stableScores(x[i]!);
+    const projections = meanScores.map((mu, g) => ({
+      linear: z.values.reduce((sum, v, k) => sum + v * mu[k]!, 0),
+      offset: Math.log(prior[g]!) - 0.5 * mu.reduce((sum, v) => sum + v * v, 0),
+    }));
+    const maxLinear = projections.reduce((m, v) => Math.max(m, v.linear), -Infinity);
+    const logp = projections.map(({ linear, offset }) => {
+      const delta = z.scale * (linear - maxLinear);
+      return offset + (Number.isFinite(delta) ? delta : -Infinity);
+    });
+    const m = logp.reduce((a, b) => Math.max(a, b), -Infinity);
+    const ex = logp.map((v) => Math.exp(v - m));
+    const total = ex.reduce((a, b) => a + b, 0);
+    return {
+      posterior: ex.map((v) => v / total),
+      score: z.values.map((v) => v * z.scale),
+    };
   });
+  const posterior = posteriorRows.map((r) => r.posterior);
+  const scores = posteriorRows.map((r) => r.score);
   return {
     class: posterior.map((r) => fit._activeLev[r.indexOf(Math.max(...r))]!),
     posterior: { rows: null, cols: fit._activeLev, values: posterior },
