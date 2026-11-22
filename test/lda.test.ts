@@ -131,7 +131,41 @@ describe("lda", () => {
     compareLdaFit(empty, ldaFixture.lda_empty_level.value, ldaFixture.lda_empty_level.warnings);
     const collinearX = xx.map((r) => [...r, r[0]! + r[1]!]);
     const collinear = lda(collinearX, gg, { xNames: [...names, "s"] });
-    compareLdaFit(collinear, ldaFixture.lda_collinear.value, ldaFixture.lda_collinear.warnings);
+    const colExpected = ldaFixture.lda_collinear.value;
+    expect(collinear.prior).toEqual(colExpected.prior);
+    expect(collinear.counts).toEqual(colExpected.counts);
+    expect(collinear.means.rows).toEqual(colExpected.means.rows);
+    expect(collinear.means.cols).toEqual(colExpected.means.cols);
+    expectMatrixClose(collinear.means.values, colExpected.means.values, 1e-8);
+    expect(collinear.scaling.rows).toEqual(colExpected.scaling.rows);
+    expect(collinear.scaling.cols).toEqual(colExpected.scaling.cols);
+    const colSvd = Array.isArray(collinear.svd) ? collinear.svd : [collinear.svd];
+    colExpected.svd.forEach((v: number, i: number) => expect(colSvd[i]).toBeCloseTo(v, 8));
+    expect(collinear.warnings).toEqual(["variables are collinear"]);
+    const center = colExpected.means.values[0]!.map((_: number, j: number) =>
+      colExpected.means.values.reduce((s: number, row: number[], g: number) => s + colExpected.prior[g]! * row[j]!, 0));
+    const expectedScores = collinearX.map((row) =>
+      colExpected.scaling.values[0]!.map((_: number, j: number) =>
+        row.reduce((s, v, i) => s + (v - center[i]!) * colExpected.scaling.values[i]![j]!, 0)));
+    const colPred = ldaPredict(collinear);
+    const scoreSigns = expectedScores[0]!.map((_: number, j: number) => {
+      const dot = colPred.x.values.reduce((s, row, i) => s + row[j]! * expectedScores[i]![j]!, 0);
+      return dot < 0 ? -1 : 1;
+    });
+    expectMatrixClose(colPred.x.values.map((row) => row.map((v, j) => v * scoreSigns[j]!)), expectedScores, 1e-8);
+    const within = Array.from({ length: 5 }, () => Array(5).fill(0) as number[]);
+    for (let i = 0; i < collinearX.length; i++) {
+      const group = ["setosa", "versicolor", "virginica"].indexOf(gg[i]!);
+      const d = collinearX[i]!.map((v, j) => v - colExpected.means.values[group]![j]!);
+      for (let a = 0; a < 5; a++) for (let b = 0; b < 5; b++) within[a]![b]! += d[a]! * d[b]!;
+    }
+    const scale = 1 / (collinearX.length - 3);
+    const S = within.map((row) => row.map((v) => v * scale));
+    for (let a = 0; a < 2; a++) for (let b = 0; b < 2; b++) {
+      let v = 0;
+      for (let i = 0; i < 5; i++) for (let j = 0; j < 5; j++) v += collinear.scaling.values[i]![a]! * S[i]![j]! * collinear.scaling.values[j]![b]!;
+      expect(v).toBeCloseTo(a === b ? 1 : 0, 8);
+    }
     const classOfOne = [...gg.slice(0, 149), "lone"];
     compareLdaFit(lda(xx, classOfOne, { xNames: names }), ldaFixture.lda_class_of_one.value, ldaFixture.lda_class_of_one.warnings);
     const missingData = { ...irisData, "Sepal.Width": irisData["Sepal.Width"].map((v, i) => i === 4 ? NaN : v) };
