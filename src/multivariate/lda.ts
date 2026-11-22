@@ -211,7 +211,6 @@ export function lda(x: VectorOrMatrix, grouping: readonly GroupLabel[], options:
  * @param formula Formula.
  * @param data Data frame.
  * @param options Prior probabilities, tolerance, and leave-one-out CV.
- * @category Multivariate analysis
  */
 export function lda(formula: string, data: DataFrame, options?: LdaOptions & { CV?: false }): LdaFit;
 export function lda(formula: string, data: DataFrame, options: LdaOptions & { CV: true }): LdaCVResult;
