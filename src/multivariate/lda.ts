@@ -293,16 +293,18 @@ export function ldaPredict(fit: LdaFit, options: LdaPredictionOptions = {}): Lda
   const maxDim = fit._scaling[0]?.length ?? 0;
   const dimen = options.dimen ?? maxDim;
   if (!Number.isInteger(dimen) || dimen < 1 || dimen > maxDim) throw new RangeError("dimen must be between 1 and the number of discriminant dimensions");
-  const scores = x.map((r) => Array.from({ length: dimen }, (_, k) =>
+  const fullScores = x.map((r) => Array.from({ length: maxDim }, (_, k) =>
     r.reduce((s, v, j) => s + (v - center[j]!) * fit._scaling[j]![k]!, 0)));
-  const logp = x.map((r) => fit._activeLev.map((_, g) => {
-    const mu = fit._means[g]!;
-    let linear = 0, quadratic = 0;
-    for (let i = 0; i < p; i++) for (let j = 0; j < p; j++) {
-      linear += r[i]! * fit._covInverse[i]![j]! * mu[j]!;
-      quadratic += mu[i]! * fit._covInverse[i]![j]! * mu[j]!;
+  const scores = fullScores.map((row) => row.slice(0, dimen));
+  const meanScores = fit._means.map((mu) => Array.from({ length: maxDim }, (_, k) =>
+    mu.reduce((s, v, j) => s + (v - center[j]!) * fit._scaling[j]![k]!, 0)));
+  const logp = fullScores.map((row) => fit._activeLev.map((_, g) => {
+    let distance = 0;
+    for (let k = 0; k < maxDim; k++) {
+      const d = row[k]! - meanScores[g]![k]!;
+      distance += d * d;
     }
-    return Math.log(prior[g]!) + linear - 0.5 * quadratic;
+    return Math.log(prior[g]!) - 0.5 * distance;
   }));
   const posterior = logp.map((row) => {
     const m = Math.max(...row), ex = row.map((v) => Math.exp(v - m)), sum = ex.reduce((a, b) => a + b, 0);
