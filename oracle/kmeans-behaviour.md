@@ -28,7 +28,7 @@ When centers is a number k, R chooses initial rows from the data using its rando
 
 The new public probe duplicate_start_seed_1 through duplicate_start_seed_12 shows that sampling rows with identical values does not make the call fail. The follow-up probe seed3_sample_then_rng, seed3_fit_then_rng, and seed3_two_samples_then_rng resolves the retry: sample.int(4,2) first returns duplicate-valued rows [1,2]; kmeans then consumes a second draw [4,3], and the subsequent runif(3) matches the state after exactly two sample.int calls. Therefore numeric-center initialization retries the row sample until the chosen centers are distinct by value. The retry consumes RNG state.
 
-When nstart>1, R retains a solution with minimum W. The equal-best probes equal_best_nstart_1 through equal_best_nstart_8 show the same W=0 under all starts, but do not yet establish whether an exact tie retains the earliest start. The exact initial ordering of numeric centers also affects cluster numbers.
+When nstart>1, R retains a solution with minimum W. The equal-best probes equal_best_start_1 through equal_best_start_8 use data 0,1,2,3 with nstart=8; every returned solution has W=1. The final center order follows the first sample.int draw for all eight seeds (e.g. seed 4 draws rows [4,3] and returns centers [2.5,0.5]). Thus an exact W tie retains the earliest start. Initial center order determines cluster numbering.
 
 ## Iteration and fault reporting observed in R
 
@@ -49,7 +49,7 @@ The SSE identities T=W+B and the mean centers were independently checked against
 1. Support all four named algorithms. Recommended: match R's algorithm-specific behavior, but keep Lloyd/Forgy as a shared batch implementation unless a numeric-start probe demonstrates a difference.
 2. For Hartigan–Wong, implement the transfer criterion above and document any scheduling details that cannot be established from the paper's prose. Recommended: prioritize the mathematically defined SSE decrease and stable termination over copying undocumented internals.
 3. Numeric centers initialization: preserve R's random draws, including redraws until distinct row values are selected. Recommended: match this now-confirmed behavior.
-4. nstart ties: choose earliest minimum-WSS start or another deterministic tie rule. Recommended: retain the first minimum; the current equal-best probes do not yet prove this.
+4. nstart ties: R retains the first minimum-WSS start, verified by equal_best_start_1 through equal_best_start_8. Recommended: retain the first minimum.
 5. Match R warning/error distinctions for empty clusters, k=n, invalid centers, and iteration limits. Recommended: match observed public behavior.
 6. Preserve algorithm-specific iter and ifault only if their semantics can be reproduced; otherwise document a simpler iteration count as a deliberate difference. Recommended: do not claim exact R compatibility until the remaining probes are complete.
 
