@@ -158,9 +158,10 @@ function fitCore(x0: number[][], g0: readonly GroupLabel[], options: LdaOptions,
   if (constant.length) throw new RangeError(`variable${constant.length > 1 ? "s" : ""} ${constant.join(" ")} appear${constant.length === 1 ? "s" : ""} to be constant within groups`);
   const rankDeviations = allDeviations.map((row) => row.map((v, j) => v / Math.sqrt(within[j]![j]!)));
   const exactRank = qr(rankDeviations, { tol: 1e-12 }).rank;
-  const toleranceQr = qr(rankDeviations, { tol }).rank;
+  const rankTol = Math.sqrt(tol);
+  const toleranceQr = qr(rankDeviations, { tol: rankTol }).rank;
   if (toleranceQr < exactRank) {
-    const q = qr(rankDeviations, { tol });
+    const q = qr(rankDeviations, { tol: rankTol });
     const dropped = q.pivot.slice(q.rank).map((i) => i + 1).sort((a, b) => a - b);
     throw new RangeError(`variables ${dropped.join(" ")} appear to be constant within groups`);
   }
