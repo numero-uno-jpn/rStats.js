@@ -175,14 +175,15 @@ function fitCore(x0: number[][], g0: readonly GroupLabel[], options: LdaOptions,
   const origin = new Array<number>(p).fill(0);
   const spread = new Array<number>(p).fill(1);
   for (let j = 0; j < p; j++) {
-    const first = x[0]![j]! / scale[j]!;
+    const first = x[0]![j]!;
     let range = 0;
-    for (const row of x) range = Math.max(range, Math.abs(row[j]! / scale[j]! - first));
-    // When a large common offset dwarfs the within-column variation, subtract it before
-    // computing class means and cross-products. Keep the historical coordinates otherwise.
-    if (range > 0 && range < 1e-4) {
+    for (const row of x) range = Math.max(range, Math.abs(row[j]! - first));
+    // When a large common offset dwarfs the within-column variation, subtract it in
+    // the original coordinates before scaling. Keep historical coordinates otherwise.
+    if (range > 0 && Number.isFinite(range) && range < 1e-4 * scale[j]!) {
       origin[j] = first;
       spread[j] = range;
+      scale[j] = 1;
     }
   }
   const xs = x.map((r) => r.map((v, j) => (v / scale[j]! - origin[j]!) / spread[j]!));
