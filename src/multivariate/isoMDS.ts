@@ -2,6 +2,7 @@
 import { cmdscale } from "./cmdscale.js";
 import type { DistResult } from "./dist.js";
 
+/** @category Multivariate analysis */
 export interface IsoMDSOptions {
   k?: number;
   y?: readonly (readonly number[])[];
@@ -9,12 +10,15 @@ export interface IsoMDSOptions {
   tol?: number;
   p?: number;
 }
+/** @category Multivariate analysis */
 export interface IsoMDSTrace {
   iteration: number;
   stress: number;
   converged: boolean;
 }
+/** @category Multivariate analysis */
 export interface IsoMDSMatrix { rows: string[] | null; cols: string[] | null; values: number[][]; }
+/** @category Multivariate analysis */
 export interface IsoMDSResult {
   points: IsoMDSMatrix;
   stress: number;
@@ -150,7 +154,6 @@ function orient(y: number[][]): void {
 }
 
 /**
- * Non-metric multidimensional scaling by minimizing Kruskal Stress-1.
  * Equivalent to MASS::isoMDS().
  * @category Multivariate analysis
  */
