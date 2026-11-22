@@ -295,10 +295,13 @@ export function ldaPredict(fit: LdaFit, options: LdaPredictionOptions = {}): Lda
   const scores = x.map((r) => Array.from({ length: dimen }, (_, k) =>
     r.reduce((s, v, j) => s + (v - center[j]!) * fit._scaling[j]![k]!, 0)));
   const logp = x.map((r) => fit._activeLev.map((_, g) => {
-    const d = r.map((v, j) => v - fit._means[g]![j]!);
-    let quad = 0;
-    for (let i = 0; i < p; i++) for (let j = 0; j < p; j++) quad += d[i]! * fit._covInverse[i]![j]! * d[j]!;
-    return Math.log(prior[g]!) - 0.5 * quad;
+    const mu = fit._means[g]!;
+    let linear = 0, quadratic = 0;
+    for (let i = 0; i < p; i++) for (let j = 0; j < p; j++) {
+      linear += r[i]! * fit._covInverse[i]![j]! * mu[j]!;
+      quadratic += mu[i]! * fit._covInverse[i]![j]! * mu[j]!;
+    }
+    return Math.log(prior[g]!) + linear - 0.5 * quadratic;
   }));
   const posterior = logp.map((row) => {
     const m = Math.max(...row), ex = row.map((v) => Math.exp(v - m)), sum = ex.reduce((a, b) => a + b, 0);
