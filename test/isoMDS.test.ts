@@ -41,7 +41,7 @@ function compare(key: string, actual: IsoMDSResult, stressTol = 1e-8): void {
   if (error > stressTol) mismatches.push(`${key}.stress: actual=${actual.stress}, expected=${e}, absError=${error}`);
   if (Array.isArray(expected.printed) && expected.printed.length > 0) {
     const expectedTrace = expected.printed.map((line: string) => {
-      const match = line.match(/value\\s+([0-9.]+)/);
+      const match = line.match(/value\s+([0-9.]+)/);
       return match ? Number(match[1]) : null;
     }).filter((v: number | null): v is number => v !== null);
     const actualTrace = actual.trace.map((v) => v.stress);
