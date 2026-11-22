@@ -220,15 +220,23 @@ export function lda(x: VectorOrMatrix | string, grouping: readonly GroupLabel[] 
   if (options.method !== undefined && options.method !== "moment") throw new RangeError("only method = 'moment' is supported");
   let values: number[][], groups: GroupLabel[], names: string[];
   if (typeof x === "string") {
-    const d = design(parseFormula(x), grouping as DataFrame, { dropUnusedLevels: false, ...(options.levels === undefined ? {} : { levels: options.levels }) });
-    const response = d.terms.variables[0]!;
-    const raw = (grouping as DataFrame)[response];
-    if (raw === undefined) throw new RangeError(`object '${response}' not found`);
-    groups = d.frame.rows.map((i) => raw[i] as GroupLabel);
+    const parsed = parseFormula(x);
+    const response = parsed.response;
+    if (!response || !Object.hasOwn(grouping as object, response)) throw new RangeError("formula response must name a grouping column in data");
+    const tilde = x.indexOf("~");
+    if (tilde < 0) throw new SyntaxError("invalid LDA formula");
+    const predictors = Object.keys(grouping as object).filter((name) => name !== response);
+    const rhsText = x.slice(tilde + 1).replace(/(^|[\\s+*:/()-])\\.(?=$|[\\s+*:/()-])/g, (_match, prefix: string) =>
+      prefix + predictors.join(" + "));
+    const d = design(parseFormula(`~ ${rhsText}`), grouping as DataFrame, {
+      extraVariables: [response], dropUnusedLevels: false, levels: options.levels,
+    });
     const offset = d.terms.intercept ? 1 : 0;
-    values = d.x.map((r) => r.slice(offset));
+    const values = d.x.map((row) => row.slice(offset));
+    const responseValues = Array.from((grouping as DataFrame)[response] as readonly GroupLabel[]);
+    const groups = d.frame.rows.map((row) => responseValues[row]!);
     names = d.colNames.slice(offset);
-    const responseVariable = d.frame.variables[0];
+    const responseVariable = d.frame.variables[d.terms.variables.length];
     const declared = options.groupLevels ?? (responseVariable?.kind === "factor" ? responseVariable.levels : undefined);
     const fit = fitCore(values, groups, options, names, declared);
     if (!options.CV) return fit;
