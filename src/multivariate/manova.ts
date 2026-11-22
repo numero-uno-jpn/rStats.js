@@ -65,8 +65,8 @@ function responseColumns(data: DataFrame, names: readonly string[]): { data: Dat
     const name = names[i]!;
     const simple = /^[A-Za-z.][A-Za-z0-9._]*$/.test(name);
     if (simple) { internal.push(name); continue; }
-    const sum = /^I\\(\\s*([A-Za-z.][A-Za-z0-9._]*)\\s*\\+\\s*([A-Za-z.][A-Za-z0-9._]*)\\s*\\)$/.exec(name);
-    const numeric = /^as\\.numeric\\(\\s*([A-Za-z.][A-Za-z0-9._]*)\\s*\\)$/.exec(name);
+    const sum = /^I\(\s*([A-Za-z.][A-Za-z0-9._]*)\s*\+\s*([A-Za-z.][A-Za-z0-9._]*)\s*\)$/.exec(name);
+    const numeric = /^as\.numeric\(\s*([A-Za-z.][A-Za-z0-9._]*)\s*\)$/.exec(name);
     const key = `.__manova_response_${i}`;
     if (sum) {
       const a = dataColumn(data, sum[1]!); const b = dataColumn(data, sum[2]!);
