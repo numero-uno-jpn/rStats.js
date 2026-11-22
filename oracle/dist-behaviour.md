@@ -72,3 +72,6 @@ The user's decisions of 2026-11-22 (Issue #556), written by Claude. They take pr
    unchanged
 7. Warnings (binary's `treating non-finite values as NA`, as many as R) go into the result's `warnings: string[]`, as
    `manova` and `lda` do
+8. Bitwise agreement (choice 1) does not apply to Minkowski with p other than 1 and 2: it needs `pow`, which is not
+   correctly rounded in R's C library nor in JavaScript, and its last bit differs between platforms (on CI's x86_64
+   Linux, `dist_minkowski_p3[4]` was 1 ulp from R while it agreed on arm64 macOS). Those cases allow 4 ulps

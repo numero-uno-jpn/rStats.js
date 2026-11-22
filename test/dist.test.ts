@@ -21,6 +21,7 @@ const us = {
   Rape: [21.2, 44.5, 31.0, 19.5, 40.6, 38.7],
 };
 const labels = ["a", "b", "c", "d", "e"];
+const POW_CASES = new Set(["dist_minkowski_p3", "dist_minkowski_p05"]);
 function num(v: unknown): number {
   if (v === "NA" || v === "NaN") return NaN;
   if (v === "Inf") return Infinity;
@@ -49,6 +50,9 @@ function compare(key: string, actual: DistResult): void {
     if (!Object.is(a, e)) {
       const rel = Number.isFinite(a) && Number.isFinite(e) ? Math.abs(a - e) / Math.max(Math.abs(e), 1e-300) : NaN;
       if (Number.isFinite(rel)) maxRelativeError = Math.max(maxRelativeError, rel);
+      // Minkowski with p other than 1 and 2 uses pow, which is not correctly rounded in R's C library nor in JS, and
+      // its last bit differs between platforms (CI's x86_64 Linux and arm64 macOS): 4 ulps allowed there only
+      if (POW_CASES.has(key) && rel <= 4 * Number.EPSILON) continue;
       mismatches.push(`${key}[${i}]: actual=${String(a)}, expected=${String(e)}, relativeError=${String(rel)}`);
     }
   }
