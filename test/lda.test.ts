@@ -329,4 +329,21 @@ describe("lda", () => {
     (missingGroup as (string | number)[])[4] = NaN;
     expect(() => lda(xx, missingGroup)).toThrow(/missing value where TRUE\/FALSE needed/);
   });
+
+  it("keeps posterior probabilities finite for extreme finite prediction rows", () => {
+    const fit = lda(x, g);
+    const pred = ldaPredict(fit, { newdata: [[1e308, 1e308], [-1e308, -1e308]] });
+    for (const row of pred.posterior.values) {
+      expect(row.every(Number.isFinite)).toBe(true);
+      expect(row.reduce((a, b) => a + b, 0)).toBeCloseTo(1, 12);
+    }
+    expect(pred.x.values.flat().every((v) => !Number.isNaN(v))).toBe(true);
+  });
+
+  it("normalises finite priors whose direct sum overflows", () => {
+    const fit = lda(x, g, { prior: [1e308, 1e308] });
+    expect(fit.prior).toEqual([0.5, 0.5]);
+    const pred = ldaPredict(lda(x, g), { newdata: [[1, 2]], prior: [1e308, 1e308] });
+    expect(pred.posterior.values[0]!.reduce((a, b) => a + b, 0)).toBeCloseTo(1, 12);
+  });
 });
