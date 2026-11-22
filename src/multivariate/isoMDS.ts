@@ -133,7 +133,7 @@ function gradient(y: number[][], pairs: readonly Pair[], current: Evaluation, p:
     const factor = (d - current.disparities[at]!) / (d ** (p - 1));
     for (let q = 0; q < dim; q++) {
       const diff = y[pair.i]![q]! - y[pair.j]![q]!;
-      const v = factor * Math.sign(diff) * (Math.abs(diff) ** (p - 1));
+      const v = diff === 0 ? 0 : factor * Math.sign(diff) * (Math.abs(diff) ** (p - 1));
       out[pair.i]![q] = out[pair.i]![q]! + v;
       out[pair.j]![q] = out[pair.j]![q]! - v;
     }
