@@ -54,9 +54,6 @@ export interface ManovaSummary {
   coef: MatrixTable;
 }
 
-/** Four multivariate test tables and associated matrices.
- * @category Linear models and ANOVA
- */
 function zeros(r: number, c: number): number[][] { return Array.from({ length: r }, () => new Array<number>(c).fill(0)); }
 function cross(a: number[][], b: number[][] = a): number[][] {
   const out = zeros(a[0]?.length ?? 0, b[0]?.length ?? 0);
