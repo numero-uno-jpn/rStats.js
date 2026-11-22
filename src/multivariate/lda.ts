@@ -273,10 +273,6 @@ export function lda(x: VectorOrMatrix | string, grouping: readonly GroupLabel[] 
     const gg = groups.filter((_, j) => j !== i);
     const sub = fitCore(xx, gg, { ...options, prior: fullPrior, CV: false }, names, options.groupLevels);
     const pred = ldaPredict(sub, { newdata: [values[i]!], prior: fullPrior });
-    if (i === 0 && options.prior !== undefined) console.info("LDA CV prior diagnostic", JSON.stringify({
-      prior: sub.prior, levels: sub._activeLev, means: sub._means, scaling: sub._scaling,
-      counts: sub.counts, prediction: pred.posterior.values[0],
-    }));
     classes.push(pred.class[0]!);
     posterior.push(pred.posterior.values[0]!);
   }
@@ -309,7 +305,7 @@ export function ldaPredict(fit: LdaFit, options: LdaPredictionOptions = {}): Lda
     mu.reduce((s, v, j) => s + (v - center[j]!) * fit._scaling[j]![k]!, 0)));
   const logp = fullScores.map((row) => fit._activeLev.map((_, g) => {
     let distance = 0;
-    for (let k = 0; k < maxDim; k++) {
+    for (let k = 0; k < dimen; k++) {
       const d = row[k]! - meanScores[g]![k]!;
       distance += d * d;
     }
