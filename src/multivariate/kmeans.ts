@@ -107,6 +107,8 @@ function fitStats(rows: number[][], cluster: number[], k: number, colNames: stri
   rowNames: string[] | null, iter: number, ifault: number | null, warnings: string[]): KmeansFit {
   const p = rows[0]!.length;
   const { centers, size } = means(rows, cluster, k, p);
+  // R reports the center of an empty cluster as NaN (the mean of no rows; kmeans_empty_Lloyd)
+  for (let g = 0; g < k; g++) if (size[g] === 0) centers[g] = new Array<number>(p).fill(NaN);
   const withinss = new Array<number>(k).fill(0);
   for (let i = 0; i < rows.length; i++) withinss[cluster[i]!]! += squared(rows[i]!, centers[cluster[i]!]!);
   const totss = totalSS(rows, p);
@@ -118,25 +120,28 @@ function fitStats(rows: number[][], cluster: number[], k: number, colNames: stri
   return out;
 }
 function lloyd(rows: number[][], initial: number[][], iterMax: number): { cluster: number[]; iter: number; converged: boolean } {
+  // Batch updates: assign every row to its nearest center, stop when no assignment changed, else move each nonempty
+  // center to its mean. R counts the assignment passes (the last one confirms convergence) and reports
+  // iter.max + 1 when it stops at the limit (kmeans_iter_Lloyd_1..5, kmeans_vector_Lloyd)
   const k = initial.length;
-  let centers = initial.map((r) => [...r]);
-  let cluster = rows.map((row) => nearest(row, centers));
-  let converged = false, iter = 0;
-  for (let pass = 0; pass < iterMax; pass++) {
+  const centers = initial.map((r) => [...r]);
+  let cluster: number[] = new Array<number>(rows.length).fill(-1);
+  for (let iter = 1; iter <= iterMax; iter++) {
     const next = rows.map((row) => nearest(row, centers));
     const changed = next.some((v, i) => v !== cluster[i]);
-    const stats = means(rows, next, k, rows[0]!.length);
-    for (let g = 0; g < k; g++) if (stats.size[g]! > 0) centers[g] = stats.centers[g]!;
     cluster = next;
-    iter = pass + 1;
-    if (!changed) { converged = true; break; }
+    if (!changed) return { cluster, iter, converged: true };
+    const stats = means(rows, cluster, k, rows[0]!.length);
+    for (let g = 0; g < k; g++) if (stats.size[g]! > 0) centers[g] = stats.centers[g]!;
   }
-  return { cluster, iter: iter + (converged ? 0 : 1), converged };
+  return { cluster, iter: iterMax + 1, converged: false };
 }
 function macqueen(rows: number[][], initial: number[][], iterMax: number): { cluster: number[]; iter: number; converged: boolean } {
   const k = initial.length, p = rows[0]!.length;
   let cluster = rows.map((row) => nearest(row, initial));
-  let { centers, size } = means(rows, cluster, k, p);
+  const { centers, size } = means(rows, cluster, k, p);
+  // an empty cluster keeps its initial center (R: kmeans_empty_MacQueen), not the mean of no rows
+  for (let g = 0; g < k; g++) if (size[g] === 0) centers[g] = [...initial[g]!];
   let converged = false, iter = 0;
   for (let pass = 0; pass < iterMax; pass++) {
     let moved = false;
@@ -161,7 +166,7 @@ function macqueen(rows: number[][], initial: number[][], iterMax: number): { clu
     iter = pass + 1;
     if (!moved) { converged = true; break; }
   }
-  return { cluster, iter, converged };
+  return { cluster, iter: converged ? iter : iterMax + 1, converged };
 }
 function hartiganWong(rows: number[][], initial: number[][], iterMax: number): { cluster: number[]; iter: number; converged: boolean } {
   const k = initial.length, p = rows[0]!.length;
@@ -255,7 +260,9 @@ export function kmeans(
   let best: KmeansFit | null = null;
   let bestW = Infinity;
   for (const initial of initialSets) {
-    const result = algorithm === "Hartigan-Wong" ? hartiganWong(rows, initial, maxIterations)
+    // One cluster: R does no iteration (iter 1, ifault NULL for every algorithm; kmeans_k1_*)
+    const result = k === 1 ? { cluster: new Array<number>(n).fill(0), iter: 1, converged: true }
+      : algorithm === "Hartigan-Wong" ? hartiganWong(rows, initial, maxIterations)
       : algorithm === "MacQueen" ? macqueen(rows, initial, maxIterations) : lloyd(rows, initial, maxIterations);
     const warnings: string[] = [];
     const stats = means(rows, result.cluster, k, p);
@@ -265,7 +272,7 @@ export function kmeans(
     }
     if (!result.converged) warnings.push(`did not converge in ${maxIterations} ${maxIterations === 1 ? "iteration" : "iterations"}`);
     const fit = fitStats(rows, result.cluster, k, data.colNames, data.rowNames, result.iter,
-      algorithm === "Hartigan-Wong" ? (result.converged ? 0 : 2) : (result.converged ? null : 2), warnings);
+      algorithm === "Hartigan-Wong" && k > 1 ? (result.converged ? 0 : 2) : (result.converged ? null : 2), warnings);
     if (fit.totWithinss < bestW) { best = fit; bestW = fit.totWithinss; }
   }
   return best!;

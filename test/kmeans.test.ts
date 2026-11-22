@@ -22,7 +22,8 @@ function compare(key: string, actual: KmeansFit): void {
   if (!expected) { mismatches.push(`${key}: missing fixture`); return; }
   if (JSON.stringify(actual.cluster) !== JSON.stringify(expected.cluster)) mismatches.push(`${key}.cluster differs`);
   if (JSON.stringify(actual.names ?? null) !== JSON.stringify(expected.cluster_names ?? null)) mismatches.push(`${key}.cluster names differ`);
-  if (JSON.stringify(actual.centers.rows) !== JSON.stringify(expected.centers.rows)) mismatches.push(`${key}.centers.rows differs`);
+  const centerRows = expected.centers.rows === null || Array.isArray(expected.centers.rows) ? expected.centers.rows : [expected.centers.rows];
+  if (JSON.stringify(actual.centers.rows) !== JSON.stringify(centerRows)) mismatches.push(`${key}.centers.rows differs`);
   if (JSON.stringify(actual.centers.cols) !== JSON.stringify(expected.centers.cols)) mismatches.push(`${key}.centers.cols differs`);
   if (actual.centers.values.length !== expected.centers.values.length) mismatches.push(`${key}.centers row count differs`);
   for (let i = 0; i < Math.min(actual.centers.values.length, expected.centers.values.length); i++) {
@@ -33,11 +34,15 @@ function compare(key: string, actual: KmeansFit): void {
   for (const [field, actualValue, expectedValue] of [
     ["totss", actual.totss, expected.totss],
     ["totWithinss", actual.totWithinss, expected["tot.withinss"]],
-    ["betweenss", actual.betweenss, expected.betweenss],
   ] as const) if (expectedValue !== undefined) close(`${key}.${field}`, actualValue, num(expectedValue));
+  // betweenss = totss - tot.withinss cancels: compare it with an error relative to totss (R's k = 1 gives 6.8e-13)
+  if (expected.betweenss !== undefined && !(Math.abs(actual.betweenss - num(expected.betweenss)) <= 1e-12 * Math.abs(num(expected.totss)))) {
+    mismatches.push(`${key}.betweenss: actual=${actual.betweenss}, expected=${expected.betweenss}`);
+  }
   for (const field of ["withinss", "size"] as const) {
     const values = field === "withinss" ? actual.withinss : actual.size;
-    const expectedValues = expected[field];
+    // R writes a length-one vector as a scalar (auto_unbox): compare it as a one-element array
+    const expectedValues = Array.isArray(expected[field]) ? expected[field] : [expected[field]];
     if (values.length !== expectedValues.length) mismatches.push(`${key}.${field} length differs`);
     for (let i = 0; i < Math.min(values.length, expectedValues.length); i++) {
       if (field === "size") {
@@ -47,7 +52,8 @@ function compare(key: string, actual: KmeansFit): void {
   }
   if (actual.iter !== expected.iter) mismatches.push(`${key}.iter: actual=${actual.iter}, expected=${expected.iter}`);
   if (actual.ifault !== expected.ifault) mismatches.push(`${key}.ifault: actual=${actual.ifault}, expected=${expected.ifault}`);
-  const warnings = expected.warnings === undefined ? [] : Array.isArray(expected.warnings) ? expected.warnings : [expected.warnings];
+  const caseWarnings = fixture[key]?.warnings; // R's warnings are beside the value, not in it
+  const warnings = caseWarnings === undefined ? [] : Array.isArray(caseWarnings) ? caseWarnings : [caseWarnings];
   if (JSON.stringify(actual.warnings) !== JSON.stringify(warnings)) mismatches.push(`${key}.warnings differs`);
 }
 function compareTail(key: string, actual: number[], expected: unknown): void {
@@ -156,7 +162,7 @@ describe("kmeans: complete R fixtures", () => {
       compare("kmeans_vector_center_matrix_" + algorithm, kmeans(v, [[1], [30]], { algorithm }));
       compare("kmeans_midpoint_" + algorithm, kmeans([0, 2, 1], [0, 2], { algorithm }));
     }
-    compare("kmeans_data_frame", kmeans(usTable, c4));
+    compare("kmeans_data_frame", kmeans(usTable, [0, 9, 19].map((i) => usTable.values[i]!))); // R: USArrests[c(1, 10, 20), ]
     compare("kmeans_scale", kmeans({ ...irisTable, values: irisData.map((r) => r.map((v) => v * 1e150)) },
       c3.map((r) => r.map((v) => v * 1e150))));
     const smallu = small, starts3 = [smallu[0]!, smallu[2]!, smallu[4]!];
