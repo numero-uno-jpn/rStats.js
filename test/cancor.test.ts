@@ -27,7 +27,7 @@ describe("cancor", () => {
     const r = cancor([1, 2, 4, 8, 9], [2, 4, 5, 7, 12], { xcenter: false, ycenter: [1] });
     expect(r.xcenter).toEqual([0]);
     expect(r.ycenter).toEqual([1]);
-    expect(r.cor).toHaveLength(1);
+    expect(Number.isFinite(r.cor)).toBe(true);
   });
   it("reduces collinear columns and is invariant to response scaling", () => {
     const xx = x.map((r) => [r[0]!, r[1]!, r[0]! + r[1]!]);
