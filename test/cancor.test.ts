@@ -24,17 +24,21 @@ function compareCancor(actual: ReturnType<typeof cancor>, expected: any): void {
   expect(actual.ycoef.rows).toEqual(expected.ycoef.rows);
   expect(actual.xcoef.cols).toBe(expected.xcoef.cols);
   expect(actual.ycoef.cols).toBe(expected.ycoef.cols);
-  const sx = expected.xcoef.values[0]!.map((_: number, j: number) => {
-    const dot = actual.xcoef.values.reduce((s, row, i) => s + row[j]! * expected.xcoef.values[i]![j]!, 0);
+  const ncan = expectedCor.length;
+  const expectedX = expected.xcoef.values.map((row: number[]) => row.slice(0, ncan));
+  const expectedY = expected.ycoef.values.map((row: number[]) => row.slice(0, ncan));
+  expect(actual.xcoef.values[0]!.length).toBe(ncan);
+  expect(actual.ycoef.values[0]!.length).toBe(ncan);
+  const sx = expectedX[0]!.map((_: number, j: number) => {
+    const dot = actual.xcoef.values.reduce((s, row, i) => s + row[j]! * expectedX[i]![j]!, 0);
     return dot < 0 ? -1 : 1;
   });
-  const sy = expected.ycoef.values[0]!.map((_: number, j: number) => {
-    if (j < cor.length) return sx[j]!;
-    const dot = actual.ycoef.values.reduce((s, row, i) => s + row[j]! * expected.ycoef.values[i]![j]!, 0);
+  const sy = expectedY[0]!.map((_: number, j: number) => {
+    const dot = actual.ycoef.values.reduce((s, row, i) => s + row[j]! * expectedY[i]![j]!, 0);
     return dot < 0 ? -1 : 1;
   });
-  expectMatrixClose(actual.xcoef.values.map((row) => row.map((v, j) => v * sx[j]!)), expected.xcoef.values, 1e-8);
-  expectMatrixClose(actual.ycoef.values.map((row) => row.map((v, j) => v * sy[j]!)), expected.ycoef.values, 1e-8);
+  expectMatrixClose(actual.xcoef.values.map((row) => row.map((v, j) => v * sx[j]!)), expectedX, 1e-8);
+  expectMatrixClose(actual.ycoef.values.map((row) => row.map((v, j) => v * sy[j]!)), expectedY, 1e-8);
 }
 
 function expectMatrixClose(actual: number[][], expected: number[][], tol = 1e-8): void {
