@@ -188,7 +188,7 @@ function fitCore(x0: number[][], g0: readonly GroupLabel[], options: LdaOptions,
   return {
     prior, counts, means: { rows: levels, cols: names.length === 1 ? names[0]! : names, values: originalMeans },
     scaling: { rows: names.length === 1 ? names[0]! : names, cols: keepRoots.length === 1 ? "LD1" : keepRoots.map((_, i) => `LD${i + 1}`), values: scaling },
-    svd: (() => { const v = keepRoots.map((i) => Math.sqrt(Math.max(0, be.values[i]!) * (n - g) / Math.max(1, g - 1))); return v.length === 1 ? v[0]! : v; })(),
+    svd: (() => { const v = keepRoots.map((i) => Math.sqrt(Math.max(0, be.values[i]!) * n * (n - g) / Math.max(1, g - 1))); return v.length === 1 ? v[0]! : v; })(),
     N: n, lev: declared ?? levels, warnings, _means: means, _activeLev: levels, _center: center, _scaling: scalingNorm, _covInverse: covInv,
     _scale: scale, _x: xs, _xNames: names, _tol: tol,
   };
