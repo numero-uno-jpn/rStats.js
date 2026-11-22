@@ -169,7 +169,14 @@ export function hclust(d: DistResult, options: HclustOptions = {}): HclustFit & 
     sizes[a] = sizeA + sizeB;
     minLeaf[a] = Math.min(minLeaf[a]!, minLeaf[b]!);
     rank[a] = n + step;
-    chain = [];
+    if (nnc) {
+      // The prefix still describes the same nearest-neighbor path: only the last two
+      // clusters were merged, so resume from the preceding cluster instead of
+      // rebuilding the path from its first active leaf after every merge.
+      chain.length -= 2;
+    } else {
+      chain = [];
+    }
   }
 
   const order: number[] = [];
