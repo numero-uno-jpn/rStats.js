@@ -131,13 +131,18 @@ export function cancor(x: VectorOrMatrix, y: VectorOrMatrix, options: CancorOpti
   const ncan = Math.min(requested, dec.d.length);
   const u = dec.u!, v = dec.v!;
   // Convert coefficients from scaled columns back to original units.
-  const ax = mul(ix, u).map((r, i) => r.map((z) => ldexp(z / sx[px[i]!]!, -xExponent[px[i]!]!)));
-  const by = mul(iy, v).map((r, i) => r.map((z) => ldexp(z / sy[py[i]!]!, -yExponent[py[i]!]!)));
+  const axScaled = mul(ix, u).map((r, i) => r.map((z) => z / sx[px[i]!]!));
+  const byScaled = mul(iy, v).map((r, i) => r.map((z) => z / sy[py[i]!]!));
+  const ax = axScaled.map((r, i) => r.map((z) => ldexp(z, -xExponent[px[i]!]!)));
+  const by = byScaled.map((r, i) => r.map((z) => ldexp(z, -yExponent[py[i]!]!)));
   // Orient every X basis column by its largest absolute original-scale coefficient.
   for (let j = 0; j < ax[0]!.length; j++) {
     let imax = 0;
     for (let i = 1; i < ax.length; i++) if (Math.abs(ax[i]![j]!) > Math.abs(ax[imax]![j]!)) imax = i;
-    if (ax[imax]![j]! < 0) for (const r of ax) r[j] = -r[j]!;
+    if (ax[imax]![j]! < 0) {
+      for (const r of ax) r[j] = -r[j]!;
+      for (const r of axScaled) r[j] = -r[j]!;
+    }
   }
   // Paired Y columns take the sign that makes canonical correlation positive; extra columns use a deterministic sign.
   for (let j = 0; j < by[0]!.length; j++) {
@@ -145,15 +150,21 @@ export function cancor(x: VectorOrMatrix, y: VectorOrMatrix, options: CancorOpti
       let cov = 0;
       for (let i = 0; i < xr.length; i++) {
         let xv = 0, yv = 0;
-        for (let a = 0; a < ax.length; a++) xv += xr[i]![a]! * ax[a]![j]! * sx[px[a]!]!;
-        for (let b = 0; b < by.length; b++) yv += yr[i]![b]! * by[b]![j]! * sy[py[b]!]!;
+        for (let a = 0; a < axScaled.length; a++) xv += xr[i]![a]! * axScaled[a]![j]! * sx[px[a]!]!;
+        for (let b = 0; b < byScaled.length; b++) yv += yr[i]![b]! * byScaled[b]![j]! * sy[py[b]!]!;
         cov += xv * yv;
       }
-      if (cov < 0) for (const r of by) r[j] = -r[j]!;
+      if (cov < 0) {
+        for (const r of by) r[j] = -r[j]!;
+        for (const r of byScaled) r[j] = -r[j]!;
+      }
     } else {
       let imax = 0;
       for (let i = 1; i < by.length; i++) if (Math.abs(by[i]![j]!) > Math.abs(by[imax]![j]!)) imax = i;
-      if (by[imax]![j]! < 0) for (const r of by) r[j] = -r[j]!;
+      if (by[imax]![j]! < 0) {
+        for (const r of by) r[j] = -r[j]!;
+        for (const r of byScaled) r[j] = -r[j]!;
+      }
     }
   }
   const xNames = namesOrDefault(options.xNames, xm[0]!.length, "x");
