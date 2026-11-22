@@ -424,7 +424,10 @@ export function tamhaneT2Test(
     const n = grouped.groups.map((s) => s.length);
     return { labels: grouped.labels, groups: grouped.groups, n, N: n.reduce((a, b) => a + b, 0), k };
   })();
-  const gm = groupMoments(d.groups);
+  // Work in the common power-of-two-scaled coordinates. groupMoments exposes its scaled groups so the
+  // variances stay finite even when the original data are around 1e100 (the T2 choice avoids R's overflow artifact).
+  const scaled = groupMoments(d.groups);
+  const gm = groupMoments(scaled.groups);
   const welch = options.welch ?? true;
   const m = d.k * (d.k - 1) / 2;
   const statistic = lowerTable(d.k, (i, j) => {
