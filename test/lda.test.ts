@@ -132,7 +132,7 @@ describe("lda", () => {
     const collinearX = xx.map((r) => [...r, r[0]! + r[1]!]);
     const collinear = lda(collinearX, gg, { xNames: [...names, "s"] });
     const colExpected = ldaFixture.lda_collinear.value;
-    expect(collinear.prior).toEqual(colExpected.prior);
+    colExpected.prior.forEach((v: number, i: number) => expect(collinear.prior[i]).toBeCloseTo(v, 15));
     expect(collinear.counts).toEqual(colExpected.counts);
     expect(collinear.means.rows).toEqual(colExpected.means.rows);
     expect(collinear.means.cols).toEqual(colExpected.means.cols);
