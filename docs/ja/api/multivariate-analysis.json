@@ -2,511 +2,511 @@
   "CancorOptions#summary": {
     "hash": "29a1c46366a1",
     "en": "Options for canonical correlation.",
-    "ja": ""
+    "ja": "正準相関のオプション。"
   },
   "CancorOptions.tol#summary": {
     "hash": "ab1d98fd7920",
     "en": "Numerical tolerance used to determine the ranks of x and y. Default 1e-7.",
-    "ja": ""
+    "ja": "x と y の階数を判定するために使用する数値許容誤差です。既定: 1e-7。"
   },
   "CancorOptions.xNames#summary": {
     "hash": "9ee1ce3eca60",
     "en": "Names for the columns of x.",
-    "ja": ""
+    "ja": "x の列名。"
   },
   "CancorOptions.xcenter#summary": {
     "hash": "44c0cc3be8be",
     "en": "Center the columns of x by their means, leave them uncentered, or supply explicit centers. Default true.",
-    "ja": ""
+    "ja": "x の各列を平均で中心化するか、中心化しないか、または明示的な中心値を指定します。既定: true。"
   },
   "CancorOptions.yNames#summary": {
     "hash": "5c3eff260e4f",
     "en": "Names for the columns of y.",
-    "ja": ""
+    "ja": "y の列名。"
   },
   "CancorOptions.ycenter#summary": {
     "hash": "2c441b883f62",
     "en": "Center the columns of y by their means, leave them uncentered, or supply explicit centers. Default true.",
-    "ja": ""
+    "ja": "y の各列を平均で中心化するか、中心化しないか、または明示的な中心値を指定します。既定: true。"
   },
   "CancorResult#summary": {
     "hash": "dcb19ec6ea54",
     "en": "Result of canonical correlation.",
-    "ja": ""
+    "ja": "正準相関の結果。"
   },
   "CancorResult.cor#summary": {
     "hash": "4b7ebf6a878f",
     "en": "Canonical correlations, ordered from largest to smallest.",
-    "ja": ""
+    "ja": "大きい順に並べた正準相関係数。"
   },
   "CancorResult.xcenter#summary": {
     "hash": "f517edef26d5",
     "en": "Centers applied to the columns of x.",
-    "ja": ""
+    "ja": "x の各列に適用した中心値。"
   },
   "CancorResult.xcoef#summary": {
     "hash": "eb71fc6ac246",
     "en": "Canonical coefficients for x, with original variable names in rows.",
-    "ja": ""
+    "ja": "x の正準係数。行には元の変数名が入ります。"
   },
   "CancorResult.ycenter#summary": {
     "hash": "cb38d7e6a350",
     "en": "Centers applied to the columns of y.",
-    "ja": ""
+    "ja": "y の各列に適用した中心値。"
   },
   "CancorResult.ycoef#summary": {
     "hash": "ac990b3afb37",
     "en": "Canonical coefficients for y, with original variable names in rows.",
-    "ja": ""
+    "ja": "y の正準係数。行には元の変数名が入ります。"
   },
   "LdaCVResult#summary": {
     "hash": "391dbec9cdbe",
     "en": "Leave-one-out LDA predictions.",
-    "ja": ""
+    "ja": "一つ抜き交差検証による LDA の予測結果。"
   },
   "LdaCVResult.class#summary": {
     "hash": "bf0e4ca35843",
     "en": "Leave-one-out predicted class label for each training observation.",
-    "ja": ""
+    "ja": "各学習観測値について、一つ抜きで予測したクラスラベル。"
   },
   "LdaCVResult.posterior#summary": {
     "hash": "7ee188ca957c",
     "en": "Leave-one-out posterior class probabilities, with classes in columns.",
-    "ja": ""
+    "ja": "一つ抜きによるクラスの事後確率。列はクラスに対応します。"
   },
   "LdaFit#summary": {
     "hash": "6595a5b088e5",
     "en": "A fitted linear discriminant model.",
-    "ja": ""
+    "ja": "当てはめ済みの線形判別モデル。"
   },
   "LdaFit.N#summary": {
     "hash": "c501556c079f",
     "en": "Number of observations used to fit the model.",
-    "ja": ""
+    "ja": "モデルの当てはめに使用した観測値の数。"
   },
   "LdaFit.counts#summary": {
     "hash": "7635cd8fadc3",
     "en": "Number of training observations in each class.",
-    "ja": ""
+    "ja": "各クラスの学習観測値の数。"
   },
   "LdaFit.lev#summary": {
     "hash": "908f4717c898",
     "en": "Class labels in prediction and prior order.",
-    "ja": ""
+    "ja": "予測時および事前確率の順序におけるクラスラベル。"
   },
   "LdaFit.means#summary": {
     "hash": "28d85b562c90",
     "en": "Class means, with classes in rows and predictors in columns.",
-    "ja": ""
+    "ja": "クラスごとの平均。行はクラス、列は説明変数に対応します。"
   },
   "LdaFit.prior#summary": {
     "hash": "fee5e7f9db37",
     "en": "Prior class probabilities in the order of `lev`.",
-    "ja": ""
+    "ja": "`lev` の順序におけるクラスの事前確率。"
   },
   "LdaFit.scaling#summary": {
     "hash": "909ed1832bbe",
     "en": "Metric-normalised discriminant directions, with predictors in rows and dimensions in columns.",
-    "ja": ""
+    "ja": "計量で正規化された判別係数。行は説明変数、列は判別次元に対応します。"
   },
   "LdaFit.svd#summary": {
     "hash": "411d8508a898",
     "en": "Singular values associated with the discriminant dimensions.",
-    "ja": ""
+    "ja": "判別次元に対応する特異値。"
   },
   "LdaFit.warnings#summary": {
     "hash": "eba97ad14dce",
     "en": "Warnings produced while fitting the model.",
-    "ja": ""
+    "ja": "モデルの当てはめ中に発生した警告。"
   },
   "LdaOptions#summary": {
     "hash": "d59f396258bb",
     "en": "Options for LDA fitting.",
-    "ja": ""
+    "ja": "LDA の当てはめオプション。"
   },
   "LdaOptions.CV#summary": {
     "hash": "276cb114b040",
     "en": "Return leave-one-out cross-validation predictions instead of a fitted model. Default false.",
-    "ja": ""
+    "ja": "当てはめ済みモデルの代わりに、一つ抜き交差検証による予測結果を返します。既定: false。"
   },
   "LdaOptions.groupLevels#summary": {
     "hash": "7c2141c09986",
     "en": "Declared class levels; unused levels remain in `lev` and produce warnings.",
-    "ja": ""
+    "ja": "宣言するクラス水準です。未使用の水準も `lev` に残り、警告が発生します。"
   },
   "LdaOptions.levels#summary": {
     "hash": "273f281ae9d8",
     "en": "Explicit factor levels for formula variables.",
-    "ja": ""
+    "ja": "式の変数に対する明示的な因子水準。"
   },
   "LdaOptions.method#summary": {
     "hash": "4b7bf5f3ba55",
     "en": "Fitting method; only \"moment\" is supported. Default \"moment\".",
-    "ja": ""
+    "ja": "当てはめ方法です。\"moment\" のみをサポートします。既定: \"moment\"。"
   },
   "LdaOptions.prior#summary": {
     "hash": "471945b2a962",
     "en": "Prior class probabilities, in class-level order. Defaults to observed class proportions.",
-    "ja": ""
+    "ja": "クラス水準の順序におけるクラスの事前確率です。既定では、観測されたクラス比率を使用します。"
   },
   "LdaOptions.tol#summary": {
     "hash": "9dfce61ceffe",
     "en": "Numerical tolerance for rank determination and within-class covariance calculations. Default 1e-4.",
-    "ja": ""
+    "ja": "階数の判定およびクラス内共分散の計算に用いる数値許容誤差です。既定: 1e-4。"
   },
   "LdaOptions.xNames#summary": {
     "hash": "6fe4a6c35bdd",
     "en": "Names for predictor columns in matrix input.",
-    "ja": ""
+    "ja": "行列入力における説明変数列の名前。"
   },
   "LdaPrediction#summary": {
     "hash": "dd89f41e9e83",
     "en": "Plug-in prediction from an LDA fit.",
-    "ja": ""
+    "ja": "LDA の当てはめ結果に基づくプラグイン予測。"
   },
   "LdaPrediction.class#summary": {
     "hash": "6254ce411a3d",
     "en": "Predicted class label for each observation.",
-    "ja": ""
+    "ja": "各観測値について予測されたクラスラベル。"
   },
   "LdaPrediction.posterior#summary": {
     "hash": "6328e9c0b3df",
     "en": "Posterior class probabilities, with classes in columns.",
-    "ja": ""
+    "ja": "クラスの事後確率。列はクラスに対応します。"
   },
   "LdaPrediction.x#summary": {
     "hash": "a3d1da965e5f",
     "en": "Discriminant scores for each observation.",
-    "ja": ""
+    "ja": "各観測値の判別得点。"
   },
   "LdaPredictionOptions#summary": {
     "hash": "5dfd67cfcbdd",
     "en": "Options for LDA prediction.",
-    "ja": ""
+    "ja": "LDA の予測オプション。"
   },
   "LdaPredictionOptions.dimen#summary": {
     "hash": "605479ace7d3",
     "en": "Number of discriminant score dimensions to return. Defaults to all available dimensions.",
-    "ja": ""
+    "ja": "返す判別得点の次元数です。既定では、利用可能なすべての次元を返します。"
   },
   "LdaPredictionOptions.method#summary": {
     "hash": "0ed5c4176e98",
     "en": "Prediction method; only \"plug-in\" is supported. Default \"plug-in\".",
-    "ja": ""
+    "ja": "予測方法です。\"plug-in\" のみをサポートします。既定: \"plug-in\"。"
   },
   "LdaPredictionOptions.newdata#summary": {
     "hash": "44ad6a176a46",
     "en": "New predictor rows; omitted to predict the observations used to fit the model.",
-    "ja": ""
+    "ja": "新しい説明変数の行です。省略すると、モデルの当てはめに使用した観測値を予測します。"
   },
   "LdaPredictionOptions.prior#summary": {
     "hash": "c77b4de8ec62",
     "en": "Prior class probabilities for this prediction. Defaults to the fitted priors.",
-    "ja": ""
+    "ja": "この予測に用いるクラスの事前確率です。既定では、当てはめ時の事前確率を使用します。"
   },
   "LdaTable#summary": {
     "hash": "bd1161ac1732",
     "en": "A labelled LDA result matrix.",
-    "ja": ""
+    "ja": "ラベル付きの LDA 結果行列。"
   },
   "LdaTable.cols#summary": {
     "hash": "b4205bf264ba",
     "en": "Column labels, or null when columns are not named.",
-    "ja": ""
+    "ja": "列ラベルです。列に名前がない場合は null です。"
   },
   "LdaTable.rows#summary": {
     "hash": "b4df49a54efc",
     "en": "Row labels, or null when rows are observations without labels.",
-    "ja": ""
+    "ja": "行ラベルです。行がラベルのない観測値の場合は null です。"
   },
   "LdaTable.values#summary": {
     "hash": "b213f0d3279d",
     "en": "Numeric matrix entries in row-major order.",
-    "ja": ""
+    "ja": "行優先順の数値行列要素。"
   },
   "ManovaFit#summary": {
     "hash": "7eeec5b1d462",
     "en": "A fitted sequential MANOVA model.",
-    "ja": ""
+    "ja": "当てはめ済みの逐次 MANOVA モデル。"
   },
   "ManovaFit.coefficientNames#summary": {
     "hash": "06c4c7925579",
     "en": "Names of the coefficient rows.",
-    "ja": ""
+    "ja": "係数行の名前。"
   },
   "ManovaFit.coefficients#summary": {
     "hash": "5c1b8af96191",
     "en": "Regression coefficient matrix, with terms in rows and responses in columns.",
-    "ja": ""
+    "ja": "回帰係数行列。行は項、列は応答変数に対応します。"
   },
   "ManovaFit.formula#summary": {
     "hash": "d033cf7d6cea",
     "en": "Formula used to fit the model.",
-    "ja": ""
+    "ja": "モデルの当てはめに使用した式。"
   },
   "ManovaFit.residualDf#summary": {
     "hash": "82eecb8e1b30",
     "en": "Residual degrees of freedom.",
-    "ja": ""
+    "ja": "残差の自由度。"
   },
   "ManovaFit.residualSSP#summary": {
     "hash": "37c58eba183f",
     "en": "Residual sum-of-squares-and-cross-products matrix on the original response scales.",
-    "ja": ""
+    "ja": "元の応答変数の尺度における、残差の平方和・積和行列。"
   },
   "ManovaFit.responseNames#summary": {
     "hash": "000926761244",
     "en": "Names or expressions of the response variables in formula order.",
-    "ja": ""
+    "ja": "式の順序における応答変数の名前または式。"
   },
   "ManovaFit.responseScales#summary": {
     "hash": "ca15274f4808",
     "en": "Power-of-two scale factors used internally for each response.",
-    "ja": ""
+    "ja": "各応答変数に内部的に使用した 2 のべき乗の尺度係数。"
   },
   "ManovaFit.termDf#summary": {
     "hash": "ebf597ea9189",
     "en": "Degrees of freedom contributed by each sequential term.",
-    "ja": ""
+    "ja": "各逐次項が寄与する自由度。"
   },
   "ManovaFit.termNames#summary": {
     "hash": "7c4f509a2583",
     "en": "Sequential model terms in formula order.",
-    "ja": ""
+    "ja": "式の順序における逐次モデル項。"
   },
   "ManovaFit.termRoots#summary": {
     "hash": "4e90a3fea0d8",
     "en": "Generalized roots for each fitted term, keyed by term name.",
-    "ja": ""
+    "ja": "当てはめた各項の一般化根。項の名前をキーとします。"
   },
   "ManovaFit.termSSP#summary": {
     "hash": "97dd4dcf10da",
     "en": "Sum-of-squares-and-cross-products matrix for each fitted term, keyed by term name.",
-    "ja": ""
+    "ja": "当てはめた各項の平方和・積和行列。項の名前をキーとします。"
   },
   "ManovaFit.warnings#summary": {
     "hash": "eba97ad14dce",
     "en": "Warnings produced while fitting the model.",
-    "ja": ""
+    "ja": "モデルの当てはめ中に発生した警告。"
   },
   "ManovaOptions#summary": {
     "hash": "757c269795d6",
     "en": "Numerical options for MANOVA.",
-    "ja": ""
+    "ja": "MANOVA の数値計算オプション。"
   },
   "ManovaOptions.tol#summary": {
     "hash": "8b3e0f891861",
     "en": "Numerical tolerance used to determine matrix and residual ranks. Default 1e-7.",
-    "ja": ""
+    "ja": "行列および残差の階数を判定するために使用する数値許容誤差です。既定: 1e-7。"
   },
   "ManovaSummary#summary": {
     "hash": "76a9f8fed17d",
     "en": "Four multivariate test tables and associated matrices.",
-    "ja": ""
+    "ja": "4 種類の多変量検定の表と、関連する行列。"
   },
   "ManovaSummary.Eigenvalues#summary": {
     "hash": "d5293ecb86c9",
     "en": "Generalized roots for each displayed model term.",
-    "ja": ""
+    "ja": "表示する各モデル項の一般化根。"
   },
   "ManovaSummary.Hotelling-Lawley#summary": {
     "hash": "a7c43fbf295f",
     "en": "Hotelling-Lawley trace test table.",
-    "ja": ""
+    "ja": "Hotelling-Lawley トレース検定の表。"
   },
   "ManovaSummary.Pillai#summary": {
     "hash": "dbb30adf84a4",
     "en": "Pillai's trace test table.",
-    "ja": ""
+    "ja": "Pillai トレース検定の表。"
   },
   "ManovaSummary.Roy#summary": {
     "hash": "7672140e268d",
     "en": "Roy's largest-root test table.",
-    "ja": ""
+    "ja": "Roy の最大根検定の表。"
   },
   "ManovaSummary.SS#summary": {
     "hash": "b48893693c86",
     "en": "Sum-of-squares-and-cross-products matrices, keyed by model term and residuals.",
-    "ja": ""
+    "ja": "平方和・積和行列。モデル項および残差をキーとします。"
   },
   "ManovaSummary.Wilks#summary": {
     "hash": "bb7780ac1357",
     "en": "Wilks' lambda test table.",
-    "ja": ""
+    "ja": "Wilks のラムダ検定の表。"
   },
   "ManovaSummary.coef#summary": {
     "hash": "d243d67b8490",
     "en": "Regression coefficient matrix with labelled rows and response columns.",
-    "ja": ""
+    "ja": "行ラベルと応答変数列ラベルを持つ回帰係数行列。"
   },
   "ManovaSummary.royFIsUpperBound#summary": {
     "hash": "7ed516917c86",
     "en": "Roy largest-root F approximation is an upper bound.",
-    "ja": ""
+    "ja": "Roy の最大根に対する F 近似は上界です。"
   },
   "ManovaSummaryOptions#summary": {
     "hash": "1509a153aab4",
     "en": "Options for MANOVA summary tables.",
-    "ja": ""
+    "ja": "MANOVA の要約表のオプション。"
   },
   "ManovaSummaryOptions.intercept#summary": {
     "hash": "df256b1784a9",
     "en": "Include the sequential intercept row when the fitted model has one. Default false.",
-    "ja": ""
+    "ja": "当てはめたモデルに切片がある場合、逐次切片行を含めます。既定: false。"
   },
   "ManovaSummaryOptions.tol#summary": {
     "hash": "f594875ac9ae",
     "en": "Numerical tolerance used when recomputing the generalized roots. Default 1e-7.",
-    "ja": ""
+    "ja": "一般化根を再計算するときに使用する数値許容誤差です。既定: 1e-7。"
   },
   "ManovaTestName#summary": {
     "hash": "43bc0ebe15a2",
     "en": "Name of a multivariate test statistic.",
-    "ja": ""
+    "ja": "多変量検定統計量の名前。"
   },
   "MatrixTable#summary": {
     "hash": "769d51d8a404",
     "en": "A labelled matrix table.",
-    "ja": ""
+    "ja": "ラベル付きの行列テーブル。"
   },
   "MatrixTable.cols#summary": {
     "hash": "526aa2cccdf8",
     "en": "Column labels, or null for a matrix without named columns.",
-    "ja": ""
+    "ja": "列ラベルです。列名のない行列の場合は null です。"
   },
   "MatrixTable.rows#summary": {
     "hash": "0ea2ea281d61",
     "en": "Row labels; a scalar string is used for a one-row table.",
-    "ja": ""
+    "ja": "行ラベルです。1 行のテーブルでは、スカラー文字列を使用します。"
   },
   "MatrixTable.values#summary": {
     "hash": "b6badcdf8687",
     "en": "Numeric table entries in row-major order.",
-    "ja": ""
+    "ja": "行優先順の数値テーブル要素。"
   },
   "cancor#@param options": {
     "hash": "27f966eb4a72",
     "en": "Column centering, rank tolerance, and optional column names.",
-    "ja": ""
+    "ja": "列の中心化、階数の許容誤差、および任意の列名を指定します。"
   },
   "cancor#@param x": {
     "hash": "d4b0102e1b30",
     "en": "First data matrix or vector.",
-    "ja": ""
+    "ja": "1 つ目のデータ行列またはベクトル。"
   },
   "cancor#@param y": {
     "hash": "c76ee91aa0eb",
     "en": "Second data matrix or vector.",
-    "ja": ""
+    "ja": "2 つ目のデータ行列またはベクトル。"
   },
   "cancor#summary": {
     "hash": "ce7e0599090b",
     "en": "Canonical correlation analysis. Equivalent to R's `stats::cancor()`. Coefficients use the unscaled cross-products, with deterministic paired signs.",
-    "ja": ""
+    "ja": "正準相関分析です。R の `stats::cancor()` と同等です。係数には尺度化していない交差積を使用し、対応する符号を決定的に定めます。"
   },
   "lda(0)#@param grouping": {
     "hash": "28d37c45173b",
     "en": "Class labels.",
-    "ja": ""
+    "ja": "クラスラベル。"
   },
   "lda(0)#@param options": {
     "hash": "da6484c5b804",
     "en": "Prior probabilities, tolerance, and leave-one-out CV.",
-    "ja": ""
+    "ja": "事前確率、許容誤差、および一つ抜き交差検証を指定します。"
   },
   "lda(0)#@param x": {
     "hash": "780cdc563cbb",
     "en": "Predictor matrix.",
-    "ja": ""
+    "ja": "説明変数行列。"
   },
   "lda(0)#summary": {
     "hash": "8af7c4752885",
     "en": "Linear discriminant analysis (moment method). Equivalent to R's `MASS::lda()`. The moment method only. Supports matrix/group and formula/data-frame inputs.\nDirections are metric-normalised and their signs are deterministic.",
-    "ja": ""
+    "ja": "線形判別分析 (モーメント法) です。R の `MASS::lda()` と同等です。モーメント法のみをサポートします。行列と群の入力、および式とデータフレームの入力に対応します。\n判別係数は計量で正規化され、符号は決定的に定まります。"
   },
   "lda(1)#summary": {
     "hash": "10eb1ed0929a",
     "en": "Leave-one-out cross-validation result overload.",
-    "ja": ""
+    "ja": "一つ抜き交差検証結果を返すオーバーロード。"
   },
   "lda(2)#@param data": {
     "hash": "41fb976d58fa",
     "en": "Data frame.",
-    "ja": ""
+    "ja": "データフレーム。"
   },
   "lda(2)#@param formula": {
     "hash": "c3f554f49311",
     "en": "Formula.",
-    "ja": ""
+    "ja": "式。"
   },
   "lda(2)#@param options": {
     "hash": "da6484c5b804",
     "en": "Prior probabilities, tolerance, and leave-one-out CV.",
-    "ja": ""
+    "ja": "事前確率、許容誤差、および一つ抜き交差検証を指定します。"
   },
   "lda(2)#summary": {
     "hash": "8010fd0081d3",
     "en": "Linear discriminant analysis from a formula, e.g. `\"class ~ x1 + x2\"` or `\"class ~ .\"`.",
-    "ja": ""
+    "ja": "式から線形判別分析を行います。例: `\"class ~ x1 + x2\"` または `\"class ~ .\"`。"
   },
   "lda(3)#@param options": {
     "hash": "da6484c5b804",
     "en": "Prior probabilities, tolerance, and leave-one-out CV.",
-    "ja": ""
+    "ja": "事前確率、許容誤差、および一つ抜き交差検証を指定します。"
   },
   "lda(3)#summary": {
     "hash": "8af7c4752885",
     "en": "Linear discriminant analysis (moment method). Equivalent to R's `MASS::lda()`. The moment method only. Supports matrix/group and formula/data-frame inputs.\nDirections are metric-normalised and their signs are deterministic.",
-    "ja": ""
+    "ja": "線形判別分析 (モーメント法) です。R の `MASS::lda()` と同等です。モーメント法のみをサポートします。行列と群の入力、および式とデータフレームの入力に対応します。\n判別係数は計量で正規化され、符号は決定的に定まります。"
   },
   "ldaPredict#@param fit": {
     "hash": "aa9aa4c51e62",
     "en": "A fitted LDA model.",
-    "ja": ""
+    "ja": "当てはめ済みの LDA モデル。"
   },
   "ldaPredict#@param options": {
     "hash": "c91887bbaaee",
     "en": "New observations, prior override, and number of discriminant scores.",
-    "ja": ""
+    "ja": "新しい観測値、事前確率の上書き、および判別得点の数を指定します。"
   },
   "ldaPredict#summary": {
     "hash": "3e54d6541b73",
     "en": "Plug-in prediction for a fitted {@link lda} model. Equivalent to R's `predict.lda()`. The plug-in method only.",
-    "ja": ""
+    "ja": "当てはめ済みの {@link lda} モデルに対するプラグイン予測です。R の `predict.lda()` と同等です。プラグイン法のみをサポートします。"
   },
   "manova#@param data": {
     "hash": "41fb976d58fa",
     "en": "Data frame.",
-    "ja": ""
+    "ja": "データフレーム。"
   },
   "manova#@param formula": {
     "hash": "b0ae6b381875",
     "en": "Multivariate formula, e.g. `\"cbind(y1, y2, y3) ~ group + covariate\"`.",
-    "ja": ""
+    "ja": "多変量の式です。例: `\"cbind(y1, y2, y3) ~ group + covariate\"`。"
   },
   "manova#@param options": {
     "hash": "cb0bfdb74cfb",
     "en": "Numerical rank tolerance.",
-    "ja": ""
+    "ja": "数値的な階数の許容誤差。"
   },
   "manova#summary": {
     "hash": "72d1a44bbd47",
     "en": "Fit a multivariate analysis of variance model with sequential (Type I) terms. Equivalent to R's `stats::manova()`.\nThe response is `cbind(y1, y2, ...)`; all four classical MANOVA statistics are available in {@link manovaSummary}.",
-    "ja": ""
+    "ja": "逐次 (Type I) の項を用いて、多変量分散分析モデルを当てはめます。R の `stats::manova()` と同等です。\n応答変数は `cbind(y1, y2, ...)` で指定します。4 種類すべての古典的な MANOVA 統計量を {@link manovaSummary} で利用できます。"
   },
   "manovaSummary#@param fit": {
     "hash": "89a3ed0bac52",
     "en": "A result of {@link manova}.",
-    "ja": ""
+    "ja": "{@link manova} の結果。"
   },
   "manovaSummary#@param options": {
     "hash": "575d7d64094d",
     "en": "Select a statistic or request the intercept row.",
-    "ja": ""
+    "ja": "統計量を選択するか、切片行を要求します。"
   },
   "manovaSummary#summary": {
     "hash": "2be5813ace65",
     "en": "Summary tables for all four MANOVA statistics, with optional sequential intercept row. Equivalent to R's `summary.manova()`.",
-    "ja": ""
+    "ja": "4 種類すべての MANOVA 統計量の要約表です。逐次切片行を任意で含められます。R の `summary.manova()` と同等です。"
   }
 }
