@@ -7,6 +7,15 @@ While the version is 0.x, a minor release (0.y.0) may contain breaking changes;
 they are listed under **Breaking** for each release. From 1.0.0 the project follows
 [Semantic Versioning](https://semver.org/).
 
+## Unreleased
+
+### Added
+
+- **Small-sample tests:** Tamhane's T2/T2' all-pairs comparisons (`tamhaneT2Test`), Page's ordered aligned rank-sum test (`pageTest`), and type-10 Grubbs' test with its CDF and quantile (`grubbsTest`, `pgrubbs`, `qgrubbs`).
+- **Multivariate analysis** in the separate `/multivariate` area: sequential MANOVA (`manova`, `manovaSummary`), linear discriminant analysis (`lda`, `ldaPredict`) and canonical correlation (`cancor`). The area remains outside the root entry point and `dist/rstats.js`.
+- The deliberate differences from R, including the deterministic signs of LDA and canonical coefficients, are documented in [the differences page](docs/differences-from-r.md#small-tests-tamhanes-t2-pages-test-and-grubbs-test) and the linked function specifications.
+- Checked against R 4.6.2, PMCMRplus, outliers and MASS, comparing returned values, labels and warnings, and independently checking extreme scales, rank deficiency, missing values and large samples.
+
 ## 1.8.0 - 2026-11-22
 
 ### Added

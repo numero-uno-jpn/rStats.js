@@ -141,3 +141,27 @@ front: `glmSummary`, `glmPredict`, `lmerSummary`, `lmerAnova`, `glmerSummary`, `
 ### Random numbers
 
 After `setSeed(42)`, `rnorm`, `runif`, `sample` and the others give R's numbers after `set.seed(42)`.
+
+
+## Multivariate analysis
+
+The functions in this area are imported from the separate `/multivariate` entry point, not the package root:
+
+```ts
+import { manova, manovaSummary, lda, ldaPredict, cancor } from "@numero-uno-jpn/rstats/multivariate";
+
+const d = {
+  group: ["A", "A", "A", "B", "B", "B", "C", "C", "C"],
+  y1: [2.1, 2.4, 1.8, 4.2, 4.5, 3.9, 6.1, 6.4, 5.8],
+  y2: [1.2, 1.5, 1.0, 2.8, 2.5, 3.0, 3.9, 4.2, 3.7],
+};
+const fit = manova("cbind(y1, y2) ~ group", d);
+manovaSummary(fit); // Pillai, Wilks, Hotelling-Lawley, Roy, SSP, eigenvalues and coefficients
+
+const discriminant = lda([[1, 2], [1.2, 1.8], [4, 3], [4.2, 2.8]], ["A", "A", "B", "B"]);
+ldaPredict(discriminant, { newdata: [[2, 2], [4, 3]] }); // classes, posterior probabilities and scores
+
+cancor([[1, 2], [2, 1], [3, 4], [4, 3]], [[2, 1], [1, 3], [4, 2], [3, 5]]);
+```
+
+`manova` fits sequential (Type I) terms. `lda` supports the moment method and leave-one-out cross-validation; `ldaPredict` uses the plug-in method. `cancor` returns the nonzero canonical pairs and the centers used.

@@ -72,6 +72,11 @@
       "import": "./dist/entries/regression.js",
       "default": "./dist/entries/regression.js"
     },
+    "./multivariate": {
+      "types": "./dist/entries/multivariate.d.ts",
+      "import": "./dist/entries/multivariate.js",
+      "default": "./dist/entries/multivariate.js"
+    },
     "./package.json": "./package.json"
   },
   "types": "./dist/index.d.ts",

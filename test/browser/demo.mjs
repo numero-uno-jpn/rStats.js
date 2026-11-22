@@ -1,7 +1,7 @@
 // End-to-end test of the demo (demo/) in headless Chromium (Playwright).
 //
 // The repository is served on a fake origin (http://rstats.test/) through page.route, and the jsDelivr URL of
-// the library (dist/rstats.js, dist/mixed.js, dist/regression.js and the chunks the latter two import) is
+// the library (dist/rstats.js, dist/mixed.js, dist/regression.js, dist/multivariate.js and their chunks) is
 // intercepted and answered with the local dist/, so the real CDN code path is tested.
 // Every form operation is driven through the UI: every distribution with d/p/q, every r* function, every test
 // and every linear algebra operation. The page must not throw, and no error message may be shown (except where
@@ -525,7 +525,7 @@ try {
     // names exported by both files (setWarningHandler) count once, as in the demo's merged library
     const exportCount = new Set(
       (
-        await Promise.all(["rstats.js", "mixed.js", "regression.js"].map((f) => import(new URL(`../../dist/${f}`, import.meta.url).href)))
+        await Promise.all(["rstats.js", "mixed.js", "regression.js", "multivariate.js"].map((f) => import(new URL(`../../dist/${f}`, import.meta.url).href)))
       ).flatMap((m) => Object.keys(m)),
     ).size;
     check(`status mentions ${exportCount} functions`, (await page.textContent(tid("status"))).includes(String(exportCount)));

@@ -1797,3 +1797,28 @@ and [oracle/mixedsimulate-behaviour.md](../oracle/mixedsimulate-behaviour.md).
 - **Profiles of a local optimum:** for very sparse Poisson counts the Laplace fit can be a local optimum (in the
   audit, fixing the intercept lower gave deviances below the fit's). Neither R nor rStats.js warns, and the lower
   limit of the intercept is not meaningful there; the two differ (−4.16 and −3.88).
+
+
+## Small tests: Tamhane's T2, Page's test and Grubbs' test
+
+The references are PMCMRplus and outliers; details and the decisions for each function are in
+[oracle/tamhane-behaviour.md](../oracle/tamhane-behaviour.md),
+[oracle/page-behaviour.md](../oracle/page-behaviour.md) and
+[oracle/grubbs-behaviour.md](../oracle/grubbs-behaviour.md).
+
+- **Tamhane's T2 at very large scales:** rStats.js scales the group moments before forming the Welch–Satterthwaite degrees of freedom. Multiplying the observations by 1e100 therefore preserves the degrees of freedom and p-values; R's calculation overflows and returns NaN p-values for the corresponding case.
+- **Character group labels in Tamhane's T2:** rStats.js accepts character labels and orders them by factor-level order (code point for strings). R rejects character labels in this call.
+- **Missing values in Page's test:** a block containing a missing observation is an error in rStats.js. R instead ranks the missing value last within its block.
+- **Grubbs test types:** 1.9.0 supports type 10 only. Types 11 and 20 are explicitly unsupported; their approximate R outputs cannot be reproduced from the public results used for this implementation. The type-10 test and its p/q functions reject other types with an error.
+- **Small type-10 Grubbs p-values:** rStats.js evaluates the small tail directly instead of forming it as 1 − F, so small probabilities are retained rather than rounded away.
+- **Constant Grubbs samples:** the statistics and p-value are undefined, so rStats.js returns NaN for the p-value. R returns 0 here; this is the one R defect identified for these 1.9.0 tests.
+
+## Multivariate analysis: manova, lda and cancor
+
+The references are R's stats package and MASS; details and the decisions are in
+[oracle/manova-behaviour.md](../oracle/manova-behaviour.md),
+[oracle/lda-behaviour.md](../oracle/lda-behaviour.md) and
+[oracle/cancor-behaviour.md](../oracle/cancor-behaviour.md).
+
+- **LDA discriminant directions:** the singular vectors do not have a uniquely determined sign. rStats.js chooses a deterministic orientation for each direction (the largest absolute coefficient is positive, with the first coefficient winning a tie). R may return the same direction with the opposite sign; predicted classes and posterior probabilities are unaffected.
+- **Canonical correlation coefficients:** each canonical pair is defined up to a simultaneous sign change. rStats.js orients each x coefficient column so that its largest absolute entry is positive (the first entry wins a tie), then chooses the paired y sign to make the correlation positive. R may return a pair with both coefficient columns negated; canonical correlations are unchanged.

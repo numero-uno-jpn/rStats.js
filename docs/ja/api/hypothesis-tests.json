@@ -984,6 +984,61 @@
     "en": "Group label: a number or a string.",
     "ja": "群のラベル: 数値または文字列です。"
   },
+  "GrubbsTestOptions#summary": {
+    "hash": "c0e1eac8b729",
+    "en": "Options for {@link grubbsTest}.",
+    "ja": "{@link grubbsTest} のオプション。"
+  },
+  "GrubbsTestOptions.opposite#summary": {
+    "hash": "5c9b65fdf3d5",
+    "en": "Test the lowest rather than the highest observation. Default false.",
+    "ja": "最大値ではなく最小値を検定します。既定: false。"
+  },
+  "GrubbsTestOptions.twoSided#summary": {
+    "hash": "f3cd9fe09fee",
+    "en": "Use a two-sided p-value. Default false.",
+    "ja": "両側 p 値を使用します。既定: false。"
+  },
+  "GrubbsTestOptions.type#summary": {
+    "hash": "14e70d7139b5",
+    "en": "Grubbs test type. Only 10 is supported in 1.9.0. Default 10.",
+    "ja": "Grubbs 検定のタイプです。1.9.0 では 10 のみをサポートします。既定: 10。"
+  },
+  "GrubbsTestResult#summary": {
+    "hash": "bb591cbd8d7b",
+    "en": "Result of Grubbs' test for one outlier.",
+    "ja": "1 つの外れ値に対する Grubbs 検定の結果。"
+  },
+  "GrubbsTestResult.alternative#summary": {
+    "hash": "1d048e805dd4",
+    "en": "Text description of the alternative hypothesis.",
+    "ja": "対立仮説のテキストによる説明。"
+  },
+  "GrubbsTestResult.method#summary": {
+    "hash": "ad31a71008c5",
+    "en": "Description of the test (R's `method`).",
+    "ja": "検定の説明 (R の `method`)。"
+  },
+  "GrubbsTestResult.pValue#summary": {
+    "hash": "d6aa3f93334c",
+    "en": "P-value for the selected tail and sidedness.",
+    "ja": "選択した裾と片側・両側の設定に対する p 値。"
+  },
+  "GrubbsTestResult.statistic#summary": {
+    "hash": "41863003b078",
+    "en": "Grubbs G and U statistics, in that order.",
+    "ja": "この順序で Grubbs の G 統計量と U 統計量。"
+  },
+  "GrubbsTestResult.statisticName#summary": {
+    "hash": "a9993f2fee52",
+    "en": "Names corresponding to the two entries of `statistic`.",
+    "ja": "`statistic` の 2 つの要素に対応する名前。"
+  },
+  "GrubbsTestResult.warnings#summary": {
+    "hash": "0ec6d897b817",
+    "en": "Warnings produced while evaluating the test.",
+    "ja": "検定の評価中に発生した警告。"
+  },
   "HTest#summary": {
     "hash": "d0b8741cc39f",
     "en": "Result of a hypothesis test: a plain object mirroring R's `htest` class.\n\nR's named values (`statistic`, `parameter`, `estimate`, `null.value`) are split into a\nnumber and a separate `...Name` field. `estimate` is an array only when there are two\nestimates (for example the two means of a two-sample t-test). `conf.int`'s\n`conf.level` attribute becomes `confLevel`.",
@@ -1358,6 +1413,16 @@
     "hash": "50fbb2c08c12",
     "en": "Names of `parameter`: `[\"num df\", \"denom df\"]`.",
     "ja": "`parameter` の名前: `[\"num df\", \"denom df\"]`。"
+  },
+  "PageTestOptions#summary": {
+    "hash": "f1e55605110d",
+    "en": "Options for {@link pageTest}.",
+    "ja": "{@link pageTest} のオプション。"
+  },
+  "PageTestOptions.alternative#summary": {
+    "hash": "b2598e251cbf",
+    "en": "Alternative hypothesis. Abbreviations are accepted. Default \"two.sided\".",
+    "ja": "対立仮説です。省略形も使用できます。既定: \"two.sided\"。"
   },
   "PearsonTestOptions#summary": {
     "hash": "b77dddc8f92b",
@@ -2954,6 +3019,21 @@
     "en": "Goodman and Kruskal's gamma of a table of two ordered classifications, with its asymptotic standard error and a\nWald confidence interval. Equivalent to `DescTools::GoodmanKruskalGamma()` in R.\n\n`gamma = (C - D) / (C + D)` with C and D the numbers of concordant and discordant pairs. The standard error is the\nnon-null ASE1 (Agresti 2010, section 7.1): `sqrt(sum x psi^2)` with `psi_ij = 2 (D Pc_ij - C Pd_ij) / (C + D)^2`,\n`Pc_ij` the counts above-left and below-right of cell (i, j) and `Pd_ij` those above-right and below-left. The\ninterval is `[max(-1, gamma - z ase), min(1, gamma + z ase)]`, z the normal quantile of `1 - (1 - confLevel) / 2`.\nWithout concordant or discordant pairs (a table with one row, for example) gamma and the interval are NaN, as\nDescTools. No test of gamma = 0 is given (it would need the null standard error).",
     "ja": "2 つの順序付き分類の分割表について、Goodman と Kruskal のガンマを、その漸近標準誤差と Wald 信頼区間とともに求めます。\nR の `DescTools::GoodmanKruskalGamma()` と同等です。\n\n`gamma = (C - D) / (C + D)` です。C と D は、それぞれ一致する組と不一致の組の数です。\n標準誤差は、帰無仮説の下ではない ASE1 です (Agresti 2010 の 7.1 節)。`sqrt(sum x psi^2)` で、`psi_ij = 2 (D Pc_ij - C Pd_ij) / (C + D)^2` です。\n`Pc_ij` は、セル (i, j) より左上と右下にある度数、`Pd_ij` は右上と左下にある度数です。\n区間は `[max(-1, gamma - z ase), min(1, gamma + z ase)]` で、z は `1 - (1 - confLevel) / 2` の正規分位点です。\n一致する組も不一致の組もない場合 (たとえば 1 行の表) は、ガンマと区間が DescTools と同じく NaN になります。\nガンマ = 0 の検定は行いません (そのためには、帰無仮説の下での標準誤差が必要になるためです)。"
   },
+  "grubbsTest#@param options": {
+    "hash": "c22ecc206573",
+    "en": "Type, tail and sidedness.",
+    "ja": "タイプ、裾、および片側・両側の設定。"
+  },
+  "grubbsTest#@param x": {
+    "hash": "7893aee21b24",
+    "en": "Numeric sample.",
+    "ja": "数値標本。"
+  },
+  "grubbsTest#summary": {
+    "hash": "a476b02db39b",
+    "en": "Grubbs' test for one outlier. Type 10 selects the highest or lowest observation and reports G and U.\nNaN observations are omitted; infinities are rejected. A constant sample has undefined statistics and p = NaN.\n\nEquivalent to R's `outliers::grubbs.test()`. Type 10 only.",
+    "ja": "1 つの外れ値に対する Grubbs 検定です。タイプ 10 では最大値または最小値を選び、G 統計量と U 統計量を報告します。\nNaN の観測値は除外し、無限大は受け付けません。定数標本では統計量は未定義となり、p = NaN です。\n\nR の `outliers::grubbs.test()` と同等です。タイプ 10 のみをサポートします。"
+  },
   "jonckheereTest#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -3253,6 +3333,66 @@
     "hash": "acf33e5180d6",
     "en": "One-way analysis of means from a formula and a data frame. As R's `oneway.test(formula, data)`:\n`\"y ~ A\"` has one group per level of `A`; with several factors, `\"y ~ A + B\"`, the groups are the combinations of\ntheir levels present in the data (R's `interaction()`, the first factor varying fastest). Only the variables of\nthe formula count: the rows where one of them is missing are dropped.",
     "ja": "式とデータフレームから行う一元配置の平均の検定です。\nR の `oneway.test(formula, data)` と同じく、`\"y ~ A\"` では `A` の水準ごとに 1 つの群を作ります。\n複数の因子をもつ `\"y ~ A + B\"` では、データに現れる水準の組み合わせが群になります (R の `interaction()` と同じく、最初の因子が最も速く変わります)。\n式の変数だけが対象になり、いずれかが欠測している行は除かれます。"
+  },
+  "pageTest(0)#@param options": {
+    "hash": "bd7083d6b7bc",
+    "en": "Alternative hypothesis.",
+    "ja": "対立仮説。"
+  },
+  "pageTest(0)#@param y": {
+    "hash": "e974e0d63288",
+    "en": "A blocks-by-treatments matrix in the hypothesised treatment order.",
+    "ja": "仮定した処理の順序に並べた、ブロック数 × 処理数の行列。"
+  },
+  "pageTest(0)#summary": {
+    "hash": "9aa7a82a7ec1",
+    "en": "Page's ordered aligned rank-sum test. Equivalent to R's `PMCMRplus::pageTest()`.",
+    "ja": "Page の順序付き整列順位和検定です。R の `PMCMRplus::pageTest()` と同等です。"
+  },
+  "pageTest(1)#@param blocks": {
+    "hash": "42c1ef965525",
+    "en": "Block labels, parallel to x.",
+    "ja": "ブロックのラベルです。x と対応させます。"
+  },
+  "pageTest(1)#@param groups": {
+    "hash": "4ec3ebb7f711",
+    "en": "Treatment labels, parallel to x.",
+    "ja": "処理のラベルです。x と対応させます。"
+  },
+  "pageTest(1)#@param options": {
+    "hash": "bd7083d6b7bc",
+    "en": "Alternative hypothesis.",
+    "ja": "対立仮説。"
+  },
+  "pageTest(1)#@param x": {
+    "hash": "0513b7dd05f8",
+    "en": "Numeric observations.",
+    "ja": "数値観測値。"
+  },
+  "pageTest(1)#summary": {
+    "hash": "ed05e0506c66",
+    "en": "Page's test from long-form observations. Treatment and block labels follow R's factor() level order.",
+    "ja": "長形式の観測値に対する Page 検定です。処理とブロックのラベルは、R の factor() の水準順に従います。"
+  },
+  "pageTest(2)#@param data": {
+    "hash": "41fb976d58fa",
+    "en": "Data frame.",
+    "ja": "データフレーム。"
+  },
+  "pageTest(2)#@param formula": {
+    "hash": "1c9111754f01",
+    "en": "Formula with one treatment and one block variable.",
+    "ja": "処理変数 1 つとブロック変数 1 つを含む式。"
+  },
+  "pageTest(2)#@param options": {
+    "hash": "bd7083d6b7bc",
+    "en": "Alternative hypothesis.",
+    "ja": "対立仮説。"
+  },
+  "pageTest(2)#summary": {
+    "hash": "29f856866344",
+    "en": "Page's test from a formula and data frame: `\"y ~ treatment | block\"`.",
+    "ja": "式とデータフレームによる Page 検定です。例: `\"y ~ treatment | block\"`。"
   },
   "pearsonTest#@example": {
     "hash": "f2167be5edf2",

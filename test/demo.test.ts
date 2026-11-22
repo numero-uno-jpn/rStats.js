@@ -8,6 +8,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import * as mixed from "../src/entries/mixed.js";
 import * as regression from "../src/entries/regression.js";
+import * as multivariate from "../src/entries/multivariate.js";
 import * as lib from "../src/index.js";
 
 interface Example {
@@ -26,7 +27,7 @@ const rResults = (JSON.parse(readFileSync(path("demo/r-results.json"), "utf8")) 
 }).results;
 
 /** Every export of the areas: src/index.ts and the areas that are not in it (src/entries/mixed.ts) */
-const scope: Record<string, unknown> = { ...lib, ...mixed, ...regression };
+const scope: Record<string, unknown> = { ...lib, ...mixed, ...regression, ...multivariate };
 const names = Object.keys(scope);
 
 /**
