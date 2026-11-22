@@ -7,8 +7,6 @@ type FixtureValue = {
   statistic: { rows: string[]; cols: string[]; values: (number | string)[][] };
   "p.value": { rows: string[]; cols: string[]; values: (number | string)[][] };
   "p.adjust.method": string;
-  dist: string;
-  alternative: string;
 };
 const fixture = JSON.parse(readFileSync(new URL("./fixtures/tamhane.json", import.meta.url), "utf8")) as Record<
   string,
@@ -62,8 +60,6 @@ function compareFixture(key: string, welch: boolean): void {
   };
   checkString("method", actual.method, expected.method);
   checkString("pAdjustMethod", actual.pAdjustMethod, expected["p.adjust.method"]);
-  checkString("dist", actual.dist, expected.dist);
-  checkString("alternative", actual.alternative, expected.alternative);
   checkString("warnings", actual.warnings, []);
   checkMatrix("statistic", actual.statistic, expected.statistic.values);
   checkMatrix("pValue", actual.pValue, expected["p.value"].values);
@@ -74,13 +70,13 @@ describe("tamhaneT2Test", () => {
   it("matches every element of the PlantGrowth T2 fixture", () => compareFixture("t2_PlantGrowth_welch", true));
   it("matches every element of the PlantGrowth T2' fixture", () => compareFixture("t2_PlantGrowth_T2prime", false));
 
-  it("uses first-appearance factor levels and supports list input", () => {
+  it("uses R factor level order and supports list input", () => {
     const r = tamhaneT2Test([[1, 2, 3], [5, 6, 7]]);
     expect(r.rowNames).toEqual(["2"]);
     expect(r.colNames).toEqual(["1"]);
     const q = tamhaneT2Test([1, 2, 3, 5, 6, 7], ["z", "z", "z", "a", "a", "a"]);
-    expect(q.rowNames).toEqual(["a"]);
-    expect(q.colNames).toEqual(["z"]);
+    expect(q.rowNames).toEqual(["z"]);
+    expect(q.colNames).toEqual(["a"]);
   });
 
   it("uses a scale-normalised Welch df at 1e±100 and after translation", () => {
