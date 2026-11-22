@@ -5,6 +5,6 @@ export { cancor, type CancorOptions, type CancorResult } from "../multivariate/c
 export { lda, ldaPredict, type LdaOptions, type LdaPredictionOptions, type LdaFit, type LdaPrediction, type LdaCVResult, type LdaTable } from "../multivariate/lda.js";
 export { dist, asDist, type DistMethod, type DistResult, type DistOptions, type AsDistOptions } from "../multivariate/dist.js";
 export { hclust, cutree, type HclustMethod, type HclustFit, type HclustOptions, type CutreeOptions, type CutreeResult } from "../multivariate/hclust.js";
-export { kmeans, type KmeansFit, type KmeansOptions, type KmeansTable } from "../multivariate/kmeans.js";
+export { kmeans, type KmeansFit, type KmeansOptions, type KmeansTable, type KmeansMatrixInput } from "../multivariate/kmeans.js";
 export { cmdscale, type CmdscaleOptions, type CmdscaleResult, type CmdscaleMatrix } from "../multivariate/cmdscale.js";
 export { isoMDS, type IsoMDSOptions, type IsoMDSResult, type IsoMDSTrace, type IsoMDSMatrix } from "../multivariate/isoMDS.js";
