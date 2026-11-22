@@ -104,6 +104,7 @@ function orient(points: number[][]): void {
 
 /**
  * Classical multidimensional scaling of a dissimilarity matrix.
+ * Equivalent to R's stats::cmdscale().
  * @category Multivariate analysis
  */
 export function cmdscale(
