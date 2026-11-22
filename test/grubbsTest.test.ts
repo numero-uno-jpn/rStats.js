@@ -104,16 +104,22 @@ describe("Grubbs type 10", () => {
     expect(() => qgrubbs(0.5, 5, 20)).toThrow(/type 20/);
   });
 
-  it("is scale invariant and robust to a large translation", () => {
+  it("is invariant to extreme scales and accurate to the input precision after translation", () => {
     const x = samples.x1;
     const base = grubbsTest(x);
-    for (const scale of [1e100, 1e-100]) {
-      const r = grubbsTest(x.map((v) => v * scale));
+    for (const exponent of [500, -500, 1000, -1000]) {
+      const factor = 2 ** exponent;
+      const r = grubbsTest(x.map((v) => v * factor));
       expect(r.statistic[0]).toBeCloseTo(base.statistic[0], 12);
       expect(r.statistic[1]).toBeCloseTo(base.statistic[1], 12);
+      expect(r.pValue).toBeCloseTo(base.pValue, 12);
     }
-    const shifted = grubbsTest(samples.x2.map((v) => v + 1e8));
-    expect(shifted.statistic[0]).toBeCloseTo(grubbsTest(samples.x2).statistic[0], 6);
+    const original = grubbsTest(samples.x2);
+    const shifted8 = grubbsTest(samples.x2.map((v) => v + 1e8));
+    const shifted12 = grubbsTest(samples.x2.map((v) => v + 1e12));
+    expect(shifted8.statistic[0]).toBeCloseTo(original.statistic[0], 6);
+    expect(shifted12.statistic[0]).toBeCloseTo(original.statistic[0], 3);
+    expect(shifted12.pValue).toBeCloseTo(original.pValue, 3);
   });
 
   it("handles 100,000 observations", () => {
