@@ -397,3 +397,5 @@ export {
 } from "../models/metaAnalysis.js";
 
 export { tamhaneT2Test, type TamhaneT2Options } from "../htest/multipleComparisons.js";
+
+export { grubbsTest, pgrubbs, qgrubbs, type GrubbsTestOptions, type GrubbsTestResult } from "../htest/grubbs.js";
