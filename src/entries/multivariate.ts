@@ -4,3 +4,4 @@ export { manova, manovaSummary, type ManovaFit, type ManovaOptions, type ManovaS
 export { cancor, type CancorOptions, type CancorResult } from "../multivariate/cancor.js";
 export { lda, ldaPredict, type LdaOptions, type LdaPredictionOptions, type LdaFit, type LdaPrediction, type LdaCVResult, type LdaTable } from "../multivariate/lda.js";
 export { dist, asDist, type DistMethod, type DistResult, type DistOptions, type AsDistOptions } from "../multivariate/dist.js";
+export { hclust, cutree, type HclustMethod, type HclustFit, type HclustOptions, type CutreeOptions, type CutreeResult } from "../multivariate/hclust.js";
