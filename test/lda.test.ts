@@ -299,7 +299,7 @@ describe("lda", () => {
           expect(Math.abs(pred.posterior.values[i]![j]! - basePred.posterior.values[i]![j]!)).toBeLessThan(relTol);
         }
         for (let j = 0; j < basePred.x.values[i]!.length; j++) {
-          expect(Math.abs(pred.x.values[i]![j]! - basePred.x.values[i]![j]!)).toBeLessThan(relTol * 10);
+          expect(Math.abs(pred.x.values[i]![j]! - basePred.x.values[i]![j]!)).toBeLessThan(relTol * 3);
         }
       }
     }
