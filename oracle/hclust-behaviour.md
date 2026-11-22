@@ -66,3 +66,21 @@ R-observed boundaries: k=2.5 is truncated to 2 (cutree_k_fraction); h<0 leaves e
 
 ## rStats.js's choices
 
+The user's decisions of 2026-11-22 (Issue #556), written by Claude. They take precedence over every other section.
+
+1. All eight methods with the Lance-Williams coefficients above, the size weights and `members`. **Tie rule, `merge`
+   orientation and `order` exactly as stated above.** Claude checked the rule independently on all 82 hclust cases of
+   `experiments/cluster110.json` (the 40 tie cases and USArrests, small, triangle, members): merge and order identical,
+   heights within 4.7e-15 relative. The one apparent failure (`hclust_triangle_complete`) was not a tie in R: see choice 1
+   of `dist-behaviour.md`. The tie test compares floating-point values exactly (no tolerance in the comparison of
+   dissimilarities)
+2. Heights are not forced monotone (median, centroid); `cutree(h = )` on such a tree is R's error, `cutree(k = )` works
+3. `cutree`: numbering by first appearance in observation order, `k` truncated as R, both given → `k`, vectors give a
+   matrix (one column per request, in request order). Always arrays; names from the tree's labels
+4. `"ward"` is accepted as `"ward.D"`; R's message goes into the result's `warnings: string[]` (the precedent of
+   `manova` and `lda`), unique prefixes accepted, unknown names an error
+5. Input: the structure returned by `dist`/`asDist`. A plain matrix is an error with a clear message telling to use
+   `asDist` (R fails with an internal message, `hclust_matrix`). NA/Infinity in the dissimilarities: an error (R's
+   condition, our message)
+6. Scale: R crashes on `hclust(d * 1e200, "ward.D2")`; rStats.js must not overflow there (squares of large dissimilarities)
+   and is tested by equivariance (heights scale, merge and order unchanged)

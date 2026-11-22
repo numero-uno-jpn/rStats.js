@@ -53,6 +53,8 @@ out$dist_canberra_all_zero <- run(dd(dist(matrix(0, 3, 2), method = "canberra"))
 # binary: nonzero is "on"; columns where both rows are 0 are dropped; all-zero rows
 bz <- matrix(c(0, 0, 0, 1, 0, 2, 0, 0, 0, 3, 3, 0, 0, 0, 0, 0), nrow = 4, byrow = TRUE)
 out$dist_binary_zero_rows <- run(dd(dist(bz, method = "binary")))
+# two all-zero rows: R gives 0 for that pair (checked by Claude in stage 1)
+out$dist_binary_both_zero <- run(dd(dist(rbind(c(0, 0, 0), c(0, 0, 0), c(1, 0, 0)), method = "binary")))
 out$dist_binary_logical <- run(dd(dist(matrix(c(TRUE, FALSE, TRUE, TRUE, FALSE, FALSE), nrow = 3), method = "binary")))
 out$dist_character <- run(dd(dist(matrix(c("a", "b", "c", "d"), 2))))
 out$dist_scale <- run(dd(dist(small * 1e200)))
@@ -268,3 +270,38 @@ out$isomds_scale <- run(im(isoMDS(dsw * 1e150)))
 out$isomds_scale_y <- run(im(isoMDS(dsw, y = cmdscale(dsw) * 1e100)))
 
 
+
+## Stage-1 probes (ChatGPT's experiments cluster110-stage1-probe, -kmeans-rng-probe, -kmeans-ties-probe and
+## mds110-asym-probe), moved here by Claude so that the tests check the rules the specifications rest on
+kfit <- function(f) list(cluster = unname(f$cluster), centers = tab(f$centers), withinss = f$withinss,
+                         tot.withinss = f$tot.withinss, size = f$size, iter = f$iter, ifault = f$ifault)
+dupx <- rbind(c(1, 1), c(1, 1), c(1, 1), c(2, 2))
+# numeric centers: a start of rows with equal values is drawn again (seed 3 draws [1, 2] first)
+for (s in 1:12) out[[paste0("kmeans_dup_start_seed_", s)]] <- run({
+  set.seed(s); picked <- sample.int(nrow(dupx), 2)
+  set.seed(s); f <- kmeans(dupx, 2); c(list(picked = picked), kfit(f), list(tail = runif(3)))
+})
+# nstart: an exact tie of tot.withinss keeps the earliest start
+x03 <- matrix(0:3, ncol = 1)
+for (s in 1:8) out[[paste0("kmeans_equal_best_seed_", s)]] <- run({
+  set.seed(s); first_draw <- sample.int(nrow(x03), 2)
+  set.seed(s); f <- kmeans(x03, 2, nstart = 8); c(list(first_draw = first_draw), kfit(f), list(tail = runif(2)))
+})
+for (s in 1:8) out[[paste0("kmeans_equal_best_dup_seed_", s)]] <- run({
+  set.seed(s); f <- kmeans(dupx, 2, nstart = 5); c(kfit(f), list(tail = runif(2)))
+})
+# iteration counts and fault codes at iter.max = 1..5
+smallu <- unname(small)
+starts3 <- smallu[c(1, 3, 5), , drop = FALSE]
+for (a in algs) for (m in 1:5) out[[paste0("kmeans_iter_", a, "_", m)]] <- run(kfit(kmeans(smallu, starts3,
+                                                                                         algorithm = a, iter.max = m)))
+# an observation at equal distance from two centers goes to the first
+for (a in algs) out[[paste0("kmeans_midpoint_", a)]] <- run(kfit(kmeans(matrix(c(0, 2, 1), ncol = 1),
+                                                                         matrix(c(0, 2), ncol = 1), algorithm = a,
+                                                                         iter.max = 20)))
+# cmdscale of an asymmetric matrix and of its symmetrised versions
+M3 <- matrix(c(0, 1, 2, 3, 0, 4, 5, 6, 0), 3)
+out$cmdscale_asym_matrix <- run(cm(cmdscale(M3, k = 2, eig = TRUE, x.ret = TRUE)))
+out$cmdscale_asym_lower <- run(cm(cmdscale(as.dist(M3), k = 2, eig = TRUE, x.ret = TRUE)))
+out$cmdscale_asym_upper <- run(cm(cmdscale(as.dist(t(M3)), k = 2, eig = TRUE, x.ret = TRUE)))
+out$cmdscale_asym_mean <- run(cm(cmdscale(as.dist((M3 + t(M3)) / 2), k = 2, eig = TRUE, x.ret = TRUE)))

@@ -1,6 +1,6 @@
 # 現状の要約: クラスタ分析と多次元尺度法 (1.10.0: dist・hclust・cutree・kmeans、cmdscale・isoMDS)、Issue #556
 
-更新 2026-11-22。新しい会話はこの文書と指示書 (`briefs/cluster-mds-1.10.ja.md`) を読んで始める。
+更新 2026-11-22。新しい会話はこの文書と指示書 (`briefs/cluster-mds-1.10.ja.md`)、**段階 2 の指示 (`briefs/cluster-mds-1.10-stage2.ja.md`)** を読んで始める。
 
 ## クリーンルームの規則 (最重要。毎回守る)
 
@@ -47,11 +47,11 @@
 
 | 対象 | 状態 |
 | --- | --- |
-| dist・asDist | 段階 1 (仕様書と oracle) |
-| hclust・cutree | 段階 1 |
-| kmeans | 段階 1 |
-| cmdscale | 段階 1 |
-| isoMDS | 段階 1 |
+| dist・asDist | 段階 2 (仕様・choices・fixture は済み) |
+| hclust・cutree | 段階 2 (仕様・choices・fixture は済み) |
+| kmeans | 段階 2 (仕様・choices・fixture は済み) |
+| cmdscale | 段階 2 (仕様・choices・fixture は済み) |
+| isoMDS | 段階 2 (仕様・choices・fixture は済み) |
 
 ## テストの書き方 (要点)
 

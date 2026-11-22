@@ -55,3 +55,23 @@ The SSE identities T=W+B and the mean centers were independently checked against
 
 ## rStats.js's choices
 
+The user's decisions of 2026-11-22 (Issue #556), written by Claude. They take precedence over every other section.
+
+1. **Hartigan-Wong (user's decision): reproduce R from the paper.** Build the optimal-transfer and quick-transfer stages
+   from the prose of Hartigan & Wong (1979) (not from AS 136's code). The pass condition is that `cluster`, `centers`,
+   `withinss`, `size` agree with R in **every** fixture case (`kmeans_*` with Hartigan-Wong, including `kmeans_seed_*`,
+   `kmeans_dup_start_*`, `kmeans_equal_best_*`, `kmeans_iter_*`, `kmeans_midpoint_*`). `iter` and `ifault` should agree
+   too; any that cannot be reproduced from the outputs is reported with the case names and becomes a documented
+   difference (ask before deciding)
+2. Lloyd and Forgy share one implementation; MacQueen as above (online update, the start counts as no observation).
+   `iter` per algorithm as R (`kmeans_iter_*` at iter.max 1..5 are the test)
+3. Numeric `centers`: R's draws (`sampleInt(nrow, k)`), drawn again until the rows are distinct by value, `nstart` starts,
+   the first start with the smallest `tot.withinss` kept. The random state afterwards must equal R's (`tail` in the
+   fixtures: the test calls `runif` after `kmeans` and compares)
+4. Warnings and errors as R: empty cluster an error for Hartigan-Wong and a warning (as many times as R) for the others,
+   k = n an error for Hartigan-Wong, `did not converge in N iteration(s)`, duplicate centers, too many centers, columns,
+   `iterMax` not positive, non-finite data. Unique prefixes of algorithm names accepted
+5. Return `{ cluster, centers, totss, withinss, totWithinss, betweenss, size, iter, ifault }`; `ifault` is a number for
+   Hartigan-Wong and `null` for the others, as R. `cluster` carries the row names when the input has them (an optional
+   `names` field), as R's named vector
+6. Warnings go into the result's `warnings: string[]` (as `manova` and `lda`), in R's order and number

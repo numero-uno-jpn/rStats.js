@@ -50,3 +50,25 @@ The complete 10-pair vectors were read from experiments/cluster110.json. Direct 
 
 ## rStats.js's choices
 
+The user's decisions of 2026-11-22 (Issue #556), written by Claude. They take precedence over every other section.
+
+1. **Arithmetic (user's decision):** compute each distance with R's plain formula first (for euclidean, the square root
+   of the plain sum of squares: not `Math.hypot`), so that ordinary values agree with R to the last bit. Only when that
+   result overflows to Infinity or underflows (a nonzero difference giving 0, or a subnormal sum) recompute that pair with
+   a scaled sum. Reason: the last bit decides ties downstream. In `hclust_triangle_complete`, R's d(1,3) is
+   1.9999999999999998 (`sqrt(1 + sqrt(3)^2)`), not 2; `Math.hypot` gives 2 and creates a false three-way tie, so hclust
+   merges a different pair. `dist_scale` (R: Inf) and `dist_scale_small` (R: 0) are documented differences: rStats.js
+   returns the correctly scaled values; test them by scale equivariance
+2. **Binary, two all-zero rows: 0, not 1** (correction by Claude). `dist_binary_zero_rows` has no pair of two all-zero rows;
+   R gives 0 for that pair (`dist_binary_both_zero`: `dist(rbind(c(0,0,0), c(0,0,0), c(1,0,0)), "binary")` is 0 1 1).
+   Fix the binary paragraph above accordingly
+3. Return `{ values, size, labels, method, diag, upper, warnings }` (`labels` is `null` without names; `values` always an array, also for one
+   row: `[]`). `diag` and `upper` are accepted options and returned as booleans (display metadata only, as in R)
+4. Unique prefixes of the method names are accepted and normalised to the full name, as R (`dist_partial_name`); an
+   unknown name is an error. `p` must be finite and positive (R's error for 0 and Inf)
+5. NA, NaN and Infinity exactly as R (the rules above, rescaling included), with R's warning for binary
+6. `asDist`: a square matrix (array of rows) gives the same structure from the entries below the diagonal (upper triangle
+   ignored), `method: null`; labels from an optional `labels` option. A value already in the `dist` structure is returned
+   unchanged
+7. Warnings (binary's `treating non-finite values as NA`, as many as R) go into the result's `warnings: string[]`, as
+   `manova` and `lda` do

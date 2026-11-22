@@ -53,3 +53,18 @@ The double-centering formula and eigenvalue ordering were independently checked 
 
 ## rStats.js's choices
 
+The user's decisions of 2026-11-22 (Issue #556), written by Claude. They take precedence over every other section.
+
+1. Always return the full structure `{ points, eig, x, ac, GOF }` (R's `list.`/`eig` switches are not needed): `eig`
+   all n eigenvalues, `x` only when `xRet` is true (else `null`), `ac` 0 without `add`
+2. **Signs (user's decision of 2026-11-22):** each column of `points` has its entry of largest absolute value positive
+   (the first such entry on a tie). A documented difference from R; tests align each column's sign to R first, then
+   compare every entry
+3. **Cailliez constant (user's decision): compute the same quantity as R, without rounding small values to 0.** The
+   constant is the largest real eigenvalue of Cailliez's 2n × 2n matrix (as derived above); for Euclidean input it is a
+   roundoff-sized positive number in both programs. Compare `ac` with an absolute tolerance proportional to the size of
+   the dissimilarities (state the factor and its reason in the test), and the points with the usual relative tolerance
+4. Asymmetric matrix input: reproduce R (x from the unsymmetrised double centring, the eigenproblem on the lower triangle
+   of -x/2) as observed in `cmdscale_asym_*`
+5. Fewer positive eigenvalues than k: R's warning and fewer columns. `k` out of 1..n-1 and NA: R's errors
+6. Warnings go into the result's `warnings: string[]` (as `manova` and `lda`)

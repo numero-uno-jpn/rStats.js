@@ -1,4 +1,5 @@
 # issue: 556
+# oracle-platform: amd64
 # Public kmeans outputs for test/fixtures/kmeans.json
 source("/oracle/_cluster110cases.R")
 selected <- out[startsWith(names(out), "kmeans_")]

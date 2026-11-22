@@ -44,3 +44,18 @@ The stress formula and primary tie grouping were checked independently for isomd
 
 ## rStats.js's choices
 
+The user's decisions of 2026-11-22 (Issue #556), written by Claude. They take precedence over every other section.
+
+1. Kruskal Stress-1 in percent, primary approach to ties, Minkowski `p`, default start = rStats.js's `cmdscale`, explicit
+   `y` accepted; R's errors (nonpositive dissimilarity, NA without `y`, wrong `y`, k out of range)
+2. **Optimizer (user's decision): Kruskal's numerical method, matched to R's progress.** Build the steps from Kruskal
+   (1964b) "Nonmetric multidimensional scaling: a numerical method" (gradient, step size, stopping) and aim to reproduce
+   R's printed stress every 5 iterations (`printed` in the fixtures) and R's final points and stress. If that cannot be
+   reached, the pass condition becomes agreement with R run to tight convergence (add cases with `tol = 1e-10`,
+   `maxit = 1000`), and the default-setting difference is documented; report the evidence before switching
+3. Return `{ points, stress }` plus the progress as numbers (`trace`: the stress at each reported iteration and whether
+   it converged), so that the progress can be tested; no printing
+4. Signs: the default start is rStats.js's `cmdscale` (choice 2 there), so columns may be reflected relative to R; tests
+   align column signs, stress is compared directly
+5. The 1e150 behaviour of R (`isomds_scale`: stops at the start) is not copied: rStats.js's stopping is scale invariant;
+   a documented difference, tested by equivariance
