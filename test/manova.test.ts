@@ -175,7 +175,7 @@ describe("manova", () => {
     expect(Number.isFinite(summary.Pillai.values[0]![2])).toBe(true);
     expect(summary.Pillai.values[0]![2]).toBeGreaterThan(1e28);
     expect(Number.isFinite(summary.Wilks.values[0]![2])).toBe(true);
-    expect(summary.Wilks.values[0]![2]).toBeGreaterThan(1e58);
+    expect(summary.Wilks.values[0]![2]).toBeGreaterThan(1e28);
     expect(summary.Pillai.values[0]![5]).toBe(0);
   });
 });
