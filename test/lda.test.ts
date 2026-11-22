@@ -45,7 +45,8 @@ describe("lda", () => {
     const fit = lda(xx, g);
     expect(fit.warnings).toEqual(["variables are collinear"]);
     expect(fit.scaling.rows).toHaveLength(3);
-    expect(() => lda(xx, g, { tol: 0.5 })).toThrow(/constant within groups/);
+    const nearly = x.map((r) => [r[0]!, r[0]! + 1e-6 * r[1]!]);
+    expect(() => lda(nearly, g, { tol: 0.5 })).toThrow(/constant within groups/);
   });
   it("handles extreme scales and 100,000 observations", () => {
     const scaled = lda(x.map((r) => [r[0]! * 1e100, r[1]! * 1e-100]), g);
