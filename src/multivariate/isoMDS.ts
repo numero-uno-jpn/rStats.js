@@ -43,7 +43,7 @@ function readD(input: DistResult | readonly (readonly number[])[]): { d: number[
     d[j]![i] = value.values[at]!;
     at++;
   }
-  return { d, missing: d.some((r) => r.some(Number.isNaN)) };
+  return { d, missing: d.some((r) => r.some((v) => !Number.isFinite(v))) };
 }
 
 function distance(a: readonly number[], b: readonly number[], p: number): number {
