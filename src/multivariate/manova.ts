@@ -59,6 +59,34 @@ function responseParts(formula: string): { names: string[]; rhs: string } {
   if (names.length < 2) throw new RangeError("need multiple responses");
   return { names, rhs: m[2]!.trim() };
 }
+function responseColumns(data: DataFrame, names: readonly string[]): { data: DataFrame; internal: string[] } {
+  const out: Record<string, readonly (number | string | boolean | null)[] | Float64Array> = { ...data };
+  const internal: string[] = [];
+  for (let i = 0; i < names.length; i++) {
+    const name = names[i]!;
+    const simple = /^[A-Za-z.][A-Za-z0-9._]*$/.test(name);
+    if (simple) { internal.push(name); continue; }
+    const sum = /^I\\(\\s*([A-Za-z.][A-Za-z0-9._]*)\\s*\\+\\s*([A-Za-z.][A-Za-z0-9._]*)\\s*\\)$/.exec(name);
+    const numeric = /^as\\.numeric\\(\\s*([A-Za-z.][A-Za-z0-9._]*)\\s*\\)$/.exec(name);
+    const key = `.__manova_response_${i}`;
+    if (sum) {
+      const a = dataColumn(data, sum[1]!); const b = dataColumn(data, sum[2]!);
+      out[key] = a.map((v, j) => v + b[j]!);
+    } else if (numeric) {
+      const v = data[numeric[1]!];
+      if (v === undefined) throw new RangeError(`object '${numeric[1]}' not found`);
+      const vals = Array.from(v);
+      if (vals.every((x) => typeof x === "number")) out[key] = vals as number[];
+      else {
+        const levels = [...new Set(vals.map(String))].sort();
+        const codes = new Map(levels.map((x, j) => [x, j + 1]));
+        out[key] = vals.map((x) => codes.get(String(x))!);
+      }
+    } else throw new TypeError(`unsupported MANOVA response expression: ${name}`);
+    internal.push(key);
+  }
+  return { data: out, internal };
+}
 function dataColumn(data: DataFrame, name: string): number[] {
   const v = data[name];
   if (v === undefined) throw new RangeError(`object '${name}' not found`);
@@ -120,13 +148,14 @@ export function manova(formula: string, data: DataFrame, options: ManovaOptions 
   const tol = options.tol ?? 1e-7;
   if (!(Number.isFinite(tol) && tol >= 0)) throw new RangeError("'tol' must be a non-negative finite number");
   const parsed = parseFormula(`~ ${rhs}`);
-  const d = design(parsed, data, { extraVariables: names, dropUnusedLevels: true });
-  const raw = names.map((name) => dataColumn(data, name));
+  const prepared = responseColumns(data, names);
+  const d = design(parsed, prepared.data, { extraVariables: prepared.internal, dropUnusedLevels: true });
+  const raw = prepared.internal.map((name) => dataColumn(prepared.data, name));
   const y = d.frame.rows.map((row) => raw.map((col) => col[row]!));
   if (y.some((r) => r.some((v) => !Number.isFinite(v)))) throw new RangeError("NA/NaN/Inf in foreign function call (arg 1)");
   const p = names.length, n = y.length;
   if (p < 2) throw new RangeError("need multiple responses");
-  const scales = names.map((_, j) => Math.max(1, ...y.map((r) => Math.abs(r[j]!))));
+  const scales = names.map((_, j) => { let m = 0; for (const row of y) m = Math.max(m, Math.abs(row[j]!)); return m === 0 ? 1 : m; });
   const ys = scaleRows(y, scales.map((s) => 1 / s));
   const full = qr(d.x, { tol });
   const residual = qrResid(full, ys) as number[][];
