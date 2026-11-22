@@ -7,7 +7,7 @@ Issue #549. Reference R 4.6.2 / PMCMRplus 1.9.12. Evidence: Tamhane (1979), JASA
 For groups i,j, let n_i,n_j be sample sizes, xbar_i,xbar_j means, and s_i²,s_j² unbiased sample variances. Put a=s_i²/n_i, b=s_j²/n_j and m=k(k−1)/2.
 
 Both variants use
-`t_ij=(xbar_j−xbar_i)/sqrt(a+b)`
+`t_ij=(xbar_i−xbar_j)/sqrt(a+b)`, where i is the row group and j is the column group in the returned lower-triangular matrix
 and two-sided unadjusted probability
 `p_ij=2 Pr(T_df >= |t_ij|)`.
 The reported pairwise probability is Šidák:
