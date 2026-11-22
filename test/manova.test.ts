@@ -29,6 +29,19 @@ describe("manova", () => {
     const collinear = { ...data, y2: data.y1.map((v) => 2 * v) };
     expect(() => manova("cbind(y1, y2) ~ group", collinear)).toThrow(/residuals have rank/);
   });
+  it("handles 100,000 observations", () => {
+    const n = 100_000;
+    const d = {
+      y1: Array.from({ length: n }, (_, i) => Math.sin(i * 0.01) + (i % 2)),
+      y2: Array.from({ length: n }, (_, i) => Math.cos(i * 0.013) + (i % 2) * 0.7),
+      group: Array.from({ length: n }, (_, i) => i % 2 ? "b" : "a"),
+    };
+    const start = performance.now();
+    const fit = manova("cbind(y1, y2) ~ group", d);
+    const s = summaryManova(fit);
+    expect(s.Pillai.values[0]![1]).toBeGreaterThan(0);
+    console.info(`manova 100,000 rows: ${(performance.now() - start).toFixed(1)} ms`);
+  });
   it("supports derived responses and extreme response scales", () => {
     const d = { ...data, y3: data.y1.map((v, i) => v + data.y2[i]!) };
     expect(() => manova("cbind(y1, y2, I(y1 + y2)) ~ group", d)).toThrow(/residuals have rank 2 < 3/);
