@@ -222,7 +222,7 @@ export function lda(x: VectorOrMatrix | string, grouping: readonly GroupLabel[] 
   if (typeof x === "string") {
     const parsed = parseFormula(x);
     const response = parsed.response;
-    if (!response || !Object.hasOwn(grouping as object, response)) throw new RangeError("formula response must name a grouping column in data");
+    if (!response || !Object.prototype.hasOwnProperty.call(grouping, response)) throw new RangeError("formula response must name a grouping column in data");
     const tilde = x.indexOf("~");
     if (tilde < 0) throw new SyntaxError("invalid LDA formula");
     const predictors = Object.keys(grouping as object).filter((name) => name !== response);
