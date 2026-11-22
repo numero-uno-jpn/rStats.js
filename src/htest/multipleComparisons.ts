@@ -17,6 +17,7 @@
 
 import { pnorm } from "../distributions/normal.js";
 import { ptukey } from "../distributions/tukey.js";
+import { pt } from "../distributions/t.js";
 import { groupMoments, ldexp, rank, satterthwaiteDfPM, tieCounts } from "../internal/summary.js";
 import { pDunnettUpper } from "./dunnett.js";
 import { labelledGroups, type GroupLabel } from "./groups.js";
@@ -387,6 +388,68 @@ export function dscfAllPairsTest(x: Sample, g: readonly GroupLabel[]): PMCMRResu
   });
   const p = stat.map((row) => row.map((q) => (Number.isNaN(q) ? NaN : upperRange(q, d.k, Infinity))));
   return reported("dscfAllPairsTest", allPairs(d, "Dwass-Steele-Critchlow-Fligner all-pairs test", stat, p, "single-step"));
+}
+
+/**
+ * Options of Tamhane's T2 and T2' all-pairs tests.
+ *
+ * @category Multiple comparisons
+ */
+export interface TamhaneT2Options {
+  /** Use Welch–Satterthwaite degrees of freedom (T2); false uses n_i + n_j − 2 (T2'). Default true. */
+  welch?: boolean;
+}
+
+/**
+ * Tamhane's T2 (Welch–Satterthwaite df) or T2' (pooled df) all-pairs test of means. Equivalent to
+ * `PMCMRplus::tamhaneT2Test()` in R. Character and numeric group labels are ordered as R's factor() levels; list input
+ * uses the one-based list positions as group labels.
+ *
+ * @param x Observations, or a list of samples (one per group).
+ * @param g Group labels parallel to x; omit for a list of samples.
+ * @param options Set `welch: false` for T2'.
+ *
+ * @category Multiple comparisons
+ */
+export function tamhaneT2Test(
+  x: Sample | readonly Sample[],
+  g?: readonly GroupLabel[],
+  options: TamhaneT2Options = {},
+): PMCMRResult {
+  const d: Layout = (() => {
+    if (g !== undefined) return layout(x as Sample, g);
+    const grouped = labelledGroups(x);
+    const k = grouped.groups.length;
+    if (k < 2) throw new RangeError("there must be at least two groups");
+    const n = grouped.groups.map((s) => s.length);
+    return { labels: grouped.labels, groups: grouped.groups, n, N: n.reduce((a, b) => a + b, 0), k };
+  })();
+  const gm = groupMoments(d.groups);
+  const welch = options.welch ?? true;
+  const m = d.k * (d.k - 1) / 2;
+  const statistic = lowerTable(d.k, (i, j) => {
+    const se2 = gm.variance[i]! / d.n[i]! + gm.variance[j]! / d.n[j]!;
+    return (gm.mean[i]! - gm.mean[j]!) / Math.sqrt(se2);
+  });
+  const pValue = lowerTable(d.k, (i, j) => {
+    const t = statistic[i - 1]![j]!;
+    if (Number.isNaN(t)) return NaN;
+    const df = welch
+      ? satterthwaiteDfPM([gm.variance[i]!, gm.variance[j]!], [d.n[i]!, d.n[j]!])
+      : d.n[i]! + d.n[j]! - 2;
+    const raw = 2 * pt(Math.abs(t), df, { lowerTail: false });
+    return raw >= 1 ? 1 : -Math.expm1(m * Math.log1p(-raw));
+  });
+  return reported(
+    "tamhaneT2Test",
+    allPairs(
+      d,
+      welch ? "Tamhane's T2-test for unequal variances" : "Tamhane's T2'-test for unequal variances",
+      statistic,
+      pValue,
+      welch ? "T2 (Sidak)" : "T2' (Sidak)",
+    ),
+  );
 }
 
 /**
