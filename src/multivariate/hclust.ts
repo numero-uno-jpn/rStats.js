@@ -34,6 +34,7 @@ const METHODS: HclustMethod[] = ["ward.D", "ward.D2", "single", "complete", "ave
 function resolveMethod(input: string | undefined): { method: HclustMethod; warning: string[] } {
   const raw = input ?? "complete";
   if (raw === "ward") return { method: "ward.D", warning: ['The "ward" method has been renamed to "ward.D"; note new "ward.D2"'] };
+  if (METHODS.includes(raw as HclustMethod)) return { method: raw as HclustMethod, warning: [] };
   const matches = METHODS.filter((m) => m.startsWith(raw));
   if (matches.length !== 1) throw new RangeError("invalid clustering method");
   return { method: matches[0]!, warning: [] };
@@ -49,8 +50,11 @@ function updateDistance(method: HclustMethod, dAB: number, dAC: number, dBC: num
   if (method === "mcquitty") return (dAC + dBC) / 2;
   if (method === "ward.D") return ((a + c) * dAC + (b + c) * dBC - c * dAB) / n;
   if (method === "ward.D2") {
-    const v = ((a + c) * dAC * dAC + (b + c) * dBC * dBC - c * dAB * dAB) / n;
-    return Math.sqrt(Math.max(0, v));
+    const scale = Math.max(Math.abs(dAB), Math.abs(dAC), Math.abs(dBC));
+    if (scale === 0) return 0;
+    const ab = dAB / scale, ac = dAC / scale, bc = dBC / scale;
+    const v = ((a + c) * ac * ac + (b + c) * bc * bc - c * ab * ab) / n;
+    return Math.sqrt(Math.max(0, v)) * scale;
   }
   if (method === "median") return (dAC + dBC) / 2 - dAB / 4;
   const ab = a + b;
