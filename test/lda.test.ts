@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
-import { lda, predictLda } from "../src/entries/multivariate.js";
+import { lda, ldaPredict } from "../src/entries/multivariate.js";
 
 const x = [
   [1, 2], [1.2, 2.1], [0.8, 1.8], [1.1, 2.2], [0.9, 1.9], [1.3, 2.0],
@@ -56,7 +56,7 @@ describe("lda", () => {
     const fit = lda("Species ~ .", irisData);
     const expected = ldaFixture.lda_iris_newdata.value;
     const newdata = [0, 50, 100, 149].map((i) => irisRows[i]!.slice(0, 4));
-    const pred = predictLda(fit, { newdata });
+    const pred = ldaPredict(fit, { newdata });
     expect(pred.class).toEqual(expected.class);
     expect(pred.posterior.cols).toEqual(expected.posterior.cols);
     expectMatrixClose(pred.posterior.values, expected.posterior.values, 1e-8);
@@ -87,11 +87,11 @@ describe("lda", () => {
   });
   it("predicts classes, posterior probabilities and discriminant scores", () => {
     const fit = lda(x, g) as ReturnType<typeof lda> & { prior: number[] };
-    const p = predictLda(fit as any, { newdata: [[1, 2], [4, 5]] });
+    const p = ldaPredict(fit as any, { newdata: [[1, 2], [4, 5]] });
     expect(p.class).toEqual(["a", "b"]);
     expect(p.posterior.values[0]!.reduce((a, b) => a + b, 0)).toBeCloseTo(1, 12);
     expect(p.x.values).toHaveLength(2);
-    const prior = predictLda(fit as any, { newdata: [[1, 2]], prior: [0.2, 0.8] });
+    const prior = ldaPredict(fit as any, { newdata: [[1, 2]], prior: [0.2, 0.8] });
     expect(prior.posterior.values[0]!.reduce((a, b) => a + b, 0)).toBeCloseTo(1, 12);
   });
   it("supports formula input and leave-one-out CV", () => {

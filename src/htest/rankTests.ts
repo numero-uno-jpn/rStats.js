@@ -169,7 +169,7 @@ export interface PageTestOptions {
 }
 
 /**
- * Page's ordered aligned rank-sum test. Equivalent to the public R function `PMCMRplus::pageTest()`.
+ * Page's ordered aligned rank-sum test. Equivalent to R's `PMCMRplus::pageTest()`.
  *
  * @param y A blocks-by-treatments matrix in the hypothesised treatment order.
  * @param options Alternative hypothesis.

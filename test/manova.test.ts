@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
-import { manova, summaryManova } from "../src/entries/multivariate.js";
+import { manova, manovaSummary } from "../src/entries/multivariate.js";
 
 const irisRows = JSON.parse(readFileSync(new URL("./fixtures/iris.json", import.meta.url), "utf8")) as [number, number, number, number, string][];
 const irisData = {
@@ -35,7 +35,7 @@ describe("manova", () => {
   it("matches every Iris MANOVA summary, SSP, eigenvalue and coefficient entry", () => {
     const expected = manovaFixture.manova_iris.value;
     const fit = manova("cbind(Sepal.Length, Sepal.Width, Petal.Length, Petal.Width) ~ Species", irisData);
-    const summary = summaryManova(fit);
+    const summary = manovaSummary(fit);
     compareTable(summary.Pillai, expected.Pillai);
     compareTable(summary.Wilks, expected.Wilks);
     compareTable(summary["Hotelling-Lawley"], expected["Hotelling-Lawley"]);
@@ -48,7 +48,7 @@ describe("manova", () => {
 
   it("fits sequential terms and returns all four multivariate summaries", () => {
     const fit = manova("cbind(y1, y2) ~ group", data);
-    const s = summaryManova(fit);
+    const s = manovaSummary(fit);
     expect(s.Pillai.rows).toEqual(["group", "Residuals"]);
     expect(s.Pillai.cols).toEqual(["Df", "Pillai", "approx F", "num Df", "den Df", "Pr(>F)"]);
     expect(s.Wilks.values[0]![1]).toBeGreaterThan(0);
@@ -60,8 +60,8 @@ describe("manova", () => {
   });
   it("adds the sequential intercept row only when requested", () => {
     const fit = manova("cbind(y1, y2) ~ group", data);
-    expect(summaryManova(fit).Pillai.rows).toEqual(["group", "Residuals"]);
-    expect(summaryManova(fit, { intercept: true }).Pillai.rows).toEqual(["(Intercept)", "group", "Residuals"]);
+    expect(manovaSummary(fit).Pillai.rows).toEqual(["group", "Residuals"]);
+    expect(manovaSummary(fit, { intercept: true }).Pillai.rows).toEqual(["(Intercept)", "group", "Residuals"]);
   });
   it("rejects one response and residual SSP rank deficiency", () => {
     expect(() => manova("cbind(y1) ~ group", data)).toThrow(/need multiple responses/);
@@ -77,7 +77,7 @@ describe("manova", () => {
     };
     const start = performance.now();
     const fit = manova("cbind(y1, y2) ~ group", d);
-    const s = summaryManova(fit);
+    const s = manovaSummary(fit);
     expect(s.Pillai.values[0]![1]).toBeGreaterThan(0);
     console.info(`manova 100,000 rows: ${(performance.now() - start).toFixed(1)} ms`);
   });

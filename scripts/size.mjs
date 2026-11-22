@@ -24,7 +24,7 @@ const cases = [
   ["everything", "*"],
 ];
 
-const areas = ["distributions", "tests", "linalg", "descriptive", "numerics", "special", "mixed", "regression"];
+const areas = ["distributions", "tests", "linalg", "descriptive", "numerics", "special", "mixed", "regression", "multivariate"];
 for (const a of areas) cases.push([`rStats.js/${a} (all of it)`, "*", fileURLToPath(new URL(`../dist/entries/${a}.js`, import.meta.url))]);
 const mixedEntry = fileURLToPath(new URL("../dist/entries/mixed.js", import.meta.url));
 cases.push(["lmer (from /mixed)", "lmer", mixedEntry]);
@@ -45,6 +45,10 @@ cases.push(["geeglm (from /regression)", "geeglm", regressionEntry]);
 cases.push(["geeglm with all its methods (from /regression)", "geeglm, geeSummary, geeVcov, geePredict, geeAnova, geeQIC", regressionEntry]);
 cases.push(["glmnet (from /regression)", "glmnet", regressionEntry]);
 cases.push(["glmnet with all its methods (from /regression)", "glmnet, glmnetCoef, glmnetPredict, cvGlmnet", regressionEntry]);
+const multivariateEntry = fileURLToPath(new URL("../dist/entries/multivariate.js", import.meta.url));
+cases.push(["manova with its summary (from /multivariate)", "manova, manovaSummary", multivariateEntry]);
+cases.push(["lda with its predictions (from /multivariate)", "lda, ldaPredict", multivariateEntry]);
+cases.push(["cancor (from /multivariate)", "cancor", multivariateEntry]);
 
 const rows = [];
 for (const [label, names, from = dist] of cases) {

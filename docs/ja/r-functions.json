@@ -225,6 +225,9 @@
   "friedmanTest": "反復のない完全ブロック計画に対する Friedman の順位和検定",
   "gamesHowellTest": "Welch の標準誤差と自由度による、平均の Games-Howell の全対比較検定",
   "tamhaneT2Test": "等分散を仮定しない、平均の Tamhane の T2 (と T2') の全対比較検定",
+  "grubbsTest": "外れ値 1 つについての Grubbs の検定 (type 10)",
+  "pgrubbs": "Grubbs の検定統計量の分布関数 (type 10)",
+  "qgrubbs": "Grubbs の検定統計量の分位点 (type 10)",
   "glhtDunnett": "一元配置分散分析での Dunnett の多対一比較 (同時 p 値つき)",
   "glm": "反復重み付き最小二乗法による一般化線形モデルの当てはめ",
   "glmHatvalues": "`glm` の当てはめの、最後の重み付き最小二乗ステップのハット行列の対角成分 (事前重みが 0 でない行について)",
@@ -448,5 +451,10 @@
   "rqAnova": "分位点回帰の Wald 検定 (入れ子の当てはめどうし、複数の τ での傾きの等しさ)",
   "rqPredict": "分位点回帰の当てはめ値と新しいデータでの予測",
   "rqPredictInterval": "分位点回帰の予測の信頼区間 (nid による none と、τ をずらした当てはめの direct)",
-  "rqSummary": "分位点回帰の係数の要約 (順位検定の反転による区間 rank と、局所の疎さによるサンドイッチの nid)"
+  "rqSummary": "分位点回帰の係数の要約 (順位検定の反転による区間 rank と、局所の疎さによるサンドイッチの nid)",
+  "manova": "多変量分散分析 (逐次の型 I の項)",
+  "manovaSummary": "多変量分散分析の検定表 (Pillai・Wilks・Hotelling-Lawley・Roy)",
+  "lda": "線形判別分析 (moment 法)",
+  "ldaPredict": "線形判別分析によるクラス・事後確率・判別得点の予測",
+  "cancor": "正準相関分析"
 }

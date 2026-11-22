@@ -4,6 +4,16 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 関数は `package::function()` と書いています。引数の書き方は [JavaScript の開発者のための rStats.js](guide-for-js-developers.md) を、
 各関数の詳しい説明は [API リファレンス](https://numero-uno-jpn.github.io/rStats.js/ja/api/) を参照してください。
 
+## Multivariate analysis (`rStats.js/multivariate`)
+
+| R | rStats.js | 説明 |
+| --- | --- | --- |
+| `stats::cancor()` | `cancor` | 正準相関分析 |
+| `MASS::lda()` | `lda` | 線形判別分析 (moment 法) |
+| `stats::manova()` | `manova` | 多変量分散分析 (逐次の型 I の項) |
+| `predict.lda()` | `ldaPredict` | 線形判別分析によるクラス・事後確率・判別得点の予測 |
+| `summary.manova()` | `manovaSummary` | 多変量分散分析の検定表 (Pillai・Wilks・Hotelling-Lawley・Roy) |
+
 ## Regression models (`rStats.js/regression`)
 
 | R | rStats.js | 説明 |
@@ -256,6 +266,7 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `multcomp::glht()` | `glhtDunnett` | 一元配置分散分析での Dunnett の多対一比較 (同時 p 値つき) |
 | `glm()` | `glm` | 反復重み付き最小二乗法による一般化線形モデルの当てはめ |
 | `DescTools::GoodmanKruskalGamma()` | `goodmanKruskalGamma` | 2 つの順序のある分類の表の Goodman と Kruskal のガンマ (漸近標準誤差と Wald 信頼区間つき) |
+| `outliers::grubbs.test()` | `grubbsTest` | 外れ値 1 つについての Grubbs の検定 (type 10) |
 | `DescTools::GTest()` | `gTest` | 分割表の独立性、または計数の与えた確率への適合度についての対数尤度比 (G) 検定 |
 | `hatvalues()` | `glmHatvalues` | `glm` の当てはめの、最後の重み付き最小二乗ステップのハット行列の対角成分 (事前重みが 0 でない行について) |
 | `effectsize::hedges_g()` | `hedgesG` | Hedges の g |
@@ -290,6 +301,7 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `pairwise.wilcox.test()` | `pairwiseWilcoxTest` | 群間の対ごとの Wilcoxon 順位和検定 (調整済み p 値つき) |
 | `psych::partial.r()` | `partialR` | `x` のほかのすべての列を与えたときの列 `i` と `j` の偏相関 |
 | `nortest::pearson.test()` | `pearsonTest` | Pearson のカイ二乗正規性検定 (当てはめた正規分布のもとで等確率の階級による) |
+| `outliers::pgrubbs()` | `pgrubbs` | Grubbs の検定統計量の分布関数 (type 10) |
 | `clinfun::ph2simon()` | `ph2simon` | Simon の 2 段階第 II 相試験デザインの一覧 |
 | `poisson.test()` | `poissonTest` | ポアソン率の正確検定、または 2 つのポアソン率の比較 |
 | `polycor::polychor()` | `polychor` | 2 つの順序変数のポリコリック相関 |
@@ -317,6 +329,7 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `pwr::pwr.r.test()` | `pwrRTest` | 相関の検定の検出力、または与えた検出力に対する標本サイズ、相関、有意水準のいずれか |
 | `pwr::pwr.t.test()` | `pwrTTest` | 平均の t 検定の検出力、または与えた検出力に対する標本サイズ、効果量、有意水準のいずれか |
 | `pwr::pwr.t2n.test()` | `pwrT2nTest` | 標本サイズが異なる 2 標本 t 検定の検出力、または与えた検出力に対する標本サイズの一方、効果量、有意水準のいずれか |
+| `outliers::qgrubbs()` | `qgrubbs` | Grubbs の検定統計量の分位点 (type 10) |
 | `quade.test()` | `quadeTest` | 反復のない完全ブロック計画に対する Quade 検定 |
 | `metafor::regtest()` | `regtest` | 回帰モデルによるファンネルプロットの非対称性の検定 |
 | `residuals.survreg()` | `survregResiduals` | パラメトリック生存時間回帰モデルの残差 (応答、deviance、working、dfbeta、影響度など) |
