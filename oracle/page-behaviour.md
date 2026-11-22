@@ -36,4 +36,6 @@ The user's decisions of 2026-11-22 (Issue #549), written by Claude. They take pr
    variance above, z = (L − E − 0.5)/√V with the correction always −0.5 (as R), normal tails for `alternative`.
 2. **A block with a missing value is an error** (R ranks NA last in its block without a warning, `page_na`). A
    difference from R to document.
-3. Vector input: the treatments in factor level order; non-factor labels in order of first appearance.
+3. Vector input: the treatments (and blocks) in the order of R's `factor()` levels, as `labelledGroups` in
+   `src/htest/groups.ts` orders them (numbers numerically, strings by code point). The hypothesised order is given by
+   labels that sort in that order, or by the matrix form. (Changed by the user on 2026-11-22 from "first appearance".)

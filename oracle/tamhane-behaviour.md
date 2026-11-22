@@ -55,5 +55,8 @@ The user's decisions of 2026-11-22 (Issue #549), written by Claude. They take pr
 2. Welch's df is computed without overflow (A = s_i²/n_i and B = s_j²/n_j divided by max(A, B) first), so the data
    × 1e100 give the same df and p as the unscaled data. R returns NaN p there (`t2_large_scale`); a difference from R
    to document.
-3. Character group labels are taken as a factor with the levels in order of first appearance (R errors with "all group
-   levels must be finite"). A group of size one gives NA for its pairs and constant data give NaN, as in R.
+3. Group labels are ordered as R's `factor()` orders them, the same as rStats.js's other multiple comparisons
+   (`labelledGroups` in `src/htest/groups.ts`: numbers numerically, strings by code point). Character labels are accepted
+   (R errors with "all group levels must be finite"). A group of size one gives NA for its pairs and constant data give
+   NaN, as in R. (Changed by the user on 2026-11-22 from "order of first appearance", for consistency with the other
+   functions and with R.)

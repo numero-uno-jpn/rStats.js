@@ -14,9 +14,9 @@
 - **fixture を作りました:** `test/fixtures/{tamhane,page,grubbs,manova,lda,cancor}.json` (17・95・106・15・21・11 case。
   実験の JSON と全件同じ)。形は実験と同じ (`{ value, warnings, messages }` か `{ error, ... }`、行列は `{ rows, cols, values }`)
 - choices の要点 (詳しくは各仕様書):
-  - T2: T2 と T2' の両方。Welch の自由度は溢れない計算 (`t2_large_scale` は R が NaN、rStats.js は通常の値)。文字列の群は
-    初出の順の因子
-  - Page: **NA を含むブロックはエラー** (R は NA を最後の順位にする)
+  - T2: T2 と T2' の両方。Welch の自由度は溢れない計算 (`t2_large_scale` は R が NaN、rStats.js は通常の値)。**群の順は
+    R の `factor()` の順** (既存の `labelledGroups`。2026-11-22 にユーザーが「初出の順」から変更)
+  - Page: **NA を含むブロックはエラー** (R は NA を最後の順位にする)。ベクトルの形の処理・ブロックの順も R の `factor()` の順
   - **Grubbs: 1.9.0 は type 10 だけ。** type 11・20 は名前を出す既知の未対応のエラー。`pgrubbs`・`qgrubbs` も type 10 だけ、
     q・p はベクトルで受ける。定数の x は p = NaN (R は 0)
   - MANOVA: 4 統計量、Roy は上界、型 I、`intercept`、階数不足はエラー
