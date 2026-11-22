@@ -1834,6 +1834,7 @@ The references are R's `stats` functions. The implementation decisions are recor
 
 - **Extreme distance scales:** `dist` uses scaled arithmetic when the direct sum of powers overflows or underflows. R's direct calculation can return `Inf` after multiplying the input by 1e200 and zero after multiplying by 1e-200; rStats.js retains the scale-equivariant finite distance when it is representable.
 - **Minkowski rounding:** for powers other than 1 and 2, the last bit can differ from R because JavaScript and R's platform math libraries may round `pow` differently.
+- **K-means extreme scales:** when squaring would overflow or underflow, rStats.js normalizes the observations and starting centers for the calculation, then restores centers and sums of squares. The ordinary-scale path and random-start selection are unchanged.
 - **Finite extreme Canberra terms:** when finite opposite-sign values would overflow the direct numerator or denominator, rStats.js evaluates the mathematically equivalent ratio after scaling the pair; the ordinary arithmetic path is unchanged.
 - **Hierarchical-clustering input:** passing a square matrix directly to `hclust` gives a clear error directing the caller to `asDist`; R instead fails later with an internal missing-value message.
 - **Ward.D2 at extreme scales:** rStats.js scales the squared-distance update and returns the scale-equivariant tree for a 1e200 multiple. R 4.6.2 can fail on that input.
