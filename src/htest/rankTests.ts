@@ -237,9 +237,6 @@ export function pageTest(
       throw new RangeError("not an unreplicated complete block design");
     }
     options = maybeOptions;
-  } else if (typeof y === "string") {
-    options = blocks as PageTestOptions ?? {};
-    matrix = blockData(y, groupsOrOptions as DataFrame);
   } else {
     matrix = (y as readonly (readonly number[])[]).map((row) => Array.from(row));
     options = groupsOrOptions as PageTestOptions;
