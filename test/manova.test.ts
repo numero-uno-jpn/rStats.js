@@ -178,4 +178,28 @@ describe("manova", () => {
     expect(summary.Wilks.values[0]![2]).toBeGreaterThan(1e28);
     expect(summary.Pillai.values[0]![5]).toBe(0);
   });
+
+  it("computes a finite Wilks F approximation after the Wilks product underflows", () => {
+    const p = 20, groups = 21, perGroup = 25;
+    const columns: Record<string, number[]> = {};
+    for (let j = 0; j < p; j++) {
+      const values: number[] = [];
+      for (let g = 0; g < groups; g++) {
+        for (let i = 0; i < perGroup; i++) {
+          const noise = Math.sin((i + 1) * (j + 1) * 0.17) * 1e135;
+          values.push((g === j + 1 ? 1e150 : 0) + noise);
+        }
+      }
+      columns[`y${j + 1}`] = values;
+    }
+    columns.group = Array.from({ length: groups * perGroup }, (_, i) => Math.floor(i / perGroup));
+    const formula = `cbind(${Array.from({ length: p }, (_, i) => `y${i + 1}`).join(", ")}) ~ group`;
+    const summary = manovaSummary(manova(formula, columns));
+    // Each of the 20 independent between-group roots is about 1e30, so their Wilks product underflows.
+    // The log-Wilks F approximation remains finite; the upper-tail probability is below binary64 range.
+    expect(summary.Wilks.values[0]![1]).toBe(0);
+    expect(Number.isFinite(summary.Wilks.values[0]![2])).toBe(true);
+    expect(summary.Wilks.values[0]![2]).toBeGreaterThan(1e80);
+    expect(summary.Wilks.values[0]![5]).toBe(0);
+  });
 });
