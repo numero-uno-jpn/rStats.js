@@ -31,7 +31,7 @@ export interface LdaPredictionOptions {
 /** A labelled LDA result matrix.
  * @category Linear models and ANOVA
  */
-export interface LdaTable { rows: string[]; cols: string[]; values: number[][]; }
+export interface LdaTable { rows: string[] | string | null; cols: string[] | string | null; values: number[][]; }
 /** A fitted linear discriminant model.
  * @category Linear models and ANOVA
  */
@@ -40,7 +40,7 @@ export interface LdaFit {
   counts: number[];
   means: LdaTable;
   scaling: LdaTable;
-  svd: number[];
+  svd: number[] | number;
   N: number;
   lev: string[];
   warnings: string[];
@@ -166,9 +166,9 @@ function fitCore(x0: number[][], g0: readonly GroupLabel[], options: LdaOptions,
   const covInv = metric.inverse.map((r) => r.map((v) => v * (n - g)));
   const names = xNames.length === p ? xNames : Array.from({ length: p }, (_, i) => `x${i + 1}`);
   return {
-    prior, counts, means: { rows: levels, cols: names, values: originalMeans },
-    scaling: { rows: names, cols: keepRoots.map((_, i) => `LD${i + 1}`), values: scaling },
-    svd: keepRoots.map((i) => Math.sqrt(Math.max(0, be.values[i]!) * (n - g) / Math.max(1, g - 1))),
+    prior, counts, means: { rows: levels, cols: names.length === 1 ? names[0]! : names, values: originalMeans },
+    scaling: { rows: names.length === 1 ? names[0]! : names, cols: keepRoots.length === 1 ? "LD1" : keepRoots.map((_, i) => `LD${i + 1}`), values: scaling },
+    svd: (() => { const v = keepRoots.map((i) => Math.sqrt(Math.max(0, be.values[i]!) * (n - g) / Math.max(1, g - 1))); return v.length === 1 ? v[0]! : v; })(),
     N: n, lev: levels, warnings, _means: means, _center: center, _scaling: scalingNorm, _covInverse: covInv,
     _scale: scale, _x: xs, _xNames: names, _tol: tol,
   };
@@ -225,7 +225,7 @@ export function lda(x: VectorOrMatrix | string, grouping: readonly GroupLabel[] 
     classes.push(pred.class[0]!);
     posterior.push(pred.posterior.values[0]!);
   }
-  return { class: classes, posterior: { rows: classes.map((_, i) => String(i + 1)), cols: fit.lev, values: posterior } };
+  return { class: classes, posterior: { rows: null, cols: fit.lev, values: posterior } };
 }
 
 /**
@@ -260,7 +260,7 @@ export function predictLda(fit: LdaFit, options: LdaPredictionOptions = {}): Lda
   });
   return {
     class: posterior.map((r) => fit.lev[r.indexOf(Math.max(...r))]!),
-    posterior: { rows: posterior.map((_, i) => String(i + 1)), cols: fit.lev, values: posterior },
-    x: { rows: scores.map((_, i) => String(i + 1)), cols: Array.from({ length: dimen }, (_, i) => `LD${i + 1}`), values: scores },
+    posterior: { rows: null, cols: fit.lev, values: posterior },
+    x: { rows: null, cols: dimen === 1 ? "LD1" : Array.from({ length: dimen }, (_, i) => `LD${i + 1}`), values: scores },
   };
 }
