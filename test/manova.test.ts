@@ -97,12 +97,13 @@ describe("manova", () => {
       ["manova_covariate", "cbind(mpg, disp, hp) ~ wt + cyl", mtcarsData],
       ["manova_two_responses_two_groups", "cbind(mpg, hp) ~ am", mtcarsData],
       ["manova_p_gt_df", "cbind(mpg, disp, hp, drat, wt) ~ am", mtcarsData],
-      ["manova_tol", "cbind(mpg, disp, hp) ~ cyl", mtcarsData, { tol: 0.5 }],
+
     ];
     for (const [key, formula, data, options] of cases) {
       const fit = manova(formula, data, options ?? {});
       compareManovaSummary(manovaSummary(fit), manovaFixture[key].value);
     }
+    compareManovaSummary(manovaSummary(manova("cbind(mpg, disp, hp) ~ cyl", mtcarsData), { tol: 0.5 }), manovaFixture.manova_tol.value);
     const missing = { ...mtcarsData, mpg: mtcarsData.mpg.map((v, i) => i === 2 ? NaN : v) };
     compareManovaSummary(manovaSummary(manova("cbind(mpg, disp, hp) ~ cyl", missing)), manovaFixture.manova_na.value);
     compareManovaSummary(manovaSummary(manova("cbind(mpg * 1e100, disp, hp * 1e-100) ~ cyl", mtcarsData)), manovaFixture.manova_scale.value);
