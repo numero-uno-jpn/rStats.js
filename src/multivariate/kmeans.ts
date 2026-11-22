@@ -169,37 +169,66 @@ function macqueen(rows: number[][], initial: number[][], iterMax: number): { clu
   return { cluster, iter: converged ? iter : iterMax + 1, converged };
 }
 function hartiganWong(rows: number[][], initial: number[][], iterMax: number): { cluster: number[]; iter: number; converged: boolean } {
-  const k = initial.length, p = rows[0]!.length;
-  let cluster = rows.map((row) => nearest(row, initial));
-  let { centers, size } = means(rows, cluster, k, p);
-  if (size.some((v) => v === 0)) throw new RangeError("empty cluster: try a better set of initial centers");
-  let converged = false, iter = 0;
-  for (let pass = 0; pass < iterMax; pass++) {
-    let moved = false;
-    for (let i = 0; i < rows.length; i++) {
-      const from = cluster[i]!;
-      if (size[from]! <= 1) continue;
-      const row = rows[i]!;
-      const removeCost = size[from]! / (size[from]! - 1) * squared(row, centers[from]!);
-      let to = from, bestGain = 0;
-      for (let g = 0; g < k; g++) if (g !== from) {
-        const addCost = size[g]! / (size[g]! + 1) * squared(row, centers[g]!);
-        const gain = removeCost - addCost;
-        if (gain > bestGain) { bestGain = gain; to = g; }
-      }
-      if (to !== from) {
-        const oldN = size[from]!, newN = size[to]!;
-        for (let j = 0; j < p; j++) {
-          centers[from]![j] = (oldN * centers[from]![j]! - row[j]!) / (oldN - 1);
-          centers[to]![j] = (newN * centers[to]![j]! + row[j]!) / (newN + 1);
-        }
-        size[from] = oldN - 1; size[to] = newN + 1; cluster[i] = to; moved = true;
-      }
+  // Hartigan & Wong (1979), from the paper's description (not from AS 136's code): an optimal-transfer stage over a
+  // live set of clusters, then a quick-transfer stage between each point's closest and second-closest clusters,
+  // repeated until an optimal-transfer pass moves nothing. iter counts the optimal-transfer passes; R reports
+  // iter.max + 1 at the limit (kmeans_iter_Hartigan-Wong_1..5)
+  const n = rows.length, k = initial.length, p = rows[0]!.length;
+  const ic1 = new Array<number>(n), ic2 = new Array<number>(n);
+  for (let i = 0; i < n; i++) {
+    let b1 = 0, b2 = 1, d1 = squared(rows[i]!, initial[0]!), d2 = squared(rows[i]!, initial[1]!);
+    if (d2 < d1) { [b1, b2, d1, d2] = [1, 0, d2, d1]; }
+    for (let g = 2; g < k; g++) {
+      const d = squared(rows[i]!, initial[g]!);
+      if (d < d1) { b2 = b1; d2 = d1; b1 = g; d1 = d; } else if (d < d2) { b2 = g; d2 = d; }
     }
-    iter = pass + 1;
-    if (!moved) { converged = true; break; }
+    ic1[i] = b1; ic2[i] = b2;
   }
-  return { cluster, iter: iter + (converged ? 0 : 1), converged };
+  const { centers, size } = means(rows, ic1, k, p);
+  if (size.some((v) => v === 0)) throw new RangeError("empty cluster: try a better set of initial centers");
+  const move = (i: number, from: number, to: number): void => {
+    const row = rows[i]!, oldN = size[from]!, newN = size[to]!;
+    for (let j = 0; j < p; j++) {
+      centers[from]![j] = (oldN * centers[from]![j]! - row[j]!) / (oldN - 1);
+      centers[to]![j] = (newN * centers[to]![j]! + row[j]!) / (newN + 1);
+    }
+    size[from] = oldN - 1; size[to] = newN + 1; ic1[i] = to; ic2[i] = from;
+  };
+  const removeCost = (i: number, g: number): number => size[g]! / (size[g]! - 1) * squared(rows[i]!, centers[g]!);
+  const addCost = (i: number, g: number): number => size[g]! / (size[g]! + 1) * squared(rows[i]!, centers[g]!);
+  // live set: cluster g is live at optimal-transfer step t when it was updated within the last n steps
+  const updated = new Array<number>(k).fill(0);
+  let t = 0;
+  for (let iter = 1; iter <= iterMax; iter++) {
+    let moved = false;
+    for (let i = 0; i < n; i++) {
+      t++;
+      const l1 = ic1[i]!;
+      if (size[l1]! === 1) continue;
+      const live = (g: number): boolean => updated[g]! >= t - n;
+      const l1Live = live(l1);
+      let best = ic2[i]!, bestCost = addCost(i, best);
+      for (let g = 0; g < k; g++) {
+        if (g === l1 || g === ic2[i] || !(l1Live || live(g))) continue;
+        const c = addCost(i, g);
+        if (c < bestCost) { best = g; bestCost = c; }
+      }
+      if (bestCost < removeCost(i, l1)) { move(i, l1, best); updated[l1] = t; updated[best] = t; moved = true; }
+      else ic2[i] = best;
+    }
+    if (!moved) return { cluster: ic1, iter, converged: true };
+    // quick transfer: until n consecutive steps move nothing
+    let quiet = 0;
+    for (let i = 0; quiet < n; i = (i + 1) % n) {
+      const l1 = ic1[i]!, l2 = ic2[i]!;
+      if (size[l1]! > 1 && addCost(i, l2) < removeCost(i, l1)) { move(i, l1, l2); updated[l1] = t; updated[l2] = t; quiet = 0; }
+      else quiet++;
+    }
+    // with two clusters the quick-transfer stage has tried every transfer: no need to return to the optimal-transfer
+    // stage (Hartigan & Wong 1979; kmeans_equal_best_seed_*)
+    if (k === 2) return { cluster: ic1, iter, converged: true };
+  }
+  return { cluster: ic1, iter: iterMax + 1, converged: false };
 }
 
 /**
@@ -232,17 +261,24 @@ export function kmeans(
     if (k < 1 || k > n) throw new RangeError("centers must be between 1 and nrow(x)");
     const distinct = new Set(rows.map((r) => JSON.stringify(r))).size;
     if (k > distinct) throw new RangeError("more cluster centers than distinct data points.");
-    for (let start = 0; start < nstart; start++) {
-      let chosen: number[][] = [];
-      for (let attempt = 0; attempt < 10000; attempt++) {
-        const indices = sampleInt(n, { size: k });
-        chosen = indices.map((i) => [...rows[i]!]);
-        if (new Set(chosen.map((r) => JSON.stringify(r))).size === k) break;
+    // R's first start (kmeans_dup_start_seed_1..12, checked by the random state afterwards): k rows by
+    // sample.int(nrow, k); when those rows are not distinct, one draw of k rows from the distinct rows (in order of
+    // first appearance)
+    const unique: number[][] = [];
+    const seen = new Set<string>();
+    for (const r of rows) { const key = JSON.stringify(r); if (!seen.has(key)) { seen.add(key); unique.push(r); } }
+    const draw = (): number[][] => {
+      let chosen = sampleInt(n, { size: k }).map((i) => [...rows[i]!]);
+      if (new Set(chosen.map((r) => JSON.stringify(r))).size !== k) {
+        chosen = sampleInt(unique.length, { size: k }).map((i) => [...unique[i]!]);
       }
-      if (chosen.length !== k || new Set(chosen.map((r) => JSON.stringify(r))).size !== k) {
-        throw new RangeError("unable to find distinct initial centers");
-      }
-      initialSets.push(chosen);
+      return chosen;
+    };
+    // with nstart >= 2 every start draws k of the distinct rows (kmeans_equal_best_dup_seed_1..8 and
+    // experiments/cluster110-nstart-rng.json: the random state after nstart = 2..5 for 8 seeds)
+    if (nstart === 1) initialSets.push(draw());
+    else for (let start = 0; start < nstart; start++) {
+      initialSets.push(sampleInt(unique.length, { size: k }).map((i) => [...unique[i]!]));
     }
   } else {
     const initial = centersInput.length > 0 && typeof centersInput[0] === "number"
@@ -259,6 +295,7 @@ export function kmeans(
   if (algorithm === "Hartigan-Wong" && k === n) throw new RangeError("number of cluster centres must lie between 1 and nrow(x)");
   let best: KmeansFit | null = null;
   let bestW = Infinity;
+  let anyNotConverged = false;
   for (const initial of initialSets) {
     // One cluster: R does no iteration (iter 1, ifault NULL for every algorithm; kmeans_k1_*)
     const result = k === 1 ? { cluster: new Array<number>(n).fill(0), iter: 1, converged: true }
@@ -270,10 +307,12 @@ export function kmeans(
       if (algorithm === "Hartigan-Wong") throw new RangeError("empty cluster: try a better set of initial centers");
       warnings.push("empty cluster: try a better set of initial centers", "empty cluster: try a better set of initial centers");
     }
-    if (!result.converged) warnings.push(`did not converge in ${maxIterations} ${maxIterations === 1 ? "iteration" : "iterations"}`);
+    if (!result.converged) anyNotConverged = true;
     const fit = fitStats(rows, result.cluster, k, data.colNames, data.rowNames, result.iter,
       algorithm === "Hartigan-Wong" && k > 1 ? (result.converged ? 0 : 2) : (result.converged ? null : 2), warnings);
     if (fit.totWithinss < bestW) { best = fit; bestW = fit.totWithinss; }
   }
+  // R warns once when any start stopped at iter.max, even when the kept start converged (kmeans_seed_nstart_lloyd)
+  if (anyNotConverged) best!.warnings.push(`did not converge in ${maxIterations} ${maxIterations === 1 ? "iteration" : "iterations"}`);
   return best!;
 }

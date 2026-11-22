@@ -75,3 +75,14 @@ The user's decisions of 2026-11-22 (Issue #556), written by Claude. They take pr
    Hartigan-Wong and `null` for the others, as R. `cluster` carries the row names when the input has them (an optional
    `names` field), as R's named vector
 6. Warnings go into the result's `warnings: string[]` (as `manova` and `lda`), in R's order and number
+7. **What the implementation reproduces (Claude, 2026-11-23; every kmeans fixture case agrees, the random state after
+   each call included).** Supersedes choice 3 where they differ:
+   - Starts: with `nstart = 1`, k rows by `sample.int(nrow, k)`; if those rows are not distinct, one draw of k rows from
+     the distinct rows (first-appearance order). With `nstart >= 2`, every start draws k of the distinct rows
+     (`experiments/cluster110-nstart-rng.json`). The first start with the smallest `tot.withinss` is kept; when any start
+     stops at `iter.max`, one "did not converge" warning
+   - Hartigan-Wong: the optimal-transfer stage over the live set (a cluster is live when updated within the last n
+     steps), then the quick-transfer stage until n steps move nothing; with two clusters it stops after the quick
+     transfer. `iter` counts the optimal-transfer passes; iter.max + 1 and ifault 2 at the limit
+   - Lloyd/Forgy: `iter` counts assignment passes, the last one confirming; MacQueen: an empty cluster keeps its initial
+     center. One cluster: iter 1, ifault NULL. The center of an empty cluster is NaN
