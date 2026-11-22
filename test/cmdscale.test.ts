@@ -24,6 +24,12 @@ function compareNumbers(label: string, actual: number[], expectedRaw: unknown, t
 function tableValues(v: any): number[][] {
   return Array.isArray(v) ? v : v?.values ?? [];
 }
+function distMatrix(d: { values: number[]; size: number }): number[][] {
+  const n = d.size, out = Array.from({ length: n }, () => new Array<number>(n).fill(0));
+  let p = 0;
+  for (let j = 0; j < n - 1; j++) for (let i = j + 1; i < n; i++) out[i]![j] = out[j]![i] = d.values[p++]!;
+  return out;
+}
 function compare(key: string, actual: CmdscaleResult, scale = 1): void {
   const expected = fixture[key]?.value;
   if (!expected) { mismatches.push(`${key}: missing fixture`); return; }
