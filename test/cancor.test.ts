@@ -179,4 +179,39 @@ describe("cancor", () => {
     expect((r.cor).every(Number.isFinite)).toBe(true);
     console.info(`cancor 100,000 rows: ${(performance.now() - start).toFixed(1)} ms`);
   });
+
+  it("preserves canonical correlations across extreme powers of two and large offsets", () => {
+    const xx = irisRows.map((r) => [r[0], r[1]]);
+    const yy = irisRows.map((r) => [r[2], r[3]]);
+    const base = cancor(xx, yy);
+    for (const exponent of [500, -500, 1000, -1000]) {
+      const fx = 2 ** exponent;
+      const fy = 2 ** -exponent;
+      const fit = cancor(xx.map((row) => row.map((v) => v * fx)), yy.map((row) => row.map((v) => v * fy)));
+      fit.cor.forEach((v, i) => expect(v).toBeCloseTo(base.cor[i]!, 9));
+      fit.xcoef.values.forEach((row, i) => row.forEach((v, j) => {
+        expect(v * fx).toBeCloseTo(base.xcoef.values[i]![j]!, 7);
+      }));
+      fit.ycoef.values.forEach((row, i) => row.forEach((v, j) => {
+        expect(v * fy).toBeCloseTo(base.ycoef.values[i]![j]!, 7);
+      }));
+    }
+
+    for (const shift of [1e8, 1e12]) {
+      const fit = cancor(
+        xx.map((row) => row.map((v) => v + shift)),
+        yy.map((row) => row.map((v) => v + shift)),
+      );
+      const tolerance = shift === 1e8 ? 5e-8 : 5e-4;
+      fit.cor.forEach((v, i) => expect(Math.abs(v - base.cor[i]!)).toBeLessThan(tolerance));
+    }
+  });
+
+  it("centres finite values near Number.MAX_VALUE without overflowing differences", () => {
+    const m = Number.MAX_VALUE;
+    const fit = cancor([[-m], [m], [m]], [[-m], [m], [m]]);
+    expect(fit.cor[0]).toBeCloseTo(1, 12);
+    expect(fit.xcoef.values.flat().every(Number.isFinite)).toBe(true);
+    expect(fit.ycoef.values.flat().every(Number.isFinite)).toBe(true);
+  });
 });
