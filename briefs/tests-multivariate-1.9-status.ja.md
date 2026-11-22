@@ -63,7 +63,9 @@
 - 端の入力 (尺度 1e±100・ずらし 1e8、10 万件、NaN・Infinity、縮退) は指示書 5 節が合格の条件
 - 配列を関数の引数に展開しない (`Math.max(...列)`)
 
-## 段階 1 の作業メモ (2026-11-22)
+## 初回提出時点の作業メモ (差し戻し前・2026-11-22)
+
+> 以下は初回提出時点の記録。差し戻し対応後の確定事項は後段の「差し戻し対応・段階 1 再点検完了」を参照。
 
 - 仕様書: `oracle/{tamhane,page,grubbs,manova,lda,cancor}-behaviour.md` を追加。全て Decisions for the user と空の rStats.js's choices を持つ。choices は変更していない
 - R oracle: `oracle/{tamhane,page,grubbs,manova,lda,cancor}.R` を追加。JSON には公開関数から取り出した数値・文字列・行列だけを入れる
