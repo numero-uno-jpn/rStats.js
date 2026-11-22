@@ -18,10 +18,12 @@ describe("cancor", () => {
     const sx = cross(xc), sy = cross(yc);
     const mx = r.xcoef.values[0]!.map((_, j) => r.xcoef.values.map((row) => row[j]!));
     const my = r.ycoef.values[0]!.map((_, j) => r.ycoef.values.map((row) => row[j]!));
-    const metric = (a: number[][], b: number[][]) => a.map((u) => b.map((v) => u.reduce((s, z, i) => s + z * v[i]!, 0)));
-    const ax = metric(mx, sx.map((row) => mx.map((_, j) => row.reduce((s, z, i) => s + z * mx[i]![j]!, 0))));
-    expect(ax[0]![0]).toBeCloseTo(1, 10);
-    expect(metric(my, sy.map((row) => my.map((_, j) => row.reduce((s, z, i) => s + z * my[i]![j]!, 0))))[0]![0]).toBeCloseTo(1, 10);
+    const a0 = r.xcoef.values.map((row) => row[0]!);
+    const b0 = r.ycoef.values.map((row) => row[0]!);
+    const nx = a0.reduce((s, v, i) => s + v * sx[i]!.reduce((t, z, j) => t + z * a0[j]!, 0), 0);
+    const ny = b0.reduce((s, v, i) => s + v * sy[i]!.reduce((t, z, j) => t + z * b0[j]!, 0), 0);
+    expect(nx).toBeCloseTo(1, 10);
+    expect(ny).toBeCloseTo(1, 10);
   });
   it("supports uncentered and explicitly centered vectors", () => {
     const r = cancor([1, 2, 4, 8, 9], [2, 4, 5, 7, 12], { xcenter: false, ycenter: [1] });
