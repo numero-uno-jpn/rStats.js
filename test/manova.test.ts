@@ -15,6 +15,7 @@ describe("manova", () => {
     expect(s.Wilks.values[0]![1]).toBeGreaterThan(0);
     expect(s["Hotelling-Lawley"].values[0]![1]).toBeGreaterThan(0);
     expect(s.Roy.values[0]![1]).toBeGreaterThan(0);
+    expect(s.royFIsUpperBound).toBe(true);
     expect(s.SS.Residuals!.values).toHaveLength(2);
     expect(s.coef.rows).toContain("(Intercept)");
   });
