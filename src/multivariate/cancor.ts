@@ -86,7 +86,7 @@ export function cancor(x: VectorOrMatrix, y: VectorOrMatrix, options: CancorOpti
   const ys = y0.map((r) => r.map((v, j) => v / sy[j]!));
   const qx = qr(xs, { tol }), qy = qr(ys, { tol });
   if (qx.rank === 0 || qy.rank === 0) throw new RangeError("at least one non-constant column is required in each matrix");
-  const px = qx.pivot.slice(0, qx.rank), py = qy.pivot.slice(0, qy.rank);
+  const px = qx.pivot.slice(0, qx.rank).sort((a, b) => a - b), py = qy.pivot.slice(0, qy.rank).sort((a, b) => a - b);
   const xr = xs.map((r) => px.map((j) => r[j]!)), yr = ys.map((r) => py.map((j) => r[j]!));
   const sxx = cross(xr), syy = cross(yr), sxy = cross(xr, yr);
   const ix = inverseSqrt(sxx, tol), iy = inverseSqrt(syy, tol);
