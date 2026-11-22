@@ -32,11 +32,17 @@ export interface GrubbsTestOptions {
  * @category Hypothesis tests
  */
 export interface GrubbsTestResult {
+  /** Description of the test (R's `method`). */
   method: string;
+  /** Grubbs G and U statistics, in that order. */
   statistic: [number, number];
+  /** Names corresponding to the two entries of `statistic`. */
   statisticName: ["G", "U"];
+  /** P-value for the selected tail and sidedness. */
   pValue: number;
+  /** Text description of the alternative hypothesis. */
   alternative: string;
+  /** Warnings produced while evaluating the test. */
   warnings: string[];
 }
 

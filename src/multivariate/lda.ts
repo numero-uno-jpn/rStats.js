@@ -18,10 +18,15 @@ const LDA_PREDICT_KEYS = ["method", "newdata", "prior", "dimen"] as const;
  * @category Multivariate analysis
  */
 export interface LdaOptions {
+  /** Fitting method; only "moment" is supported. Default "moment". */
   method?: "moment" | string;
+  /** Prior class probabilities, in class-level order. Defaults to observed class proportions. */
   prior?: readonly number[];
+  /** Numerical tolerance for rank determination and within-class covariance calculations. Default 1e-4. */
   tol?: number;
+  /** Return leave-one-out cross-validation predictions instead of a fitted model. Default false. */
   CV?: boolean;
+  /** Names for predictor columns in matrix input. */
   xNames?: readonly string[];
   /** Declared class levels; unused levels remain in `lev` and produce warnings. */
   groupLevels?: readonly GroupLabel[];
@@ -32,58 +37,85 @@ export interface LdaOptions {
  * @category Multivariate analysis
  */
 export interface LdaPredictionOptions {
+  /** Prediction method; only "plug-in" is supported. Default "plug-in". */
   method?: "plug-in" | string;
+  /** New predictor rows; omitted to predict the observations used to fit the model. */
   newdata?: VectorOrMatrix;
+  /** Prior class probabilities for this prediction. Defaults to the fitted priors. */
   prior?: readonly number[];
+  /** Number of discriminant score dimensions to return. Defaults to all available dimensions. */
   dimen?: number;
 }
 /** A labelled LDA result matrix.
  * @category Multivariate analysis
  */
-export interface LdaTable { rows: string[] | string | null; cols: string[] | string | null; values: number[][]; }
+export interface LdaTable {
+  /** Row labels, or null when rows are observations without labels. */
+  rows: string[] | string | null;
+  /** Column labels, or null when columns are not named. */
+  cols: string[] | string | null;
+  /** Numeric matrix entries in row-major order. */
+  values: number[][];
+}
 /** A fitted linear discriminant model.
  * @category Multivariate analysis
  */
 export interface LdaFit {
+  /** Prior class probabilities in the order of `lev`. */
   prior: number[];
+  /** Number of training observations in each class. */
   counts: number[];
+  /** Class means, with classes in rows and predictors in columns. */
   means: LdaTable;
+  /** Metric-normalised discriminant directions, with predictors in rows and dimensions in columns. */
   scaling: LdaTable;
+  /** Singular values associated with the discriminant dimensions. */
   svd: number[] | number;
+  /** Number of observations used to fit the model. */
   N: number;
+  /** Class labels in prediction and prior order. */
   lev: string[];
+  /** Warnings produced while fitting the model. */
   warnings: string[];
-  /** @internal */
+  /** @internal Unscaled class means retained for prediction. */
   _means: number[][];
-  /** @internal */
+  /** @internal Class labels with non-empty training observations. */
   _activeLev: string[];
-  /** @internal */
+  /** @internal Prior-weighted center of the predictor columns. */
   _center: number[];
-  /** @internal */
+  /** @internal Internal discriminant directions in scaled predictor coordinates. */
   _scaling: number[][];
-  /** @internal */
+  /** @internal Inverse pooled within-class covariance matrix. */
   _covInverse: number[][];
-  /** @internal */
+  /** @internal Predictor scale factors used internally. */
   _scale: number[];
-  /** @internal */
+  /** @internal Scaled training predictor matrix. */
   _x: number[][];
-  /** @internal */
+  /** @internal Predictor column names. */
   _xNames: string[];
-  /** @internal */
-  _tol: number;
+  /** @internal Rank tolerance used to fit the model. */
+  _tol: number[];
 }
 /** Plug-in prediction from an LDA fit.
  * @category Multivariate analysis
  */
 export interface LdaPrediction {
+  /** Predicted class label for each observation. */
   class: string[];
+  /** Posterior class probabilities, with classes in columns. */
   posterior: LdaTable;
+  /** Discriminant scores for each observation. */
   x: LdaTable;
 }
 /** Leave-one-out LDA predictions.
  * @category Multivariate analysis
  */
-export interface LdaCVResult { class: string[]; posterior: LdaTable; }
+export interface LdaCVResult {
+  /** Leave-one-out predicted class label for each training observation. */
+  class: string[];
+  /** Leave-one-out posterior class probabilities, with classes in columns. */
+  posterior: LdaTable;
+}
 
 function zeros(r: number, c: number): number[][] { return Array.from({ length: r }, () => new Array<number>(c).fill(0)); }
 function cross(a: number[][]): number[][] {

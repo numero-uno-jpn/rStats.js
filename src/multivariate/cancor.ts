@@ -14,20 +14,30 @@ const CANCOR_KEYS = ["xcenter", "ycenter", "tol", "xNames", "yNames"] as const;
  * @category Multivariate analysis
  */
 export interface CancorOptions {
+  /** Center the columns of x by their means, leave them uncentered, or supply explicit centers. Default true. */
   xcenter?: boolean | readonly number[];
+  /** Center the columns of y by their means, leave them uncentered, or supply explicit centers. Default true. */
   ycenter?: boolean | readonly number[];
+  /** Numerical tolerance used to determine the ranks of x and y. Default 1e-7. */
   tol?: number;
+  /** Names for the columns of x. */
   xNames?: readonly string[];
+  /** Names for the columns of y. */
   yNames?: readonly string[];
 }
 /** Result of canonical correlation.
  * @category Multivariate analysis
  */
 export interface CancorResult {
+  /** Canonical correlations, ordered from largest to smallest. */
   cor: number[] | number;
+  /** Canonical coefficients for x, with original variable names in rows. */
   xcoef: { rows: string[] | string | null; cols: null; values: number[][] };
+  /** Canonical coefficients for y, with original variable names in rows. */
   ycoef: { rows: string[] | string | null; cols: null; values: number[][] };
+  /** Centers applied to the columns of x. */
   xcenter: number[] | number;
+  /** Centers applied to the columns of y. */
   ycenter: number[] | number;
 }
 function cross(a: number[][], b: number[][] = a): number[][] {
