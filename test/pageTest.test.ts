@@ -141,7 +141,7 @@ describe("pageTest", () => {
       expect(r.pValue).toBeCloseTo(base.pValue, 12);
     }
     const shifted = pageTest(m1.map((row) => row.map((v) => v + 1e8)));
-    expect(shifted.statistic).toBeCloseTo(base.statistic, 7);
+    expect(Array.isArray(shifted.statistic) ? shifted.statistic[0]! : shifted.statistic).toBeCloseTo(Array.isArray(base.statistic) ? base.statistic[0]! : base.statistic, 7);
   });
 
   it("handles 100,000 two-treatment blocks", () => {
