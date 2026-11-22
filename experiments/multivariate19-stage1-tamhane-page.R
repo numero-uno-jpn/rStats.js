@@ -55,10 +55,10 @@ degenerate <- list(singleton=pair_calc(list(A=one,B=two,C=singleton)),
 ## Page statistic: average within-block ranks, L, null moments, continuity correction and normal tails.
 page_calc <- function(mm,alt="two.sided") {
  nr<-nrow(mm); nc<-ncol(mm)
- rr<-t(apply(mm,1,function(z) rank(z,na.last="keep",ties.method="average")))
+ rr<-t(apply(mm,1,function(z) rank(z,na.last=TRUE,ties.method="average")))
  cj<-colSums(rr,na.rm=TRUE); ll<-sum(seq_len(nc)*cj)
  ee<-nr*nc*(nc+1)^2/4; vv<-nr*nc^2*(nc-1)*(nc+1)^2/144
- zz<-(ll-ee-.5*sign(ll-ee))/sqrt(vv)
+ zz<-(ll-ee-.5)/sqrt(vv)
  pp<-if(alt=="greater") pnorm(zz,lower.tail=FALSE) else if(alt=="less") pnorm(zz) else 2*pnorm(-abs(zz))
  c(L=ll,E=ee,V=vv,z=zz,p=pp)
 }
