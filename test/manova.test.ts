@@ -2,6 +2,9 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { manova, manovaSummary } from "../src/entries/multivariate.js";
 
+/** R's JSON (jsonlite, auto_unbox) has a scalar for a vector of one; rStats.js always returns arrays */
+const boxed = <T>(v: T | T[] | null): T[] | null => (v === null ? null : Array.isArray(v) ? v : [v]);
+
 const irisRows = JSON.parse(readFileSync(new URL("./fixtures/iris.json", import.meta.url), "utf8")) as [number, number, number, number, string][];
 const irisData = {
   "Sepal.Length": irisRows.map((r) => r[0]),
@@ -33,8 +36,8 @@ function compareManovaSummary(actual: ReturnType<typeof manovaSummary>, expected
 }
 
 function compareTable(actual: { rows: string[] | string; cols: string[] | string | null; values: number[][] }, expected: any): void {
-  expect(actual.rows).toEqual(expected.rows);
-  expect(actual.cols).toEqual(expected.cols);
+  expect(actual.rows).toEqual(boxed(expected.rows));
+  expect(actual.cols).toEqual(boxed(expected.cols));
   expect(actual.values.length).toBe(expected.values.length);
   for (let i = 0; i < expected.values.length; i++) {
     expect(actual.values[i]!.length).toBe(expected.values[i]!.length);

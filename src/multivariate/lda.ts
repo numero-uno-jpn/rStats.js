@@ -51,9 +51,9 @@ export interface LdaPredictionOptions {
  */
 export interface LdaTable {
   /** Row labels, or null when rows are observations without labels. */
-  rows: string[] | string | null;
+  rows: string[] | null;
   /** Column labels, or null when columns are not named. */
-  cols: string[] | string | null;
+  cols: string[] | null;
   /** Numeric matrix entries in row-major order. */
   values: number[][];
 }
@@ -70,7 +70,7 @@ export interface LdaFit {
   /** Metric-normalised discriminant directions, with predictors in rows and dimensions in columns. */
   scaling: LdaTable;
   /** Singular values associated with the discriminant dimensions. */
-  svd: number[] | number;
+  svd: number[];
   /** Number of observations used to fit the model. */
   N: number;
   /** Class labels in prediction and prior order. */
@@ -224,9 +224,9 @@ function fitCore(x0: number[][], g0: readonly GroupLabel[], options: LdaOptions,
   const covInv = metric.inverse.map((r) => r.map((v) => v * (n - g)));
   const names = xNames.length === p ? xNames : Array.from({ length: p }, (_, i) => `x${i + 1}`);
   return {
-    prior, counts, means: { rows: levels, cols: names.length === 1 ? names[0]! : names, values: originalMeans },
-    scaling: { rows: names.length === 1 ? names[0]! : names, cols: keepRoots.length === 1 ? "LD1" : keepRoots.map((_, i) => `LD${i + 1}`), values: scaling },
-    svd: (() => { const v = keepRoots.map((i) => Math.sqrt(Math.max(0, be.values[i]!) * (n - g) / Math.max(1, g - 1))); return v.length === 1 ? v[0]! : v; })(),
+    prior, counts, means: { rows: levels, cols: names, values: originalMeans },
+    scaling: { rows: names, cols: keepRoots.map((_, i) => `LD${i + 1}`), values: scaling },
+    svd: (() => { const v = keepRoots.map((i) => Math.sqrt(Math.max(0, be.values[i]!) * (n - g) / Math.max(1, g - 1))); return v; })(),
     N: n, lev: declared ?? levels, warnings, _means: means, _activeLev: levels, _center: center, _scaling: scalingNorm, _covInverse: covInv,
     _scale: scale, _x: xs, _xNames: names, _tol: tol,
   };
@@ -350,6 +350,6 @@ export function ldaPredict(fit: LdaFit, options: LdaPredictionOptions = {}): Lda
   return {
     class: posterior.map((r) => fit._activeLev[r.indexOf(Math.max(...r))]!),
     posterior: { rows: null, cols: fit._activeLev, values: posterior },
-    x: { rows: null, cols: dimen === 1 ? "LD1" : Array.from({ length: dimen }, (_, i) => `LD${i + 1}`), values: scores },
+    x: { rows: null, cols: Array.from({ length: dimen }, (_, i) => `LD${i + 1}`), values: scores },
   };
 }

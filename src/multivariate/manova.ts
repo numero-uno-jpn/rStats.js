@@ -38,9 +38,9 @@ export interface ManovaSummaryOptions {
  */
 export interface MatrixTable {
   /** Row labels; a scalar string is used for a one-row table. */
-  rows: string[] | string;
+  rows: string[];
   /** Column labels, or null for a matrix without named columns. */
-  cols: string[] | string | null;
+  cols: string[] | null;
   /** Numeric table entries in row-major order. */
   values: number[][];
 }
@@ -113,7 +113,7 @@ function mul(a: number[][], b: number[][]): number[][] {
 function scaleRows(a: number[][], scales: readonly number[]): number[][] {
   return a.map((row) => row.map((v, j) => v * scales[j]!));
 }
-function table(rows: string[] | string, cols: string[] | string | null, values: number[][]): MatrixTable { return { rows, cols, values }; }
+function table(rows: string[], cols: string[] | null, values: number[][]): MatrixTable { return { rows, cols, values }; }
 function responseParts(formula: string): { names: string[]; rhs: string } {
   const m = /^\s*cbind\s*\((.*)\)\s*~\s*(.+)$/s.exec(formula);
   if (!m) throw new TypeError("the response must be cbind(y1, y2, ...) in a MANOVA formula");
@@ -323,7 +323,7 @@ export function manovaSummary(fit: ManovaFit, options: ManovaSummaryOptions = {}
     const raw = name === "Residuals" ? fit.residualSSP : fit.termSSP[name]!;
     SS[name] = table(responseLabels, responseLabels, raw);
   }
-  const Eigenvalues = table(names.length === 1 ? names[0]! : names, null, names.map((name) => rootsByTerm[name] ?? []));
+  const Eigenvalues = table(names, null, names.map((name) => rootsByTerm[name] ?? []));
   const coef = table(fit.coefficientNames, responseLabels, fit.coefficients);
   return {
     Pillai: make("Pillai"), Wilks: make("Wilks"), "Hotelling-Lawley": make("Hotelling-Lawley"), Roy: make("Roy"),

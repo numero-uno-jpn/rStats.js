@@ -55,9 +55,9 @@
     "ja": "いつも `null` です。R は列 (正準変量) に名前を付けません。"
   },
   "CancorResult.xcoef.rows#summary": {
-    "hash": "36e36eea4ede",
-    "en": "Names of the x variables (one name as a string, `null` without names), as R's row names.",
-    "ja": "x の変数の名前です (名前が 1 つなら文字列、名前がなければ `null`)。R の行名に当たります。"
+    "hash": "ba08967ed27c",
+    "en": "Names of the x variables (`null` without names), as R's row names.",
+    "ja": "x の変数の名前です (名前がなければ `null`)。R の行名に当たります。"
   },
   "CancorResult.xcoef.values#summary": {
     "hash": "72d786462412",
@@ -80,9 +80,9 @@
     "ja": "いつも `null` です。R は列 (正準変量) に名前を付けません。"
   },
   "CancorResult.ycoef.rows#summary": {
-    "hash": "16a8688e17cf",
-    "en": "Names of the y variables (one name as a string, `null` without names), as R's row names.",
-    "ja": "y の変数の名前です (名前が 1 つなら文字列、名前がなければ `null`)。R の行名に当たります。"
+    "hash": "aef1c03818bc",
+    "en": "Names of the y variables (`null` without names), as R's row names.",
+    "ja": "y の変数の名前です (名前がなければ `null`)。R の行名に当たります。"
   },
   "CancorResult.ycoef.values#summary": {
     "hash": "7aa90b17e047",

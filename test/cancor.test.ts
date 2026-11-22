@@ -2,6 +2,9 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { cancor } from "../src/entries/multivariate.js";
 
+/** R's JSON (jsonlite, auto_unbox) has a scalar for a vector of one; rStats.js always returns arrays */
+const boxed = <T>(v: T | T[] | null): T[] | null => (v === null ? null : Array.isArray(v) ? v : [v]);
+
 function cross(a: number[][]): number[][] {
   return a[0]!.map((_, i) => a[0]!.map((__, j) => a.reduce((s, r) => s + r[i]! * r[j]!, 0)));
 }
@@ -32,18 +35,18 @@ function scoreProjector(scores: number[][]): number[][] {
 }
 
 function compareCancor(actual: ReturnType<typeof cancor>, expected: any, x?: number[][], y?: number[][]): void {
-  const cor = Array.isArray(actual.cor) ? actual.cor : [actual.cor];
+  const cor = actual.cor;
   const expectedCor = Array.isArray(expected.cor) ? expected.cor : [expected.cor];
   expect(cor.length).toBe(expectedCor.length);
   expectedCor.forEach((v: number, i: number) => expect(cor[i]).toBeCloseTo(v, 8));
-  const xc = Array.isArray(actual.xcenter) ? actual.xcenter : [actual.xcenter];
-  const yc = Array.isArray(actual.ycenter) ? actual.ycenter : [actual.ycenter];
+  const xc = actual.xcenter;
+  const yc = actual.ycenter;
   const xce = Array.isArray(expected.xcenter) ? expected.xcenter : [expected.xcenter];
   const yce = Array.isArray(expected.ycenter) ? expected.ycenter : [expected.ycenter];
   xce.forEach((v: number, i: number) => expect(xc[i]).toBeCloseTo(v, 9));
   yce.forEach((v: number, i: number) => expect(yc[i]).toBeCloseTo(v, 9));
-  expect(actual.xcoef.rows).toEqual(expected.xcoef.rows);
-  expect(actual.ycoef.rows).toEqual(expected.ycoef.rows);
+  expect(actual.xcoef.rows).toEqual(boxed(expected.xcoef.rows));
+  expect(actual.ycoef.rows).toEqual(boxed(expected.ycoef.rows));
   expect(actual.xcoef.cols).toBe(expected.xcoef.cols);
   expect(actual.ycoef.cols).toBe(expected.ycoef.cols);
   const ncan = expectedCor.length;
@@ -100,15 +103,15 @@ describe("cancor", () => {
       xNames: ["Sepal.Length", "Sepal.Width"],
       yNames: ["Petal.Length", "Petal.Width"],
     });
-    const cor = Array.isArray(actual.cor) ? actual.cor : [actual.cor];
+    const cor = actual.cor;
     expect(cor).toHaveLength(expected.cor.length);
     expected.cor.forEach((v: number, i: number) => expect(cor[i]).toBeCloseTo(v, 8));
-    const xc = Array.isArray(actual.xcenter) ? actual.xcenter : [actual.xcenter];
-    const yc = Array.isArray(actual.ycenter) ? actual.ycenter : [actual.ycenter];
+    const xc = actual.xcenter;
+    const yc = actual.ycenter;
     expected.xcenter.forEach((v: number, i: number) => expect(xc[i]).toBeCloseTo(v, 10));
     expected.ycenter.forEach((v: number, i: number) => expect(yc[i]).toBeCloseTo(v, 10));
-    expect(actual.xcoef.rows).toEqual(expected.xcoef.rows);
-    expect(actual.ycoef.rows).toEqual(expected.ycoef.rows);
+    expect(actual.xcoef.rows).toEqual(boxed(expected.xcoef.rows));
+    expect(actual.ycoef.rows).toEqual(boxed(expected.ycoef.rows));
     const signs = expected.cor.map((_: number, j: number) => {
       const dot = actual.xcoef.values.reduce((s, row, i) => s + row[j]! * expected.xcoef.values[i]![j]!, 0);
       return dot < 0 ? -1 : 1;
@@ -133,11 +136,11 @@ describe("cancor", () => {
 
   it("returns nonzero canonical pairs with cross-product normalisation", () => {
     const r = cancor(x, y, { xNames: ["a", "b"], yNames: ["c", "d"] });
-    expect(Array.isArray(r.cor) ? r.cor : [r.cor]).toHaveLength(2);
+    expect(r.cor).toHaveLength(2);
     expect(r.xcoef.rows).toEqual(["a", "b"]);
     expect(r.ycoef.rows).toEqual(["c", "d"]);
-    const xcenter = Array.isArray(r.xcenter) ? r.xcenter : [r.xcenter];
-    const ycenter = Array.isArray(r.ycenter) ? r.ycenter : [r.ycenter];
+    const xcenter = r.xcenter;
+    const ycenter = r.ycenter;
     const xc = x.map((row) => row.map((v, j) => v - xcenter[j]!));
     const yc = y.map((row) => row.map((v, j) => v - ycenter[j]!));
     const sx = cross(xc), sy = cross(yc);
@@ -150,9 +153,9 @@ describe("cancor", () => {
   });
   it("supports uncentered and explicitly centered vectors", () => {
     const r = cancor([1, 2, 4, 8, 9], [2, 4, 5, 7, 12], { xcenter: false, ycenter: [1] });
-    expect(Array.isArray(r.xcenter) ? r.xcenter : [r.xcenter]).toEqual([0]);
-    expect(Array.isArray(r.ycenter) ? r.ycenter : [r.ycenter]).toEqual([1]);
-    const cor = Array.isArray(r.cor) ? r.cor : [r.cor];
+    expect(r.xcenter).toEqual([0]);
+    expect(r.ycenter).toEqual([1]);
+    const cor = r.cor;
     expect(cor.every(Number.isFinite)).toBe(true);
   });
   it("reduces collinear columns and is invariant to response scaling", () => {
@@ -160,7 +163,7 @@ describe("cancor", () => {
     const r = cancor(xx, y, { xNames: ["x1", "x2", "x3"] });
     expect(r.xcoef.rows).toHaveLength(2);
     const scaled = cancor(x.map((r) => r.map((v) => v * 1e100)), y.map((r) => r.map((v) => v * 1e-100)));
-    const scaledFirst = Array.isArray(scaled.cor) ? scaled.cor[0]! : scaled.cor;
+    const scaledFirst = scaled.cor[0]!;
     const baseCor = cancor(x, y).cor;
     const baseFirst = Array.isArray(baseCor) ? baseCor[0]! : baseCor;
     expect(scaledFirst).toBeCloseTo(baseFirst, 10);
@@ -173,7 +176,7 @@ describe("cancor", () => {
     const yy = xx.map((r, i) => [r[0]! + 0.2 * r[1]! + Math.sin(i * 0.07), r[1]! - 0.1 * r[0]! + Math.cos(i * 0.05)]);
     const start = performance.now();
     const r = cancor(xx, yy);
-    expect((Array.isArray(r.cor) ? r.cor : [r.cor]).every(Number.isFinite)).toBe(true);
+    expect((r.cor).every(Number.isFinite)).toBe(true);
     console.info(`cancor 100,000 rows: ${(performance.now() - start).toFixed(1)} ms`);
   });
 });

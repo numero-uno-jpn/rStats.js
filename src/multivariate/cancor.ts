@@ -30,11 +30,11 @@ export interface CancorOptions {
  */
 export interface CancorResult {
   /** Canonical correlations, ordered from largest to smallest. */
-  cor: number[] | number;
+  cor: number[];
   /** Canonical coefficients for x, with original variable names in rows. */
   xcoef: {
-    /** Names of the x variables (one name as a string, `null` without names), as R's row names. */
-    rows: string[] | string | null;
+    /** Names of the x variables (`null` without names), as R's row names. */
+    rows: string[] | null;
     /** Always `null`: R gives the columns (the canonical variates) no names. */
     cols: null;
     /** The coefficients: one row per x variable, one column per canonical variate. */
@@ -42,17 +42,17 @@ export interface CancorResult {
   };
   /** Canonical coefficients for y, with original variable names in rows. */
   ycoef: {
-    /** Names of the y variables (one name as a string, `null` without names), as R's row names. */
-    rows: string[] | string | null;
+    /** Names of the y variables (`null` without names), as R's row names. */
+    rows: string[] | null;
     /** Always `null`: R gives the columns (the canonical variates) no names. */
     cols: null;
     /** The coefficients: one row per y variable, one column per canonical variate. */
     values: number[][];
   };
   /** Centers applied to the columns of x. */
-  xcenter: number[] | number;
+  xcenter: number[];
   /** Centers applied to the columns of y. */
-  ycenter: number[] | number;
+  ycenter: number[];
 }
 function cross(a: number[][], b: number[][] = a): number[][] {
   const out = Array.from({ length: a[0]?.length ?? 0 }, () => new Array<number>(b[0]?.length ?? 0).fill(0));
@@ -156,10 +156,10 @@ export function cancor(x: VectorOrMatrix, y: VectorOrMatrix, options: CancorOpti
   const yRows = options.yNames === undefined ? null : py.map((i) => yNames[i]!);
   const cor = dec.d.slice(0, ncan);
   return {
-    cor: cor.length === 1 ? cor[0]! : cor,
-    xcoef: { rows: xRows === null ? null : xRows.length === 1 ? xRows[0]! : xRows, cols: null, values: ax },
-    ycoef: { rows: yRows === null ? null : yRows.length === 1 ? yRows[0]! : yRows, cols: null, values: by },
-    xcenter: xc.length === 1 ? xc[0]! : xc,
-    ycenter: yc.length === 1 ? yc[0]! : yc,
+    cor,
+    xcoef: { rows: xRows, cols: null, values: ax },
+    ycoef: { rows: yRows, cols: null, values: by },
+    xcenter: xc,
+    ycenter: yc,
   };
 }

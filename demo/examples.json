@@ -1040,7 +1040,7 @@
       "r": "local({ x <- matrix(c(1, 2, 1.2, 1.8, 0.8, 2.1, 1.1, 2.2, 3, 3, 3.2, 2.8, 2.8, 3.1, 3.1, 3.2, 5, 1, 5.2, 0.8, 4.8, 1.1, 5.1, 1.2), ncol = 2, byrow = TRUE); g <- factor(rep(c(\"A\", \"B\", \"C\"), each = 4)); f <- MASS::lda(x, g); p <- predict(f, newdata = matrix(c(1, 2, 3, 3, 5, 1), ncol = 2, byrow = TRUE)); as.vector(t(p$posterior)) })" },
     { "id": "cancor-demo", "tab": "tests",
       "title": { "en": "Canonical correlations between two sets of measurements", "ja": "2 組の測定値の正準相関" },
-      "js": "(() => { const x = [[1, 2], [2, 1], [3, 4], [4, 3], [5, 6], [6, 5], [7, 8], [8, 7]]; const y = [[2, 1], [1, 3], [4, 2], [3, 5], [6, 4], [5, 7], [8, 6], [7, 9]]; const r = cancor(x, y); return Array.isArray(r.cor) ? r.cor : [r.cor]; })()",
+      "js": "(() => { const x = [[1, 2], [2, 1], [3, 4], [4, 3], [5, 6], [6, 5], [7, 8], [8, 7]]; const y = [[2, 1], [1, 3], [4, 2], [3, 5], [6, 4], [5, 7], [8, 6], [7, 9]]; const r = cancor(x, y); return r.cor; })()",
       "r": "local({ x <- matrix(c(1, 2, 2, 1, 3, 4, 4, 3, 5, 6, 6, 5, 7, 8, 8, 7), ncol = 2, byrow = TRUE); y <- matrix(c(2, 1, 1, 3, 4, 2, 3, 5, 6, 4, 5, 7, 8, 6, 7, 9), ncol = 2, byrow = TRUE); stats::cancor(x, y)$cor })" }
   ]
 }

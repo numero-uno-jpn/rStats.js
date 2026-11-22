@@ -2,6 +2,9 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { lda, ldaPredict, type LdaFit } from "../src/entries/multivariate.js";
 
+/** R's JSON (jsonlite, auto_unbox) has a scalar for a vector of one; rStats.js always returns arrays */
+const boxed = <T>(v: T | T[] | null): T[] | null => (v === null ? null : Array.isArray(v) ? v : [v]);
+
 const x = [
   [1, 2], [1.2, 2.1], [0.8, 1.8], [1.1, 2.2], [0.9, 1.9], [1.3, 2.0],
   [4, 5], [4.2, 5.1], [3.8, 4.8], [4.1, 5.2], [3.9, 4.9], [4.3, 5.0],
@@ -22,17 +25,17 @@ function compareLdaFit(actual: LdaFit, expected: any, warnings: any = []): void 
   expect(actual.prior.length).toBe(expected.prior.length);
   expected.prior.forEach((v: number, i: number) => expect(actual.prior[i]).toBeCloseTo(v, 9));
   expect(actual.counts).toEqual(expected.counts);
-  expect(actual.means.rows).toEqual(expected.means.rows);
-  expect(actual.means.cols).toEqual(expected.means.cols);
+  expect(actual.means.rows).toEqual(boxed(expected.means.rows));
+  expect(actual.means.cols).toEqual(boxed(expected.means.cols));
   expectMatrixClose(actual.means.values, expected.means.values, 1e-11);
-  expect(actual.scaling.rows).toEqual(expected.scaling.rows);
-  expect(actual.scaling.cols).toEqual(expected.scaling.cols);
+  expect(actual.scaling.rows).toEqual(boxed(expected.scaling.rows));
+  expect(actual.scaling.cols).toEqual(boxed(expected.scaling.cols));
   const signs = expected.scaling.values[0]!.map((_: number, j: number) => {
     const dot = actual.scaling.values.reduce((s, row, i) => s + row[j]! * expected.scaling.values[i]![j]!, 0);
     return dot < 0 ? -1 : 1;
   });
   expectMatrixClose(actual.scaling.values.map((row) => row.map((v, j) => v * signs[j]!)), expected.scaling.values, 1e-11);
-  const svd = Array.isArray(actual.svd) ? actual.svd : [actual.svd];
+  const svd = actual.svd;
   const expectedSvd = Array.isArray(expected.svd) ? expected.svd : [expected.svd];
   expect(svd).toHaveLength(expectedSvd.length);
   expectedSvd.forEach((v: number, i: number) => expect(svd[i]).toBeCloseTo(v, 8));
@@ -48,9 +51,9 @@ function compareLdaPrediction(actual: ReturnType<typeof ldaPredict>, expected: a
   }]);
   if (classDiffs.length) console.log("LDA class differences", JSON.stringify(classDiffs));
   expect(actual.class).toEqual(expected.class);
-  expect(actual.posterior.cols).toEqual(expected.posterior.cols);
+  expect(actual.posterior.cols).toEqual(boxed(expected.posterior.cols));
   expectMatrixClose(actual.posterior.values, expected.posterior.values, 1e-11);
-  expect(actual.x.cols).toEqual(expected.x.cols);
+  expect(actual.x.cols).toEqual(boxed(expected.x.cols));
   const signs = expected.x.values[0]!.map((_: number, j: number) => {
     const dot = actual.x.values.reduce((s, row, i) => s + row[j]! * expected.x.values[i]![j]!, 0);
     return dot < 0 ? -1 : 1;
@@ -111,9 +114,9 @@ describe("lda", () => {
     const newdata = [0, 50, 100, 149].map((i) => { const r = irisRows[i]!; return [r[0], r[1], r[2], r[3]]; });
     const pred = ldaPredict(fit, { newdata });
     expect(pred.class).toEqual(expected.class);
-    expect(pred.posterior.cols).toEqual(expected.posterior.cols);
+    expect(pred.posterior.cols).toEqual(boxed(expected.posterior.cols));
     expectMatrixClose(pred.posterior.values, expected.posterior.values, 1e-11);
-    expect(pred.x.cols).toEqual(expected.x.cols);
+    expect(pred.x.cols).toEqual(boxed(expected.x.cols));
     const expectedScores = expected.x.values as number[][];
     const signs = expectedScores[0]!.map((_, j) => {
       const dot = pred.x.values.reduce((s, row, i) => s + row[j]! * expectedScores[i]![j]!, 0);
@@ -213,11 +216,11 @@ describe("lda", () => {
     const fit = lda(x, g);
     expect(fit.lev).toEqual(["a", "b"]);
     expect(fit.counts).toEqual([6, 6]);
-    expect(fit.scaling.cols).toBe("LD1");
+    expect(fit.scaling.cols).toEqual(["LD1"]);
     const v = fit.scaling.values.map((r) => r[0]!);
     const maxIndex = v.reduce((m, z, i) => Math.abs(z) > Math.abs(v[m]!) ? i : m, 0);
     expect(v[maxIndex]).toBeGreaterThan(0);
-    expect(Number.isFinite(fit.svd)).toBe(true);
+    expect(fit.svd.length === 1 && Number.isFinite(fit.svd[0]!)).toBe(true);
   });
   it("predicts classes, posterior probabilities and discriminant scores", () => {
     const fit = lda(x, g, { CV: false });
