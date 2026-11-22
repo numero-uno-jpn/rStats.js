@@ -16,8 +16,6 @@ describe("cancor", () => {
     const xc = x.map((row) => row.map((v, j) => v - r.xcenter[j]!));
     const yc = y.map((row) => row.map((v, j) => v - r.ycenter[j]!));
     const sx = cross(xc), sy = cross(yc);
-    const mx = r.xcoef.values[0]!.map((_, j) => r.xcoef.values.map((row) => row[j]!));
-    const my = r.ycoef.values[0]!.map((_, j) => r.ycoef.values.map((row) => row[j]!));
     const a0 = r.xcoef.values.map((row) => row[0]!);
     const b0 = r.ycoef.values.map((row) => row[0]!);
     const nx = a0.reduce((s, v, i) => s + v * sx[i]!.reduce((t, z, j) => t + z * a0[j]!, 0), 0);
