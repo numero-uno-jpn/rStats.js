@@ -172,8 +172,11 @@ describe("manova", () => {
       group: [...Array(50).fill("a"), ...Array(50).fill("b")],
     };
     const summary = manovaSummary(manova("cbind(y1, y2) ~ group", d));
+    // mpmath (100 dps) on the exact binary64 input gives the sole root
+    // 4.81602749170450028027e29 and Pillai F = (98 - 1) * root.
+    const expectedPillaiF = 4.671546666953365e31;
     expect(Number.isFinite(summary.Pillai.values[0]![2])).toBe(true);
-    expect(summary.Pillai.values[0]![2]).toBeGreaterThan(1e28);
+    expect(summary.Pillai.values[0]![2] / expectedPillaiF).toBeCloseTo(1, 8);
     expect(Number.isFinite(summary.Wilks.values[0]![2])).toBe(true);
     expect(summary.Wilks.values[0]![2]).toBeGreaterThan(1e28);
     expect(summary.Pillai.values[0]![5]).toBe(0);
