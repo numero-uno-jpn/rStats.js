@@ -61,6 +61,7 @@ function encode(node: number, n: number): number { return node < n ? -(node + 1)
 
 /**
  * Lance-Williams hierarchical clustering of a condensed distance object.
+ * Equivalent to R's stats::hclust().
  * @category Multivariate analysis
  */
 export function hclust(d: DistResult, options: HclustOptions = {}): HclustFit & { warnings: string[] } {
