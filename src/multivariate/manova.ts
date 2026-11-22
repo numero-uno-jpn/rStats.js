@@ -193,21 +193,26 @@ function rootsFor(e: number[][], h: number[][], tol: number): number[] {
 function statRow(roots0: readonly number[], p: number, q: number, v: number, name: ManovaTestName): number[] {
   const roots = roots0.slice(0, Math.min(p, q)).map((x) => Math.max(0, x));
   const s = Math.min(p, q), m = (Math.abs(p - q) - 1) / 2, n0 = (v - p - 1) / 2;
-  const pillai = roots.reduce((a, x) => a + (x > 1 ? 1 / (1 + 1 / x) : x / (1 + x)), 0);
+  const pillai = roots.reduce((a, x) => a + (x > 1e150 ? 1 / (1 + 1 / x) : x / (1 + x)), 0);
   const pillaiComplement = roots.reduce((a, x) => a + 1 / (1 + x), 0);
   const logWilks = roots.reduce((a, x) => a - Math.log1p(x), 0);
-  const wilks = Math.exp(logWilks);
+  const wilks = logWilks > -700 ? roots.reduce((a, x) => a / (1 + x), 1) : Math.exp(logWilks);
   const hotelling = roots.reduce((a, x) => a + x, 0);
   const roy = roots[0] ?? 0;
   let value = NaN, df1 = NaN, df2 = NaN, f = NaN;
   switch (name) {
     case "Pillai":
       value = pillai; df1 = s * (2 * m + s + 1); df2 = s * (2 * n0 + s + 1);
-      f = ((2 * n0 + s + 1) / (2 * m + s + 1)) * value / pillaiComplement; break;
+      const complement = s - value > 0 ? s - value : pillaiComplement;
+      f = ((2 * n0 + s + 1) / (2 * m + s + 1)) * value / complement; break;
     case "Wilks": {
       value = wilks; const t = p * q > 2 ? Math.sqrt((p * p * q * q - 4) / (p * p + q * q - 5)) : 1;
       const u = (p * q - 2) / 4; df1 = p * q; df2 = (v - (p - q + 1) / 2) * t - 2 * u;
-      f = Math.expm1(-logWilks / t) * (df2 / df1); break;
+      const wt = value ** (1 / t);
+      f = wt > 0 && wt < 1
+        ? ((1 - wt) / wt) * (df2 / df1)
+        : Math.expm1(-logWilks / t) * (df2 / df1);
+      break;
     }
     case "Hotelling-Lawley":
       value = hotelling; df1 = s * (2 * m + s + 1); df2 = 2 * (s * n0 + 1);
