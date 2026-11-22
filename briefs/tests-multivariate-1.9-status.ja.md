@@ -71,3 +71,16 @@
 - 数値確認済み: Page の L・帰無平均・分散・連続性補正 z と正規 p (page_m1_two.sided、page_size_k3_n2、page_ties)
 - 追加検証が必要: T2/T2' の df・調整確率 (特に T2')、Grubbs 3 type の U/p と type 20 補間、MANOVA 4 統計量の F/df、lda の scaling の正規化・符号と CV、cancor の係数正規化・符号
 - 現段階は仕様書の初稿。未確認式を明示しており、段階 1 完了とはまだ扱わない。R 実験の結果を反映し、必要な追加実験を済ませてから Issue に正式報告する
+
+## 差し戻し対応・段階 1 再点検完了 (2026-11-22)
+
+- `briefs/tests-multivariate-1.9-stage1-review.ja.md` の 1〜3 に対応。初回 `experiments/multivariate19-stage1-check.R` はチェッカーに止められて未実行だったことを確認。ユーザー実行の `experiments/multivariate19-stage1-check-local.json` も読み、T2/T2'・Pillai・lda svd・cancor roots の結果を取り込んだ
+- 実験: `experiments/multivariate19-stage1-tamhane-page.R`, `experiments/multivariate19-stage1-grubbs.R`, `experiments/multivariate19-stage1-manova.R`, `experiments/multivariate19-stage1-lda-cancor.R`。全て `# issue: 549` 付き。チェッカー通過後、Issue #549 に投稿された各 R 実行結果を読み、必要な式の修正後に再実行した
+- T2/T2': PlantGrowth・InsectSprays・chickwts 全ペアで最大絶対差 0。T2' df は各ペア (n_i+n_j-2)。Page: 42 サイズ case は L/z/p 完全一致。NA は block 内の最後の順位、連続性補正は常に −0.5
+- Grubbs: type 10 pgrubbs 式は全 q 点で最大差 (3.89\times10^{-15})。x1〜x3 の 36 組は G/U 完全一致、p 最大差 (9.99\times10^{-16})。type 20 は pgrubbs と qgrubbs(rev=TRUE) が格子内外で一致。U=0..1, 0.001 格子の reverse CDF を R 出力から作成し、線形 U 補間の最大誤差 (2.061\times10^{-4})
+- MANOVA: 15 case、計算可能な12 caseの全行・4検定を照合。df差 0、F最大相対差 (1.91\times10^{-11})、p最大相対差 (1.37\times10^{-9})、SSP/eigen 最大相対差 (4.56\times10^{-15})。残差 rank 不足と単一応答のエラーも照合
+- LDA: iris・prior・2クラス・3クラス・単一変数・class-of-one・共線・NA・尺度を照合。full-rank scaling 最大差 (3.25\times10^{-14})、svd (4.27\times10^{-14})。予測 posterior 最大差 (9.5\times10^{-15})、CV 明示的再当てはめと class 完全一致、posterior 最大差 (7.2\times10^{-15})。共線では係数非一意だが判別得点は (1.7\times10^{-14}) 差
+- cancor: 10 case の相関最大差 (2.22\times10^{-15})、全係数はペア符号反転後に最大絶対差 (1.53\times10^{-14})。係数の cross-product metric は単位行列
+- oracle: `oracle/{tamhane,page,grubbs,manova,lda,cancor}.R` を実験ファイルの全 case に拡張。Grubbs oracle は R の `qgrubbs` 公開出力だけから type-20 reverse CDF table を生成する
+- 仕様書6件を式・照合 case 名・一致桁・Decisions for the user 付きに更新。全ての `rStats.js's choices` は空欄のまま保持。初回チェッカー停止スクリプトは安全な案内 stub に置換
+- クリーンルーム: PMCMRplus・outliers・MASS・R stats のソースやソース由来表は読まず、思い出しても写してもいない。ウェブ検索なし。実験は上記4本とユーザー提供 local JSON。実装ファイルには変更なし
