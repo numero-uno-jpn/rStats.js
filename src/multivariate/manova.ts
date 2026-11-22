@@ -290,7 +290,7 @@ export function manovaSummary(fit: ManovaFit, options: ManovaSummaryOptions = {}
     SS[name] = table(responseLabels, responseLabels, raw);
   }
   const Eigenvalues = table(names.length === 1 ? names[0]! : names, null, names.map((name) => rootsByTerm[name] ?? []));
-  const coef = table(fit.coefficientNames, fit.responseNames, fit.coefficients);
+  const coef = table(fit.coefficientNames, responseLabels, fit.coefficients);
   return {
     Pillai: make("Pillai"), Wilks: make("Wilks"), "Hotelling-Lawley": make("Hotelling-Lawley"), Roy: make("Roy"),
     SS, Eigenvalues, coef, royFIsUpperBound: true,

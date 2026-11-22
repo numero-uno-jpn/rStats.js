@@ -157,7 +157,7 @@ function fitCore(x0: number[][], g0: readonly GroupLabel[], options: LdaOptions,
   const withinSd = Array.from({ length: p }, (_, j) =>
     Math.sqrt(within[j]![j]! * scale[j]! * scale[j]! / Math.max(1, n - g)));
   const constant = withinSd.map((sd, i) => sd === 0 ? i + 1 : 0).filter((i) => i > 0);
-  const belowTolerance = withinSd.map((sd, i) => sd < tol ? i + 1 : 0).filter((i) => i > 0);
+  const belowTolerance = options.tol === undefined ? [] : withinSd.map((sd, i) => sd < tol ? i + 1 : 0).filter((i) => i > 0);
   const rejected = Array.from(new Set([...constant, ...belowTolerance])).sort((a, b) => a - b);
   if (rejected.length) throw new RangeError(`variable${rejected.length > 1 ? "s" : ""} ${rejected.join(" ")} appear${rejected.length === 1 ? "s" : ""} to be constant within groups`);
   const rankDeviations = allDeviations.map((row) => row.map((v, j) => v / Math.sqrt(within[j]![j]!)));
@@ -254,10 +254,6 @@ export function lda(x: VectorOrMatrix | string, grouping: readonly GroupLabel[] 
       const gg = groups.filter((_, j) => j !== i);
       const sub = fitCore(xx, gg, { ...options, prior: fullPrior, CV: false }, names, declared);
       const pred = ldaPredict(sub, { newdata: [values[i]!], prior: fullPrior });
-      if (i === 0 && options.prior !== undefined) console.info("LDA CV prior diagnostic", JSON.stringify({
-        prior: sub.prior, levels: sub._activeLev, means: sub._means, scaling: sub._scaling,
-        counts: sub.counts, prediction: pred.posterior.values[0],
-      }));
       classes.push(pred.class[0]!);
       posterior.push(pred.posterior.values[0]!);
     }
@@ -277,6 +273,10 @@ export function lda(x: VectorOrMatrix | string, grouping: readonly GroupLabel[] 
     const gg = groups.filter((_, j) => j !== i);
     const sub = fitCore(xx, gg, { ...options, prior: fullPrior, CV: false }, names, options.groupLevels);
     const pred = ldaPredict(sub, { newdata: [values[i]!], prior: fullPrior });
+    if (i === 0 && options.prior !== undefined) console.info("LDA CV prior diagnostic", JSON.stringify({
+      prior: sub.prior, levels: sub._activeLev, means: sub._means, scaling: sub._scaling,
+      counts: sub.counts, prediction: pred.posterior.values[0],
+    }));
     classes.push(pred.class[0]!);
     posterior.push(pred.posterior.values[0]!);
   }
