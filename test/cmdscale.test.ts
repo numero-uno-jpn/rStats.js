@@ -122,7 +122,7 @@ describe("cmdscale", () => {
     const result = cmdscale({ values, size: n, labels: null, method: "euclidean", diag: false, upper: false, warnings: [] }, { k: 2 });
     const elapsed = performance.now() - start;
     expect(result.points).toHaveLength(n);
-    expect(result.points.every((r) => r.every(Number.isFinite))).toBe(true);
+    expect(result.points.values.every((r) => r.every(Number.isFinite))).toBe(true);
     console.info(`cmdscale 2,000 observations: ${elapsed.toFixed(1)} ms`);
   });
 });
