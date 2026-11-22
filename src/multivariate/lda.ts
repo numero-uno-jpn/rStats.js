@@ -23,7 +23,9 @@ export interface LdaOptions {
   tol?: number;
   CV?: boolean;
   xNames?: readonly string[];
+  /** Declared class levels; unused levels remain in `lev` and produce warnings. */
   groupLevels?: readonly GroupLabel[];
+  /** Explicit factor levels for formula variables. */
   levels?: Record<string, readonly string[]>;
 }
 /** Options for LDA prediction.
