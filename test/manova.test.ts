@@ -1,5 +1,30 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
 import { manova, summaryManova } from "../src/entries/multivariate.js";
+
+const irisRows = JSON.parse(readFileSync(new URL("./fixtures/iris.json", import.meta.url), "utf8")) as [number, number, number, number, string][];
+const irisData = {
+  "Sepal.Length": irisRows.map((r) => r[0]),
+  "Sepal.Width": irisRows.map((r) => r[1]),
+  "Petal.Length": irisRows.map((r) => r[2]),
+  "Petal.Width": irisRows.map((r) => r[3]),
+  Species: irisRows.map((r) => r[4]),
+};
+const manovaFixture = JSON.parse(readFileSync(new URL("./fixtures/manova.json", import.meta.url), "utf8")) as Record<string, any>;
+function compareTable(actual: { rows: string[] | string; cols: string[] | string | null; values: number[][] }, expected: any): void {
+  expect(actual.rows).toEqual(expected.rows);
+  expect(actual.cols).toEqual(expected.cols);
+  expect(actual.values.length).toBe(expected.values.length);
+  for (let i = 0; i < expected.values.length; i++) {
+    expect(actual.values[i]!.length).toBe(expected.values[i]!.length);
+    for (let j = 0; j < expected.values[i]!.length; j++) {
+      const e = expected.values[i]![j];
+      const a = actual.values[i]![j]!;
+      if (e === "NA" || e === null) expect(Number.isNaN(a)).toBe(true);
+      else expect(Math.abs(a - e)).toBeLessThanOrEqual(1e-10 + 1e-8 * Math.abs(e));
+    }
+  }
+}
 
 describe("manova", () => {
   const data = {
@@ -7,6 +32,20 @@ describe("manova", () => {
     y2: [3, 2, 4, 5, 4, 6, 7, 8, 7, 9, 10, 8],
     group: ["a", "a", "a", "a", "a", "a", "b", "b", "b", "b", "b", "b"],
   };
+  it("matches every Iris MANOVA summary, SSP, eigenvalue and coefficient entry", () => {
+    const expected = manovaFixture.manova_iris.value;
+    const fit = manova("cbind(Sepal.Length, Sepal.Width, Petal.Length, Petal.Width) ~ Species", irisData);
+    const summary = summaryManova(fit);
+    compareTable(summary.Pillai, expected.Pillai);
+    compareTable(summary.Wilks, expected.Wilks);
+    compareTable(summary["Hotelling-Lawley"], expected["Hotelling-Lawley"]);
+    compareTable(summary.Roy, expected.Roy);
+    for (const key of Object.keys(expected.SS)) compareTable(summary.SS[key]!, expected.SS[key]);
+    compareTable(summary.Eigenvalues, expected.Eigenvalues);
+    compareTable(summary.coef, expected.coef);
+    expect(summary.royFIsUpperBound).toBe(true);
+  });
+
   it("fits sequential terms and returns all four multivariate summaries", () => {
     const fit = manova("cbind(y1, y2) ~ group", data);
     const s = summaryManova(fit);
