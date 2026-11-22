@@ -114,8 +114,8 @@ export function cancor(x: VectorOrMatrix, y: VectorOrMatrix, options: CancorOpti
       let cov = 0;
       for (let i = 0; i < xr.length; i++) {
         let xv = 0, yv = 0;
-        for (let a = 0; a < ax.length; a++) xv += xr[i]![a]! * ax[a]![j]! * sx[px[a]]!;
-        for (let b = 0; b < by.length; b++) yv += yr[i]![b]! * by[b]![j]! * sy[py[b]]!;
+        for (let a = 0; a < ax.length; a++) xv += xr[i]![a]! * ax[a]![j]! * sx[px[a]!]!;
+        for (let b = 0; b < by.length; b++) yv += yr[i]![b]! * by[b]![j]! * sy[py[b]!]!;
         cov += xv * yv;
       }
       if (cov < 0) for (const r of by) r[j] = -r[j]!;
