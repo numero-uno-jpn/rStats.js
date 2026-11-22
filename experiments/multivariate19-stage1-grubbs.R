@@ -41,8 +41,8 @@ t10 <- list()
 for(nobs in c(3,4,5,7,10,20,30,50)) {
  qs <- c(.5,1,1.5,2,2.5,3,3.5)
  vals <- lapply(qs,function(q) {
-   den <- 1-nobs*q^2/(nobs-1)^2
-   tv <- q*sqrt((nobs-2)/den)
+   den <- (nobs-1)^2-nobs*q^2
+   tv <- q*sqrt(nobs*(nobs-2)/den)
    cdf <- 1-nobs*pt(-tv,df=nobs-2)
    c(calc=cdf, reference=pgrubbs(q,nobs,type=10))
  })
@@ -60,13 +60,16 @@ for(nobs in c(3,4,5,7,10,20,30,50)) {
 ## Type 20: create probability table exclusively from public qgrubbs output and test linear interpolation on U.
 t20 <- list()
 for(nobs in c(4,6,8,9,11,15,16,25,29)) {
- pp <- seq(.01,.99,by=.01)
- tabq <- vapply(pp,function(p) qgrubbs(p,nobs,type=20),numeric(1))
+ pp <- c(0,seq(.001,.999,by=.001),1)
+ tabq <- vapply(pp,function(p) tryCatch(qgrubbs(p,nobs,type=20),error=function(e) NA_real_),numeric(1))
  qq <- seq(.02,.98,by=.04)
  direct <- vapply(qq,function(q) pgrubbs(q,nobs,type=20),numeric(1))
- interp <- approx(x=tabq,y=pp,xout=qq,rule=2,ties="ordered")$y
- t20[[as.character(nobs)]] <- list(p=pp,q=tabq,grid=qq,direct=direct,linear_on_U=interp,
-                                   max_abs_error=max(abs(direct-interp),na.rm=TRUE))
+ ok <- is.finite(tabq)
+ interp <- approx(x=tabq[ok],y=pp[ok],xout=qq,rule=2,ties="ordered")$y
+ back <- vapply(direct,function(p) tryCatch(qgrubbs(p,nobs,type=20),error=function(e) NA_real_),numeric(1))
+ t20[[as.character(nobs)]] <- list(p_grid=pp,q_table=tabq,grid=qq,direct=direct,linear_on_U=interp,
+                                   max_abs_error=max(abs(direct-interp),na.rm=TRUE),roundtrip_q=back,
+                                   roundtrip_max_abs=max(abs(back-qq),na.rm=TRUE))
 }
 cat(toJSON(list(grubbs=all_rows,type10=t10,type11=t11,type20=t20),
             digits=NA,auto_unbox=TRUE,na="string"))
