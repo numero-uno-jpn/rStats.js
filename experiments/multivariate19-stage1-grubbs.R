@@ -60,7 +60,7 @@ for(nobs in c(3,4,5,7,10,20,30,50)) {
 ## Type 20: create probability table exclusively from public qgrubbs output and test linear interpolation on U.
 t20 <- list()
 for(nobs in c(4,6,8,9,11,15,16,25,29)) {
- pp <- seq(.001,.999,by=.001)
+ pp <- c(.001,.01,.05,.1,.2,.3,.4,.5,.6,.7,.8,.9,.95,.99,.999)
  tabq <- vapply(pp,function(p) tryCatch(qgrubbs(p,nobs,type=20),error=function(e) NA_real_),numeric(1))
  qq <- seq(.02,.98,by=.04)
  direct <- vapply(qq,function(q) pgrubbs(q,nobs,type=20),numeric(1))
@@ -71,18 +71,22 @@ for(nobs in c(4,6,8,9,11,15,16,25,29)) {
  keep <- !duplicated(xx,fromLast=TRUE); xx <- xx[keep]; yy <- yy[keep]
  interp <- approx(x=xx,y=yy,xout=qq,rule=2)$y
  back <- vapply(direct,function(p) tryCatch(qgrubbs(p,nobs,type=20),error=function(e) NA_real_),numeric(1))
- ugrid <- seq(0,1,by=.001)
+ ugrid <- seq(0,1,by=.005)
  cdf_tab <- vapply(ugrid,function(u) tryCatch(qgrubbs(u,nobs,type=20,rev=TRUE),error=function(e) NA_real_),numeric(1))
  good <- is.finite(cdf_tab)
- interp_rev <- approx(ugrid[good],cdf_tab[good],xout=qq,rule=2)$y
+ testU <- seq(.017,.983,by=.037)
+ test_direct <- vapply(testU,function(u) pgrubbs(u,nobs,type=20),numeric(1))
+ test_reverse <- vapply(testU,function(u) qgrubbs(u,nobs,type=20,rev=TRUE),numeric(1))
+ interp_rev <- approx(ugrid[good],cdf_tab[good],xout=testU,rule=2)$y
  log_ok <- xx>0
  log_interp <- approx(x=log(xx[log_ok]),y=yy[log_ok],xout=log(qq),rule=2)$y
  sample_ix <- match(c(.001,.01,.05,.1,.2,.3,.4,.5,.6,.7,.8,.9,.95,.99,.999),pp)
  t20[[as.character(nobs)]] <- list(p_sample=pp[sample_ix],q_sample=tabq[sample_ix],grid=qq,direct=direct,
   linear_on_U=interp,max_abs_error=max(abs(direct-interp),na.rm=TRUE),
   logU_error=max(abs(direct-log_interp),na.rm=TRUE),reverse_qgrubbs_max_abs=max(abs(direct-reverse),na.rm=TRUE),
-  reverse_table_linear_U_max_abs=max(abs(direct-interp_rev),na.rm=TRUE),roundtrip_q=back,
-  roundtrip_max_abs=max(abs(back-qq),na.rm=TRUE))
+  reverse_test_max_abs=max(abs(test_direct-test_reverse),na.rm=TRUE),
+  reverse_table_linear_U_max_abs=max(abs(test_direct-interp_rev),na.rm=TRUE),testU=testU,
+  test_direct=test_direct,roundtrip_q=back,roundtrip_max_abs=max(abs(back-qq),na.rm=TRUE))
 }
 cat(toJSON(list(grubbs=all_rows,type10=t10,type11=t11,type20=t20),
             digits=NA,auto_unbox=TRUE,na="string"))
