@@ -463,6 +463,5 @@
   "hclust": "非類似度による階層クラスタリング (8 つの連結法)",
   "cutree": "階層クラスタリングの木を、群の数か高さで切って群に分ける",
   "kmeans": "k-means クラスタリング (Hartigan-Wong・Lloyd・Forgy・MacQueen)",
-  "cmdscale": "古典的 (計量) 多次元尺度法",
-  "isoMDS": "Kruskal の非計量多次元尺度法"
+  "cmdscale": "古典的 (計量) 多次元尺度法"
 }

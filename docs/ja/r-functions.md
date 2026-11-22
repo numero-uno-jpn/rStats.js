@@ -14,7 +14,6 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `cutree()` | `cutree` | 階層クラスタリングの木を、群の数か高さで切って群に分ける |
 | `dist()` | `dist` | 行どうしの距離 (非類似度) を下三角の順に計算する |
 | `hclust()` | `hclust` | 非類似度による階層クラスタリング (8 つの連結法) |
-| `MASS::isoMDS()` | `isoMDS` | Kruskal の非計量多次元尺度法 |
 | `kmeans()` | `kmeans` | k-means クラスタリング (Hartigan-Wong・Lloyd・Forgy・MacQueen) |
 | `MASS::lda()` | `lda` | 線形判別分析 (moment 法) |
 | `stats::manova()` | `manova` | 多変量分散分析 (逐次の型 I の項) |

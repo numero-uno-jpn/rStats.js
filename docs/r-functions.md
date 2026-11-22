@@ -14,7 +14,6 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `cutree()` | `cutree` | Cuts a hierarchical clustering tree into groups, by number of groups or by height. |
 | `dist()` | `dist` | Compute pairwise dissimilarities in lower-triangle column order. |
 | `hclust()` | `hclust` | Hierarchical agglomerative clustering of a dissimilarity structure by one of eight linkage methods. |
-| `MASS::isoMDS()` | `isoMDS` | Kruskal's non-metric multidimensional scaling. |
 | `kmeans()` | `kmeans` | K-means clustering by the Hartigan-Wong, Lloyd, Forgy or MacQueen algorithm. |
 | `MASS::lda()` | `lda` | Linear discriminant analysis. |
 | `stats::manova()` | `manova` | Fit a multivariate analysis of variance model with sequential terms. |
