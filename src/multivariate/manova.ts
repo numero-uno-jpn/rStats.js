@@ -19,9 +19,6 @@ export interface ManovaOptions { tol?: number; }
 /** Options for MANOVA summary tables.
  * @category Linear models and ANOVA
  */
-/** Four multivariate test tables and associated matrices.
- * @category Linear models and ANOVA
- */
 export interface ManovaSummaryOptions { test?: ManovaTestName | "all"; intercept?: boolean; }
 /** A labelled matrix table.
  * @category Linear models and ANOVA
@@ -44,6 +41,9 @@ export interface ManovaFit {
   responseScales: number[];
   warnings: string[];
 }
+/** Four multivariate test tables and associated matrices.
+ * @category Linear models and ANOVA
+ */
 export interface ManovaSummary {
   Pillai: MatrixTable;
   Wilks: MatrixTable;
@@ -54,6 +54,9 @@ export interface ManovaSummary {
   coef: MatrixTable;
 }
 
+/** Four multivariate test tables and associated matrices.
+ * @category Linear models and ANOVA
+ */
 function zeros(r: number, c: number): number[][] { return Array.from({ length: r }, () => new Array<number>(c).fill(0)); }
 function cross(a: number[][], b: number[][] = a): number[][] {
   const out = zeros(a[0]?.length ?? 0, b[0]?.length ?? 0);
