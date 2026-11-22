@@ -10,7 +10,7 @@ describe("cluster and classical-scaling numerical extremes", () => {
     const base = dist([[0, 0], [3, 0], [0, 4], [3, 4]]);
     for (const method of ["ward.D2", "median", "centroid"] as const) {
       const reference = hclust(base, { method });
-      for (const scale of [2 ** 500, 2 ** -500, 2 ** 1000, 2 ** -1000]) {
+      for (const scale of [2 ** 500, 2 ** -500, 2 ** 1000, 2 ** -1000, 1e100, 1e-100]) {
         const scaled = hclust({ ...base, values: base.values.map((v) => v * scale) }, { method });
         expect(scaled.merge).toEqual(reference.merge);
         expect(scaled.order).toEqual(reference.order);
@@ -21,7 +21,7 @@ describe("cluster and classical-scaling numerical extremes", () => {
   it("keeps kmeans assignments and centers homogeneous at 2^±500", () => {
     const rows = [[0, 0], [1, 1], [10, 10], [11, 11]], centers = [[0, 0], [10, 10]];
     const reference = kmeans(rows, centers, { algorithm: "Lloyd" });
-    for (const scale of [2 ** 500, 2 ** -500]) {
+    for (const scale of [2 ** 500, 2 ** -500, 1e100, 1e-100]) {
       const fit = kmeans(rows.map((r) => r.map((v) => v * scale)), centers.map((r) => r.map((v) => v * scale)), { algorithm: "Lloyd" });
       expect(fit.cluster).toEqual(reference.cluster);
       for (let g = 0; g < 2; g++) for (let j = 0; j < 2; j++) expect(fit.centers.values[g]![j]! / scale).toBeCloseTo(reference.centers.values[g]![j]!, 11);
@@ -116,25 +116,27 @@ describe("cluster and classical-scaling numerical extremes", () => {
   });
 
   it("keeps distances and clustering invariant under exactly representable translation", () => {
-    const rows = [[0, 0], [2, 0], [0, 3], [2, 3]], shifted = rows.map((r) => r.map((v) => v + 1e12));
-    expect(dist(shifted).values).toEqual(dist(rows).values);
-    const a = hclust(dist(rows), { method: "average" }), b = hclust(dist(shifted), { method: "average" });
-    expect(b.merge).toEqual(a.merge); expect(b.order).toEqual(a.order); expect(b.height).toEqual(a.height);
-
-    const mdsA = cmdscale(dist(rows), { k: 2 }), mdsB = cmdscale(dist(shifted), { k: 2 });
-    expect(mdsB.eig).toEqual(mdsA.eig);
-    expect(mdsB.points.values).toEqual(mdsA.points.values);
-
+    const rows = [[0, 0], [2, 0], [0, 3], [2, 3]];
     const kmRows = [[0, 0], [1, 1], [10, 10], [11, 11]];
-    const kmShifted = kmRows.map((r) => r.map((v) => v + 1e12));
-    const kmA = kmeans(kmRows, [[0, 0], [10, 10]], { algorithm: "Lloyd" });
-    const kmB = kmeans(kmShifted, [[1e12, 1e12], [1e12 + 10, 1e12 + 10]], { algorithm: "Lloyd" });
-    expect(kmB.cluster).toEqual(kmA.cluster);
-    expect(kmB.iter).toBe(kmA.iter);
-    expect(kmB.withinss).toEqual(kmA.withinss);
-    expect(kmB.totss).toBe(kmA.totss);
-    for (let g = 0; g < 2; g++) for (let j = 0; j < 2; j++) {
-      expect(kmB.centers.values[g]![j]! - 1e12).toBeCloseTo(kmA.centers.values[g]![j]!, 10);
+    for (const shift of [1e8, 1e12]) {
+      const shifted = rows.map((r) => r.map((v) => v + shift));
+      expect(dist(shifted).values).toEqual(dist(rows).values);
+      const a = hclust(dist(rows), { method: "average" }), b = hclust(dist(shifted), { method: "average" });
+      expect(b.merge).toEqual(a.merge); expect(b.order).toEqual(a.order); expect(b.height).toEqual(a.height);
+
+      const mdsA = cmdscale(dist(rows), { k: 2 }), mdsB = cmdscale(dist(shifted), { k: 2 });
+      expect(mdsB.eig).toEqual(mdsA.eig);
+      expect(mdsB.points.values).toEqual(mdsA.points.values);
+
+      const kmShifted = kmRows.map((r) => r.map((v) => v + shift));
+      const kmA = kmeans(kmRows, [[0, 0], [10, 10]], { algorithm: "Lloyd" });
+      const kmB = kmeans(kmShifted, [[shift, shift], [shift + 10, shift + 10]], { algorithm: "Lloyd" });
+      expect(kmB.cluster).toEqual(kmA.cluster);
+      expect(kmB.iter).toBe(kmA.iter);
+      expect(kmB.withinss).toEqual(kmA.withinss);
+      expect(kmB.totss).toBe(kmA.totss);
+      for (let g = 0; g < 2; g++) for (let j = 0; j < 2; j++) {
+        expect(kmB.centers.values[g]![j]! - shift).toBeCloseTo(kmA.centers.values[g]![j]!, 10);
+      }
     }
-  });
-});
+  });});
