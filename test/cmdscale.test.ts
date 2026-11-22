@@ -28,17 +28,19 @@ function compare(key: string, actual: CmdscaleResult, scale = 1): void {
   const expected = fixture[key]?.value;
   if (!expected) { mismatches.push(`${key}: missing fixture`); return; }
   const points = tableValues(expected.points);
-  if (actual.points.length !== points.length) mismatches.push(`${key}.points rows differ`);
+  if (actual.points.values.length !== points.length) mismatches.push(`${key}.points rows differ`);
+  if (JSON.stringify(actual.points.rows) !== JSON.stringify(expected.points.rows ?? null)) mismatches.push(`${key}.points.rows differ`);
+  if (JSON.stringify(actual.points.cols) !== JSON.stringify(expected.points.cols ?? null)) mismatches.push(`${key}.points.cols differ`);
   const cols = points[0]?.length ?? 0;
   for (let j = 0; j < cols; j++) {
     let dot = 0;
-    for (let i = 0; i < Math.min(actual.points.length, points.length); i++) dot += actual.points[i]![j]! * num(points[i]![j]);
-    if (dot < 0) for (const row of actual.points) row[j] = -row[j]!;
+    for (let i = 0; i < Math.min(actual.points.values.length, points.length); i++) dot += actual.points.values[i]![j]! * num(points[i]![j]);
+    if (dot < 0) for (const row of actual.points.values) row[j] = -row[j]!;
   }
-  for (let i = 0; i < Math.min(actual.points.length, points.length); i++) {
-    if (actual.points[i]!.length !== points[i]!.length) mismatches.push(`${key}.points[${i}] columns differ`);
+  for (let i = 0; i < Math.min(actual.points.values.length, points.length); i++) {
+    if (actual.points.values[i]!.length !== points[i]!.length) mismatches.push(`${key}.points[${i}] columns differ`);
     for (let j = 0; j < Math.min(actual.points[i]!.length, points[i]!.length); j++) {
-      compareNumbers(`${key}.points[${i},${j}]`, [actual.points[i]![j]!], points[i]![j], 1e-12);
+      compareNumbers(`${key}.points[${i},${j}]`, [actual.points.values[i]![j]!], points[i]![j], 1e-12);
     }
   }
   if (expected.eig !== undefined) compareNumbers(key + ".eig", actual.eig, expected.eig);
@@ -47,7 +49,7 @@ function compare(key: string, actual: CmdscaleResult, scale = 1): void {
   if (expected.x !== undefined && expected.x !== null) {
     const x = tableValues(expected.x);
     for (let i = 0; i < x.length; i++) for (let j = 0; j < x[i]!.length; j++) {
-      compareNumbers(`${key}.x[${i},${j}]`, [actual.x?.[i]?.[j] ?? NaN], x[i]![j], 1e-12);
+      compareNumbers(`${key}.x[${i},${j}]`, [actual.x?.values[i]?.[j] ?? NaN], x[i]![j], 1e-12);
     }
   }
   const warnings = expected.warnings === undefined ? [] : Array.isArray(expected.warnings) ? expected.warnings : [expected.warnings];
@@ -78,7 +80,7 @@ describe("cmdscale", () => {
     compare("cmdscale_non_euclidean_add", cmdscale(asDist(nonE), { k: 3, add: true }));
     compare("cmdscale_line_add", cmdscale(line, { k: 1, add: true }));
     const withX = cmdscale(ds, { k: 2, xRet: true });
-    if (withX.x === null || withX.x.length !== 5 || withX.x[0]!.length !== 5) mismatches.push("xRet did not return the centered squared-distance matrix");
+    if (withX.x === null || withX.x.values.length !== 5 || withX.x.values[0]!.length !== 5) mismatches.push("xRet did not return the centered squared-distance matrix");
     if (cmdscale(ds, { k: 2 }).x !== null) mismatches.push("x should be null when xRet is false");
     expect(mismatches).toEqual([]);
   });
@@ -87,9 +89,9 @@ describe("cmdscale", () => {
     const base = cmdscale(ds, { k: 2 });
     const large = cmdscale({ ...ds, values: ds.values.map((v) => v * 1e150) }, { k: 2 });
     const tiny = cmdscale({ ...ds, values: ds.values.map((v) => v * 1e-150) }, { k: 2 });
-    for (let i = 0; i < base.points.length; i++) for (let j = 0; j < base.points[i]!.length; j++) {
-      const a = large.points[i]![j]! / 1e150, b = tiny.points[i]![j]! / 1e-150;
-      const e = base.points[i]![j]!;
+    for (let i = 0; i < base.points.values.length; i++) for (let j = 0; j < base.points.values[i]!.length; j++) {
+      const a = large.points.values[i]![j]! / 1e150, b = tiny.points.values[i]![j]! / 1e-150;
+      const e = base.points.values[i]![j]!;
       if (Math.abs(a - e) / Math.max(1, Math.abs(e)) > 1e-10) mismatches.push(`large scale points[${i},${j}]`);
       if (Math.abs(b - e) / Math.max(1, Math.abs(e)) > 1e-10) mismatches.push(`small scale points[${i},${j}]`);
     }
