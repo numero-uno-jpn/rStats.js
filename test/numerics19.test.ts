@@ -41,4 +41,25 @@ describe("1.9.0 numerical tails", () => {
     expect(Number.isFinite(pageTest([[1, 2]], { alternative: "greater" }).statistic)).toBe(true);
     expect(Number.isFinite(pageTest([[1, 1], [1, 1]]).pValue)).toBe(true);
   });
+
+  it("keeps Tamhane T2 invariant under large translations", () => {
+    const groups = [[-3, -2, -1], [1, 2, 3]];
+    const base = tamhaneT2Test(groups);
+    for (const shift of [1e8, 1e12]) {
+      const shifted = tamhaneT2Test(groups.map((group) => group.map((v) => v + shift)));
+      const tolerance = shift === 1e8 ? 1e-7 : 1e-3;
+      expect(Math.abs(shifted.statistic[0]![0]! - base.statistic[0]![0]!)).toBeLessThan(tolerance);
+      expect(Math.abs(shifted.pValue[0]![0]! - base.pValue[0]![0]!)).toBeLessThan(tolerance);
+    }
+  });
+
+  it("keeps Page ranks unchanged after large translations", () => {
+    const y = [[1, 2], [3, 2], [4, 6], [8, 7]];
+    const base = pageTest(y, { alternative: "greater" });
+    for (const shift of [1e8, 1e12]) {
+      const shifted = pageTest(y.map((row) => row.map((v) => v + shift)), { alternative: "greater" });
+      expect(shifted.statistic).toBe(base.statistic);
+      expect(shifted.pValue).toBe(base.pValue);
+    }
+  });
 });
