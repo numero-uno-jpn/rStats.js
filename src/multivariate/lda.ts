@@ -49,6 +49,8 @@ export interface LdaFit {
   /** @internal */
   _means: number[][];
   /** @internal */
+  _activeLev: string[];
+  /** @internal */
   _center: number[];
   /** @internal */
   _scaling: number[][];
@@ -180,7 +182,7 @@ function fitCore(x0: number[][], g0: readonly GroupLabel[], options: LdaOptions,
     prior, counts, means: { rows: levels, cols: names.length === 1 ? names[0]! : names, values: originalMeans },
     scaling: { rows: names.length === 1 ? names[0]! : names, cols: keepRoots.length === 1 ? "LD1" : keepRoots.map((_, i) => `LD${i + 1}`), values: scaling },
     svd: (() => { const v = keepRoots.map((i) => Math.sqrt(Math.max(0, be.values[i]!) * (n - g) / Math.max(1, g - 1))); return v.length === 1 ? v[0]! : v; })(),
-    N: n, lev: levels, warnings, _means: means, _center: center, _scaling: scalingNorm, _covInverse: covInv,
+    N: n, lev: declared ?? levels, warnings, _means: means, _activeLev: levels, _center: center, _scaling: scalingNorm, _covInverse: covInv,
     _scale: scale, _x: xs, _xNames: names, _tol: tol,
   };
 }
@@ -233,7 +235,7 @@ export function lda(x: VectorOrMatrix | string, grouping: readonly GroupLabel[] 
       classes.push(pred.class[0]!);
       posterior.push(pred.posterior.values[0]!);
     }
-    return { class: classes, posterior: { rows: null, cols: fit.lev, values: posterior } };
+    return { class: classes, posterior: { rows: null, cols: fit._activeLev, values: posterior } };
   } else {
     values = matrixInput(x);
     groups = Array.from(grouping as readonly GroupLabel[]);
@@ -275,7 +277,7 @@ export function predictLda(fit: LdaFit, options: LdaPredictionOptions = {}): Lda
   if (!Number.isInteger(dimen) || dimen < 1 || dimen > maxDim) throw new RangeError("dimen must be between 1 and the number of discriminant dimensions");
   const scores = x.map((r) => Array.from({ length: dimen }, (_, k) =>
     r.reduce((s, v, j) => s + (v - center[j]!) * fit._scaling[j]![k]!, 0)));
-  const logp = x.map((r) => fit.lev.map((_, g) => {
+  const logp = x.map((r) => fit._activeLev.map((_, g) => {
     const d = r.map((v, j) => v - fit._means[g]![j]!);
     let quad = 0;
     for (let i = 0; i < p; i++) for (let j = 0; j < p; j++) quad += d[i]! * fit._covInverse[i]![j]! * d[j]!;
@@ -286,8 +288,8 @@ export function predictLda(fit: LdaFit, options: LdaPredictionOptions = {}): Lda
     return ex.map((v) => v / sum);
   });
   return {
-    class: posterior.map((r) => fit.lev[r.indexOf(Math.max(...r))]!),
-    posterior: { rows: null, cols: fit.lev, values: posterior },
+    class: posterior.map((r) => fit._activeLev[r.indexOf(Math.max(...r))]!),
+    posterior: { rows: null, cols: fit._activeLev, values: posterior },
     x: { rows: null, cols: dimen === 1 ? "LD1" : Array.from({ length: dimen }, (_, i) => `LD${i + 1}`), values: scores },
   };
 }
