@@ -80,6 +80,15 @@ function parseD(input:DistResult|SammonMatrixInput|readonly (readonly number[])[
   }
   return {values,labels,condensed};
 }
+function center(points:number[][]):void {
+  const k=points[0]?.length??0;
+  for(let q=0;q<k;q++){
+    let mean=0;
+    for(const row of points)mean+=row[q]!;
+    mean/=points.length;
+    for(const row of points)row[q]=row[q]!-mean;
+  }
+}
 function stressOf(d:number[],y:number[][],n:number):number {
   let numerator=0,denominator=0,at=0;
   for(let j=0;j<n-1;j++)for(let i=j+1;i<n;i++){
@@ -164,5 +173,6 @@ export function sammon(input:DistResult|SammonMatrixInput|readonly (readonly num
   if(reason===undefined)reason="maxit";
   if(niter>0&&(trace[trace.length-1]!.iteration!==iteration||reason==="backtracking"))trace.push({iteration,stress:current});
   trace[trace.length-1]!.reason=reason;
+  center(y);
   return {points:{rows:parsed.labels,cols:null,values:y},stress:current,trace};
 }
