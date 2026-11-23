@@ -15,4 +15,4 @@ out <- list(
   usarrests = list(size=attr(dua,"Size"),labels=attr(dua,"Labels"),values=as.vector(dua),
                    start2=cmdscale(dua,k=2),start1=cmdscale(dua,k=1),start3=cmdscale(dua,k=3))
 )
-cat(toJSON(out, digits=I(17), auto_unbox=TRUE, null="null", na="string", pretty=FALSE))
+cat(toJSON(out, digits=I(12), auto_unbox=TRUE, null="null", na="string", pretty=FALSE))
