@@ -27,7 +27,8 @@ function expectedFit(x: any): any {
   for (const [source,target] of Object.entries(keys)) {
     if (!(source in x)) continue;
     const v=x[source];
-    if (["factors","colcoord","colpcoord","colctr","colcor","Burt","subinertia","rowcoord","rowpcoord","rowctr","rowcor","indmat"].includes(source)) out[target]=matrix(v);
+    if (source==="indmat" && unwrap(v)==="NA") out[target]="NA";
+    else if (["factors","colcoord","colpcoord","colctr","colcor","Burt","subinertia","rowcoord","rowpcoord","rowctr","rowcor","indmat"].includes(source)) out[target]=matrix(v);
     else if(source==="levels.n")out[target]={names:v.names,values:unwrap(v)};
     else out[target]=unwrap(v);
   }
