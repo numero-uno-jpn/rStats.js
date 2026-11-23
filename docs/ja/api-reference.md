@@ -136,3 +136,19 @@ cancor([[1, 2], [2, 1], [3, 4], [4, 3]], [[2, 1], [1, 3], [4, 2], [3, 5]]);
 ```
 
 `manova` は逐次 (Type I) の項を当てはめます。`lda` は moment 法と leave-one-out 交差検証に対応し、`ldaPredict` は plug-in 法で予測します。`cancor` は非ゼロの正準相関と使用した中心を返します。`ca` は対応分析、`caSummary` は固有値と寄与の表、`caCoord` は布置図の座標を返します。`mjca` はカテゴリ列の多重対応分析を行います。`sammon` と `isoMDS` は非計量多次元尺度法です。
+
+## 時系列
+
+自己相関の関数は、独立した `/timeseries` から import します。
+
+```ts
+import { acf, pacf, ccf } from "@numero-uno-jpn/rstats/timeseries";
+
+const x = [4, 5, 7, 6, 9, 8, 11, 10, 12, 13];
+const y = [3, 4, 5, 7, 6, 8, 9, 8, 10, 11];
+acf(x, { lagMax: 5 });
+pacf(x, { lagMax: 5 });
+ccf(x, y, { lagMax: 3 });
+```
+
+`acf` は既定で自己相関を返します。`type: "covariance"` で自己共分散を返し、`pacf` は偏自己相関を返します。`ccf` は `-lagMax` から `lagMax` までの交差相関 (または交差共分散) を返します。ラグは整数の観測単位で、暦時間の単位や R の `frequency` メタデータは扱いません。欠測値は既定でエラーになり、`naAction: "pass"` では欠測を含む組を除きます。
