@@ -1843,7 +1843,7 @@ The references are R's `stats` functions. The implementation decisions are recor
 - **Classical scaling at extreme magnitudes:** `cmdscale` normalizes dissimilarities before squaring to form the Gram matrix, then restores coordinates, eigenvalues, the optional matrix and the Cailliez constant to the original scale. The Cailliez eigenproblem also uses normalized dissimilarities; ordinary-scale arithmetic is unchanged.
 - **Returned components:** `cmdscale` always returns all eigenvalues and both goodness-of-fit values; R's `eig` and `list.` options are not needed. Warnings are returned in the `warnings` field.
 
-## Time series and multivariate analysis (1.11.0)
+## Autocorrelation, correspondence analysis and non-metric scaling (1.11.0)
 
 ### `acf`, `pacf` and `ccf`
 
