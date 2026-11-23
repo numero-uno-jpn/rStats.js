@@ -14,7 +14,7 @@
 - **次の版の候補:** isoMDS (`work/isomds-next` に実装、仕様書・oracle・`isomds_tight_*` の fixture は main にある。Kruskal の
   方法でも厳しく収束させた R にも届かなかった)、sammon、対応分析 (ca)、cmdscale をさらに速く。未確かめ: kmeans の数百回の
   反復での誤差の積み重なり
-- 片付け (ユーザーの許可待ち): `work/cluster-mds-1.10`・`release/1.10.0-cluster`・`release/1.10.0`、PR #557、Issue #556
+- 片付け済み (ユーザーの指示): ブランチ 3 本 (work/cluster-mds-1.10・release/1.10.0-cluster・release/1.10.0) を手元と GitHub から削除 (中身が main と同じことを確かめた)、PR #557 と Issue #556 を閉じた。`work/isomds-next` は残す
 - **セッション 28 の教訓:** ChatGPT に書き込んでよい場所を列挙する (main に push する事故)。fixture は 17 桁 (`digits = I(17)`)・
   ビット単位の照合は x86_64 の R (arm64 は FMA)。ChatGPT のテストは誤りが多い (警告を value の中から読む、R と違う入力、例外で
   途中で止まって不一致が出ない) → 点検では不一致の数だけでなくテストが最後まで走ったかを見る。ChatGPT が収められない数値の
