@@ -21,27 +21,15 @@ Stress_1=100\sqrt{\frac{\sum_{i<j}\(r_{ij}-\hat r_{ij}\)^2}
 
 where `isoreg` fitted disparities are used without an additional post-regression norm rescaling. The current implementation's factor \(\sqrt{\sum r^2/\sum\hat r^2}\) changes the objective and must be removed to match this definition.
 
-## Tie ordering and the primary objective
+## Tie ordering
 
-Two distinct evaluations are useful:
+R's public results use a fixed pair order. Sort all pairs by increasing dissimilarity and preserve the original lower-triangle column order within equal dissimilarities. Apply isotonic regression to individual pair distances in that order; do not pool tied dissimilarities into one block and do not reorder pairs within a tie by their configuration distances.
 
-- **Fixed ordering:** sort by \(\delta\), retaining the original lower-triangle pair order within ties, then run `isoreg(r[order])`. This reproduces R's reported endpoint stress.
-- **Free-order primary fit:** within each equal-\(\delta\) group, order the configuration distances (r) increasingly, then run isotonic regression over the resulting sequence. This chooses the best ordering within each tied group and cannot have greater least-squares stress than any fixed within-tie ordering.
+The fixture suite includes tied grid, eurodist and USArrests data, as well as tie-free swiss data. These cases distinguish the fixed-order convention from free ordering within tied groups.
 
-The R endpoint and independent free-order primary results are:
+## Stress-1 scaling
 
-| Case | R / fixed-pair-order stress | Free-order primary stress |
-|---|---:|---:|
-| small | \(2.8738\times10^{-14}\) | \(2.8738\times10^{-14}\) |
-| grid ties | 0.00383293527945 | about \(7.0\times10^{-14}\) |
-| eurodist | 5.88354761298 | 5.81591943098 |
-| swiss | 4.21928575212 | 4.21928575212 |
-| USArrests | 0.939167715149 | 0.939167715149 |
-| non-Euclidean | \(1.7611\times10^{-13}\) | \(9.53\times10^{-15}\) |
-
-This supports keeping the user's choice of a primary tie objective, but its operational meaning must be free ordering within tied dissimilarities, not equal fitted disparities for every member of a tie block. The existing equal-disparity block implementation is not that primary objective.
-
-The data are not all tie-free: `eurodist` has 210 pairs and 197 unique dissimilarities (13 tied excess pairs); `USArrests` has 1225 pairs and 1222 unique values (three tied groups); `swiss` has 1081 pairs and 1081 unique values (no ties). Swiss is the clean tie-free endpoint check.
+Use the disparities returned by isotonic regression directly. Do not rescale the fitted disparities to match the norm of the configuration-distance vector. The denominator of Stress-1 is the sum of squared configuration distances.
 
 ## R endpoint start test and optimizer interpretation
 
