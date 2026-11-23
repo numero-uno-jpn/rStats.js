@@ -72,4 +72,23 @@ describe("ca: all fixture fit cases", () => {
     expect(compared, "fixture fit case count").toBe(names.length);
     expect(mismatches).toEqual([]);
   });
+  it("compares every available summary table in the fixture", () => {
+    const mismatches: string[] = [];
+    let compared = 0;
+    for (const key of names) {
+      const summary = fixture[key].value.summary?.value;
+      if (!summary) continue;
+      const { input, options } = inputFor(key);
+      const actual = caSummary(ca(input, options as any));
+      compare(actual, {
+        scree: expectedMatrix(summary.scree),
+        rows: expectedMatrix(summary.rows),
+        columns: expectedMatrix(summary.columns),
+      }, key + ".summary", mismatches);
+      compared++;
+    }
+    expect(compared).toBeGreaterThan(0);
+    expect(mismatches).toEqual([]);
+  });
+
 });
