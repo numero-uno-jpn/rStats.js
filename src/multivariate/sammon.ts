@@ -164,7 +164,7 @@ export function sammon(input:DistResult|SammonMatrixInput|readonly (readonly num
     y=nextY;current=nextStress;iteration=step;
     magic=Math.min(0.5,magic*1.5);
     if(step%10===0)trace.push({iteration:step,stress:current});
-    if(step>=20&&previous-current<tol){reason="tol";break;}
+    if(step>=20&&(previous-current)/Math.max(Math.abs(previous),Number.MIN_VALUE)<tol){reason="tol";break;}
   }
   if(reason===undefined)reason="maxit";
   if(niter>0&&(trace[trace.length-1]!.iteration!==iteration||reason==="backtracking"))trace.push({iteration,stress:current});
