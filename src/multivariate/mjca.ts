@@ -104,7 +104,7 @@ export function mjca(input:MjcaInputTable,options:MjcaOptions={}):MjcaFit {
   const S=activeTable.map((row,i)=>row.map((v,j)=>(v/total-rowMass[i]!*activeMass[j]!)/Math.sqrt(rowMass[i]!*activeMass[j]!)));
   const dec=svd(S),maxRank=Math.min(n,Math.max(0,activeJ-activeQ));
   const rawSingular=dec.d.slice(0,maxRank),largest=rawSingular[0]??0;
-  const singular=rawSingular.filter(v=>v>largest*1e-12);
+  const singular=maxRank===n?rawSingular:rawSingular.filter(v=>v>largest*1e-12);
   const rowCoords0=activeTable.map((_,i)=>singular.map((_,j)=>dec.u![i]![j]!/Math.sqrt(rowMass[i]!)));
   const activeCoords=activeCats.map((_,i)=>singular.map((_,j)=>dec.v![i]![j]!/Math.sqrt(activeMass[i]!)));
   orient(rowCoords0,activeCoords);
