@@ -1,5 +1,5 @@
 // Multiple correspondence analysis from an indicator matrix and its Burt cross-product.
-import { ca, type CaFit, type CaMatrix } from "./ca.js";
+import { ca, type CaMatrix } from "./ca.js";
 import { checkOptions } from "../internal/checkOptions.js";
 
 const MJCA_KEYS = ["lambda", "nd", "supcol", "subsetcat", "reti", "ps"] as const;
@@ -132,7 +132,6 @@ export function mjca(input:MjcaInputTable,options:MjcaOptions={}):MjcaFit {
   const allColCoords=coords.map(row=>row.slice(0,axisCount));
   const colMass=fit.colmass.slice(0,chosenCats.length), colDist=fit.coldist.slice(0,chosenCats.length), colInertia=fit.colinertia.slice(0,chosenCats.length);
   const colStats=coordinateStats(allColCoords,colMass,colDist,modeSv);
-  const colLabels=chosenCats.map(c=>raw.cols[c.factor]!+String(allLevels[c.factor]!.indexOf(c.level)+1));
   const levelnames=chosenCats.map(c=>raw.cols[c.factor]!+(options.ps??":")+c.level);
   const factorRows=chosenCats.map(c=>raw.cols[c.factor]!+String(allLevels[c.factor]!.indexOf(c.level)+1));
   const factorVals=chosenCats.map(c=>[raw.cols[c.factor]!,c.level]);
@@ -158,14 +157,13 @@ export function mjca(input:MjcaInputTable,options:MjcaOptions={}):MjcaFit {
     sv:modeSv,lambda,inertiaE:modeEig,inertiaT:lambda==="adjusted"?adjustedTotal:lambda==="indicator"?sum(eig):burtInertia,
     inertiaEt:"NA",levelnames,factors:table(factorVals,factorRows,["factor","level"]),levelsN:{names:factorNames,values:allLevels.map(x=>x.length)},
     nd,ndMax,colnames:factorNames,colmass:colMass,coldist:colDist,colinertia:colInertia,
-    colcoord:axisMatrix(allColCoords,null,axisCount),colpcoord:axisMatrix(colStats.principal,null,axisCount),
-    colctr:axisMatrix(colStats.ctr,null,axisCount),colcor:axisMatrix(colStats.cor,null,axisCount),colsup,subsetcol,
+    colcoord:table(allColCoords,null,null),colpcoord:table(colStats.principal,null,null),
+    colctr:table(colStats.ctr,null,null),colcor:table(colStats.cor,null,null),colsup,subsetcol,
     Burt:table(burt,null,null),BurtUpd:"NA",subinertia:table(sub,null,null),omitted:raw.omitted,
     rownames:raw.rows,rowmass:rowMass,rowdist:rowDist,rowinertia:rowInertia,
-    rowcoord:axisMatrix(rowCoords,raw.rows,axisCount),rowpcoord:axisMatrix(rowStats.principal,raw.rows,axisCount),
-    rowctr:axisMatrix(rowStats.ctr,raw.rows,axisCount),rowcor:axisMatrix(rowStats.cor,raw.rows,axisCount),
+    rowcoord:table(rowCoords,raw.rows,null),rowpcoord:table(rowStats.principal,raw.rows,null),
+    rowctr:table(rowStats.ctr,raw.rows,null),rowcor:table(rowStats.cor,raw.rows,null),
   };
   if(options.reti===true||raw.data.length<=60)result.indmat=table(indicator,raw.rows,levelnames);
   return result;
-
 }
