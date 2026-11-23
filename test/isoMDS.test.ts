@@ -36,11 +36,10 @@ function compare(key: string, actual: IsoMDSResult): void {
   const error = Math.abs(actual.stress - e);
 
   const tight = key.startsWith("isomds_tight_");
-  const skipRScaleBehavior = key === "isomds_scale" || key === "isomds_scale_y";
   const expectedMax = points.reduce((m: number, row: unknown[]) => row.reduce<number>((v, x) => Math.max(v, Math.abs(num(x))), m), 0);
   const dim = points[0]?.length ?? 0;
   let coordinateError = 0;
-  if (!skipRScaleBehavior) {
+  {
     let actualPoints = centerPoints(actual.points.values.map((row) => [...row]));
     const expectedPoints = centerPoints(points.map((row: unknown[]) => row.map(num)));
     // BFGS starts at cmdscale and is equivariant under independent column
@@ -61,7 +60,7 @@ function compare(key: string, actual: IsoMDSResult): void {
     }
     if (coordinateError > coordinateLimit) mismatches.push(`${key}.coordinate max error=${coordinateError} (limit ${coordinateLimit})`);
   }
-  if (!skipRScaleBehavior) {
+  {
     const printedRaw = expected.printed === undefined ? [] : Array.isArray(expected.printed) ? expected.printed : [expected.printed];
     if (printedRaw.length > 0) {
       const initialLine = printedRaw.find((line: string) => /initial\s+value/.test(line));
@@ -141,17 +140,11 @@ describe("isoMDS", () => {
     expect(mismatches).toEqual([]);
   });
 
-  it("is scale invariant and validates missing, nonpositive and malformed inputs", () => {
-    const base = isoMDS(ds);
+  it("follows R's scale-dependent paths and validates missing, nonpositive and malformed inputs", () => {
     const scaledD = { ...ds, values: ds.values.map((v) => v * 1e150) };
-    const scaled = isoMDS(scaledD);
-    comparedFixtures.add("isomds_scale");
-    // R stops at the initial configuration for this extreme scale; choice 5 tests equivariance instead.
-    if (Math.abs(base.stress - scaled.stress) > 1e-8) mismatches.push("stress changed under dissimilarity scaling");
-    for (let i = 0; i < base.points.values.length; i++) for (let j = 0; j < base.points.values[i]!.length; j++) {
-      const rel = Math.abs(scaled.points.values[i]![j]! / 1e150 - base.points.values[i]![j]!) / Math.max(1, Math.abs(base.points.values[i]![j]!));
-      if (rel > 1e-8) mismatches.push(`coordinate scale equivariance [${i},${j}]`);
-    }
+    compare("isomds_scale", isoMDS(scaledD));
+    const scaledStart = cmdscale(ds).points.values.map((row) => row.map((v) => v * 1e100));
+    compare("isomds_scale_y", isoMDS(ds, { y: scaledStart }));
     const errors: Array<[string, () => unknown]> = [
       ["isomds_zero_distance", () => isoMDS(dist([1, 1, 2, 5]), { k: 1 })],
       ["isomds_negative", () => isoMDS(asDist([[0, -1, 2], [-1, 0, 3], [2, 3, 0]]), { k: 1 })],

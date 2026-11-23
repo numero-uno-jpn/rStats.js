@@ -44,12 +44,19 @@ for (nm in c("swiss", "eurodist")) {
     cat(nm, "red", red, ": max|R_k - BFGS_k| / max|R_k| =", sprintf("%.1e", sapply(seq_along(B), function(k) max(abs(R[[k]] - B[[k]])) / max(abs(R[[k]])))), "\n")
   }
 }
-cat("--- shifted: R_{k+1} vs BFGS_k\n")
+cat("--- shifted: R_{k+1} vs BFGS_k, original coordinates, H0 = I\n")
 for (nm in c("swiss", "eurodist")) {
   d <- if (nm == "swiss") dist(swiss) else eurodist; dv <- as.vector(d); y0 <- cmdscale(d, 2)
-  R <- lapply(1:12, function(k) { invisible(capture.output(r <- isoMDS(d, maxit = k, tol = 1e-30))); r$points })
-  B <- bfgs(y0, dv, 11, 0.2)
-  cat(nm, ":", sprintf("%.1e", sapply(2:11, function(k) max(abs(R[[k + 1]] - B[[k]])) / max(abs(R[[k + 1]])))), "\n")
+  R <- lapply(1:13, function(k) { invisible(capture.output(r <- isoMDS(d, maxit = k, tol = 1e-30))); r$points })
+  B <- bfgs(y0, dv, 12, 0.2)
+  first <- identical(unname(R[[2]]), unname(B[[1]]))
+  cat(nm, "first step bitwise identical (R maxit=2 vs BFGS 1):", first,
+      "; max abs error:", format(max(abs(R[[2]] - B[[1]])), digits = 17), "\n")
+  absolute <- sapply(1:12, function(k) max(abs(R[[k + 1]] - B[[k]])))
+  relative <- sapply(1:12, function(k) absolute[k] / max(abs(R[[k + 1]])))
+  cat(nm, "absolute max errors k=1..12:", sprintf("%.3e", absolute), "\n")
+  cat(nm, "relative max errors k=1..12:", sprintf("%.3e", relative), "\n")
+  cat(nm, "11th absolute max error:", format(absolute[11], digits = 17), "\n")
   cat(nm, "R stress:", sprintf("%.5f", sapply(R, SG, d = dv, grad = FALSE)), "\n")
   cat(nm, "B stress:", sprintf("%.5f", sapply(B, SG, d = dv, grad = FALSE)), "\n")
 }

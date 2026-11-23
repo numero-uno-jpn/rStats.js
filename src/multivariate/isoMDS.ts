@@ -259,11 +259,6 @@ export function isoMDS(
   if (y.length !== n || y.some((r) => r.length !== k)) throw new RangeError("invalid initial configuration");
   if (y.some((r) => r.some((v) => !Number.isFinite(v)))) throw new RangeError("initial configuration must be finite");
   center(y);
-  let yScale = 0;
-  for (let i = 0; i < n - 1; i++) for (let j = i + 1; j < n; j++) yScale = Math.max(yScale, distance(y[i]!, y[j]!, p));
-  const normalize = yScale > 2 ** 450 || (yScale > 0 && yScale < 2 ** -450);
-  const outputScale = normalize ? yScale : 1;
-  if (normalize) y = y.map((r) => r.map((v) => v / yScale));
   const groups = Array.from({ length: built.groups }, (_, i) => i);
   let x = flatten(y);
   let current = evaluate(y, built.pairs, groups, p);
@@ -271,8 +266,7 @@ export function isoMDS(
   let converged = current.stress === 0 || maxit === 0;
   let lastIter = 0;
   const size = x.length;
-  // BFGS starts from the identity. For extreme initial scales, normalize the
-  // whole configuration first so the same identity start gives scale-equivariant steps.
+  // R starts BFGS from the identity in the original coordinates (choice 13).
   const resetDiagonal = 1;
   let inverseHessian = identity(size, resetDiagonal);
   // R performs one initial BFGS update for maxit=1 and maxit=2; thereafter
@@ -347,5 +341,5 @@ export function isoMDS(
 
   orient(y);
   return { points: { rows: parsed.labels, cols: null,
-    values: y.map((r) => r.map((v) => v * outputScale)) }, stress: current.stress, trace };
+    values: y.map((r) => [...r]) }, stress: current.stress, trace };
 }

@@ -200,52 +200,34 @@ function covariance(x: readonly number[], y: readonly number[], lag: number, pas
   const divisor = pass ? count + Math.abs(lag) : n;
   return divisor ? sum / divisor : NaN;
 }
-const PACF_BITS = 200n;
-const PACF_SCALE = 1n << PACF_BITS;
-const PACF_MASK = (1n << 52n) - 1n;
-const PACF_BUFFER = new ArrayBuffer(8);
-const PACF_VIEW = new DataView(PACF_BUFFER);
-/** Convert a finite IEEE-754 value to a 200-bit fixed-point integer without first rounding through Number. */
-function toFixed200(value: number): bigint {
-  if (value === 0) return 0n;
-  PACF_VIEW.setFloat64(0, value, false);
-  const bits = PACF_VIEW.getBigUint64(0, false);
-  const negative = (bits >> 63n) !== 0n;
-  const exponent = Number((bits >> 52n) & 0x7ffn);
-  const fraction = bits & PACF_MASK;
-  const mantissa = exponent === 0 ? fraction : (1n << 52n) | fraction;
-  const binaryExponent = exponent === 0 ? -1074 : exponent - 1023 - 52;
-  const shift = binaryExponent + Number(PACF_BITS);
-  const magnitude = shift >= 0 ? mantissa << BigInt(shift) : mantissa >> BigInt(-shift);
-  return negative ? -magnitude : magnitude;
-}
 function partial(correlations: readonly number[]): number[] {
   if (correlations.some((value) => !Number.isFinite(value))) {
     return Array.from({ length: Math.max(0, correlations.length - 1) }, () => NaN);
   }
-  const fixed = correlations.map(toFixed200);
   const out: number[] = [];
-  const previous: bigint[] = [];
-  for (let k = 1; k < fixed.length; k++) {
-    let numerator = fixed[k]!, denominator = PACF_SCALE;
+  const previous: number[] = [];
+  for (let k = 1; k < correlations.length; k++) {
+    let numerator = correlations[k]!;
+    let denominator = 1;
     for (let j = 1; j < k; j++) {
-      numerator -= previous[j - 1]! * fixed[k - j]! / PACF_SCALE;
-      denominator -= previous[j - 1]! * fixed[j]! / PACF_SCALE;
+      numerator -= previous[j - 1]! * correlations[k - j]!;
+      denominator -= previous[j - 1]! * correlations[j]!;
     }
-    if (denominator === 0n) {
+    if (denominator === 0) {
       out.push(NaN);
-      while (out.length < fixed.length - 1) out.push(NaN);
+      while (out.length < correlations.length - 1) out.push(NaN);
       break;
     }
-    const phi = numerator * PACF_SCALE / denominator;
-    const next = new Array<bigint>(k);
-    for (let j = 1; j < k; j++) next[j - 1] = previous[j - 1]! - phi * previous[k - j - 1]! / PACF_SCALE;
+    const phi = numerator / denominator;
+    const next = new Array<number>(k);
+    for (let j = 1; j < k; j++) next[j - 1] = previous[j - 1]! - phi * previous[k - j - 1]!;
     next[k - 1] = phi;
     previous.splice(0, previous.length, ...next);
-    out.push(Number(phi) / Number(PACF_SCALE));
+    out.push(phi);
   }
   return out;
 }
+
 function build(x: number[], y: number[], options: { type: "correlation" | "covariance" | "partial"; lagMax?: number; demean?: boolean; naAction?: AcfNaAction; ci?: number }, isCross: boolean): AcfResult {
   const action = options.naAction ?? "fail";
   validate(x, action);

@@ -171,23 +171,17 @@ describe("A: ca / mjca / Sammon / isoMDS numeric stability", () => {
     expect(() => ca([[1, NaN], [2, 3]])).toThrow();
   });
 
-  it("keeps Sammon and isoMDS stress invariant and coordinates proportional at 2^±500 and 2^±1000", () => {
+  it("keeps Sammon stress invariant and coordinates proportional at 2^±500 and 2^±1000", () => {
     const points = [[0, 0, 0], [1, 0, 0], [0, 2, 0], [1, 1, 1], [2, 0, 2], [2, 2, 1]];
     const d = distFromPoints(points);
     const samBase = sammon(d, { niter: 12 });
-    const isoBase = isoMDS(d, { maxit: 5000, tol: 1e-10 });
     for (const exponent of [-1000, -500, 500, 1000]) {
       const scale = 2 ** exponent;
       const scaledD: DistResult = { ...d, values: d.values.map((v) => v * scale) };
       const samScaled = sammon(scaledD, { niter: 12 });
-      const isoScaled = isoMDS(scaledD, { maxit: 5000, tol: 1e-10 });
       close(samScaled.stress, samBase.stress, 2e-10);
-      close(isoScaled.stress, isoBase.stress, 2e-10);
       for (let i = 0; i < samBase.points.values.length; i++) for (let q = 0; q < samBase.points.values[i]!.length; q++) {
         close(samScaled.points.values[i]![q]! / scale, samBase.points.values[i]![q]!, 2e-9);
-      }
-      for (let i = 0; i < isoBase.points.values.length; i++) for (let q = 0; q < isoBase.points.values[i]!.length; q++) {
-        close(isoScaled.points.values[i]![q]! / scale, isoBase.points.values[i]![q]!, 2e-9);
       }
     }
   });
