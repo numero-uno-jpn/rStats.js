@@ -209,6 +209,8 @@ describe("isoMDS: swiss, eurodist and USArrests R fixtures", () => {
       else { try { action(); mismatches.push(key + ": expected error"); } catch { /* expected */ } }
     }
     expect(mismatches).toEqual([]);
+  });
+
   it("reports movement from strict R endpoints under the current p=2 update", () => {
     const cases = [
       ["swiss", swissD, "isomds_tight_swiss"],
