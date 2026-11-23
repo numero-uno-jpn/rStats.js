@@ -4,7 +4,7 @@ import { checkOptions } from "../internal/checkOptions.js";
 
 const CA_KEYS = ["nd", "suprow", "supcol"] as const;
 const CA_SUMMARY_KEYS = [] as const;
-const CA_COORD_KEYS = ["type", "dim"] as const;
+const CA_COORD_KEYS = ["type", "dim", "rows", "cols"] as const;
 
 export interface CaInputTable { rows: string[] | null; cols: string[] | null; values: readonly (readonly number[])[]; }
 export interface CaOptions { nd?: number; suprow?: number | readonly number[]; supcol?: number | readonly number[]; }
@@ -17,7 +17,7 @@ export interface CaFit {
 export interface CaSummary {
   scree: CaMatrix; rows: CaMatrix; columns: CaMatrix;
 }
-export interface CaCoordOptions { type?: "standard"|"principal"|"symmetric"|"rowprincipal"|"colprincipal"|"symbiplot"|"rowgab"|"colgab"|"rowgreen"|"colgreen"; dim?: readonly number[]; }
+export interface CaCoordOptions { type?: "standard"|"principal"|"symmetric"|"rowprincipal"|"colprincipal"|"symbiplot"|"rowgab"|"colgab"|"rowgreen"|"colgreen"; dim?: readonly number[]; rows?: boolean; cols?: boolean; }
 
 function matrixInput(x: readonly (readonly number[])[] | CaInputTable): { values:number[][]; rows:string[]|null; cols:string[]|null } {
   if (Array.isArray(x)) {
@@ -119,7 +119,7 @@ export function caCoord(result:CaFit,options:CaCoordOptions={}):CaMatrix|{rows:C
   if(type==="symmetric")rm=cm="principal";
   if(type==="rowprincipal")rm="principal";
   if(type==="colprincipal")cm="principal";
-  if(type==="symbiplot")rm=cm="symmetric";
+  if(type==="symbiplot")rm=cm="standard";
   if(type==="rowgab") {rm="principal";cm="gab";}
   if(type==="colgab") {rm="gab";cm="principal";}
   if(type==="rowgreen") {rm="principal";cm="green";}
