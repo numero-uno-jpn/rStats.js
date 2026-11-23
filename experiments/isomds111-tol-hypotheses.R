@@ -14,7 +14,7 @@ SG <- function(y, d, grad = TRUE) {
 
 run_bfgs <- function(y0, d, iters) {
   x <- as.vector(y0); k <- ncol(y0); m <- length(x); H <- diag(m)
-  e <- SG(matrix(x,ncol=k),d); out <- list(); last_s <- NULL; last_alpha <- 1
+  e <- SG(matrix(x,ncol=k),d); out <- list(); last_s <- NULL; last_alpha <- 1; previous_gradient <- NULL
   for (it in seq_len(iters)) {
     g <- as.vector(e$g); direction <- -as.vector(H %*% g); slope <- sum(g*direction)
     if (slope >= 0) { H <- diag(m); direction <- -g; slope <- sum(g*direction) }
@@ -35,8 +35,8 @@ run_bfgs <- function(y0, d, iters) {
     } else H <- diag(m)
     out[[it]] <- list(x=xn, y=matrix(xn,ncol=k), stress=en$s, H=H, g=as.vector(en$g),
                       alpha=alpha, direction=direction, previous_step=last_s,
-                      previous_alpha=last_alpha)
-    x <- xn; e <- en; last_s <- step; last_alpha <- alpha
+                      previous_gradient=previous_gradient, previous_alpha=last_alpha)
+    x <- xn; e <- en; last_s <- step; last_alpha <- alpha; previous_gradient <- g
   }
   out
 }
@@ -70,12 +70,16 @@ check_data <- function(nm, d, y0, tols) {
     if (i==1 || any(decrease < tols)) {
       cat("BFGS",i,"stress",sprintf("%.12g",state$stress),"relative decrease",sprintf("%.8g",decrease),
           "accepted alpha",state$alpha,"previous alpha",state$previous_alpha,"\\n")
-      for (a in c(1,0.5,0.2,0.1,0.04,0.02,0.01)) {
+      for (a in c(1,0.99,0.5,0.2,0.1,0.04,0.02,0.01)) {
         cat("  BFGS direction alpha",a,sprintf("%.12g",candidate(state,d,k,state$direction,a)),
             "identity direction alpha",a,sprintf("%.12g",candidate(state,d,k,-state$g,a)),"\\n")
       }
       if (!is.null(state$previous_step)) {
         cat("  previous displacement alpha=1",sprintf("%.12g",candidate(state,d,k,state$previous_step,1)),"\\n")
+      }
+      if (!is.null(state$previous_gradient)) {
+        cat("  previous-point gradient alpha=1",
+            sprintf("%.12g",candidate(state,d,k,-state$previous_gradient,1)),"\\n")
       }
       id <- armijo(state,d,k,-state$g,sum(state$g*(-state$g)),1e-4)
       cat("  reset-I Armijo c1=1e-4 stress",sprintf("%.12g",id[1]),"alpha",id[2],"\\n")
