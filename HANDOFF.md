@@ -1,6 +1,6 @@
 # 引継ぎ: rStats.js (外部レビュー対応 2026-10-30〜11-04、1.0.0 への準備 11-04〜)
 
-最終更新: 2026-11-23 (セッション 29 の始め、Mac mini: 1.11.0 の範囲をユーザーが決めた (mjca も入れる、ほかは推奨どおり)。準備の 1 (ca をイメージとチェッカーに) が済み、次は準備の 2 = R の実験・指示書)。以前: 2026-11-23 (セッション 28 の終わり、Mac mini: **1.10.0 を公開** (dist・hclust・cutree・kmeans・cmdscale)。次は 1.11.0 = ca・acf・pacf・isoMDS・sammon、1.12.0 = arima (ユーザーの決定)。範囲を決めるところから)。以前: 2026-11-22 夜 (セッション 28、Mac mini: 1.10.0 の範囲をユーザーが決め (全部推奨どおり)、準備 (チェッカー・R の実験・指示書) を main に置き、Issue #556・draft PR #557 を作った。段階 1 を終え、次は ChatGPT の段階 2)。以前: 2026-11-22 夜 (セッション 27 の終わり、Mac mini: **1.9.0 を公開** (T2・Page・Grubbs、manova・lda・cancor)。次は 1.10.0 = クラスタ分析と多次元尺度法 (ユーザーの決定)、範囲を決めるところから)。以前: 2026-11-22 (セッション 27 の始め、Mac mini: 1.9.0 の範囲を決め、準備中)。以前: 2026-11-22 (セッション 26 の終わり、Mac mini: **1.8.0 を公開** (rq・geeglm・glmnet)。次は 1.9.0 = 小さな検定 3 つ + 多変量 3 つ (ユーザーの決定)、範囲を決めるところから)。以前: 2026-11-20 夜 (セッション 26 の始め: 1.8.0 の範囲を決め、準備)。以前: 2026-11-20 夕 (セッション 25 の終わり、Mac mini: **1.7.0 を公開** (回帰 polr・rlm・nls、`/regression`)。次の作業は未定 (ROADMAP の 2 = 1.8.0)。以前: 2026-11-20 昼 (セッション 25、Mac mini: 段階 3 の端の入力の直しも済み (最後は私が引き継いだ)。次は「nls の後」の配線と文書)。以前: 2026-11-19 深夜 (セッション 24、polr・rlm は完了、nls を ChatGPT に依頼)。以前: 2026-11-19 (セッション 23、1.6.0 を公開 (混合モデルの confint と simulate))。以前: 2026-11-17 (セッション 22、1.5.0 を公開)。その前: 2026-11-16 (セッション 21、Mac mini: 1.4.0 を公開、同時刻の Gray の検定を ChatGPT がクリーンルームで修正 (1.4.1 に入る、未公開)、外注用の R の実験の仕組みを作った。次は ROADMAP の 1 番)
+最終更新: 2026-11-23 (セッション 29 の始め、Mac mini: 1.11.0 の範囲をユーザーが決めた (mjca も入れる、ほかは推奨どおり)。準備が全部済んだ (Issue #560・draft PR #561・作業ブランチ `work/ca-acf-mds-1.11`)。次は ChatGPT の段階 1 (仕様書 + oracle))。以前: 2026-11-23 (セッション 28 の終わり、Mac mini: **1.10.0 を公開** (dist・hclust・cutree・kmeans・cmdscale)。次は 1.11.0 = ca・acf・pacf・isoMDS・sammon、1.12.0 = arima (ユーザーの決定)。範囲を決めるところから)。以前: 2026-11-22 夜 (セッション 28、Mac mini: 1.10.0 の範囲をユーザーが決め (全部推奨どおり)、準備 (チェッカー・R の実験・指示書) を main に置き、Issue #556・draft PR #557 を作った。段階 1 を終え、次は ChatGPT の段階 2)。以前: 2026-11-22 夜 (セッション 27 の終わり、Mac mini: **1.9.0 を公開** (T2・Page・Grubbs、manova・lda・cancor)。次は 1.10.0 = クラスタ分析と多次元尺度法 (ユーザーの決定)、範囲を決めるところから)。以前: 2026-11-22 (セッション 27 の始め、Mac mini: 1.9.0 の範囲を決め、準備中)。以前: 2026-11-22 (セッション 26 の終わり、Mac mini: **1.8.0 を公開** (rq・geeglm・glmnet)。次は 1.9.0 = 小さな検定 3 つ + 多変量 3 つ (ユーザーの決定)、範囲を決めるところから)。以前: 2026-11-20 夜 (セッション 26 の始め: 1.8.0 の範囲を決め、準備)。以前: 2026-11-20 夕 (セッション 25 の終わり、Mac mini: **1.7.0 を公開** (回帰 polr・rlm・nls、`/regression`)。次の作業は未定 (ROADMAP の 2 = 1.8.0)。以前: 2026-11-20 昼 (セッション 25、Mac mini: 段階 3 の端の入力の直しも済み (最後は私が引き継いだ)。次は「nls の後」の配線と文書)。以前: 2026-11-19 深夜 (セッション 24、polr・rlm は完了、nls を ChatGPT に依頼)。以前: 2026-11-19 (セッション 23、1.6.0 を公開 (混合モデルの confint と simulate))。以前: 2026-11-17 (セッション 22、1.5.0 を公開)。その前: 2026-11-16 (セッション 21、Mac mini: 1.4.0 を公開、同時刻の Gray の検定を ChatGPT がクリーンルームで修正 (1.4.1 に入る、未公開)、外注用の R の実験の仕組みを作った。次は ROADMAP の 1 番)
 
 ## まず読むこと (セッション 16 から)
 
@@ -38,7 +38,19 @@ ROADMAP の残り (2 番) は isoMDS・sammon、対応分析 (ca)、時系列 (a
   2026-10-23 で **ca 0.72**、依存なし、GPL。experiments は 0.72 と MASS 7.3.66 に固定)。イメージ 3 つ (rstats-oracle:4.6.2・
   rstats-oracle-amd64:4.6.2・rstats-experiments:4.6.2) を作り直した。`scripts/r-experiment-check.mjs` に ca を許すパッケージに、
   ca の export と S3 メソッド全部、stats の `acf`・`pacf`・`pacf.default`・`ccf`・`print.acf`・`plot.acf` を関数の一覧に。
-  ca・mjca・acf・pacf・ccf を呼ぶ小さな実験がチェッカーを通り、experiments のイメージで動いた
+  ca・mjca・acf・pacf・ccf を呼ぶ小さな実験がチェッカーを通り、experiments のイメージで動いた (main `96103315`)
+- **準備の 2 も済み:** `/timeseries` の空の入口と配線 (`package.json`・`scripts/bundle.mjs`・`scripts/size.mjs`・
+  `typedoc.json` の "Time series"・`src/api-reference.ts`・`test/docExamples.test.ts`)、私の R の実験 3 本
+  (`experiments/{ca111,acf111,sammon111}.{R,json}`、x86_64・17 桁)、指示書 `briefs/ca-acf-mds-1.11.ja.md` と入口
+  `briefs/ca-acf-mds-1.11-status.ja.md` (main `85a6ec89`)。作業ブランチ `work/ca-acf-mds-1.11` に `work/isomds-next` から
+  `isoMDS.ts`・`isoMDS.test.ts` と export だけ取り込み (145 コミットの枝は 1.10.0 の途中の dist・kmeans を含むのでマージ
+  しない)、r-functions を作り直した (`3e708d0f`)。**Issue #560・draft PR #561** (マージしない)、番号を入口に (`b63398a0`)。
+  ブランチでは isoMDS のテスト 5 件が落ちる (1.10.0 で届かなかった分。ChatGPT が理由から調べる)
+- 実験で分かったこと (詳しくは指示書 1 節): **ca 0.72 の `summary()` は次元が 1 つ以下だと落ちる** (fit は取れる)。
+  mjca は小さな表の adjusted・JCA、2 変数で `non-conformable arguments`。**sammon は swiss で既定でも厳しくしても 0 回の
+  反復で止まる** (初期値の stress のまま)。厳しく収束させた sammon の case は全部収束 (合格の条件に使える)
+- **この Mac (Node 24.19) では main でも `test/issue179.test.ts`・`issue513.test.ts` が最後の桁で落ちる** (CI は緑。
+  今回の変更とは無関係。未調査)
 
 ### 準備 (私、1.10.0 と同じ。教訓は「セッション 28 の教訓」と feedback-chatgpt-write-scope-and-tokens)
 1. **ca パッケージはイメージに無い:** `oracle/Dockerfile.r46` と `Dockerfile.experiments` に足す (版は CRAN の日付
