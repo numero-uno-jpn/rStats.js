@@ -6,17 +6,23 @@ const CA_KEYS = ["nd", "suprow", "supcol"] as const;
 const CA_SUMMARY_KEYS = [] as const;
 const CA_COORD_KEYS = ["type", "dim", "rows", "cols"] as const;
 
+/** @category Multivariate analysis */
 export interface CaInputTable { rows: string[] | null; cols: string[] | null; values: readonly (readonly number[])[]; }
+/** @category Multivariate analysis */
 export interface CaOptions { nd?: number; suprow?: number | readonly number[]; supcol?: number | readonly number[]; }
+/** @category Multivariate analysis */
 export interface CaMatrix { rows: string[] | null; cols: string[] | null; values: number[][]; }
+/** @category Multivariate analysis */
 export interface CaFit {
   sv: number[]; nd: number | "NA"; rownames: string[] | null; rowmass: number[]; rowdist: number[];
   rowinertia: number[]; rowcoord: CaMatrix; rowsup: number[]; colnames: string[] | null; colmass: number[];
   coldist: number[]; colinertia: number[]; colcoord: CaMatrix; colsup: number[]; N: CaMatrix;
 }
+/** @category Multivariate analysis */
 export interface CaSummary {
   scree: CaMatrix; rows: CaMatrix; columns: CaMatrix;
 }
+/** @category Multivariate analysis */
 export interface CaCoordOptions { type?: "standard"|"principal"|"symmetric"|"rowprincipal"|"colprincipal"|"symbiplot"|"rowgab"|"colgab"|"rowgreen"|"colgreen"; dim?: readonly number[]; rows?: boolean; cols?: boolean; }
 
 function matrixInput(x: readonly (readonly number[])[] | CaInputTable): { values:number[][]; rows:string[]|null; cols:string[]|null } {
@@ -80,6 +86,11 @@ function fit(input:readonly (readonly number[])[]|CaInputTable, options:CaOption
     colcoord:mat(colCoordAll,colNames,singular.map((_,i)=>"Dim"+(i+1))),colsup:colSup,
     N:mat(active,null,null)};
 }
+/**
+ * Simple correspondence analysis of a contingency table.
+ * Equivalent to R's `ca::ca()`.
+ * @category Multivariate analysis
+ */
 export function ca(input:readonly (readonly number[])[]|CaInputTable,options:CaOptions={}):CaFit{return fit(input,options);}
 
 function summaryTable(names:string[]|null,mass:number[],dist:number[],inertia:number[],coords:number[][],sv:number[],nd:number|"NA",sup:number[]):CaMatrix {
@@ -98,6 +109,11 @@ function summaryTable(names:string[]|null,mass:number[],dist:number[],inertia:nu
   });
   return {rows:mass.map((_,i)=>String(i+1)),cols:headers,values:rows as unknown as number[][]};
 }
+/**
+ * Summary tables for a correspondence analysis.
+ * Equivalent to R's `summary.ca()`.
+ * @category Multivariate analysis
+ */
 export function caSummary(result:CaFit):CaSummary {
   const eig=result.sv.map(v=>v*v),total=sum(eig);let cumulative=0;
   const scree: number[][]=eig.map((v,i)=>{cumulative+=total?v/total*100:0;return [i+1,v,total?v/total*100:0,cumulative];});
@@ -105,6 +121,11 @@ export function caSummary(result:CaFit):CaSummary {
     rows:summaryTable(result.rownames,result.rowmass,result.rowdist,result.rowinertia,result.rowcoord.values,result.sv,result.nd,result.rowsup),
     columns:summaryTable(result.colnames,result.colmass,result.coldist,result.colinertia,result.colcoord.values,result.sv,result.nd,result.colsup)};
 }
+/**
+ * Row and column coordinates for a correspondence analysis map.
+ * Equivalent to R's `ca::cacoord()`.
+ * @category Multivariate analysis
+ */
 export function caCoord(result:CaFit,options:CaCoordOptions={}):CaMatrix|{rows:CaMatrix;columns:CaMatrix} {
   checkOptions(options,CA_COORD_KEYS,"caCoord");
   const type=options.type??"symmetric", allowed=["standard","principal","symmetric","rowprincipal","colprincipal","symbiplot","rowgab","colgab","rowgreen","colgreen"];
