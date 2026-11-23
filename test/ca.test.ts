@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
-import { ca, type CaInputTable, type CaFit } from "../src/entries/multivariate.js";
+import { ca, caSummary, type CaInputTable, type CaFit } from "../src/entries/multivariate.js";
 
 const fixture = JSON.parse(readFileSync(new URL("./fixtures/ca.json", import.meta.url), "utf8")) as Record<string, any>;
 const names = Object.keys(fixture).filter((key) => key.startsWith("ca_") && !key.startsWith("ca_cacoord_") && fixture[key]?.value?.fit);
