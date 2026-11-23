@@ -127,7 +127,7 @@ describe("A: acf / pacf / ccf numeric stability", () => {
   it("handles constant series, N=1/2, lagMax=0, NaN pass and Infinity", () => {
     expect(acf([5, 5, 5]).acf.every(Number.isNaN)).toBe(true);
     expect(acf([7]).acf).toEqual([1]);
-    expect(pacf([7]).acf).toEqual([]);
+    expect(() => pacf([7])).toThrow();
     expect(acf([1, 2], { lagMax: 0 }).acf).toHaveLength(1);
     expect(pacf([1, 2], { lagMax: 1 }).acf).toHaveLength(1);
     expect(acf([1, NaN, 3], { naAction: "pass", lagMax: 1 }).acf).toHaveLength(2);
