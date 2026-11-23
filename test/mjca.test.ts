@@ -915,8 +915,8 @@ function check(key:string,input:MjcaInputTable,options:any={}):string[]{
   const expectedCols=expected.colcoord?.values as number[][]|undefined;
   if(expectedCols&&actual.colcoord.values.length){
     for(let j=0;j<(actual.colcoord.values[0]?.length??0);j++){
-      let dot=0;for(let i=0;i<Math.min(actual.colcoord.values.length,expectedCols.length);i++)dot+=actual.colcoord.values[i]![j]!*expectedCols[i]![j]!;
-      if(dot<0)for(const field of [actual.colcoord,actual.colpcoord,actual.rowcoord,actual.rowpcoord])for(const row of field.values)row[j]=-row[j]!;
+      let dot=0;for(let i=0;i<Math.min(actual.colcoord.values.length,expectedCols.length);i++)dot+=Number(actual.colcoord.values[i]![j])*Number(expectedCols[i]![j]);
+      if(dot<0)for(const field of [actual.colcoord,actual.colpcoord,actual.rowcoord!,actual.rowpcoord!])for(const row of field.values)row[j]=-Number(row[j]);
     }
   }
   compare(actual,expected,key,errors);return errors;
@@ -978,7 +978,7 @@ describe("mjca",()=>{
     expect(result.indmat).not.toBe("NA");
     const values=(result.indmat as MjcaMatrix).values;
     expect(values.length).toBe(871);
-    expect(values[0]!.reduce((a,v)=>a+v,0)).toBe(4);
+    expect(values[0]!.reduce((a,v)=>a+Number(v),0)).toBe(4);
     expect(values[0]!.length).toBe(result.levelnames.length);
   });
   it("returns an indicator matrix only when requested",()=>{
