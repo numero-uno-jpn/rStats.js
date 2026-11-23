@@ -64,7 +64,7 @@ function alignPoints(actual:number[][],expected:number[][]):void{
     for(let i=0;i<actual.length;i++)for(let q=0;q<2;q++)actual[i]![q]=best.points[i]![q]!;
   }
 }
-function check(key:string,d:DistResult|SammonMatrixInput|readonly (readonly number[])[],options:any={},tight=false):string[]{
+function check(key:string,d:DistResult|SammonMatrixInput|readonly (readonly number[])[],options:any={},tight=false,compareTrace=true):string[]{
   comparedFixtureKeys.add(key);
   const expected=fixture[key].value,actual=sammon(d,options),errors:string[]=[];
   if(typeof expected.stress==="number"){
@@ -78,30 +78,45 @@ function check(key:string,d:DistResult|SammonMatrixInput|readonly (readonly numb
     }
   }
   if(expected.points?.values){
-    const points=actual.points.values.map(r=>[...r]);
-    alignPoints(points,expected.points.values);
-    const tol=tight?1e-5:1e-7;
-    for(let i=0;i<expected.points.values.length;i++)for(let q=0;q<expected.points.values[i]!.length;q++){
-      const a=points[i]![q]!,e=expected.points.values[i]![q]!;
-      maxCoordinateError=Math.max(maxCoordinateError,Math.abs(a-e));
-      if(Math.abs(a-e)>tol*Math.max(1,Math.abs(e)))errors.push(key+".points["+i+"]["+q+"]: "+a+" vs "+e);
+    const points=actual.points.values.map(r=>[...r]),expectedPoints=expected.points.values;
+    const tol=tight?1e-5:1e-7,k=expectedPoints[0]?.length??0;
+    if(k>=3){
+      // In three or more dimensions, compare the complete pairwise geometry;
+      // orthogonal rotations/reflections are arbitrary and need not match.
+      for(let i=0;i<expectedPoints.length;i++)for(let j=i+1;j<expectedPoints.length;j++){
+        let actual2=0,expected2=0;
+        for(let q=0;q<k;q++){actual2+=(points[i]![q]!-points[j]![q]!)**2;expected2+=(expectedPoints[i]![q]!-expectedPoints[j]![q]!)**2;}
+        const a=Math.sqrt(actual2),e=Math.sqrt(expected2),error=Math.abs(a-e);
+        maxCoordinateError=Math.max(maxCoordinateError,error);
+        if(error>tol*Math.max(1,Math.abs(e)))errors.push(key+".distance["+i+"]["+j+"]: "+a+" vs "+e);
+      }
+    }else{
+      alignPoints(points,expectedPoints);
+      for(let i=0;i<expectedPoints.length;i++)for(let q=0;q<expectedPoints[i]!.length;q++){
+        const a=points[i]![q]!,e=expectedPoints[i]![q]!;
+        maxCoordinateError=Math.max(maxCoordinateError,Math.abs(a-e));
+        if(Math.abs(a-e)>tol*Math.max(1,Math.abs(e)))errors.push(key+".points["+i+"]["+q+"]: "+a+" vs "+e);
+      }
     }
     if(actual.points.rows?.join("|")!==(expected.points.rows??null)?.join("|"))errors.push(key+".point labels differ");
   }
-  const printed=expected.printed===undefined?[]:Array.isArray(expected.printed)?expected.printed:[expected.printed];
-  const expectedTrace:number[]=[];
-  let expectedStop:number|null=null;
-  for(const line of printed){
-    const initial=/Initial stress\s*:\s*([0-9.eE+-]+)/.exec(line);
-    const progress=/stress after\s+(\d+) iters:\s*([0-9.eE+-]+)/.exec(line);
-    if(initial)expectedTrace.push(Number(initial[1]));
-    else if(progress){expectedTrace.push(Number(progress[2]));expectedStop=Number(progress[1]);}
-  }
-  if(expectedTrace.length&&actual.trace.length!==expectedTrace.length)errors.push(key+".trace length "+actual.trace.length+" vs "+expectedTrace.length);
-  if(expectedStop!==null&&!["sammon_perfect","sammon_three","sammon_two"].includes(key)&&actual.trace[actual.trace.length-1]!.iteration!==expectedStop)errors.push(key+".stopped after "+actual.trace[actual.trace.length-1]!.iteration+" vs R "+expectedStop);
-  for(let i=0;i<Math.min(expectedTrace.length,actual.trace.length);i++){
-    const rounded=Math.round(actual.trace[i]!.stress*1e5)/1e5;
-    if(rounded!==expectedTrace[i])errors.push(key+".trace["+i+"]: "+rounded+" vs "+expectedTrace[i]);
+  if(compareTrace){
+    const printed=expected.printed===undefined?[]:Array.isArray(expected.printed)?expected.printed:[expected.printed];
+    const expectedTrace:number[]=[];
+    let expectedStop:number|null=null;
+    for(const line of printed){
+      const initial=/Initial stress\s*:\s*([0-9.eE+-]+)/.exec(line);
+      const progress=/stress after\s+(\d+) iters:\s*([0-9.eE+-]+)/.exec(line);
+      if(initial)expectedTrace.push(Number(initial[1]));
+      else if(progress){expectedTrace.push(Number(progress[2]));expectedStop=Number(progress[1]);}
+    }
+    if(expectedTrace.length&&actual.trace.length!==expectedTrace.length)errors.push(key+".trace length "+actual.trace.length+" vs "+expectedTrace.length);
+    if(expectedStop!==null&&!["sammon_perfect","sammon_three","sammon_two"].includes(key)&&actual.trace[actual.trace.length-1]!.iteration!==expectedStop)errors.push(key+".stopped after "+actual.trace[actual.trace.length-1]!.iteration+" vs R "+expectedStop);
+    for(let i=0;i<Math.min(expectedTrace.length,actual.trace.length);i++){
+      const rounded=Math.round(actual.trace[i]!.stress*1e5)/1e5;
+      if(rounded!==expectedTrace[i])errors.push(key+".trace["+i+"]: "+rounded+" vs "+expectedTrace[i]);
+    }
+  
   }
   return errors;
 }
@@ -150,7 +165,7 @@ describe("sammon",()=>{
     for(const [key,d,options={}] of valid){
       const tight=key.startsWith("tight_");
       const finalOptions=tight?{...options,niter:1e5,tol:1e-14}:options;
-      finalMismatches.push(...check(key,d,finalOptions,tight));
+      finalMismatches.push(...check(key,d,finalOptions,tight,false));
     }
     console.info("sammon final fit comparisons: "+comparedFixtureKeys.size+"/36 valid cases; max relative final-stress error="+maxRelativeStressError.toExponential(3)+"; max |coordinate error|="+maxCoordinateError.toExponential(3));
     if(comparedFixtureKeys.size!==36)finalMismatches.push("compared "+comparedFixtureKeys.size+" distinct valid fixtures, expected 36");
