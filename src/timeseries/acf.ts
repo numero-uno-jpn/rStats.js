@@ -285,8 +285,8 @@ function build(x: number[], y: number[], options: { type: "correlation" | "covar
   return { lag, acf: values, type: options.type, nUsed: n, clim: qnorm((1 + ci) / 2) / Math.sqrt(n) };
 }
 /**
+ * Computes autocorrelation, autocovariance or partial autocorrelation of a univariate series.
  * Equivalent to R's `stats::acf()`.
- * Autocorrelation, autocovariance or partial autocorrelation of a univariate series.
  * @category Time series
  */
 export function acf(input: readonly number[] | readonly (readonly number[])[], options: AcfOptions = {}): AcfResult {
@@ -298,9 +298,9 @@ export function acf(input: readonly number[] | readonly (readonly number[])[], o
 }
 
 /**
+ * Computes partial autocorrelation of a univariate series with the Durbin–Levinson recursion.
  * Equivalent to R's `stats::pacf()`.
- * Partial autocorrelation of a univariate series, computed by the Durbin–Levinson recursion.
- * @category Descriptive statistics
+ * @category Time series
  */
 export function pacf(input: readonly number[] | readonly (readonly number[])[], options: PacfOptions = {}): AcfResult {
   checkOptions(options, PACF_KEYS, "pacf"); // generated: option-keys.mjs
@@ -308,9 +308,9 @@ export function pacf(input: readonly number[] | readonly (readonly number[])[], 
 }
 
 /**
+ * Computes cross-correlation or cross-covariance of two equal-length series. Lag k pairs x[t+k] with y[t].
  * Equivalent to R's `stats::ccf()`.
- * Cross-correlation or cross-covariance of two equal-length series. Lag k pairs x[t+k] with y[t].
- * @category Descriptive statistics
+ * @category Time series
  */
 export function ccf(xInput: readonly number[] | readonly (readonly number[])[], yInput: readonly number[] | readonly (readonly number[])[], options: CcfOptions = {}): AcfResult {
   checkOptions(options, CCF_KEYS, "ccf"); // generated: option-keys.mjs
