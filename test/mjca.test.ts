@@ -929,7 +929,7 @@ function check(key:string,input:MjcaInputTable,options:any={}):string[]{
     }
   }
   compare(actual,expected,key,errors);
-  for(const error of errors){const component=error.slice(key.length+1).split(".")[0]!.split("[")[0]??"unknown";componentMismatchCounts[component]=(componentMismatchCounts[component]??0)+1;}
+  for(const error of errors){const component=error.slice(key.length+1).split(".")[0]!.split("[")[0]!.split(":")[0]!.trim()||"unknown";componentMismatchCounts[component]=(componentMismatchCounts[component]??0)+1;}
   return errors;
 }
 
