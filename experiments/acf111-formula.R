@@ -1,7 +1,7 @@
 # issue: 560
 # Independent formula checks for stats::acf, pacf and ccf; public functions only.
 library(jsonlite)
-x <- as.numeric(stats::lh)
+x <- as.numeric(datasets::lh)
 n <- length(x); z <- x - mean(x)
 g <- sapply(0:5, function(k) sum(z[seq_len(n-k)] * z[(k+1):n]) / n)
 r <- g / g[1]
@@ -16,13 +16,13 @@ for (k in 1:5) {
   }
 }
 pac <- diag(phi)
-fit <- stats::acf(stats::lh, lag.max=5, plot=FALSE)
-pacfit <- stats::pacf(stats::lh, lag.max=5, plot=FALSE)
-xna <- as.numeric(stats::presidents); nmiss <- length(xna); mean_na <- mean(xna,na.rm=TRUE)
+fit <- stats::acf(datasets::lh, lag.max=5, plot=FALSE)
+pacfit <- stats::pacf(datasets::lh, lag.max=5, plot=FALSE)
+xna <- as.numeric(datasets::presidents); nmiss <- length(xna); mean_na <- mean(xna,na.rm=TRUE)
 zna <- xna-mean_na
 gna <- sapply(0:5,function(k) { a <- zna[seq_len(nmiss-k)]; b <- zna[(k+1):nmiss]; sum(a*b,na.rm=TRUE)/nmiss })
 rna <- gna/gna[1]
-na_public <- as.numeric(stats::acf(stats::presidents,na.action=stats::na.pass,plot=FALSE)$acf[1:6,1,1])
+na_public <- as.numeric(stats::acf(datasets::presidents,na.action=stats::na.pass,plot=FALSE)$acf[1:6,1,1])
 x10 <- c(3,1,4,1,5,9,2,6,5,3); y10 <- c(2,7,1,8,2,8,1,8,2,8)
 cc <- stats::ccf(x10,y10,lag.max=3,plot=FALSE)
 cc_direct <- sapply(-3:3, function(k) {
