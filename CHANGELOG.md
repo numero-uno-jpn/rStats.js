@@ -7,11 +7,11 @@ While the version is 0.x, a minor release (0.y.0) may contain breaking changes;
 they are listed under **Breaking** for each release. From 1.0.0 the project follows
 [Semantic Versioning](https://semver.org/).
 
-## Unreleased
+## 1.10.0 - 2026-11-23
 
 ### Added
 
-- **1.10.0 — cluster analysis and classical multidimensional scaling** in the separate `/multivariate` area:
+- **Cluster analysis and classical multidimensional scaling** in the separate `/multivariate` area:
   `dist`, `asDist`, `hclust`, `cutree`, `kmeans` and `cmdscale`. The non-metric `isoMDS` method is not part of this release.
 - Stable extreme-scale distance, k-means and classical MDS calculations, including scaled Canberra ratios for finite inputs whose direct numerator or denominator would overflow.
 
