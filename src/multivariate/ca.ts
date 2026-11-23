@@ -186,7 +186,7 @@ function fit(input:readonly (readonly number[])[]|CaInputTable, options:CaOption
 }
 /**
  * Computes simple correspondence analysis of a contingency table.
- * Equivalent to R's `ca()`.
+ * Equivalent to R's `ca::ca()`.
  * @category Multivariate analysis
  */
 export function ca(input: readonly (readonly number[])[] | CaInputTable, options: CaOptions = {}): CaFit {
