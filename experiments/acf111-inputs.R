@@ -1,6 +1,6 @@
 # issue: 560
-# Public R dataset values needed to exercise every acf/pacf/ccf fixture in TypeScript.
-# No package implementation is inspected; only dataset vectors and deterministic generated inputs are emitted.
+# Public R dataset values needed to exercise the acf/pacf/ccf fixtures in TypeScript.
+# No package implementation is inspected; only public data vectors and deterministic generated inputs are emitted.
 library(jsonlite)
 set.seed(1)
 long <- cumsum(rnorm(5000))
@@ -13,8 +13,6 @@ out <- list(
   presidents = as.vector(presidents),
   mdeaths = as.vector(mdeaths),
   fdeaths = as.vector(fdeaths),
-  long = long,
-  long_partial = long_partial,
   ar2 = ar2
 )
 cat(toJSON(out, digits = I(17), auto_unbox = FALSE, null = "null", na = "string", pretty = FALSE))
