@@ -145,7 +145,7 @@ export function mjca(input:MjcaInputTable,options:MjcaOptions={}):MjcaFit {
       return total/count;
     });
   });
-  const rowDist=rowMass.map((_,i)=>Math.sqrt(sum(activeTable[i]!.map((v,j)=>((v/rowTotals[i]!-activeMass[j]!)**2)/activeMass[j]!))));
+  const rowDist=rowMass.map((_,i)=>Math.sqrt(sum(activeTable[i]!.map((v,j)=>(v/rowTotals[i]!-activeMass[j]!)**2)))/Math.sqrt(n));
   const rowInertia=rowMass.map((v,i)=>v*rowDist[i]!*rowDist[i]!);
   const colInertia=colMass.map((v,i)=>Number.isNaN(v)?NaN:v*colDist[i]!*colDist[i]!);
   const eig=singular.map(v=>v*v);
@@ -192,7 +192,10 @@ export function mjca(input:MjcaInputTable,options:MjcaOptions={}):MjcaFit {
   const rowPcoords=rowCoords0.map(row=>row.slice(0,axisCount).map((v,j)=>v*singular[j]!));
   const rowCoords=rowPcoords.map(row=>row.map((v,j)=>modeSv[j]===0?0:v/modeSv[j]!));
   const rowCtr=rowCoords0.map((row,i)=>row.map(v=>rowMass[i]!*v*v));
-  const rowCor=rowPcoords.map((row,i)=>row.map(v=>rowDist[i]===0?0:v*v/(rowDist[i]!*rowDist[i]!)));
+  const rowCor=rowPcoords.map(row=>{
+    const distance2=sum(row.map(v=>v*v));
+    return row.map(v=>distance2===0?0:v*v/distance2);
+  });
   const colsup=supCats.length?supCats.map(c=>chosenCats.findIndex(x=>x.global===c.global)+1):"NA";
   const subsetcol=selected.length?selected.map(v=>v+1):"NA";
   const nd=options.nd??2;
