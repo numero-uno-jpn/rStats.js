@@ -66,8 +66,7 @@ function orient(rows:number[][],cols:number[][]):void {
     if((rows[at]?.[j]??0)<0){for(const r of rows)r[j]=-r[j]!;for(const r of cols)r[j]=-r[j]!;}
   }
 }
-function coordinateStats(coords:number[][],mass:number[],sv:number[]):{principal:number[][];ctr:number[][];cor:number[][]} {
-  const principal=coords.map(row=>row.map((v,j)=>v*(sv[j]??0)));
+function coordinateStats(coords:number[][],mass:number[],principal:number[][]):{principal:number[][];ctr:number[][];cor:number[][]} {
   const ctr=coords.map((row,i)=>row.map(v=>mass[i]!*v*v));
   const cor=principal.map(row=>{
     const distance2=sum(row.map(v=>v*v));
@@ -153,10 +152,15 @@ export function mjca(input:MjcaInputTable,options:MjcaOptions={}):MjcaFit {
   const axisCount=modeSv.length;
   // Active category projections are standard coordinates; supplementary
   // category projections are principal coordinates and must be standardized.
-  const allColCoords=coords.map((row,i)=>row.slice(0,axisCount).map((v,j)=>
-    activePosition.has(chosenCats[i]!.global)?v:(modeSv[j]===0?0:v/modeSv[j]!)
+  const allColCoords=coords.map((row,i)=>row.slice(0,axisCount).map((v,j)=>{
+    if(activePosition.has(chosenCats[i]!.global))return v;
+    const standardizer=lambda==="adjusted"?modeSv[j]!:eig[j]!;
+    return standardizer===0?0:v/standardizer;
+  }));
+  const colPrincipal=coords.map((row,i)=>row.slice(0,axisCount).map((v,j)=>
+    activePosition.has(chosenCats[i]!.global)?allColCoords[i]![j]!*modeSv[j]!:v
   ));
-  const colStats=coordinateStats(allColCoords,colMass,modeSv);
+  const colStats=coordinateStats(allColCoords,colMass,colPrincipal);
   const levelnames=chosenCats.map(c=>raw.cols[c.factor]!+(options.ps??":")+c.level);
   const factorRows=chosenCats.map(c=>raw.cols[c.factor]!+String(allLevels[c.factor]!.indexOf(c.level)+1));
   const factorVals=chosenCats.map(c=>[raw.cols[c.factor]!,c.level]);
