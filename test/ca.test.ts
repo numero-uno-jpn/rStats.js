@@ -64,9 +64,13 @@ describe("ca: all fixture fit cases", () => {
     for (const key of names) {
       const expected = fixture[key].value.fit;
       const { input, options } = inputFor(key);
-      const actual = ca(input, options as any);
-      align(actual, expected);
-      compare(actual, normalizedExpected(expected), key, mismatches);
+      try {
+        const actual = ca(input, options as any);
+        align(actual, expected);
+        compare(actual, normalizedExpected(expected), key, mismatches);
+      } catch (error) {
+        mismatches.push(key + ": threw " + String(error));
+      }
       compared++;
     }
     expect(compared, "fixture fit case count").toBe(names.length);
@@ -79,7 +83,9 @@ describe("ca: all fixture fit cases", () => {
       const summary = fixture[key].value.summary?.value;
       if (!summary) continue;
       const { input, options } = inputFor(key);
-      const actual = caSummary(ca(input, options as any));
+      let actual: ReturnType<typeof caSummary>;
+      try { actual = caSummary(ca(input, options as any)); }
+      catch (error) { mismatches.push(key + ".summary: threw " + String(error)); compared++; continue; }
       compare(actual, {
         scree: expectedMatrix(summary.scree),
         rows: expectedMatrix(summary.rows),
