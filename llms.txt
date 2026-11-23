@@ -10,9 +10,9 @@
 Install with `npm install @numero-uno-jpn/rstats`. All functions are named exports:
 `import { pnorm, tTest } from "@numero-uno-jpn/rstats"`, or `import * as rs from
 "@numero-uno-jpn/rstats"` and call `rs.tTest(x, y)`. Each area is also a subpath export
-(`/distributions`, `/tests`, `/linalg`, `/descriptive`, `/numerics`, `/special`). Mixed models are only in the
+(`/distributions`, `/tests`, `/linalg`, `/descriptive`, `/timeseries`, `/numerics`, `/special`). Mixed models are only in the
 subpath `/mixed`: `import { lmer, glmer } from "@numero-uno-jpn/rstats/mixed"` (not in the main entry point). Regression
-models are in `/regression`: `import { polr, rlm, nls } from "@numero-uno-jpn/rstats/regression"` (not in the main entry point). Multivariate analysis is in `/multivariate`: `import { dist, asDist, hclust, cutree, kmeans, cmdscale, manova, lda, cancor } from "@numero-uno-jpn/rstats/multivariate"` (not in the main entry point). For use from
+models are in `/regression`: `import { polr, rlm, nls } from "@numero-uno-jpn/rstats/regression"` (not in the main entry point). Multivariate analysis is in `/multivariate`: `import { dist, asDist, hclust, cutree, kmeans, cmdscale, manova, lda, cancor, ca, caSummary, caCoord, mjca, sammon, isoMDS } from "@numero-uno-jpn/rstats/multivariate"` (not in the main entry point). For use from
 a CDN without a bundler, see the README section "Using it in the browser".
 
 ## Translating R code
@@ -192,3 +192,37 @@ glmSummary(fit).pValue;  // ≈ [5.357e-8, 3.579e-9]
 - [Roadmap](https://raw.githubusercontent.com/numero-uno-jpn/rStats.js/main/ROADMAP.md): what is planned
 - [Changelog](https://raw.githubusercontent.com/numero-uno-jpn/rStats.js/main/CHANGELOG.md)
 - [Demo](https://numero-uno-jpn.github.io/rStats.js/demo/): every function in the browser, compared with R
+
+## Time series and multivariate analysis
+
+Time-series functions are in the separate `/timeseries` entry point:
+
+```ts
+import { acf, pacf, ccf } from "@numero-uno-jpn/rstats/timeseries";
+
+const x = [4, 5, 7, 6, 9, 8, 11, 10, 12, 13];
+acf(x, { lagMax: 5 });
+pacf(x, { lagMax: 5 });
+ccf(x, [3, 4, 5, 7, 6, 8, 9, 8, 10, 11], { lagMax: 3 });
+```
+
+Correspondence analysis and non-metric scaling are in `/multivariate`:
+
+```ts
+import { ca, caSummary, caCoord, mjca, dist, sammon, isoMDS } from "@numero-uno-jpn/rstats/multivariate";
+
+const fit = ca([[12, 8, 3], [4, 11, 9], [7, 5, 14]]);
+caSummary(fit);
+caCoord(fit, { type: "symmetric" });
+
+mjca({
+  rows: null,
+  cols: ["treatment", "response"],
+  values: [["A", "yes"], ["A", "no"], ["B", "yes"], ["B", "yes"], ["C", "no"]]
+});
+
+const points = [[0, 0], [1, 0], [0, 2], [1, 1], [3, 2], [2, 4]];
+const dissimilarities = dist(points);
+sammon(dissimilarities, { k: 2 });
+isoMDS(dissimilarities, { k: 2 });
+```
