@@ -162,12 +162,12 @@ describe("A: ca / mjca / Sammon / isoMDS numeric stability", () => {
     const points = [[0, 0, 0], [1, 0, 0], [0, 2, 0], [1, 1, 1], [2, 0, 2], [2, 2, 1]];
     const d = distFromPoints(points);
     const samBase = sammon(d, { niter: 12 });
-    const isoBase = isoMDS(d, { maxit: 12 });
+    const isoBase = isoMDS(d, { maxit: 5000, tol: 1e-10 });
     for (const exponent of [-1000, -500, 500, 1000]) {
       const scale = 2 ** exponent;
       const scaledD: DistResult = { ...d, values: d.values.map((v) => v * scale) };
       const samScaled = sammon(scaledD, { niter: 12 });
-      const isoScaled = isoMDS(scaledD, { maxit: 12 });
+      const isoScaled = isoMDS(scaledD, { maxit: 5000, tol: 1e-10 });
       close(samScaled.stress, samBase.stress, 2e-10);
       close(isoScaled.stress, isoBase.stress, 2e-10);
       for (let i = 0; i < samBase.points.values.length; i++) for (let q = 0; q < samBase.points.values[i]!.length; q++) {
