@@ -78,7 +78,7 @@ function fit(input:readonly (readonly number[])[]|CaInputTable, options:CaOption
     rowcoord:mat(rowCoordAll,rowNames,singular.map((_,i)=>"Dim"+(i+1))),rowsup:rowSup,
     colnames:colNames,colmass:colMassAll,coldist:colDistAll,colinertia:colInertiaAll,
     colcoord:mat(colCoordAll,colNames,singular.map((_,i)=>"Dim"+(i+1))),colsup:colSup,
-    N:mat(active,raw.rows===null?null:ar.map(i=>raw.rows![i]!),raw.cols===null?null:ac.map(j=>raw.cols![j]!))};
+    N:mat(active,null,null)};
 }
 export function ca(input:readonly (readonly number[])[]|CaInputTable,options:CaOptions={}):CaFit{return fit(input,options);}
 
