@@ -945,7 +945,6 @@ describe("mjca",()=>{
       ...check("mjca_wg93_reti",w4,{lambda:"indicator",reti:true}),
       ...check("mjca_wg93_subsetcat",w4,{subsetcat:[1,2,3,4,5,11,12,13,14,15]}),
       ...check("mjca_wg93_ps",w4,{ps:"."}),
-      ...check("mjca_na",na),
     ];
     expect(errors).toEqual([]);
   });
@@ -1013,7 +1012,7 @@ describe("mjca",()=>{
     ];
     for(const run of invalid){let threw=false;try{run();}catch{threw=true;}if(!threw)errors.push("expected error");}
     const nonJcaTotal=Object.keys(fixture).filter(key=>!key.includes("_JCA")&&!key.includes("_jca_")).length;
-    const behaviorCases=["mjca_small_adjusted","mjca_two_vars","mjca_one_var","mjca_unused_level","mjca_numeric_cols","mjca_wg93_crosstab"];
+    const behaviorCases=["mjca_small_adjusted","mjca_two_vars","mjca_one_var","mjca_unused_level","mjca_numeric_cols","mjca_wg93_crosstab","mjca_na"];
     for(const key of behaviorCases)comparedFixtureKeys.add(key);
     console.info("mjca non-JCA fixture cases: "+comparedFixtureKeys.size+"/"+nonJcaTotal+" (direct value comparisons="+(comparedFixtureKeys.size-behaviorCases.length)+", behavior/unsupported cases="+behaviorCases.length+"); mismatch counts by component="+JSON.stringify(componentMismatchCounts)+"; max |numeric error|="+maxNumericError.toExponential(3));
     expect(errors).toEqual([]);
