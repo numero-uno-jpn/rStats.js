@@ -95,11 +95,11 @@ function compare(key: string, actual: IsoMDSResult, stressTol = 1e-8): void {
     maxTightStressRelativeError=Math.max(maxTightStressRelativeError,relativeStressError);
     maxTightStressAbsoluteError=Math.max(maxTightStressAbsoluteError,error);
     if(coordinateError>1e-5*expectedMax)mismatches.push(`${key}.coordinate max error=${coordinateError}`);
-    const useAbsoluteStress = /isomds_tight_(small(?:_k1)?|non_euclidean|grid)/.test(key);
+    const useAbsoluteStress = Math.abs(e)<1e-6;
     if(useAbsoluteStress ? error>1e-6 : relativeStressError>1e-6)mismatches.push(`${key}.stress ${useAbsoluteStress?"absolute":"relative"} error=${useAbsoluteStress?error:relativeStressError}`);
     console.info(`${key}: stress abs error=${error.toExponential(3)}; relative=${relativeStressError.toExponential(3)}; centered orthogonal max coordinate error=${coordinateError.toExponential(3)} (limit ${(1e-5*expectedMax).toExponential(3)})`);
-  } else if (error > 0.01 * Math.abs(e)) {
-    mismatches.push(`${key}.stress exceeds 1%: actual=${actual.stress}, expected=${e}`);
+  } else if (Math.abs(e)<1e-6 ? error>1e-6 : error>0.01*Math.abs(e)) {
+    mismatches.push(`${key}.stress ${Math.abs(e)<1e-6?"absolute":"relative"} tolerance exceeded: actual=${actual.stress}, expected=${e}, absError=${error}`);
   }
   // Default R trace text and coordinate orientation are implementation-specific.
 
