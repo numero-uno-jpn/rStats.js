@@ -1,6 +1,6 @@
 # Simple correspondence analysis: ca
 
-Reference basis: Greenacre, *Correspondence Analysis in Practice* and *Theory and Applications of Correspondence Analysis*; R 4.6.2 public help and public-call results in `experiments/ca111.R` and `experiments/ca111-formula.R`. No ca package source was consulted.
+Reference basis: Greenacre, *Correspondence Analysis in Practice* and *Theory and Applications of Correspondence Analysis*; R 4.6.2 public-call results in `experiments/ca111.R` and `experiments/ca111-formula.R`. No ca package source was consulted.
 
 ## Active table, masses and decomposition
 

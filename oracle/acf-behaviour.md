@@ -1,6 +1,6 @@
 # Autocorrelation, partial autocorrelation and cross-correlation: acf, pacf, ccf
 
-Reference basis: Box, Jenkins & Reinsel, *Time Series Analysis*; Brockwell & Davis, *Time Series: Theory and Methods* (Durbin–Levinson); R 4.6.2 public help and public-call results in `experiments/acf111.R` and `experiments/acf111-formula.R`. No R source was consulted.
+Reference basis: Box, Jenkins & Reinsel, *Time Series Analysis*; Brockwell & Davis, *Time Series: Theory and Methods* (Durbin–Levinson); R 4.6.2 public-call results in `experiments/acf111.R` and `experiments/acf111-formula.R`. No R source was consulted.
 
 ## ACF definition and normalization
 

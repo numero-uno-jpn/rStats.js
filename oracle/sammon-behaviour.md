@@ -1,6 +1,6 @@
 # Sammon nonlinear mapping: sammon
 
-Reference basis: Sammon (1969), “A Nonlinear Mapping for Data Structure Analysis”, *IEEE Transactions on Computers* C-18; Kruskal (1964); Cox & Cox, *Multidimensional Scaling*; Borg & Groenen, *Modern Multidimensional Scaling*; MASS 7.3.66 public help and public-call results in `experiments/sammon111.R` and `experiments/sammon111-formula.R`. No MASS source or C/Fortran code was consulted.
+Reference basis: Sammon (1969), “A Nonlinear Mapping for Data Structure Analysis”, *IEEE Transactions on Computers* C-18; Kruskal (1964); Cox & Cox, *Multidimensional Scaling*; Borg & Groenen, *Modern Multidimensional Scaling*; MASS 7.3.66 public-call results in `experiments/sammon111.R` and `experiments/sammon111-formula.R`. No MASS source or C/Fortran code was consulted.
 
 ## Objective and gradient
 
