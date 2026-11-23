@@ -1,5 +1,6 @@
 # issue: 560
 # Independent CA and MCA spectral checks using public fits and base R linear algebra.
+# Includes direct standard-coordinate, summary and supplementary-row calculations.
 library(ca)
 library(jsonlite)
 N <- as.matrix(smoke); n <- sum(N); P <- N/n; rm <- rowSums(P); cm <- colSums(P)
