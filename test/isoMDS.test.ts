@@ -42,6 +42,16 @@ function procrustes(actual:number[][],expected:number[][]):number[][]|null{
   const cross=Array.from({length:k},(_,a)=>Array.from({length:k},(_,b)=>{
     let sum=0;for(let i=0;i<Math.min(actual.length,expected.length);i++)sum+=actual[i]![a]!*expected[i]![b]!;return sum;
   }));
+  if(k===2){
+    const a=cross[0]![0]!+cross[1]![1]!,b=cross[1]![0]!-cross[0]![1]!;
+    const c=cross[0]![0]!-cross[1]![1]!,d=cross[0]![1]!+cross[1]![0]!;
+    const rotationNorm=Math.hypot(a,b),reflectionNorm=Math.hypot(c,d);
+    if(!(Math.max(rotationNorm,reflectionNorm)>0))return null;
+    const q=rotationNorm>=reflectionNorm
+      ? [[a/rotationNorm,-b/rotationNorm],[b/rotationNorm,a/rotationNorm]]
+      : [[c/reflectionNorm,d/reflectionNorm],[d/reflectionNorm,-c/reflectionNorm]];
+    return actual.map(row=>Array.from({length:k},(_,j)=>{let value=0;for(let h=0;h<k;h++)value+=row[h]!*q[h]![j]!;return value;}));
+  }
   let scale=0;for(const row of cross)for(const value of row)scale=Math.max(scale,Math.abs(value));
   if(!(scale>0))return null;
   let q=cross.map(row=>row.map(value=>value/scale));
