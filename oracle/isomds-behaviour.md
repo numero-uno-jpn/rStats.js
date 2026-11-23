@@ -4,40 +4,40 @@ Reference: Kruskal (1964, both Psychometrika papers), Venables & Ripley, *Modern
 
 ## Configuration distances and Stress-1
 
-For a configuration (Y=(y_1,\ldots,y_n)) in (k) dimensions, fitted metric distances are
+For a configuration (Y=\(y_1,\ldots,y_n\)) in (k) dimensions, fitted metric distances are
 
 \[
-r_{ij}=\left(\sum_q|y_{iq}-y_{jq}|^p\right)^{1/p},
+r_{ij}=\left\(\sum_q|y_{iq}-y_{jq}|^p\right\)^{1/p},
 \]
 
-with (p=2) by default. Let (\delta_{ij}) be input dissimilarities. The isotonic fit is performed on the configuration-distance vector after sorting pairs by increasing dissimilarity. In R notation, the fixed-pair-order evaluation is `isoreg(r[order(delta)])$yf`; the pair vector from `dist` is in lower-triangle column order. Passing `delta` as the `x` argument to `isoreg` instead, or pooling all equal dissimilarities into one block, does not reproduce R's public stress.
+with (p=2) by default. Let \(\delta_{ij}\) be input dissimilarities. The isotonic fit is performed on the configuration-distance vector after sorting pairs by increasing dissimilarity. In R notation, the fixed-pair-order evaluation is `isoreg(r[order(delta)])$yf`; the pair vector from `dist` is in lower-triangle column order. Passing `delta` as the `x` argument to `isoreg` instead, or pooling all equal dissimilarities into one block, does not reproduce R's public stress.
 
 Kruskal Stress-1 is
 
 \[
-Stress_1=100\sqrt{\frac{\sum_{i<j}(r_{ij}-\hat r_{ij})^2}
+Stress_1=100\sqrt{\frac{\sum_{i<j}\(r_{ij}-\hat r_{ij}\)^2}
  {\sum_{i<j}r_{ij}^2}},
 \]
 
-where `isoreg` fitted disparities are used without an additional post-regression norm rescaling. The current implementation's factor (\sqrt{\sum r^2/\sum\hat r^2}) changes the objective and must be removed to match this definition.
+where `isoreg` fitted disparities are used without an additional post-regression norm rescaling. The current implementation's factor \(\sqrt{\sum r^2/\sum\hat r^2}\) changes the objective and must be removed to match this definition.
 
 ## Tie ordering and the primary objective
 
 Two distinct evaluations are useful:
 
-- **Fixed ordering:** sort by (\delta), retaining the original lower-triangle pair order within ties, then run `isoreg(r[order])`. This reproduces R's reported endpoint stress.
-- **Free-order primary fit:** within each equal-(\delta) group, order the configuration distances (r) increasingly, then run isotonic regression over the resulting sequence. This chooses the best ordering within each tied group and cannot have greater least-squares stress than any fixed within-tie ordering.
+- **Fixed ordering:** sort by \(\delta\), retaining the original lower-triangle pair order within ties, then run `isoreg(r[order])`. This reproduces R's reported endpoint stress.
+- **Free-order primary fit:** within each equal-\(\delta\) group, order the configuration distances (r) increasingly, then run isotonic regression over the resulting sequence. This chooses the best ordering within each tied group and cannot have greater least-squares stress than any fixed within-tie ordering.
 
 The R endpoint and independent free-order primary results are:
 
 | Case | R / fixed-pair-order stress | Free-order primary stress |
 |---|---:|---:|
-| small | (2.8738\times10^{-14}) | (2.8738\times10^{-14}) |
-| grid ties | 0.00383293527945 | about (7.0\times10^{-14}) |
+| small | \(2.8738\times10^{-14}\) | \(2.8738\times10^{-14}\) |
+| grid ties | 0.00383293527945 | about \(7.0\times10^{-14}\) |
 | eurodist | 5.88354761298 | 5.81591943098 |
 | swiss | 4.21928575212 | 4.21928575212 |
 | USArrests | 0.939167715149 | 0.939167715149 |
-| non-Euclidean | (1.7611\times10^{-13}) | (9.53\times10^{-15}) |
+| non-Euclidean | \(1.7611\times10^{-13}\) | \(9.53\times10^{-15}\) |
 
 This supports keeping the user's choice of a primary tie objective, but its operational meaning must be free ordering within tied dissimilarities, not equal fitted disparities for every member of a tie block. The existing equal-disparity block implementation is not that primary objective.
 
@@ -59,7 +59,7 @@ The Kruskal (1964b) p=2 step-size rule (gradient-angle coefficient, relaxation c
 
 ## R-observed constraints
 
-A zero or negative dissimilarity errors. Missing/infinite dissimilarities require an explicit initial configuration. An initial configuration must have (n) rows and (k) columns. (k) is between 1 and (n-1). (p=1) and (p=3) produce results distinct from default (p=2). R's (10^{150}) scale behavior (stopping at the start) is a scale-dependent stopping artifact and should not be copied.
+A zero or negative dissimilarity errors. Missing/infinite dissimilarities require an explicit initial configuration. An initial configuration must have (n) rows and (k) columns. (k) is between 1 and (n-1). (p=1) and (p=3) produce results distinct from default (p=2). R's \(10^{150}\) scale behavior (stopping at the start) is a scale-dependent stopping artifact and should not be copied.
 
 ## Decisions for the user
 
@@ -67,7 +67,7 @@ A zero or negative dissimilarity errors. Missing/infinite dissimilarities requir
 2. Remove the post-isotonic norm rescaling. It changes Swiss stress from the correct 4.21928575212 to 4.22022540036.
 3. Re-run the R-endpoint start test after correcting the objective and tie ordering. Until then, do not classify the current residual differences as separate local minima.
 4. Do not select or implement guessed Kruskal step-size coefficients. Reconstruct the angle, relaxation and good-luck factors from the specified 1964b method, then compare p=2 from cmdscale with the tight R endpoints.
-5. Keep the strict release gate: stress within (10^{-6}) relative and coordinates within the specified Procrustes tolerance after the objective and tie rule are corrected.
+5. Keep the strict release gate: stress within \(10^{-6}\) relative and coordinates within the specified Procrustes tolerance after the objective and tie rule are corrected.
 
 ## rStats.js's choices
 

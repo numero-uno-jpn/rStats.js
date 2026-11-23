@@ -10,19 +10,19 @@ For (n) individuals and (Q) categorical variables, let (Z) be the complete disju
 I_{indicator}=\frac{J-Q}{Q}.
 \]
 
-For `wg93`, (J=20), (Q=4), and R reports 4.0000000000000009. An independent SVD of the standardized indicator matrix reproduces the nonzero eigenvalues to about (10^{-15}).
+For `wg93`, (J=20), (Q=4), and R reports 4.0000000000000009. An independent SVD of the standardized indicator matrix reproduces the nonzero eigenvalues to about \(10^{-15}\).
 
 The Burt matrix is (B=Z'Z), whose blocks are pairwise category cross-tabulations. Its total inertia is not the indicator total inertia. For `wg93`, the public Burt result is 1.1276841394738111.
 
 ## Benzécri-adjusted eigenvalues and total inertia
 
-For indicator eigenvalue (\lambda_\alpha), the axis-level Benzécri correction is
+For indicator eigenvalue \(\lambda_\alpha\), the axis-level Benzécri correction is
 
 \[
 \lambda^{(B)}_\alpha=
 \begin{cases}
-\left(\frac{Q}{Q-1}\right)^2
-\left(\lambda_\alpha-\frac1Q\right)^2,
+\left\(\frac{Q}{Q-1}\right\)^2
+\left\(\lambda_\alpha-\frac1Q\right\)^2,
 &\lambda_\alpha>1/Q,\\
 0,&\text{otherwise}.
 \end{cases}
@@ -32,10 +32,10 @@ The adjusted total inertia is **not** the sum of the corrected axis eigenvalues.
 
 \[
 I_{adjusted}=\frac{Q}{Q-1}
-\left(I_{Burt}-\frac{J-Q}{Q^2}\right).
+\left\(I_{Burt}-\frac{J-Q}{Q^2}\right\).
 \]
 
-For `wg93`, this gives 0.17024551929841475 from the R Burt inertia 1.1276841394738111, matching R's adjusted `inertia.t` 0.17024551929841475 to floating-point rounding. The independently supplied value 0.17024551929841417 differs by (5.8\times10^{-16}), an immaterial last-bit rounding difference.
+For `wg93`, this gives 0.17024551929841475 from the R Burt inertia 1.1276841394738111, matching R's adjusted `inertia.t` 0.17024551929841475 to floating-point rounding. The independently supplied value 0.17024551929841417 differs by \(5.8\times10^{-16}\), an immaterial last-bit rounding difference.
 
 The six corrected axis inertias from the adjusted scree table are 0.076455, 0.058220, 0.009197, 0.005670, 0.001172, and 0.000007. Their rounded sum is 0.150721, below the total 0.1702455193; this is expected, not a defect. The scree percentages 44.9%, 34.2%, 5.4%, 3.3%, 0.7%, and 0.0% are each calculated relative to the corrected total `inertia.t`; cumulative percentage is 88.5%.
 

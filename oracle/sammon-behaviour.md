@@ -4,20 +4,20 @@ Reference basis: Sammon (1969), “A Nonlinear Mapping for Data Structure Analys
 
 ## Objective and pseudo-Newton update
 
-For positive dissimilarities (\delta_{ij}) and configuration distances (r_{ij}=\lVert y_i-y_j\rVert_2), Sammon's normalized stress is
+For positive dissimilarities \(\delta_{ij}\) and configuration distances \(r_{ij}=\lVert y_i-y_j\rVert_2\), Sammon's normalized stress is
 
 \[
 E(Y)=
-\frac{\displaystyle\sum_{i<j}(\delta_{ij}-r_{ij})^2/\delta_{ij}}
+\frac{\displaystyle\sum_{i<j}\(\delta_{ij}-r_{ij}\)^2/\delta_{ij}}
  {\displaystyle\sum_{i<j}\delta_{ij}}.
 \]
 
-For (r_{ij}>0), the gradient component is
+For \(r_{ij}>0\), the gradient component is
 
 \[
 g_{i\alpha}=\frac{2}{\sum_{a<b}\delta_{ab}}
-\sum_{j\ne i}\left(\frac1{\delta_{ij}}-\frac1{r_{ij}}\right)
-(y_{i\alpha}-y_{j\alpha}),
+\sum_{j\ne i}\left\(\frac1{\delta_{ij}}-\frac1{r_{ij}}\right\)
+\(y_{i\alpha}-y_{j\alpha}\),
 \]
 
 and the diagonal second derivative is
@@ -26,7 +26,7 @@ and the diagonal second derivative is
 h_{i\alpha}=\frac{2}{\sum_{a<b}\delta_{ab}}
 \sum_{j\ne i}\left[
 \frac1{\delta_{ij}}-\frac1{r_{ij}}+
-\frac{(y_{i\alpha}-y_{j\alpha})^2}{r_{ij}^3}
+\frac{\(y_{i\alpha}-y_{j\alpha}\)^2}{r_{ij}^3}
 \right].
 \]
 
@@ -41,9 +41,9 @@ The one-step experiments indicate that the candidate configuration is updated si
 
 ## Magic adaptation and Swiss zero-iteration case
 
-The printed `magic` values identify the adaptation factors. A rejected step shrinks `magic` by 0.2; an accepted step increases it by 1.5; the upper cap is 0.5. In the three-point case, the printed 0.150 is exactly (0.5\times0.2\times1.5). The repeated 0.500 output in `sammon_small` is consistent with the upper cap.
+The printed `magic` values identify the adaptation factors. A rejected step shrinks `magic` by 0.2; an accepted step increases it by 1.5; the upper cap is 0.5. In the three-point case, the printed 0.150 is exactly \(0.5\times0.2\times1.5\). The repeated 0.500 output in `sammon_small` is consistent with the upper cap.
 
-For `swiss`, the cmdscale initial stress is 0.019592931432643287. A simultaneous one-sweep calculation with (magic=0.5\times0.2^j) gives:
+For `swiss`, the cmdscale initial stress is 0.019592931432643287. A simultaneous one-sweep calculation with \(magic=0.5\times0.2^j\) gives:
 
 | j | magic | stress after one simultaneous sweep |
 |---:|---:|---:|
@@ -57,7 +57,7 @@ The first four trials increase stress; the fifth would decrease it. R neverthele
 
 ## Stopping tolerance and progress output
 
-The optimizer prints progress every ten iterations, but the stopping check is performed after each iteration. For `small`, `tol=1e-14` stops at iteration 80: requesting 81 or 89 iterations returns the same stress as 80. With `tol=1e-30`, iteration 81 continues and lowers stress from 0.0031425094422446722 to 0.0031425094422446636. The relative decrease from iteration 79 to 80 is about (4.3\times10^{-15}), below (10^{-14}). Thus the stop condition is a per-iteration relative stress reduction below `tol`, not a comparison only every ten iterations.
+The optimizer prints progress every ten iterations, but the stopping check is performed after each iteration. For `small`, `tol=1e-14` stops at iteration 80: requesting 81 or 89 iterations returns the same stress as 80. With `tol=1e-30`, iteration 81 continues and lowers stress from 0.0031425094422446722 to 0.0031425094422446636. The relative decrease from iteration 79 to 80 is about \(4.3\times10^{-15}\), below \(10^{-14}\). Thus the stop condition is a per-iteration relative stress reduction below `tol`, not a comparison only every ten iterations.
 
 Tight public runs stop at 80 iterations for `small`, 140 for `eurodist`, and 370 for `USArrests` at `tol=1e-14`. The returned stress agrees with the direct Sammon objective.
 
