@@ -126,6 +126,7 @@ function build(x: number[], y: number[], options: { type: "correlation" | "covar
 }
 
 /**
+ * Equivalent to R's `stats::acf()` for a univariate series.
  * Autocorrelation, autocovariance or partial autocorrelation of a univariate series.
  * @category Time series
  */
@@ -138,6 +139,7 @@ export function acf(input: readonly number[] | readonly (readonly number[])[], o
 }
 
 /**
+ * Equivalent to R's `stats::pacf()` for a univariate series.
  * Partial autocorrelation of a univariate series, computed by the Durbin–Levinson recursion.
  * @category Time series
  */
@@ -147,6 +149,7 @@ export function pacf(input: readonly number[] | readonly (readonly number[])[], 
 }
 
 /**
+ * Equivalent to R's `stats::ccf()` for two equal-length series.
  * Cross-correlation or cross-covariance of two equal-length series. Lag k pairs x[t+k] with y[t].
  * @category Time series
  */
