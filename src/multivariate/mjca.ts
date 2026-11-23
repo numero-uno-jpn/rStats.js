@@ -119,7 +119,8 @@ export function mjca(input:MjcaInputTable,options:MjcaOptions={}):MjcaFit {
   const positive=adjusted.map((v,i)=>({v,i})).filter(x=>x.v>0);
   const burt:number[][]=Array.from({length:chosenCats.length},()=>Array(chosenCats.length).fill(0));
   for(const row of raw.data){
-    const pos=chosenCats.map(c=>chosenCats.indexOf(c)).map((_,j)=>chosenCats.findIndex(c=>c.factor===chosenCats[j]!.factor&&c.level===row[chosenCats[j]!.factor]));
+    const factorsInTable=Array.from(new Set(chosenCats.map(c=>c.factor)));
+    const pos=factorsInTable.map(f=>chosenCats.findIndex(c=>c.factor===f&&c.level===row[f])).filter(i=>i>=0);
     for(const x of pos)for(const y of pos)burt[x]![y]=burt[x]![y]!+1;
   }
   const burtInertia=sum(eig.map(v=>v*v));
