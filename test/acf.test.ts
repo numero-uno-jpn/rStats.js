@@ -8,7 +8,6 @@ const DATA = {"lh":[2.4,2.4,2.4,2.2,2.1,1.5,2.3,2.3,2.5,2,1.9,1.7,2.2,1.8,3.2,3.
 const mismatches: string[] = [];
 const covered = new Set<string>();
 let maxAbsError = 0;
-let maxExactPartialError = 0;
 let maxRelativeCovarianceError = 0;
 const x10 = [3, 1, 4, 1, 5, 9, 2, 6, 5, 3];
 const y10 = [2, 7, 1, 8, 2, 8, 1, 8, 2, 8];
@@ -61,10 +60,7 @@ function runExact(key: string, exactKey: string, action: () => AcfResult): void 
     for (let i = 0; i < actual.length; i++) {
       const a = actual[i]!, e = expected[i]!;
       const abs = Math.abs(a - e);
-      if (Number.isFinite(a) && Number.isFinite(e)) {
-        maxAbsError = Math.max(maxAbsError, abs);
-        maxExactPartialError = Math.max(maxExactPartialError, abs);
-      }
+      if (Number.isFinite(a) && Number.isFinite(e)) maxAbsError = Math.max(maxAbsError, abs);
       if (!(Number.isNaN(a) && Number.isNaN(e)) && abs > 1e-12) {
         mismatches.push(key + ".acf[" + i + "] exact absolute error " + abs);
       }
@@ -217,8 +213,7 @@ describe("acf, pacf and ccf", () => {
     }
     console.info("acf/pacf/ccf: " + covered.size + "/" + total +
       "; max |error|=" + maxAbsError.toExponential(3) +
-      "; max covariance relative error=" + maxRelativeCovarianceError.toExponential(3) +
-      "; max double PACF error vs 200-bit fixture=" + maxExactPartialError.toExponential(3));
+      "; max covariance relative error=" + maxRelativeCovarianceError.toExponential(3));
     expect(mismatches).toEqual([]);
   });
 
