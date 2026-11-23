@@ -105,15 +105,16 @@ function compare(key: string, actual: IsoMDSResult, stressTol = 1e-8): void {
   }
   if (!skipRScaleBehavior) {
     const printedRaw = expected.printed === undefined ? [] : Array.isArray(expected.printed) ? expected.printed : [expected.printed];
-    if (printedRaw.length > 0 && key !== "isomds_swiss") {
+    if (printedRaw.length > 0) {
       const initialLine = printedRaw.find((line: string) => /initial\s+value/.test(line));
       const finalLine = printedRaw.find((line: string) => /final\s+value/.test(line));
       const initialValue = initialLine === undefined ? null : Number(/initial\s+value\s+([0-9.eE+-]+)/.exec(initialLine)?.[1]);
       const finalValue = finalLine === undefined ? null : Number(/final\s+value\s+([0-9.eE+-]+)/.exec(finalLine)?.[1]);
       const expectedProgress = printedRaw.map((line: string) => /iter\s+(\d+)\s+value\s+([0-9.eE+-]+)/.exec(line))
-        .filter(Boolean).map((match: RegExpExecArray) => Number(match[2]));
-      const collapsedProgress = expectedProgress.filter((value: number, index: number, values: number[]) => index === 0 || value !== values[index - 1]);
-      const actualProgress = actual.trace.slice(1, -1).map((entry) => entry.stress);
+        .filter(Boolean).map((match: RegExpExecArray) => ({ iteration: Number(match[1]), stress: Number(match[2]) }));
+      const collapsedProgress = expectedProgress.filter((value: { iteration: number; stress: number }, index: number, values: { iteration: number; stress: number }[]) =>
+        index === 0 || value.iteration !== values[index - 1]!.iteration || value.stress !== values[index - 1]!.stress);
+      const actualProgress = actual.trace.slice(1, -1);
       if (initialValue !== null && actual.trace.length > 0 && Number(actual.trace[0]!.stress.toFixed(6)) !== initialValue) {
         mismatches.push(key + ".printed initial stress differs");
       }
@@ -121,7 +122,7 @@ function compare(key: string, actual: IsoMDSResult, stressTol = 1e-8): void {
         mismatches.push(key + ".printed progress count " + actualProgress.length + " vs R " + collapsedProgress.length);
       }
       for (let i = 0; i < Math.min(collapsedProgress.length, actualProgress.length); i++) {
-        if (Number(actualProgress[i]!.toFixed(6)) !== collapsedProgress[i]) mismatches.push(key + ".printed progress[" + i + "] differs");
+        if (Number(actualProgress[i]!.stress.toFixed(6)) !== collapsedProgress[i]!.stress) mismatches.push(key + ".printed progress[" + i + "] differs");
       }
       if (finalValue !== null && actual.trace.length > 0 && Number(actual.trace[actual.trace.length - 1]!.stress.toFixed(6)) !== finalValue) {
         mismatches.push(key + ".printed final stress differs");
