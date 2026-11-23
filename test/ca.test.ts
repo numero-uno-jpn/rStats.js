@@ -121,6 +121,8 @@ describe("ca: all fixture fit cases", () => {
     const authorCols = unwrap(fixture.ca_author.value.fit.colnames) ?? null;
     const base = ca({ rows: unwrap(fixture.ca_smoke.value.fit.rownames), cols: unwrap(fixture.ca_smoke.value.fit.colnames), values: smoke });
     const large = ca({ rows: authorRows, cols: authorCols, values: author });
+    align(base, fixture.ca_smoke.value.fit);
+    align(large, fixture.ca_author.value.fit);
     const cases: Record<string, { fit: CaFit; options: any }> = {
       ca_cacoord_standard: { fit: base, options: { type: "standard", rows: true } },
       ca_cacoord_principal: { fit: base, options: { type: "principal", cols: true } },
