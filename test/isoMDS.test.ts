@@ -9,6 +9,7 @@ let maxTightStressAbsoluteError = 0;
 let maxTightCoordinateError = 0;
 let tightCompared = 0;
 const comparedFixtures = new Set<string>();
+const progressCompared = new Set<string>();
 function close(label: string, actual: number, expected: number, tol: number): void {
   const error = Math.abs(actual - expected);
   if (error > tol) mismatches.push(label + ": " + actual + " != " + expected + " (abs=" + error + ")");
@@ -103,6 +104,37 @@ function compare(key: string, actual: IsoMDSResult, stressTol = 1e-8): void {
     if (coordinateError > coordinateLimit) mismatches.push(`${key}.coordinate max error=${coordinateError} (limit ${coordinateLimit})`);
   }
   if (!skipRScaleBehavior) {
+    const printedRaw = expected.printed === undefined ? [] : Array.isArray(expected.printed) ? expected.printed : [expected.printed];
+    if (printedRaw.length > 0 && key !== "isomds_swiss") {
+      const initialLine = printedRaw.find((line: string) => /initial\\s+value/.test(line));
+      const finalLine = printedRaw.find((line: string) => /final\\s+value/.test(line));
+      const initialValue = initialLine === undefined ? null : Number(/initial\\s+value\\s+([0-9.eE+-]+)/.exec(initialLine)?.[1]);
+      const finalValue = finalLine === undefined ? null : Number(/final\\s+value\\s+([0-9.eE+-]+)/.exec(finalLine)?.[1]);
+      const expectedProgress = printedRaw.map((line: string) => /iter\\s+(\\d+)\\s+value\\s+([0-9.eE+-]+)/.exec(line))
+        .filter(Boolean).map((match: RegExpExecArray) => Number(match[2]));
+      const collapsedProgress = expectedProgress.filter((value: number, index: number, values: number[]) => index === 0 || value !== values[index - 1]);
+      const actualProgress = actual.trace.slice(1, -1).map((entry) => entry.stress);
+      if (initialValue !== null && actual.trace.length > 0 && Number(actual.trace[0]!.stress.toFixed(6)) !== initialValue) {
+        mismatches.push(key + ".printed initial stress differs");
+      }
+      if (collapsedProgress.length !== actualProgress.length) {
+        mismatches.push(key + ".printed progress count " + actualProgress.length + " vs R " + collapsedProgress.length);
+      }
+      for (let i = 0; i < Math.min(collapsedProgress.length, actualProgress.length); i++) {
+        if (Number(actualProgress[i]!.toFixed(6)) !== collapsedProgress[i]) mismatches.push(key + ".printed progress[" + i + "] differs");
+      }
+      if (finalValue !== null && actual.trace.length > 0 && Number(actual.trace[actual.trace.length - 1]!.stress.toFixed(6)) !== finalValue) {
+        mismatches.push(key + ".printed final stress differs");
+      }
+      const stopped = printedRaw.map((line: string) => /stopped after\\s+(\\d+) iterations/.exec(line)?.[1]).find((v: string | undefined) => v !== undefined);
+      if (stopped !== undefined && actual.trace[actual.trace.length - 1]!.iteration !== Number(stopped)) {
+        mismatches.push(key + ".iteration count " + actual.trace[actual.trace.length - 1]!.iteration + " vs R " + stopped);
+      }
+      if (printedRaw.some((line: string) => line.trim() === "converged") && !actual.trace[actual.trace.length - 1]?.converged) {
+        mismatches.push(key + ".R converged but trace did not");
+      }
+      progressCompared.add(key);
+    }
     const relativeStressError = error / Math.max(Math.abs(e), 1e-300);
     const useAbsoluteStress = Math.abs(e) < 1e-10;
     if (tight) {
@@ -249,6 +281,10 @@ describe("isoMDS: swiss, eurodist and USArrests R fixtures", () => {
     const yScaled = isoMDS(swissD, { y: y0 });
     compare("isomds_scale_y",yScaled);
     close("isomds_scale_y stress", yScaled.stress, base.stress, 1e-8);
+    for (let i = 0; i < base.points.values.length; i++) for (let j = 0; j < base.points.values[i]!.length; j++) {
+      const rel = Math.abs(yScaled.points.values[i]![j]! / 1e100 - base.points.values[i]![j]!) / Math.max(1, Math.abs(base.points.values[i]![j]!));
+      if (rel > 1e-8) mismatches.push(`isomds_scale_y coordinate scale equivariance [${i},${j}]`);
+    }
     const errors: Array<[string, () => unknown]> = [
       ["isomds_zero_distance", () => isoMDS(dist([1, 1, 2, 5]), { k: 1 })],
       ["isomds_negative", () => isoMDS(asDist([[0, -1, 2], [-1, 0, 3], [2, 3, 0]]), { k: 1 })],
@@ -259,7 +295,7 @@ describe("isoMDS: swiss, eurodist and USArrests R fixtures", () => {
       if (!fixture[key]?.error) mismatches.push(key + ": missing error fixture");
       else { try { action(); mismatches.push(key + ": expected error"); } catch { /* expected */ } }
     }
-    console.info(`isoMDS fixture comparisons: ${comparedFixtures.size}/${Object.keys(fixture).length}; tight choice-7: ${tightCompared}/10; max tight absolute stress error=${maxTightStressAbsoluteError.toExponential(3)}; max tight relative stress error=${maxTightStressRelativeError.toExponential(3)}; max centered orthogonal coordinate error=${maxTightCoordinateError.toExponential(3)}`);
+    console.info(`isoMDS fixture comparisons: ${comparedFixtures.size}/${Object.keys(fixture).length}; printed progress: ${progressCompared.size}; tight choice-12: ${tightCompared}/10; max tight absolute stress error=${maxTightStressAbsoluteError.toExponential(3)}; max tight relative stress error=${maxTightStressRelativeError.toExponential(3)}; max sign-aligned coordinate error=${maxTightCoordinateError.toExponential(3)}`);
     expect(mismatches).toEqual([]);
   });
 
