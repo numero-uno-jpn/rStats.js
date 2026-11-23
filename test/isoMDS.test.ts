@@ -155,6 +155,7 @@ describe("isoMDS", () => {
     const base = isoMDS(ds);
     const scaledD = { ...ds, values: ds.values.map((v) => v * 1e150) };
     const scaled = isoMDS(scaledD);
+    comparedFixtures.add("isomds_scale");
     // R stops at the initial configuration for this extreme scale; choice 5 tests equivariance instead.
     if (Math.abs(base.stress - scaled.stress) > 1e-8) mismatches.push("stress changed under dissimilarity scaling");
     for (let i = 0; i < base.points.values.length; i++) for (let j = 0; j < base.points.values[i]!.length; j++) {
