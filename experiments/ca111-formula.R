@@ -3,7 +3,7 @@
 library(ca)
 library(jsonlite)
 N <- as.matrix(smoke); n <- sum(N); P <- N/n; rm <- rowSums(P); cm <- colSums(P)
-S <- diag(1/sqrt(rm)) %*% (P - outer(rm,cm)) %*%% diag(1/sqrt(cm))
+S <- diag(1/sqrt(rm)) %*% (P - outer(rm,cm)) %*% diag(1/sqrt(cm))
 sv <- svd(S)
 fit <- ca::ca(smoke)
 rowstd <- diag(1/sqrt(rm)) %*% sv$u
