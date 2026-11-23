@@ -139,17 +139,45 @@ function covariance(x: readonly number[], y: readonly number[], lag: number, pas
   const divisor = pass ? count + Math.abs(lag) : n;
   return divisor ? sum / divisor : NaN;
 }
+function twoSum(a: number, b: number): [number, number] {
+  const sum = a + b, bv = sum - a;
+  return [sum, (a - (sum - bv)) + (b - bv)];
+}
+function twoProduct(a: number, b: number): [number, number] {
+  const product = a * b;
+  const splitter = 134217729;
+  const ca = splitter * a, cb = splitter * b;
+  const ah = ca - (ca - a), al = a - ah;
+  const bh = cb - (cb - b), bl = b - bh;
+  const error = ((ah * bh - product) + ah * bl + al * bh) + al * bl;
+  return [product, error];
+}
+function addDoubleDouble(ah: number, al: number, bh: number, bl: number): [number, number] {
+  const [sum, error] = twoSum(ah, bh);
+  const [tail, tailError] = twoSum(al, bl);
+  const [middle, middleError] = twoSum(error, tail);
+  const [high, low] = twoSum(sum, middle);
+  return twoSum(high, low + middleError + tailError);
+}
+function divideDoubleDouble(ah: number, al: number, bh: number, bl: number): number {
+  const q1 = ah / bh;
+  const [product, productError] = twoProduct(q1, bh);
+  const [rh, rl] = addDoubleDouble(ah, al, -product, -(productError + q1 * bl));
+  return q1 + (rh + rl) / bh;
+}
 function partial(correlations: readonly number[]): number[] {
   const out: number[] = [];
   const previous: number[] = [];
   for (let k = 1; k < correlations.length; k++) {
-    let numerator = correlations[k]!;
-    let denominator = 1;
+    let numerator = correlations[k]!, numeratorLow = 0;
+    let denominator = 1, denominatorLow = 0;
     for (let j = 1; j < k; j++) {
-      numerator -= previous[j - 1]! * correlations[k - j]!;
-      denominator -= previous[j - 1]! * correlations[j]!;
+      const [numProduct, numError] = twoProduct(previous[j - 1]!, correlations[k - j]!);
+      const [denProduct, denError] = twoProduct(previous[j - 1]!, correlations[j]!);
+      [numerator, numeratorLow] = addDoubleDouble(numerator, numeratorLow, -numProduct, -numError);
+      [denominator, denominatorLow] = addDoubleDouble(denominator, denominatorLow, -denProduct, -denError);
     }
-    const phi = numerator / denominator;
+    const phi = divideDoubleDouble(numerator, numeratorLow, denominator, denominatorLow);
     const next = new Array<number>(k);
     for (let j = 1; j < k; j++) next[j - 1] = previous[j - 1]! - phi * previous[k - j - 1]!;
     next[k - 1] = phi;
