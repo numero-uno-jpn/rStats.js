@@ -63,6 +63,9 @@ function procrustes(actual:number[][],expected:number[][]):number[][]|null{
   }
   return actual.map(row=>Array.from({length:k},(_,j)=>{let value=0;for(let h=0;h<k;h++)value+=row[h]!*q[h]![j]!;return value;}));
 }
+function absoluteStressCase(key:string,expected:number):boolean {
+  return Math.abs(expected)<1e-6 || /(?:^|_)(?:small(?:_k1)?|non_euclidean|grid)/.test(key);
+}
 function compare(key: string, actual: IsoMDSResult, stressTol = 1e-8): void {
   comparedFixtures.add(key);
   const expected = fixture[key]?.value;
@@ -102,10 +105,10 @@ function compare(key: string, actual: IsoMDSResult, stressTol = 1e-8): void {
     maxTightCoordinateError=Math.max(maxTightCoordinateError,coordinateError);
     tightCompared++;
     const relativeStressError=error/Math.max(Math.abs(e),1e-300);
+    const useAbsoluteStress = absoluteStressCase(key,e);
     if(!useAbsoluteStress)maxTightStressRelativeError=Math.max(maxTightStressRelativeError,relativeStressError);
     maxTightStressAbsoluteError=Math.max(maxTightStressAbsoluteError,error);
     if(coordinateError>1e-5*expectedMax)mismatches.push(`${key}.coordinate max error=${coordinateError}`);
-    const useAbsoluteStress = absoluteStressCase(key,e);
     if(useAbsoluteStress ? error>1e-6 : relativeStressError>1e-6)mismatches.push(`${key}.stress ${useAbsoluteStress?"absolute":"relative"} error=${useAbsoluteStress?error:relativeStressError}`);
     console.info(`${key}: stress abs error=${error.toExponential(3)}; ${useAbsoluteStress?"absolute":"relative"}=${(useAbsoluteStress?error:relativeStressError).toExponential(3)}; centered orthogonal max coordinate error=${coordinateError.toExponential(3)} (limit ${(1e-5*expectedMax).toExponential(3)})`);
   } else if (absoluteStressCase(key,e) ? error>1e-6 : error>0.01*Math.abs(e)) {
