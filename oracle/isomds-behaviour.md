@@ -91,3 +91,10 @@ The user's decisions of 2026-11-22 (Issue #556), written by Claude. They take pr
     after column-sign alignment (BFGS from the identity is equivariant under the column reflections of the start), in
     every fixture case; the tight cases (`isomds_tight_*`) within choice 7's tolerances. A case that cannot reach this is
     reported with the iterate where it departs from R. Choice 5 (scale-invariant stopping) stays
+13. **Scale (user's decision of 2026-11-24; replaces choice 5 and any scale equivariance of the path):** R's BFGS starts
+    from the identity in the original coordinates (the first step is exactly `-g`, step 1; `experiments/isomds111-bfgs`),
+    so the path depends on the scale of the start, as R. rStats.js does the same: no normalization of the coordinates or
+    of the initial inverse Hessian. The stopping rule is R's (choice 11, from R's outputs). The extreme-scale cases
+    (`isomds_scale`, `isomds_scale_y`) are compared with R where R's result is determined; otherwise they are a
+    documented difference ("the answer depends on the scale of the configuration, as in R"). No equivariance test of
+    the path
