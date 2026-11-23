@@ -26,7 +26,7 @@ export interface MjcaFit {
   Burt: MjcaMatrix; BurtUpd: number[][] | "NA"; subinertia: MjcaMatrix;
   rownames?: string[] | null; rowmass?: number[]; rowdist?: number[]; rowinertia?: number[];
   rowcoord?: MjcaMatrix; rowpcoord?: MjcaMatrix; rowctr?: MjcaMatrix; rowcor?: MjcaMatrix;
-  indmat?: MjcaMatrix; omitted: number;
+  indmat?: MjcaMatrix | "NA"; omitted: number;
 }
 
 function sum(x: readonly number[]): number { let s=0; for(const v of x)s+=v; return s; }
@@ -162,6 +162,6 @@ export function mjca(input:MjcaInputTable,options:MjcaOptions={}):MjcaFit {
     rowcoord:table(rowCoords,raw.rows,null),rowpcoord:table(rowStats.principal,raw.rows,null),
     rowctr:table(rowStats.ctr,raw.rows,null),rowcor:table(rowStats.cor,raw.rows,null),
   };
-  if(options.reti===true||raw.data.length<=60)result.indmat=table(indicator,raw.rows,levelnames);
+  result.indmat=options.reti===true?table(indicator,raw.rows??raw.data.map((_,i)=>String(i+1)),levelnames):"NA";
   return result;
 }
