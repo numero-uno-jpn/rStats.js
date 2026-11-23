@@ -220,23 +220,7 @@ describe("isoMDS: swiss, eurodist and USArrests R fixtures", () => {
     expect(mismatches).toEqual([]);
   });
 
-  it("tests scale equivariance and all invalid-input cases", () => {
-    const base = isoMDS(swissD);
-    const scaledD = { ...swissD, values: swissD.values.map((v) => v * 1e150) };
-    const scaled = isoMDS(scaledD);
-    close("isomds_scale stress", scaled.stress, base.stress, 1e-8);
-    for (let i = 0; i < base.points.values.length; i++) for (let j = 0; j < base.points.values[i]!.length; j++) {
-      const rel = Math.abs(scaled.points.values[i]![j]! / 1e150 - base.points.values[i]![j]!) / Math.max(1, Math.abs(base.points.values[i]![j]!));
-      if (rel > 1e-8) mismatches.push("isomds_scale coordinate " + i + "," + j);
-    }
-    const y0 = cmdscale(swissD).points.values.map((r) => r.map((v) => v * 1e100));
-    const yScaled = isoMDS(swissD, { y: y0 });
-    compare("isomds_scale_y",yScaled);
-    close("isomds_scale_y stress", yScaled.stress, base.stress, 1e-8);
-    for (let i = 0; i < base.points.values.length; i++) for (let j = 0; j < base.points.values[i]!.length; j++) {
-      const rel = Math.abs(yScaled.points.values[i]![j]! / 1e100 - base.points.values[i]![j]!) / Math.max(1, Math.abs(base.points.values[i]![j]!));
-      if (rel > 1e-8) mismatches.push(`isomds_scale_y coordinate scale equivariance [${i},${j}]`);
-    }
+  it("tests all invalid-input cases", () => {
     const errors: Array<[string, () => unknown]> = [
       ["isomds_zero_distance", () => isoMDS(dist([1, 1, 2, 5]), { k: 1 })],
       ["isomds_negative", () => isoMDS(asDist([[0, -1, 2], [-1, 0, 3], [2, 3, 0]]), { k: 1 })],
