@@ -247,7 +247,7 @@ describe("isoMDS: swiss, eurodist and USArrests R fixtures", () => {
       if (!fixture[key]?.error) mismatches.push(key + ": missing error fixture");
       else { try { action(); mismatches.push(key + ": expected error"); } catch { /* expected */ } }
     }
-    console.info(`isoMDS fixture comparisons: ${comparedFixtures.size}/${Object.keys(fixture).length}; tight choice-7: ${tightCompared}/10; max tight relative stress error=${maxTightStressRelativeError.toExponential(3)}; max tight Procrustes coordinate error=${maxTightCoordinateError.toExponential(3)}`);
+    console.info(`isoMDS fixture comparisons: ${comparedFixtures.size}/${Object.keys(fixture).length}; tight choice-7: ${tightCompared}/10; max tight absolute stress error=${maxTightStressAbsoluteError.toExponential(3)}; max tight relative stress error=${maxTightStressRelativeError.toExponential(3)}; max centered orthogonal coordinate error=${maxTightCoordinateError.toExponential(3)}`);
     expect(mismatches).toEqual([]);
   });
 
