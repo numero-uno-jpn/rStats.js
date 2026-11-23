@@ -47,6 +47,26 @@ function run(key: string, action: () => AcfResult, frequency = 1): void {
   try { compare(key, action(), frequency); }
   catch (error) { covered.add(key); mismatches.push(key + " threw " + String(error)); }
 }
+function runExact(key: string, exactKey: string, action: () => AcfResult): void {
+  covered.add(key);
+  covered.add(exactKey); // the 200-bit reference is a separate fixture comparison target
+  try {
+    const actual = action().acf;
+    const expected = nums(fixture[exactKey]?.value?.acf);
+    if (actual.length !== expected.length) {
+      mismatches.push(key + ".acf length " + actual.length + " != exact " + expected.length);
+      return;
+    }
+    for (let i = 0; i < actual.length; i++) {
+      const a = actual[i]!, e = expected[i]!;
+      const abs = Math.abs(a - e);
+      if (Number.isFinite(a) && Number.isFinite(e)) maxAbsError = Math.max(maxAbsError, abs);
+      if (!(Number.isNaN(a) && Number.isNaN(e)) && abs > 1e-12) {
+        mismatches.push(key + ".acf[" + i + "] exact absolute error " + abs);
+      }
+    }
+  } catch (error) { mismatches.push(key + " threw " + String(error)); }
+}
 function fail(key: string, action: () => unknown): void {
   covered.add(key);
   try { action(); mismatches.push(key + " expected an error"); } catch { /* expected */ }
@@ -109,9 +129,9 @@ describe("acf, pacf and ccf", () => {
     run("acf_airpass", () => acf(ap), 12);
     run("acf_airpass_cov", () => acf(ap, { type: "covariance", lagMax: 30 }), 12);
     fail("acf_presidents_fail", () => acf(pr));
-    run("acf_presidents_pass", () => acf(pr, { naAction: "pass" }), 1);
-    run("acf_presidents_pass_cov", () => acf(pr, { naAction: "pass", type: "covariance" }), 1);
-    run("acf_presidents_pass_partial", () => acf(pr, { naAction: "pass", type: "partial" }), 1);
+    run("acf_presidents_pass", () => acf(pr, { naAction: "pass" }), 4);
+    run("acf_presidents_pass_cov", () => acf(pr, { naAction: "pass", type: "covariance" }), 4);
+    run("acf_presidents_pass_partial", () => acf(pr, { naAction: "pass", type: "partial" }), 4);
     fail("acf_presidents_omit", () => acf(pr, { naAction: "omit" } as any));
     run("acf_presidents_contiguous", () => acf(longestRun(pr)), 4);
     run("acf_nan", () => acf([1, 3, NaN, 2, 5, 4, 6], { naAction: "pass" }));
@@ -143,14 +163,14 @@ describe("acf, pacf and ccf", () => {
     run("acf_matrix_1col", () => acf(lh.map((v) => [v])));
     fail("acf_matrix_2col", () => acf(md.map((v, i) => [v, fd[i]!]) as any));
     run("acf_long", () => acf(long, { lagMax: 40 }));
-    run("acf_long_partial", () => acf(longPartial, { lagMax: 40, type: "partial" }));
+    runExact("acf_long_partial", "acf_long_partial_exact", () => acf(longPartial, { lagMax: 40, type: "partial" }));
 
     run("pacf_lh", () => pacf(lh), 1);
     run("pacf_lh_lag3", () => pacf(lh, { lagMax: 3 }), 1);
     fail("pacf_lh_lag0", () => pacf(lh, { lagMax: 0 }));
     run("pacf_ldeaths", () => pacf(ld), 12);
     run("pacf_airpass", () => pacf(ap, { lagMax: 40 }), 12);
-    run("pacf_presidents_pass", () => pacf(pr, { naAction: "pass" }), 1);
+    run("pacf_presidents_pass", () => pacf(pr, { naAction: "pass" }), 4);
     fail("pacf_presidents_fail", () => pacf(pr));
     run("pacf_numeric", () => pacf(lh));
     run("pacf_n2", () => pacf([1, 4]));
@@ -172,7 +192,7 @@ describe("acf, pacf and ccf", () => {
     run("ccf_small_lag20", () => ccf(x10, y10, { lagMax: 20 }));
     fail("ccf_lengths", () => ccf(x10, y10.slice(0, 8)));
     run("ccf_ts_window", () => ccf(x10.slice(2), y10.slice(0, 8), { lagMax: 6 }));
-    run("ccf_ts_freq", () => ccf(x10, y10, { lagMax: 3 }), 1);
+    run("ccf_ts_freq", () => ccf(x10, y10, { lagMax: 3 }), 4);
     documentedDifference("ccf_ts_freq_mismatch", () => ccf(x10, y10));
     fail("ccf_na_fail", () => ccf([...x10.slice(0, 9), NaN], y10));
     run("ccf_na_pass", () => ccf([...x10.slice(0, 9), NaN], y10, { naAction: "pass" }));
@@ -186,6 +206,7 @@ describe("acf, pacf and ccf", () => {
     compareClim("clim_presidents_pass", acf(pr, { naAction: "pass" }));
 
     const total = Object.keys(fixture).length;
+    expect(total).toBe(92);
     if (covered.size !== total) {
       const missing = Object.keys(fixture).filter((key) => !covered.has(key));
       mismatches.push("fixture coverage: " + covered.size + "/" + total + "; missing " + missing.join(", "));
