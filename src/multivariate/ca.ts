@@ -118,7 +118,7 @@ function summaryTable(names:string[]|null,mass:number[],dist:number[],inertia:nu
   const headers=["name","mass"," qlt"," inr"];
   for(let k=0;k<axes;k++)headers.push(" k="+(k+1),"cor","ctr");
   const abbreviations:Record<string,string>={
-    "black":"Blck","brown":"Brwn","blond":"Blnd","hazel":"Hazl","green":"Gren",
+    "Black":"Blck","Brown":"Brwn","Blond":"Blnd","Hazel":"Hazl","Green":"Gren",
     "three daughters (buck)":"thrd","drifters (michener)":"drft","lost world (clark)":"lstw",
     "east wind (buck)":"estw","farewell to arms (hemingway)":"frwl","sound and fury 7 (faulkner)":"snd7",
     "sound and fury 6 (faulkner)":"snd6","profiles of future (clark)":"prfl","islands (hemingway)":"isln",
