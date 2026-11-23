@@ -153,9 +153,9 @@ function flatten(y: number[][]): Float64Array {
 function unflatten(x: Float64Array, n: number, dim: number): number[][] {
   return Array.from({ length: n }, (_, i) => Array.from({ length: dim }, (_, q) => x[i * dim + q]!));
 }
-function identity(size: number): Float64Array {
+function identity(size: number, diagonal = 1): Float64Array {
   const out = new Float64Array(size * size);
-  for (let i = 0; i < size; i++) out[i * size + i] = 1;
+  for (let i = 0; i < size; i++) out[i * size + i] = diagonal;
   return out;
 }
 function multiply(matrix: Float64Array, vector: Float64Array, size: number): Float64Array {
@@ -168,10 +168,10 @@ function multiply(matrix: Float64Array, vector: Float64Array, size: number): Flo
   return out;
 }
 /** Full inverse-Hessian BFGS update, with a symmetric rank-two correction. */
-function updateInverseHessian(h: Float64Array, step: Float64Array, change: Float64Array, size: number): Float64Array {
+function updateInverseHessian(h: Float64Array, step: Float64Array, change: Float64Array, size: number, resetDiagonal: number): Float64Array {
   let curvature = 0;
   for (let i = 0; i < size; i++) curvature += step[i]! * change[i]!;
-  if (!(curvature > 0) || !Number.isFinite(curvature)) return identity(size);
+  if (!(curvature > 0) || !Number.isFinite(curvature)) return identity(size, resetDiagonal);
   const hy = multiply(h, change, size);
   let yhy = 0;
   for (let i = 0; i < size; i++) yhy += change[i]! * hy[i]!;
@@ -242,7 +242,10 @@ export function isoMDS(
   let converged = current.stress === 0 || maxit === 0;
   let lastIter = 0;
   const size = x.length;
-  let inverseHessian = identity(size);
+  // Under x = y / yScale, the identity inverse Hessian in the original
+  // coordinates becomes I / yScale^2 in the normalized coordinates.
+  const resetDiagonal = yScale > 0 ? 1 / (yScale * yScale) : 1;
+  let inverseHessian = identity(size, resetDiagonal);
   // R performs one initial BFGS update for maxit=1 and maxit=2; thereafter
   // each additional requested iteration contributes one update.
   const steps = maxit === 0 ? 0 : maxit === 1 ? 1 : maxit - 1;
@@ -256,7 +259,7 @@ export function isoMDS(
     let directionalDerivative = 0;
     for (let i = 0; i < size; i++) directionalDerivative += grad[i]! * direction[i]!;
     if (!(directionalDerivative < 0) || !Number.isFinite(directionalDerivative)) {
-      inverseHessian = identity(size);
+      inverseHessian = identity(size, resetDiagonal);
       direction = grad.map((v) => -v);
       directionalDerivative = 0;
       for (let i = 0; i < size; i++) directionalDerivative += grad[i]! * direction[i]!;
@@ -302,7 +305,7 @@ export function isoMDS(
       displacement[i] = accepted.x[i]! - x[i]!;
       gradientChange[i] = nextGradient[i]! - grad[i]!;
     }
-    inverseHessian = updateInverseHessian(inverseHessian, displacement, gradientChange, size);
+    inverseHessian = updateInverseHessian(inverseHessian, displacement, gradientChange, size, resetDiagonal);
     x = accepted.x;
     y = accepted.y;
     current = accepted.evaluation;
