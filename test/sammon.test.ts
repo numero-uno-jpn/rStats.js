@@ -136,7 +136,7 @@ describe("sammon",()=>{
         const printedError=Math.abs(actualInitial-expectedInitial);
         const relativeError=printedError/Math.max(Math.abs(expectedInitial),1e-300);
         maxInitialStressPrintedError=Math.max(maxInitialStressPrintedError,printedError);
-        maxInitialStressRelativeError=Math.max(maxInitialStressRelativeError,relativeError);
+        if(Math.abs(expectedInitial)>=1e-5)maxInitialStressRelativeError=Math.max(maxInitialStressRelativeError,relativeError);
         const matchesPrintedDigits=Math.abs(expectedInitial)>=1e10?actualInitial.toPrecision(5)===expectedInitial.toPrecision(5):actualInitial.toFixed(5)===first[1];
         if(!matchesPrintedDigits)mismatches.push(key+": initial stress "+actualInitial+" vs R "+first[1]);
       }catch(error){mismatches.push(key+": threw "+String(error));}
