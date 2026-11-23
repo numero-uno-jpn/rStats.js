@@ -1,4 +1,5 @@
 # issue: 560
+# choices 13: original coordinates, identity inverse Hessian; no scale normalization.
 # isomds111-bfgs.R (Claude, 2026-11-24): a textbook BFGS (inverse-Hessian update, Nocedal & Wright ch. 6) written from
 # the observations of isomds111-iterates.R, compared with R's isoMDS iterates. Public outputs only; no source. Output: text
 suppressPackageStartupMessages(library(MASS))
