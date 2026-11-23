@@ -1,4 +1,4 @@
-# 現状の要約: 対応分析・自己相関・非計量 MDS (1.11.0: ca・mjca、acf・pacf・ccf、isoMDS・sammon)、Issue #ISSUE
+# 現状の要約: 対応分析・自己相関・非計量 MDS (1.11.0: ca・mjca、acf・pacf・ccf、isoMDS・sammon)、Issue #560
 
 更新 2026-11-23。新しい会話はこの文書と指示書 (`briefs/ca-acf-mds-1.11.ja.md`) を読んで始める。
 
@@ -16,7 +16,7 @@
     `isomds-behaviour.md` (どれも「rStats.js's choices」の節を除く)、補助ファイル `_ca111cases.R`・`_acf111cases.R`・
     `_sammon111cases.R`、oracle `acf.R`・`ca.R`・`mjca.R`・`sammon.R`
   - `experiments/` の新しい R の実験 (`ca111-*.R`・`acf111-*.R`・`sammon111-*.R`・`isomds111-*.R`)
-- **GitHub:** Issue #ISSUE へのコメントだけ。PR #PR は読むだけ (Checks を見る)
+- **GitHub:** Issue #560 へのコメントだけ。PR #561 は読むだけ (Checks を見る)
 - **それ以外は書かない:** `HANDOFF.md`、`test/fixtures/`、`test/helpers/`、生成のブロック (`*_KEYS`・`checkOptions` の
   import)、`docs/`、`scripts/`、`.github/`、`package.json`、`typedoc.json`、`CHANGELOG.md`、`ROADMAP*.md`、`demo/`、
   既存の関数のファイル (`cmdscale.ts` などは呼ぶだけ)、こちらの実験 (`experiments/ca111.R`・`acf111.R`・`sammon111.R`
@@ -49,7 +49,7 @@
 ## 進め方
 
 - **作業ブランチ `work/ca-acf-mds-1.11` にだけ push する。main には push しない。`HANDOFF.md` は触らない**
-- **CI は自分で読む。** draft の PR #PR (`work/ca-acf-mds-1.11` → main、マージしない) で、push のたびに型チェックと
+- **CI は自分で読む。** draft の PR #561 (`work/ca-acf-mds-1.11` → main、マージしない) で、push のたびに型チェックと
   全テストが流れる。push したら PR の Checks を見て、型エラーとテストの失敗は自分で直してから報告する。Checks が見えない
   ときは、Issue に「CI の確認の依頼」と書いて次の作業へ進む
 - **「手元の環境がない」で止まらない。** GitHub への直接の push、Actions の R (指示書 3 節)、PR の CI を使う
@@ -60,7 +60,7 @@
 - `/timeseries` の配線は済んでいる (入口は空)。新しい関数は入口に export を足し、テストはそこから import
 - **会話はよく途中で切れる。** 区切りごとに push し、Issue に数行の途中経過 (何をしたか、次に何をするか、コミット) を
   書く
-- **R の実験はあなたが流す** (指示書 3 節。`# issue: ISSUE` を先頭 5 行に)
+- **R の実験はあなたが流す** (指示書 3 節。`# issue: 560` を先頭 5 行に)
 - こちらがすること: fixture と生成物の作成、数値の点検 (独立の計算)、ユーザーへの Decisions の確認、取り込みと公開
 - 判断に迷ったら、推測で進めず Issue に質問を書いて止まる。小さな判断は推奨を書いて進めてよい
 
