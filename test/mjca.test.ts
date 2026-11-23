@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
-import { mjca, type MjcaInputTable, type MjcaFit } from "../src/entries/multivariate.js";
+import { mjca, type MjcaInputTable, type MjcaMatrix } from "../src/entries/multivariate.js";
 
 const fixture=JSON.parse(readFileSync(new URL("./fixtures/mjca.json",import.meta.url),"utf8")) as Record<string,any>;
 const wg93Rows=`2343223
@@ -967,8 +967,19 @@ describe("mjca",()=>{
     const result=mjca(na);
     expect(result.omitted).toBe(1);
     expect(result.levelsN.values).toEqual([2,2]);
+    expect(result.rownames).toEqual(["1","3","4"]);
+    expect(result.rowmass).toEqual([1/3,1/3,1/3]);
+    expect(result.colmass).toEqual([1/3,1/6,1/6,1/3]);
     const unused:MjcaInputTable={rows:null,cols:["a","b"],values:[["x","p"],["y","q"],["x","q"]]};
     expect(mjca(unused,{lambda:"indicator"}).levelsN.values).toEqual([2,2]);
+  });
+  it("returns the full wg93 indicator matrix when requested",()=>{
+    const result=mjca(w4,{lambda:"indicator",reti:true});
+    expect(result.indmat).not.toBe("NA");
+    const values=(result.indmat as MjcaMatrix).values;
+    expect(values.length).toBe(871);
+    expect(values[0]!.reduce((a,v)=>a+v,0)).toBe(4);
+    expect(values[0]!.length).toBe(result.levelnames.length);
   });
   it("returns an indicator matrix only when requested",()=>{
     const result=mjca(w12,{lambda:"indicator",reti:true});
