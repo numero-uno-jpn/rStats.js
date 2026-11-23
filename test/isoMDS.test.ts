@@ -4,7 +4,10 @@ import { asDist, cmdscale, dist, isoMDS, type IsoMDSResult } from "../src/entrie
 
 const fixture = JSON.parse(readFileSync(new URL("./fixtures/isomds.json", import.meta.url), "utf8")) as Record<string, any>;
 const mismatches: string[] = [];
-let maxStressError = 0;
+let maxTightStressRelativeError = 0;
+let maxTightCoordinateError = 0;
+let tightCompared = 0;
+const comparedFixtures = new Set<string>();
 function close(label: string, actual: number, expected: number, tol: number): void {
   const error = Math.abs(actual - expected);
   if (error > tol) mismatches.push(label + ": " + actual + " != " + expected + " (abs=" + error + ")");
@@ -15,7 +18,37 @@ function num(v: unknown): number {
   if (v === "-Inf") return -Infinity;
   return Number(v);
 }
+function inverse(matrix: number[][]): number[][] | null {
+  const n=matrix.length, a=matrix.map((row,i)=>[...row,...Array.from({length:n},(_,j)=>i===j?1:0)]);
+  for(let col=0;col<n;col++){
+    let pivot=col;
+    for(let row=col+1;row<n;row++)if(Math.abs(a[row]![col]!)>Math.abs(a[pivot]![col]!))pivot=row;
+    if(Math.abs(a[pivot]![col]!)<1e-14)return null;
+    [a[col],a[pivot]]=[a[pivot]!,a[col]!];
+    const scale=a[col]![col]!;
+    for(let j=0;j<2*n;j++)a[col]![j]=a[col]![j]!/scale;
+    for(let row=0;row<n;row++)if(row!==col){const factor=a[row]![col]!;for(let j=0;j<2*n;j++)a[row]![j]=a[row]![j]!-factor*a[col]![j]!;}
+  }
+  return a.map(row=>row.slice(n));
+}
+function procrustes(actual:number[][],expected:number[][]):number[][]|null{
+  const k=expected[0]?.length??0;
+  const cross=Array.from({length:k},(_,a)=>Array.from({length:k},(_,b)=>{
+    let sum=0;for(let i=0;i<Math.min(actual.length,expected.length);i++)sum+=actual[i]![a]!*expected[i]![b]!;return sum;
+  }));
+  let scale=0;for(const row of cross)for(const value of row)scale=Math.max(scale,Math.abs(value));
+  if(!(scale>0))return null;
+  let q=cross.map(row=>row.map(value=>value/scale));
+  for(let iter=0;iter<40;iter++){
+    const inv=inverse(q);if(!inv)return null;
+    const next=q.map((row,i)=>row.map((value,j)=>0.5*(value+inv[j]![i]!)));
+    let change=0;for(let i=0;i<k;i++)for(let j=0;j<k;j++)change=Math.max(change,Math.abs(next[i]![j]!-q[i]![j]!));
+    q=next;if(change<1e-14)break;
+  }
+  return actual.map(row=>Array.from({length:k},(_,j)=>{let value=0;for(let h=0;h<k;h++)value+=row[h]!*q[h]![j]!;return value;}));
+}
 function compare(key: string, actual: IsoMDSResult, stressTol = 1e-8): void {
+  comparedFixtures.add(key);
   const expected = fixture[key]?.value;
   if (!expected) { mismatches.push(`${key}: missing fixture`); return; }
   const points = expected.points.values;
@@ -23,11 +56,11 @@ function compare(key: string, actual: IsoMDSResult, stressTol = 1e-8): void {
   if (JSON.stringify(actual.points.cols) !== JSON.stringify(expected.points.cols ?? null)) mismatches.push(`${key}.points.cols differ`);
   const e = num(expected.stress);
   const error = Math.abs(actual.stress - e);
-  maxStressError = Math.max(maxStressError, error);
+
   if (key.startsWith("isomds_tight_")) {
     const expectedMax = points.reduce((m: number, row: unknown[]) => row.reduce<number>((v, x) => Math.max(v, Math.abs(num(x))), m), 0);
     const dim = points[0]?.length ?? 0;
-    const actualPoints = actual.points.values.map((row) => [...row]);
+    let actualPoints = actual.points.values.map((row) => [...row]);
     if (key.includes("_p1") || key.includes("_p3")) {
       const permutations = dim === 1 ? [[0]] : [[0,1],[1,0]];
       let best = -Infinity, bestMap = permutations[0]!, bestSigns = new Array<number>(dim).fill(1);
@@ -40,28 +73,21 @@ function compare(key: string, actual: IsoMDSResult, stressTol = 1e-8): void {
         }
         if (score > best) { best = score; bestMap = permutation; bestSigns = signs; }
       }
-      for (let i = 0; i < actualPoints.length; i++) {
-        const old = [...actualPoints[i]!];
-        for (let j = 0; j < dim; j++) actualPoints[i]![j] = old[bestMap[j]!]! * bestSigns[j]!;
-      }
-      for (let i = 0; i < Math.min(points.length, actualPoints.length); i++) for (let j = 0; j < dim; j++) {
-        if (Math.abs(actualPoints[i]![j]! - num(points[i]![j])) > 1e-5 * expectedMax) mismatches.push(`${key}.points[${i},${j}] exceeds coordinate tolerance`);
-      }
+      actualPoints = actualPoints.map(row => bestMap.map((index,j)=>row[index]!*bestSigns[j]!));
     } else {
-      // Comparing Y Y^T is equivalent to orthogonal Procrustes alignment:
-      // it removes arbitrary rotations/reflections without selecting a basis.
-      for (let i = 0; i < Math.min(points.length, actualPoints.length); i++) {
-        for (let h = 0; h < Math.min(points.length, actualPoints.length); h++) {
-          let av = 0, ev = 0;
-          for (let j = 0; j < dim; j++) {
-            av += actualPoints[i]![j]! * actualPoints[h]![j]!;
-            ev += num(points[i]![j]) * num(points[h]![j]);
-          }
-          if (Math.abs(av - ev) > 1e-5 * expectedMax * expectedMax) mismatches.push(`${key}.ProcrustesGram[${i},${h}] differs`);
-        }
-      }
+      const aligned=procrustes(actualPoints,points.map((row:unknown[])=>row.map(num)));
+      if(!aligned)mismatches.push(`${key}: Procrustes alignment was singular`);
+      else actualPoints=aligned;
     }
-    if (error > 1e-6 * Math.abs(e)) mismatches.push(`${key}.stress relative error=${error / Math.abs(e)}`);
+    let coordinateError=0;
+    for(let i=0;i<Math.min(points.length,actualPoints.length);i++)for(let j=0;j<dim;j++)coordinateError=Math.max(coordinateError,Math.abs(actualPoints[i]![j]!-num(points[i]![j])));
+    maxTightCoordinateError=Math.max(maxTightCoordinateError,coordinateError);
+    tightCompared++;
+    const relativeStressError=error/Math.max(Math.abs(e),1e-300);
+    maxTightStressRelativeError=Math.max(maxTightStressRelativeError,relativeStressError);
+    if(coordinateError>1e-5*expectedMax)mismatches.push(`${key}.coordinate max error=${coordinateError}`);
+    if(relativeStressError>1e-6)mismatches.push(`${key}.stress relative error=${relativeStressError}`);
+    console.info(`${key}: stress relative error=${relativeStressError.toExponential(3)}; Procrustes max coordinate error=${coordinateError.toExponential(3)} (limit ${(1e-5*expectedMax).toExponential(3)})`);
   } else if (error > 0.01 * Math.abs(e)) {
     mismatches.push(`${key}.stress exceeds 1%: actual=${actual.stress}, expected=${e}`);
   }
@@ -121,7 +147,7 @@ describe("isoMDS", () => {
       if (!fixture[key]?.error) { mismatches.push(key + ": missing error fixture"); continue; }
       try { action(); mismatches.push(key + ": expected error"); } catch { /* expected */ }
     }
-    console.info(`isoMDS direct R cases: 8; maximum absolute stress error ${maxStressError.toExponential(3)}`);
+    console.info(`isoMDS fixture comparisons: ${comparedFixtures.size}/${Object.keys(fixture).length}; tight choice-7: ${tightCompared}/10; max tight relative stress error=${maxTightStressRelativeError.toExponential(3)}; max tight Procrustes coordinate error=${maxTightCoordinateError.toExponential(3)}`);
     expect(mismatches).toEqual([]);
   });
 });
