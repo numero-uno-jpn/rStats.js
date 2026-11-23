@@ -169,7 +169,7 @@ describe("sammon",()=>{
       const finalIterations=reportedIterations.length?Number(reportedIterations[reportedIterations.length-1]):0;
       // Compare the final coordinates/stress at R's reported stopping iteration;
       // trace formatting and the library's stopping-reason metadata are separate checks.
-      const finalOptions={...options,niter:finalIterations,tol:0};
+      const finalOptions={...options,niter:finalIterations,tol:Number.MIN_VALUE};
       finalMismatches.push(...check(key,d,finalOptions,tight,false));
     }
     console.info("sammon final fit comparisons: "+comparedFixtureKeys.size+"/36 valid cases; max relative final-stress error="+maxRelativeStressError.toExponential(3)+"; max |coordinate error|="+maxCoordinateError.toExponential(3));
