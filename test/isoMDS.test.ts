@@ -229,6 +229,4 @@ describe("isoMDS: swiss, eurodist and USArrests R fixtures", () => {
     });
     console.info("ISO_MDS_FROM_R_ENDPOINTS " + JSON.stringify(results));
   });
-
-  });
 });
