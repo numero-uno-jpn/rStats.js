@@ -915,7 +915,7 @@ function compare(a:any,e:any,path:string,out:string[],axis6Tolerance:number|null
     if(typeof a!=="number"||!Number.isFinite(a))out.push(path+": "+a+" vs "+e);
     else{
       const error=Math.abs(a-e);maxNumericError=Math.max(maxNumericError,error);
-      const tolerance=axis6Tolerance!==null&&matrixAxis&&Number(matrixAxis[1])===5?axis6Tolerance:1e-12*Math.max(1,Math.abs(e));
+      const tolerance=axis6Tolerance!==null&&coordinateMatrix&&matrixAxis&&Number(matrixAxis[1])===5?axis6Tolerance:1e-12*Math.max(1,Math.abs(e));
       if(error>tolerance)out.push(path+": "+a+" vs "+e+" (tolerance "+tolerance+")");
     }
     return;
