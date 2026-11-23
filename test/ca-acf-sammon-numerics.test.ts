@@ -99,8 +99,12 @@ describe("A: acf / pacf / ccf numeric stability", () => {
   });
 
   it("is invariant to offsets of 1e8 and 1e12 for acf and ccf", () => {
-    const x = Array.from({ length: 257 }, (_, i) => Math.sin(i * 0.17) + (i % 11) / 7);
-    const y = Array.from({ length: 257 }, (_, i) => Math.cos(i * 0.13) - (i % 7) / 9);
+    // Integers remain exactly representable after adding either offset, so
+    // this checks centering rather than unavoidable input quantization.
+    const patternX = [3, -1, 4, 0, 2, 7, -2, 5, 1, 6];
+    const patternY = [1, 3, -2, 5, 0, 2, 7, -1, 4, 6];
+    const x = Array.from({ length: 260 }, (_, i) => patternX[i % patternX.length]!);
+    const y = Array.from({ length: 260 }, (_, i) => patternY[i % patternY.length]!);
     for (const offset of [1e8, 1e12]) {
       const a = acf(x, { lagMax: 40 }), b = acf(x.map((v) => v + offset), { lagMax: 40 });
       const c = ccf(x, y, { lagMax: 40 }), d = ccf(x.map((v) => v + offset), y.map((v) => v - offset), { lagMax: 40 });

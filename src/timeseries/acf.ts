@@ -122,8 +122,13 @@ function centered(values: readonly number[], demean: boolean): number[] {
     return values.map((v) => v - m);
   }
   const shifted = values.map((v) => Number.isNaN(v) ? NaN : v - base);
+  // Correct the mean in the small, shifted coordinate system, then subtract
+  // the resulting representable mean from the original observations. Keeping
+  // (v - base) - offset as two separate subtractions changes the rounded
+  // centering relative to R and perturbs every lag covariance after a large shift.
   const offset = mean(shifted);
-  return shifted.map((v) => v - offset);
+  const adjustedMean = base + offset;
+  return values.map((v) => Number.isNaN(v) ? NaN : v - adjustedMean);
 }
 function powerOfTwoScale(values: readonly number[]): number {
   let max = 0;
