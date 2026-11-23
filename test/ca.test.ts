@@ -129,7 +129,9 @@ describe("ca: all fixture fit cases", () => {
       mismatches.push(...caseErrors);
       compared++;
     }
-    expect(compared).toBeGreaterThan(0);
+    const expectedSummaryCases=names.filter(key=>!!fixture[key].value.summary?.value).length;
+    console.info("ca summary fixtures: "+compared+"/"+expectedSummaryCases+"; component mismatch counts="+JSON.stringify(componentMismatchCounts)+"; component max |error|="+JSON.stringify(componentMaxAbsError));
+    expect(compared).toBe(expectedSummaryCases);
     expect(mismatches).toEqual([]);
   });
 
