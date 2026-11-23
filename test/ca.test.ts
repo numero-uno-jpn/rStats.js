@@ -39,9 +39,6 @@ function compare(a: any, e: any, path: string, out: string[]): void {
       maxNumericError = Math.max(maxNumericError, error);
       if (error > 1e-12 * Math.max(1, Math.abs(e))) {
         out.push(path + ": " + a + " vs " + e);
-        const parts=path.split(".").slice(1),component=parts[0]==="summary"?"summary."+(parts[1]??"unknown"):(parts[0]??"unknown");
-        componentMismatchCounts[component]=(componentMismatchCounts[component]??0)+1;
-        componentMaxAbsError[component]=Math.max(componentMaxAbsError[component]??0,error);
       }
     }
     return;
@@ -53,6 +50,16 @@ function compare(a: any, e: any, path: string, out: string[]): void {
     return;
   }
   for (const key of Object.keys(e)) compare(a?.[key], e[key], path + "." + key, out);
+}
+function recordComponentMismatches(errors:string[]):void {
+  for(const error of errors){
+    const path=error.split(":")[0]??"";
+    const parts=path.split(".").slice(1);
+    const component=parts[0]==="summary"?"summary."+(parts[1]??"unknown"):(parts[0]??"unknown");
+    componentMismatchCounts[component]=(componentMismatchCounts[component]??0)+1;
+    const values=error.match(/:\\s*(-?[0-9.eE+-]+) vs (-?[0-9.eE+-]+)/);
+    if(values){const delta=Math.abs(Number(values[1])-Number(values[2]));componentMaxAbsError[component]=Math.max(componentMaxAbsError[component]??0,delta);}
+  }
 }
 function inputFor(key: string): { input: CaInputTable; options: Record<string, unknown> } {
   const expected = fixture[key].value.fit;
@@ -83,7 +90,10 @@ describe("ca: all fixture fit cases", () => {
         align(actual, expected);
         const normalized = normalizedExpected(expected);
         if (key === "ca_independent" || key === "ca_identity") { delete normalized.rowcoord; delete normalized.colcoord; }
-        compare(actual, normalized, key, mismatches);
+        const caseErrors:string[]=[];
+        compare(actual, normalized, key, caseErrors);
+        recordComponentMismatches(caseErrors);
+        mismatches.push(...caseErrors);
       } catch (error) {
         mismatches.push(key + ": threw " + (error instanceof Error ? error.stack : String(error)));
       }
@@ -106,11 +116,14 @@ describe("ca: all fixture fit cases", () => {
         align(fit, fixture[key].value.fit);
         actual = caSummary(fit);
       } catch (error) { mismatches.push(key + ".summary: threw " + String(error)); compared++; continue; }
+      const caseErrors:string[]=[];
       compare(actual, {
         scree: expectedMatrix(summary.scree),
         rows: expectedMatrix(summary.rows),
         columns: expectedMatrix(summary.columns),
-      }, key + ".summary", mismatches);
+      }, key + ".summary", caseErrors);
+      recordComponentMismatches(caseErrors);
+      mismatches.push(...caseErrors);
       compared++;
     }
     expect(compared).toBeGreaterThan(0);
@@ -154,7 +167,10 @@ describe("ca: all fixture fit cases", () => {
     const mismatches: string[] = [];
     for (const [key, spec] of Object.entries(cases)) {
       const actual = caCoord(spec.fit, spec.options);
-      compare(actual, fixture[key].value, key, mismatches);
+      const caseErrors:string[]=[];
+      compare(actual, fixture[key].value, key, caseErrors);
+      recordComponentMismatches(caseErrors);
+      mismatches.push(...caseErrors);
     }
     expect(Object.keys(cases).length).toBe(6);
     console.info("ca fixture totals: fit " + names.length + "/20; cacoord 6/6 (standard/principal transformations); error cases 6/6; shared row/column axis-sign alignment; component mismatch counts=" + JSON.stringify(componentMismatchCounts) + "; component max |error|=" + JSON.stringify(componentMaxAbsError) + "; max |numeric error|=" + maxNumericError.toExponential(3));
