@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { acf, pacf, ccf } from "../src/entries/timeseries.js";
-import { ca, mjca, sammon, isoMDS, type DistResult } from "../src/entries/multivariate.js";
+import { ca, caSummary, caCoord, mjca, sammon, isoMDS, type DistResult } from "../src/entries/multivariate.js";
 
 function close(a: number, b: number, tolerance = 1e-11): void {
   expect(Math.abs(a - b)).toBeLessThanOrEqual(tolerance * Math.max(1, Math.abs(b)));
@@ -144,8 +144,16 @@ describe("A: ca / mjca / Sammon / isoMDS numeric stability", () => {
       expect(maxDifference(scaled.sv, base.sv)).toBeLessThan(2e-12);
       expect(maxDifference(scaled.rowmass, base.rowmass)).toBeLessThan(2e-12);
       expect(maxDifference(scaled.colmass, base.colmass)).toBeLessThan(2e-12);
+      expect(maxDifference(scaled.rowdist, base.rowdist)).toBeLessThan(2e-12);
+      expect(maxDifference(scaled.coldist, base.coldist)).toBeLessThan(2e-12);
+      expect(maxDifference(scaled.rowinertia, base.rowinertia)).toBeLessThan(2e-12);
+      expect(maxDifference(scaled.colinertia, base.colinertia)).toBeLessThan(2e-12);
       for (let i = 0; i < base.rowcoord.values.length; i++) expect(maxDifference(scaled.rowcoord.values[i]!, base.rowcoord.values[i]!)).toBeLessThan(2e-10);
       for (let i = 0; i < base.colcoord.values.length; i++) expect(maxDifference(scaled.colcoord.values[i]!, base.colcoord.values[i]!)).toBeLessThan(2e-10);
+      const baseSummary = caSummary(base), scaledSummary = caSummary(scaled);
+      expect(maxDifference(baseSummary.scree.values.map((r) => r[1]!), scaledSummary.scree.values.map((r) => r[1]!))).toBeLessThan(2e-12);
+      const baseMap = caCoord(base), scaledMap = caCoord(scaled);
+      expect(maxDifference(baseMap.rows.values[0]!, scaledMap.rows.values[0]!)).toBeLessThan(2e-10);
     }
   });
 
@@ -154,6 +162,8 @@ describe("A: ca / mjca / Sammon / isoMDS numeric stability", () => {
     expect(ca([[1, 1], [1, 1]]).sv[0]).toBeLessThan(1e-12);
     expect(ca([[1, 2, 3]]).sv).toEqual([0]);
     expect(ca([[1], [2], [3]]).sv).toEqual([0]);
+    expect(caSummary(ca([[1, 2, 3]])).scree.values.length).toBe(1);
+    expect(caSummary(ca([[1, 1], [1, 1]])).scree.values.length).toBe(1);
     expect(() => ca([[1, Infinity], [2, 3]])).toThrow();
     expect(() => ca([[1, NaN], [2, 3]])).toThrow();
   });
