@@ -39,13 +39,9 @@ The endpoint comparison must be performed after applying the fixed tie order and
 
 A zero or negative dissimilarity errors. Missing/infinite dissimilarities require an explicit initial configuration. An initial configuration must have (n) rows and (k) columns. (k) is between 1 and (n-1). (p=1) and (p=3) produce results distinct from default (p=2). R's \(10^{150}\) scale behavior (stopping at the start) is a scale-dependent stopping artifact and should not be copied.
 
-## Decisions for the user
+## Stage-2 implementation notes
 
-1. Keep choice 1 (primary ties), but define primary as free ordering within equal-dissimilarity groups by current configuration distance; do not pool the tied group to one disparity. The numbers above show this primary stress is no greater than the R fixed-order stress.
-2. Remove the post-isotonic norm rescaling. It changes Swiss stress from the correct 4.21928575212 to 4.22022540036.
-3. Re-run the R-endpoint start test after correcting the objective and tie ordering. Until then, do not classify the current residual differences as separate local minima.
-4. Do not select or implement guessed Kruskal step-size coefficients. Reconstruct the angle, relaxation and good-luck factors from the specified 1964b method, then compare p=2 from cmdscale with the tight R endpoints.
-5. Keep the strict release gate: stress within \(10^{-6}\) relative and coordinates within the specified Procrustes tolerance after the objective and tie rule are corrected.
+The user's current decisions are recorded in the `rStats.js's choices` section below and supersede the historical stage-1 investigation. In particular, the fixed pair order and unscaled Stress-1 definition above are authoritative; the older primary-tie recommendation and pre-correction endpoint figures are not current requirements.
 
 ## rStats.js's choices
 
