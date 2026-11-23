@@ -13,6 +13,8 @@ export interface SammonOptions {
 /** @category Multivariate analysis */
 export interface SammonMatrix { rows: string[] | null; cols: string[] | null; values: number[][]; }
 /** @category Multivariate analysis */
+export interface SammonMatrixInput { rows: string[] | null; cols: string[] | null; values: readonly (readonly number[])[]; }
+/** @category Multivariate analysis */
 export interface SammonTrace {
   iteration: number;
   stress: number;
@@ -26,17 +28,12 @@ export interface SammonResult {
 }
 
 interface ParsedD { values: number[][]; labels: string[] | null; condensed: number[]; }
-function norm(v: readonly number[]): number {
-  let scale=0,ssq=1;
-  for(const x of v){const a=Math.abs(x);if(a!==0){if(scale<a){ssq=1+ssq*(scale/a)**2;scale=a;}else ssq+=(a/scale)**2;}}
-  return scale===0?0:scale*Math.sqrt(ssq);
-}
 function distance(a:readonly number[],b:readonly number[]):number {
   let scale=0,ssq=1;
   for(let q=0;q<a.length;q++){const x=Math.abs(a[q]!-b[q]!);if(x!==0){if(scale<x){ssq=1+ssq*(scale/x)**2;scale=x;}else ssq+=(x/scale)**2;}}
   return scale===0?0:scale*Math.sqrt(ssq);
 }
-function parseD(input:DistResult|readonly (readonly number[])[]):ParsedD {
+function parseD(input:DistResult|SammonMatrixInput|readonly (readonly number[])[]):ParsedD {
   let values:number[][],labels:string[]|null=null,condensed:number[]=[];
   if(Array.isArray(input)){
     const matrix=input as readonly (readonly number[])[];
@@ -51,15 +48,24 @@ function parseD(input:DistResult|readonly (readonly number[])[]):ParsedD {
     }
   }else{
     if(typeof input!=="object"||input===null||!Array.isArray((input as DistResult).values))throw new TypeError("d must be a dist object or a square matrix");
-    const d=input as DistResult,n=d.size;
-    if(!Number.isInteger(n)||n<2||d.values.length!==n*(n-1)/2)throw new RangeError("invalid dissimilarity object");
-    labels=d.labels===null?null:[...d.labels];
-    if(labels!==null&&labels.length!==n)throw new RangeError("invalid dissimilarity labels");
-    values=Array.from({length:n},()=>new Array<number>(n).fill(0));
-    let at=0;
-    for(let j=0;j<n-1;j++)for(let i=j+1;i<n;i++){
-      const v=d.values[at++]!;
-      values[i]![j]=v;values[j]![i]=v;condensed.push(v);
+    if("size" in input){
+      const d=input as DistResult,n=d.size;
+      if(!Number.isInteger(n)||n<2||d.values.length!==n*(n-1)/2)throw new RangeError("invalid dissimilarity object");
+      labels=d.labels===null?null:[...d.labels];
+      if(labels!==null&&labels.length!==n)throw new RangeError("invalid dissimilarity labels");
+      values=Array.from({length:n},()=>new Array<number>(n).fill(0));
+      let at=0;
+      for(let j=0;j<n-1;j++)for(let i=j+1;i<n;i++){
+        const v=d.values[at++]!;
+        values[i]![j]=v;values[j]![i]=v;condensed.push(v);
+      }
+    }else{
+      const m=input as SammonMatrixInput,n=m.values.length;
+      if(n<2||m.values.some(row=>row.length!==n))throw new RangeError("dissimilarity matrix must be square");
+      values=m.values.map(row=>Array.from(row));
+      labels=m.rows??m.cols;
+      if(labels!==null&&labels.length!==n)throw new RangeError("invalid dissimilarity labels");
+      for(let i=0;i<n;i++)for(let j=i+1;j<n;j++)condensed.push(values[i]![j]!);
     }
   }
   for(let i=0;i<values.length;i++)for(let j=i+1;j<values.length;j++){
@@ -106,7 +112,7 @@ function derivatives(d:number[],y:number[][],n:number,k:number):{gradient:number
  * Equivalent to R's `MASS::sammon()` public behavior for the selected options.
  * @category Multivariate analysis
  */
-export function sammon(input:DistResult|readonly (readonly number[])[],options:SammonOptions={}):SammonResult {
+export function sammon(input:DistResult|SammonMatrixInput|readonly (readonly number[])[],options:SammonOptions={}):SammonResult {
   const parsed=parseD(input),n=parsed.values.length;
   const k=options.k??2,niter=options.niter??100,initialMagic=options.magic??0.2,tol=options.tol??1e-4;
   if(!Number.isInteger(k)||k<1||k>=n)throw new RangeError("'k' must be in 1..n-1");
