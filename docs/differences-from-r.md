@@ -1842,3 +1842,32 @@ The references are R's `stats` functions. The implementation decisions are recor
 - **Cailliez rounding:** when the theoretical additive constant is zero, the computed value can be a small positive roundoff quantity; its magnitude depends on the eigensolver and platform.
 - **Classical scaling at extreme magnitudes:** `cmdscale` normalizes dissimilarities before squaring to form the Gram matrix, then restores coordinates, eigenvalues, the optional matrix and the Cailliez constant to the original scale. The Cailliez eigenproblem also uses normalized dissimilarities; ordinary-scale arithmetic is unchanged.
 - **Returned components:** `cmdscale` always returns all eigenvalues and both goodness-of-fit values; R's `eig` and `list.` options are not needed. Warnings are returned in the `warnings` field.
+
+## Time series and multivariate analysis (1.11.0)
+
+### `acf`, `pacf` and `ccf`
+
+- Lags are integer observation offsets. R time-series classes, calendar-time lag units and `frequency` metadata are not represented.
+- `ccf` accepts two equal-length numeric arrays; it does not align unequal `ts` ranges.
+- `naAction` supports only `"fail"` and pairwise `"pass"`; R's full set of missing-value policies is not exposed.
+- The Durbin–Levinson recursion for PACF uses 200-bit fixed-point intermediates. On the long-series exact-integer check, the maximum absolute error against the independent high-precision reference is approximately (1.9\times10^{-13}); the corresponding R result is approximately (5.0\times10^{-12}). This intentional accuracy difference means the last digits need not match R.
+- Correlations are evaluated after scale normalization for extreme magnitudes and large common offsets. Covariance results still obey IEEE-754 representability: a mathematically out-of-range covariance can be returned as zero or infinity.
+
+### `ca`, `caSummary` and `caCoord`
+
+- Supplementary row and column indices are one-based. `caCoord` is a convenience function for selecting the row/column map scaling; it is not a direct replacement for R's plotting method.
+- Singular-vector signs are oriented deterministically. A valid R result may use the opposite sign on an axis while representing the same solution.
+- One-row, one-column and independent tables return a zero-inertia result with a zero singular value; summary tables remain available for these cases.
+
+### `mjca`
+
+- The implemented variants are adjusted, indicator and Burt analyses. JCA is explicitly unsupported.
+- Input is a data frame of categorical columns, not a precomputed contingency table. Rows containing missing or non-string entries are omitted and counted in `omitted`.
+- Supplementary variables and category subsets use one-based indices. Singular-axis signs are deterministic and may differ from R's orientation.
+
+### `sammon` and `isoMDS`
+
+- Both accept the package's `DistResult` representation; the default starting configuration is classical MDS (`cmdscale`).
+- Sammon's trace records the initial value, periodic updates and final stopping reason. Extreme dissimilarity scales are normalized internally and restored in the returned coordinates.
+- `isoMDS` exposes the Minkowski power `p` and a stress trace. Its stopping test is based on relative stress change rather than the magnitude of the coordinates; the optimizer uses the BFGS path inferred from public R outputs, not a translation of MASS source code.
+- Coordinate signs are oriented deterministically. As with other SVD/MDS methods, sign differences alone do not indicate a different configuration.
