@@ -4,11 +4,13 @@ import { checkOptions } from "../internal/checkOptions.js";
 
 const MJCA_KEYS = ["lambda", "nd", "supcol", "subsetcat", "reti", "ps"] as const;
 
+/** @category Multivariate analysis */
 export interface MjcaInputTable {
   rows: string[] | null;
   cols: string[];
   values: readonly (readonly (string | number | null)[])[];
 }
+/** @category Multivariate analysis */
 export interface MjcaOptions {
   lambda?: "adjusted" | "indicator" | "Burt" | "JCA";
   nd?: number;
@@ -17,7 +19,9 @@ export interface MjcaOptions {
   reti?: boolean;
   ps?: string;
 }
+/** @category Multivariate analysis */
 export interface MjcaMatrix { rows: string[] | null; cols: string[] | null; values: (number | string)[][]; }
+/** @category Multivariate analysis */
 export interface MjcaFit {
   sv: number[]; lambda: "adjusted" | "indicator" | "Burt"; inertiaE: number[]; inertiaT: number; inertiaEt: number | "NA";
   levelnames: string[]; factors: MjcaMatrix; levelsN: { names: string[]; values: number[] }; nd: number; ndMax: number; colnames: string[];
