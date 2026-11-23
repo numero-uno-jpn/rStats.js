@@ -37,7 +37,7 @@ Public outputs for `ca_cacoord_standard`, `ca_cacoord_principal`, `ca_cacoord_sy
 
 ## Supplementary rows and columns
 
-A supplementary row profile \(q\) does not contribute to active masses or the SVD. Its principal coordinate is the barycentric projection \(q\Gamma\); its standard coordinate is obtained by dividing each axis by \(s_\alpha\). For `ca(smoke, suprow=5)`, the independent projection from the active table's column standard coordinates reproduces the returned supplementary row coordinates to approximately \(10^{-14}\). Supplementary columns are the symmetric construction. Cases: `ca_smoke_suprow`, `ca_smoke_supcol`, `ca_smoke_sup_both`.
+A supplementary row profile \(q\) does not contribute to active masses or the SVD. Its principal coordinate is the barycentric projection \(q\Gamma\); its standard coordinate is obtained by dividing each axis by \(s_\alpha\). For `ca(smoke, suprow=5)`, the independent projection from the active table's column standard coordinates reproduces the returned supplementary row coordinates to approximately \(10^{-14}\). Supplementary columns follow the transposed barycentric projection by symmetry; the returned supplementary-column scaling has not yet been independently checked numerically. Cases: `ca_smoke_suprow`, `ca_smoke_supcol`, `ca_smoke_sup_both`.
 
 ## Input and rank boundaries
 
