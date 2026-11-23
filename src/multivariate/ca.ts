@@ -118,6 +118,7 @@ function summaryTable(names:string[]|null,mass:number[],dist:number[],inertia:nu
   const headers=["name","mass"," qlt"," inr"];
   for(let k=0;k<axes;k++)headers.push(" k="+(k+1),"cor","ctr");
   const abbreviations:Record<string,string>={
+    "black":"Blck","brown":"Brwn","blond":"Blnd","hazel":"Hazl","green":"Gren",
     "three daughters (buck)":"thrd","drifters (michener)":"drft","lost world (clark)":"lstw",
     "east wind (buck)":"estw","farewell to arms (hemingway)":"frwl","sound and fury 7 (faulkner)":"snd7",
     "sound and fury 6 (faulkner)":"snd6","profiles of future (clark)":"prfl","islands (hemingway)":"isln",
@@ -143,7 +144,7 @@ function summaryTable(names:string[]|null,mass:number[],dist:number[],inertia:nu
  */
 export function caSummary(result:CaFit):CaSummary {
   const eig=result.sv.map(v=>v*v),total=sum(eig);let cumulative=0;
-  const scree: number[][]=eig.map((v,i)=>{cumulative+=total?v/total*100:0;return [i+1,v,total?v/total*100:0,cumulative];});
+  const scree: number[][]=eig.map((v,i)=>{if(total)cumulative+=v/total*100;else cumulative=Number.NaN;return [i+1,v,total?v/total*100:Number.NaN,cumulative];});
   return {scree:mat(scree,null,["","values","values2","values3"]),
     rows:summaryTable(result.rownames,result.rowmass,result.rowdist,result.rowinertia,result.rowcoord.values,result.sv,result.nd,result.rowsup),
     columns:summaryTable(result.colnames,result.colmass,result.coldist,result.colinertia,result.colcoord.values,result.sv,result.nd,result.colsup)};
