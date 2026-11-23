@@ -99,7 +99,7 @@ function compare(key: string, actual: IsoMDSResult, stressTol = 1e-8): void {
     }
     let coordinateError=0;
     for(let i=0;i<Math.min(points.length,actualPoints.length);i++)for(let j=0;j<dim;j++)coordinateError=Math.max(coordinateError,Math.abs(actualPoints[i]![j]!-expectedPoints[i]![j]!));
-    if(key==="isomds_tight_swiss")console.info("isoMDS centered alignment debug: actualMean="+JSON.stringify(actual.points.values[0]?.map((_value:number,j:number)=>actual.points.values.reduce((s:number,r:number[])=>s+r[j]!,0)/actual.points.values.length))+"; expectedMean="+JSON.stringify(points[0]?.map((_,j)=>points.reduce((s:number,r:unknown[])=>s+num(r[j]),0)/points.length))+"; alignedFirst="+JSON.stringify(actualPoints[0])+"; expectedFirst="+JSON.stringify(expectedPoints[0]));
+    if(key==="isomds_tight_swiss")console.info("isoMDS centered alignment debug: actualMean="+JSON.stringify(actual.points.values[0]?.map((_value:number,j:number)=>actual.points.values.reduce((s:number,r:number[])=>s+r[j]!,0)/actual.points.values.length))+"; expectedMean="+JSON.stringify(points[0]?.map((_value:unknown,j:number)=>points.reduce((s:number,r:unknown[])=>s+num(r[j]),0)/points.length))+"; alignedFirst="+JSON.stringify(actualPoints[0])+"; expectedFirst="+JSON.stringify(expectedPoints[0]));
     maxTightCoordinateError=Math.max(maxTightCoordinateError,coordinateError);
     tightCompared++;
     const relativeStressError=error/Math.max(Math.abs(e),1e-300);
