@@ -4,6 +4,8 @@ import { sammon, type SammonMatrixInput } from "../src/entries/multivariate.js";
 import type { DistResult } from "../src/entries/multivariate.js";
 
 const fixture=JSON.parse(readFileSync(new URL("./fixtures/sammon.json",import.meta.url),"utf8")) as Record<string,any>;
+const comparedFixtureKeys=new Set<string>();
+let maxRelativeStressError=0,maxCoordinateError=0;
 function dist(points:number[][],labels:string[]|null=null):DistResult{
   const values:number[]=[];
   for(let j=0;j<points.length-1;j++)for(let i=j+1;i<points.length;i++){
@@ -31,9 +33,11 @@ function alignPoints(actual:number[][],expected:number[][]):void{
   }
 }
 function check(key:string,d:DistResult|SammonMatrixInput|readonly (readonly number[])[],options:any={},tight=false):string[]{
+  comparedFixtureKeys.add(key);
   const expected=fixture[key].value,actual=sammon(d,options),errors:string[]=[];
   if(typeof expected.stress==="number"){
     const rel=Math.abs(actual.stress-expected.stress)/Math.max(Math.abs(expected.stress),1e-300);
+    maxRelativeStressError=Math.max(maxRelativeStressError,rel);
     if(rel>(tight?1e-6:1e-9))errors.push(key+".stress: relative error "+rel);
   }
   if(expected.points?.values){
@@ -42,6 +46,7 @@ function check(key:string,d:DistResult|SammonMatrixInput|readonly (readonly numb
     const tol=tight?1e-5:1e-7;
     for(let i=0;i<expected.points.values.length;i++)for(let q=0;q<expected.points.values[i]!.length;q++){
       const a=points[i]![q]!,e=expected.points.values[i]![q]!;
+      maxCoordinateError=Math.max(maxCoordinateError,Math.abs(a-e));
       if(Math.abs(a-e)>tol*Math.max(1,Math.abs(e)))errors.push(key+".points["+i+"]["+q+"]: "+a+" vs "+e);
     }
     if(actual.points.rows?.join("|")!==(expected.points.rows??null)?.join("|"))errors.push(key+".point labels differ");
@@ -74,6 +79,7 @@ describe("sammon",()=>{
       ...check("sammon_grid",dist(grid,gridLabels),{y:gridY}),
       ...check("sammon_grid_default",dist(grid,gridLabels)),
     ];
+    console.info("sammon fixture comparisons: "+comparedFixtureKeys.size+"/"+Object.keys(fixture).length+"; max relative stress error="+maxRelativeStressError.toExponential(3)+"; max |coordinate error|="+maxCoordinateError.toExponential(3));
     expect(errors).toEqual([]);
   });
   it("matches iteration, magic and tolerance controls on the small matrix",()=>{
