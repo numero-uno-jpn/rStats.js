@@ -61,6 +61,14 @@ ROADMAP の残り (2 番) は isoMDS・sammon、対応分析 (ca)、時系列 (a
 - **私がしたこと (ブランチ `40aa5d94`):** oracle 4 本の `source` を `/oracle/` の絶対パスに (コンテナで読めなかった)、
   fixture `test/fixtures/{acf,ca,mjca,sammon}.json` (91・32・27・45 case、amd64)、5 つの仕様書の choices、段階 2 の指示
   `briefs/ca-acf-mds-1.11-stage2.ja.md`、入口の進み具合
+- **段階 2 (2026-11-23〜24):** ChatGPT が acf・ca・mjca・sammon を実装 (全 fixture case)。私が生成物・sammon のテストの許容
+  (choices 4 の尺度、発散する scale_y)・`SammonInputTable` への改名 (`91d02023`)。isoMDS は一度外した (`work/isomds-next` の
+  `62cff8b9` に保存)
+- **isoMDS を戻した (ユーザーの決定 2026-11-24):** 私が R の公開の出力だけから **R の反復 = 教科書の BFGS** を突き止めた
+  (`maxit = k` の点と数値微分の勾配の比較 → BFGS を自分で書いて R の k + 1 回目と一致、swiss 1.6e-14・eurodist 2.2e-11。
+  `experiments/isomds111-{iterates,bfgs}.{R,txt}`)。choices 11・12、経過を書いた指示書 `briefs/isomds-1.11-bfgs.ja.md`
+  (ブランチ `a41caa5d`)。次は ChatGPT: 歩幅を縮める係数・数え方・止め方・p ≠ 2 を決めて実装 → 仕上げ
+  (`briefs/ca-acf-mds-1.11-finish.ja.md`、isoMDS 込み)
 - **この Mac (Node 24.19) では main でも `test/issue179.test.ts`・`issue513.test.ts` が最後の桁で落ちる** (CI は緑。
   今回の変更とは無関係。未調査)
 
