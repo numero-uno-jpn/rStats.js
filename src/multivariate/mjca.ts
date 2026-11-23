@@ -91,9 +91,7 @@ export function mjca(input:MjcaInputTable,options:MjcaOptions={}):MjcaFit {
   const cats:{factor:number;level:string;global:number}[]=[];
   for(let j=0;j<Q;j++)for(let k=0;k<allLevels[j]!.length;k++)cats.push({factor:j,level:allLevels[j]![k]!,global:offsets[j]!+k});
   const chosenCats=selectedSet?cats.filter(c=>selectedSet.has(c.global)):cats;
-  // subsetcat selects output categories; the active MCA geometry still uses
-  // every category of every active variable.
-  const activeCats=cats.filter(c=>!supVarSet.has(c.factor));
+  const activeCats=chosenCats.filter(c=>!supVarSet.has(c.factor));
   const rowCats=cats.filter(c=>!supVarSet.has(c.factor));
   const supCats=chosenCats.filter(c=>supVarSet.has(c.factor));
   const activeQ=Q-supVars.length,activeJ=activeCats.length;
@@ -207,8 +205,8 @@ export function mjca(input:MjcaInputTable,options:MjcaOptions={}):MjcaFit {
   const rowPcoords=rowCoords0.map(row=>row.slice(0,axisCount).map((v,j)=>v*singular[j]!));
   const rowCoords=rowPcoords.map(row=>row.map((v,j)=>modeSv[j]===0?0:v/modeSv[j]!));
   const rowCtr=rowCoords0.map((row,i)=>row.map(v=>rowMass[i]!*v*v));
-  const rowCor=rowPcoords.map(row=>{
-    const distance2=sum(row.map(v=>v*v));
+  const rowCor=rowPcoords.map((row,i)=>{
+    const distance2=rowDist[i]!*rowDist[i]!;
     return row.map(v=>distance2===0?0:v*v/distance2);
   });
   const colsup=supCats.length?supCats.map(c=>chosenCats.findIndex(x=>x.global===c.global)+1):"NA";
@@ -227,6 +225,6 @@ export function mjca(input:MjcaInputTable,options:MjcaOptions={}):MjcaFit {
     rowcoord:table(rowCoords,null,null),rowpcoord:table(rowPcoords,null,null),
     rowctr:lambda==="indicator"?table(rowCtr,null,null):"NA",rowcor:lambda==="indicator"?table(rowCor,null,null):"NA",
   };
-  result.indmat=options.reti===true?table(indicator,null,null):"NA";
+  result.indmat=options.reti===true?table(indicator,raw.rows,levelnames):"NA";
   return result;
 }
