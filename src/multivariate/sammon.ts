@@ -112,11 +112,11 @@ function derivatives(d:number[],y:number[][],n:number,k:number):{gradient:number
   for(let j=0;j<n-1;j++)for(let i=j+1;i<n;i++){
     const delta=d[at++]!,r=distance(y[i]!,y[j]!);
     if(r===0)throw new RangeError("duplicate points in initial configuration");
-    const a=1/delta-1/r, invR3=1/(r*r*r);
+    const a=1/delta-1/r;
     for(let q=0;q<k;q++){
       const diff=y[i]![q]!-y[j]![q]!, term=a*diff;
       g[i]![q]=g[i]![q]!+term;g[j]![q]=g[j]![q]!-term;
-      const curvature=a+diff*diff*invR3;
+      const ratio=diff/r,curvature=a+ratio*ratio/r;
       h[i]![q]=h[i]![q]!+curvature;h[j]![q]=h[j]![q]!+curvature;
     }
   }
@@ -153,6 +153,16 @@ export function sammon(
   if(y.some(row=>row.some(v=>!Number.isFinite(v))))throw new RangeError("initial configuration must be finite");
   for(let i=0;i<n-1;i++)for(let j=i+1;j<n;j++)if(distance(y[i]!,y[j]!)===0)throw new RangeError("duplicate points in initial configuration");
   const d=parsed.condensed;
+  // Work in units of the largest dissimilarity only outside the safe square
+  // range. This keeps the ordinary fixture operation order unchanged while
+  // preventing d^2 and r^3 from overflowing or underflowing at 2^±1000.
+  let magnitude=0;
+  for(const value of d)magnitude=Math.max(magnitude,value);
+  const rescale=magnitude>2**450||(magnitude>0&&magnitude<2**-450);
+  if(rescale){
+    d=d.map(value=>value/magnitude);
+    y=y.map(row=>row.map(value=>value/magnitude));
+  }
   let current=stressOf(d,y,n),magic=initialMagic,iteration=0,reason:SammonTrace["reason"]=niter===0?"maxit":undefined;
   const trace:SammonTrace[]=[{iteration:0,stress:current}];
   for(let step=1;step<=niter;step++){
@@ -178,5 +188,5 @@ export function sammon(
   if(niter>0&&(trace[trace.length-1]!.iteration!==iteration||reason==="backtracking"))trace.push({iteration,stress:current});
   trace[trace.length-1]!.reason=reason;
   center(y);
-  return {points:{rows:parsed.labels,cols:null,values:y},stress:current,trace};
+  return {points:{rows:parsed.labels,cols:null,values:rescale?y.map(row=>row.map(value=>value*magnitude)):y},stress:current,trace};
 }
