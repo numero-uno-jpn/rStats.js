@@ -103,9 +103,9 @@ export function mjca(input:MjcaInputTable,options:MjcaOptions={}):MjcaFit {
   const rowColTotals=rowCats.map((_,j)=>sum(rowTable.map(row=>row[j]!)));
   const total=n*(Q-supVars.length);
   if(!(total>0)||rowTotals.some(v=>v<=0)||activeRowTotals.some(v=>v<=0)||colTotals.some(v=>v<=0)||rowColTotals.some(v=>v<=0))throw new RangeError("empty active category");
-  const rowMass=activeRowTotals.map(v=>v/total),rowActiveMass=rowColTotals.map(v=>v/total),activeMass=colTotals.map(v=>v/total);
+  const rowMass=rowTotals.map(v=>v/total),rowActiveMass=rowColTotals.map(v=>v/total),activeMass=colTotals.map(v=>v/total);
   const S=activeTable.map((row,i)=>row.map((v,j)=>(v/total-rowMass[i]!*activeMass[j]!)/Math.sqrt(rowMass[i]!*activeMass[j]!)));
-  const dec=svd(S),maxRank=Math.min(n,Math.max(0,activeJ-activeQ));
+  const dec=svd(S),maxRank=Math.min(n,Math.max(0,activeJ-tableQ));
   const rawSingular=dec.d.slice(0,maxRank),largest=rawSingular[0]??0;
   const singular=maxRank===n?rawSingular:rawSingular.filter(v=>v>largest*1e-12);
   const rowCoords0=activeTable.map((_,i)=>singular.map((_,j)=>dec.u![i]![j]!/Math.sqrt(rowMass[i]!)));
@@ -166,7 +166,7 @@ export function mjca(input:MjcaInputTable,options:MjcaOptions={}):MjcaFit {
   const adjusted=corrected.map(v=>Math.sqrt(v));
   const positive=adjusted.filter(v=>v>0);
   const burtInertia=sum(eig.map(v=>v*v));
-  const adjustedTotal=activeQ>1?activeQ/(activeQ-1)*(burtInertia-(activeJ-activeQ)/(activeQ*activeQ)):0;
+  const adjustedTotal=activeQ>1?activeQ/(activeQ-1)*(burtInertia-(activeJ-tableQ)/(activeQ*activeQ)):0;
   const modeSv=lambda==="indicator"?singular:lambda==="Burt"?eig:positive;
   const inertiaT=lambda==="adjusted"?adjustedTotal:lambda==="indicator"?sum(eig):burtInertia;
   const inertiaE=modeSv.map(v=>inertiaT===0?0:v*v/inertiaT);
