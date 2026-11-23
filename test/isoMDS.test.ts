@@ -67,7 +67,7 @@ function procrustes(actual:number[][],expected:number[][]):number[][]|null{
 function absoluteStressCase(key:string,expected:number):boolean {
   return Math.abs(expected)<1e-6 || /(?:^|_)(?:small(?:_k1)?|non_euclidean|grid)/.test(key);
 }
-function compare(key: string, actual: IsoMDSResult, stressTol = 1e-8): void {
+function compare(key: string, actual: IsoMDSResult): void {
   comparedFixtures.add(key);
   const expected = fixture[key]?.value;
   if (!expected) { mismatches.push(`${key}: missing fixture`); return; }
@@ -160,7 +160,7 @@ const nonE = asDist([[0, 1, 1, 3], [1, 0, 1, 1], [1, 1, 0, 1], [3, 1, 1, 0]]);
 describe("isoMDS", () => {
   it("matches Kruskal stress on exact Euclidean and low-dimensional fixtures", () => {
     compare("isomds_small", isoMDS(ds));
-    compare("isomds_small_k1", isoMDS(ds, { k: 1 }), 1e-5);
+    compare("isomds_small_k1", isoMDS(ds, { k: 1 }));
     compare("isomds_perfect", isoMDS(dist(small.map((r) => r.slice(0, 2)), { labels: smallLabels })));
     const smallDistanceMatrix=small.map((a)=>small.map((b)=>Math.sqrt(a.reduce((sum,v,j)=>sum+(v-b[j]!)**2,0))));
     compare("isomds_matrix",isoMDS(asDist(smallDistanceMatrix,{labels:smallLabels})));
@@ -168,12 +168,12 @@ describe("isoMDS", () => {
     compare("isomds_three", isoMDS(dist([0, 1, 3]), { k: 1 }));
     compare("isomds_two", isoMDS(dist([0, 1]), { k: 1 }));
     compare("isomds_non_euclidean", isoMDS(nonE));
-    compare("isomds_grid_ties_default", isoMDS(dist(grid, { labels: gridLabels })), 1e-7);
+    compare("isomds_grid_ties_default", isoMDS(dist(grid, { labels: gridLabels })));
   });
 
   it("uses the fixed tie order, explicit starts, progress and zero-iteration behavior", () => {
     const tied = isoMDS(dist(grid, { labels: gridLabels }), { y: perturbed });
-    compare("isomds_grid_ties", tied, 1e-5);
+    compare("isomds_grid_ties", tied);
     const stopped = isoMDS(ds, { maxit: 0 });
     if (stopped.trace.length !== 1 || stopped.trace[0]!.iteration !== 0 || !stopped.trace[0]!.converged) {
       mismatches.push("maxit=0 trace does not report the initial configuration");
@@ -226,7 +226,7 @@ describe("isoMDS: swiss, eurodist and USArrests R fixtures", () => {
     compare("isomds_swiss_k3", isoMDS(swissD, { k: 3 }));
     compare("isomds_swiss_maxit5", isoMDS(swissD, { maxit: 5 }));
     compare("isomds_swiss_maxit0", isoMDS(swissD, { maxit: 0 }));
-    compare("isomds_swiss_tol", isoMDS(swissD, { tol: 1e-8, maxit: 500 }), 1e-6);
+    compare("isomds_swiss_tol", isoMDS(swissD, { tol: 1e-8, maxit: 500 }));
     compare("isomds_swiss_p1", isoMDS(swissD, { p: 1 }));
     compare("isomds_swiss_p3", isoMDS(swissD, { p: 3 }));
     compare("isomds_swiss_y", isoMDS(swissD, { y: swissData.map((r) => [r[1]!, r[2]!]) }));
@@ -254,9 +254,9 @@ describe("isoMDS: swiss, eurodist and USArrests R fixtures", () => {
     const perturbed = grid.map((r, i) => [r[0]! + 0.1 * Math.sin(i + 1), r[1]! + 0.1 * Math.cos(i + 1)]);
     const nonE = asDist([[0, 1, 1, 3], [1, 0, 1, 1], [1, 1, 0, 1], [3, 1, 1, 0]]);
     compare("isomds_small", isoMDS(smallD));
-    compare("isomds_small_k1", isoMDS(smallD, { k: 1 }), 1e-5);
+    compare("isomds_small_k1", isoMDS(smallD, { k: 1 }));
     compare("isomds_non_euclidean", isoMDS(nonE));
-    compare("isomds_grid_ties", isoMDS(gridD, { y: perturbed }), 1e-5);
+    compare("isomds_grid_ties", isoMDS(gridD, { y: perturbed }));
     compare("isomds_grid_ties_default", isoMDS(gridD));
     compare("isomds_tight_small", isoMDS(smallD, { tol: 1e-10, maxit: 5000 }));
     compare("isomds_tight_small_k1", isoMDS(smallD, { k: 1, tol: 1e-10, maxit: 5000 }));
