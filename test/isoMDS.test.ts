@@ -102,7 +102,7 @@ function compare(key: string, actual: IsoMDSResult, stressTol = 1e-8): void {
     maxTightCoordinateError=Math.max(maxTightCoordinateError,coordinateError);
     tightCompared++;
     const relativeStressError=error/Math.max(Math.abs(e),1e-300);
-    maxTightStressRelativeError=Math.max(maxTightStressRelativeError,relativeStressError);
+    if(Math.abs(e)>=1e-6)maxTightStressRelativeError=Math.max(maxTightStressRelativeError,relativeStressError);
     maxTightStressAbsoluteError=Math.max(maxTightStressAbsoluteError,error);
     if(coordinateError>1e-5*expectedMax)mismatches.push(`${key}.coordinate max error=${coordinateError}`);
     const useAbsoluteStress = Math.abs(e)<1e-6;
