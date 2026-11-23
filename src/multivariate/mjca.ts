@@ -45,6 +45,15 @@ export interface MjcaMatrix {
   /** Matrix values. */
   values: (number | string)[][];
 }
+/** Variable names and observed category counts.
+ * @category Multivariate analysis
+ */
+export interface MjcaLevelsN {
+  /** Names of the categorical variables. */
+  names: string[];
+  /** Number of observed levels for each variable. */
+  values: number[];
+}
 /** Result of multiple correspondence analysis.
  * @category Multivariate analysis
  */
@@ -64,7 +73,7 @@ export interface MjcaFit {
   /** Factor and level names for the complete category set. */
   factors: MjcaMatrix;
   /** Variable names and observed level counts. */
-  levelsN: { names: string[]; values: number[] };
+  levelsN: MjcaLevelsN;
   /** Number of dimensions requested. */
   nd: number;
   /** Maximum available number of dimensions. */
