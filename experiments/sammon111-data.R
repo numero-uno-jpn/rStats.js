@@ -1,8 +1,16 @@
 # issue: 560
-# Export the public dissimilarity inputs and cmdscale starts for Sammon comparisons.
+# Export public dissimilarity inputs and cmdscale starts for Sammon comparisons.
 library(MASS)
 library(jsonlite)
-pack <- function(d) list(size = attr(d, "Size"), labels = attr(d, "Labels"), values = as.vector(d),
-                         start2 = cmdscale(d, k = 2), start1 = cmdscale(d, k = 1), start3 = cmdscale(d, k = 3))
-out <- list(swiss = pack(dist(swiss)), eurodist = pack(eurodist), usarrests = pack(dist(USArrests)))
-cat(toJSON(out, digits = I(17), auto_unbox = TRUE, null = "null", na = "string", pretty = FALSE))
+dsw <- dist(swiss)
+deu <- eurodist
+dua <- dist(USArrests)
+out <- list(
+  swiss = list(size=attr(dsw,"Size"),labels=attr(dsw,"Labels"),values=as.vector(dsw),
+               start2=cmdscale(dsw,k=2),start1=cmdscale(dsw,k=1),start3=cmdscale(dsw,k=3)),
+  eurodist = list(size=attr(deu,"Size"),labels=attr(deu,"Labels"),values=as.vector(deu),
+                  start2=cmdscale(deu,k=2),start1=cmdscale(deu,k=1),start3=cmdscale(deu,k=3)),
+  usarrests = list(size=attr(dua,"Size"),labels=attr(dua,"Labels"),values=as.vector(dua),
+                   start2=cmdscale(dua,k=2),start1=cmdscale(dua,k=1),start3=cmdscale(dua,k=3))
+)
+cat(toJSON(out, digits=I(17), auto_unbox=TRUE, null="null", na="string", pretty=FALSE))
