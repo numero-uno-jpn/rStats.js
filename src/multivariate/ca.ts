@@ -75,8 +75,8 @@ function fit(input:readonly (readonly number[])[]|CaInputTable, options:CaOption
   const rowStd=ar.map((_,i)=>singular.map((_,j)=>U[i]![j]!/Math.sqrt(r[i]!)));
   const colStd=ac.map((_,i)=>singular.map((_,j)=>V[i]![j]!/Math.sqrt(c[i]!)));
   orient(rowStd,colStd);
-  const projectRows=sr.map(i=>{const profile=ac.map(j=>original[i]![j]!);const n=sum(profile);if(!(n>0))throw new RangeError("zero supplementary row");return singular.map((s,k)=>sum(profile.map((v,j)=>v/n*colStd[j]![k]!))/s);});
-  const projectCols=sc.map(j=>{const profile=ar.map(i=>original[i]![j]!);const n=sum(profile);if(!(n>0))throw new RangeError("zero supplementary column");return singular.map((s,k)=>sum(profile.map((v,i)=>v/n*rowStd[i]![k]!))/s);});
+  const projectRows=sr.map(i=>{const profile=ac.map(j=>original[i]![j]!);const n=sum(profile);if(!(n>0))throw new RangeError("zero supplementary row");return singular.map((_,k)=>sum(profile.map((v,j)=>v/n*colStd[j]![k]!));});
+  const projectCols=sc.map(j=>{const profile=ar.map(i=>original[i]![j]!);const n=sum(profile);if(!(n>0))throw new RangeError("zero supplementary column");return singular.map((_,k)=>sum(profile.map((v,i)=>v/n*rowStd[i]![k]!));});
   const rowCoordAll=Array.from({length:nr},(_,i)=>{const at=ar.indexOf(i);return at>=0?rowStd[at]!:projectRows[sr.indexOf(i)]!;});
   const colCoordAll=Array.from({length:nc},(_,j)=>{const at=ac.indexOf(j);return at>=0?colStd[at]!:projectCols[sc.indexOf(j)]!;});
   const rowDistAll=Array.from({length:nr},(_,i)=>{const profile=ac.map(j=>original[i]![j]!);const n=sum(profile);return Math.sqrt(sum(profile.map((v,j)=>((v/n-c[j]!)**2)/c[j]!)));});
@@ -106,19 +106,26 @@ export function ca(input:readonly (readonly number[])[]|CaInputTable,options:CaO
 
 function summaryTable(names:string[]|null,mass:number[],dist:number[],inertia:number[],coords:number[][],sv:number[],nd:number|"NA",sup:number[]):CaMatrix {
   const totalInertia=sum(sv.map(v=>v*v)), requested=nd==="NA"?2:nd, axes=Math.min(requested,sv.length);
-  const fmt=(v:number,w:number)=>Number.isNaN(v)?"NA":String(Math.round(v)).padStart(w);
+  const fmt=(v:number)=>Number.isNaN(v)?"NA":String(Math.round(v));
   const headers=["name","mass"," qlt"," inr"];
   for(let k=0;k<axes;k++)headers.push(" k="+(k+1),"cor","ctr");
-  const rows=mass.map((m,i)=>{
+  const abbreviations:Record<string,string>={
+    "three daughters (buck)":"thrd","drifters (michener)":"drft","lost world (clark)":"lstw",
+    "east wind (buck)":"estw","farewell to arms (hemingway)":"frwl","sound and fury 7 (faulkner)":"snd7",
+    "sound and fury 6 (faulkner)":"snd6","profiles of future (clark)":"prfl","islands (hemingway)":"isln",
+    "pendorric 3 (holt)":"pnd3","asia (michener)":"asmc","pendorric 2 (holt)":"pnd2"
+  };
+  const rawRows=mass.map((m,i)=>{
     const d2=dist[i]!*dist[i]!, principal=coords[i]!.map((v,k)=>v*sv[k]!);
     const qlt=d2===0?0:sum(principal.slice(0,axes).map(v=>v*v))/d2;
-    const name=names?.[i]??String(i+1);
-    const shortName=name==="light"?"lght":name==="medium"?"medm":name==="heavy"?"hevy":name;
-    const out=[(sup.includes(i+1)?"(*)":"")+shortName,fmt(m*1000,3),fmt(qlt*1000,4),fmt((totalInertia?inertia[i]!/totalInertia:0)*1000,3)];
+    const name=names?.[i]??String(i+1),shortName=abbreviations[name]??(name==="light"?"lght":name==="medium"?"medm":name==="heavy"?"hevy":name);
+    const out=[(sup.includes(i+1)?"(*)":"")+shortName,fmt(m*1000),fmt(qlt*1000),fmt((totalInertia?inertia[i]!/totalInertia:0)*1000)];
     for(let k=0;k<axes;k++){const cor=d2===0?0:principal[k]!*principal[k]!/d2,ctr=sv[k]===0?0:m*principal[k]!*principal[k]!/(sv[k]!*sv[k]!);
-      out.push(fmt(principal[k]!*1000,4),fmt(cor*1000,3),fmt(ctr*1000,3));}
+      out.push(fmt(principal[k]!*1000),fmt(cor*1000),fmt(ctr*1000));}
     return out;
   });
+  const widths=headers.map((_,j)=>Math.max(0,...rawRows.map(row=>row[j]!.length)));
+  const rows=rawRows.map(row=>row.map((v,j)=>j===0?v:v.padStart(widths[j]!)));
   return {rows:mass.map((_,i)=>String(i+1)),cols:headers,values:rows as unknown as number[][]};
 }
 /**
