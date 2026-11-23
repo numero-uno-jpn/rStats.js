@@ -504,7 +504,15 @@ examples <- list(
   list(id = "kmeans-fixed-centers-demo", title = "Iris sepal measurements: k-means with an explicit center matrix",
        value = function() local({ data(iris); x <- as.matrix(iris[1:9, 1:2]); centers <- as.matrix(iris[c(1,4,7), 1:2]); f <- stats::kmeans(x, centers, algorithm = "Hartigan-Wong"); c(f$cluster, as.vector(t(f$centers)), f$withinss, f$tot.withinss) })),
   list(id = "cmdscale-eurodist-demo", title = "Classical multidimensional scaling of a six-city eurodist subset",
-       value = function() local({ data(eurodist); m <- as.matrix(eurodist)[1:6, 1:6]; f <- stats::cmdscale(stats::as.dist(m), k = 2, eig = TRUE); c(f$eig[1:3], f$GOF) }))
+       value = function() local({ data(eurodist); m <- as.matrix(eurodist)[1:6, 1:6]; f <- stats::cmdscale(stats::as.dist(m), k = 2, eig = TRUE); c(f$eig[1:3], f$GOF) })),
+  list(id = "acf-pacf-monthly-series", title = "Autocorrelation and partial autocorrelation of a monthly series",
+       value = function() local({ x <- c(4, 5, 7, 6, 9, 8, 11, 10, 12, 13, 11, 14); c(as.vector(stats::acf(x, lag.max = 5, plot = FALSE)$acf), as.vector(stats::pacf(x, lag.max = 5, plot = FALSE)$acf)) })),
+  list(id = "ccf-two-monthly-series", title = "Cross-correlation between two monthly series",
+       value = function() local({ x <- c(4, 5, 7, 6, 9, 8, 11, 10, 12, 13, 11, 14); y <- c(3, 4, 5, 7, 6, 8, 9, 8, 10, 11, 9, 12); as.vector(stats::ccf(x, y, lag.max = 3, plot = FALSE)$acf) })),
+  list(id = "ca-contingency-summary", title = "Correspondence analysis of a small contingency table",
+       value = function() local({ z <- ca::ca(matrix(c(12, 8, 3, 4, 11, 9, 7, 5, 14), nrow = 3, byrow = TRUE)); c(z$sv, summary(z)$scree[1, ]) })),
+  list(id = "sammon-small-configuration", title = "Sammon mapping of six points",
+       value = function() local({ x <- matrix(c(0, 0, 1, 0, 0, 2, 1, 1, 3, 2, 2, 4), ncol = 2, byrow = TRUE); MASS::sammon(stats::dist(x), k = 2, niter = 20)$stress }))
 )
 
 if (!exists(".rstats_oracle")) {
