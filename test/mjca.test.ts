@@ -906,9 +906,11 @@ function expectedFit(x:any):any{
   }
   return out;
 }
-function compare(a:any,e:any,path:string,out:string[],axis6Tolerance:number|null=null,skipAxis:number|null=null):void{
+function compare(a:any,e:any,path:string,out:string[],axis6Tolerance:number|null=null,skipAxis:number|null=null,skipSvIndex:number|null=null):void{
   if(e==="NA"){if(a!=="NA"&&!(typeof a==="number"&&Number.isNaN(a)))out.push(path+": expected NA");return;}
   if(typeof e==="number"){
+    const svAxis=/\\.sv\\[(\\d+)\\]$/.exec(path);
+    if(skipSvIndex!==null&&svAxis&&Number(svAxis[1])===skipSvIndex)return;
     const matrixAxis=/\.values\[\d+\]\[(\d+)\]$/.exec(path);
     const coordinateMatrix=/\.(?:colcoord|colpcoord|colctr|colcor|rowcoord|rowpcoord|rowctr|rowcor)\.values\[/.test(path);
     if(skipAxis!==null&&coordinateMatrix&&matrixAxis&&Number(matrixAxis[1])===skipAxis)return;
@@ -921,8 +923,8 @@ function compare(a:any,e:any,path:string,out:string[],axis6Tolerance:number|null
     return;
   }
   if(e===null||typeof e!=="object"){if(a!==e)out.push(path+": "+String(a)+" vs "+String(e));return;}
-  if(Array.isArray(e)){if(!Array.isArray(a)||a.length!==e.length){out.push(path+": length "+(a?.length??"not-array")+" vs "+e.length);return;}for(let i=0;i<e.length;i++)compare(a[i],e[i],path+"["+i+"]",out,axis6Tolerance,skipAxis);return;}
-  for(const k of Object.keys(e))compare(a?.[k],e[k],path+"."+k,out,axis6Tolerance,skipAxis);
+  if(Array.isArray(e)){if(!Array.isArray(a)||a.length!==e.length){out.push(path+": length "+(a?.length??"not-array")+" vs "+e.length);return;}for(let i=0;i<e.length;i++)compare(a[i],e[i],path+"["+i+"]",out,axis6Tolerance,skipAxis,skipSvIndex);return;}
+  for(const k of Object.keys(e))compare(a?.[k],e[k],path+"."+k,out,axis6Tolerance,skipAxis,skipSvIndex);
 }
 function check(key:string,input:MjcaInputTable,options:any={}):string[]{
   comparedFixtureKeys.add(key);
@@ -941,7 +943,8 @@ function check(key:string,input:MjcaInputTable,options:any={}):string[]{
   }
   const axis6Tolerance=key==="mjca_wg93_supcol"?1e-13/Math.abs(actual.sv[5]??Infinity):null;
   const skipNumericalZeroAxis=key==="mjca_w60_reti"&&Math.abs(Number(expected.sv?.[11]??Infinity))<1e-8?11:null;
-  compare(actual,expected,key,errors,axis6Tolerance,skipNumericalZeroAxis);
+  compare(actual,expected,key,errors,axis6Tolerance,skipNumericalZeroAxis,skipNumericalZeroAxis);
+  if(skipNumericalZeroAxis!==null&&!(Math.abs(actual.sv[skipNumericalZeroAxis]??Infinity)<1e-8))errors.push(key+".sv["+skipNumericalZeroAxis+"] is not a numerical zero (<1e-8)");
   for(const error of errors){const component=error.slice(key.length+1).split(".")[0]!.split("[")[0]!.split(":")[0]!.trim()||"unknown";componentMismatchCounts[component]=(componentMismatchCounts[component]??0)+1;}
   return errors;
 }
