@@ -30,11 +30,11 @@ out <- list(
  ca_rowmass=fit$rowmass, ca_colmass=fit$colmass,
  ca_total_inertia=sum(sv$d^2), ca_rowdist2=rowdist2,
  ca_suprow=ca(smoke,suprow=5)$rowcoord[5,,drop=FALSE],
- mjca_indicator_total=fit_indicator$inertia.t, mjca_indicator_eigen=mca$sv^2,
+ mjca_indicator_total=fit_indicator$inertia.t, mjca_indicator_eigen=fit_indicator$sv^2,
  mjca_indicator_direct_eigen=eig, mjca_indicator_levels=J,
  mjca_variables=Q, mjca_indicator_formula_total=(J-Q)/Q,
  mjca_burt_total=fit_burt$inertia.t, mjca_adjusted_total=fit_adjusted$inertia.t,
- mjca_benzeczi_direct=ben, mjca_adjusted_eigen=adjusted$inertia.e,
- mjca_jca_total=fit_jca$inertia.t, mjca_jca_et=jca$inertia.et
+ mjca_benzeczi_direct=ben, mjca_adjusted_eigen=fit_adjusted$inertia.e,
+ mjca_jca_total=fit_jca$inertia.t, mjca_jca_et=fit_jca$inertia.et
 )
 cat(as.character(toJSON(out,digits=I(17),auto_unbox=TRUE,null="null")))
