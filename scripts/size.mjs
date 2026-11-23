@@ -24,7 +24,7 @@ const cases = [
   ["everything", "*"],
 ];
 
-const areas = ["distributions", "tests", "linalg", "descriptive", "numerics", "special", "mixed", "regression", "multivariate"];
+const areas = ["distributions", "tests", "linalg", "descriptive", "numerics", "special", "mixed", "regression", "multivariate", "timeseries"];
 for (const a of areas) cases.push([`rStats.js/${a} (all of it)`, "*", fileURLToPath(new URL(`../dist/entries/${a}.js`, import.meta.url))]);
 const mixedEntry = fileURLToPath(new URL("../dist/entries/mixed.js", import.meta.url));
 cases.push(["lmer (from /mixed)", "lmer", mixedEntry]);

@@ -77,6 +77,11 @@
       "import": "./dist/entries/multivariate.js",
       "default": "./dist/entries/multivariate.js"
     },
+    "./timeseries": {
+      "types": "./dist/entries/timeseries.d.ts",
+      "import": "./dist/entries/timeseries.js",
+      "default": "./dist/entries/timeseries.js"
+    },
     "./package.json": "./package.json"
   },
   "types": "./dist/index.d.ts",
