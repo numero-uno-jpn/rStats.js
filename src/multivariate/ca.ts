@@ -54,12 +54,26 @@ function fit(input:readonly (readonly number[])[]|CaInputTable, options:CaOption
   const raw=matrixInput(input), original=raw.values, nr=original.length,nc=original[0]!.length;
   const sr=indices(options.suprow,nr,"suprow"), sc=indices(options.supcol,nc,"supcol");
   const srSet=new Set(sr),scSet=new Set(sc), ar=Array.from({length:nr},(_,i)=>i).filter(i=>!srSet.has(i)), ac=Array.from({length:nc},(_,i)=>i).filter(i=>!scSet.has(i));
-  if(ar.length<2||ac.length<2)throw new RangeError("non-numeric matrix extent");
+  if((ar.length<2&&nr>1)||(ac.length<2&&nc>1))throw new RangeError("non-numeric matrix extent");
   const active=ar.map(i=>ac.map(j=>original[i]![j]!));
   for(const row of active)for(const v of row)if(!Number.isFinite(v)||v<0)throw new RangeError("infinite or missing values in 'x'");
   const rowTotals=active.map(sum), colTotals=ac.map(j=>sum(active.map(r=>r[j]!))), total=sum(rowTotals);
   if(!(total>0)||rowTotals.some(v=>v<=0)||colTotals.some(v=>v<=0))throw new RangeError("infinite or missing values in 'x'");
   const r=rowTotals.map(v=>v/total), c=colTotals.map(v=>v/total);
+  if(ar.length===1||ac.length===1){
+    const singular=[0], rowStd=ar.map((_,i)=>[ar.length===1?1:(i===0?1/Math.sqrt(r[0]!):0)]);
+    const colStd=ac.map((_,j)=>[ac.length===1?1:(j===0?1/Math.sqrt(c[0]!):0)]);
+    const rowDistAll=Array.from({length:nr},()=>0), colDistAll=Array.from({length:nc},()=>0);
+    const rowMassAll=Array.from({length:nr},(_,i)=>srSet.has(i)?NaN:r[ar.indexOf(i)]!);
+    const colMassAll=Array.from({length:nc},(_,j)=>scSet.has(j)?NaN:c[ac.indexOf(j)]!);
+    const nd=options.nd===undefined?"NA":Math.trunc(options.nd);
+    if(typeof nd==="number"&&(!Number.isFinite(nd)||nd<0))throw new RangeError("'nd' must be non-negative");
+    return {sv:singular,nd,rownames:raw.rows===null?null:[...raw.rows],rowmass:rowMassAll,rowdist:rowDistAll,
+      rowinertia:rowMassAll.map(()=>0),rowcoord:mat(Array.from({length:nr},(_,i)=>srSet.has(i)?[0]:rowStd[ar.indexOf(i)]!),raw.rows===null?null:[...raw.rows],["Dim1"]),
+      rowsup:sr.map(i=>i+1),colnames:raw.cols===null?null:[...raw.cols],colmass:colMassAll,coldist:colDistAll,
+      colinertia:colMassAll.map(()=>0),colcoord:mat(Array.from({length:nc},(_,j)=>scSet.has(j)?[0]:colStd[ac.indexOf(j)]!),raw.cols===null?null:[...raw.cols],["Dim1"]),
+      colsup:sc.map(j=>j+1),N:mat(active,null,null)};
+  }
   const S=active.map((row,i)=>row.map((v,j)=>(v/total-r[i]!*c[j]!)/Math.sqrt(r[i]!*c[j]!)));
   const dec=svd(S), maxRank=Math.min(ar.length-1,ac.length-1), rank=Math.min(maxRank,dec.d.length);
   const singular=dec.d.slice(0,rank), U=dec.u!, V=dec.v!;
