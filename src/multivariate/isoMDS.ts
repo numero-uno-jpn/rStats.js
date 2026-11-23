@@ -233,11 +233,12 @@ export function isoMDS(
   center(y);
   let yScale = 0;
   for (let i = 0; i < n - 1; i++) for (let j = i + 1; j < n; j++) yScale = Math.max(yScale, distance(y[i]!, y[j]!, p));
+  const outputScale = yScale || scale;
   if (yScale > 0) y = y.map((r) => r.map((v) => v / yScale));
   const groups = Array.from({ length: built.groups }, (_, i) => i);
   let x = flatten(y);
   let current = evaluate(y, built.pairs, groups, p);
-  const trace: IsoMDSTrace[] = [{ iteration: 0, stress: current.stress, converged: false }];
+  const trace: IsoMDSTrace[] = [{ iteration: 0, stress: current.stress, converged: current.stress === 0 || maxit === 0 }];
   let converged = current.stress === 0 || maxit === 0;
   let lastIter = 0;
   const size = x.length;
@@ -314,5 +315,5 @@ export function isoMDS(
 
   orient(y);
   return { points: { rows: parsed.labels, cols: null,
-    values: y.map((r) => r.map((v) => v * scale)) }, stress: current.stress, trace };
+    values: y.map((r) => r.map((v) => v * outputScale)) }, stress: current.stress, trace };
 }
