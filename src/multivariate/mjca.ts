@@ -66,12 +66,9 @@ function orient(rows:number[][],cols:number[][]):void {
     if((rows[at]?.[j]??0)<0){for(const r of rows)r[j]=-r[j]!;for(const r of cols)r[j]=-r[j]!;}
   }
 }
-function coordinateStats(coords:number[][],mass:number[],principal:number[][]):{principal:number[][];ctr:number[][];cor:number[][]} {
+function coordinateStats(coords:number[][],mass:number[],principal:number[][],distance2:number[]):{principal:number[][];ctr:number[][];cor:number[][]} {
   const ctr=coords.map((row,i)=>row.map(v=>mass[i]!*v*v));
-  const cor=principal.map(row=>{
-    const distance2=sum(row.map(v=>v*v));
-    return row.map(v=>distance2===0?0:v*v/distance2);
-  });
+  const cor=principal.map((row,i)=>row.map(v=>distance2[i]===0?0:v*v/distance2[i]!));
   return {principal,ctr,cor};
 }
 
@@ -160,7 +157,17 @@ export function mjca(input:MjcaInputTable,options:MjcaOptions={}):MjcaFit {
   const colPrincipal=coords.map((row,i)=>row.slice(0,axisCount).map((v,j)=>
     activePosition.has(chosenCats[i]!.global)?allColCoords[i]![j]!*modeSv[j]!:v
   ));
-  const colStats=coordinateStats(allColCoords,colMass,colPrincipal);
+  const colCorDistance2=chosenCats.map((c,i)=>{
+    if(lambda!=="adjusted")return sum(colPrincipal[i]!.map(v=>v*v));
+    const q=activeQ,threshold=1/q,factor=q/(q-1);
+    const standard=coords[i]!.map((v,j)=>{
+      if(activePosition.has(c.global))return v;
+      const adjustedSv=factor*(singular[j]!*singular[j]!-threshold);
+      return adjustedSv===0?0:v/adjustedSv;
+    });
+    return factor*sum(standard.map((v,j)=>v*v*(singular[j]!*singular[j]!-threshold)**2));
+  });
+  const colStats=coordinateStats(allColCoords,colMass,colPrincipal,colCorDistance2);
   const levelnames=chosenCats.map(c=>raw.cols[c.factor]!+(options.ps??":")+c.level);
   const factorRows=chosenCats.map(c=>raw.cols[c.factor]!+String(allLevels[c.factor]!.indexOf(c.level)+1));
   const factorVals=chosenCats.map(c=>[raw.cols[c.factor]!,c.level]);
