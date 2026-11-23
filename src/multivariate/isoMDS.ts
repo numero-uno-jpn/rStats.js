@@ -74,22 +74,20 @@ function center(y: number[][]): void {
     for (const row of y) row[q] = row[q]! - m;
   }
 }
-function pairsFor(d: number[][], missing: boolean): { pairs: Pair[]; groups: number; scale: number } {
+function pairsFor(d: number[][], missing: boolean): { pairs: Pair[]; groups: number } {
   const n = d.length;
   const pairs: Pair[] = [];
-  let scale = 0;
   for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) {
     const delta = d[i]![j]!;
     if (!Number.isFinite(delta)) continue;
     if (delta <= 0) throw new RangeError("zero or negative distance between objects");
-    scale = Math.max(scale, delta);
     pairs.push({ i, j, delta, group: 0 });
   }
   void missing;
   pairs.sort((a, b) => a.delta - b.delta || a.j - b.j || a.i - b.i);
   let groups = 0;
   for (const pair of pairs) pair.group = groups++;
-  return { pairs, groups, scale: scale || 1 };
+  return { pairs, groups };
 }
 
 /** Pool-adjacent-violators regression in stable lower-triangle pair order. */
@@ -234,7 +232,6 @@ export function isoMDS(
     : options.y.map((r) => Array.from(r));
   if (y.length !== n || y.some((r) => r.length !== k)) throw new RangeError("invalid initial configuration");
   if (y.some((r) => r.some((v) => !Number.isFinite(v)))) throw new RangeError("initial configuration must be finite");
-  const scale = built.scale;
   center(y);
   let yScale = 0;
   for (let i = 0; i < n - 1; i++) for (let j = i + 1; j < n; j++) yScale = Math.max(yScale, distance(y[i]!, y[j]!, p));
