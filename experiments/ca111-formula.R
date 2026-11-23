@@ -39,7 +39,7 @@ out <- list(
  ca_rowmass=fit$rowmass, ca_colmass=fit$colmass,
  ca_total_inertia=sum(sv$d^2), ca_rowdist2=rowdist2,
  ca_suprow=ca(smoke,suprow=5)$rowcoord[5,,drop=FALSE],
- ca_suprow_formula=as.numeric((smoke[5,]/sum(smoke[5,])) %*% as.matrix(ca(smoke[-5,])$colcoord)) / ca(smoke[-5,])$sv,
+ ca_suprow_formula=as.numeric((as.numeric(as.matrix(smoke)[5,])/sum(as.numeric(as.matrix(smoke)[5,]))) %*% as.matrix(ca(as.matrix(smoke)[-5,,drop=FALSE])$colcoord)) / ca(as.matrix(smoke)[-5,,drop=FALSE])$sv,
  mjca_indicator_total=fit_indicator$inertia.t, mjca_indicator_eigen=fit_indicator$sv^2,
  mjca_indicator_direct_eigen=eig, mjca_indicator_levels=J,
  mjca_variables=Q, mjca_indicator_formula_total=(J-Q)/Q,
