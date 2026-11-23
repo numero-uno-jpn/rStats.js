@@ -288,7 +288,7 @@ export function isoMDS(
     };
     let accepted = lineSearch(direction, directionalDerivative);
     if (accepted === null) {
-      inverseHessian = identity(size);
+      inverseHessian = identity(size, resetDiagonal);
       if (failedSearchWasReset) { converged = true; break; }
       failedSearchWasReset = true;
       direction = grad.map((v) => -v);
