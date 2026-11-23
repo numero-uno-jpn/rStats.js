@@ -82,8 +82,8 @@ function fit(input:readonly (readonly number[])[]|CaInputTable, options:CaOption
 }
 export function ca(input:readonly (readonly number[])[]|CaInputTable,options:CaOptions={}):CaFit{return fit(input,options);}
 
-function summaryTable(names:string[]|null,mass:number[],dist:number[],inertia:number[],coords:number[][],sv:number[]):CaMatrix {
-  const totalInertia=sum(sv.map(v=>v*v)), requested=result.nd==="NA"?2:result.nd, axes=Math.min(requested,sv.length);
+function summaryTable(names:string[]|null,mass:number[],dist:number[],inertia:number[],coords:number[][],sv:number[],nd:number|"NA"):CaMatrix {
+  const totalInertia=sum(sv.map(v=>v*v)), requested=nd==="NA"?2:nd, axes=Math.min(requested,sv.length);
   const headers=["name","mass"," qlt"," inr"];
   for(let k=0;k<axes;k++)headers.push(" k="+(k+1),"cor","ctr");
   const rows=mass.map((m,i)=>{
@@ -100,8 +100,8 @@ export function caSummary(result:CaFit):CaSummary {
   const eig=result.sv.map(v=>v*v),total=sum(eig);let cumulative=0;
   const scree: number[][]=eig.map((v,i)=>{cumulative+=total?v/total*100:0;return [i+1,v,total?v/total*100:0,cumulative];});
   return {scree:mat(scree,null,["","values","values2","values3"]),
-    rows:summaryTable(result.rownames,result.rowmass,result.rowdist,result.rowinertia,result.rowcoord.values,result.sv),
-    columns:summaryTable(result.colnames,result.colmass,result.coldist,result.colinertia,result.colcoord.values,result.sv)};
+    rows:summaryTable(result.rownames,result.rowmass,result.rowdist,result.rowinertia,result.rowcoord.values,result.sv,result.nd),
+    columns:summaryTable(result.colnames,result.colmass,result.coldist,result.colinertia,result.colcoord.values,result.sv,result.nd)};
 }
 export function caCoord(result:CaFit,options:CaCoordOptions={}):CaMatrix|{rows:CaMatrix;columns:CaMatrix} {
   checkOptions(options,CA_COORD_KEYS,"caCoord");
