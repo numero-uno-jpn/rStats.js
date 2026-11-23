@@ -46,7 +46,7 @@ The stress formula and primary tie grouping were checked independently for isomd
 
 The current implementation is tested with `tol=10^{-10}` and `maxit=5000` against the tight R results. The actual PR #561 CI run (commit `541a14`, test job `test (22)`) reports the following relative stress errors. Values marked approximately zero are at floating-point roundoff; their relative error is not a useful absolute measure.
 
-| Case | Current rStats stress | R tight stress | Signed relative difference |
+| Case | Current rStats stress | R tight stress | CI absolute relative error |
 |---|---:|---:|---:|
 | Swiss, p=2 | 4.22022539475 | 4.21928575212 | +2.227018e-4 |
 | Swiss, k=3, p=2 | 1.00185475670 | 1.00184218637 | +1.254722e-5 |
@@ -54,10 +54,10 @@ The current implementation is tested with `tol=10^{-10}` and `maxit=5000` agains
 | Swiss, p=3 | 4.23954701071 | 4.23855106583 | +2.349730e-4 |
 | Eurodist, p=2 | 5.93250683352 | 5.88354761293 | +8.321377e-3 |
 | USArrests, p=2 | 0.940098796807 | 0.939167715149 | +9.913902e-4 |
-| small, p=2 | approximately 2.7e-14 | 1.94253391535e-14 | absolute difference approximately 8e-15 |
-| small, k=1, p=2 | approximately 1.1e-14 | 0.00475961473645 | current lower |
-| non-Euclidean, p=2 | approximately 9.8e-15 | 8.09391458903e-14 | both near zero |
-| grid ties, p=2 | approximately 1.4e-14 | 0.00383293527945 | current lower |
+| small, p=2 | approximately zero (roundoff) | 1.94253391535e-14 | 4.069751e-1 (sign immaterial near zero) |
+| small, k=1, p=2 | approximately zero (source-equation replay) | 0.00475961473645 | 1.000000 (current lower in replay) |
+| non-Euclidean, p=2 | approximately zero (roundoff) | 8.09391458903e-14 | 8.794673e-1 (both near zero) |
+| grid ties, p=2 | approximately zero (source-equation replay) | 0.00383293527945 | 1.000000 (current lower in replay) |
 
 The six nonzero Swiss/Eurodist/USArrests comparisons miss the required relative stress tolerance of \(10^{-6}\). The current stress is higher in Swiss p=2, Swiss k=3, Swiss p=3, Eurodist and USArrests (case a); it is lower for Swiss p=1 (case c). In `small` and `non-Euclidean`, both stresses are near zero but the strict relative comparison is numerically ill-conditioned (case b when coordinates are considered). For `small_k1` and `grid_ties`, the current stress is near zero while the R endpoint has nonzero stress (case c).
 
