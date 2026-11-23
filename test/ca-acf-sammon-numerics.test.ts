@@ -121,7 +121,7 @@ describe("A: acf / pacf / ccf numeric stability", () => {
     const expected = exactPacfFixed(x, 40), actual = pacf(x, { lagMax: 40 }).acf;
     expect(acf(x, { lagMax: 1 }).acf[1]).toBeGreaterThan(0.99999);
     expect(actual).toHaveLength(expected.length);
-    for (let i = 0; i < expected.length; i++) close(actual[i]!, expected[i]!, 2e-11);
+    expect(maxDifference(actual, expected)).toBeLessThan(2e-13);
   });
 
   it("handles constant series, N=1/2, lagMax=0, NaN pass and Infinity", () => {
