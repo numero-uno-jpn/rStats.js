@@ -136,11 +136,11 @@ describe("isoMDS", () => {
     compare("isomds_three", isoMDS(dist([0, 1, 3]), { k: 1 }));
     compare("isomds_two", isoMDS(dist([0, 1]), { k: 1 }));
     compare("isomds_non_euclidean", isoMDS(nonE));
-    compare("isomds_grid_ties_default", isoMDS(dist(grid)), 1e-7);
+    compare("isomds_grid_ties_default", isoMDS(dist(grid, { labels: gridLabels })), 1e-7);
   });
 
   it("uses the fixed tie order, explicit starts, progress and zero-iteration behavior", () => {
-    const tied = isoMDS(dist(grid), { y: perturbed });
+    const tied = isoMDS(dist(grid, { labels: gridLabels }), { y: perturbed });
     compare("isomds_grid_ties", tied, 1e-5);
     const stopped = isoMDS(ds, { maxit: 0 });
     if (stopped.trace.length !== 1 || stopped.trace[0]!.iteration !== 0 || !stopped.trace[0]!.converged) {
