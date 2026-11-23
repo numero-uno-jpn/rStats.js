@@ -20,14 +20,14 @@ export interface CaSummary {
 export interface CaCoordOptions { type?: "standard"|"principal"|"symmetric"|"rowprincipal"|"colprincipal"|"symbiplot"|"rowgab"|"colgab"|"rowgreen"|"colgreen"; dim?: readonly number[]; rows?: boolean; cols?: boolean; }
 
 function matrixInput(x: readonly (readonly number[])[] | CaInputTable): { values:number[][]; rows:string[]|null; cols:string[]|null } {
-  if (Array.isArray(x)) {
-    const a=x as readonly (readonly number[])[];
-    if (!a.length || !a[0]?.length || a.some(r=>r.length!==a[0]!.length)) throw new RangeError("invalid contingency table");
-    return {values:a.map(r=>Array.from(r)),rows:null,cols:null};
+  const table = x as CaInputTable;
+  if (table !== null && typeof table === "object" && Array.isArray(table.values)) {
+    if (!table.values.length || !table.values[0]?.length || table.values.some(r=>r.length!==table.values[0]!.length)) throw new RangeError("invalid contingency table");
+    return {values:table.values.map(r=>Array.from(r)),rows:table.rows===null?null:[...table.rows],cols:table.cols===null?null:[...table.cols]};
   }
-  if (!x || !Array.isArray(x.values) || !x.values.length || !x.values[0]?.length ||
-      x.values.some(r=>r.length!==x.values[0]!.length)) throw new RangeError("invalid contingency table");
-  return {values:x.values.map(r=>Array.from(r)),rows:x.rows===null?null:[...x.rows],cols:x.cols===null?null:[...x.cols]};
+  const a=x as readonly (readonly number[])[];
+  if (!Array.isArray(a) || !a.length || !a[0]?.length || a.some(r=>r.length!==a[0]!.length)) throw new RangeError("invalid contingency table");
+  return {values:a.map(r=>Array.from(r)),rows:null,cols:null};
 }
 function indices(v:number|readonly number[]|undefined, n:number, name:string):number[] {
   if(v===undefined)return [];
