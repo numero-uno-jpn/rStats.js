@@ -153,7 +153,10 @@ describe("A: ca / mjca / Sammon / isoMDS numeric stability", () => {
       const baseSummary = caSummary(base), scaledSummary = caSummary(scaled);
       expect(maxDifference(baseSummary.scree.values.map((r) => r[1]!), scaledSummary.scree.values.map((r) => r[1]!))).toBeLessThan(2e-12);
       const baseMap = caCoord(base), scaledMap = caCoord(scaled);
-      expect(maxDifference(baseMap.rows.values[0]!, scaledMap.rows.values[0]!)).toBeLessThan(2e-10);
+      if ("columns" in baseMap && "columns" in scaledMap) {
+        expect(maxDifference(baseMap.rows.values[0]!, scaledMap.rows.values[0]!)).toBeLessThan(2e-10);
+        expect(maxDifference(baseMap.columns.values[0]!, scaledMap.columns.values[0]!)).toBeLessThan(2e-10);
+      } else throw new Error("caCoord did not return row and column maps");
     }
   });
 
