@@ -190,51 +190,19 @@ export function isoMDS(
     const previousStress = current.stress;
     let candidate: number[][];
     let next: Evaluation;
-    if (p === 2) {
-      // The Guttman transform majorizes the squared-stress objective. Its
-      // relative stopping criterion is invariant to dissimilarity scale.
-      const nObs = y.length, dim = y[0]!.length;
-      const b = Array.from({ length: nObs }, () => new Array<number>(nObs).fill(0));
-      for (let a = 0; a < built.pairs.length; a++) {
-        const pair = built.pairs[a]!;
-        const dij = current.distances[a]!;
-        const ratio = dij > 0 ? current.disparities[a]! / dij : 0;
-        b[pair.i]![pair.j] = -ratio;
-        b[pair.j]![pair.i] = -ratio;
-        b[pair.i]![pair.i] = b[pair.i]![pair.i]! + ratio;
-        b[pair.j]![pair.j] = b[pair.j]![pair.j]! + ratio;
-      }
-      candidate = Array.from({ length: nObs }, (_, i) => Array.from({ length: dim }, (_, q) => {
-        let value = 0;
-        for (let j = 0; j < nObs; j++) value += b[i]![j]! * y[j]![q]!;
-        return value / nObs;
-      }));
+    const grad = gradient(y, built.pairs, current, p);
+    let norm = 0;
+    for (const row of grad) for (const v of row) norm += v * v;
+    if (norm <= Number.EPSILON * Number.EPSILON) { converged = true; break; }
+    let step = 1;
+    candidate = y;
+    next = current;
+    for (let trial = 0; trial < 40; trial++) {
+      candidate = y.map((row, i) => row.map((v, q) => v - step * grad[i]![q]!));
       center(candidate);
       next = evaluate(candidate, built.pairs, Array.from({ length: built.groups }, (_, i) => i), p);
-      if (next.stress > current.stress) {
-        const target = candidate;
-        let fraction = 0.5;
-        for (let trial = 0; trial < 40 && next.stress > current.stress; trial++) {
-          candidate = y.map((row, i) => row.map((v, q) => v + fraction * (target[i]![q]! - v)));
-          center(candidate);
-          next = evaluate(candidate, built.pairs, Array.from({ length: built.groups }, (_, i) => i), p);
-          fraction *= 0.5;
-        }
-      }
-    } else {
-      const grad = gradient(y, built.pairs, current, p);
-      let norm = 0;
-      for (const row of grad) for (const v of row) norm += v * v;
-      if (norm <= Number.EPSILON * Number.EPSILON) { converged = true; break; }
-      let step = 1;
-      candidate = y; next = current;
-      for (let trial = 0; trial < 40; trial++) {
-        candidate = y.map((row, i) => row.map((v, q) => v - step * grad[i]![q]!));
-        center(candidate);
-        next = evaluate(candidate, built.pairs, Array.from({ length: built.groups }, (_, i) => i), p);
-        if (next.stress < current.stress) break;
-        step *= 0.5;
-      }
+      if (next.stress < current.stress) break;
+      step *= 0.5;
     }
     if (!(next.stress < current.stress)) { converged = true; break; }
     y = candidate;
