@@ -178,7 +178,7 @@ export function ccf(xInput: readonly number[] | readonly (readonly number[])[], 
   validate(x, action); validate(y, action);
   if (x.length !== y.length) throw new RangeError("time series must have the same length");
   const n = x.length;
-  const requested = options.lagMax ?? Math.min(15, Math.floor(n / 2) + 1);
+  const requested = options.lagMax ?? Math.max(0, Math.floor(10 * Math.log10(n / 2)));
   const limit = maxLag(n, requested, 0);
   const demean = options.demean ?? true, mx = mean(x), my = mean(y);
   const xx = covariance(x, x, 0, mx, mx, demean, action === "pass");

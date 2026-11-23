@@ -62,7 +62,7 @@ For complete aligned series,
  {\sqrt{\widehat\gamma_{xx}(0)\widehat\gamma_{yy}(0)}}.
 \]
 
-The lag axis is \(-L,\ldots,+L\). Swapping x and y reverses the lag sequence. The public default cases establish CCF's default lag maximum as \(\min(15,\lfloor N/2\rfloor+1)\). R intersects shifted time-series windows; support for that metadata behavior remains a separate API decision. CCF partial correlation is rejected.
+The lag axis is \(-L,\ldots,+L\). Swapping x and y reverses the lag sequence. The public default cases establish CCF's default lag maximum as \(\max(0,\lfloor10\log_{10}(N/2)\rfloor)\), capped at \(N-1\). R intersects shifted time-series windows; support for that metadata behavior remains a separate API decision. CCF partial correlation is rejected.
 
 ## Confidence reference
 
