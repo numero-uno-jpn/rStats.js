@@ -44,9 +44,14 @@ function check(key:string,d:DistResult|SammonMatrixInput|readonly (readonly numb
   comparedFixtureKeys.add(key);
   const expected=fixture[key].value,actual=sammon(d,options),errors:string[]=[];
   if(typeof expected.stress==="number"){
-    const rel=Math.abs(actual.stress-expected.stress)/Math.max(Math.abs(expected.stress),1e-300);
-    maxRelativeStressError=Math.max(maxRelativeStressError,rel);
-    if(rel>(tight?1e-6:1e-9))errors.push(key+".stress: relative error "+rel);
+    const absolute=Math.abs(actual.stress-expected.stress);
+    if(expected.stress<1e-20){
+      if(absolute>1e-12)errors.push(key+".stress: absolute error "+absolute);
+    }else{
+      const rel=absolute/Math.abs(expected.stress);
+      maxRelativeStressError=Math.max(maxRelativeStressError,rel);
+      if(rel>(tight?1e-6:1e-9))errors.push(key+".stress: relative error "+rel);
+    }
   }
   if(expected.points?.values){
     const points=actual.points.values.map(r=>[...r]);
