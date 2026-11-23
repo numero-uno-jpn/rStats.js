@@ -101,10 +101,10 @@ export function mjca(input:MjcaInputTable,options:MjcaOptions={}):MjcaFit {
   const rowTable=raw.data.map(row=>rowCats.map(c=>row[c.factor]===c.level?1:0));
   const rowTotals=rowTable.map(row=>sum(row)),activeRowTotals=activeTable.map(row=>sum(row)),colTotals=activeCats.map((_,j)=>sum(activeTable.map(row=>row[j]!)));
   const rowColTotals=rowCats.map((_,j)=>sum(rowTable.map(row=>row[j]!)));
-  const total=n*(Q-supVars.length),tableTotal=n*tableQ;
-  if(!(total>0)||!(tableTotal>0)||rowTotals.some(v=>v<=0)||activeRowTotals.some(v=>v<=0)||colTotals.some(v=>v<=0)||rowColTotals.some(v=>v<=0))throw new RangeError("empty active category");
-  const rowMass=activeRowTotals.map(v=>v/tableTotal),rowActiveMass=rowColTotals.map(v=>v/total),activeMass=colTotals.map(v=>v/tableTotal);
-  const S=activeTable.map((row,i)=>row.map((v,j)=>(v/tableTotal-rowMass[i]!*activeMass[j]!)/Math.sqrt(rowMass[i]!*activeMass[j]!)));
+  const total=n*(Q-supVars.length);
+  if(!(total>0)||rowTotals.some(v=>v<=0)||activeRowTotals.some(v=>v<=0)||colTotals.some(v=>v<=0)||rowColTotals.some(v=>v<=0))throw new RangeError("empty active category");
+  const rowMass=activeRowTotals.map(v=>v/total),rowActiveMass=rowColTotals.map(v=>v/total),activeMass=colTotals.map(v=>v/total);
+  const S=activeTable.map((row,i)=>row.map((v,j)=>(v/total-rowMass[i]!*activeMass[j]!)/Math.sqrt(rowMass[i]!*activeMass[j]!)));
   const dec=svd(S),maxRank=Math.min(n,Math.max(0,activeJ-activeQ));
   const rawSingular=dec.d.slice(0,maxRank),largest=rawSingular[0]??0;
   const singular=maxRank===n?rawSingular:rawSingular.filter(v=>v>largest*1e-12);
