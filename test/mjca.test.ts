@@ -915,8 +915,13 @@ function check(key:string,input:MjcaInputTable,options:any={}):string[]{
   const expectedCols=expected.colcoord?.values as number[][]|undefined;
   if(expectedCols&&actual.colcoord.values.length){
     for(let j=0;j<(actual.colcoord.values[0]?.length??0);j++){
-      let dot=0;for(let i=0;i<Math.min(actual.colcoord.values.length,expectedCols.length);i++)dot+=Number(actual.colcoord.values[i]![j])*Number(expectedCols[i]![j]);
-      if(dot<0)for(const field of [actual.colcoord,actual.colpcoord,actual.rowcoord!,actual.rowpcoord!])for(const row of field.values)row[j]=-Number(row[j]);
+      let dot=0;
+      for(let i=0;i<Math.min(actual.colcoord.values.length,expectedCols.length);i++){
+        const actualRow=actual.colcoord.values[i],expectedRow=expectedCols[i];
+        const actualValue=actualRow?.[j],expectedValue=expectedRow?.[j];
+        if(actualValue!==undefined&&expectedValue!==undefined)dot+=Number(actualValue)*Number(expectedValue);
+      }
+      if(dot<0)for(const field of [actual.colcoord,actual.colpcoord,actual.rowcoord!,actual.rowpcoord!])for(const row of field.values)row[j]=-Number(row[j]??0);
     }
   }
   compare(actual,expected,key,errors);return errors;
@@ -956,9 +961,9 @@ describe("mjca",()=>{
     for(const input of [small,{rows:null,cols:["a","b"],values:small.values.map(r=>r.slice(0,2))}] as MjcaInputTable[]){
       const indicator=mjca(input,{lambda:"indicator"}),burt=mjca(input,{lambda:"Burt"}),adjusted=mjca(input);
       const q=input.cols.length,j=adjusted.levelnames.length;
-      const corrected=indicator.sv.map(v=>{const e=v*v;return e>1/q?(q/(q-1))**2*(e-1/q)**2:0;}).filter(v=>v>0);
+      const corrected=indicator.sv.map(value=>{const e=Number(value)*Number(value);return e>1/q?(q/(q-1))**2*(e-1/q)**2:0;}).filter(v=>v>0);
       expect(adjusted.sv.length).toBe(corrected.length);
-      corrected.forEach((v,i)=>expect(Math.abs(adjusted.sv[i]!*adjusted.sv[i]!-v)).toBeLessThan(1e-12));
+      corrected.forEach((v,i)=>{const singular=Number(adjusted.sv[i]);expect(Math.abs(singular*singular-v)).toBeLessThan(1e-12);});
       const total=q/(q-1)*(burt.inertiaT-(j-q)/(q*q));
       expect(Math.abs(adjusted.inertiaT-total)).toBeLessThan(1e-12);
     }
@@ -978,7 +983,7 @@ describe("mjca",()=>{
     expect(result.indmat).not.toBe("NA");
     const values=(result.indmat as MjcaMatrix).values;
     expect(values.length).toBe(871);
-    expect(values[0]!.reduce((a,v)=>a+Number(v),0)).toBe(4);
+    expect(values[0]!.reduce<number>((a,v)=>a+Number(v),0)).toBe(4);
     expect(values[0]!.length).toBe(result.levelnames.length);
   });
   it("returns an indicator matrix only when requested",()=>{
