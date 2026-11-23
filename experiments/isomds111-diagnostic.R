@@ -5,7 +5,7 @@ library(jsonlite)
 tab <- function(x) list(rows=rownames(x),values=unname(as.matrix(x)))
 run <- function(d,k=2,p=2,y=NULL) {
   start <- if(is.null(y)) cmdscale(d,k=k) else y
-  tight <- isoMDS(d,y=start,k=k,p=p,tol=1e-10,maxit=5000,trace=FALSE)
+  printed <- capture.output(tight <- isoMDS(d,y=start,k=k,p=p,tol=1e-10,maxit=5000))
   list(start=tab(start),tight=list(stress=tight$stress,points=tab(tight$points)))
 }
 small <- matrix(c(1,2,0,4,0,3,-1,5,2,2,7,0,0,0,1),ncol=3,byrow=TRUE)
