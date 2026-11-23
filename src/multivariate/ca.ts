@@ -75,8 +75,8 @@ function fit(input:readonly (readonly number[])[]|CaInputTable, options:CaOption
   const rowStd=ar.map((_,i)=>singular.map((_,j)=>U[i]![j]!/Math.sqrt(r[i]!)));
   const colStd=ac.map((_,i)=>singular.map((_,j)=>V[i]![j]!/Math.sqrt(c[i]!)));
   orient(rowStd,colStd);
-  const projectRows=sr.map(i=>{const profile=ac.map(j=>original[i]![j]!);const n=sum(profile);if(!(n>0))throw new RangeError("zero supplementary row");return singular.map((_,k)=>sum(profile.map((v,j)=>v/n*colStd[j]![k]!));});
-  const projectCols=sc.map(j=>{const profile=ar.map(i=>original[i]![j]!);const n=sum(profile);if(!(n>0))throw new RangeError("zero supplementary column");return singular.map((_,k)=>sum(profile.map((v,i)=>v/n*rowStd[i]![k]!));});
+  const projectRows=sr.map(i=>{const profile=ac.map(j=>original[i]![j]!);const n=sum(profile);if(!(n>0))throw new RangeError("zero supplementary row");return singular.map((_,k)=>sum(profile.map((v,j)=>v/n*colStd[j]![k]!)));});
+  const projectCols=sc.map(j=>{const profile=ar.map(i=>original[i]![j]!);const n=sum(profile);if(!(n>0))throw new RangeError("zero supplementary column");return singular.map((_,k)=>sum(profile.map((v,i)=>v/n*rowStd[i]![k]!)));});
   const rowCoordAll=Array.from({length:nr},(_,i)=>{const at=ar.indexOf(i);return at>=0?rowStd[at]!:projectRows[sr.indexOf(i)]!;});
   const colCoordAll=Array.from({length:nc},(_,j)=>{const at=ac.indexOf(j);return at>=0?colStd[at]!:projectCols[sc.indexOf(j)]!;});
   const rowDistAll=Array.from({length:nr},(_,i)=>{const profile=ac.map(j=>original[i]![j]!);const n=sum(profile);return Math.sqrt(sum(profile.map((v,j)=>((v/n-c[j]!)**2)/c[j]!)));});
