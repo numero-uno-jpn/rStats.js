@@ -12,7 +12,7 @@ const euroD=fromMatrix(euroData,fixture.sammon_eurodist.value.points.rows);
 const usD=dist(usData,fixture.sammon_usarrests.value.points.rows);
 const comparedFixtureKeys=new Set<string>();
 const initialStressCases=new Set<string>();
-let maxInitialStressPrintedError=0;
+let maxInitialStressPrintedError=0,maxInitialStressRelativeError=0;
 let maxRelativeStressError=0,maxCoordinateError=0;
 function dist(points:number[][],labels:string[]|null=null):DistResult{
   const values:number[]=[];
@@ -132,10 +132,13 @@ describe("sammon",()=>{
       if(!first){mismatches.push(key+": missing R Initial stress");continue;}
       try{
         const actual=sammon(d,{...options,niter:0});
-        const rounded=Math.round(actual.trace[0]!.stress*1e5)/1e5;
-        const printedError=Math.abs(rounded-Number(first[1]));
+        const actualInitial=actual.trace[0]!.stress,expectedInitial=Number(first[1]);
+        const printedError=Math.abs(actualInitial-expectedInitial);
+        const relativeError=printedError/Math.max(Math.abs(expectedInitial),1e-300);
         maxInitialStressPrintedError=Math.max(maxInitialStressPrintedError,printedError);
-        if(printedError!==0)mismatches.push(key+": initial stress "+rounded+" vs R "+first[1]);
+        maxInitialStressRelativeError=Math.max(maxInitialStressRelativeError,relativeError);
+        const matchesPrintedDigits=expectedInitial===0?printedError<=5e-6:actualInitial.toPrecision(5)===expectedInitial.toPrecision(5);
+        if(!matchesPrintedDigits)mismatches.push(key+": initial stress "+actualInitial+" vs R "+first[1]);
       }catch(error){mismatches.push(key+": threw "+String(error));}
       initialStressCases.add(key);
     }
@@ -144,7 +147,7 @@ describe("sammon",()=>{
       if(!threw)mismatches.push(key+": expected error");
       initialStressCases.add(key);
     }
-    console.info("sammon initial-stress/error cases: "+initialStressCases.size+"/"+Object.keys(fixture).length+"; initial stresses="+valid.length+"/"+valid.length+" (max printed 5-digit absolute error="+maxInitialStressPrintedError.toExponential(3)+"); expected-error cases="+errors.length+"/"+errors.length);
+    console.info("sammon initial-stress/error cases: "+initialStressCases.size+"/"+Object.keys(fixture).length+"; initial stresses="+valid.length+"/"+valid.length+" (max absolute error="+maxInitialStressPrintedError.toExponential(3)+", relative="+maxInitialStressRelativeError.toExponential(3)+"); expected-error cases="+errors.length+"/"+errors.length);
     expect(initialStressCases.size).toBe(Object.keys(fixture).length);
     expect(mismatches).toEqual([]);
   });
