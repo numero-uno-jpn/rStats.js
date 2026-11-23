@@ -57,7 +57,7 @@ function recordComponentMismatches(errors:string[]):void {
     const parts=path.split(".").slice(1);
     const component=parts[0]==="summary"?"summary."+(parts[1]??"unknown"):(parts[0]??"unknown");
     componentMismatchCounts[component]=(componentMismatchCounts[component]??0)+1;
-    const values=error.match(/:\\s*(-?[0-9.eE+-]+) vs (-?[0-9.eE+-]+)/);
+    const values=error.match(/:\s*(-?[0-9.eE+-]+) vs (-?[0-9.eE+-]+)/);
     if(values){const delta=Math.abs(Number(values[1])-Number(values[2]));componentMaxAbsError[component]=Math.max(componentMaxAbsError[component]??0,delta);}
   }
 }
