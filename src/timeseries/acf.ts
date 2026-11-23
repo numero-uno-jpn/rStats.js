@@ -80,7 +80,48 @@ function maxLag(n: number, value: number | undefined, minimum: number): number {
   if (!Number.isFinite(requested) || requested < minimum) throw new RangeError(minimum === 1 ? "'lag.max' must be at least 1" : "'lag.max' must be at least 0");
   return Math.min(Math.floor(requested), n - 1);
 }
-function covariance(x: readonly number[], y: readonly number[], lag: number, mx: number, my: number, demean: boolean, pass: boolean): number {
+function centered(values: readonly number[], demean: boolean): number[] {
+  if (!demean) return Array.from(values);
+  const valid = values.filter((v) => !Number.isNaN(v));
+  if (valid.length === 0) return values.map(() => NaN);
+  const base = valid[0]!;
+  if (!Number.isFinite(base) || valid.some((v) => !Number.isFinite(v))) {
+    const m = mean(values);
+    return values.map((v) => v - m);
+  }
+  const shifted = values.map((v) => Number.isNaN(v) ? NaN : v - base);
+  const offset = mean(shifted);
+  return shifted.map((v) => v - offset);
+}
+function powerOfTwoScale(values: readonly number[]): number {
+  let max = 0;
+  for (const v of values) if (Number.isFinite(v)) max = Math.max(max, Math.abs(v));
+  if (max === 0) return 1;
+  const exponent = Math.max(-1074, Math.min(1023, Math.floor(Math.log2(max))));
+  return 2 ** exponent;
+}
+function scalePower(value: number, exponent: number): number {
+  if (value === 0 || !Number.isFinite(value)) return value;
+  let out = value, e = exponent;
+  while (e > 1023) {
+    out *= 2 ** 1023;
+    if (!Number.isFinite(out)) return out;
+    e -= 1023;
+  }
+  while (e < -1022) {
+    out *= 2 ** -1022;
+    if (out === 0) return 0;
+    e += 1022;
+  }
+  return out * (2 ** e);
+}
+function rescaleCovariance(value: number, sx: number, sy: number): number {
+  if (value === 0 || !Number.isFinite(value)) return value;
+  const exponent = Math.floor(Math.log2(Math.abs(value)));
+  const mantissa = value / (2 ** exponent);
+  return scalePower(mantissa, Math.round(Math.log2(sx)) + Math.round(Math.log2(sy)) + exponent);
+}
+function covariance(x: readonly number[], y: readonly number[], lag: number, pass: boolean): number {
   const n = x.length;
   let sum = 0, correction = 0, count = 0;
   const start = lag >= 0 ? 0 : -lag;
@@ -88,7 +129,7 @@ function covariance(x: readonly number[], y: readonly number[], lag: number, mx:
   for (let t = start; t < end; t++) {
     const a = x[t + lag]!, b = y[t]!;
     if (Number.isNaN(a) || Number.isNaN(b)) continue;
-    const term = (demean ? a - mx : a) * (demean ? b - my : b);
+    const term = a * b;
     const adjusted = term - correction;
     const next = sum + adjusted;
     correction = (next - sum) - adjusted;
@@ -123,13 +164,15 @@ function build(x: number[], y: number[], options: { type: "correlation" | "covar
   validate(y, action);
   if (x.length !== y.length) throw new RangeError("time series must have the same length");
   const n = x.length, demean = options.demean ?? true;
-  const mx = mean(x), my = mean(y);
+  const centeredX = centered(x, demean), centeredY = isCross ? centered(y, demean) : centeredX;
+  const scaleX = powerOfTwoScale(centeredX), scaleY = isCross ? powerOfTwoScale(centeredY) : scaleX;
+  const scaledX = centeredX.map((v) => v / scaleX), scaledY = isCross ? centeredY.map((v) => v / scaleY) : scaledX;
   const limit = maxLag(n, options.lagMax, isCross || options.type !== "partial" ? 0 : 1);
   const covs: number[] = [];
-  const first = covariance(x, y, 0, mx, my, demean, action === "pass");
-  for (let k = 0; k <= limit; k++) covs.push(covariance(x, y, k, mx, my, demean, action === "pass"));
+  for (let k = 0; k <= limit; k++) covs.push(covariance(scaledX, scaledY, k, action === "pass"));
+  const first = covs[0]!;
   let values: number[];
-  if (options.type === "covariance") values = covs;
+  if (options.type === "covariance") values = covs.map((v) => rescaleCovariance(v, scaleX, scaleY));
   else if (n === 1 && options.type === "correlation") values = [1];
   else {
     const corr = covs.map((v) => v / first);
@@ -140,16 +183,13 @@ function build(x: number[], y: number[], options: { type: "correlation" | "covar
   if (!Number.isFinite(ci) || ci <= 0 || ci >= 1) throw new RangeError("'ci' must be between 0 and 1");
   return { lag, acf: values, type: options.type, nUsed: n, clim: qnorm((1 + ci) / 2) / Math.sqrt(n) };
 }
-
 /**
  * Equivalent to R's `stats::acf()`.
- * Autocorrelation, autocovariance or partial autocorrelation of a univariate series.
  * Autocorrelation, autocovariance or partial autocorrelation of a univariate series.
  * @category Descriptive statistics
  */
 export function acf(input: readonly number[] | readonly (readonly number[])[], options: AcfOptions = {}): AcfResult {
   checkOptions(options, ACF_KEYS, "acf"); // generated: option-keys.mjs
-  checkOptions(options, ACF_KEYS, "acf");
   const x = series(input);
   const type = options.type ?? "correlation";
   if (type !== "correlation" && type !== "covariance" && type !== "partial") throw new RangeError("'type' must be 'correlation', 'covariance' or 'partial'");
@@ -159,24 +199,20 @@ export function acf(input: readonly number[] | readonly (readonly number[])[], o
 /**
  * Equivalent to R's `stats::pacf()`.
  * Partial autocorrelation of a univariate series, computed by the Durbin–Levinson recursion.
- * Partial autocorrelation of a univariate series, computed by the Durbin–Levinson recursion.
  * @category Descriptive statistics
  */
 export function pacf(input: readonly number[] | readonly (readonly number[])[], options: PacfOptions = {}): AcfResult {
   checkOptions(options, PACF_KEYS, "pacf"); // generated: option-keys.mjs
-  checkOptions(options, PACF_KEYS, "pacf");
   return acf(input, { ...options, type: "partial" });
 }
 
 /**
  * Equivalent to R's `stats::ccf()`.
  * Cross-correlation or cross-covariance of two equal-length series. Lag k pairs x[t+k] with y[t].
- * Cross-correlation or cross-covariance of two equal-length series. Lag k pairs x[t+k] with y[t].
  * @category Descriptive statistics
  */
 export function ccf(xInput: readonly number[] | readonly (readonly number[])[], yInput: readonly number[] | readonly (readonly number[])[], options: CcfOptions = {}): AcfResult {
   checkOptions(options, CCF_KEYS, "ccf"); // generated: option-keys.mjs
-  checkOptions(options, CCF_KEYS, "ccf");
   const x = series(xInput), y = series(yInput);
   const type = options.type ?? "correlation";
   if (type !== "correlation" && type !== "covariance") throw new RangeError("'type' must be 'correlation' or 'covariance'");
@@ -184,17 +220,20 @@ export function ccf(xInput: readonly number[] | readonly (readonly number[])[], 
   validate(x, action); validate(y, action);
   if (x.length !== y.length) throw new RangeError("time series must have the same length");
   const n = x.length;
+  const demean = options.demean ?? true;
+  const centeredX = centered(x, demean), centeredY = centered(y, demean);
+  const scaleX = powerOfTwoScale(centeredX), scaleY = powerOfTwoScale(centeredY);
+  const scaledX = centeredX.map((v) => v / scaleX), scaledY = centeredY.map((v) => v / scaleY);
   const requested = options.lagMax ?? Math.max(0, Math.floor(10 * Math.log10(n / 2)));
   const limit = maxLag(n, requested, 0);
-  const demean = options.demean ?? true, mx = mean(x), my = mean(y);
-  const xx = covariance(x, x, 0, mx, mx, demean, action === "pass");
-  const yy = covariance(y, y, 0, my, my, demean, action === "pass");
-  const divisor = type === "correlation" ? Math.sqrt(xx * yy) : 1;
+  const xx = covariance(scaledX, scaledX, 0, action === "pass");
+  const yy = covariance(scaledY, scaledY, 0, action === "pass");
+  const divisor = type === "correlation" ? Math.sqrt(xx) * Math.sqrt(yy) : 1;
   const lag: number[] = [], values: number[] = [];
   for (let k = -limit; k <= limit; k++) {
     lag.push(k);
-    const v = covariance(x, y, k, mx, my, demean, action === "pass");
-    values.push(type === "correlation" ? v / divisor : v);
+    const v = covariance(scaledX, scaledY, k, action === "pass");
+    values.push(type === "correlation" ? v / divisor : rescaleCovariance(v, scaleX, scaleY));
   }
   const ci = options.ci ?? 0.95;
   if (!Number.isFinite(ci) || ci <= 0 || ci >= 1) throw new RangeError("'ci' must be between 0 and 1");
