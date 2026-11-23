@@ -1,8 +1,6 @@
 // Multiple correspondence analysis from an indicator matrix and its Burt cross-product.
 import { svd } from "../linalg/svd.js";
-import { checkOptions } from "../internal/checkOptions.js";
 
-const MJCA_KEYS = ["lambda", "nd", "supcol", "subsetcat", "reti", "ps"] as const;
 
 /** @category Multivariate analysis */
 export interface MjcaInputTable {
@@ -81,7 +79,6 @@ function coordinateStats(coords:number[][],mass:number[],dist:number[],sv:number
  * @category Multivariate analysis
  */
 export function mjca(input:MjcaInputTable,options:MjcaOptions={}):MjcaFit {
-  checkOptions(options,MJCA_KEYS,"mjca");
   const lambda=options.lambda??"adjusted";
   if(lambda==="JCA")throw new RangeError("lambda 'JCA' is not supported");
   if(lambda!=="adjusted"&&lambda!=="indicator"&&lambda!=="Burt")throw new RangeError("invalid lambda");
