@@ -20,52 +20,10 @@ function num(v: unknown): number {
   if (v === "-Inf") return -Infinity;
   return Number(v);
 }
-function inverse(matrix: number[][]): number[][] | null {
-  const n=matrix.length, a=matrix.map((row,i)=>[...row,...Array.from({length:n},(_,j)=>i===j?1:0)]);
-  for(let col=0;col<n;col++){
-    let pivot=col;
-    for(let row=col+1;row<n;row++)if(Math.abs(a[row]![col]!)>Math.abs(a[pivot]![col]!))pivot=row;
-    if(Math.abs(a[pivot]![col]!)<1e-14)return null;
-    [a[col],a[pivot]]=[a[pivot]!,a[col]!];
-    const scale=a[col]![col]!;
-    for(let j=0;j<2*n;j++)a[col]![j]=a[col]![j]!/scale;
-    for(let row=0;row<n;row++)if(row!==col){const factor=a[row]![col]!;for(let j=0;j<2*n;j++)a[row]![j]=a[row]![j]!-factor*a[col]![j]!;}
-  }
-  return a.map(row=>row.slice(n));
-}
 function centerPoints(points:number[][]):number[][] {
   const dim=points[0]?.length??0;
   const means=Array.from({length:dim},(_,j)=>points.reduce((s,row)=>s+row[j]!,0)/points.length);
   return points.map(row=>row.map((v,j)=>v-means[j]!));
-}
-function procrustes(actual:number[][],expected:number[][]):number[][]|null{
-  const k=expected[0]?.length??0;
-  const cross=Array.from({length:k},(_,a)=>Array.from({length:k},(_,b)=>{
-    let sum=0;for(let i=0;i<Math.min(actual.length,expected.length);i++)sum+=actual[i]![a]!*expected[i]![b]!;return sum;
-  }));
-  if(k===2){
-    const a=cross[0]![0]!+cross[1]![1]!,b=cross[1]![0]!-cross[0]![1]!;
-    const c=cross[0]![0]!-cross[1]![1]!,d=cross[0]![1]!+cross[1]![0]!;
-    const rotationNorm=Math.hypot(a,b),reflectionNorm=Math.hypot(c,d);
-    if(!(Math.max(rotationNorm,reflectionNorm)>0))return null;
-    const q=rotationNorm>=reflectionNorm
-      ? [[a/rotationNorm,-b/rotationNorm],[b/rotationNorm,a/rotationNorm]]
-      : [[c/reflectionNorm,d/reflectionNorm],[d/reflectionNorm,-c/reflectionNorm]];
-    return actual.map(row=>Array.from({length:k},(_,j)=>{let value=0;for(let h=0;h<k;h++)value+=row[h]!*q[h]![j]!;return value;}));
-  }
-  let scale=0;for(const row of cross)for(const value of row)scale=Math.max(scale,Math.abs(value));
-  if(!(scale>0))return null;
-  let q=cross.map(row=>row.map(value=>value/scale));
-  for(let iter=0;iter<40;iter++){
-    const inv=inverse(q);if(!inv)return null;
-    const next=q.map((row,i)=>row.map((value,j)=>0.5*(value+inv[j]![i]!)));
-    let change=0;for(let i=0;i<k;i++)for(let j=0;j<k;j++)change=Math.max(change,Math.abs(next[i]![j]!-q[i]![j]!));
-    q=next;if(change<1e-14)break;
-  }
-  return actual.map(row=>Array.from({length:k},(_,j)=>{let value=0;for(let h=0;h<k;h++)value+=row[h]!*q[h]![j]!;return value;}));
-}
-function absoluteStressCase(key:string,expected:number):boolean {
-  return Math.abs(expected)<1e-6 || /(?:^|_)(?:small(?:_k1)?|non_euclidean|grid)/.test(key);
 }
 function compare(key: string, actual: IsoMDSResult): void {
   comparedFixtures.add(key);
