@@ -162,7 +162,7 @@ export function mjca(input:MjcaInputTable,options:MjcaOptions={}):MjcaFit {
     }
     return value/(n*subQ*subQ);
   }));
-  const rowPcoords=rowCoords0.map(row=>row.map((v,j)=>v*singular[j]!));
+  const rowPcoords=rowCoords0.map(row=>row.slice(0,axisCount).map((v,j)=>v*singular[j]!));
   const rowCoords=rowPcoords.map(row=>row.map((v,j)=>modeSv[j]===0?0:v/modeSv[j]!));
   const rowCtr=rowCoords0.map((row,i)=>row.map(v=>rowMass[i]!*v*v));
   const rowCor=rowPcoords.map((row,i)=>row.map(v=>rowDist[i]===0?0:v*v/(rowDist[i]!*rowDist[i]!)));
