@@ -12,6 +12,7 @@ const euroD=fromMatrix(euroData,fixture.sammon_eurodist.value.points.rows);
 const usD=dist(usData,fixture.sammon_usarrests.value.points.rows);
 const comparedFixtureKeys=new Set<string>();
 const initialStressCases=new Set<string>();
+let maxInitialStressPrintedError=0;
 let maxRelativeStressError=0,maxCoordinateError=0;
 function dist(points:number[][],labels:string[]|null=null):DistResult{
   const values:number[]=[];
@@ -86,7 +87,7 @@ describe("sammon",()=>{
       ...check("sammon_grid",dist(grid,gridLabels),{y:gridY}),
       ...check("sammon_grid_default",dist(grid,gridLabels)),
     ];
-    console.info("sammon fixture comparisons: "+comparedFixtureKeys.size+"/"+Object.keys(fixture).length+"; max relative stress error="+maxRelativeStressError.toExponential(3)+"; max |coordinate error|="+maxCoordinateError.toExponential(3));
+    console.info("sammon final fit comparisons: "+comparedFixtureKeys.size+"/36 valid cases; max relative final-stress error="+maxRelativeStressError.toExponential(3)+"; max |coordinate error|="+maxCoordinateError.toExponential(3));
     expect(errors).toEqual([]);
   });
 
@@ -132,7 +133,9 @@ describe("sammon",()=>{
       try{
         const actual=sammon(d,{...options,niter:0});
         const rounded=Math.round(actual.trace[0]!.stress*1e5)/1e5;
-        if(rounded!==Number(first[1]))mismatches.push(key+": initial stress "+rounded+" vs R "+first[1]);
+        const printedError=Math.abs(rounded-Number(first[1]));
+        maxInitialStressPrintedError=Math.max(maxInitialStressPrintedError,printedError);
+        if(printedError!==0)mismatches.push(key+": initial stress "+rounded+" vs R "+first[1]);
       }catch(error){mismatches.push(key+": threw "+String(error));}
       initialStressCases.add(key);
     }
@@ -141,7 +144,7 @@ describe("sammon",()=>{
       if(!threw)mismatches.push(key+": expected error");
       initialStressCases.add(key);
     }
-    console.info("sammon initial-stress/error cases: "+initialStressCases.size+"/"+Object.keys(fixture).length+"; valid initial stresses="+valid.length+"; expected-error cases="+errors.length);
+    console.info("sammon initial-stress/error cases: "+initialStressCases.size+"/"+Object.keys(fixture).length+"; initial stresses="+valid.length+"/"+valid.length+" (max printed 5-digit absolute error="+maxInitialStressPrintedError.toExponential(3)+"); expected-error cases="+errors.length+"/"+errors.length);
     expect(initialStressCases.size).toBe(Object.keys(fixture).length);
     expect(mismatches).toEqual([]);
   });
