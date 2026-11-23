@@ -1,4 +1,24 @@
 {
+  "AsDistOptions#summary": {
+    "hash": "cf57ae1e13cc",
+    "en": "Options for converting a square matrix to condensed dissimilarities.",
+    "ja": ""
+  },
+  "AsDistOptions.diag#summary": {
+    "hash": "e1084191e5d2",
+    "en": "Store the diagonal display flag in the result.",
+    "ja": ""
+  },
+  "AsDistOptions.labels#summary": {
+    "hash": "a736167bfe4c",
+    "en": "Labels for the rows and columns of the square matrix.",
+    "ja": ""
+  },
+  "AsDistOptions.upper#summary": {
+    "hash": "182788b57c64",
+    "en": "Store the upper-triangle display flag in the result.",
+    "ja": ""
+  },
   "CancorOptions#summary": {
     "hash": "29a1c46366a1",
     "en": "Options for canonical correlation.",
@@ -88,6 +108,316 @@
     "hash": "7aa90b17e047",
     "en": "The coefficients: one row per y variable, one column per canonical variate.",
     "ja": "係数です。行が y の変数、列が正準変量に対応します。"
+  },
+  "CmdscaleInputTable.cols#summary": {
+    "hash": "3b457c8626c6",
+    "en": "Coordinate labels, or null for an unlabeled coordinate matrix.",
+    "ja": ""
+  },
+  "CmdscaleInputTable.rows#summary": {
+    "hash": "3fc70295d1e4",
+    "en": "Observation labels, or null when labels are unavailable.",
+    "ja": ""
+  },
+  "CmdscaleInputTable.values#summary": {
+    "hash": "85167229fd60",
+    "en": "Numeric matrix values arranged by row.",
+    "ja": ""
+  },
+  "CmdscaleOptions.add#summary": {
+    "hash": "afeaadc69d0c",
+    "en": "Whether to add the Cailliez constant to make the dissimilarities Euclidean.",
+    "ja": ""
+  },
+  "CmdscaleOptions.k#summary": {
+    "hash": "4facd8e7e1f0",
+    "en": "Number of coordinate dimensions to retain.",
+    "ja": ""
+  },
+  "CmdscaleOptions.xRet#summary": {
+    "hash": "127358e33f7d",
+    "en": "Whether to return the double-centered squared-distance matrix.",
+    "ja": ""
+  },
+  "CmdscaleResult.GOF#summary": {
+    "hash": "6ffaa98dd243",
+    "en": "Goodness of fit relative to the absolute-eigenvalue sum and positive-eigenvalue sum.",
+    "ja": ""
+  },
+  "CmdscaleResult.ac#summary": {
+    "hash": "fc84e09351ab",
+    "en": "Cailliez additive constant, or zero when add is false.",
+    "ja": ""
+  },
+  "CmdscaleResult.eig#summary": {
+    "hash": "8f5202a2f30f",
+    "en": "All eigenvalues of the double-centered Gram matrix, including negative values.",
+    "ja": ""
+  },
+  "CmdscaleResult.points#summary": {
+    "hash": "a9b712621961",
+    "en": "Principal coordinate matrix for the retained positive eigenvalues.",
+    "ja": ""
+  },
+  "CmdscaleResult.warnings#summary": {
+    "hash": "36960336f0b1",
+    "en": "Warnings such as a request for more positive dimensions than are available.",
+    "ja": ""
+  },
+  "CmdscaleResult.x#summary": {
+    "hash": "74f5a3984427",
+    "en": "Double-centered squared-distance matrix when xRet is true; otherwise null.",
+    "ja": ""
+  },
+  "CutreeOptions.h#summary": {
+    "hash": "5efafa1d8535",
+    "en": "Merge-height cutoff; a vector requests one partition per element.",
+    "ja": ""
+  },
+  "CutreeOptions.k#summary": {
+    "hash": "aa94baae2e6a",
+    "en": "Requested number of clusters; a vector requests one partition per element.",
+    "ja": ""
+  },
+  "CutreeResult.columns#summary": {
+    "hash": "541d0b62e843",
+    "en": "String labels for the requested k or h columns of a multi-cutoff result.",
+    "ja": ""
+  },
+  "CutreeResult.names#summary": {
+    "hash": "f97350be464f",
+    "en": "Observation names for a single partition, or null when names are unavailable.",
+    "ja": ""
+  },
+  "CutreeResult.rows#summary": {
+    "hash": "fbc76676c4f0",
+    "en": "Observation names for the rows of a multi-cutoff result.",
+    "ja": ""
+  },
+  "CutreeResult.values#summary": {
+    "hash": "ade7f3cb1cf1",
+    "en": "Cluster labels by observation, or a matrix with one column per requested cutoff.",
+    "ja": ""
+  },
+  "DistMethod#summary": {
+    "hash": "1c3ccde3dd00",
+    "en": "Distance metric used by {@link dist}.",
+    "ja": ""
+  },
+  "DistOptions#summary": {
+    "hash": "265a26477ec8",
+    "en": "Options for pairwise dissimilarities.",
+    "ja": ""
+  },
+  "DistOptions.diag#summary": {
+    "hash": "e1084191e5d2",
+    "en": "Store the diagonal display flag in the result.",
+    "ja": ""
+  },
+  "DistOptions.labels#summary": {
+    "hash": "327588f75506",
+    "en": "Labels for the observations (one per row).",
+    "ja": ""
+  },
+  "DistOptions.method#summary": {
+    "hash": "cc01c109a74b",
+    "en": "Distance metric; a unique prefix is accepted.",
+    "ja": ""
+  },
+  "DistOptions.p#summary": {
+    "hash": "8817e3abac1e",
+    "en": "Minkowski power, required to be finite and positive when method is minkowski.",
+    "ja": ""
+  },
+  "DistOptions.upper#summary": {
+    "hash": "182788b57c64",
+    "en": "Store the upper-triangle display flag in the result.",
+    "ja": ""
+  },
+  "DistResult#summary": {
+    "hash": "0a4de8318442",
+    "en": "A condensed dissimilarity object, in lower-triangle column order.",
+    "ja": ""
+  },
+  "DistResult.diag#summary": {
+    "hash": "8095331f7904",
+    "en": "Whether diagonal display was requested.",
+    "ja": ""
+  },
+  "DistResult.labels#summary": {
+    "hash": "f10d3bfea688",
+    "en": "Observation labels, or null when no labels were supplied.",
+    "ja": ""
+  },
+  "DistResult.method#summary": {
+    "hash": "298fc5bfa64c",
+    "en": "Distance method used, or null for a matrix converted by asDist.",
+    "ja": ""
+  },
+  "DistResult.size#summary": {
+    "hash": "eeceeb5c4920",
+    "en": "Number of observations represented by the dissimilarities.",
+    "ja": ""
+  },
+  "DistResult.upper#summary": {
+    "hash": "066fc3d27bd9",
+    "en": "Whether upper-triangle display was requested.",
+    "ja": ""
+  },
+  "DistResult.values#summary": {
+    "hash": "c48eb596d133",
+    "en": "Pairwise dissimilarities in lower-triangle column order.",
+    "ja": ""
+  },
+  "DistResult.warnings#summary": {
+    "hash": "46b6e5953b43",
+    "en": "Messages generated while coercing or processing the input.",
+    "ja": ""
+  },
+  "HclustFit.distMethod#summary": {
+    "hash": "bb3c034448d9",
+    "en": "Distance method attribute inherited from the input, or null.",
+    "ja": ""
+  },
+  "HclustFit.height#summary": {
+    "hash": "3e2982a911ac",
+    "en": "Dissimilarity at each successive merge.",
+    "ja": ""
+  },
+  "HclustFit.labels#summary": {
+    "hash": "db2c8eabdc4f",
+    "en": "Observation labels, or null when the input had no labels.",
+    "ja": ""
+  },
+  "HclustFit.merge#summary": {
+    "hash": "e5f9ad5e33bb",
+    "en": "(n - 1) by 2 merge matrix using negative observation and positive merge-row indices.",
+    "ja": ""
+  },
+  "HclustFit.method#summary": {
+    "hash": "8a7134c540cd",
+    "en": "Canonical linkage method used to construct the tree.",
+    "ja": ""
+  },
+  "HclustFit.order#summary": {
+    "hash": "6dd4166de7b5",
+    "en": "Observation indices in left-to-right dendrogram order (1-based).",
+    "ja": ""
+  },
+  "HclustFit.warnings#summary": {
+    "hash": "1a85e217d1b0",
+    "en": "Informational messages produced while resolving the method.",
+    "ja": ""
+  },
+  "HclustOptions.members#summary": {
+    "hash": "1d3c4f18bd2e",
+    "en": "Initial cluster sizes for the objects represented by the dissimilarities.",
+    "ja": ""
+  },
+  "HclustOptions.method#summary": {
+    "hash": "dfb781c664bd",
+    "en": "Linkage method; a unique prefix and the alias ward are accepted.",
+    "ja": ""
+  },
+  "KmeansFit.betweenss#summary": {
+    "hash": "9050b99e2de1",
+    "en": "Between-cluster sum of squares (totss minus totWithinss).",
+    "ja": ""
+  },
+  "KmeansFit.centers#summary": {
+    "hash": "ec4f6d71f825",
+    "en": "Matrix of final cluster centers.",
+    "ja": ""
+  },
+  "KmeansFit.cluster#summary": {
+    "hash": "72ca031a86c7",
+    "en": "1-based cluster assignment for each observation.",
+    "ja": ""
+  },
+  "KmeansFit.ifault#summary": {
+    "hash": "9bf9b284dd82",
+    "en": "Hartigan-Wong fault code, or null for algorithms without one.",
+    "ja": ""
+  },
+  "KmeansFit.iter#summary": {
+    "hash": "0553c2572d32",
+    "en": "Number of iterations reported by the selected algorithm.",
+    "ja": ""
+  },
+  "KmeansFit.names#summary": {
+    "hash": "c7cc8f424d99",
+    "en": "Observation names, present when the input supplied row names.",
+    "ja": ""
+  },
+  "KmeansFit.size#summary": {
+    "hash": "e54894dc4552",
+    "en": "Number of observations assigned to each cluster.",
+    "ja": ""
+  },
+  "KmeansFit.totWithinss#summary": {
+    "hash": "e4e1503ee540",
+    "en": "Sum of all within-cluster sums of squares.",
+    "ja": ""
+  },
+  "KmeansFit.totss#summary": {
+    "hash": "db413a8bd046",
+    "en": "Total sum of squares around the overall sample mean.",
+    "ja": ""
+  },
+  "KmeansFit.warnings#summary": {
+    "hash": "fa707059429a",
+    "en": "Warnings produced during clustering.",
+    "ja": ""
+  },
+  "KmeansFit.withinss#summary": {
+    "hash": "01f44ccf7399",
+    "en": "Within-cluster sums of squares, one per cluster.",
+    "ja": ""
+  },
+  "KmeansInputTable.cols#summary": {
+    "hash": "7b735dad7168",
+    "en": "Optional variable names, one per column.",
+    "ja": ""
+  },
+  "KmeansInputTable.rows#summary": {
+    "hash": "4413c3170f35",
+    "en": "Optional observation names, one per row.",
+    "ja": ""
+  },
+  "KmeansInputTable.values#summary": {
+    "hash": "f5bbb4bb5b57",
+    "en": "Numeric observations arranged by row.",
+    "ja": ""
+  },
+  "KmeansOptions.algorithm#summary": {
+    "hash": "5a23c71895f6",
+    "en": "Clustering algorithm; a unique prefix is accepted.",
+    "ja": ""
+  },
+  "KmeansOptions.iterMax#summary": {
+    "hash": "8d78c6c165e9",
+    "en": "Maximum number of algorithm iterations (R's iter.max).",
+    "ja": ""
+  },
+  "KmeansOptions.nstart#summary": {
+    "hash": "3670ed2270cb",
+    "en": "Number of random initial starts when centers is a count.",
+    "ja": ""
+  },
+  "KmeansTable.cols#summary": {
+    "hash": "38e7c3340fda",
+    "en": "Variable names, or null when the input had no column names.",
+    "ja": ""
+  },
+  "KmeansTable.rows#summary": {
+    "hash": "c443ccbfd0d8",
+    "en": "Cluster labels corresponding to the rows of the center matrix.",
+    "ja": ""
+  },
+  "KmeansTable.values#summary": {
+    "hash": "c6aa740499b0",
+    "en": "Cluster centers arranged by row.",
+    "ja": ""
   },
   "LdaCVResult#summary": {
     "hash": "391dbec9cdbe",
@@ -414,6 +744,11 @@
     "en": "Numeric table entries in row-major order.",
     "ja": "行優先順の数値テーブル要素。"
   },
+  "asDist#summary": {
+    "hash": "c5427c6f2769",
+    "en": "Convert a square matrix using only its lower triangle. Equivalent to R's `as.dist()`.\nAn existing DistResult is returned unchanged.",
+    "ja": ""
+  },
   "cancor#@param options": {
     "hash": "27f966eb4a72",
     "en": "Column centering, rank tolerance, and optional column names.",
@@ -433,6 +768,41 @@
     "hash": "ce7e0599090b",
     "en": "Canonical correlation analysis. Equivalent to R's `stats::cancor()`. Coefficients use the unscaled cross-products, with deterministic paired signs.",
     "ja": "正準相関分析です。R の `stats::cancor()` と同等です。係数には尺度化していない交差積を使用し、対応する符号を決定的に定めます。"
+  },
+  "cmdscale#summary": {
+    "hash": "8eeb2e2817e3",
+    "en": "Classical (metric) multidimensional scaling of a dissimilarity structure.\nEquivalent to R's `cmdscale()`.",
+    "ja": ""
+  },
+  "cutree#summary": {
+    "hash": "14ccc61484ed",
+    "en": "Cuts a hierarchical clustering tree into groups, by number of groups or by height.\nEquivalent to R's `cutree()`.",
+    "ja": ""
+  },
+  "dist#@param options": {
+    "hash": "2e21d7735842",
+    "en": "Distance method and display metadata.",
+    "ja": ""
+  },
+  "dist#@param x": {
+    "hash": "ab038f0db53a",
+    "en": "Numeric vector, matrix (rows are observations), or data-frame-like object of columns.",
+    "ja": ""
+  },
+  "dist#summary": {
+    "hash": "18272fd657ea",
+    "en": "Compute pairwise dissimilarities in lower-triangle column order. Equivalent to R's `dist()`.",
+    "ja": ""
+  },
+  "hclust#summary": {
+    "hash": "61cd312320ea",
+    "en": "Hierarchical agglomerative clustering of a dissimilarity structure by one of eight linkage methods.\nEquivalent to R's `hclust()`.",
+    "ja": ""
+  },
+  "kmeans#summary": {
+    "hash": "bfb7349a3b7a",
+    "en": "K-means clustering by the Hartigan-Wong, Lloyd, Forgy or MacQueen algorithm.\nEquivalent to R's `kmeans()`.",
+    "ja": ""
   },
   "lda(0)#@param grouping": {
     "hash": "28d37c45173b",
