@@ -121,7 +121,9 @@ describe("A: acf / pacf / ccf numeric stability", () => {
     const expected = exactPacfFixed(x, 40), actual = pacf(x, { lagMax: 40 }).acf;
     expect(acf(x, { lagMax: 1 }).acf[1]).toBeGreaterThan(0.99999);
     expect(actual).toHaveLength(expected.length);
-    expect(maxDifference(actual, expected)).toBeLessThan(2e-13);
+    const error = maxDifference(actual, expected);
+    console.info("PACF double vs 220-bit exact reference (N=5000, lagMax=40): max absolute error=" + error.toExponential(3));
+    expect(error).toBeLessThan(2e-13);
   });
 
   it("handles constant series, N=1/2, lagMax=0, NaN pass and Infinity", () => {
