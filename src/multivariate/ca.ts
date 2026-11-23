@@ -60,8 +60,6 @@ function fit(input:readonly (readonly number[])[]|CaInputTable, options:CaOption
   const rowStd=ar.map((_,i)=>singular.map((_,j)=>U[i]![j]!/Math.sqrt(r[i]!)));
   const colStd=ac.map((_,i)=>singular.map((_,j)=>V[i]![j]!/Math.sqrt(c[i]!)));
   orient(rowStd,colStd);
-  const rowDistActive=ar.map((_,i)=>Math.sqrt(sum(ac.map((_,j)=>((active[i]![j]!/rowTotals[i]!)-c[j]!)**2/c[j]!))));
-  const colDistActive=ac.map((_,j)=>Math.sqrt(sum(ar.map((_,i)=>((active[i]![j]!/colTotals[j]!)-r[i]!)**2/r[i]!))));
   const projectRows=sr.map(i=>{const profile=ac.map(j=>original[i]![j]!);const n=sum(profile);if(!(n>0))throw new RangeError("zero supplementary row");return singular.map((s,k)=>sum(profile.map((v,j)=>v/n*colStd[j]![k]!))/s);});
   const projectCols=sc.map(j=>{const profile=ar.map(i=>original[i]![j]!);const n=sum(profile);if(!(n>0))throw new RangeError("zero supplementary column");return singular.map((s,k)=>sum(profile.map((v,i)=>v/n*rowStd[i]![k]!))/s);});
   const rowCoordAll=Array.from({length:nr},(_,i)=>{const at=ar.indexOf(i);return at>=0?rowStd[at]!:projectRows[sr.indexOf(i)]!;});
