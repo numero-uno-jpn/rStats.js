@@ -126,15 +126,15 @@ function summaryTable(names:string[]|null,mass:number[],dist:number[],inertia:nu
   };
   const rawRows=mass.map((m,i)=>{
     const d2=dist[i]!*dist[i]!, principal=coords[i]!.map((v,k)=>v*sv[k]!);
-    const qlt=d2===0?0:sum(principal.slice(0,axes).map(v=>v*v))/d2;
+    const qlt=d2===0?Number.NaN:sum(principal.slice(0,axes).map(v=>v*v))/d2;
     const name=names?.[i]??String(i+1),shortName=abbreviations[name]??(name==="light"?"lght":name==="medium"?"medm":name==="heavy"?"hevy":name);
-    const out=[(sup.includes(i+1)?"(*)":"")+shortName,fmt(m*1000),fmt(qlt*1000),fmt((totalInertia?inertia[i]!/totalInertia:0)*1000)];
-    for(let k=0;k<axes;k++){const cor=d2===0?0:principal[k]!*principal[k]!/d2,ctr=sv[k]===0?0:m*principal[k]!*principal[k]!/(sv[k]!*sv[k]!);
+    const out=[(sup.includes(i+1)?"(*)":"")+shortName,fmt(m*1000),fmt(qlt*1000),fmt((totalInertia?inertia[i]!/totalInertia:Number.NaN)*1000)];
+    for(let k=0;k<axes;k++){const cor=d2===0?Number.NaN:principal[k]!*principal[k]!/d2,ctr=sv[k]===0?Number.NaN:m*principal[k]!*principal[k]!/(sv[k]!*sv[k]!);
       out.push(fmt(principal[k]!*1000),fmt(cor*1000),fmt(ctr*1000));}
     return out;
   });
   const widths=headers.map((_,j)=>Math.max(0,...rawRows.map(row=>row[j]!.length)));
-  const rows=rawRows.map(row=>row.map((v,j)=>j===0?v:v.padStart(widths[j]!)));
+  const rows=rawRows.map(row=>row.map((v,j)=>j===0||v==="NA"?v:v.padStart(widths[j]!)));
   return {rows:mass.map((_,i)=>String(i+1)),cols:headers,values:rows as unknown as number[][]};
 }
 /**
