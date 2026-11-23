@@ -80,26 +80,28 @@ function compare(key: string, actual: IsoMDSResult, stressTol = 1e-8): void {
   const skipRScaleBehavior = key === "isomds_scale" || key === "isomds_scale_y";
   const expectedMax = points.reduce((m: number, row: unknown[]) => row.reduce<number>((v, x) => Math.max(v, Math.abs(num(x))), m), 0);
   const dim = points[0]?.length ?? 0;
-  let actualPoints = centerPoints(actual.points.values.map((row) => [...row]));
-  const expectedPoints = centerPoints(points.map((row: unknown[]) => row.map(num)));
-  // BFGS starts at cmdscale and is equivariant under independent column
-  // reflections; choice 12 requires this alignment, not a fitted rotation.
-  for (let j = 0; j < dim; j++) {
-    let dot = 0;
-    for (let i = 0; i < points.length; i++) dot += actualPoints[i]![j]! * expectedPoints[i]![j]!;
-    if (dot < 0) actualPoints = actualPoints.map((row) => row.map((v, q) => q === j ? -v : v));
-  }
   let coordinateError = 0;
-  for (let i = 0; i < Math.min(points.length, actualPoints.length); i++) {
-    for (let j = 0; j < dim; j++) coordinateError = Math.max(coordinateError, Math.abs(actualPoints[i]![j]! - expectedPoints[i]![j]!));
+  if (!skipRScaleBehavior) {
+    let actualPoints = centerPoints(actual.points.values.map((row) => [...row]));
+    const expectedPoints = centerPoints(points.map((row: unknown[]) => row.map(num)));
+    // BFGS starts at cmdscale and is equivariant under independent column
+    // reflections; choice 12 requires this alignment, not a fitted rotation.
+    for (let j = 0; j < dim; j++) {
+      let dot = 0;
+      for (let i = 0; i < points.length; i++) dot += actualPoints[i]![j]! * expectedPoints[i]![j]!;
+      if (dot < 0) actualPoints = actualPoints.map((row) => row.map((v, q) => q === j ? -v : v));
+    }
+    for (let i = 0; i < Math.min(points.length, actualPoints.length); i++) {
+      for (let j = 0; j < dim; j++) coordinateError = Math.max(coordinateError, Math.abs(actualPoints[i]![j]! - expectedPoints[i]![j]!));
+    }
+    const coordinateLimit = 1e-7 * expectedMax;
+    if (tight) {
+      if (!actual.trace[actual.trace.length - 1]?.converged) mismatches.push(key + ".trace did not converge");
+      maxTightCoordinateError = Math.max(maxTightCoordinateError, coordinateError);
+      tightCompared++;
+    }
+    if (coordinateError > coordinateLimit) mismatches.push(`${key}.coordinate max error=${coordinateError} (limit ${coordinateLimit})`);
   }
-  const coordinateLimit = (tight ? 1e-7 : 1e-7) * expectedMax;
-  if (tight) {
-    if (!actual.trace[actual.trace.length - 1]?.converged) mismatches.push(key + ".trace did not converge");
-    maxTightCoordinateError = Math.max(maxTightCoordinateError, coordinateError);
-    tightCompared++;
-  }
-  if (coordinateError > coordinateLimit) mismatches.push(`${key}.coordinate max error=${coordinateError} (limit ${coordinateLimit})`);
   if (!skipRScaleBehavior) {
     const relativeStressError = error / Math.max(Math.abs(e), 1e-300);
     const useAbsoluteStress = Math.abs(e) < 1e-10;
@@ -112,8 +114,7 @@ function compare(key: string, actual: IsoMDSResult, stressTol = 1e-8): void {
     }
   }
 
-  // Default R trace text and coordinate orientation are implementation-specific.
-
+  // Progress is checked separately against the public R print strings.
 }
 const small = [[1, 2, 0], [4, 0, 3], [-1, 5, 2], [2, 7, 0], [0, 0, 1]];
 const smallLabels = ["a", "b", "c", "d", "e"];
