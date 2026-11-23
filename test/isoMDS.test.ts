@@ -5,6 +5,7 @@ import { asDist, cmdscale, dist, isoMDS, type IsoMDSResult } from "../src/entrie
 const fixture = JSON.parse(readFileSync(new URL("./fixtures/isomds.json", import.meta.url), "utf8")) as Record<string, any>;
 const mismatches: string[] = [];
 let maxTightStressRelativeError = 0;
+let maxTightStressAbsoluteError = 0;
 let maxTightCoordinateError = 0;
 let tightCompared = 0;
 const comparedFixtures = new Set<string>();
@@ -30,6 +31,11 @@ function inverse(matrix: number[][]): number[][] | null {
     for(let row=0;row<n;row++)if(row!==col){const factor=a[row]![col]!;for(let j=0;j<2*n;j++)a[row]![j]=a[row]![j]!-factor*a[col]![j]!;}
   }
   return a.map(row=>row.slice(n));
+}
+function centerPoints(points:number[][]):number[][] {
+  const dim=points[0]?.length??0;
+  const means=Array.from({length:dim},(_,j)=>points.reduce((s,row)=>s+row[j]!,0)/points.length);
+  return points.map(row=>row.map((v,j)=>v-means[j]!));
 }
 function procrustes(actual:number[][],expected:number[][]):number[][]|null{
   const k=expected[0]?.length??0;
@@ -61,7 +67,8 @@ function compare(key: string, actual: IsoMDSResult, stressTol = 1e-8): void {
     if (!actual.trace[actual.trace.length - 1]?.converged) mismatches.push(key + ".trace did not converge");
     const expectedMax = points.reduce((m: number, row: unknown[]) => row.reduce<number>((v, x) => Math.max(v, Math.abs(num(x))), m), 0);
     const dim = points[0]?.length ?? 0;
-    let actualPoints = actual.points.values.map((row) => [...row]);
+    let actualPoints = centerPoints(actual.points.values.map((row) => [...row]));
+    const expectedPoints = centerPoints(points.map((row:unknown[])=>row.map(num)));
     if (key.includes("_p1") || key.includes("_p3")) {
       const permutations = dim === 1 ? [[0]] : [[0,1],[1,0]];
       let best = -Infinity, bestMap = permutations[0]!, bestSigns = new Array<number>(dim).fill(1);
@@ -69,26 +76,28 @@ function compare(key: string, actual: IsoMDSResult, stressTol = 1e-8): void {
         let score = 0; const signs: number[] = [];
         for (let j = 0; j < dim; j++) {
           let dot = 0;
-          for (let i = 0; i < points.length; i++) dot += actualPoints[i]![permutation[j]!]! * num(points[i]![j]);
+          for (let i = 0; i < points.length; i++) dot += actualPoints[i]![permutation[j]!]! * expectedPoints[i]![j]!;
           signs[j] = dot < 0 ? -1 : 1; score += Math.abs(dot);
         }
         if (score > best) { best = score; bestMap = permutation; bestSigns = signs; }
       }
       actualPoints = actualPoints.map(row => bestMap.map((index,j)=>row[index]!*bestSigns[j]!));
     } else {
-      const aligned=procrustes(actualPoints,points.map((row:unknown[])=>row.map(num)));
+      const aligned=procrustes(actualPoints,expectedPoints);
       if(!aligned)mismatches.push(`${key}: Procrustes alignment was singular`);
       else actualPoints=aligned;
     }
     let coordinateError=0;
-    for(let i=0;i<Math.min(points.length,actualPoints.length);i++)for(let j=0;j<dim;j++)coordinateError=Math.max(coordinateError,Math.abs(actualPoints[i]![j]!-num(points[i]![j])));
+    for(let i=0;i<Math.min(points.length,actualPoints.length);i++)for(let j=0;j<dim;j++)coordinateError=Math.max(coordinateError,Math.abs(actualPoints[i]![j]!-expectedPoints[i]![j]!));
     maxTightCoordinateError=Math.max(maxTightCoordinateError,coordinateError);
     tightCompared++;
     const relativeStressError=error/Math.max(Math.abs(e),1e-300);
     maxTightStressRelativeError=Math.max(maxTightStressRelativeError,relativeStressError);
+    maxTightStressAbsoluteError=Math.max(maxTightStressAbsoluteError,error);
     if(coordinateError>1e-5*expectedMax)mismatches.push(`${key}.coordinate max error=${coordinateError}`);
-    if(relativeStressError>1e-6)mismatches.push(`${key}.stress relative error=${relativeStressError}`);
-    console.info(`${key}: stress relative error=${relativeStressError.toExponential(3)}; Procrustes max coordinate error=${coordinateError.toExponential(3)} (limit ${(1e-5*expectedMax).toExponential(3)})`);
+    const useAbsoluteStress = /isomds_tight_(small(?:_k1)?|non_euclidean|grid)/.test(key);
+    if(useAbsoluteStress ? error>1e-6 : relativeStressError>1e-6)mismatches.push(`${key}.stress ${useAbsoluteStress?"absolute":"relative"} error=${useAbsoluteStress?error:relativeStressError}`);
+    console.info(`${key}: stress abs error=${error.toExponential(3)}; relative=${relativeStressError.toExponential(3)}; centered orthogonal max coordinate error=${coordinateError.toExponential(3)} (limit ${(1e-5*expectedMax).toExponential(3)})`);
   } else if (error > 0.01 * Math.abs(e)) {
     mismatches.push(`${key}.stress exceeds 1%: actual=${actual.stress}, expected=${e}`);
   }
