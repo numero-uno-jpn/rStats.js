@@ -335,7 +335,38 @@ export function isoMDS(
     failedSearchWasReset = false;
     if (iteration % 5 === 0) trace.push({ iteration, stress: current.stress, converged: false });
     const relativeChange = (previousStress - current.stress) / Math.max(Math.abs(previousStress), Number.MIN_VALUE);
-    if (current.stress === 0 || (relativeChange >= 0 && relativeChange < tol)) converged = true;
+    if (current.stress === 0) {
+      converged = true;
+    } else if (relativeChange >= 0 && relativeChange < tol) {
+      // R's public results show a final extra step after a later (not the first)
+      // BFGS update. It uses the previous point's gradient again, from the new
+      // configuration, rather than the freshly evaluated gradient or -H*g.
+      // On swiss this gives 4.492668758998103 (R: 4.4926687589981045);
+      // at tol=1e-8 it gives 4.219287127030445 (R: 4.21928712703045).
+      if (stepIndex > 0) {
+        const finalDirection = grad.map((value) => -value);
+        let finalSlope = 0;
+        for (let i = 0; i < size; i++) finalSlope += grad[i]! * finalDirection[i]!;
+        const finalStep = lineSearch(finalDirection, finalSlope);
+        if (finalStep !== null) {
+          // R prints the extra final step with the preceding iteration number.
+          // If the threshold step is just after a five-iteration report, both
+          // the threshold point and this final point appear under that number.
+          const reportIteration = iteration % 5 === 0 ? iteration : iteration - 1;
+          if (iteration % 5 !== 0 && reportIteration % 5 === 0) {
+            trace.push({ iteration: reportIteration, stress: current.stress, converged: false });
+          }
+          x = finalStep.x;
+          y = finalStep.y;
+          current = finalStep.evaluation;
+          if (reportIteration % 5 === 0) {
+            trace.push({ iteration: reportIteration, stress: current.stress, converged: false });
+          }
+          lastIter = reportIteration;
+        }
+      }
+      converged = true;
+    }
   }
   if (maxit > 0) trace.push({ iteration: lastIter, stress: current.stress, converged });
 
