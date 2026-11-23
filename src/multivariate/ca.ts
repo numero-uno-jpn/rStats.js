@@ -1,6 +1,5 @@
 // Simple correspondence analysis and its coordinate/summary views.
 import { svd } from "../linalg/svd.js";
-import { checkOptions } from "../internal/checkOptions.js";
 
 const CA_KEYS = ["nd", "suprow", "supcol"] as const;
 const CA_SUMMARY_KEYS = [] as const;
@@ -50,7 +49,6 @@ function orient(rows:number[][], cols:number[][]):void {
     if((rows[at]?.[j]??0)<0){for(const r of rows)r[j]=-r[j]!;for(const r of cols)r[j]=-r[j]!;}}
 }
 function fit(input:readonly (readonly number[])[]|CaInputTable, options:CaOptions={}):CaFit {
-  checkOptions(options,CA_KEYS,"ca");
   const raw=matrixInput(input), original=raw.values, nr=original.length,nc=original[0]!.length;
   const sr=indices(options.suprow,nr,"suprow"), sc=indices(options.supcol,nc,"supcol");
   const srSet=new Set(sr),scSet=new Set(sc), ar=Array.from({length:nr},(_,i)=>i).filter(i=>!srSet.has(i)), ac=Array.from({length:nc},(_,i)=>i).filter(i=>!scSet.has(i));
