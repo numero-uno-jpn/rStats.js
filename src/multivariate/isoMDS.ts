@@ -121,11 +121,20 @@ function evaluate(y: number[][], pairs: readonly Pair[], groups: number[], p: nu
 function gradient(y: number[][], pairs: readonly Pair[], current: Evaluation, p: number): number[][] {
   const n = y.length, dim = y[0]!.length;
   const out = Array.from({ length: n }, () => new Array<number>(dim).fill(0));
+  let numerator = 0, denominator = 0;
+  for (let at = 0; at < current.distances.length; at++) {
+    const d = current.distances[at]!;
+    const diff = d - current.disparities[at]!;
+    numerator += diff * diff;
+    denominator += d * d;
+  }
+  if (numerator === 0 || denominator === 0) return out;
+  const ratio = numerator / denominator;
+  const common = 100 / (Math.sqrt(ratio) * denominator);
   for (let at = 0; at < pairs.length; at++) {
     const pair = pairs[at]!, d = current.distances[at]!;
     if (d === 0) continue;
-    const stressRatio = (current.stress / 100) ** 2;
-    const factor = (d - current.disparities[at]! - stressRatio * d) / (d ** (p - 1));
+    const factor = common * (d - current.disparities[at]! - ratio * d) / (d ** (p - 1));
     for (let q = 0; q < dim; q++) {
       const diff = y[pair.i]![q]! - y[pair.j]![q]!;
       const v = diff === 0 ? 0 : factor * Math.sign(diff) * (Math.abs(diff) ** (p - 1));
@@ -135,6 +144,49 @@ function gradient(y: number[][], pairs: readonly Pair[], current: Evaluation, p:
   }
   return out;
 }
+function flatten(y: number[][]): Float64Array {
+  const out = new Float64Array(y.length * y[0]!.length);
+  let at = 0;
+  for (const row of y) for (const value of row) out[at++] = value;
+  return out;
+}
+function unflatten(x: Float64Array, n: number, dim: number): number[][] {
+  return Array.from({ length: n }, (_, i) => Array.from({ length: dim }, (_, q) => x[i * dim + q]!));
+}
+function identity(size: number): Float64Array {
+  const out = new Float64Array(size * size);
+  for (let i = 0; i < size; i++) out[i * size + i] = 1;
+  return out;
+}
+function multiply(matrix: Float64Array, vector: Float64Array, size: number): Float64Array {
+  const out = new Float64Array(size);
+  for (let i = 0; i < size; i++) {
+    let value = 0, offset = i * size;
+    for (let j = 0; j < size; j++) value += matrix[offset + j]! * vector[j]!;
+    out[i] = value;
+  }
+  return out;
+}
+/** Full inverse-Hessian BFGS update, with a symmetric rank-two correction. */
+function updateInverseHessian(h: Float64Array, step: Float64Array, change: Float64Array, size: number): Float64Array {
+  let curvature = 0;
+  for (let i = 0; i < size; i++) curvature += step[i]! * change[i]!;
+  if (!(curvature > 0) || !Number.isFinite(curvature)) return identity(size);
+  const hy = multiply(h, change, size);
+  let yhy = 0;
+  for (let i = 0; i < size; i++) yhy += change[i]! * hy[i]!;
+  const coefficient = (curvature + yhy) / (curvature * curvature);
+  const out = new Float64Array(h.length);
+  for (let i = 0; i < size; i++) {
+    const row = i * size;
+    for (let j = 0; j < size; j++) {
+      out[row + j] = h[row + j]! + coefficient * step[i]! * step[j]!
+        - (hy[i]! * step[j]! + step[i]! * hy[j]!) / curvature;
+    }
+  }
+  return out;
+}
+
 function orient(y: number[][]): void {
   const p = y[0]!.length;
   for (let q = 0; q < p; q++) {
@@ -182,36 +234,105 @@ export function isoMDS(
   let yScale = 0;
   for (let i = 0; i < n - 1; i++) for (let j = i + 1; j < n; j++) yScale = Math.max(yScale, distance(y[i]!, y[j]!, p));
   if (yScale > 0) y = y.map((r) => r.map((v) => v / yScale));
-  let current = evaluate(y, built.pairs, Array.from({ length: built.groups }, (_, i) => i), p);
-  const trace: IsoMDSTrace[] = [{ iteration: 0, stress: current.stress, converged: maxit === 0 }];
-  let converged = maxit === 0;
+  const groups = Array.from({ length: built.groups }, (_, i) => i);
+  let x = flatten(y);
+  let current = evaluate(y, built.pairs, groups, p);
+  const trace: IsoMDSTrace[] = [{ iteration: 0, stress: current.stress, converged: false }];
+  let converged = current.stress === 0 || maxit === 0;
   let lastIter = 0;
-  for (let iteration = 1; iteration <= maxit && !converged; iteration++) {
+  const size = x.length;
+  let inverseHessian = identity(size);
+  // R counts the first BFGS step for maxit=1 and maxit=2 alike; later
+  // steps advance the reported iteration by one.
+  const steps = maxit === 0 ? 0 : maxit === 1 ? 1 : maxit - 1;
+  let failedSearchWasReset = false;
+  for (let stepIndex = 0; stepIndex < steps && !converged; stepIndex++) {
+    const iteration = stepIndex === 0 ? 1 : stepIndex + 1;
     lastIter = iteration;
-    const previousStress = current.stress;
-    let candidate: number[][];
-    let next: Evaluation;
-    const grad = gradient(y, built.pairs, current, p);
-    let norm = 0;
-    for (const row of grad) for (const v of row) norm += v * v;
-    if (norm <= Number.EPSILON * Number.EPSILON) { converged = true; break; }
-    let step = 1;
-    candidate = y;
-    next = current;
-    for (let trial = 0; trial < 40; trial++) {
-      candidate = y.map((row, i) => row.map((v, q) => v - step * grad[i]![q]!));
-      center(candidate);
-      next = evaluate(candidate, built.pairs, Array.from({ length: built.groups }, (_, i) => i), p);
-      if (next.stress < current.stress) break;
-      step *= 0.5;
+    const gradMatrix = gradient(y, built.pairs, current, p);
+    const grad = flatten(gradMatrix);
+    let direction = multiply(inverseHessian, grad, size);
+    for (let i = 0; i < size; i++) direction[i] = -direction[i]!;
+    let directionalDerivative = 0;
+    for (let i = 0; i < size; i++) directionalDerivative += grad[i]! * direction[i]!;
+    if (!(directionalDerivative < 0) || !Number.isFinite(directionalDerivative)) {
+      inverseHessian = identity(size);
+      direction = grad.map((v) => -v);
+      directionalDerivative = 0;
+      for (let i = 0; i < size; i++) directionalDerivative += grad[i]! * direction[i]!;
     }
-    if (!(next.stress < current.stress)) { converged = true; break; }
+    if (!(directionalDerivative < 0)) { converged = true; break; }
+    let accepted = false;
+    let candidateX = x;
+    let candidate = y;
+    let next = current;
+    let stepLength = 1;
+    for (let trial = 0; trial < 100; trial++) {
+      candidateX = new Float64Array(size);
+      let changed = false;
+      for (let i = 0; i < size; i++) {
+        candidateX[i] = x[i]! + stepLength * direction[i]!;
+        if (candidateX[i] !== x[i]) changed = true;
+      }
+      if (!changed) break;
+      candidate = unflatten(candidateX, n, k);
+      next = evaluate(candidate, built.pairs, groups, p);
+      if (Number.isFinite(next.stress) && next.stress <= current.stress + 1e-4 * stepLength * directionalDerivative) {
+        accepted = true;
+        break;
+      }
+      stepLength *= 0.2;
+    }
+    if (!accepted) {
+      inverseHessian = identity(size);
+      if (failedSearchWasReset) { converged = true; break; }
+      failedSearchWasReset = true;
+      // Retry once with the reset inverse Hessian on the next loop pass.
+      stepIndex--;
+      if (stepIndex < -1) stepIndex = -1;
+      if (stepIndex === -1) {
+        const steepest = grad.map((v) => -v);
+        let retryStep = 1, retryAccepted = false;
+        for (let trial = 0; trial < 100; trial++) {
+          const trialX = new Float64Array(size);
+          let changed = false;
+          for (let i = 0; i < size; i++) {
+            trialX[i] = x[i]! + retryStep * steepest[i]!;
+            if (trialX[i] !== x[i]) changed = true;
+          }
+          if (!changed) break;
+          const trialY = unflatten(trialX, n, k);
+          const trialEval = evaluate(trialY, built.pairs, groups, p);
+          const slope = grad.reduce((sum, value, i) => sum + value * steepest[i]!, 0);
+          if (Number.isFinite(trialEval.stress) && trialEval.stress <= current.stress + 1e-4 * retryStep * slope) {
+            candidateX = trialX; candidate = trialY; next = trialEval; retryAccepted = true; break;
+          }
+          retryStep *= 0.2;
+        }
+        if (!retryAccepted) { converged = true; break; }
+        accepted = true;
+      }
+    }
+    if (!accepted) { converged = true; break; }
+    const previousStress = current.stress;
+    const nextGradient = flatten(gradient(candidate, built.pairs, next, p));
+    const displacement = new Float64Array(size);
+    const gradientChange = new Float64Array(size);
+    for (let i = 0; i < size; i++) {
+      displacement[i] = candidateX[i]! - x[i]!;
+      gradientChange[i] = nextGradient[i]! - grad[i]!;
+    }
+    inverseHessian = updateInverseHessian(inverseHessian, displacement, gradientChange, size);
+    x = candidateX;
     y = candidate;
     current = next;
+    failedSearchWasReset = false;
     if (iteration % 5 === 0) trace.push({ iteration, stress: current.stress, converged: false });
-    if (previousStress - current.stress <= tol * Math.max(current.stress, 1e-12)) converged = true;
+    const relativeChange = (previousStress - current.stress) / Math.max(Math.abs(previousStress), Number.MIN_VALUE);
+    if (current.stress === 0 || relativeChange >= 0 && relativeChange < tol) converged = true;
   }
   if (maxit > 0) trace.push({ iteration: lastIter, stress: current.stress, converged });
+
   orient(y);
   return { points: { rows: parsed.labels, cols: null,
     values: y.map((r) => r.map((v) => v * scale)) }, stress: current.stress, trace };
