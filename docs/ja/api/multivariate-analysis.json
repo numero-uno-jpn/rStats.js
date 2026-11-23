@@ -2,22 +2,22 @@
   "AsDistOptions#summary": {
     "hash": "cf57ae1e13cc",
     "en": "Options for converting a square matrix to condensed dissimilarities.",
-    "ja": ""
+    "ja": "正方行列を圧縮形式の非類似度に変換するためのオプションです。"
   },
   "AsDistOptions.diag#summary": {
     "hash": "e1084191e5d2",
     "en": "Store the diagonal display flag in the result.",
-    "ja": ""
+    "ja": "結果に対角表示フラグを保存します。"
   },
   "AsDistOptions.labels#summary": {
     "hash": "a736167bfe4c",
     "en": "Labels for the rows and columns of the square matrix.",
-    "ja": ""
+    "ja": "正方行列の行と列のラベルです。"
   },
   "AsDistOptions.upper#summary": {
     "hash": "182788b57c64",
     "en": "Store the upper-triangle display flag in the result.",
-    "ja": ""
+    "ja": "結果に上三角表示フラグを保存します。"
   },
   "CancorOptions#summary": {
     "hash": "29a1c46366a1",
@@ -112,312 +112,312 @@
   "CmdscaleInputTable.cols#summary": {
     "hash": "3b457c8626c6",
     "en": "Coordinate labels, or null for an unlabeled coordinate matrix.",
-    "ja": ""
+    "ja": "座標ラベル、またはラベルのない座標行列の場合は null です。"
   },
   "CmdscaleInputTable.rows#summary": {
     "hash": "3fc70295d1e4",
     "en": "Observation labels, or null when labels are unavailable.",
-    "ja": ""
+    "ja": "観測値のラベル、またはラベルを利用できない場合は null です。"
   },
   "CmdscaleInputTable.values#summary": {
     "hash": "85167229fd60",
     "en": "Numeric matrix values arranged by row.",
-    "ja": ""
+    "ja": "行ごとに並べた数値行列の値です。"
   },
   "CmdscaleOptions.add#summary": {
     "hash": "afeaadc69d0c",
     "en": "Whether to add the Cailliez constant to make the dissimilarities Euclidean.",
-    "ja": ""
+    "ja": "非類似度をユークリッド距離にするために Cailliez 定数を加算するかどうかです。"
   },
   "CmdscaleOptions.k#summary": {
     "hash": "4facd8e7e1f0",
     "en": "Number of coordinate dimensions to retain.",
-    "ja": ""
+    "ja": "保持する座標次元の数です。"
   },
   "CmdscaleOptions.xRet#summary": {
     "hash": "127358e33f7d",
     "en": "Whether to return the double-centered squared-distance matrix.",
-    "ja": ""
+    "ja": "二重中心化した平方距離行列を返すかどうかです。"
   },
   "CmdscaleResult.GOF#summary": {
     "hash": "6ffaa98dd243",
     "en": "Goodness of fit relative to the absolute-eigenvalue sum and positive-eigenvalue sum.",
-    "ja": ""
+    "ja": "絶対値を取った固有値の和と正の固有値の和を基準とする適合度です。"
   },
   "CmdscaleResult.ac#summary": {
     "hash": "fc84e09351ab",
     "en": "Cailliez additive constant, or zero when add is false.",
-    "ja": ""
+    "ja": "Cailliez の加算定数です。add が false の場合は 0 です。"
   },
   "CmdscaleResult.eig#summary": {
     "hash": "8f5202a2f30f",
     "en": "All eigenvalues of the double-centered Gram matrix, including negative values.",
-    "ja": ""
+    "ja": "負の値を含む、二重中心化した Gram 行列のすべての固有値です。"
   },
   "CmdscaleResult.points#summary": {
     "hash": "a9b712621961",
     "en": "Principal coordinate matrix for the retained positive eigenvalues.",
-    "ja": ""
+    "ja": "保持した正の固有値に対応する主座標行列です。"
   },
   "CmdscaleResult.warnings#summary": {
     "hash": "36960336f0b1",
     "en": "Warnings such as a request for more positive dimensions than are available.",
-    "ja": ""
+    "ja": "利用可能な正の次元数を超える要求などに関する警告です。"
   },
   "CmdscaleResult.x#summary": {
     "hash": "74f5a3984427",
     "en": "Double-centered squared-distance matrix when xRet is true; otherwise null.",
-    "ja": ""
+    "ja": "xRet が true の場合は二重中心化した平方距離行列、それ以外の場合は null です。"
   },
   "CutreeOptions.h#summary": {
     "hash": "5efafa1d8535",
     "en": "Merge-height cutoff; a vector requests one partition per element.",
-    "ja": ""
+    "ja": "併合高さのカットオフです。ベクトルを指定すると、要素ごとに 1 つの分割を要求します。"
   },
   "CutreeOptions.k#summary": {
     "hash": "aa94baae2e6a",
     "en": "Requested number of clusters; a vector requests one partition per element.",
-    "ja": ""
+    "ja": "要求するクラスタ数です。ベクトルを指定すると、要素ごとに 1 つの分割を要求します。"
   },
   "CutreeResult.columns#summary": {
     "hash": "541d0b62e843",
     "en": "String labels for the requested k or h columns of a multi-cutoff result.",
-    "ja": ""
+    "ja": "複数のカットオフを指定した結果で、要求された k または h の列に対応する文字列ラベルです。"
   },
   "CutreeResult.names#summary": {
     "hash": "f97350be464f",
     "en": "Observation names for a single partition, or null when names are unavailable.",
-    "ja": ""
+    "ja": "単一の分割における観測値の名前です。名前を利用できない場合は null です。"
   },
   "CutreeResult.rows#summary": {
     "hash": "fbc76676c4f0",
     "en": "Observation names for the rows of a multi-cutoff result.",
-    "ja": ""
+    "ja": "複数のカットオフを指定した結果の行に対応する観測値の名前です。"
   },
   "CutreeResult.values#summary": {
     "hash": "ade7f3cb1cf1",
     "en": "Cluster labels by observation, or a matrix with one column per requested cutoff.",
-    "ja": ""
+    "ja": "観測値ごとのクラスタラベル、または要求されたカットオフごとに 1 列を持つ行列です。"
   },
   "DistMethod#summary": {
     "hash": "1c3ccde3dd00",
     "en": "Distance metric used by {@link dist}.",
-    "ja": ""
+    "ja": "{@link dist} で使用する距離尺度です。"
   },
   "DistOptions#summary": {
     "hash": "265a26477ec8",
     "en": "Options for pairwise dissimilarities.",
-    "ja": ""
+    "ja": "ペアごとの非類似度を計算するためのオプションです。"
   },
   "DistOptions.diag#summary": {
     "hash": "e1084191e5d2",
     "en": "Store the diagonal display flag in the result.",
-    "ja": ""
+    "ja": "結果に対角表示フラグを保存します。"
   },
   "DistOptions.labels#summary": {
     "hash": "327588f75506",
     "en": "Labels for the observations (one per row).",
-    "ja": ""
+    "ja": "観測値のラベルです (行ごとに 1 つ)。"
   },
   "DistOptions.method#summary": {
     "hash": "cc01c109a74b",
     "en": "Distance metric; a unique prefix is accepted.",
-    "ja": ""
+    "ja": "距離尺度です。一意に特定できる接頭辞を指定できます。"
   },
   "DistOptions.p#summary": {
     "hash": "8817e3abac1e",
     "en": "Minkowski power, required to be finite and positive when method is minkowski.",
-    "ja": ""
+    "ja": "Minkowski のべき指数です。method が minkowski の場合は、有限かつ正でなければなりません。"
   },
   "DistOptions.upper#summary": {
     "hash": "182788b57c64",
     "en": "Store the upper-triangle display flag in the result.",
-    "ja": ""
+    "ja": "結果に上三角表示フラグを保存します。"
   },
   "DistResult#summary": {
     "hash": "0a4de8318442",
     "en": "A condensed dissimilarity object, in lower-triangle column order.",
-    "ja": ""
+    "ja": "下三角の列順に並べた、圧縮形式の非類似度オブジェクトです。"
   },
   "DistResult.diag#summary": {
     "hash": "8095331f7904",
     "en": "Whether diagonal display was requested.",
-    "ja": ""
+    "ja": "対角表示が要求されたかどうかです。"
   },
   "DistResult.labels#summary": {
     "hash": "f10d3bfea688",
     "en": "Observation labels, or null when no labels were supplied.",
-    "ja": ""
+    "ja": "観測値のラベルです。ラベルが指定されていない場合は null です。"
   },
   "DistResult.method#summary": {
     "hash": "298fc5bfa64c",
     "en": "Distance method used, or null for a matrix converted by asDist.",
-    "ja": ""
+    "ja": "使用した距離尺度です。asDist で変換した行列の場合は null です。"
   },
   "DistResult.size#summary": {
     "hash": "eeceeb5c4920",
     "en": "Number of observations represented by the dissimilarities.",
-    "ja": ""
+    "ja": "非類似度が表す観測値の数です。"
   },
   "DistResult.upper#summary": {
     "hash": "066fc3d27bd9",
     "en": "Whether upper-triangle display was requested.",
-    "ja": ""
+    "ja": "上三角表示が要求されたかどうかです。"
   },
   "DistResult.values#summary": {
     "hash": "c48eb596d133",
     "en": "Pairwise dissimilarities in lower-triangle column order.",
-    "ja": ""
+    "ja": "下三角の列順に並べた、ペアごとの非類似度です。"
   },
   "DistResult.warnings#summary": {
     "hash": "46b6e5953b43",
     "en": "Messages generated while coercing or processing the input.",
-    "ja": ""
+    "ja": "入力の型変換または処理中に生成されたメッセージです。"
   },
   "HclustFit.distMethod#summary": {
     "hash": "bb3c034448d9",
     "en": "Distance method attribute inherited from the input, or null.",
-    "ja": ""
+    "ja": "入力から引き継いだ距離尺度属性です。属性がない場合は null です。"
   },
   "HclustFit.height#summary": {
     "hash": "3e2982a911ac",
     "en": "Dissimilarity at each successive merge.",
-    "ja": ""
+    "ja": "順次行われる各併合における非類似度です。"
   },
   "HclustFit.labels#summary": {
     "hash": "db2c8eabdc4f",
     "en": "Observation labels, or null when the input had no labels.",
-    "ja": ""
+    "ja": "観測値のラベルです。入力にラベルがなかった場合は null です。"
   },
   "HclustFit.merge#summary": {
     "hash": "e5f9ad5e33bb",
     "en": "(n - 1) by 2 merge matrix using negative observation and positive merge-row indices.",
-    "ja": ""
+    "ja": "負の観測値インデックスと正の併合行インデックスを使う、(n - 1) 行 2 列の併合行列です。"
   },
   "HclustFit.method#summary": {
     "hash": "8a7134c540cd",
     "en": "Canonical linkage method used to construct the tree.",
-    "ja": ""
+    "ja": "樹形図の構築に使用した標準化された連結法です。"
   },
   "HclustFit.order#summary": {
     "hash": "6dd4166de7b5",
     "en": "Observation indices in left-to-right dendrogram order (1-based).",
-    "ja": ""
+    "ja": "樹形図を左から右にたどった順の観測値インデックスです (1 始まり)。"
   },
   "HclustFit.warnings#summary": {
     "hash": "1a85e217d1b0",
     "en": "Informational messages produced while resolving the method.",
-    "ja": ""
+    "ja": "連結法の解決時に生成された情報メッセージです。"
   },
   "HclustOptions.members#summary": {
     "hash": "1d3c4f18bd2e",
     "en": "Initial cluster sizes for the objects represented by the dissimilarities.",
-    "ja": ""
+    "ja": "非類似度で表されるオブジェクトの初期クラスタサイズです。"
   },
   "HclustOptions.method#summary": {
     "hash": "dfb781c664bd",
     "en": "Linkage method; a unique prefix and the alias ward are accepted.",
-    "ja": ""
+    "ja": "連結法です。一意に特定できる接頭辞と別名 ward を指定できます。"
   },
   "KmeansFit.betweenss#summary": {
     "hash": "9050b99e2de1",
     "en": "Between-cluster sum of squares (totss minus totWithinss).",
-    "ja": ""
+    "ja": "クラスタ間平方和です (totss から totWithinss を引いた値)。"
   },
   "KmeansFit.centers#summary": {
     "hash": "ec4f6d71f825",
     "en": "Matrix of final cluster centers.",
-    "ja": ""
+    "ja": "最終的なクラスタ中心の行列です。"
   },
   "KmeansFit.cluster#summary": {
     "hash": "72ca031a86c7",
     "en": "1-based cluster assignment for each observation.",
-    "ja": ""
+    "ja": "各観測値に割り当てられたクラスタ番号です (1 始まり)。"
   },
   "KmeansFit.ifault#summary": {
     "hash": "9bf9b284dd82",
     "en": "Hartigan-Wong fault code, or null for algorithms without one.",
-    "ja": ""
+    "ja": "Hartigan-Wong の障害コードです。このコードを持たないアルゴリズムでは null です。"
   },
   "KmeansFit.iter#summary": {
     "hash": "0553c2572d32",
     "en": "Number of iterations reported by the selected algorithm.",
-    "ja": ""
+    "ja": "選択したアルゴリズムが報告する反復回数です。"
   },
   "KmeansFit.names#summary": {
     "hash": "c7cc8f424d99",
     "en": "Observation names, present when the input supplied row names.",
-    "ja": ""
+    "ja": "入力に行名が指定されていた場合の観測値の名前です。"
   },
   "KmeansFit.size#summary": {
     "hash": "e54894dc4552",
     "en": "Number of observations assigned to each cluster.",
-    "ja": ""
+    "ja": "各クラスタに割り当てられた観測値の数です。"
   },
   "KmeansFit.totWithinss#summary": {
     "hash": "e4e1503ee540",
     "en": "Sum of all within-cluster sums of squares.",
-    "ja": ""
+    "ja": "クラスタ内平方和の合計です。"
   },
   "KmeansFit.totss#summary": {
     "hash": "db413a8bd046",
     "en": "Total sum of squares around the overall sample mean.",
-    "ja": ""
+    "ja": "全体の標本平均を基準とする総平方和です。"
   },
   "KmeansFit.warnings#summary": {
     "hash": "fa707059429a",
     "en": "Warnings produced during clustering.",
-    "ja": ""
+    "ja": "クラスタリング中に生成された警告です。"
   },
   "KmeansFit.withinss#summary": {
     "hash": "01f44ccf7399",
     "en": "Within-cluster sums of squares, one per cluster.",
-    "ja": ""
+    "ja": "クラスタごとのクラスタ内平方和です。"
   },
   "KmeansInputTable.cols#summary": {
     "hash": "7b735dad7168",
     "en": "Optional variable names, one per column.",
-    "ja": ""
+    "ja": "任意の変数名です (列ごとに 1 つ)。"
   },
   "KmeansInputTable.rows#summary": {
     "hash": "4413c3170f35",
     "en": "Optional observation names, one per row.",
-    "ja": ""
+    "ja": "任意の観測値名です (行ごとに 1 つ)。"
   },
   "KmeansInputTable.values#summary": {
     "hash": "f5bbb4bb5b57",
     "en": "Numeric observations arranged by row.",
-    "ja": ""
+    "ja": "行ごとに並べた数値観測値です。"
   },
   "KmeansOptions.algorithm#summary": {
     "hash": "5a23c71895f6",
     "en": "Clustering algorithm; a unique prefix is accepted.",
-    "ja": ""
+    "ja": "クラスタリングアルゴリズムです。一意に特定できる接頭辞を指定できます。"
   },
   "KmeansOptions.iterMax#summary": {
     "hash": "8d78c6c165e9",
     "en": "Maximum number of algorithm iterations (R's iter.max).",
-    "ja": ""
+    "ja": "アルゴリズムの最大反復回数です (R の iter.max)。"
   },
   "KmeansOptions.nstart#summary": {
     "hash": "3670ed2270cb",
     "en": "Number of random initial starts when centers is a count.",
-    "ja": ""
+    "ja": "centers に数を指定した場合の、ランダムな初期値の試行回数です。"
   },
   "KmeansTable.cols#summary": {
     "hash": "38e7c3340fda",
     "en": "Variable names, or null when the input had no column names.",
-    "ja": ""
+    "ja": "変数名です。入力に列名がなかった場合は null です。"
   },
   "KmeansTable.rows#summary": {
     "hash": "c443ccbfd0d8",
     "en": "Cluster labels corresponding to the rows of the center matrix.",
-    "ja": ""
+    "ja": "中心行列の各行に対応するクラスタラベルです。"
   },
   "KmeansTable.values#summary": {
     "hash": "c6aa740499b0",
     "en": "Cluster centers arranged by row.",
-    "ja": ""
+    "ja": "行ごとに並べたクラスタ中心です。"
   },
   "LdaCVResult#summary": {
     "hash": "391dbec9cdbe",
@@ -747,7 +747,7 @@
   "asDist#summary": {
     "hash": "c5427c6f2769",
     "en": "Convert a square matrix using only its lower triangle. Equivalent to R's `as.dist()`.\nAn existing DistResult is returned unchanged.",
-    "ja": ""
+    "ja": "下三角のみを使用して正方行列を変換します。R の `as.dist()` と同等です。\n既存の DistResult は変更せずに返します。"
   },
   "cancor#@param options": {
     "hash": "27f966eb4a72",
@@ -772,37 +772,37 @@
   "cmdscale#summary": {
     "hash": "8eeb2e2817e3",
     "en": "Classical (metric) multidimensional scaling of a dissimilarity structure.\nEquivalent to R's `cmdscale()`.",
-    "ja": ""
+    "ja": "非類似度構造の古典的 (計量) 多次元尺度構成法です。\nR の `cmdscale()` と同等です。"
   },
   "cutree#summary": {
     "hash": "14ccc61484ed",
     "en": "Cuts a hierarchical clustering tree into groups, by number of groups or by height.\nEquivalent to R's `cutree()`.",
-    "ja": ""
+    "ja": "クラスタ数または高さを指定して、階層的クラスタリングの樹形図を群に分割します。\nR の `cutree()` と同等です。"
   },
   "dist#@param options": {
     "hash": "2e21d7735842",
     "en": "Distance method and display metadata.",
-    "ja": ""
+    "ja": "距離尺度と表示用メタデータです。"
   },
   "dist#@param x": {
     "hash": "ab038f0db53a",
     "en": "Numeric vector, matrix (rows are observations), or data-frame-like object of columns.",
-    "ja": ""
+    "ja": "数値ベクトル、行を観測値とする行列、または列を持つデータフレーム形式のオブジェクトです。"
   },
   "dist#summary": {
     "hash": "18272fd657ea",
     "en": "Compute pairwise dissimilarities in lower-triangle column order. Equivalent to R's `dist()`.",
-    "ja": ""
+    "ja": "下三角の列順でペアごとの非類似度を計算します。R の `dist()` と同等です。"
   },
   "hclust#summary": {
     "hash": "61cd312320ea",
     "en": "Hierarchical agglomerative clustering of a dissimilarity structure by one of eight linkage methods.\nEquivalent to R's `hclust()`.",
-    "ja": ""
+    "ja": "8 種類の連結法のいずれかを用いて、非類似度構造を階層的に併合クラスタリングします。\nR の `hclust()` と同等です。"
   },
   "kmeans#summary": {
     "hash": "bfb7349a3b7a",
     "en": "K-means clustering by the Hartigan-Wong, Lloyd, Forgy or MacQueen algorithm.\nEquivalent to R's `kmeans()`.",
-    "ja": ""
+    "ja": "Hartigan-Wong、Lloyd、Forgy、または MacQueen アルゴリズムによる k-means クラスタリングです。\nR の `kmeans()` と同等です。"
   },
   "lda(0)#@param grouping": {
     "hash": "28d37c45173b",
