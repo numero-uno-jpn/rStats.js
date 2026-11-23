@@ -5,6 +5,7 @@ import { mjca, type MjcaInputTable, type MjcaMatrix } from "../src/entries/multi
 const fixture=JSON.parse(readFileSync(new URL("./fixtures/mjca.json",import.meta.url),"utf8")) as Record<string,any>;
 let maxNumericError=0;
 const comparedFixtureKeys=new Set<string>();
+const componentMismatchCounts:Record<string,number>={};
 const wg93Rows=`2343223
 3423134
 2324232
@@ -878,6 +879,7 @@ const wg93Rows=`2343223
 1222236`.split("\n").map(x=>[...x]);
 const wg93:MjcaInputTable={rows:Array.from({length:wg93Rows.length},(_,i)=>String(i+1)),cols:["A","B","C","D","sex","age","edu"],values:wg93Rows};
 const w4:MjcaInputTable={rows:wg93.rows,cols:wg93.cols.slice(0,4),values:wg93.values.map(r=>r.slice(0,4))};
+const w3:MjcaInputTable={rows:wg93.rows,cols:wg93.cols.slice(0,3),values:wg93.values.map(r=>r.slice(0,3))};
 const w60:MjcaInputTable={...w4,rows:w4.rows!.slice(0,60),values:w4.values.slice(0,60)};
 const w12:MjcaInputTable={...w4,rows:w4.rows!.slice(0,12),values:w4.values.slice(0,12)};
 const small:MjcaInputTable={rows:null,cols:["a","b","c"],values:[["x","p","u"],["y","p","v"],["x","q","v"],["z","q","u"],["y","q","u"],["x","p","v"]]};
@@ -927,7 +929,9 @@ function check(key:string,input:MjcaInputTable,options:any={}):string[]{
       if(dot<0)for(const field of [actual.colcoord,actual.colpcoord,actual.rowcoord!,actual.rowpcoord!])for(const row of field.values)row[j]=-Number(row[j]??0);
     }
   }
-  compare(actual,expected,key,errors);return errors;
+  compare(actual,expected,key,errors);
+  for(const error of errors){const component=error.slice(key.length+1).split(/[.[]/)[0]??"unknown";componentMismatchCounts[component]=(componentMismatchCounts[component]??0)+1;}
+  return errors;
 }
 
 describe("mjca",()=>{
@@ -939,8 +943,10 @@ describe("mjca",()=>{
       ...check("mjca_wg93_nd3",w4,{nd:3}),
       ...check("mjca_wg93_supcol",wg93,{supcol:[5,6,7]}),
       ...check("mjca_wg93_supcol_indicator",wg93,{supcol:[5,6,7],lambda:"indicator"}),
+      ...check("mjca_wg93_reti",w4,{lambda:"indicator",reti:true}),
       ...check("mjca_wg93_subsetcat",w4,{subsetcat:[1,2,3,4,5,11,12,13,14,15]}),
       ...check("mjca_wg93_ps",w4,{ps:"."}),
+      ...check("mjca_na",na),
     ];
     expect(errors).toEqual([]);
   });
@@ -1007,7 +1013,10 @@ describe("mjca",()=>{
       ()=>mjca([[1,2],[3,4]] as any),
     ];
     for(const run of invalid){let threw=false;try{run();}catch{threw=true;}if(!threw)errors.push("expected error");}
-    console.info("mjca fixture comparisons: "+comparedFixtureKeys.size+"/"+Object.keys(fixture).length+"; max |numeric error|="+maxNumericError.toExponential(3));
+    const nonJcaTotal=Object.keys(fixture).filter(key=>!key.includes("_JCA")&&!key.includes("_jca_")).length;
+    const behaviorCases=["mjca_small_adjusted","mjca_two_vars","mjca_one_var","mjca_unused_level","mjca_numeric_cols","mjca_wg93_crosstab"];
+    for(const key of behaviorCases)comparedFixtureKeys.add(key);
+    console.info("mjca non-JCA fixture cases: "+comparedFixtureKeys.size+"/"+nonJcaTotal+" (direct value comparisons="+(comparedFixtureKeys.size-behaviorCases.length)+", behavior/unsupported cases="+behaviorCases.length+"); mismatch counts by component="+JSON.stringify(componentMismatchCounts)+"; max |numeric error|="+maxNumericError.toExponential(3));
     expect(errors).toEqual([]);
   });
 });
