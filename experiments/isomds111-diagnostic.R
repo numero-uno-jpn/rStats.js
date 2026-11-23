@@ -1,6 +1,7 @@
 # issue: 560
 # Public MASS isoMDS sensitivity diagnostics; no package internals are inspected.
 # Re-run after the formula-stage updates; tight endpoints are compared case by case.
+# All calls use documented MASS public arguments and returned values.
 library(MASS)
 library(jsonlite)
 tab <- function(x) list(rows=rownames(x),values=unname(as.matrix(x)))
