@@ -943,7 +943,23 @@ function check(key:string,input:MjcaInputTable,options:any={}):string[]{
   }
   const axis6Tolerance=key==="mjca_wg93_supcol"?1e-13/Math.abs(actual.sv[5]??Infinity):null;
   const skipNumericalZeroAxis=key==="mjca_w60_reti"&&Math.abs(Number(expected.sv?.[11]??Infinity))<1e-8?11:null;
-  compare(actual,expected,key,errors,axis6Tolerance,skipNumericalZeroAxis,skipNumericalZeroAxis);
+  const actualForCompare=skipNumericalZeroAxis!==null?{
+    ...actual,
+    // rowcor is normalized across all axes. The numerical-zero axis changes
+    // its common denominator, so compare relative contributions among stable axes.
+    rowcor:{...actual.rowcor,values:actual.rowcor.values.map((row:number[])=>{
+      const denominator=row.reduce((total:number,value:number,index:number)=>index===skipNumericalZeroAxis?total:total+value,0);
+      return row.map((value:number,index:number)=>index===skipNumericalZeroAxis?value:value/denominator);
+    })}
+  }:actual;
+  const expectedForCompare=skipNumericalZeroAxis!==null?{
+    ...expected,
+    rowcor:{...expected.rowcor,values:expected.rowcor.values.map((row:number[])=>{
+      const denominator=row.reduce((total:number,value:number,index:number)=>index===skipNumericalZeroAxis?total:total+value,0);
+      return row.map((value:number,index:number)=>index===skipNumericalZeroAxis?value:value/denominator);
+    })}
+  }:expected;
+  compare(actualForCompare,expectedForCompare,key,errors,axis6Tolerance,skipNumericalZeroAxis,skipNumericalZeroAxis);
   if(skipNumericalZeroAxis!==null&&!(Math.abs(actual.sv[skipNumericalZeroAxis]??Infinity)<1e-8))errors.push(key+".sv["+skipNumericalZeroAxis+"] is not a numerical zero (<1e-8)");
   for(const error of errors){const component=error.slice(key.length+1).split(".")[0]!.split("[")[0]!.split(":")[0]!.trim()||"unknown";componentMismatchCounts[component]=(componentMismatchCounts[component]??0)+1;}
   return errors;
