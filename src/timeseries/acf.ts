@@ -121,6 +121,35 @@ function rescaleCovariance(value: number, sx: number, sy: number): number {
   const mantissa = value / (2 ** exponent);
   return scalePower(mantissa, Math.round(Math.log2(sx)) + Math.round(Math.log2(sy)) + exponent);
 }
+function needsStableScale(values: readonly number[], demean: boolean): boolean {
+  let max = 0, base = 0, spread = 0, found = false;
+  for (const value of values) {
+    if (!Number.isFinite(value)) continue;
+    max = Math.max(max, Math.abs(value));
+    if (!found) { base = value; found = true; }
+    spread = Math.max(spread, Math.abs(value - base));
+  }
+  if (max > 2 ** 450 || (max > 0 && max < 2 ** -450)) return true;
+  return demean && max > 2 ** 26 * Math.max(1, spread);
+}
+function covarianceRaw(x: readonly number[], y: readonly number[], lag: number, mx: number, my: number, demean: boolean, pass: boolean): number {
+  const n = x.length;
+  let sum = 0, correction = 0, count = 0;
+  const start = lag >= 0 ? 0 : -lag;
+  const end = lag >= 0 ? n - lag : n;
+  for (let t = start; t < end; t++) {
+    const a = x[t + lag]!, b = y[t]!;
+    if (Number.isNaN(a) || Number.isNaN(b)) continue;
+    const term = (demean ? a - mx : a) * (demean ? b - my : b);
+    const adjusted = term - correction;
+    const next = sum + adjusted;
+    correction = (next - sum) - adjusted;
+    sum = next;
+    count++;
+  }
+  const divisor = pass ? count + Math.abs(lag) : n;
+  return divisor ? sum / divisor : NaN;
+}
 function covariance(x: readonly number[], y: readonly number[], lag: number, pass: boolean): number {
   const n = x.length;
   let sum = 0, correction = 0, count = 0;
@@ -192,19 +221,31 @@ function build(x: number[], y: number[], options: { type: "correlation" | "covar
   validate(y, action);
   if (x.length !== y.length) throw new RangeError("time series must have the same length");
   const n = x.length, demean = options.demean ?? true;
-  const centeredX = centered(x, demean), centeredY = isCross ? centered(y, demean) : centeredX;
-  const scaleX = powerOfTwoScale(centeredX), scaleY = isCross ? powerOfTwoScale(centeredY) : scaleX;
-  const scaledX = centeredX.map((v) => v / scaleX), scaledY = isCross ? centeredY.map((v) => v / scaleY) : scaledX;
+  const stable = needsStableScale(x, demean) || (isCross && needsStableScale(y, demean));
   const limit = maxLag(n, options.lagMax, isCross || options.type !== "partial" ? 0 : 1);
-  const covs: number[] = [];
-  for (let k = 0; k <= limit; k++) covs.push(covariance(scaledX, scaledY, k, action === "pass"));
-  const first = covs[0]!;
   let values: number[];
-  if (options.type === "covariance") values = covs.map((v) => rescaleCovariance(v, scaleX, scaleY));
-  else if (n === 1 && options.type === "correlation") values = [1];
-  else {
-    const corr = covs.map((v) => v / first);
-    values = options.type === "partial" ? partial(corr) : corr;
+  if (!stable) {
+    const mx = mean(x), my = isCross ? mean(y) : mx;
+    const covs: number[] = [];
+    for (let k = 0; k <= limit; k++) covs.push(covarianceRaw(x, y, k, mx, my, demean, action === "pass"));
+    if (options.type === "covariance") values = covs;
+    else if (n === 1 && options.type === "correlation") values = [1];
+    else {
+      const corr = covs.map((v) => v / covs[0]!);
+      values = options.type === "partial" ? partial(corr) : corr;
+    }
+  } else {
+    const centeredX = centered(x, demean), centeredY = isCross ? centered(y, demean) : centeredX;
+    const scaleX = powerOfTwoScale(centeredX), scaleY = isCross ? powerOfTwoScale(centeredY) : scaleX;
+    const scaledX = centeredX.map((v) => v / scaleX), scaledY = isCross ? centeredY.map((v) => v / scaleY) : scaledX;
+    const covs: number[] = [];
+    for (let k = 0; k <= limit; k++) covs.push(covariance(scaledX, scaledY, k, action === "pass"));
+    if (options.type === "covariance") values = covs.map((v) => rescaleCovariance(v, scaleX, scaleY));
+    else if (n === 1 && options.type === "correlation") values = [1];
+    else {
+      const corr = covs.map((v) => v / covs[0]!);
+      values = options.type === "partial" ? partial(corr) : corr;
+    }
   }
   const lag = options.type === "partial" ? Array.from({ length: limit }, (_, i) => i + 1) : Array.from({ length: limit + 1 }, (_, i) => i);
   const ci = options.ci ?? 0.95;
@@ -247,21 +288,33 @@ export function ccf(xInput: readonly number[] | readonly (readonly number[])[], 
   const action = options.naAction ?? "fail";
   validate(x, action); validate(y, action);
   if (x.length !== y.length) throw new RangeError("time series must have the same length");
-  const n = x.length;
-  const demean = options.demean ?? true;
-  const centeredX = centered(x, demean), centeredY = centered(y, demean);
-  const scaleX = powerOfTwoScale(centeredX), scaleY = powerOfTwoScale(centeredY);
-  const scaledX = centeredX.map((v) => v / scaleX), scaledY = centeredY.map((v) => v / scaleY);
+  const n = x.length, demean = options.demean ?? true;
+  const stable = needsStableScale(x, demean) || needsStableScale(y, demean);
   const requested = options.lagMax ?? Math.max(0, Math.floor(10 * Math.log10(n / 2)));
   const limit = maxLag(n, requested, 0);
-  const xx = covariance(scaledX, scaledX, 0, action === "pass");
-  const yy = covariance(scaledY, scaledY, 0, action === "pass");
-  const divisor = type === "correlation" ? Math.sqrt(xx) * Math.sqrt(yy) : 1;
   const lag: number[] = [], values: number[] = [];
-  for (let k = -limit; k <= limit; k++) {
-    lag.push(k);
-    const v = covariance(scaledX, scaledY, k, action === "pass");
-    values.push(type === "correlation" ? v / divisor : rescaleCovariance(v, scaleX, scaleY));
+  if (!stable) {
+    const mx = mean(x), my = mean(y);
+    const xx = covarianceRaw(x, x, 0, mx, mx, demean, action === "pass");
+    const yy = covarianceRaw(y, y, 0, my, my, demean, action === "pass");
+    const divisor = type === "correlation" ? Math.sqrt(xx) * Math.sqrt(yy) : 1;
+    for (let k = -limit; k <= limit; k++) {
+      lag.push(k);
+      const v = covarianceRaw(x, y, k, mx, my, demean, action === "pass");
+      values.push(type === "correlation" ? v / divisor : v);
+    }
+  } else {
+    const centeredX = centered(x, demean), centeredY = centered(y, demean);
+    const scaleX = powerOfTwoScale(centeredX), scaleY = powerOfTwoScale(centeredY);
+    const scaledX = centeredX.map((v) => v / scaleX), scaledY = centeredY.map((v) => v / scaleY);
+    const xx = covariance(scaledX, scaledX, 0, action === "pass");
+    const yy = covariance(scaledY, scaledY, 0, action === "pass");
+    const divisor = type === "correlation" ? Math.sqrt(xx) * Math.sqrt(yy) : 1;
+    for (let k = -limit; k <= limit; k++) {
+      lag.push(k);
+      const v = covariance(scaledX, scaledY, k, action === "pass");
+      values.push(type === "correlation" ? v / divisor : rescaleCovariance(v, scaleX, scaleY));
+    }
   }
   const ci = options.ci ?? 0.95;
   if (!Number.isFinite(ci) || ci <= 0 || ci >= 1) throw new RangeError("'ci' must be between 0 and 1");
