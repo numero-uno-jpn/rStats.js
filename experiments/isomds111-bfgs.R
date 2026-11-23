@@ -53,7 +53,9 @@ for (nm in c("swiss", "eurodist")) {
   first <- identical(unname(R[[2]]), unname(B[[1]]))
   cat(nm, "first step bitwise identical (R maxit=2 vs BFGS 1):", first,
       "; max abs error:", format(max(abs(R[[2]] - B[[1]])), digits = 17), "\n")
+  stopifnot(first)
   absolute <- sapply(1:12, function(k) max(abs(R[[k + 1]] - B[[k]])))
+  stopifnot(max(absolute[1:11]) <= 1e-11)
   relative <- sapply(1:12, function(k) absolute[k] / max(abs(R[[k + 1]])))
   cat(nm, "absolute max errors k=1..12:", sprintf("%.3e", absolute), "\n")
   cat(nm, "relative max errors k=1..12:", sprintf("%.3e", relative), "\n")
