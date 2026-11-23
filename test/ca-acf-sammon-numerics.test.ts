@@ -205,6 +205,7 @@ describe("A: requested large-input timings (also logged by CI)", () => {
     };
     const long = Array.from({ length: 100000 }, (_, i) => Math.sin(i * 0.01) + Math.cos(i * 0.003));
     expect(timed("acf_100k_lag100", () => acf(long, { lagMax: 100 })).acf).toHaveLength(101);
+    expect(timed("pacf_100k_lag100", () => pacf(long, { lagMax: 100 })).acf).toHaveLength(100);
 
     const caTable = Array.from({ length: 1000 }, (_, i) => Array.from({ length: 50 }, (_, j) => 1 + ((i * 17 + j * 31) % 97)));
     expect(timed("ca_1000x50", () => ca(caTable)).sv.length).toBeGreaterThan(0);
