@@ -134,7 +134,16 @@ export function mjca(input:MjcaInputTable,options:MjcaOptions={}):MjcaFit {
     if(at!==undefined)return activeCoords[at]!;
     const profile=activePositions.map(j=>burt[i]![j]!),count=sum(profile);
     if(!(count>0))throw new RangeError("empty supplementary category");
-    return singular.map((_,k)=>sum(profile.map((v,j)=>v*activeCoords[j]![k]!))/count);
+    return singular.map((_,k)=>{
+      let total=0,correction=0;
+      for(let j=0;j<profile.length;j++){
+        const product=profile[j]!*activeCoords[j]![k]!;
+        const adjusted=product-correction,next=total+adjusted;
+        correction=(next-total)-adjusted;
+        total=next;
+      }
+      return total/count;
+    });
   });
   const rowDist=rowMass.map((_,i)=>Math.sqrt(sum(activeTable[i]!.map((v,j)=>((v/rowTotals[i]!-activeMass[j]!)**2)/activeMass[j]!))));
   const rowInertia=rowMass.map((v,i)=>v*rowDist[i]!*rowDist[i]!);
@@ -160,14 +169,9 @@ export function mjca(input:MjcaInputTable,options:MjcaOptions={}):MjcaFit {
     activePosition.has(chosenCats[i]!.global)?allColCoords[i]![j]!*modeSv[j]!:v
   ));
   const colCorDistance2=chosenCats.map((c,i)=>{
-    if(lambda!=="adjusted")return sum(colPrincipal[i]!.map(v=>v*v));
+    if(lambda!=="adjusted"||!activePosition.has(c.global))return sum(colPrincipal[i]!.map(v=>v*v));
     const q=activeQ,threshold=1/q,factor=q/(q-1);
-    const standard=coords[i]!.map((v,j)=>{
-      if(activePosition.has(c.global))return v;
-      const adjustedSv=factor*(singular[j]!*singular[j]!-threshold);
-      return adjustedSv===0?0:v/adjustedSv;
-    });
-    return factor*sum(standard.map((v,j)=>v*v*(singular[j]!*singular[j]!-threshold)**2));
+    return factor*sum(coords[i]!.map((v,j)=>v*v*(singular[j]!*singular[j]!-threshold)**2));
   });
   const colStats=coordinateStats(allColCoords,colMass,colPrincipal,colCorDistance2);
   const levelnames=chosenCats.map(c=>raw.cols[c.factor]!+(options.ps??":")+c.level);
