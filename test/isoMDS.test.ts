@@ -117,6 +117,8 @@ describe("isoMDS", () => {
     compare("isomds_small", isoMDS(ds));
     compare("isomds_small_k1", isoMDS(ds, { k: 1 }), 1e-5);
     compare("isomds_perfect", isoMDS(dist(small.map((r) => r.slice(0, 2)), { labels: smallLabels })));
+    const smallDistanceMatrix=small.map((a)=>small.map((b)=>Math.sqrt(a.reduce((sum,v,j)=>sum+(v-b[j]!)**2,0))));
+    compare("isomds_matrix",isoMDS(asDist(smallDistanceMatrix,{labels:smallLabels})));
     compare("isomds_line", isoMDS(dist([0, 1, 3, 6, 10]), { k: 1 }));
     compare("isomds_three", isoMDS(dist([0, 1, 3]), { k: 1 }));
     compare("isomds_two", isoMDS(dist([0, 1]), { k: 1 }));
@@ -140,6 +142,7 @@ describe("isoMDS", () => {
     const base = isoMDS(ds);
     const scaledD = { ...ds, values: ds.values.map((v) => v * 1e150) };
     const scaled = isoMDS(scaledD);
+    compare("isomds_scale",scaled);
     if (Math.abs(base.stress - scaled.stress) > 1e-8) mismatches.push("stress changed under dissimilarity scaling");
     for (let i = 0; i < base.points.values.length; i++) for (let j = 0; j < base.points.values[i]!.length; j++) {
       const rel = Math.abs(scaled.points.values[i]![j]! / 1e150 - base.points.values[i]![j]!) / Math.max(1, Math.abs(base.points.values[i]![j]!));
@@ -149,13 +152,13 @@ describe("isoMDS", () => {
       ["isomds_zero_distance", () => isoMDS(dist([1, 1, 2, 5]), { k: 1 })],
       ["isomds_negative", () => isoMDS(asDist([[0, -1, 2], [-1, 0, 3], [2, 3, 0]]), { k: 1 })],
       ["isomds_na", () => isoMDS(asDist([[0, 1, NaN, 1], [1, 0, 2, 3], [NaN, 2, 0, 1], [1, 3, 1, 0]]), { k: 1 })],
-      ["isomds_matrix", () => isoMDS([[0, 1], [1, 0]], { k: 1 })],
       ["isomds_k_too_big", () => isoMDS(ds, { k: 5 })],
       ["isomds_swiss_y_wrong", () => isoMDS(ds, { y: [[1, 2], [3, 4]] })],
     ];
     for (const [key, action] of errors) {
       if (!fixture[key]?.error) { mismatches.push(key + ": missing error fixture"); continue; }
       try { action(); mismatches.push(key + ": expected error"); } catch { /* expected */ }
+      comparedFixtures.add(key);
     }
     expect(mismatches).toEqual([]);
   });
@@ -176,14 +179,14 @@ describe("isoMDS: swiss, eurodist and USArrests R fixtures", () => {
     compare("isomds_swiss", isoMDS(swissD));
     compare("isomds_swiss_k3", isoMDS(swissD, { k: 3 }));
     compare("isomds_swiss_maxit5", isoMDS(swissD, { maxit: 5 }));
-    const zero = isoMDS(swissD, { maxit: 0 });
-    close("isomds_swiss_maxit0.stress", zero.stress, num(fixture.isomds_swiss_maxit0.value.stress), 1e-8);
+    compare("isomds_swiss_maxit0", isoMDS(swissD, { maxit: 0 }));
     compare("isomds_swiss_tol", isoMDS(swissD, { tol: 1e-8, maxit: 500 }), 1e-6);
     compare("isomds_swiss_p1", isoMDS(swissD, { p: 1 }));
     compare("isomds_swiss_p3", isoMDS(swissD, { p: 3 }));
     compare("isomds_swiss_y", isoMDS(swissD, { y: swissData.map((r) => [r[1]!, r[2]!]) }));
     compare("isomds_swiss_y_k1", isoMDS(swissD, { y: swissData.map((r) => [r[0]!]), k: 1 }));
     try { isoMDS(swissD, { y: swissData.slice(0, 10).map((r) => r.slice(0, 2)) }); mismatches.push("isomds_swiss_y_wrong: expected error"); } catch { /* expected */ }
+    comparedFixtures.add("isomds_swiss_y_wrong");
     compare("isomds_swiss_trace", isoMDS(swissD, { maxit: 3 }));
     compare("isomds_eurodist", isoMDS(euroD));
     compare("isomds_usarrests", isoMDS(usD));
@@ -231,6 +234,7 @@ describe("isoMDS: swiss, eurodist and USArrests R fixtures", () => {
     }
     const y0 = cmdscale(swissD).points.values.map((r) => r.map((v) => v * 1e100));
     const yScaled = isoMDS(swissD, { y: y0 });
+    compare("isomds_scale_y",yScaled);
     close("isomds_scale_y stress", yScaled.stress, base.stress, 1e-8);
     const errors: Array<[string, () => unknown]> = [
       ["isomds_zero_distance", () => isoMDS(dist([1, 1, 2, 5]), { k: 1 })],
