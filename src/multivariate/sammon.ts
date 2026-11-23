@@ -64,9 +64,13 @@ function parseD(input:DistResult|SammonMatrixInput|readonly (readonly number[])[
       const m=input as SammonMatrixInput,n=m.values.length;
       if(n<2||m.values.some(row=>row.length!==n))throw new RangeError("dissimilarity matrix must be square");
       values=m.values.map(row=>Array.from(row));
+      if(values.some((row,i)=>row[i]!==0))throw new RangeError("dissimilarity matrix diagonal must be zero");
       labels=m.rows??m.cols;
       if(labels!==null&&labels.length!==n)throw new RangeError("invalid dissimilarity labels");
-      for(let i=0;i<n;i++)for(let j=i+1;j<n;j++)condensed.push(values[i]![j]!);
+      for(let i=0;i<n;i++)for(let j=i+1;j<n;j++){
+        if(!Number.isFinite(values[i]![j]!)||values[i]![j]!==values[j]![i])throw new RangeError("dissimilarity matrix must be finite and symmetric");
+        condensed.push(values[i]![j]!);
+      }
     }
   }
   for(let i=0;i<values.length;i++)for(let j=i+1;j<values.length;j++){
