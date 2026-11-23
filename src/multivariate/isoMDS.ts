@@ -263,6 +263,13 @@ export function isoMDS(
   let x = flatten(y);
   let current = evaluate(y, built.pairs, groups, p);
   const trace: IsoMDSTrace[] = [{ iteration: 0, stress: current.stress, converged: current.stress === 0 || maxit === 0 }];
+  const recordProgress = (iteration: number, stress: number): void => {
+    const previous = trace[trace.length - 1];
+    // R's printed progress is to six decimals; repeated internal steps that
+    // print the same iteration and value are one observable progress record.
+    if (previous?.iteration === iteration && previous.stress.toFixed(6) === stress.toFixed(6)) return;
+    trace.push({ iteration, stress, converged: false });
+  };
   let converged = current.stress === 0 || maxit === 0;
   let lastIter = 0;
   const size = x.length;
@@ -333,7 +340,7 @@ export function isoMDS(
     y = accepted.y;
     current = accepted.evaluation;
     failedSearchWasReset = false;
-    if (iteration % 5 === 0) trace.push({ iteration, stress: current.stress, converged: false });
+    if (iteration % 5 === 0) recordProgress(iteration, current.stress);
     const relativeChange = (previousStress - current.stress) / Math.max(Math.abs(previousStress), Number.MIN_VALUE);
     if (current.stress === 0) {
       converged = true;
@@ -354,13 +361,13 @@ export function isoMDS(
           // the threshold point and this final point appear under that number.
           const reportIteration = iteration % 5 === 0 ? iteration : iteration - 1;
           if (iteration % 5 !== 0 && reportIteration % 5 === 0) {
-            trace.push({ iteration: reportIteration, stress: current.stress, converged: false });
+            recordProgress(reportIteration, current.stress);
           }
           x = finalStep.x;
           y = finalStep.y;
           current = finalStep.evaluation;
           if (reportIteration % 5 === 0) {
-            trace.push({ iteration: reportIteration, stress: current.stress, converged: false });
+            recordProgress(reportIteration, current.stress);
           }
           lastIter = reportIteration;
         }
