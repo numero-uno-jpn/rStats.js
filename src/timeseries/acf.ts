@@ -58,9 +58,22 @@ function validate(values: readonly number[], action: AcfNaAction): void {
   if (action === "fail" && values.some(Number.isNaN)) throw new RangeError("missing values in object");
 }
 function mean(values: readonly number[]): number {
-  let sum = 0, count = 0;
-  for (const v of values) if (!Number.isNaN(v)) { sum += v; count++; }
-  return count ? sum / count : NaN;
+  const valid = values.filter((v) => !Number.isNaN(v));
+  if (valid.length === 0) return NaN;
+  if (valid.some((v) => !Number.isFinite(v))) {
+    let sum = 0;
+    for (const v of valid) sum += v;
+    return sum / valid.length;
+  }
+  const base = valid[0]!;
+  let sum = 0, correction = 0;
+  for (const v of valid) {
+    const y = (v - base) - correction;
+    const next = sum + y;
+    correction = (next - sum) - y;
+    sum = next;
+  }
+  return base + sum / valid.length;
 }
 function maxLag(n: number, value: number | undefined, minimum: number): number {
   const requested = value === undefined ? Math.floor(10 * Math.log10(n)) : value;
@@ -69,13 +82,17 @@ function maxLag(n: number, value: number | undefined, minimum: number): number {
 }
 function covariance(x: readonly number[], y: readonly number[], lag: number, mx: number, my: number, demean: boolean, pass: boolean): number {
   const n = x.length;
-  let sum = 0, count = 0;
+  let sum = 0, correction = 0, count = 0;
   const start = lag >= 0 ? 0 : -lag;
   const end = lag >= 0 ? n - lag : n;
   for (let t = start; t < end; t++) {
     const a = x[t + lag]!, b = y[t]!;
     if (Number.isNaN(a) || Number.isNaN(b)) continue;
-    sum += (demean ? a - mx : a) * (demean ? b - my : b);
+    const term = (demean ? a - mx : a) * (demean ? b - my : b);
+    const adjusted = term - correction;
+    const next = sum + adjusted;
+    correction = (next - sum) - adjusted;
+    sum = next;
     count++;
   }
   const divisor = pass ? count + Math.abs(lag) : n;
@@ -110,13 +127,12 @@ function build(x: number[], y: number[], options: { type: "correlation" | "covar
   const limit = maxLag(n, options.lagMax, isCross || options.type !== "partial" ? 0 : 1);
   const covs: number[] = [];
   const first = covariance(x, y, 0, mx, my, demean, action === "pass");
-  const second = isCross ? covariance(y, y, 0, my, my, demean, action === "pass") : first;
   for (let k = 0; k <= limit; k++) covs.push(covariance(x, y, k, mx, my, demean, action === "pass"));
   let values: number[];
   if (options.type === "covariance") values = covs;
+  else if (n === 1 && options.type === "correlation") values = [1];
   else {
-    const scale = isCross ? Math.sqrt(first * second) : first;
-    const corr = covs.map((v) => v / scale);
+    const corr = covs.map((v) => v / first);
     values = options.type === "partial" ? partial(corr) : corr;
   }
   const lag = options.type === "partial" ? Array.from({ length: limit }, (_, i) => i + 1) : Array.from({ length: limit + 1 }, (_, i) => i);
@@ -161,7 +177,9 @@ export function ccf(xInput: readonly number[] | readonly (readonly number[])[], 
   const action = options.naAction ?? "fail";
   validate(x, action); validate(y, action);
   if (x.length !== y.length) throw new RangeError("time series must have the same length");
-  const n = x.length, limit = maxLag(n, options.lagMax, 0);
+  const n = x.length;
+  const requested = options.lagMax ?? Math.min(15, Math.floor(n / 2) + 1);
+  const limit = maxLag(n, requested, 0);
   const demean = options.demean ?? true, mx = mean(x), my = mean(y);
   const xx = covariance(x, x, 0, mx, mx, demean, action === "pass");
   const yy = covariance(y, y, 0, my, my, demean, action === "pass");
