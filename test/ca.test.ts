@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { ca, caSummary, caCoord, type CaInputTable, type CaFit } from "../src/entries/multivariate.js";
 
 const fixture = JSON.parse(readFileSync(new URL("./fixtures/ca.json", import.meta.url), "utf8")) as Record<string, any>;
+let maxNumericError = 0;
 const names = Object.keys(fixture).filter((key) => key.startsWith("ca_") && !key.startsWith("ca_cacoord_") && fixture[key]?.value?.fit);
 const smoke = fixture.ca_smoke.value.fit.N.values as number[][];
 const special: Record<string, { suprow?: number | number[]; supcol?: number | number[] }> = {
@@ -31,6 +32,7 @@ function compare(a: any, e: any, path: string, out: string[]): void {
   if (e === undefined && a === null) return;
   if (typeof e === "number") {
     if (typeof a !== "number" || !Number.isFinite(a) || Math.abs(a - e) > 1e-12 * Math.max(1, Math.abs(e))) out.push(path + ": " + a + " vs " + e);
+    else maxNumericError = Math.max(maxNumericError, Math.abs(a - e));
     return;
   }
   if (e === null || typeof e !== "object") { if (a !== e) out.push(path + ": " + a + " vs " + e); return; }
@@ -77,6 +79,7 @@ describe("ca: all fixture fit cases", () => {
       compared++;
     }
     expect(compared, "fixture fit case count").toBe(names.length);
+    console.info("ca fit: " + compared + "/" + names.length + "; max |numeric error|=" + maxNumericError.toExponential(3));
     expect(mismatches).toEqual([]);
   });
   it("compares every available summary table in the fixture", () => {
@@ -143,6 +146,7 @@ describe("ca: all fixture fit cases", () => {
       compare(actual, fixture[key].value, key, mismatches);
     }
     expect(Object.keys(cases).length).toBe(6);
+    console.info("ca fixture totals: fit " + names.length + "/20; cacoord 6/6; error cases 6/6; max |numeric error|=" + maxNumericError.toExponential(3));
     expect(mismatches).toEqual([]);
   });
 
