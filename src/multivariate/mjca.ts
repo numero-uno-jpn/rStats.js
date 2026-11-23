@@ -93,7 +93,7 @@ export function mjca(input:MjcaInputTable,options:MjcaOptions={}):MjcaFit {
   const chosenCats=selectedSet?cats.filter(c=>selectedSet.has(c.global)):cats;
   // subsetcat selects output categories; the active MCA geometry still uses
   // every category of every active variable.
-  const activeCats=chosenCats.filter(c=>!supVarSet.has(c.factor));
+  const activeCats=cats.filter(c=>!supVarSet.has(c.factor));
   const rowCats=cats.filter(c=>!supVarSet.has(c.factor));
   const supCats=chosenCats.filter(c=>supVarSet.has(c.factor));
   const activeQ=Q-supVars.length,activeJ=activeCats.length;
