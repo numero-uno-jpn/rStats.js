@@ -10,3 +10,4 @@ export { cmdscale, type CmdscaleOptions, type CmdscaleResult, type CmdscaleInput
 export { isoMDS, type IsoMDSOptions, type IsoMDSResult, type IsoMDSTrace, type IsoMDSMatrix } from "../multivariate/isoMDS.js";
 
 export { ca, caSummary, caCoord, type CaFit, type CaOptions, type CaInputTable, type CaSummary, type CaCoordOptions, type CaMatrix } from "../multivariate/ca.js";
+export { mjca, type MjcaFit, type MjcaInputTable, type MjcaOptions, type MjcaMatrix } from "../multivariate/mjca.js";
