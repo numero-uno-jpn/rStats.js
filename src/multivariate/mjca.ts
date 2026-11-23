@@ -64,9 +64,6 @@ function orient(rows:number[][],cols:number[][]):void {
     if((rows[at]?.[j]??0)<0){for(const r of rows)r[j]=-r[j]!;for(const r of cols)r[j]=-r[j]!;}
   }
 }
-function matrixColumns(x:CaMatrix,indices:number[]):number[][] {
-  return x.values.map(row=>indices.map(j=>row[j]??0));
-}
 function coordinateStats(coords:number[][],mass:number[],dist:number[],sv:number[]):{principal:number[][];ctr:number[][];cor:number[][]} {
   const principal=coords.map(row=>row.map((v,j)=>v*(sv[j]??0)));
   const ctr=coords.map((row,i)=>row.map(v=>mass[i]!*v*v));
