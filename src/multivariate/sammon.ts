@@ -152,7 +152,7 @@ export function sammon(
   }
   if(y.some(row=>row.some(v=>!Number.isFinite(v))))throw new RangeError("initial configuration must be finite");
   for(let i=0;i<n-1;i++)for(let j=i+1;j<n;j++)if(distance(y[i]!,y[j]!)===0)throw new RangeError("duplicate points in initial configuration");
-  const d=parsed.condensed;
+  let d=parsed.condensed;
   // Work in units of the largest dissimilarity only outside the safe square
   // range. This keeps the ordinary fixture operation order unchanged while
   // preventing d^2 and r^3 from overflowing or underflowing at 2^±1000.
