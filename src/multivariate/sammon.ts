@@ -160,7 +160,7 @@ export function sammon(input:DistResult|SammonMatrixInput|readonly (readonly num
       if(candidateStress<current){nextY=candidate;nextStress=candidateStress;accepted=true;break;}
       magic*=0.2;
     }
-    if(!accepted){reason="backtracking";break;}
+    if(!accepted){reason="backtracking";iteration=step;break;}
     y=nextY;current=nextStress;iteration=step;
     magic=Math.min(0.5,magic*1.5);
     if(step%10===0)trace.push({iteration:step,stress:current});
