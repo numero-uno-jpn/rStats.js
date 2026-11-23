@@ -83,7 +83,7 @@ function fit(input:readonly (readonly number[])[]|CaInputTable, options:CaOption
 export function ca(input:readonly (readonly number[])[]|CaInputTable,options:CaOptions={}):CaFit{return fit(input,options);}
 
 function summaryTable(names:string[]|null,mass:number[],dist:number[],inertia:number[],coords:number[][],sv:number[]):CaMatrix {
-  const totalInertia=sum(sv.map(v=>v*v)), axes=Math.min(2,sv.length);
+  const totalInertia=sum(sv.map(v=>v*v)), requested=result.nd==="NA"?2:result.nd, axes=Math.min(requested,sv.length);
   const headers=["name","mass"," qlt"," inr"];
   for(let k=0;k<axes;k++)headers.push(" k="+(k+1),"cor","ctr");
   const rows=mass.map((m,i)=>{
@@ -128,7 +128,7 @@ export function caCoord(result:CaFit,options:CaCoordOptions={}):CaMatrix|{rows:C
   if(type==="rowgreen") {rm="principal";cm="green";}
   if(type==="colgreen") {rm="green";cm="principal";}
   const rows=make(result.rowcoord.values,result.rowmass,"row",rm),columns=make(result.colcoord.values,result.colmass,"col",cm);
-  if(type==="standard")return {rows,columns};
-  if(type==="principal"||type==="symmetric")return {rows,columns};
+  if(options.rows===true&&options.cols!==true)return rows;
+  if(options.cols===true&&options.rows!==true)return columns;
   return {rows,columns};
 }
