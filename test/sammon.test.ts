@@ -146,6 +146,15 @@ describe("sammon",()=>{
       ["tight_small_k1",smallD,{k:1,niter:0}],["tight_non_euclidean",fromMatrix(nonE),{niter:0}],
       ["tight_line",dist([[0],[1],[3],[6],[10]]),{k:1,niter:0}],["tight_grid",dist(grid,gridLabels),{y:gridY,niter:0}],
     ];
+    const finalMismatches:string[]=[];
+    for(const [key,d,options={}] of valid){
+      const tight=key.startsWith("tight_");
+      const finalOptions=tight?{...options,niter:1e5,tol:1e-14}:options;
+      finalMismatches.push(...check(key,d,finalOptions,tight));
+    }
+    console.info("sammon final fit comparisons: "+comparedFixtureKeys.size+"/36 valid cases; max relative final-stress error="+maxRelativeStressError.toExponential(3)+"; max |coordinate error|="+maxCoordinateError.toExponential(3));
+    if(comparedFixtureKeys.size!==36)finalMismatches.push("compared "+comparedFixtureKeys.size+" distinct valid fixtures, expected 36");
+    expect(finalMismatches).toEqual([]);
     const errors:Array<[string,()=>unknown]>=[
       ["sammon_swiss_y_k1",()=>sammon(swissD,{y:swissData.map(r=>[r[0]!]),k:1,niter:0})],
       ["sammon_swiss_y_wrong_rows",()=>sammon(swissD,{y:swissData.slice(0,10).map(r=>r.slice(0,2)),niter:0})],
