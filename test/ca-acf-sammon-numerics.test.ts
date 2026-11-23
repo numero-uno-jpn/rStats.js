@@ -6,7 +6,9 @@ function close(a: number, b: number, tolerance = 1e-11): void {
   expect(Math.abs(a - b)).toBeLessThanOrEqual(tolerance * Math.max(1, Math.abs(b)));
 }
 function maxDifference(a: readonly number[], b: readonly number[]): number {
-  return Math.max(0, ...a.map((v, i) => Math.abs(v - b[i]!)));
+  let maximum = 0;
+  for (let i = 0; i < a.length; i++) maximum = Math.max(maximum, Math.abs(a[i]! - b[i]!));
+  return maximum;
 }
 function distFromPoints(points: readonly (readonly number[])[]): DistResult {
   const values: number[] = [];
