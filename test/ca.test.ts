@@ -31,6 +31,9 @@ function align(actual: CaFit, expected: any): void {
 }
 function compare(a: any, e: any, path: string, out: string[]): void {
   if (e === "NA") { if (a !== "NA" && !(typeof a === "number" && Number.isNaN(a))) out.push(path + ": expected NA"); return; }
+  if (e === "NaN") { if (!(typeof a === "number" && Number.isNaN(a))) out.push(path + ": expected NaN"); return; }
+  if (e === "Inf") { if (a !== Infinity) out.push(path + ": expected Inf"); return; }
+  if (e === "-Inf") { if (a !== -Infinity) out.push(path + ": expected -Inf"); return; }
   if (e === undefined && a === null) return;
   if (typeof e === "number") {
     if (typeof a !== "number" || !Number.isFinite(a)) out.push(path + ": " + a + " vs " + e);
