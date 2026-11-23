@@ -66,10 +66,13 @@ function orient(rows:number[][],cols:number[][]):void {
     if((rows[at]?.[j]??0)<0){for(const r of rows)r[j]=-r[j]!;for(const r of cols)r[j]=-r[j]!;}
   }
 }
-function coordinateStats(coords:number[][],mass:number[],dist:number[],sv:number[]):{principal:number[][];ctr:number[][];cor:number[][]} {
+function coordinateStats(coords:number[][],mass:number[],sv:number[]):{principal:number[][];ctr:number[][];cor:number[][]} {
   const principal=coords.map(row=>row.map((v,j)=>v*(sv[j]??0)));
   const ctr=coords.map((row,i)=>row.map(v=>mass[i]!*v*v));
-  const cor=principal.map((row,i)=>row.map(v=>dist[i]===0?0:v*v/(dist[i]!*dist[i]!)));
+  const cor=principal.map(row=>{
+    const distance2=sum(row.map(v=>v*v));
+    return row.map(v=>distance2===0?0:v*v/distance2);
+  });
   return {principal,ctr,cor};
 }
 
@@ -122,7 +125,8 @@ export function mjca(input:MjcaInputTable,options:MjcaOptions={}):MjcaFit {
   if(!(burtTotal>0)||activeBurtRowTotals.some(v=>v<=0))throw new RangeError("empty active Burt table");
   const burtMass=activeBurtRowTotals.map(v=>v/burtTotal);
   const colMass=chosenCats.map(c=>{const at=activePosition.get(c.global);return at===undefined?NaN:burtMass[at]!;});
-  const colDist=chosenCats.map((_,i)=>{
+  const colDist=chosenCats.map((c,i)=>{
+    if(!activePosition.has(c.global))return NaN;
     const profile=activePositions.map(j=>burt[i]![j]!),count=sum(profile);
     if(!(count>0))throw new RangeError("empty category profile");
     return Math.sqrt(sum(profile.map((v,j)=>((v/count-burtMass[j]!)**2)/burtMass[j]!)));
@@ -146,8 +150,13 @@ export function mjca(input:MjcaInputTable,options:MjcaOptions={}):MjcaFit {
   const modeSv=lambda==="indicator"?singular:lambda==="Burt"?eig:positive;
   const inertiaT=lambda==="adjusted"?adjustedTotal:lambda==="indicator"?sum(eig):burtInertia;
   const inertiaE=modeSv.map(v=>inertiaT===0?0:v*v/inertiaT);
-  const axisCount=modeSv.length,allColCoords=coords.map(row=>row.slice(0,axisCount));
-  const colStats=coordinateStats(allColCoords,colMass,colDist,modeSv);
+  const axisCount=modeSv.length;
+  // Active category projections are standard coordinates; supplementary
+  // category projections are principal coordinates and must be standardized.
+  const allColCoords=coords.map((row,i)=>row.slice(0,axisCount).map((v,j)=>
+    activePosition.has(chosenCats[i]!.global)?v:(modeSv[j]===0?0:v/modeSv[j]!)
+  ));
+  const colStats=coordinateStats(allColCoords,colMass,modeSv);
   const levelnames=chosenCats.map(c=>raw.cols[c.factor]!+(options.ps??":")+c.level);
   const factorRows=chosenCats.map(c=>raw.cols[c.factor]!+String(allLevels[c.factor]!.indexOf(c.level)+1));
   const factorVals=chosenCats.map(c=>[raw.cols[c.factor]!,c.level]);
