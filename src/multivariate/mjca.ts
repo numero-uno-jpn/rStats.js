@@ -94,7 +94,7 @@ export function mjca(input:MjcaInputTable,options:MjcaOptions={}):MjcaFit {
   const activeCats=chosenCats.filter(c=>!supVarSet.has(c.factor));
   const rowCats=cats.filter(c=>!supVarSet.has(c.factor));
   const supCats=chosenCats.filter(c=>supVarSet.has(c.factor));
-  const activeQ=Q-supVars.length,activeJ=activeCats.length;
+  const activeVars=Array.from(new Set(activeCats.map(c=>c.factor))),activeQ=activeVars.length,activeJ=activeCats.length;
   if(activeQ<2||activeJ<2)throw new RangeError("at least two active categorical variables are required");
   const indicator=raw.data.map(row=>chosenCats.map(c=>row[c.factor]===c.level?1:0));
   const activeTable=raw.data.map(row=>activeCats.map(c=>row[c.factor]===c.level?1:0));
@@ -205,8 +205,8 @@ export function mjca(input:MjcaInputTable,options:MjcaOptions={}):MjcaFit {
   const rowPcoords=rowCoords0.map(row=>row.slice(0,axisCount).map((v,j)=>v*singular[j]!));
   const rowCoords=rowPcoords.map(row=>row.map((v,j)=>modeSv[j]===0?0:v/modeSv[j]!));
   const rowCtr=rowCoords0.map((row,i)=>row.map(v=>rowMass[i]!*v*v));
-  const rowCor=rowPcoords.map((row,i)=>{
-    const distance2=rowDist[i]!*rowDist[i]!;
+  const rowCor=rowPcoords.map(row=>{
+    const distance2=sum(row.map(v=>v*v));
     return row.map(v=>distance2===0?0:v*v/distance2);
   });
   const colsup=supCats.length?supCats.map(c=>chosenCats.findIndex(x=>x.global===c.global)+1):"NA";
