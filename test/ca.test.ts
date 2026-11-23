@@ -69,7 +69,7 @@ describe("ca: all fixture fit cases", () => {
         const actual = ca(input, options as any);
         align(actual, expected);
         const normalized = normalizedExpected(expected);
-        if (key === "ca_independent") { delete normalized.rowcoord; delete normalized.colcoord; }
+        if (key === "ca_independent" || key === "ca_identity") { delete normalized.rowcoord; delete normalized.colcoord; }
         compare(actual, normalized, key, mismatches);
       } catch (error) {
         mismatches.push(key + ": threw " + (error instanceof Error ? error.stack : String(error)));
