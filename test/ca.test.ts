@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
-import { ca, caSummary, type CaInputTable, type CaFit } from "../src/entries/multivariate.js";
+import { ca, caSummary, caCoord, type CaInputTable, type CaFit } from "../src/entries/multivariate.js";
 
 const fixture = JSON.parse(readFileSync(new URL("./fixtures/ca.json", import.meta.url), "utf8")) as Record<string, any>;
 const names = Object.keys(fixture).filter((key) => key.startsWith("ca_") && !key.startsWith("ca_cacoord_") && fixture[key]?.value?.fit);
@@ -94,6 +94,47 @@ describe("ca: all fixture fit cases", () => {
       compared++;
     }
     expect(compared).toBeGreaterThan(0);
+    expect(mismatches).toEqual([]);
+  });
+
+  it("checks every R error fixture", () => {
+    const bad: Record<string, { input: CaInputTable; options?: Record<string, unknown> }> = {
+      ca_zero_row: { input: { rows: null, cols: null, values: [...smoke, [0, 0, 0, 0]] } },
+      ca_zero_col: { input: { rows: null, cols: null, values: smoke.map(row => [...row, 0]) } },
+      ca_negative: { input: { rows: null, cols: null, values: [[1, 3, 5], [-2, 4, 6]] } },
+      ca_na: { input: { rows: null, cols: null, values: [[1, 3, 5], [Number.NaN, 4, 6]] } },
+      ca_suprow_only_one_left: { input: { rows: null, cols: null, values: [[10, 30], [20, 5]] }, options: { suprow: 1 } },
+      ca_suprow_names: { input: { rows: null, cols: null, values: smoke }, options: { suprow: "SE" } },
+    };
+    const mismatches: string[] = [];
+    for (const [key, spec] of Object.entries(bad)) {
+      let thrown = false;
+      try { ca(spec.input, spec.options as any); } catch { thrown = true; }
+      if (!thrown) mismatches.push(key + ": expected error " + fixture[key].error);
+    }
+    expect(Object.keys(bad).length).toBe(6);
+    expect(mismatches).toEqual([]);
+  });
+  it("compares every cacoord fixture", () => {
+    const author = fixture.ca_author.value.fit.N.values as number[][];
+    const authorRows = unwrap(fixture.ca_author.value.fit.rownames) ?? null;
+    const authorCols = unwrap(fixture.ca_author.value.fit.colnames) ?? null;
+    const base = ca({ rows: unwrap(fixture.ca_smoke.value.fit.rownames), cols: unwrap(fixture.ca_smoke.value.fit.colnames), values: smoke });
+    const large = ca({ rows: authorRows, cols: authorCols, values: author });
+    const cases: Record<string, { fit: CaFit; options: any }> = {
+      ca_cacoord_standard: { fit: base, options: { type: "standard", rows: true } },
+      ca_cacoord_principal: { fit: base, options: { type: "principal", cols: true } },
+      ca_cacoord_symmetric: { fit: base, options: { type: "symmetric" } },
+      ca_cacoord_rowprincipal: { fit: large, options: { type: "rowprincipal", dim: [1, 2, 3] } },
+      ca_cacoord_colgreen: { fit: large, options: { type: "colgreen" } },
+      ca_cacoord_rowgab: { fit: base, options: { type: "rowgab" } },
+    };
+    const mismatches: string[] = [];
+    for (const [key, spec] of Object.entries(cases)) {
+      const actual = caCoord(spec.fit, spec.options);
+      compare(actual, fixture[key].value, key, mismatches);
+    }
+    expect(Object.keys(cases).length).toBe(6);
     expect(mismatches).toEqual([]);
   });
 
