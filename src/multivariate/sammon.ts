@@ -145,7 +145,7 @@ export function sammon(input:DistResult|SammonMatrixInput|readonly (readonly num
   if(y.some(row=>row.some(v=>!Number.isFinite(v))))throw new RangeError("initial configuration must be finite");
   for(let i=0;i<n-1;i++)for(let j=i+1;j<n;j++)if(distance(y[i]!,y[j]!)===0)throw new RangeError("duplicate points in initial configuration");
   const d=parsed.condensed;
-  let current=stressOf(d,y,n),lastReportedStress=current,magic=initialMagic,iteration=0,reason:SammonTrace["reason"]=niter===0?"maxit":undefined;
+  let current=stressOf(d,y,n),magic=initialMagic,iteration=0,reason:SammonTrace["reason"]=niter===0?"maxit":undefined;
   const trace:SammonTrace[]=[{iteration:0,stress:current}];
   for(let step=1;step<=niter;step++){
     const previous=current,deriv=derivatives(d,y,n,k);
@@ -163,12 +163,8 @@ export function sammon(input:DistResult|SammonMatrixInput|readonly (readonly num
     if(!accepted){reason="backtracking";break;}
     y=nextY;current=nextStress;iteration=step;
     magic=Math.min(0.5,magic*1.5);
-    if(step%10===0){
-      trace.push({iteration:step,stress:current});
-      const decrease=lastReportedStress-current;
-      lastReportedStress=current;
-      if(decrease<tol){reason="tol";break;}
-    }
+    if(step%10===0)trace.push({iteration:step,stress:current});
+    if(step>=20&&previous-current<tol){reason="tol";break;}
   }
   if(reason===undefined)reason="maxit";
   if(niter>0&&(trace[trace.length-1]!.iteration!==iteration||reason==="backtracking"))trace.push({iteration,stress:current});
