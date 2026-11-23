@@ -142,7 +142,8 @@ function build(x: number[], y: number[], options: { type: "correlation" | "covar
 }
 
 /**
- * Equivalent to R's `stats::acf()`.\n * Autocorrelation, autocovariance or partial autocorrelation of a univariate series.
+ * Equivalent to R's `stats::acf()`.
+ * Autocorrelation, autocovariance or partial autocorrelation of a univariate series.
  * Autocorrelation, autocovariance or partial autocorrelation of a univariate series.
  * @category Descriptive statistics
  */
@@ -155,7 +156,8 @@ export function acf(input: readonly number[] | readonly (readonly number[])[], o
 }
 
 /**
- * Equivalent to R's `stats::pacf()`.\n * Partial autocorrelation of a univariate series, computed by the Durbin–Levinson recursion.
+ * Equivalent to R's `stats::pacf()`.
+ * Partial autocorrelation of a univariate series, computed by the Durbin–Levinson recursion.
  * Partial autocorrelation of a univariate series, computed by the Durbin–Levinson recursion.
  * @category Descriptive statistics
  */
@@ -165,7 +167,8 @@ export function pacf(input: readonly number[] | readonly (readonly number[])[], 
 }
 
 /**
- * Equivalent to R's `stats::ccf()`.\n * Cross-correlation or cross-covariance of two equal-length series. Lag k pairs x[t+k] with y[t].
+ * Equivalent to R's `stats::ccf()`.
+ * Cross-correlation or cross-covariance of two equal-length series. Lag k pairs x[t+k] with y[t].
  * Cross-correlation or cross-covariance of two equal-length series. Lag k pairs x[t+k] with y[t].
  * @category Descriptive statistics
  */
