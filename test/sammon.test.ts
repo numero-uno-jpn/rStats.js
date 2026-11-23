@@ -66,11 +66,15 @@ function check(key:string,d:DistResult|SammonMatrixInput|readonly (readonly numb
   }
   const printed=expected.printed===undefined?[]:Array.isArray(expected.printed)?expected.printed:[expected.printed];
   const expectedTrace:number[]=[];
+  let expectedStop:number|null=null;
   for(const line of printed){
-    const m=/Initial stress\s*:\s*([0-9.eE+-]+)/.exec(line)??/stress after\s+\d+ iters:\s*([0-9.eE+-]+)/.exec(line);
-    if(m)expectedTrace.push(Number(m[1]));
+    const initial=/Initial stress\s*:\s*([0-9.eE+-]+)/.exec(line);
+    const progress=/stress after\s+(\d+) iters:\s*([0-9.eE+-]+)/.exec(line);
+    if(initial)expectedTrace.push(Number(initial[1]));
+    else if(progress){expectedTrace.push(Number(progress[2]));expectedStop=Number(progress[1]);}
   }
   if(expectedTrace.length&&actual.trace.length!==expectedTrace.length)errors.push(key+".trace length "+actual.trace.length+" vs "+expectedTrace.length);
+  if(expectedStop!==null&&actual.trace[actual.trace.length-1]!.iteration!==expectedStop)errors.push(key+".stopped after "+actual.trace[actual.trace.length-1]!.iteration+" vs R "+expectedStop);
   for(let i=0;i<Math.min(expectedTrace.length,actual.trace.length);i++){
     const rounded=Math.round(actual.trace[i]!.stress*1e5)/1e5;
     if(rounded!==expectedTrace[i])errors.push(key+".trace["+i+"]: "+rounded+" vs "+expectedTrace[i]);
