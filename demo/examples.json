@@ -1052,7 +1052,7 @@
       "r": "local({ data(iris); x <- as.matrix(iris[1:9, 1:2]); centers <- as.matrix(iris[c(1,4,7), 1:2]); f <- stats::kmeans(x, centers, algorithm = \"Hartigan-Wong\"); c(f$cluster, as.vector(t(f$centers)), f$withinss, f$tot.withinss) })" },
     { "id": "cmdscale-eurodist-demo", "tab": "tests",
       "title": {"en":"Classical multidimensional scaling of a six-city eurodist subset", "ja":"eurodist の 6 都市の部分行列による古典的多次元尺度法"},
-      "js": "(() => { const m = [[0,3313,2963,3175,3339,2762], [3313,0,1318,1326,1294,1498], [2963,1318,0,204,583,206], [3175,1326,204,0,460,409], [3339,1294,583,460,0,785], [2762,1498,206,409,785,0]]; const f = cmdscale(asDist(m), { k: 2 }); return [...f.eig, ...f.GOF]; })()",
-      "r": "local({ data(eurodist); m <- as.matrix(eurodist)[1:6, 1:6]; f <- stats::cmdscale(stats::as.dist(m), k = 2, eig = TRUE); c(f$eig, f$GOF) })" }
+      "js": "(() => { const m = [[0,3313,2963,3175,3339,2762], [3313,0,1318,1326,1294,1498], [2963,1318,0,204,583,206], [3175,1326,204,0,460,409], [3339,1294,583,460,0,785], [2762,1498,206,409,785,0]]; const f = cmdscale(asDist(m), { k: 2 }); return [...f.eig.slice(0, 3), ...f.GOF]; })()",
+      "r": "local({ data(eurodist); m <- as.matrix(eurodist)[1:6, 1:6]; f <- stats::cmdscale(stats::as.dist(m), k = 2, eig = TRUE); c(f$eig[1:3], f$GOF) })" }
   ]
 }

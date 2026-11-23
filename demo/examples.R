@@ -498,7 +498,13 @@ examples <- list(
   list(id = "lda-posterior-demo", title = "Linear discriminant analysis: posterior class probabilities",
        value = function() local({ x <- matrix(c(1, 2, 1.2, 1.8, 0.8, 2.1, 1.1, 2.2, 3, 3, 3.2, 2.8, 2.8, 3.1, 3.1, 3.2, 5, 1, 5.2, 0.8, 4.8, 1.1, 5.1, 1.2), ncol = 2, byrow = TRUE); g <- factor(rep(c("A", "B", "C"), each = 4)); f <- MASS::lda(x, g); p <- predict(f, newdata = matrix(c(1, 2, 3, 3, 5, 1), ncol = 2, byrow = TRUE)); as.vector(t(p$posterior)) })),
   list(id = "cancor-demo", title = "Canonical correlations between two sets of measurements",
-       value = function() local({ x <- matrix(c(1, 2, 2, 1, 3, 4, 4, 3, 5, 6, 6, 5, 7, 8, 8, 7), ncol = 2, byrow = TRUE); y <- matrix(c(2, 1, 1, 3, 4, 2, 3, 5, 6, 4, 5, 7, 8, 6, 7, 9), ncol = 2, byrow = TRUE); stats::cancor(x, y)$cor }))
+       value = function() local({ x <- matrix(c(1, 2, 2, 1, 3, 4, 4, 3, 5, 6, 6, 5, 7, 8, 8, 7), ncol = 2, byrow = TRUE); y <- matrix(c(2, 1, 1, 3, 4, 2, 3, 5, 6, 4, 5, 7, 8, 6, 7, 9), ncol = 2, byrow = TRUE); stats::cancor(x, y)$cor })),
+  list(id = "dist-hclust-cutree-demo", title = "USArrests: distances, hierarchical clustering and a three-cluster cut",
+       value = function() local({ data(USArrests); x <- as.matrix(USArrests)[1:6, ]; d <- stats::dist(x); h <- stats::hclust(d, method = "average"); g <- stats::cutree(h, k = 3); c(as.vector(d)[1:5], h$height, as.vector(t(h$merge)), g) })),
+  list(id = "kmeans-fixed-centers-demo", title = "Iris sepal measurements: k-means with an explicit center matrix",
+       value = function() local({ data(iris); x <- as.matrix(iris[1:9, 1:2]); centers <- as.matrix(iris[c(1,4,7), 1:2]); f <- stats::kmeans(x, centers, algorithm = "Hartigan-Wong"); c(f$cluster, as.vector(t(f$centers)), f$withinss, f$tot.withinss) })),
+  list(id = "cmdscale-eurodist-demo", title = "Classical multidimensional scaling of a six-city eurodist subset",
+       value = function() local({ data(eurodist); m <- as.matrix(eurodist)[1:6, 1:6]; f <- stats::cmdscale(stats::as.dist(m), k = 2, eig = TRUE); c(f$eig[1:3], f$GOF) }))
 )
 
 if (!exists(".rstats_oracle")) {
