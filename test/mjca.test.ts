@@ -1,79 +1,987 @@
 import { describe, expect, it } from "vitest";
-import { mjca, type MjcaInputTable } from "../src/entries/multivariate.js";
 import { readFileSync } from "node:fs";
+import { mjca, type MjcaInputTable, type MjcaFit } from "../src/entries/multivariate.js";
 
-const fixture = JSON.parse(readFileSync(new URL("./fixtures/mjca.json", import.meta.url), "utf8")) as Record<string, any>;
-const small: MjcaInputTable = {
-  rows: null, cols: ["a", "b", "c"],
-  values: [["x","p","u"],["y","p","v"],["x","q","v"],["z","q","u"],["y","q","u"],["x","p","v"]],
-};
-const na: MjcaInputTable = {
-  rows: null, cols: ["a","b"],
-  values: [["x","p"],[null,"q"],["x","q"],["y","p"]],
-};
-function unwrap(x: any): any { return x && typeof x === "object" && "values" in x ? x.values : x; }
-function matrix(x: any): any { return { rows: x.rows, cols: x.cols, values: x.values }; }
-function expectedFit(x: any): any {
-  const out: Record<string, any> = {};
-  const keys: Record<string,string> = {
-    sv:"sv", lambda:"lambda", "inertia.e":"inertiaE", "inertia.t":"inertiaT", "inertia.et":"inertiaEt",
-    levelnames:"levelnames", factors:"factors", "levels.n":"levelsN", nd:"nd", "nd.max":"ndMax",
-    colnames:"colnames", colmass:"colmass", coldist:"coldist", colinertia:"colinertia",
-    colcoord:"colcoord", colpcoord:"colpcoord", colctr:"colctr", colcor:"colcor", colsup:"colsup",
-    subsetcol:"subsetcol", Burt:"Burt", "Burt.upd":"BurtUpd", subinertia:"subinertia",
-    rownames:"rownames", rowmass:"rowmass", rowdist:"rowdist", rowinertia:"rowinertia",
-    rowcoord:"rowcoord", rowpcoord:"rowpcoord", rowctr:"rowctr", rowcor:"rowcor", indmat:"indmat",
+const fixture=JSON.parse(readFileSync(new URL("./fixtures/mjca.json",import.meta.url),"utf8")) as Record<string,any>;
+const wg93Rows=`2343223
+3423134
+2324232
+2222123
+3333152
+3445132
+3424252
+3442133
+3221132
+3322132
+4534226
+4414223
+3432152
+4522142
+3434136
+2524225
+2521232
+2223223
+2531223
+3414123
+2212253
+5443254
+4224252
+1552222
+1233222
+3445236
+5434211
+5533225
+4454215
+2414232
+5333223
+4332126
+1334162
+4442152
+5443262
+1343224
+5533123
+3434142
+4542133
+3244114
+2433152
+2123232
+2123213
+1112232
+2333152
+3133253
+3314262
+2232221
+2112162
+1221263
+4132253
+4222162
+2211233
+2322123
+2322222
+3433145
+2222214
+4433222
+3223133
+3242153
+3422142
+3232133
+2324236
+1125233
+3244262
+3433136
+2324252
+3232152
+3222233
+4442132
+4422223
+4522232
+2211262
+2321262
+4432215
+4321152
+1311134
+2111234
+3444233
+2223222
+2223242
+3432153
+5525146
+4323226
+2322252
+1133263
+1125142
+2433132
+2332222
+2123223
+2233222
+3322133
+2322122
+4433213
+4225212
+4525123
+3333223
+4442113
+3223122
+4424132
+4442151
+4234135
+3444152
+2324262
+1313261
+3525163
+2424162
+2523162
+3434213
+2423163
+3523246
+1222242
+2443146
+4534223
+4452256
+2552133
+4424262
+2424212
+3424213
+2344124
+3215143
+3314143
+3315244
+3425222
+4545222
+3433142
+2442141
+3432232
+2434152
+5525233
+2324224
+3533146
+2424232
+2535243
+1214222
+3334132
+3323112
+3233153
+2323222
+3222253
+3424242
+2422115
+4321222
+2222252
+4223162
+4432223
+3243242
+2422233
+1424153
+1324114
+2344223
+3334152
+2333233
+1115223
+3333132
+1114222
+4233233
+4524143
+2333133
+4222143
+3233214
+3433224
+3224162
+2433233
+2232114
+4323252
+3333262
+4334262
+3433262
+2433262
+4243132
+1213235
+2323152
+3433132
+3333123
+2443145
+1232163
+3233143
+3324163
+4544111
+1534214
+2513223
+4542214
+3221136
+3423133
+2443143
+1422252
+2433233
+2222143
+4422122
+2111222
+3423143
+4232123
+1322122
+2122232
+2122233
+2112243
+1211112
+1425262
+2425123
+2424214
+2224262
+4415156
+2532152
+2522143
+4434123
+2422243
+4534243
+2224162
+4422132
+3343143
+4532142
+1125114
+1324251
+4544124
+3313162
+2224262
+2222162
+2222213
+4444243
+4312262
+3333243
+2323232
+3322155
+4323233
+5224122
+4114223
+2121232
+3232122
+1111135
+2332145
+3522242
+4433124
+3232252
+2222114
+3233233
+3214242
+2215126
+2111162
+2535262
+2225262
+1333241
+2233261
+1322143
+2223262
+2322143
+4245214
+2553253
+3424232
+5525246
+3315142
+2325232
+2215122
+3415232
+3334143
+2325236
+3533125
+1544252
+2223262
+1314252
+2422155
+2414212
+2115135
+1115152
+3333111
+4435153
+2443234
+5552156
+2442132
+2223252
+4455232
+3542213
+3124233
+3552243
+2124146
+4515233
+4514262
+4522162
+4521262
+2552112
+2422242
+2521262
+2323214
+2445252
+4444122
+5413114
+2554215
+2425123
+2115223
+4424113
+1222242
+4435132
+2422223
+2322152
+4445152
+2222161
+4344224
+1322252
+2314142
+1423122
+4322262
+2324146
+2315262
+2323242
+3424243
+2424223
+5424262
+4535262
+4525262
+1213213
+1444233
+2222262
+2522262
+5544133
+1555222
+2144251
+1115132
+4332153
+1433224
+1215146
+3422132
+4544143
+3444243
+4344223
+4444241
+4225213
+4211152
+3525123
+2315163
+2323233
+3443142
+1532246
+4424122
+3223252
+3333126
+2122142
+2142163
+4444242
+1214262
+2334242
+4424143
+2425252
+2322123
+3443122
+3423123
+2123132
+2222112
+3442252
+2342152
+3212212
+2424212
+3415134
+3324166
+4345262
+3433123
+2245121
+2214212
+2325252
+1122222
+2332113
+4233122
+4233242
+3224113
+2433122
+4233223
+2433223
+2431111
+4454226
+4511264
+1425224
+2544234
+1114225
+1424223
+2112152
+2324225
+4525113
+2222211
+2222142
+2223223
+3233251
+3342123
+3243261
+3243122
+3224132
+2323142
+3215162
+2115242
+3245142
+3433133
+2412132
+4444222
+4515223
+3444222
+4445252
+2443242
+2322122
+2432122
+3432122
+4552142
+1114232
+4442152
+1114211
+2224152
+2444236
+2425262
+3232152
+3324225
+3223133
+3324136
+2113262
+2242252
+1435263
+3452252
+1554243
+2224262
+5444132
+5544134
+4425132
+4315222
+4335223
+2545124
+2415162
+1414262
+2225163
+2445224
+2455125
+4414252
+1424163
+2115244
+2334262
+2425233
+3444122
+4545235
+3221242
+5543145
+4544152
+4534224
+4452233
+2145253
+2442153
+2442262
+4542142
+4434112
+4541226
+2442263
+5542114
+4543163
+2442233
+3324163
+3445143
+2315262
+2225162
+2115262
+2115242
+2444222
+2444243
+1432162
+2332123
+2425125
+3325125
+3333114
+2433214
+2225236
+2452136
+3224224
+2434232
+5554236
+3444166
+2433222
+2312152
+4312233
+3323142
+2333232
+2423132
+2214262
+2424142
+1214162
+3423132
+3322223
+2333152
+2332122
+2433133
+3433246
+4442223
+2323252
+3324166
+3315142
+2312222
+3445125
+2115152
+4425124
+2115151
+1125152
+3551133
+3323232
+1311212
+2424246
+4424114
+3453133
+4435113
+2455122
+4545124
+2415226
+4454214
+2443213
+5434143
+4444222
+1422153
+2312262
+2422162
+2222142
+1222242
+2412252
+2552126
+2233232
+2433233
+3433124
+2323253
+2513242
+1211252
+1411223
+1515223
+3322223
+3221143
+2333213
+1334242
+1224242
+3423233
+2222222
+5522112
+2324152
+2224133
+2115114
+3322212
+2432233
+4222113
+3325233
+2115224
+4544114
+4535114
+1315226
+1515222
+1551162
+5555223
+1414222
+1555252
+3323251
+2214162
+3323162
+2222261
+2223261
+2433232
+3111232
+1224133
+1434223
+2522114
+3524242
+3322266
+4323161
+2111121
+1315234
+4434133
+4425146
+2451133
+3432134
+2521152
+3431211
+2342223
+2332223
+2541223
+3432123
+3531111
+4442146
+1432223
+2533211
+3332233
+1422262
+3234143
+2342111
+2224142
+1224133
+1422236
+2332262
+2222253
+4222116
+1323152
+4542224
+3532156
+5542114
+2442252
+4542122
+2122242
+3343262
+2132122
+3424242
+3433142
+5553233
+5344152
+4224262
+2322133
+2322162
+3222152
+2212162
+2222122
+2224223
+4555124
+2225263
+3325256
+5425126
+3444214
+5543136
+3322143
+1211242
+1111252
+1411156
+1321152
+2112213
+1214232
+1115232
+3324223
+1311142
+3244223
+2322132
+4544145
+5553233
+4544133
+4545252
+1113242
+2414252
+3345126
+1114142
+2122262
+1314223
+3424124
+2323262
+1222222
+2223262
+2522252
+2312262
+2212232
+3333142
+3334262
+2332133
+2222144
+3333224
+4423262
+1322111
+2324243
+2314152
+4424223
+4422162
+2534122
+3435122
+3435142
+2225134
+2325233
+2325233
+3323242
+2534123
+4424132
+2241215
+3555146
+3312242
+3413122
+2244242
+5555125
+4433124
+2115226
+4415163
+3324223
+3311224
+5424262
+3232225
+3434225
+2424132
+3334133
+1115143
+4542261
+4551245
+3425243
+2314161
+1215233
+3324152
+3223142
+2214125
+5532162
+4415123
+1214213
+1545222
+1333244
+5333144
+1315162
+4355122
+1115221
+5541242
+3333122
+3224156
+4324224
+3432143
+2224163
+4444124
+2415153
+3544123
+2435125
+2413164
+1223252
+1333123
+2211234
+2311142
+2225224
+3333211
+4544153
+4442112
+2443132
+4442153
+1213262
+4443124
+2224142
+3424124
+2414266
+4424113
+3453234
+2335135
+2411245
+2422222
+5542135
+1432222
+5552156
+4454223
+2334142
+4323242
+4245241
+4532246
+1544164
+2432146
+3322143
+3333252
+2322155
+3523142
+2423233
+2435233
+4525234
+5315124
+3424145
+2443256
+2455126
+4435243
+2222152
+4434242
+1335125
+4443224
+3542166
+4542136
+2424162
+2443214
+2414214
+4444214
+5444224
+2322114
+4443143
+3234123
+4452124
+5445224
+3424254
+2332135
+2444236
+4541153
+4424253
+3532153
+2223162
+2324135
+2323123
+2212243
+2231162
+4332142
+4432226
+4512153
+5555123
+1111261
+3234153
+4153262
+5233242
+2532162
+2152162
+4432143
+4452252
+2542122
+2213122
+5353262
+4444111
+3333262
+4425233
+1112143
+2412133
+5555135
+2523232
+4343211
+2215232
+3233252
+4551143
+1314152
+1342136
+1222262
+4223262
+4214224
+2551266
+3234252
+3333165
+1433126
+5551114
+5234233
+2423112
+2425262
+5551224
+2313113
+3251252
+2423126
+4522145
+4552132
+2422152
+2233213
+2434162
+5522154
+2434214
+3442242
+5541146
+5542122
+4442162
+1224262
+2224143
+1125162
+1115263
+4333252
+4433123
+4423132
+2335262
+3443222
+3344112
+3425115
+2314223
+2324252
+2442165
+4532135
+4542122
+3444124
+1124125
+2334163
+4433154
+2433133
+1321223
+2444265
+4424114
+4444236
+2315164
+2323143
+1115224
+2323146
+3322253
+2211262
+2112262
+1314152
+2113243
+3234262
+3212252
+4443162
+1323142
+1345122
+3424123
+1222233
+3423122
+1222236`.split("\n").map(x=>[...x]);
+const wg93:MjcaInputTable={rows:Array.from({length:wg93Rows.length},(_,i)=>String(i+1)),cols:["A","B","C","D","sex","age","edu"],values:wg93Rows};
+const w4:MjcaInputTable={rows:wg93.rows,cols:wg93.cols.slice(0,4),values:wg93.values.map(r=>r.slice(0,4))};
+const w60:MjcaInputTable={...w4,rows:w4.rows!.slice(0,60),values:w4.values.slice(0,60)};
+const w12:MjcaInputTable={...w4,rows:w4.rows!.slice(0,12),values:w4.values.slice(0,12)};
+const small:MjcaInputTable={rows:null,cols:["a","b","c"],values:[["x","p","u"],["y","p","v"],["x","q","v"],["z","q","u"],["y","q","u"],["x","p","v"]]};
+const na:MjcaInputTable={rows:null,cols:["a","b"],values:[["x","p"],[null,"q"],["x","q"],["y","p"]]};
+function unwrap(x:any):any{return x&&typeof x==="object"&&"values" in x?x.values:x;}
+function expectedMatrix(x:any):any{return {rows:x.rows,cols:x.cols,values:x.values};}
+function expectedFit(x:any):any{
+  const out:Record<string,any>={};
+  const keys:Record<string,string>={
+    sv:"sv",lambda:"lambda","inertia.e":"inertiaE","inertia.t":"inertiaT","inertia.et":"inertiaEt",
+    levelnames:"levelnames",factors:"factors","levels.n":"levelsN",nd:"nd","nd.max":"ndMax",
+    colnames:"colnames",colmass:"colmass",coldist:"coldist",colinertia:"colinertia",
+    colcoord:"colcoord",colpcoord:"colpcoord",colctr:"colctr",colcor:"colcor",colsup:"colsup",
+    subsetcol:"subsetcol",Burt:"Burt","Burt.upd":"BurtUpd",subinertia:"subinertia",
+    rownames:"rownames",rowmass:"rowmass",rowdist:"rowdist",rowinertia:"rowinertia",
+    rowcoord:"rowcoord",rowpcoord:"rowpcoord",rowctr:"rowctr",rowcor:"rowcor",indmat:"indmat",
   };
-  for (const [source,target] of Object.entries(keys)) {
-    if (!(source in x)) continue;
-    const v=x[source];
-    if (source==="indmat" && unwrap(v)==="NA") out[target]="NA";
-    else if (["factors","colcoord","colpcoord","colctr","colcor","Burt","subinertia","rowcoord","rowpcoord","rowctr","rowcor","indmat"].includes(source)) out[target]=matrix(v);
-    else if(source==="levels.n")out[target]={names:v.names,values:unwrap(v)};
-    else out[target]=unwrap(v);
+  for(const [src,dst] of Object.entries(keys)){
+    if(!(src in x))continue;
+    const v=x[src];
+    if(src==="indmat"&&unwrap(v)==="NA")out[dst]="NA";
+    else if(["factors","colcoord","colpcoord","colctr","colcor","Burt","subinertia","rowcoord","rowpcoord","rowctr","rowcor","indmat"].includes(src))out[dst]=expectedMatrix(v);
+    else if(src==="levels.n")out[dst]={names:v.names,values:unwrap(v)};
+    else out[dst]=unwrap(v);
   }
   return out;
 }
-function compare(a: any,e: any,path: string,out: string[]): void {
-  if(typeof e==="number"){
-    if(typeof a!=="number"||!Number.isFinite(a)||Math.abs(a-e)>1e-12*Math.max(1,Math.abs(e)))out.push(path+": "+a+" vs "+e);
-    return;
-  }
+function compare(a:any,e:any,path:string,out:string[]):void{
+  if(e==="NA"){if(a!=="NA"&&!(typeof a==="number"&&Number.isNaN(a)))out.push(path+": expected NA");return;}
+  if(typeof e==="number"){if(typeof a!=="number"||!Number.isFinite(a)||Math.abs(a-e)>1e-12*Math.max(1,Math.abs(e)))out.push(path+": "+a+" vs "+e);return;}
   if(e===null||typeof e!=="object"){if(a!==e)out.push(path+": "+String(a)+" vs "+String(e));return;}
-  if(Array.isArray(e)){
-    if(!Array.isArray(a)||a.length!==e.length){out.push(path+": length "+(a?.length??"not-array")+" vs "+e.length);return;}
-    for(let i=0;i<e.length;i++)compare(a[i],e[i],path+"["+i+"]",out);
-    return;
-  }
+  if(Array.isArray(e)){if(!Array.isArray(a)||a.length!==e.length){out.push(path+": length "+(a?.length??"not-array")+" vs "+e.length);return;}for(let i=0;i<e.length;i++)compare(a[i],e[i],path+"["+i+"]",out);return;}
   for(const k of Object.keys(e))compare(a?.[k],e[k],path+"."+k,out);
 }
-function checkCase(key:string,input:MjcaInputTable,lambda:"adjusted"|"indicator"|"Burt"):string[] {
-  const expected=expectedFit(fixture[key].value.fit);
-  const actual=mjca(input,{lambda});
-  const mismatches:string[]=[];
-  compare(actual,expected,key,mismatches);
-  return mismatches;
+function check(key:string,input:MjcaInputTable,options:any={}):string[]{
+  const actual=mjca(input,options),expected=expectedFit(fixture[key].value.fit),errors:string[]=[];
+  compare(actual,expected,key,errors);return errors;
 }
 
 describe("mjca",()=>{
-  it("matches the three-variable indicator and Burt fixtures",()=>{
-    const mismatches=[...checkCase("mjca_small_indicator",small,"indicator"),...checkCase("mjca_small_Burt",small,"Burt")];
-    expect(mismatches).toEqual([]);
+  it("matches all full wg93 adjusted, indicator and Burt fixtures",()=>{
+    const errors=[
+      ...check("mjca_wg93_adjusted",w4),
+      ...check("mjca_wg93_indicator",w4,{lambda:"indicator"}),
+      ...check("mjca_wg93_Burt",w4,{lambda:"Burt"}),
+      ...check("mjca_wg93_nd3",w4,{nd:3}),
+      ...check("mjca_wg93_supcol",wg93,{supcol:[5,6,7]}),
+      ...check("mjca_wg93_supcol_indicator",wg93,{supcol:[5,6,7],lambda:"indicator"}),
+      ...check("mjca_wg93_subsetcat",w4,{subsetcat:[1,2,3,4,5,11,12,13,14,15]}),
+      ...check("mjca_wg93_ps",w4,{ps:"."}),
+    ];
+    expect(errors).toEqual([]);
   });
-  it("omits incomplete observations and drops unused levels",()=>{
+  it("matches the 60-row indicator, Burt and adjusted fits and row components",()=>{
+    const errors=[
+      ...check("mjca_w60_adjusted",w60),
+      ...check("mjca_w60_indicator",w60,{lambda:"indicator"}),
+      ...check("mjca_w60_Burt",w60,{lambda:"Burt"}),
+      ...check("mjca_w60_reti",w12,{lambda:"indicator",reti:true}),
+    ];
+    expect(errors).toEqual([]);
+  });
+  it("matches small and missing-row fixtures",()=>{
+    const errors=[
+      ...check("mjca_small_indicator",small,{lambda:"indicator"}),
+      ...check("mjca_small_Burt",small,{lambda:"Burt"}),
+      ...check("mjca_na",na),
+    ];
+    expect(errors).toEqual([]);
+  });
+  it("checks independently defined adjusted results where R reports a dimension error",()=>{
+    for(const input of [small,{rows:null,cols:["a","b"],values:small.values.map(r=>r.slice(0,2))}] as MjcaInputTable[]){
+      const indicator=mjca(input,{lambda:"indicator"}),burt=mjca(input,{lambda:"Burt"}),adjusted=mjca(input);
+      const q=input.cols.length,j=adjusted.levelnames.length;
+      const corrected=indicator.sv.map(v=>{const e=v*v;return e>1/q?(q/(q-1))**2*(e-1/q)**2:0;}).filter(v=>v>0);
+      expect(adjusted.sv.length).toBe(corrected.length);
+      corrected.forEach((v,i)=>expect(Math.abs(adjusted.sv[i]!*adjusted.sv[i]!-v)).toBeLessThan(1e-12));
+      const total=q/(q-1)*(burt.inertiaT-(j-q)/(q*q));
+      expect(Math.abs(adjusted.inertiaT-total)).toBeLessThan(1e-12);
+    }
+  });
+  it("drops unused levels and incomplete rows",()=>{
     const result=mjca(na);
     expect(result.omitted).toBe(1);
-    expect(result.levelnames).toEqual(["a:x","a:y","b:p","b:q"]);
+    expect(result.levelsN.values).toEqual([2,2]);
     const unused:MjcaInputTable={rows:null,cols:["a","b"],values:[["x","p"],["y","q"],["x","q"]]};
     expect(mjca(unused,{lambda:"indicator"}).levelsN.values).toEqual([2,2]);
   });
-  it("rejects unsupported JCA, one-variable and numeric inputs",()=>{
-    const mismatches:string[]=[];
-    for(const action of [
-      ()=>mjca(small,{lambda:"JCA"}),
+  it("returns an indicator matrix only when requested",()=>{
+    const result=mjca(w12,{lambda:"indicator",reti:true});
+    expect(result.indmat).not.toBe("NA");
+    expect((result.indmat as any).values.length).toBe(12);
+    expect((result.indmat as any).values[0].length).toBe(result.levelnames.length);
+    const expected=fixture.mjca_w60_reti.value.fit.indmat.values;
+    const errors:string[]=[];compare((result.indmat as any).values,expected,"indmat",errors);expect(errors).toEqual([]);
+  });
+  it("rejects unsupported JCA, one variable, numeric columns and contingency tables",()=>{
+    const errors:string[]=[];
+    const invalid=[
+      ()=>mjca(w4,{lambda:"JCA"}),
       ()=>mjca({rows:null,cols:["a"],values:[["x"],["y"]]}),
       ()=>mjca({rows:null,cols:["a","b"],values:[[1,2],[2,1]]}),
-    ]){let threw=false;try{action();}catch{threw=true;}if(!threw)mismatches.push("expected error");}
-    expect(mismatches).toEqual([]);
+      ()=>mjca({rows:null,cols:[],values:[[1,2],[3,4]]}),
+      ()=>mjca([[1,2],[3,4]] as any),
+    ];
+    for(const run of invalid){let threw=false;try{run();}catch{threw=true;}if(!threw)errors.push("expected error");}
+    expect(errors).toEqual([]);
   });
 });
