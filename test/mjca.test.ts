@@ -909,8 +909,8 @@ function expectedFit(x:any):any{
 function compare(a:any,e:any,path:string,out:string[],axis6Tolerance:number|null=null,skipAxis:number|null=null):void{
   if(e==="NA"){if(a!=="NA"&&!(typeof a==="number"&&Number.isNaN(a)))out.push(path+": expected NA");return;}
   if(typeof e==="number"){
-    const matrixAxis=/\\.values\\[\\d+\\]\\[(\\d+)\\]$/.exec(path);
-    const coordinateMatrix=/\\.(?:colcoord|colpcoord|colctr|colcor|rowcoord|rowpcoord|rowctr|rowcor)\\.values\\[/.test(path);
+    const matrixAxis=/\.values\[\d+\]\[(\d+)\]$/.exec(path);
+    const coordinateMatrix=/\.(?:colcoord|colpcoord|colctr|colcor|rowcoord|rowpcoord|rowctr|rowcor)\.values\[/.test(path);
     if(skipAxis!==null&&coordinateMatrix&&matrixAxis&&Number(matrixAxis[1])===skipAxis)return;
     if(typeof a!=="number"||!Number.isFinite(a))out.push(path+": "+a+" vs "+e);
     else{
