@@ -173,3 +173,19 @@ cancor([[1, 2], [2, 1], [3, 4], [4, 3]], [[2, 1], [1, 3], [4, 2], [3, 5]]);
 ```
 
 `manova` fits sequential (Type I) terms. `lda` supports the moment method and leave-one-out cross-validation; `ldaPredict` uses the plug-in method. `cancor` returns the nonzero canonical pairs and the centers used. `ca` performs correspondence analysis; `caSummary` returns its eigenvalue and contribution tables, and `caCoord` constructs a map. `mjca` performs multiple correspondence analysis on categorical columns. `sammon` and `isoMDS` provide non-metric multidimensional scaling.
+
+## Time series
+
+Autocorrelation functions are imported from the separate `/timeseries` entry point:
+
+```ts
+import { acf, pacf, ccf } from "@numero-uno-jpn/rstats/timeseries";
+
+const x = [4, 5, 7, 6, 9, 8, 11, 10, 12, 13];
+const y = [3, 4, 5, 7, 6, 8, 9, 8, 10, 11];
+acf(x, { lagMax: 5 });
+pacf(x, { lagMax: 5 });
+ccf(x, y, { lagMax: 3 });
+```
+
+`acf` returns autocorrelation by default; use `type: "covariance"` for autocovariance or `pacf` for partial autocorrelation. `ccf` returns cross-correlation (or cross-covariance) at lags from `-lagMax` through `lagMax`. Lags are integer observation offsets; calendar time units and R's `frequency` metadata are not represented. Missing values are rejected by default; `naAction: "pass"` omits incomplete pairs.
