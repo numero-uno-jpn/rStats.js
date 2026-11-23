@@ -30,7 +30,7 @@ export interface MjcaFit {
 }
 
 function sum(x: readonly number[]): number { let s=0; for(const v of x)s+=v; return s; }
-function table(values:number[][],rows:string[]|null,cols:string[]|null):MjcaMatrix {
+function table(values:(number|string)[][],rows:string[]|null,cols:string[]|null):MjcaMatrix {
   return {rows:rows===null?null:[...rows],cols:cols===null?null:[...cols],values};
 }
 function idx(value:number|readonly number[]|undefined,n:number,label:string):number[] {
@@ -42,12 +42,13 @@ function idx(value:number|readonly number[]|undefined,n:number,label:string):num
 }
 function read(input:MjcaInputTable):{rows:string[]|null;cols:string[];data:string[][];omitted:number} {
   if(!input||!Array.isArray(input.values)||!Array.isArray(input.cols))throw new TypeError("x must be a categorical data frame");
+  const values=input.values as readonly (readonly (string|number|null)[])[];
   const p=input.cols.length;
-  if(p<2||input.values.some(r=>!Array.isArray(r)||r.length!==p))throw new RangeError("at least two categorical columns are required");
+  if(p<2||values.some(r=>!Array.isArray(r)||r.length!==p))throw new RangeError("at least two categorical columns are required");
   const keep:string[][]=[], rowNames:string[]=[];
   let omitted=0;
-  for(let i=0;i<input.values.length;i++){
-    const row=input.values[i]!;
+  for(let i=0;i<values.length;i++){
+    const row=values[i]!;
     if(row.some(v=>v===null||v===undefined||typeof v!=="string")){omitted++;continue;}
     keep.push(row as string[]);
     if(input.rows!==null)rowNames.push(input.rows[i]??String(i+1));
@@ -65,9 +66,6 @@ function orient(rows:number[][],cols:number[][]):void {
 }
 function matrixColumns(x:CaMatrix,indices:number[]):number[][] {
   return x.values.map(row=>indices.map(j=>row[j]??0));
-}
-function axisMatrix(values:number[][],rows:string[]|null,axes:number):MjcaMatrix {
-  return table(values,rows,Array.from({length:axes},(_,i)=>"Dim"+(i+1)));
 }
 function coordinateStats(coords:number[][],mass:number[],dist:number[],sv:number[]):{principal:number[][];ctr:number[][];cor:number[][]} {
   const principal=coords.map(row=>row.map((v,j)=>v*(sv[j]??0)));
