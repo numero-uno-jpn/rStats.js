@@ -96,7 +96,7 @@ export function mjca(input:MjcaInputTable,options:MjcaOptions={}):MjcaFit {
   const activeCats=chosenCats.filter(c=>!supVarSet.has(c.factor));
   const rowCats=cats.filter(c=>!supVarSet.has(c.factor));
   const supCats=chosenCats.filter(c=>supVarSet.has(c.factor));
-  const activeVars=Array.from(new Set(activeCats.map(c=>c.factor))),activeQ=activeVars.length,activeJ=activeCats.length;
+  const activeQ=Q-supVars.length,activeJ=activeCats.length;
   if(activeQ<2||activeJ<2)throw new RangeError("at least two active categorical variables are required");
   const indicator=raw.data.map(row=>chosenCats.map(c=>row[c.factor]===c.level?1:0));
   const activeTable=raw.data.map(row=>activeCats.map(c=>row[c.factor]===c.level?1:0));
