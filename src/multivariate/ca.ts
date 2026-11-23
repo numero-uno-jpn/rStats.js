@@ -57,7 +57,7 @@ function fit(input:readonly (readonly number[])[]|CaInputTable, options:CaOption
   if((ar.length<2&&nr>1)||(ac.length<2&&nc>1))throw new RangeError("non-numeric matrix extent");
   const active=ar.map(i=>ac.map(j=>original[i]![j]!));
   for(const row of active)for(const v of row)if(!Number.isFinite(v)||v<0)throw new RangeError("infinite or missing values in 'x'");
-  const rowTotals=active.map(sum), colTotals=ac.map(j=>sum(active.map(r=>r[j]!))), total=sum(rowTotals);
+  const rowTotals=active.map(sum), colTotals=active[0]!.map((_,j)=>sum(active.map(r=>r[j]!))), total=sum(rowTotals);
   if(!(total>0)||rowTotals.some(v=>v<=0)||colTotals.some(v=>v<=0))throw new RangeError("infinite or missing values in 'x'");
   const r=rowTotals.map(v=>v/total), c=colTotals.map(v=>v/total);
   if(ar.length===1||ac.length===1){
@@ -121,7 +121,7 @@ function summaryTable(names:string[]|null,mass:number[],dist:number[],inertia:nu
     const shortName=name==="light"?"lght":name==="medium"?"medm":name==="heavy"?"hevy":name;
     const out=[(sup.includes(i+1)?"(*)":"")+shortName,fmt(m*1000,3),fmt(qlt*1000,4),fmt((totalInertia?inertia[i]!/totalInertia:0)*1000,3)];
     for(let k=0;k<axes;k++){const cor=d2===0?0:principal[k]!*principal[k]!/d2,ctr=sv[k]===0?0:m*principal[k]!*principal[k]!/(sv[k]!*sv[k]!);
-      out.push(fmt(principal[k]!*1000,4),fmt(cor*1000,4),fmt(ctr*1000,3));}
+      out.push(fmt(principal[k]!*1000,4),fmt(cor*1000,3),fmt(ctr*1000,3));}
     return out;
   });
   return {rows:mass.map((_,i)=>String(i+1)),cols:headers,values:rows as unknown as number[][]};
