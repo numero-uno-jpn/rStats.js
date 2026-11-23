@@ -56,9 +56,14 @@ function readD(input: DistResult | readonly (readonly number[])[]): { d: number[
 }
 
 function distance(a: readonly number[], b: readonly number[], p: number): number {
-  let sum = 0;
-  for (let q = 0; q < a.length; q++) sum += Math.abs(a[q]! - b[q]!) ** p;
-  return sum ** (1 / p);
+  let scale = 0, sum = 1;
+  for (let q = 0; q < a.length; q++) {
+    const value = Math.abs(a[q]! - b[q]!);
+    if (value === 0) continue;
+    if (scale < value) { sum = 1 + sum * (scale / value) ** p; scale = value; }
+    else sum += (value / scale) ** p;
+  }
+  return scale === 0 ? 0 : scale * sum ** (1 / p);
 }
 function center(y: number[][]): void {
   const p = y[0]!.length;
@@ -233,8 +238,9 @@ export function isoMDS(
   center(y);
   let yScale = 0;
   for (let i = 0; i < n - 1; i++) for (let j = i + 1; j < n; j++) yScale = Math.max(yScale, distance(y[i]!, y[j]!, p));
-  const outputScale = yScale || scale;
-  if (yScale > 0) y = y.map((r) => r.map((v) => v / yScale));
+  const normalize = yScale > 2 ** 450 || (yScale > 0 && yScale < 2 ** -450);
+  const outputScale = normalize ? yScale : 1;
+  if (normalize) y = y.map((r) => r.map((v) => v / yScale));
   const groups = Array.from({ length: built.groups }, (_, i) => i);
   let x = flatten(y);
   let current = evaluate(y, built.pairs, groups, p);
@@ -242,9 +248,9 @@ export function isoMDS(
   let converged = current.stress === 0 || maxit === 0;
   let lastIter = 0;
   const size = x.length;
-  // Under x = y / yScale, the identity inverse Hessian in the original
-  // coordinates becomes I / yScale^2 in the normalized coordinates.
-  const resetDiagonal = yScale > 0 ? 1 / (yScale * yScale) : 1;
+  // BFGS starts from the identity. For extreme initial scales, normalize the
+  // whole configuration first so the same identity start gives scale-equivariant steps.
+  const resetDiagonal = 1;
   let inverseHessian = identity(size, resetDiagonal);
   // R performs one initial BFGS update for maxit=1 and maxit=2; thereafter
   // each additional requested iteration contributes one update.
