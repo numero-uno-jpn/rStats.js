@@ -94,15 +94,18 @@ export function mjca(input:MjcaInputTable,options:MjcaOptions={}):MjcaFit {
   // subsetcat selects output categories; the active MCA geometry still uses
   // every category of every active variable.
   const activeCats=chosenCats.filter(c=>!supVarSet.has(c.factor));
+  const rowCats=cats.filter(c=>!supVarSet.has(c.factor));
   const supCats=chosenCats.filter(c=>supVarSet.has(c.factor));
   const activeVars=Array.from(new Set(activeCats.map(c=>c.factor))),activeQ=activeVars.length,activeJ=activeCats.length;
   if(activeQ<2||activeJ<2)throw new RangeError("at least two active categorical variables are required");
   const indicator=raw.data.map(row=>chosenCats.map(c=>row[c.factor]===c.level?1:0));
   const activeTable=raw.data.map(row=>activeCats.map(c=>row[c.factor]===c.level?1:0));
-  const rowTotals=activeTable.map(row=>sum(row)),colTotals=activeCats.map((_,j)=>sum(activeTable.map(row=>row[j]!)));
+  const rowTable=raw.data.map(row=>rowCats.map(c=>row[c.factor]===c.level?1:0));
+  const rowTotals=rowTable.map(row=>sum(row)),colTotals=activeCats.map((_,j)=>sum(activeTable.map(row=>row[j]!)));
+  const rowColTotals=rowCats.map((_,j)=>sum(rowTable.map(row=>row[j]!)));
   const total=n*(Q-supVars.length);
-  if(!(total>0)||rowTotals.some(v=>v<=0)||colTotals.some(v=>v<=0))throw new RangeError("empty active category");
-  const rowMass=rowTotals.map(v=>v/total),activeMass=colTotals.map(v=>v/total);
+  if(!(total>0)||rowTotals.some(v=>v<=0)||colTotals.some(v=>v<=0)||rowColTotals.some(v=>v<=0))throw new RangeError("empty active category");
+  const rowMass=rowTotals.map(v=>v/total),rowActiveMass=rowColTotals.map(v=>v/total),activeMass=colTotals.map(v=>v/total);
   const S=activeTable.map((row,i)=>row.map((v,j)=>(v/total-rowMass[i]!*activeMass[j]!)/Math.sqrt(rowMass[i]!*activeMass[j]!)));
   const dec=svd(S),maxRank=Math.min(n,Math.max(0,activeJ-activeQ));
   const rawSingular=dec.d.slice(0,maxRank),largest=rawSingular[0]??0;
@@ -117,17 +120,20 @@ export function mjca(input:MjcaInputTable,options:MjcaOptions={}):MjcaFit {
     const pos=factorsInTable.map(f=>chosenCats.findIndex(c=>c.factor===f&&c.level===row[f])).filter(i=>i>=0);
     for(const x of pos)for(const y of pos)burt[x]![y]=burt[x]![y]!+1;
   }
-  const fullBurt=Array.from({length:chosenCats.length},()=>new Array<number>(activeCats.length).fill(0));
+  const fullBurt=Array.from({length:chosenCats.length},()=>new Array<number>(rowCats.length).fill(0));
   for(const row of raw.data){
     for(let i=0;i<chosenCats.length;i++){
       const c=chosenCats[i]!;
       if(row[c.factor]!==c.level)continue;
-      for(let j=0;j<activeCats.length;j++){
-        const a=activeCats[j]!;
+      for(let j=0;j<rowCats.length;j++){
+        const a=rowCats[j]!;
         if(row[a.factor]===a.level)fullBurt[i]![j]=fullBurt[i]![j]!+1;
       }
     }
   }
+  const rowActivePosition=new Map(rowCats.map((c,i)=>[c.global,i]));
+  const selectedPositions=activeCats.map(c=>rowActivePosition.get(c.global)!);
+  const selectedBurt=fullBurt.map(row=>selectedPositions.map(j=>row[j]!));
   const colMass=chosenCats.map(c=>{
     const at=activePosition.get(c.global);
     return at===undefined?NaN:activeMass[at]!;
@@ -136,12 +142,12 @@ export function mjca(input:MjcaInputTable,options:MjcaOptions={}):MjcaFit {
     if(!activePosition.has(c.global))return NaN;
     const profile=fullBurt[i]!,count=sum(profile);
     if(!(count>0))throw new RangeError("empty active category profile");
-    return Math.sqrt(sum(profile.map((v,j)=>((v/count-activeMass[j]!)**2)/activeMass[j]!)));
+    return Math.sqrt(sum(profile.map((v,j)=>((v/count-rowActiveMass[j]! )**2)/rowActiveMass[j]!)));
   });
   const coords=chosenCats.map((c,i)=>{
     const at=activePosition.get(c.global);
     if(at!==undefined)return activeCoords[at]!;
-    const profile=fullBurt[i]!,count=sum(profile);
+    const profile=selectedBurt[i]!,count=sum(profile);
     if(!(count>0))throw new RangeError("empty supplementary category");
     return singular.map((_,k)=>{
       let total=0,correction=0;
@@ -154,7 +160,7 @@ export function mjca(input:MjcaInputTable,options:MjcaOptions={}):MjcaFit {
       return total/count;
     });
   });
-  const rowDist=rowMass.map((_,i)=>Math.sqrt(sum(activeTable[i]!.map((v,j)=>(v/rowTotals[i]!-activeMass[j]!)**2)))/Math.sqrt(n));
+  const rowDist=rowMass.map((_,i)=>Math.sqrt(sum(rowTable[i]!.map((v,j)=>(v/rowTotals[i]!-rowActiveMass[j]!)**2)))/Math.sqrt(n));
   const rowInertia=rowMass.map((v,i)=>v*rowDist[i]!*rowDist[i]!);
   const colInertia=colMass.map((v,i)=>Number.isNaN(v)?NaN:v*colDist[i]!*colDist[i]!);
   const eig=singular.map(v=>v*v);
