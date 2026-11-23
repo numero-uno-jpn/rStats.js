@@ -18,6 +18,11 @@ for (k in 1:5) {
 pac <- diag(phi)
 fit <- stats::acf(stats::lh, lag.max=5, plot=FALSE)
 pacfit <- stats::pacf(stats::lh, lag.max=5, plot=FALSE)
+xna <- as.numeric(stats::presidents); nmiss <- length(xna); mean_na <- mean(xna,na.rm=TRUE)
+zna <- xna-mean_na
+gna <- sapply(0:5,function(k) { a <- zna[seq_len(nmiss-k)]; b <- zna[(k+1):nmiss]; sum(a*b,na.rm=TRUE)/nmiss })
+rna <- gna/gna[1]
+na_public <- as.numeric(stats::acf(stats::presidents,na.action=stats::na.pass,plot=FALSE)$acf[1:6,1,1])
 x10 <- c(3,1,4,1,5,9,2,6,5,3); y10 <- c(2,7,1,8,2,8,1,8,2,8)
 cc <- stats::ccf(x10,y10,lag.max=3,plot=FALSE)
 cc_direct <- sapply(-3:3, function(k) {
@@ -36,6 +41,6 @@ out <- list(
   ccf_small_public=as.numeric(cc$acf[,1,1]),
   ccf_small_direct=cc_direct,
   ccf_small_lags=as.numeric(cc$lag[,1,1]),
-  presidents_na_pass=as.numeric(stats::acf(stats::presidents, na.action=stats::na.pass, plot=FALSE)$acf[1:6,1,1])
+  presidents_na_pass=na_public, presidents_na_pass_direct=rna
 )
 cat(as.character(toJSON(out,digits=I(17),auto_unbox=TRUE,null="null")))
