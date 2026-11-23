@@ -1059,5 +1059,14 @@
     {"id":"ccf-two-monthly-series","tab":"tests","title":{"en":"Cross-correlation between two monthly series","ja":"2 つの月次系列の交差相関"},"js":"(() => { const x = [4, 5, 7, 6, 9, 8, 11, 10, 12, 13, 11, 14]; const y = [3, 4, 5, 7, 6, 8, 9, 8, 10, 11, 9, 12]; return ccf(x, y, { lagMax: 3 }).acf; })()","r":"local({ x <- c(4, 5, 7, 6, 9, 8, 11, 10, 12, 13, 11, 14); y <- c(3, 4, 5, 7, 6, 8, 9, 8, 10, 11, 9, 12); as.vector(stats::ccf(x, y, lag.max = 3, plot = FALSE)$acf) })"},
     {"id":"ca-contingency-summary","tab":"tests","title":{"en":"Correspondence analysis of a small contingency table","ja":"小さな分割表の対応分析"},"js":"(() => { const fit = ca([[12, 8, 3], [4, 11, 9], [7, 5, 14]]); return [...fit.sv, ...caSummary(fit).scree.values[0]]; })()","r":"local({ z <- ca::ca(matrix(c(12, 8, 3, 4, 11, 9, 7, 5, 14), nrow = 3, byrow = TRUE)); c(z$sv, summary(z)$scree[1, ]) })"},
     {"id":"sammon-small-configuration","tab":"tests","title":{"en":"Sammon mapping of six points","ja":"6 点の Sammon 写像"},"js":"(() => { const x = [[0, 0], [1, 0], [0, 2], [1, 1], [3, 2], [2, 4]]; return sammon(dist(x), { k: 2, niter: 20 }).stress; })()","r":"local({ x <- matrix(c(0, 0, 1, 0, 0, 2, 1, 1, 3, 2, 2, 4), ncol = 2, byrow = TRUE); MASS::sammon(stats::dist(x), k = 2, niter = 20)$stress })"}
+,
+    { "id": "mjca-categorical-columns", "tab": "tests",
+      "title": { "en": "Multiple correspondence analysis of categorical columns", "ja": "カテゴリ列の多重対応分析" },
+      "js": "(() => { const fit = mjca({ rows: null, cols: [\"treatment\", \"response\"], values: [[\"A\", \"yes\"], [\"A\", \"no\"], [\"B\", \"yes\"], [\"B\", \"yes\"], [\"C\", \"no\"]] }); return [...fit.sv, fit.inertiaT]; })()",
+      "r": "local({ d <- data.frame(treatment = factor(c(\"A\", \"A\", \"B\", \"B\", \"C\")), response = factor(c(\"yes\", \"no\", \"yes\", \"yes\", \"no\"))); z <- ca::mjca(d); c(z$sv, z$inertia.t) })" },
+    { "id": "isomds-small-configuration", "tab": "tests",
+      "title": { "en": "Non-metric MDS of six points", "ja": "6 点の非計量多次元尺度法" },
+      "js": "(() => { const x = [[0, 0], [1, 0], [0, 2], [1, 1], [3, 2], [2, 4]]; return isoMDS(dist(x), { k: 2 }).stress; })()",
+      "r": "local({ x <- matrix(c(0, 0, 1, 0, 0, 2, 1, 1, 3, 2, 2, 4), ncol = 2, byrow = TRUE); MASS::isoMDS(stats::dist(x), k = 2)$stress })" }
   ]
 }

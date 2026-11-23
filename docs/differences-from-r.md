@@ -1850,7 +1850,7 @@ The references are R's `stats` functions. The implementation decisions are recor
 - Lags are integer observation offsets. R time-series classes, calendar-time lag units and `frequency` metadata are not represented.
 - `ccf` accepts two equal-length numeric arrays; it does not align unequal `ts` ranges.
 - `naAction` supports only `"fail"` and pairwise `"pass"`; R's full set of missing-value policies is not exposed.
-- The Durbin–Levinson recursion for PACF uses 200-bit fixed-point intermediates. On the long-series exact-integer check, the maximum absolute error against the independent high-precision reference is approximately (1.9\times10^{-13}); the corresponding R result is approximately (5.0\times10^{-12}). This intentional accuracy difference means the last digits need not match R.
+- PACF uses the ordinary double-precision Durbin–Levinson recursion. The `acf_long_partial_exact` fixture checks its values against an independent high-precision reference with an absolute tolerance of `1e-12`; no fixed-point arithmetic is used.
 - Correlations are evaluated after scale normalization for extreme magnitudes and large common offsets. Covariance results still obey IEEE-754 representability: a mathematically out-of-range covariance can be returned as zero or infinity.
 
 ### `ca`, `caSummary` and `caCoord`
@@ -1869,5 +1869,5 @@ The references are R's `stats` functions. The implementation decisions are recor
 
 - Both accept the package's `DistResult` representation; the default starting configuration is classical MDS (`cmdscale`).
 - Sammon's trace records the initial value, periodic updates and final stopping reason. Extreme dissimilarity scales are normalized internally and restored in the returned coordinates.
-- `isoMDS` exposes the Minkowski power `p` and a stress trace. Its stopping test is based on relative stress change rather than the magnitude of the coordinates; the optimizer uses the BFGS path inferred from public R outputs, not a translation of MASS source code.
+- `isoMDS` exposes the Minkowski power `p` and a stress trace. BFGS starts from the identity inverse Hessian in the original coordinates: neither the initial coordinates nor the inverse Hessian is normalized by scale. Its optimization path therefore depends on the starting scale, as R's does; no scale-equivariance guarantee is made. The optimizer was inferred from public R outputs, not translated from MASS source code.
 - Coordinate signs are oriented deterministically. As with other SVD/MDS methods, sign differences alone do not indicate a different configuration.

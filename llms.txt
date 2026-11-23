@@ -195,34 +195,49 @@ glmSummary(fit).pValue;  // ≈ [5.357e-8, 3.579e-9]
 
 ## Time series and multivariate analysis
 
-Time-series functions are in the separate `/timeseries` entry point:
+Autocorrelation and partial autocorrelation are in the separate `/timeseries` entry point:
 
 ```ts
-import { acf, pacf, ccf } from "@numero-uno-jpn/rstats/timeseries";
-
+import { acf, pacf } from "@numero-uno-jpn/rstats/timeseries";
 const x = [4, 5, 7, 6, 9, 8, 11, 10, 12, 13];
 acf(x, { lagMax: 5 });
 pacf(x, { lagMax: 5 });
-ccf(x, [3, 4, 5, 7, 6, 8, 9, 8, 10, 11], { lagMax: 3 });
 ```
 
-Correspondence analysis and non-metric scaling are in `/multivariate`:
+Cross-correlation uses two equal-length series:
 
 ```ts
-import { ca, caSummary, caCoord, mjca, dist, sammon, isoMDS } from "@numero-uno-jpn/rstats/multivariate";
+import { ccf } from "@numero-uno-jpn/rstats/timeseries";
+ccf([4, 5, 7, 6, 9, 8], [3, 4, 5, 7, 6, 8], { lagMax: 2 });
+```
 
+Correspondence analysis is in `/multivariate`:
+
+```ts
+import { ca, caSummary } from "@numero-uno-jpn/rstats/multivariate";
 const fit = ca([[12, 8, 3], [4, 11, 9], [7, 5, 14]]);
 caSummary(fit);
-caCoord(fit, { type: "symmetric" });
+```
 
-mjca({
-  rows: null,
-  cols: ["treatment", "response"],
-  values: [["A", "yes"], ["A", "no"], ["B", "yes"], ["B", "yes"], ["C", "no"]]
-});
+Multiple correspondence analysis takes categorical columns:
 
+```ts
+import { mjca } from "@numero-uno-jpn/rstats/multivariate";
+mjca({ rows: null, cols: ["treatment", "response"],
+  values: [["A", "yes"], ["A", "no"], ["B", "yes"], ["B", "yes"], ["C", "no"]] });
+```
+
+Sammon mapping minimizes Sammon stress:
+
+```ts
+import { dist, sammon } from "@numero-uno-jpn/rstats/multivariate";
 const points = [[0, 0], [1, 0], [0, 2], [1, 1], [3, 2], [2, 4]];
-const dissimilarities = dist(points);
-sammon(dissimilarities, { k: 2 });
-isoMDS(dissimilarities, { k: 2 });
+sammon(dist(points), { k: 2 });
+```
+
+Non-metric MDS with Kruskal stress is available as `isoMDS`:
+
+```ts
+import { dist, isoMDS } from "@numero-uno-jpn/rstats/multivariate";
+isoMDS(dist([[0, 0], [1, 0], [0, 2], [1, 1], [3, 2], [2, 4]]), { k: 2 });
 ```
