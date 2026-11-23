@@ -94,7 +94,7 @@ function encode(node: number, n: number): number { return node < n ? -(node + 1)
  * Equivalent to R's `hclust()`.
  * @category Multivariate analysis
  */
-export function hclust(d: DistResult, options: HclustOptions = {}): HclustFit & { warnings: string[] } {
+export function hclust(d: DistResult, options: HclustOptions = {}): HclustFit {
   checkOptions(options, HCLUST_KEYS, "hclust"); // generated: option-keys.mjs
   if (!d || typeof d !== "object" || !Array.isArray(d.values) || !Number.isInteger(d.size)) {
     throw new TypeError("d must be a dist object; use asDist() for a square matrix");
