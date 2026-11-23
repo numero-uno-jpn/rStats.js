@@ -114,7 +114,7 @@ function derivatives(d:number[],y:number[][],n:number,k:number):{gradient:number
 
 /**
  * Sammon's nonlinear mapping of dissimilarities into a lower-dimensional configuration.
- * Equivalent to R's `MASS::sammon()` public behavior for the selected options.
+ * Equivalent to R's `MASS::sammon()`.\n * Sammon's nonlinear mapping for the selected options.
  * @category Multivariate analysis
  */
 export function sammon(input:DistResult|SammonMatrixInput|readonly (readonly number[])[],options:SammonOptions={}):SammonResult {
