@@ -34,10 +34,34 @@ const grid=Array.from({length:9},(_,i)=>[i%3,Math.floor(i/3)]);
 const gridLabels=Array.from({length:9},(_,i)=>"g"+(i+1));
 const gridY=grid.map((r,i)=>[r[0]!+0.1*Math.sin(i+1),r[1]!+0.1*Math.cos(i+1)]);
 function alignPoints(actual:number[][],expected:number[][]):void{
-  const k=expected[0]?.length??0;
+  const n=Math.min(actual.length,expected.length),k=expected[0]?.length??0;
   for(let q=0;q<k;q++){
-    let dot=0;for(let i=0;i<Math.min(actual.length,expected.length);i++)dot+=actual[i]![q]!*expected[i]![q]!;
-    if(dot<0)for(const row of actual)row[q]=-row[q]!;
+    let mean=0;for(let i=0;i<n;i++)mean+=actual[i]![q]!;mean/=n;
+    for(let i=0;i<n;i++)actual[i]![q]=actual[i]![q]!-mean;
+  }
+  if(k===1){
+    let dot=0;for(let i=0;i<n;i++)dot+=actual[i]![0]!*expected[i]![0]!;
+    if(dot<0)for(const row of actual)row[0]=-row[0]!;
+    return;
+  }
+  if(k===2){
+    const fit=(reflect:boolean):{points:number[][];error:number}=>{
+      let a=0,b=0;
+      for(let i=0;i<n;i++){
+        const x=actual[i]![0]!,y=actual[i]![1]!*(reflect?-1:1);
+        a+=x*expected[i]![0]!+y*expected[i]![1]!;
+        b+=x*expected[i]![1]!-y*expected[i]![0]!;
+      }
+      const norm=Math.hypot(a,b),c=norm===0?1:a/norm,ss=norm===0?0:b/norm;
+      const points=actual.map(row=>{
+        const x=row[0]!,y=row[1]!*(reflect?-1:1);
+        return [c*x-ss*y,ss*x+c*y];
+      });
+      let error=0;for(let i=0;i<n;i++)for(let q=0;q<2;q++)error+=(points[i]![q]!-expected[i]![q]!)**2;
+      return {points,error};
+    };
+    const direct=fit(false),mirror=fit(true),best=direct.error<=mirror.error?direct:mirror;
+    for(let i=0;i<actual.length;i++)for(let q=0;q<2;q++)actual[i]![q]=best.points[i]![q]!;
   }
 }
 function check(key:string,d:DistResult|SammonMatrixInput|readonly (readonly number[])[],options:any={},tight=false):string[]{
