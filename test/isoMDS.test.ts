@@ -103,14 +103,14 @@ function compare(key: string, actual: IsoMDSResult, stressTol = 1e-8): void {
     maxTightCoordinateError=Math.max(maxTightCoordinateError,coordinateError);
     tightCompared++;
     const relativeStressError=error/Math.max(Math.abs(e),1e-300);
-    if(Math.abs(e)>=1e-6)maxTightStressRelativeError=Math.max(maxTightStressRelativeError,relativeStressError);
+    if(!useAbsoluteStress)maxTightStressRelativeError=Math.max(maxTightStressRelativeError,relativeStressError);
     maxTightStressAbsoluteError=Math.max(maxTightStressAbsoluteError,error);
     if(coordinateError>1e-5*expectedMax)mismatches.push(`${key}.coordinate max error=${coordinateError}`);
-    const useAbsoluteStress = Math.abs(e)<1e-6;
+    const useAbsoluteStress = absoluteStressCase(key,e);
     if(useAbsoluteStress ? error>1e-6 : relativeStressError>1e-6)mismatches.push(`${key}.stress ${useAbsoluteStress?"absolute":"relative"} error=${useAbsoluteStress?error:relativeStressError}`);
     console.info(`${key}: stress abs error=${error.toExponential(3)}; relative=${relativeStressError.toExponential(3)}; centered orthogonal max coordinate error=${coordinateError.toExponential(3)} (limit ${(1e-5*expectedMax).toExponential(3)})`);
-  } else if (Math.abs(e)<1e-6 ? error>1e-6 : error>0.01*Math.abs(e)) {
-    mismatches.push(`${key}.stress ${Math.abs(e)<1e-6?"absolute":"relative"} tolerance exceeded: actual=${actual.stress}, expected=${e}, absError=${error}`);
+  } else if (absoluteStressCase(key,e) ? error>1e-6 : error>0.01*Math.abs(e)) {
+    mismatches.push(`${key}.stress ${absoluteStressCase(key,e)?"absolute":"relative"} tolerance exceeded: actual=${actual.stress}, expected=${e}, absError=${error}`);
   }
   // Default R trace text and coordinate orientation are implementation-specific.
 
