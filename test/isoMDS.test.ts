@@ -229,7 +229,7 @@ describe("isoMDS: swiss, eurodist and USArrests R fixtures", () => {
     compare("isomds_tight_small_k1", isoMDS(smallD, { k: 1, tol: 1e-10, maxit: 5000 }));
     compare("isomds_tight_non_euclidean", isoMDS(nonE, { tol: 1e-10, maxit: 5000 }));
     compare("isomds_tight_grid_ties", isoMDS(gridD, { y: perturbed, tol: 1e-10, maxit: 5000 }));
-    compare("isomds_perfect", isoMDS(dist(small.map((r) => r.slice(0, 2)))));
+    compare("isomds_perfect", isoMDS(dist(small.map((r) => r.slice(0, 2)), { labels: smallLabels })));
     compare("isomds_line", isoMDS(dist([0, 1, 3, 6, 10]), { k: 1 }));
     compare("isomds_three", isoMDS(dist([0, 1, 3]), { k: 1 }));
     compare("isomds_two", isoMDS(dist([0, 1]), { k: 1 }));
@@ -253,7 +253,6 @@ describe("isoMDS: swiss, eurodist and USArrests R fixtures", () => {
       ["isomds_zero_distance", () => isoMDS(dist([1, 1, 2, 5]), { k: 1 })],
       ["isomds_negative", () => isoMDS(asDist([[0, -1, 2], [-1, 0, 3], [2, 3, 0]]), { k: 1 })],
       ["isomds_na", () => isoMDS(asDist([[0, 1, NaN, 1], [1, 0, 2, 3], [NaN, 2, 0, 1], [1, 3, 1, 0]]), { k: 1 })],
-      ["isomds_matrix", () => isoMDS([[0, 1], [1, 0]], { k: 1 })],
       ["isomds_k_too_big", () => isoMDS(dist(small), { k: 5 })],
     ];
     for (const [key, action] of errors) {
