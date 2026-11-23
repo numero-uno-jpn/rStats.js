@@ -12,7 +12,7 @@ for (k in 1:5) {
   else {
     prev <- phi[k-1,1:(k-1)]
     phi[k,k] <- (r[k+1] - sum(prev * r[k:2])) / (1 - sum(prev * r[2:k]))
-    for (j in 1:(k-1)) phi[k,j] <- prev[j] - phi[k,k] * prev[k-j+1]
+    for (j in 1:(k-1)) phi[k,j] <- prev[j] - phi[k,k] * prev[k-j]
   }
 }
 pac <- diag(phi)

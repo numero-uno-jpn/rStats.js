@@ -8,8 +8,8 @@ sv <- svd(S)
 fit <- ca::ca(smoke)
 rowstd <- diag(1/sqrt(rm)) %*% sv$u
 colstd <- diag(1/sqrt(cm)) %*% sv$v
-rowprin <- sweep(rowstd,2,sv$d,"*")
-colprin <- sweep(colstd,2,sv$d,"*")
+rowprin <- sweep(rowstd[,1:3,drop=FALSE],2,sv$d[1:3],"*")
+colprin <- sweep(colstd[,1:3,drop=FALSE],2,sv$d[1:3],"*")
 rowdist2 <- rowSums((sweep(P,1,rm,"/") - matrix(cm,nrow=nrow(P),ncol=ncol(P),byrow=TRUE))^2 / matrix(cm,nrow=nrow(P),ncol=ncol(P),byrow=TRUE))
 # MCA indicator matrix from four wg93 factors
 dat <- wg93[,1:4]
@@ -34,7 +34,7 @@ out <- list(
  mjca_indicator_direct_eigen=eig, mjca_indicator_levels=J,
  mjca_variables=Q, mjca_indicator_formula_total=(J-Q)/Q,
  mjca_burt_total=fit_burt$inertia.t, mjca_adjusted_total=fit_adjusted$inertia.t,
- mjca_benzeczi_direct=ben, mjca_adjusted_eigen=fit_adjusted$inertia.e,
+ mjca_benzeczi_direct=ben, mjca_benzeczi_total=sum(ben), mjca_benzeczi_share=ben/sum(ben), mjca_adjusted_eigen=fit_adjusted$inertia.e,
  mjca_jca_total=fit_jca$inertia.t, mjca_jca_et=fit_jca$inertia.et
 )
 cat(as.character(toJSON(out,digits=I(17),auto_unbox=TRUE,null="null")))
