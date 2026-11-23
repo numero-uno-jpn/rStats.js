@@ -75,7 +75,8 @@ function coordinateStats(coords:number[][],mass:number[],dist:number[],sv:number
 
 /**
  * Multiple correspondence analysis for categorical columns.
- * Equivalent to R's `ca::mjca()`.\n * Multiple correspondence analysis for adjusted, indicator and Burt analyses.
+ * Equivalent to R's `ca::mjca()`.
+ * Multiple correspondence analysis for adjusted, indicator and Burt analyses.
  * @category Multivariate analysis
  */
 export function mjca(input:MjcaInputTable,options:MjcaOptions={}):MjcaFit {
