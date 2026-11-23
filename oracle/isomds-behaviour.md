@@ -76,3 +76,18 @@ The user's decisions of 2026-11-22 (Issue #556), written by Claude. They take pr
     method that converges to R's tight endpoints from rStats.js's `cmdscale` start. Report the endpoint test and the
     tight comparison per case. **If choice 7 is not reached, isoMDS leaves 1.11.0** (user's decision of 2026-11-23)
 
+11. **The optimizer (Claude's experiments of 2026-11-24, user's decision to bring isoMDS back into 1.11.0; replaces the
+    freedom of choice 10):** R's iterates are those of a textbook BFGS on the stress in percent, found from public outputs
+    only (`experiments/isomds111-iterates.{R,txt}`, `experiments/isomds111-bfgs.{R,txt}`; the reasoning is in
+    `briefs/isomds-1.11-bfgs.ja.md`). The inverse-Hessian BFGS update (Nocedal & Wright, ch. 6) from the identity, a unit
+    first trial step along `-H g`, Armijo backtracking, a reset to the identity when the curvature `s'y` is not positive,
+    the gradient of the fixed-order Stress-1 (choices 8, 9) with the isotonic fit held fixed. R's `maxit = 1` and `2`
+    give the same point and `maxit = k + 1` gives the k-th BFGS iterate (swiss within 1.6e-14, eurodist within 2.2e-11
+    of R's largest coordinate over 11 iterates). Still open (ChatGPT, from R's outputs): the backtracking factor and the
+    Armijo constant (no backtracking occurred in those 11 iterates), the reset rule after a failed line search, the
+    iteration count, the stopping rule (`tol`), the gradient for p != 2 and the k = 1 and k = 3 cases
+12. **Pass condition (replaces choice 7's switch):** at the default settings, R's printed progress (the stress every 5
+    iterations), the final stress within 1e-9 relative and the points within 1e-7 of R's largest absolute coordinate
+    after column-sign alignment (BFGS from the identity is equivariant under the column reflections of the start), in
+    every fixture case; the tight cases (`isomds_tight_*`) within choice 7's tolerances. A case that cannot reach this is
+    reported with the iterate where it departs from R. Choice 5 (scale-invariant stopping) stays

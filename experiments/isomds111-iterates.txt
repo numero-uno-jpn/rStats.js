@@ -1,0 +1,26 @@
+swiss : stress 5.463800 5.449274 5.449274 4.859694 4.505580 4.499103 4.495335 4.462289 4.416122 4.344342 4.301693 4.289963 4.288530 
+ k=1 cos(s,-g)=1.000000 |s|/|g|=1 resid(g,prev)=NA beta=NA centroid=7.8e-15
+ k=2 no move
+ k=3 cos(s,-g)=1.000000 |s|/|g|=186.3 resid(g,prev)=2.95e-10 beta=-185.94383,   0.31072 centroid=7.9e-15
+ k=4 cos(s,-g)=0.729545 |s|/|g|=79.84 resid(g,prev)=2.81e-06 beta=-0.59065,-0.40549 centroid=7.8e-15
+ k=5 cos(s,-g)=0.239620 |s|/|g|=18.57 resid(g,prev)=0.00116 beta=-1.064409,-0.099095 centroid=7.8e-15
+ k=6 cos(s,-g)=0.298443 |s|/|g|=5.115 resid(g,prev)=0.00012 beta=-1.30273, 0.27548 centroid=7.7e-15
+ k=7 cos(s,-g)=0.463195 |s|/|g|=35.48 resid(g,prev)=0.000795 beta=-8.1801, 6.4090 centroid=7.7e-15
+ k=8 cos(s,-g)=0.504065 |s|/|g|=40.58 resid(g,prev)=0.0171 beta=-12.6270,  1.0445 centroid=7.9e-15
+ k=9 cos(s,-g)=0.594031 |s|/|g|=63.86 resid(g,prev)=0.0512 beta=-22.1123,  1.2827 centroid=7.9e-15
+ k=10 cos(s,-g)=0.715809 |s|/|g|=52.13 resid(g,prev)=0.23 beta=-26.86007,  0.45023 centroid=8.1e-15
+ k=11 cos(s,-g)=0.608611 |s|/|g|=37.6 resid(g,prev)=0.706 beta=-18.34376,  0.19409 centroid=7.8e-15
+ k=12 cos(s,-g)=0.198372 |s|/|g|=17.27 resid(g,prev)=0.733 beta=-1.94596, 0.25697 centroid=7.8e-15
+eurodist : stress 7.505733 7.505688 7.505688 6.401800 6.220323 6.217447 6.217440 6.205973 6.188669 6.145207 6.083762 6.030332 6.015089 
+ k=1 cos(s,-g)=1.000000 |s|/|g|=1 resid(g,prev)=NA beta=NA centroid=5.2e-13
+ k=2 no move
+ k=3 cos(s,-g)=1.000000 |s|/|g|=7.314e+04 resid(g,prev)=1.23e-10 beta=-73144.5454,     0.1635 centroid=5.1e-13
+ k=4 cos(s,-g)=0.616605 |s|/|g|=3.164e+04 resid(g,prev)=2.74e-11 beta=-0.70152,-0.29847 centroid=5.2e-13
+ k=5 cos(s,-g)=0.135492 |s|/|g|=6171 resid(g,prev)=4.83e-06 beta=-1.04080,-0.11127 centroid=5.2e-13
+ k=6 cos(s,-g)=0.159867 |s|/|g|=6.268 resid(g,prev)=8.53e-06 beta=-1.0011517,-0.0010368 centroid=5.2e-13
+ k=7 cos(s,-g)=0.326372 |s|/|g|=6422 resid(g,prev)=4.66e-06 beta=-1113.81,  981.05 centroid=1.2e-12
+ k=8 cos(s,-g)=0.510927 |s|/|g|=6522 resid(g,prev)=0.0121 beta=-2361.00289,    0.82209 centroid=3.1e-12
+ k=9 cos(s,-g)=0.758568 |s|/|g|=1.413e+04 resid(g,prev)=0.0404 beta=-7240.6838,    1.3856 centroid=8.6e-12
+ k=10 cos(s,-g)=0.854344 |s|/|g|=2.474e+04 resid(g,prev)=0.128 beta=-1.4797e+04, 8.4563e-01 centroid=1.7e-11
+ k=11 cos(s,-g)=0.767255 |s|/|g|=3.717e+04 resid(g,prev)=0.237 beta=-1.6367e+04, 8.7523e-01 centroid=2.6e-11
+ k=12 cos(s,-g)=0.516280 |s|/|g|=2.246e+04 resid(g,prev)=0.435 beta=-7052.28133,    0.40389 centroid=2.8e-11

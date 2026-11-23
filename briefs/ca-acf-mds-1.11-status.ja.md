@@ -1,6 +1,6 @@
 # 現状の要約: 対応分析・自己相関・非計量 MDS (1.11.0: ca・mjca、acf・pacf・ccf、isoMDS・sammon)、Issue #560
 
-更新 2026-11-23。新しい会話はこの文書と指示書 (`briefs/ca-acf-mds-1.11.ja.md`)、**段階 2 の指示 (`briefs/ca-acf-mds-1.11-stage2.ja.md`)** を読んで始める。
+更新 2026-11-23。新しい会話はこの文書と指示書 (`briefs/ca-acf-mds-1.11.ja.md`)、**段階 2 の指示 (`briefs/ca-acf-mds-1.11-stage2.ja.md`)** を読んで始める。今の作業は `briefs/isomds-1.11-bfgs.ja.md` → `briefs/ca-acf-mds-1.11-finish.ja.md`。
 
 ## 書き込んでよい場所 (最重要。これ以外には書かない)
 
@@ -72,7 +72,7 @@
 | ca | 段階 2 (仕様・choices・fixture は済み。caSummary・caCoord も) |
 | mjca | 段階 2 (仕様・choices・fixture は済み。JCA は外す) |
 | sammon | 段階 2 (仕様・choices・fixture は済み。R に合わせる) |
-| isoMDS | 段階 2 (choices 8・9 で同点と stress を直してから。届かなければ外す) |
+| isoMDS | 一度外して戻した (2026-11-24)。`briefs/isomds-1.11-bfgs.ja.md` (最適化は BFGS、choices 11・12) |
 
 ## テストの書き方 (要点)
 
