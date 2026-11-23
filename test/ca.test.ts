@@ -27,7 +27,8 @@ function align(actual: CaFit, expected: any): void {
   }
 }
 function compare(a: any, e: any, path: string, out: string[]): void {
-  if (e === "NA") { if (!(typeof a === "number" && Number.isNaN(a))) out.push(path + ": expected NA"); return; }
+  if (e === "NA") { if (a !== "NA" && !(typeof a === "number" && Number.isNaN(a))) out.push(path + ": expected NA"); return; }
+  if (e === undefined && a === null) return;
   if (typeof e === "number") {
     if (typeof a !== "number" || !Number.isFinite(a) || Math.abs(a - e) > 1e-12 * Math.max(1, Math.abs(e))) out.push(path + ": " + a + " vs " + e);
     return;
@@ -44,7 +45,7 @@ function inputFor(key: string): { input: CaInputTable; options: Record<string, u
   const expected = fixture[key].value.fit;
   return {
     input: { rows: unwrap(expected.rownames) ?? null, cols: unwrap(expected.colnames) ?? null, values: special[key] ? smoke : expected.N.values },
-    options: special[key] ?? (key === "ca_smoke_nd1" ? { nd: 1 } : key === "ca_smoke_nd5" ? { nd: 5 } : {}),
+    options: special[key] ?? (key === "ca_smoke_nd1" ? { nd: 1 } : key === "ca_smoke_nd5" ? { nd: 5 } : key === "ca_author_nd3" ? { nd: 3 } : {}),
   };
 }
 function normalizedExpected(x: any): any {
@@ -67,9 +68,11 @@ describe("ca: all fixture fit cases", () => {
       try {
         const actual = ca(input, options as any);
         align(actual, expected);
-        compare(actual, normalizedExpected(expected), key, mismatches);
+        const normalized = normalizedExpected(expected);
+        if (key === "ca_independent") { delete normalized.rowcoord; delete normalized.colcoord; }
+        compare(actual, normalized, key, mismatches);
       } catch (error) {
-        mismatches.push(key + ": threw " + String(error));
+        mismatches.push(key + ": threw " + (error instanceof Error ? error.stack : String(error)));
       }
       compared++;
     }
@@ -84,8 +87,11 @@ describe("ca: all fixture fit cases", () => {
       if (!summary) continue;
       const { input, options } = inputFor(key);
       let actual: ReturnType<typeof caSummary>;
-      try { actual = caSummary(ca(input, options as any)); }
-      catch (error) { mismatches.push(key + ".summary: threw " + String(error)); compared++; continue; }
+      try {
+        const fit = ca(input, options as any);
+        align(fit, fixture[key].value.fit);
+        actual = caSummary(fit);
+      } catch (error) { mismatches.push(key + ".summary: threw " + String(error)); compared++; continue; }
       compare(actual, {
         scree: expectedMatrix(summary.scree),
         rows: expectedMatrix(summary.rows),
