@@ -916,16 +916,16 @@ function compare(a:any,e:any,path:string,out:string[]):void{
 function check(key:string,input:MjcaInputTable,options:any={}):string[]{
   comparedFixtureKeys.add(key);
   const actual=mjca(input,options),expected=expectedFit(fixture[key].value.fit),errors:string[]=[];
-  const expectedCols=expected.colcoord?.values as number[][]|undefined;
-  if(expectedCols&&actual.colcoord.values.length){
-    for(let j=0;j<(actual.colcoord.values[0]?.length??0);j++){
+  const expectedRows=expected.rowcoord?.values as number[][]|undefined;
+  if(expectedRows&&actual.rowcoord&&actual.rowcoord.values.length){
+    for(let j=0;j<(actual.rowcoord.values[0]?.length??0);j++){
       let dot=0;
-      for(let i=0;i<Math.min(actual.colcoord.values.length,expectedCols.length);i++){
-        const actualRow=actual.colcoord.values[i],expectedRow=expectedCols[i];
+      for(let i=0;i<Math.min(actual.rowcoord.values.length,expectedRows.length);i++){
+        const actualRow=actual.rowcoord.values[i],expectedRow=expectedRows[i];
         const actualValue=actualRow?.[j],expectedValue=expectedRow?.[j];
         if(actualValue!==undefined&&expectedValue!==undefined)dot+=Number(actualValue)*Number(expectedValue);
       }
-      if(dot<0)for(const field of [actual.colcoord,actual.colpcoord,actual.rowcoord!,actual.rowpcoord!])for(const row of field.values)row[j]=-Number(row[j]??0);
+      if(dot<0)for(const field of [actual.colcoord,actual.colpcoord,actual.rowcoord,actual.rowpcoord!])for(const row of field.values)row[j]=-Number(row[j]??0);
     }
   }
   compare(actual,expected,key,errors);
