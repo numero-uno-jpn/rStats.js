@@ -234,7 +234,7 @@ export function caSummary(result:CaFit):CaSummary {
 }
 /**
  * Computes row and column coordinates for a correspondence-analysis map.
- * Equivalent to the coordinate views of R's ca package.
+ * Equivalent to the coordinate scaling conventions of R's `ca::plot.ca()`.
  * @category Multivariate analysis
  */
 export function caCoord(result:CaFit,options:CaCoordOptions={}):CaMatrix|{rows:CaMatrix;columns:CaMatrix} {
