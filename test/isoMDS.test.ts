@@ -114,7 +114,7 @@ describe("isoMDS", () => {
     compare("isomds_grid_ties_default", isoMDS(dist(grid)), 1e-7);
   });
 
-  it("uses primary tie blocks, explicit starts, progress and zero-iteration behavior", () => {
+  it("uses the fixed tie order, explicit starts, progress and zero-iteration behavior", () => {
     const tied = isoMDS(dist(grid), { y: perturbed });
     compare("isomds_grid_ties", tied, 1e-5);
     const stopped = isoMDS(ds, { maxit: 0 });
