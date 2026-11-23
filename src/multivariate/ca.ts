@@ -102,7 +102,7 @@ function fit(input:readonly (readonly number[])[]|CaInputTable, options:CaOption
 }
 /**
  * Simple correspondence analysis of a contingency table.
- * Equivalent to R's `ca::ca()`.
+ * Equivalent to R's `ca()`.
  * @category Multivariate analysis
  */
 export function ca(input:readonly (readonly number[])[]|CaInputTable,options:CaOptions={}):CaFit{return fit(input,options);}
@@ -137,7 +137,7 @@ export function caSummary(result:CaFit):CaSummary {
 }
 /**
  * Row and column coordinates for a correspondence analysis map.
- * Equivalent to R's `ca::cacoord()`.
+ * Equivalent to R's `cacoord()`.
  * @category Multivariate analysis
  */
 export function caCoord(result:CaFit,options:CaCoordOptions={}):CaMatrix|{rows:CaMatrix;columns:CaMatrix} {
