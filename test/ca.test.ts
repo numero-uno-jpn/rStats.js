@@ -4,6 +4,8 @@ import { ca, caSummary, caCoord, type CaInputTable, type CaFit } from "../src/en
 
 const fixture = JSON.parse(readFileSync(new URL("./fixtures/ca.json", import.meta.url), "utf8")) as Record<string, any>;
 let maxNumericError = 0;
+const componentMismatchCounts:Record<string,number>={};
+const componentMaxAbsError:Record<string,number>={};
 const names = Object.keys(fixture).filter((key) => key.startsWith("ca_") && !key.startsWith("ca_cacoord_") && fixture[key]?.value?.fit);
 const smoke = fixture.ca_smoke.value.fit.N.values as number[][];
 const special: Record<string, { suprow?: number | number[]; supcol?: number | number[] }> = {
@@ -35,7 +37,12 @@ function compare(a: any, e: any, path: string, out: string[]): void {
     else {
       const error = Math.abs(a - e);
       maxNumericError = Math.max(maxNumericError, error);
-      if (error > 1e-12 * Math.max(1, Math.abs(e))) out.push(path + ": " + a + " vs " + e);
+      if (error > 1e-12 * Math.max(1, Math.abs(e))) {
+        out.push(path + ": " + a + " vs " + e);
+        const parts=path.split(".").slice(1),component=parts[0]==="summary"?"summary."+(parts[1]??"unknown"):(parts[0]??"unknown");
+        componentMismatchCounts[component]=(componentMismatchCounts[component]??0)+1;
+        componentMaxAbsError[component]=Math.max(componentMaxAbsError[component]??0,error);
+      }
     }
     return;
   }
@@ -83,7 +90,7 @@ describe("ca: all fixture fit cases", () => {
       compared++;
     }
     expect(compared, "fixture fit case count").toBe(names.length);
-    console.info("ca fit: " + compared + "/" + names.length + "; max |numeric error|=" + maxNumericError.toExponential(3));
+    console.info("ca fit: " + compared + "/" + names.length + "; component mismatch counts=" + JSON.stringify(componentMismatchCounts) + "; component max |error|=" + JSON.stringify(componentMaxAbsError) + "; max |numeric error|=" + maxNumericError.toExponential(3));
     expect(mismatches).toEqual([]);
   });
   it("compares every available summary table in the fixture", () => {
@@ -150,7 +157,7 @@ describe("ca: all fixture fit cases", () => {
       compare(actual, fixture[key].value, key, mismatches);
     }
     expect(Object.keys(cases).length).toBe(6);
-    console.info("ca fixture totals: fit " + names.length + "/20; cacoord 6/6; error cases 6/6; max |numeric error|=" + maxNumericError.toExponential(3));
+    console.info("ca fixture totals: fit " + names.length + "/20; cacoord 6/6 (standard/principal transformations); error cases 6/6; shared row/column axis-sign alignment; component mismatch counts=" + JSON.stringify(componentMismatchCounts) + "; component max |error|=" + JSON.stringify(componentMaxAbsError) + "; max |numeric error|=" + maxNumericError.toExponential(3));
     expect(mismatches).toEqual([]);
   });
 
