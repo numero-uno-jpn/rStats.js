@@ -157,7 +157,7 @@ export function sammon(input:DistResult|SammonMatrixInput|readonly (readonly num
       }));
       if(candidate.some(row=>row.some(v=>!Number.isFinite(v))))throw new RangeError("non-finite Sammon update");
       const candidateStress=stressOf(d,candidate,n);
-      if(candidateStress<=current){nextY=candidate;nextStress=candidateStress;accepted=true;break;}
+      if(candidateStress<current){nextY=candidate;nextStress=candidateStress;accepted=true;break;}
       magic*=0.2;
     }
     if(!accepted){reason="backtracking";iteration=step;break;}
