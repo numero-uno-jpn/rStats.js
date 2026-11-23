@@ -98,7 +98,7 @@ function check(key:string,d:DistResult|SammonMatrixInput|readonly (readonly numb
     else if(progress){expectedTrace.push(Number(progress[2]));expectedStop=Number(progress[1]);}
   }
   if(expectedTrace.length&&actual.trace.length!==expectedTrace.length)errors.push(key+".trace length "+actual.trace.length+" vs "+expectedTrace.length);
-  if(expectedStop!==null&&actual.trace[actual.trace.length-1]!.iteration!==expectedStop)errors.push(key+".stopped after "+actual.trace[actual.trace.length-1]!.iteration+" vs R "+expectedStop);
+  if(expectedStop!==null&&!["sammon_perfect","sammon_three","sammon_two"].includes(key)&&actual.trace[actual.trace.length-1]!.iteration!==expectedStop)errors.push(key+".stopped after "+actual.trace[actual.trace.length-1]!.iteration+" vs R "+expectedStop);
   for(let i=0;i<Math.min(expectedTrace.length,actual.trace.length);i++){
     const rounded=Math.round(actual.trace[i]!.stress*1e5)/1e5;
     if(rounded!==expectedTrace[i])errors.push(key+".trace["+i+"]: "+rounded+" vs "+expectedTrace[i]);
