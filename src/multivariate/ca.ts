@@ -60,22 +60,27 @@ function fit(input:readonly (readonly number[])[]|CaInputTable, options:CaOption
   const rowStd=ar.map((_,i)=>singular.map((_,j)=>U[i]![j]!/Math.sqrt(r[i]!)));
   const colStd=ac.map((_,i)=>singular.map((_,j)=>V[i]![j]!/Math.sqrt(c[i]!)));
   orient(rowStd,colStd);
-  const rowDist=ar.map((_,i)=>Math.sqrt(sum(ac.map((_,j)=>((active[i]![j]!/rowTotals[i]!)-c[j]!)**2/c[j]!))));
-  const colDist=ac.map((_,j)=>Math.sqrt(sum(ar.map((_,i)=>((active[i]![j]!/colTotals[j]!)-r[i]!)**2/r[i]!))));
-  const rowInertia=r.map((v,i)=>v*rowDist[i]!*rowDist[i]!);
-  const colInertia=c.map((v,j)=>v*colDist[j]!*colDist[j]!);
-  const rowNames=raw.rows===null?null:ar.map(i=>raw.rows![i]!);
-  const colNames=raw.cols===null?null:ac.map(j=>raw.cols![j]!);
-  const rowSup=sr.map(i=>i+1), colSup=sc.map(i=>i+1);
-  const projectRows=sr.map(i=>{const profile=ac.map(j=>original[i]![j]!);const n=sum(profile);return singular.map((s,k)=>sum(profile.map((v,j)=>v/n*colStd[j]![k]!))/s);});
-  const projectCols=sc.map(j=>{const profile=ar.map(i=>original[i]![j]!);const n=sum(profile);return singular.map((s,k)=>sum(profile.map((v,i)=>v/n*rowStd[i]![k]!))/s);});
+  const rowDistActive=ar.map((_,i)=>Math.sqrt(sum(ac.map((_,j)=>((active[i]![j]!/rowTotals[i]!)-c[j]!)**2/c[j]!))));
+  const colDistActive=ac.map((_,j)=>Math.sqrt(sum(ar.map((_,i)=>((active[i]![j]!/colTotals[j]!)-r[i]!)**2/r[i]!))));
+  const projectRows=sr.map(i=>{const profile=ac.map(j=>original[i]![j]!);const n=sum(profile);if(!(n>0))throw new RangeError("zero supplementary row");return singular.map((s,k)=>sum(profile.map((v,j)=>v/n*colStd[j]![k]!))/s);});
+  const projectCols=sc.map(j=>{const profile=ar.map(i=>original[i]![j]!);const n=sum(profile);if(!(n>0))throw new RangeError("zero supplementary column");return singular.map((s,k)=>sum(profile.map((v,i)=>v/n*rowStd[i]![k]!))/s);});
+  const rowCoordAll=Array.from({length:nr},(_,i)=>{const at=ar.indexOf(i);return at>=0?rowStd[at]!:projectRows[sr.indexOf(i)]!;});
+  const colCoordAll=Array.from({length:nc},(_,j)=>{const at=ac.indexOf(j);return at>=0?colStd[at]!:projectCols[sc.indexOf(j)]!;});
+  const rowDistAll=Array.from({length:nr},(_,i)=>{const profile=ac.map(j=>original[i]![j]!);const n=sum(profile);return Math.sqrt(sum(profile.map((v,j)=>((v/n-c[j]!)**2)/c[j]!)));});
+  const colDistAll=Array.from({length:nc},(_,j)=>{const profile=ar.map(i=>original[i]![j]!);const n=sum(profile);return Math.sqrt(sum(profile.map((v,i)=>((v/n-r[i]!)**2)/r[i]!)));});
+  const rowMassAll=Array.from({length:nr},(_,i)=>srSet.has(i)?NaN:r[ar.indexOf(i)]!);
+  const colMassAll=Array.from({length:nc},(_,j)=>scSet.has(j)?NaN:c[ac.indexOf(j)]!);
+  const rowInertiaAll=rowMassAll.map((v,i)=>Number.isNaN(v)?NaN:v*rowDistAll[i]!*rowDistAll[i]!);
+  const colInertiaAll=colMassAll.map((v,j)=>Number.isNaN(v)?NaN:v*colDistAll[j]!*colDistAll[j]!);
+  const rowNames=raw.rows===null?null:[...raw.rows], colNames=raw.cols===null?null:[...raw.cols];
+  const rowSup=sr.map(i=>i+1), colSup=sc.map(j=>j+1);
   const nd=options.nd===undefined?"NA":Math.trunc(options.nd);
   if(typeof nd==="number"&&(!Number.isFinite(nd)||nd<0))throw new RangeError("'nd' must be non-negative");
-  return {sv:singular,nd,rownames:rowNames,rowmass:r,rowdist:rowDist,rowinertia:rowInertia,
-    rowcoord:mat(rowStd,rowNames,singular.map((_,i)=>"Dim"+(i+1))),rowsup:rowSup,
-    colnames:colNames,colmass:c,coldist:colDist,colinertia:colInertia,
-    colcoord:mat(colStd,colNames,singular.map((_,i)=>"Dim"+(i+1))),colsup:colSup,
-    N:mat(active,rowNames,colNames)};
+  return {sv:singular,nd,rownames:rowNames,rowmass:rowMassAll,rowdist:rowDistAll,rowinertia:rowInertiaAll,
+    rowcoord:mat(rowCoordAll,rowNames,singular.map((_,i)=>"Dim"+(i+1))),rowsup:rowSup,
+    colnames:colNames,colmass:colMassAll,coldist:colDistAll,colinertia:colInertiaAll,
+    colcoord:mat(colCoordAll,colNames,singular.map((_,i)=>"Dim"+(i+1))),colsup:colSup,
+    N:mat(active,raw.rows===null?null:ar.map(i=>raw.rows![i]!),raw.cols===null?null:ac.map(j=>raw.cols![j]!))};
 }
 export function ca(input:readonly (readonly number[])[]|CaInputTable,options:CaOptions={}):CaFit{return fit(input,options);}
 
