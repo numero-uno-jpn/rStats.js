@@ -30,7 +30,7 @@ export interface IsoMDSResult {
 }
 
 interface Pair { i: number; j: number; delta: number; group: number; }
-interface Evaluation { stress: number; distances: number[]; disparities: number[]; }
+interface Evaluation { stress: number; distances: number[]; disparities: number[]; normalization: number; }
 
 function readD(input: DistResult | readonly (readonly number[])[]): { d: number[][]; missing: boolean; labels: string[] | null } {
   if (Array.isArray(input)) {
@@ -123,7 +123,7 @@ function evaluate(y: number[][], pairs: readonly Pair[], groups: number[], p: nu
     numerator += diff * diff;
     denominator += d * d;
   }
-  return { stress: denominator === 0 ? 0 : 100 * Math.sqrt(numerator / denominator), distances, disparities };
+  return { stress: denominator === 0 ? 0 : 100 * Math.sqrt(numerator / denominator), distances, disparities, normalization };
 }
 function gradient(y: number[][], pairs: readonly Pair[], current: Evaluation, p: number): number[][] {
   const n = y.length, dim = y[0]!.length;
@@ -132,7 +132,8 @@ function gradient(y: number[][], pairs: readonly Pair[], current: Evaluation, p:
     const pair = pairs[at]!, d = current.distances[at]!;
     if (d === 0) continue;
     const stressRatio = (current.stress / 100) ** 2;
-    const factor = (d - current.disparities[at]! - stressRatio * d) / (d ** (p - 1));
+    const multiplier = 1 / current.normalization - 1 + stressRatio;
+    const factor = (d - current.disparities[at]! - multiplier * d) / (d ** (p - 1));
     for (let q = 0; q < dim; q++) {
       const diff = y[pair.i]![q]! - y[pair.j]![q]!;
       const v = diff === 0 ? 0 : factor * Math.sign(diff) * (Math.abs(diff) ** (p - 1));
