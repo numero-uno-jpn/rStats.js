@@ -64,3 +64,19 @@ The public result includes singular values, inertia summaries, category levels a
 
 ## rStats.js's choices
 
+The user's decisions of 2026-11-23 (Issue #560), written by Claude. They take precedence over every other section.
+
+1. `mjca` in `/multivariate` with **`lambda`: `"adjusted"` (default), `"indicator"` and `"Burt"`. `"JCA"` is not in
+   1.11.0** (user's decision: its convergence statistic is not established); `lambda: "JCA"` is an error naming the
+   unsupported value
+2. Input: a table of categorical columns (data-frame form). Contingency or Burt tables are not accepted. Incomplete rows
+   are omitted (the count is returned); unused levels are dropped
+3. Adjusted: the axis correction `(Q/(Q-1))^2 (lambda - 1/Q)^2` for `lambda > 1/Q`, the total inertia
+   `Q/(Q-1) (Burt inertia - (J-Q)/Q^2)` (not the sum of the corrected eigenvalues), percentages against that total
+4. `nd`, `supcol`, `subsetcat`, `reti` (the indicator matrix), `ps` (the level-name separator) as R. The Burt matrix,
+   column masses, distances, inertias, standard and principal coordinates, contributions and correlations; row
+   components for the indicator analysis. A summary function only if it is the same tables as `caSummary`
+5. Where R fails with `non-conformable arguments` (two variables, the small table in adjusted mode, ...) the
+   mathematically defined result is returned and checked independently, or an error is raised if it is not defined;
+   the spec says which
+6. Signs as `ca` (choice 6 there). Pass condition: every non-JCA fixture case at the tolerances of `ca` choice 7

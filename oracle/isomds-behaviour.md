@@ -91,3 +91,14 @@ The user's decisions of 2026-11-22 (Issue #556), written by Claude. They take pr
    `maxit = 5000`, all converged): stress within 1e-6 relative, points within 1e-5 of R's largest absolute coordinate after
    an orthogonal Procrustes alignment (p = 2) or column reflections and permutations (other p). At the default settings
    the points are a documented difference; rStats.js's default stress must be at most 1.01 times R's
+8. **Ties (user's decision of 2026-11-23, Issue #560; replaces "primary approach to ties" in choice 1):** R's fixed
+   order. Sort the pairs by dissimilarity with a stable sort, keeping the lower-triangle (column-wise) pair order within
+   equal dissimilarities, and fit the isotonic regression in that order. R's reported stress is this evaluation in
+   every case (grid ties 0.00383293527945, eurodist 5.88354761298), while the free-order primary fit is lower there, so
+   the primary approach cannot reach choice 7. Documented as R's convention
+9. Stress-1 without any rescaling after the isotonic fit: `100 sqrt(sum((r - fitted)^2) / sum(r^2))` (swiss at R's tight
+   endpoint: 4.21928575212). Fix the objective and the tie rule first, then repeat the R-endpoint start test
+10. The optimizer is free under choice 7 (the path does not have to be R's): Kruskal's gradient for every p, or another
+    method that converges to R's tight endpoints from rStats.js's `cmdscale` start. Report the endpoint test and the
+    tight comparison per case. **If choice 7 is not reached, isoMDS leaves 1.11.0** (user's decision of 2026-11-23)
+

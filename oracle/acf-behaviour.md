@@ -88,3 +88,20 @@ NaN and infinity, constant-series normalization, matrix input and scaling cases 
 
 ## rStats.js's choices
 
+The user's decisions of 2026-11-23 (Issue #560), written by Claude. They take precedence over every other section.
+
+1. `acf` (univariate only), `pacf` and `ccf` in `/timeseries`. `type`: correlation (default), covariance, partial (acf
+   only; `ccf` rejects partial as R). `lagMax` as R (default `floor(10 * log10(N))`, at most N - 1, fractional values
+   truncated, negative is R's error; `pacf` needs at least 1). `demean` as R
+2. **`naAction`: `"fail"` (default, R's error) and `"pass"` only** (user's decision). `"pass"`: means without the missing
+   values; the lag-k sum over the pairs where both values are present, divided by (that number of pairs + |k|); the
+   correlation divides by the lag-0 value(s) (ccf: `sqrt(gamma_x(0) gamma_y(0))`); `pacf` by Durbin-Levinson from that
+   correlation. `na.omit` and `na.contiguous` are not offered
+3. `ccf`: two arrays of the same length (different lengths are an error, not R's window intersection); lag k pairs
+   `x[t + k]` with `y[t]`, lags `-lagMax..lagMax`
+4. Lags are integers (observation counts); there is no `frequency` and no time scaling (a documented difference)
+5. The result has `lag`, `acf`, `type`, `nUsed` and `clim = qnorm((1 + ci) / 2) / sqrt(nUsed)` (`ci`, default 0.95, in
+   (0, 1)); every component an array where R gives a vector. Multivariate series (a matrix of two or more columns) are
+   an error
+6. Pass condition: every fixture case. Correlations within 1e-13 absolute, covariances within 1e-12 relative (tighten if
+   the computation allows; report the largest error). Non-numeric, empty and infinite input as R or a documented error

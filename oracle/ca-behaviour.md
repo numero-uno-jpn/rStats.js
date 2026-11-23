@@ -59,3 +59,21 @@ A zero row or column gives zero mass and makes inverse-mass geometry undefined; 
 
 ## rStats.js's choices
 
+The user's decisions of 2026-11-23 (Issue #560), written by Claude. They take precedence over every other section.
+
+1. `ca` in `/multivariate`: a numeric matrix with optional row and column labels (the table forms of the earlier
+   `/multivariate` functions). `nd`, `suprow`, `supcol` (1-based indices; names are not accepted, as R)
+2. The fit returns R's components (`sv`, `nd`, row and column names, masses, chi-square distances, inertias, standard
+   coordinates; supplementary points as R: barycentric projection divided by the singular value, verified to 1.8e-14)
+3. **`caSummary`** returns the scree (eigenvalue, percent, cumulative) and the row and column tables (mass, qlt, inr,
+   and per axis coordinate, cor, ctr) in R's per-thousand units. It returns values also where ca 0.72's `summary()`
+   fails (one dimension or fewer: `ca_smoke_nd1`, `ca_2x2`, ...); those values are checked by the independent formulas
+4. **`caCoord`** with the ten map types of `cacoord` (standard, principal, symmetric, rowprincipal, colprincipal,
+   symbiplot, rowgab, colgab, rowgreen, colgreen) and `dim`; all ten verified exactly
+5. Rank 0 and rank 1 give the lower-rank results; a zero row or column margin, negative or missing cells are errors
+   (R's message where R has one)
+6. Signs: one sign per axis for rows and columns together, chosen so that the row standard coordinate of largest
+   absolute value is positive (first wins on ties); a documented difference from R. Tests align each axis's sign to R
+   (rows and columns with the same flip) before comparing every component
+7. Pass condition: every fixture case, coordinates within 1e-12 of the largest absolute coordinate of the axis,
+   singular values and inertias within 1e-12 relative (tighten if possible; report the largest error)

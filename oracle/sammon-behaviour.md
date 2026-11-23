@@ -71,3 +71,20 @@ Tight public runs stop at 80 iterations for `small`, 140 for `eurodist`, and 370
 
 ## rStats.js's choices
 
+The user's decisions of 2026-11-23 (Issue #560), written by Claude. They take precedence over every other section.
+
+1. `sammon` in `/multivariate`: `y` (default rStats.js's `cmdscale`, with its sign rule), `k`, `niter` (100), `magic`
+   (0.2), `tol` (1e-4). Returns `points`, `stress` and the progress as numbers (`trace`: the initial stress, the stress
+   at each iteration R prints, and why it stopped); no printing
+2. **The update as R (user's decision):** the pseudo-Newton step `y - magic * gradient / |diagonal Hessian|` for all
+   points at once; on a stress increase `magic *= 0.2` and retry from the same configuration, on a decrease
+   `magic *= 1.5` capped at 0.5; **after four failed tries the iteration stops** (swiss stops at 0 iterations as R);
+   stop when the relative stress decrease of an iteration is below `tol`. The four-try stop is documented
+3. R's errors: zero or negative dissimilarity, duplicates in `y`, a malformed `y`, NA without `y`, Inf, `k` outside
+   1..n-1. NA with `y`: as R if the spec establishes it, otherwise an error
+4. Pass condition: at the default settings, R's printed progress (every reported stress), final stress within 1e-9
+   relative and points within 1e-7 of R's largest absolute coordinate after column-sign alignment; the tight cases
+   (`tight_*`) within 1e-6 relative stress and 1e-5 points. **If the defaults cannot be reached, report the evidence;
+   sammon leaves 1.11.0 if even the tight cases are not reached** (user's decision of 2026-11-23)
+5. Scale: stress invariant and points equivariant under scaling of `d` (2^+-300); the scaled-start case
+   (`sammon_scale_y`) as R
