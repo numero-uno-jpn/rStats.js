@@ -106,11 +106,11 @@ function compare(key: string, actual: IsoMDSResult, stressTol = 1e-8): void {
   if (!skipRScaleBehavior) {
     const printedRaw = expected.printed === undefined ? [] : Array.isArray(expected.printed) ? expected.printed : [expected.printed];
     if (printedRaw.length > 0 && key !== "isomds_swiss") {
-      const initialLine = printedRaw.find((line: string) => /initial\\s+value/.test(line));
-      const finalLine = printedRaw.find((line: string) => /final\\s+value/.test(line));
-      const initialValue = initialLine === undefined ? null : Number(/initial\\s+value\\s+([0-9.eE+-]+)/.exec(initialLine)?.[1]);
-      const finalValue = finalLine === undefined ? null : Number(/final\\s+value\\s+([0-9.eE+-]+)/.exec(finalLine)?.[1]);
-      const expectedProgress = printedRaw.map((line: string) => /iter\\s+(\\d+)\\s+value\\s+([0-9.eE+-]+)/.exec(line))
+      const initialLine = printedRaw.find((line: string) => /initial\s+value/.test(line));
+      const finalLine = printedRaw.find((line: string) => /final\s+value/.test(line));
+      const initialValue = initialLine === undefined ? null : Number(/initial\s+value\s+([0-9.eE+-]+)/.exec(initialLine)?.[1]);
+      const finalValue = finalLine === undefined ? null : Number(/final\s+value\s+([0-9.eE+-]+)/.exec(finalLine)?.[1]);
+      const expectedProgress = printedRaw.map((line: string) => /iter\s+(\d+)\s+value\s+([0-9.eE+-]+)/.exec(line))
         .filter(Boolean).map((match: RegExpExecArray) => Number(match[2]));
       const collapsedProgress = expectedProgress.filter((value: number, index: number, values: number[]) => index === 0 || value !== values[index - 1]);
       const actualProgress = actual.trace.slice(1, -1).map((entry) => entry.stress);
@@ -126,7 +126,7 @@ function compare(key: string, actual: IsoMDSResult, stressTol = 1e-8): void {
       if (finalValue !== null && actual.trace.length > 0 && Number(actual.trace[actual.trace.length - 1]!.stress.toFixed(6)) !== finalValue) {
         mismatches.push(key + ".printed final stress differs");
       }
-      const stopped = printedRaw.map((line: string) => /stopped after\\s+(\\d+) iterations/.exec(line)?.[1]).find((v: string | undefined) => v !== undefined);
+      const stopped = printedRaw.map((line: string) => /stopped after\s+(\d+) iterations/.exec(line)?.[1]).find((v: string | undefined) => v !== undefined);
       if (stopped !== undefined && actual.trace[actual.trace.length - 1]!.iteration !== Number(stopped)) {
         mismatches.push(key + ".iteration count " + actual.trace[actual.trace.length - 1]!.iteration + " vs R " + stopped);
       }
