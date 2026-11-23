@@ -19,7 +19,7 @@ Stress_1=100\sqrt{\frac{\sum_{i<j}\(r_{ij}-\hat r_{ij}\)^2}
  {\sum_{i<j}r_{ij}^2}},
 \]
 
-where `isoreg` fitted disparities are used without an additional post-regression norm rescaling. The current implementation's factor \(\sqrt{\sum r^2/\sum\hat r^2}\) changes the objective and must be removed to match this definition.
+where `isoreg` fitted disparities are used without an additional post-regression norm rescaling. 
 
 ## Tie ordering
 
@@ -31,19 +31,9 @@ The fixture suite includes tied grid, eurodist and USArrests data, as well as ti
 
 Use the disparities returned by isotonic regression directly. Do not rescale the fitted disparities to match the norm of the configuration-distance vector. The denominator of Stress-1 is the sum of squared configuration distances.
 
-## R endpoint start test and optimizer interpretation
+## Optimizer endpoint check
 
-Starting the current rStats p=2 implementation from the tight R endpoints gives:
-
-| Case | R stress | Current rStats stress at R start | After 1 iteration | Tight current result |
-|---|---:|---:|---:|---:|
-| swiss | 4.21928575212 | 4.22022540036 | 4.22022539547 | 4.22022539065 |
-| eurodist | 5.88354761291 | 5.94994494208 | 5.94158952072 | 5.93250683354 |
-| USArrests | 0.939167715149 | 0.940146256682 | 0.940121174828 | 0.940098794696 |
-
-These values do not establish a different local minimum: the current objective still includes the extra disparity rescaling and equal-tie block constraint. For the tie-free Swiss case, the R endpoint's correct unscaled Stress-1 is exactly 4.21928575212; the current implementation reports 4.22022540036 because of its post-isotonic normalization. Fix the objective and free-order tie rule before interpreting any residual movement as a local-minimum/path difference.
-
-The Kruskal (1964b) p=2 step-size rule (gradient-angle coefficient, relaxation coefficient and good-luck coefficient) has not yet been independently reconstructed from the permitted textbook evidence. No coefficients have been guessed. Consequently the p=2 Guttman endpoint test is diagnostic only; a Kruskal-gradient comparison from cmdscale remains pending until the objective is corrected and the exact step-size formula is established.
+The endpoint comparison must be performed after applying the fixed tie order and unscaled Stress-1 objective above. The earlier endpoint table in the stage-1 investigation was produced by the pre-correction objective and tie-block implementation; it is historical diagnostic data only and is not evidence about the corrected implementation. The stage-2 gate is the tight R fixture comparison specified in the choices below.
 
 ## R-observed constraints
 
