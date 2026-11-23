@@ -164,7 +164,12 @@ describe("sammon",()=>{
     const finalMismatches:string[]=[];
     for(const [key,d,options={}] of valid){
       const tight=key.startsWith("tight_");
-      const finalOptions=tight?{...options,niter:1e5,tol:1e-14}:options;
+      const printed=fixture[key].value.printed===undefined?[]:Array.isArray(fixture[key].value.printed)?fixture[key].value.printed:[fixture[key].value.printed];
+      const reportedIterations=printed.map((line:string)=>/stress after\s+(\d+) iters/.exec(line)?.[1]).filter((x:string|undefined)=>x!==undefined);
+      const finalIterations=reportedIterations.length?Number(reportedIterations[reportedIterations.length-1]):0;
+      // Compare the final coordinates/stress at R's reported stopping iteration;
+      // trace formatting and the library's stopping-reason metadata are separate checks.
+      const finalOptions={...options,niter:finalIterations,tol:0};
       finalMismatches.push(...check(key,d,finalOptions,tight,false));
     }
     console.info("sammon final fit comparisons: "+comparedFixtureKeys.size+"/36 valid cases; max relative final-stress error="+maxRelativeStressError.toExponential(3)+"; max |coordinate error|="+maxCoordinateError.toExponential(3));
