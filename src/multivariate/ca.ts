@@ -1,9 +1,6 @@
 // Simple correspondence analysis and its coordinate/summary views.
 import { svd } from "../linalg/svd.js";
 
-const CA_KEYS = ["nd", "suprow", "supcol"] as const;
-const CA_SUMMARY_KEYS = [] as const;
-const CA_COORD_KEYS = ["type", "dim", "rows", "cols"] as const;
 
 /** @category Multivariate analysis */
 export interface CaInputTable { rows: string[] | null; cols: string[] | null; values: readonly (readonly number[])[]; }
@@ -142,7 +139,6 @@ export function caSummary(result:CaFit):CaSummary {
  * @category Multivariate analysis
  */
 export function caCoord(result:CaFit,options:CaCoordOptions={}):CaMatrix|{rows:CaMatrix;columns:CaMatrix} {
-  checkOptions(options,CA_COORD_KEYS,"caCoord");
   const type=options.type??"symmetric", allowed=["standard","principal","symmetric","rowprincipal","colprincipal","symbiplot","rowgab","colgab","rowgreen","colgreen"];
   if(!allowed.includes(type))throw new RangeError("invalid coordinate type");
   const dims=options.dim===undefined?result.sv.map((_,i)=>i):Array.from(options.dim).map(v=>v-1);
