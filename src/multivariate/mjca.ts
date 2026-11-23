@@ -27,7 +27,7 @@ export interface MjcaFit {
   colctr: MjcaMatrix; colcor: MjcaMatrix; colsup: number[] | "NA"; subsetcol: number[] | "NA";
   Burt: MjcaMatrix; BurtUpd: number[][] | "NA"; subinertia: MjcaMatrix;
   rownames?: string[] | null; rowmass?: number[]; rowdist?: number[]; rowinertia?: number[];
-  rowcoord?: MjcaMatrix; rowpcoord?: MjcaMatrix; rowctr?: MjcaMatrix; rowcor?: MjcaMatrix;
+  rowcoord?: MjcaMatrix; rowpcoord?: MjcaMatrix; rowctr?: MjcaMatrix | "NA"; rowcor?: MjcaMatrix | "NA";
   indmat?: MjcaMatrix | "NA"; omitted: number;
 }
 
@@ -53,10 +53,10 @@ function read(input:MjcaInputTable):{rows:string[]|null;cols:string[];data:strin
     const row=values[i]!;
     if(row.some(v=>v===null||v===undefined||typeof v!=="string")){omitted++;continue;}
     keep.push(row as string[]);
-    if(input.rows!==null)rowNames.push(input.rows[i]??String(i+1));
+    rowNames.push(input.rows?.[i]??String(i+1));
   }
   if(keep.length===0)throw new RangeError("no complete observations");
-  return {rows:input.rows===null?null:rowNames,cols:[...input.cols],data:keep,omitted};
+  return {rows:rowNames,cols:[...input.cols],data:keep,omitted};
 }
 function orient(rows:number[][],cols:number[][]):void {
   const d=rows[0]?.length??0;
@@ -83,25 +83,19 @@ export function mjca(input:MjcaInputTable,options:MjcaOptions={}):MjcaFit {
   if(lambda==="JCA")throw new RangeError("lambda 'JCA' is not supported");
   if(lambda!=="adjusted"&&lambda!=="indicator"&&lambda!=="Burt")throw new RangeError("invalid lambda");
   const raw=read(input),n=raw.data.length,Q=raw.cols.length;
-  const supVars=idx(options.supcol,Q,"supcol");
-  const supVarSet=new Set(supVars);
+  const supVars=idx(options.supcol,Q,"supcol"),supVarSet=new Set(supVars);
   const allLevels=raw.cols.map((_,j)=>Array.from(new Set(raw.data.map(r=>r[j]!))).sort());
-  const fullOffsets:number[]=[];let fullJ=0;
-  for(const levels of allLevels){fullOffsets.push(fullJ);fullJ+=levels.length;}
-  const selected=idx(options.subsetcat,fullJ,"subsetcat");
-  const selectedSet=selected.length?new Set(selected):null;
+  const offsets:number[]=[];let fullJ=0;
+  for(const levels of allLevels){offsets.push(fullJ);fullJ+=levels.length;}
+  const selected=idx(options.subsetcat,fullJ,"subsetcat"),selectedSet=selected.length?new Set(selected):null;
   const cats:{factor:number;level:string;global:number}[]=[];
-  for(let j=0;j<Q;j++)for(let k=0;k<allLevels[j]!.length;k++){
-    const global=fullOffsets[j]!+k;
-    cats.push({factor:j,level:allLevels[j]![k]!,global});
-  }
+  for(let j=0;j<Q;j++)for(let k=0;k<allLevels[j]!.length;k++)cats.push({factor:j,level:allLevels[j]![k]!,global:offsets[j]!+k});
   const chosenCats=selectedSet?cats.filter(c=>selectedSet.has(c.global)):cats;
   const activeCats=chosenCats.filter(c=>!supVarSet.has(c.factor));
   const supCats=chosenCats.filter(c=>supVarSet.has(c.factor));
-  const activeVars=Array.from(new Set(activeCats.map(c=>c.factor)));
-  if(activeVars.length<2||activeCats.length<2)throw new RangeError("at least two active categorical variables are required");
+  const activeVars=Array.from(new Set(activeCats.map(c=>c.factor))),activeQ=activeVars.length,activeJ=activeCats.length;
+  if(activeQ<2||activeJ<2)throw new RangeError("at least two active categorical variables are required");
   const indicator=raw.data.map(row=>chosenCats.map(c=>row[c.factor]===c.level?1:0));
-  const activeQ=activeVars.length, activeJ=activeCats.length;
   const activeTable=raw.data.map(row=>activeCats.map(c=>row[c.factor]===c.level?1:0));
   const rowTotals=activeTable.map(row=>sum(row)),colTotals=activeCats.map((_,j)=>sum(activeTable.map(row=>row[j]!)));
   const total=sum(rowTotals);
@@ -115,70 +109,79 @@ export function mjca(input:MjcaInputTable,options:MjcaOptions={}):MjcaFit {
   const activeCoords=activeCats.map((_,i)=>singular.map((_,j)=>dec.v![i]![j]!/Math.sqrt(activeMass[i]!)));
   orient(rowCoords0,activeCoords);
   const activePosition=new Map(activeCats.map((c,i)=>[c.global,i]));
-  const coords=chosenCats.map(c=>{
+  const burt:number[][]=Array.from({length:chosenCats.length},()=>Array(chosenCats.length).fill(0));
+  const factorsInTable=Array.from(new Set(chosenCats.map(c=>c.factor)));
+  for(const row of raw.data){
+    const pos=factorsInTable.map(f=>chosenCats.findIndex(c=>c.factor===f&&c.level===row[f])).filter(i=>i>=0);
+    for(const x of pos)for(const y of pos)burt[x]![y]=burt[x]![y]!+1;
+  }
+  const activePositions=activeCats.map(c=>chosenCats.findIndex(x=>x.global===c.global));
+  const activeBurtRowTotals=activePositions.map(i=>sum(activePositions.map(j=>burt[i]![j]!)));
+  const burtTotal=sum(activeBurtRowTotals);
+  if(!(burtTotal>0)||activeBurtRowTotals.some(v=>v<=0))throw new RangeError("empty active Burt table");
+  const burtMass=activeBurtRowTotals.map(v=>v/burtTotal);
+  const colMass=chosenCats.map(c=>{const at=activePosition.get(c.global);return at===undefined?NaN:burtMass[at]!;});
+  const colDist=chosenCats.map((_,i)=>{
+    const profile=activePositions.map(j=>burt[i]![j]!),count=sum(profile);
+    if(!(count>0))throw new RangeError("empty category profile");
+    return Math.sqrt(sum(profile.map((v,j)=>((v/count-burtMass[j]!)**2)/burtMass[j]!)));
+  });
+  const coords=chosenCats.map((c,i)=>{
     const at=activePosition.get(c.global);
     if(at!==undefined)return activeCoords[at]!;
-    const profile=raw.data.map(row=>row[c.factor]===c.level?1:0),count=sum(profile);
+    const profile=activePositions.map(j=>burt[i]![j]!),count=sum(profile);
     if(!(count>0))throw new RangeError("empty supplementary category");
-    return singular.map((v,k)=>v===0?0:sum(profile.map((z,i)=>z/count*rowCoords0[i]![k]!))/v);
+    return singular.map((_,k)=>sum(profile.map((v,j)=>v/count*activeCoords[j]![k]!)));
   });
-  const colMass=chosenCats.map(c=>{const at=activePosition.get(c.global);return at===undefined?NaN:activeMass[at]!;});
   const rowDist=rowMass.map((_,i)=>Math.sqrt(sum(activeTable[i]!.map((v,j)=>((v/rowTotals[i]!-activeMass[j]!)**2)/activeMass[j]!))));
-  const colDist=chosenCats.map(c=>{
-    const profile=raw.data.map(row=>row[c.factor]===c.level?1:0),count=sum(profile);
-    return Math.sqrt(sum(profile.map((v,i)=>((v/count-rowMass[i]!)**2)/rowMass[i]!)));
-  });
   const rowInertia=rowMass.map((v,i)=>v*rowDist[i]!*rowDist[i]!);
   const colInertia=colMass.map((v,i)=>Number.isNaN(v)?NaN:v*colDist[i]!*colDist[i]!);
   const eig=singular.map(v=>v*v);
   const corrected=eig.map(v=>v>1/activeQ?(activeQ/(activeQ-1))**2*(v-1/activeQ)**2:0);
   const adjusted=corrected.map(v=>Math.sqrt(v));
-  const positive=adjusted.map((v,i)=>({v,i})).filter(x=>x.v>0);
-  const burt:number[][]=Array.from({length:chosenCats.length},()=>Array(chosenCats.length).fill(0));
-  for(const row of raw.data){
-    const factorsInTable=Array.from(new Set(chosenCats.map(c=>c.factor)));
-    const pos=factorsInTable.map(f=>chosenCats.findIndex(c=>c.factor===f&&c.level===row[f])).filter(i=>i>=0);
-    for(const x of pos)for(const y of pos)burt[x]![y]=burt[x]![y]!+1;
-  }
+  const positive=adjusted.filter(v=>v>0);
   const burtInertia=sum(eig.map(v=>v*v));
   const adjustedTotal=activeQ>1?activeQ/(activeQ-1)*(burtInertia-(activeJ-activeQ)/(activeQ*activeQ)):0;
-  const modeSv=lambda==="indicator"?singular:lambda==="Burt"?eig:positive.map(x=>x.v);
-  const modeEig=modeSv.map(v=>v*v);
-  const axisCount=modeSv.length;
-  const allColCoords=coords.map(row=>row.slice(0,axisCount));
+  const modeSv=lambda==="indicator"?singular:lambda==="Burt"?eig:positive;
+  const inertiaT=lambda==="adjusted"?adjustedTotal:lambda==="indicator"?sum(eig):burtInertia;
+  const inertiaE=modeSv.map(v=>inertiaT===0?0:v*v/inertiaT);
+  const axisCount=modeSv.length,allColCoords=coords.map(row=>row.slice(0,axisCount));
   const colStats=coordinateStats(allColCoords,colMass,colDist,modeSv);
   const levelnames=chosenCats.map(c=>raw.cols[c.factor]!+(options.ps??":")+c.level);
   const factorRows=chosenCats.map(c=>raw.cols[c.factor]!+String(allLevels[c.factor]!.indexOf(c.level)+1));
   const factorVals=chosenCats.map(c=>[raw.cols[c.factor]!,c.level]);
   const factorNames=raw.cols;
-  const sub=Array.from({length:Q},(_,i)=>Array.from({length:Q},(_,j)=>{
-    const li=allLevels[i]!,lj=allLevels[j]!,ni=li.map(x=>raw.data.filter(r=>r[i]===x).length),nj=lj.map(x=>raw.data.filter(r=>r[j]===x).length);
+  const subVars=raw.cols.map((_,i)=>i).filter(i=>!supVarSet.has(i)),subQ=subVars.length;
+  const sub=Array.from({length:subQ},(_,ii)=>Array.from({length:subQ},(_,jj)=>{
+    const i=subVars[ii]!,j=subVars[jj]!,li=allLevels[i]!,lj=allLevels[j]!;
+    const ni=li.map(x=>raw.data.filter(r=>r[i]===x).length),nj=lj.map(x=>raw.data.filter(r=>r[j]===x).length);
     let value=0;
     for(let a=0;a<li.length;a++)for(let b=0;b<lj.length;b++){
-      const count=raw.data.filter(r=>r[i]===li[a]&&r[j]===lj[b]).length;
-      const expected=ni[a]!*nj[b]!/n;
+      const count=raw.data.filter(r=>r[i]===li[a]&&r[j]===lj[b]).length,expected=ni[a]!*nj[b]!/n;
       if(expected>0)value+=(count-expected)**2/expected;
     }
-    return value/(n*Q*Q);
+    return value/(n*subQ*subQ);
   }));
-  const rowCoords=rowCoords0.map(row=>row.slice(0,axisCount));
-  const rowStats=coordinateStats(rowCoords,rowMass,rowDist,modeSv);
-  const colsup=supCats.length?supCats.map(c=>chosenCats.indexOf(c)+1):"NA";
+  const rowPcoords=rowCoords0.map(row=>row.map((v,j)=>v*singular[j]!));
+  const rowCoords=rowPcoords.map(row=>row.map((v,j)=>modeSv[j]===0?0:v/modeSv[j]!));
+  const rowCtr=rowCoords0.map((row,i)=>row.map(v=>rowMass[i]!*v*v));
+  const rowCor=rowPcoords.map((row,i)=>row.map(v=>rowDist[i]===0?0:v*v/(rowDist[i]!*rowDist[i]!)));
+  const colsup=supCats.length?supCats.map(c=>chosenCats.findIndex(x=>x.global===c.global)+1):"NA";
   const subsetcol=selected.length?selected.map(v=>v+1):"NA";
   const nd=options.nd??2;
   if(!Number.isInteger(nd)||nd<1)throw new RangeError("'nd' must be a positive integer");
   const ndMax=axisCount;
   const result:MjcaFit={
-    sv:modeSv,lambda,inertiaE:modeEig,inertiaT:lambda==="adjusted"?adjustedTotal:lambda==="indicator"?sum(eig):burtInertia,
-    inertiaEt:"NA",levelnames,factors:table(factorVals,factorRows,["factor","level"]),levelsN:{names:factorNames,values:allLevels.map(x=>x.length)},
+    sv:modeSv,lambda,inertiaE,inertiaT,inertiaEt:lambda==="adjusted"?"NA":1,
+    levelnames,factors:table(factorVals,factorRows,["factor","level"]),levelsN:{names:factorNames,values:allLevels.map(x=>x.length)},
     nd,ndMax,colnames:factorNames,colmass:colMass,coldist:colDist,colinertia:colInertia,
     colcoord:table(allColCoords,null,null),colpcoord:table(colStats.principal,null,null),
     colctr:table(colStats.ctr,null,null),colcor:table(colStats.cor,null,null),colsup,subsetcol,
-    Burt:table(burt,null,null),BurtUpd:"NA",subinertia:table(sub,null,null),omitted:raw.omitted,
+    Burt:table(burt,levelnames,levelnames),BurtUpd:"NA",subinertia:table(sub,subVars.map(i=>raw.cols[i]!),subVars.map(i=>raw.cols[i]!)),omitted:raw.omitted,
     rownames:raw.rows,rowmass:rowMass,rowdist:rowDist,rowinertia:rowInertia,
-    rowcoord:table(rowCoords,raw.rows,null),rowpcoord:table(rowStats.principal,raw.rows,null),
-    rowctr:table(rowStats.ctr,raw.rows,null),rowcor:table(rowStats.cor,raw.rows,null),
+    rowcoord:table(rowCoords,null,null),rowpcoord:table(rowPcoords,null,null),
+    rowctr:lambda==="indicator"?table(rowCtr,null,null):"NA",rowcor:lambda==="indicator"?table(rowCor,null,null):"NA",
   };
-  result.indmat=options.reti===true?table(indicator,raw.rows??raw.data.map((_,i)=>String(i+1)),levelnames):"NA";
+  result.indmat=options.reti===true?table(indicator,null,null):"NA";
   return result;
 }
