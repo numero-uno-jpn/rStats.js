@@ -879,7 +879,6 @@ const wg93Rows=`2343223
 1222236`.split("\n").map(x=>[...x]);
 const wg93:MjcaInputTable={rows:Array.from({length:wg93Rows.length},(_,i)=>String(i+1)),cols:["A","B","C","D","sex","age","edu"],values:wg93Rows};
 const w4:MjcaInputTable={rows:wg93.rows,cols:wg93.cols.slice(0,4),values:wg93.values.map(r=>r.slice(0,4))};
-const w3:MjcaInputTable={rows:wg93.rows,cols:wg93.cols.slice(0,3),values:wg93.values.map(r=>r.slice(0,3))};
 const w60:MjcaInputTable={...w4,rows:w4.rows!.slice(0,60),values:w4.values.slice(0,60)};
 const w12:MjcaInputTable={...w4,rows:w4.rows!.slice(0,12),values:w4.values.slice(0,12)};
 const small:MjcaInputTable={rows:null,cols:["a","b","c"],values:[["x","p","u"],["y","p","v"],["x","q","v"],["z","q","u"],["y","q","u"],["x","p","v"]]};
@@ -930,7 +929,7 @@ function check(key:string,input:MjcaInputTable,options:any={}):string[]{
     }
   }
   compare(actual,expected,key,errors);
-  for(const error of errors){const component=error.slice(key.length+1).split(/[.[]/)[0]??"unknown";componentMismatchCounts[component]=(componentMismatchCounts[component]??0)+1;}
+  for(const error of errors){const component=error.slice(key.length+1).split(".")[0]!.split("[")[0]??"unknown";componentMismatchCounts[component]=(componentMismatchCounts[component]??0)+1;}
   return errors;
 }
 
