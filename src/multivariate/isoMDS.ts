@@ -30,7 +30,7 @@ export interface IsoMDSResult {
 }
 
 interface Pair { i: number; j: number; delta: number; group: number; }
-interface Evaluation { stress: number; distances: number[]; disparities: number[]; normalization: number; }
+interface Evaluation { stress: number; distances: number[]; disparities: number[]; }
 
 function readD(input: DistResult | readonly (readonly number[])[]): { d: number[][]; missing: boolean; labels: string[] | null } {
   if (Array.isArray(input)) {
@@ -109,21 +109,14 @@ function disparitiesFor(pairs: readonly Pair[], groups: number, distances: reado
 }
 function evaluate(y: number[][], pairs: readonly Pair[], groups: number[], p: number): Evaluation {
   const distances = pairs.map((pair) => distance(y[pair.i]!, y[pair.j]!, p));
-  const fitted = disparitiesFor(pairs, groups.length, distances);
-  let distance2 = 0, fitted2 = 0;
-  for (let i = 0; i < distances.length; i++) {
-    distance2 += distances[i]! * distances[i]!;
-    fitted2 += fitted[i]! * fitted[i]!;
-  }
-  const normalization = fitted2 > 0 ? Math.sqrt(distance2 / fitted2) : 1;
-  const disparities = fitted.map(v => v * normalization);
+  const disparities = disparitiesFor(pairs, groups.length, distances);
   let numerator = 0, denominator = 0;
   for (let i = 0; i < distances.length; i++) {
     const d = distances[i]!, diff = d - disparities[i]!;
     numerator += diff * diff;
     denominator += d * d;
   }
-  return { stress: denominator === 0 ? 0 : 100 * Math.sqrt(numerator / denominator), distances, disparities, normalization };
+  return { stress: denominator === 0 ? 0 : 100 * Math.sqrt(numerator / denominator), distances, disparities };
 }
 function gradient(y: number[][], pairs: readonly Pair[], current: Evaluation, p: number): number[][] {
   const n = y.length, dim = y[0]!.length;
@@ -132,8 +125,7 @@ function gradient(y: number[][], pairs: readonly Pair[], current: Evaluation, p:
     const pair = pairs[at]!, d = current.distances[at]!;
     if (d === 0) continue;
     const stressRatio = (current.stress / 100) ** 2;
-    const multiplier = 1 / current.normalization - 1 + stressRatio;
-    const factor = (d - current.disparities[at]! - multiplier * d) / (d ** (p - 1));
+    const factor = (d - current.disparities[at]! - stressRatio * d) / (d ** (p - 1));
     for (let q = 0; q < dim; q++) {
       const diff = y[pair.i]![q]! - y[pair.j]![q]!;
       const v = diff === 0 ? 0 : factor * Math.sign(diff) * (Math.abs(diff) ** (p - 1));
