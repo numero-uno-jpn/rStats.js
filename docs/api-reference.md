@@ -44,7 +44,7 @@ penalized regression (`glmnet`). For example, `rq("y ~ x", data, { tau: 0.5 })` 
 `glmnet(x, y, { family: "gaussian", alpha: 1 })` fits a lasso path. Use `rqSummary` / `rqPredictInterval`,
 `geeSummary` / `geeVcov` / `geeQIC`, and `glmnetCoef` / `glmnetPredict` / `cvGlmnet` for their methods.
 
-Without a bundler, `https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@1.10.0/dist/rstats.js` is one ES module with
+Without a bundler, `https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@1.11.0/dist/rstats.js` is one ES module with
 every function except mixed models, regression and multivariate analysis, which are in `dist/mixed.js`,
 `dist/regression.js` and `dist/multivariate.js`. Keep a version in the URL (an exact one, or a
 major version such as `@1` from 1.0.0 on): a URL without one follows every new release, breaking changes included.
@@ -149,7 +149,7 @@ After `setSeed(42)`, `rnorm`, `runif`, `sample` and the others give R's numbers 
 The functions in this area are imported from the separate `/multivariate` entry point, not the package root:
 
 ```ts
-import { dist, asDist, hclust, cutree, kmeans, cmdscale, manova, manovaSummary, lda, ldaPredict, cancor } from "@numero-uno-jpn/rstats/multivariate";
+import { dist, asDist, hclust, cutree, kmeans, cmdscale, manova, manovaSummary, lda, ldaPredict, cancor, ca, caSummary, caCoord, mjca, sammon, isoMDS } from "@numero-uno-jpn/rstats/multivariate";
 
 const distances = dist([[0, 0], [1, 0], [0, 2], [4, 3]], { method: "euclidean" });
 const tree = hclust(distances, { method: "average" });
@@ -172,4 +172,4 @@ ldaPredict(discriminant, { newdata: [[2, 2], [4, 3]] }); // classes, posterior p
 cancor([[1, 2], [2, 1], [3, 4], [4, 3]], [[2, 1], [1, 3], [4, 2], [3, 5]]);
 ```
 
-`manova` fits sequential (Type I) terms. `lda` supports the moment method and leave-one-out cross-validation; `ldaPredict` uses the plug-in method. `cancor` returns the nonzero canonical pairs and the centers used.
+`manova` fits sequential (Type I) terms. `lda` supports the moment method and leave-one-out cross-validation; `ldaPredict` uses the plug-in method. `cancor` returns the nonzero canonical pairs and the centers used. `ca` performs correspondence analysis; `caSummary` returns its eigenvalue and contribution tables, and `caCoord` constructs a map. `mjca` performs multiple correspondence analysis on categorical columns. `sammon` and `isoMDS` provide non-metric multidimensional scaling.
