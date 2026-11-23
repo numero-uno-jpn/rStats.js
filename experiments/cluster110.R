@@ -52,6 +52,8 @@ out$dist_canberra_all_zero <- run(dd(dist(matrix(0, 3, 2), method = "canberra"))
 # binary: nonzero is "on"; columns where both rows are 0 are dropped; all-zero rows
 bz <- matrix(c(0, 0, 0, 1, 0, 2, 0, 0, 0, 3, 3, 0, 0, 0, 0, 0), nrow = 4, byrow = TRUE)
 out$dist_binary_zero_rows <- run(dd(dist(bz, method = "binary")))
+# two all-zero rows: R gives 0 for that pair (checked by Claude in stage 1)
+out$dist_binary_both_zero <- run(dd(dist(rbind(c(0, 0, 0), c(0, 0, 0), c(1, 0, 0)), method = "binary")))
 out$dist_binary_logical <- run(dd(dist(matrix(c(TRUE, FALSE, TRUE, TRUE, FALSE, FALSE), nrow = 3), method = "binary")))
 out$dist_character <- run(dd(dist(matrix(c("a", "b", "c", "d"), 2))))
 out$dist_scale <- run(dd(dist(small * 1e200)))

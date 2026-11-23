@@ -1,6 +1,23 @@
-# 現状の要約: クラスタ分析と多次元尺度法 (1.10.0: dist・hclust・cutree・kmeans、cmdscale・isoMDS)、Issue #ISSUE
+# 現状の要約: クラスタ分析と多次元尺度法 (1.10.0: dist・hclust・cutree・kmeans、cmdscale・isoMDS)、Issue #556
 
-更新 2026-11-22。新しい会話はこの文書と指示書 (`briefs/cluster-mds-1.10.ja.md`) を読んで始める。
+更新 2026-11-22。新しい会話はこの文書と指示書 (`briefs/cluster-mds-1.10.ja.md`)、**段階 2 の指示 (`briefs/cluster-mds-1.10-stage2.ja.md`)** を読んで始める。
+
+## 書き込んでよい場所 (最重要。これ以外には書かない)
+
+- **リポジトリ:** `numero-uno-jpn/rStats.js` の**ブランチ `work/cluster-mds-1.10` だけ。** main・ほかのブランチ・タグには
+  push もコミットも PR のマージもしない (2026-11-22 に main へ直接 push する事故があった)。新しいブランチも作らない
+- **ファイル (このブランチの中):**
+  - `src/multivariate/` の `dist.ts`・`hclust.ts`・`kmeans.ts`・`cmdscale.ts`・`isoMDS.ts` (と、それだけが使う補助の新しいファイル)
+  - `src/entries/multivariate.ts` (export の行を足すだけ)
+  - `test/` の新しいテスト (`dist.test.ts`・`hclust.test.ts`・`kmeans.test.ts`・`cmdscale.test.ts`・`isoMDS.test.ts`) と
+    `test/demo.test.ts` の `NOT_IN_DEMO_YET`
+  - `oracle/` の 1.10.0 の仕様書 5 つ (「rStats.js's choices」の節を除く) と `oracle/_cluster110cases.R`・5 つの oracle
+  - `experiments/` の新しい R の実験 (`cluster110-*.R`・`mds110-*.R`)
+- **GitHub:** Issue #556 へのコメントだけ。PR #557 は読むだけ (Checks を見る)
+- **それ以外は書かない:** `HANDOFF.md`、`test/fixtures/`、`test/helpers/`、生成のブロック (`*_KEYS`・`checkOptions` の
+  import)、`docs/`、`scripts/`、`.github/`、`package.json`、`CHANGELOG.md`、`ROADMAP*.md`、`demo/`、既存の関数のファイル
+- **push の後に毎回確かめる:** `work/cluster-mds-1.10` の HEAD が自分のコミットで、変更したファイルが入っていること
+  (2026-11-22 に、中身の無いコミットだけが届き、直しは別の所に行っていた)
 
 ## クリーンルームの規則 (最重要。毎回守る)
 
@@ -28,7 +45,7 @@
 
 - **作業ブランチ `work/cluster-mds-1.10` にだけ push する。main には push しない。`HANDOFF.md` は触らない** (1.9.0 で
   main と衝突し、PR の CI が動かなかった)
-- **CI は自分で読む。** draft の PR #PR (`work/cluster-mds-1.10` → main、マージしない) で、push のたびに型チェックと
+- **CI は自分で読む。** draft の PR #557 (`work/cluster-mds-1.10` → main、マージしない) で、push のたびに型チェックと
   全テストが流れる。push したら PR の Checks を見て、型エラーとテストの失敗は自分で直してから報告する。Checks が見えない
   ときは、Issue に「CI の確認の依頼」と書いて次の作業へ進む。CI は今、全部通る状態 (基準のコミット)
 - **「手元の環境がない」で止まらない。** GitHub への直接の push、Actions の R (指示書 3 節)、PR の CI を使う
@@ -39,7 +56,7 @@
 - `/multivariate` の配線は済んでいる。新しい関数は `src/entries/multivariate.ts` に export を足し、テストはそこから import
 - **会話はよく途中で切れる。** 区切りごとに push し、Issue に数行の途中経過 (何をしたか、次に何をするか、コミット) を
   書く。会話が切れても、こちらがブランチ・CI・Issue を見て再開の依頼文を書く
-- **R の実験はあなたが流す** (指示書 3 節。`# issue: #ISSUE の番号` を先頭 5 行に)
+- **R の実験はあなたが流す** (指示書 3 節。`# issue: 556` を先頭 5 行に)
 - こちらがすること: fixture と生成物の作成、数値の点検 (独立の計算)、ユーザーへの Decisions の確認、取り込みと公開
 - 判断に迷ったら、推測で進めず Issue に質問を書いて止まる。小さな判断は推奨を書いて進めてよい
 
@@ -47,11 +64,11 @@
 
 | 対象 | 状態 |
 | --- | --- |
-| dist・asDist | 段階 1 (仕様書と oracle) |
-| hclust・cutree | 段階 1 |
-| kmeans | 段階 1 |
-| cmdscale | 段階 1 |
-| isoMDS | 段階 1 |
+| dist・asDist | 段階 2 (仕様・choices・fixture は済み) |
+| hclust・cutree | 段階 2 (仕様・choices・fixture は済み) |
+| kmeans | 段階 2 (仕様・choices・fixture は済み) |
+| cmdscale | 段階 2 (仕様・choices・fixture は済み) |
+| isoMDS | 段階 2 (仕様・choices・fixture は済み) |
 
 ## テストの書き方 (要点)
 

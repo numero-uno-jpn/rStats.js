@@ -8,7 +8,13 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 
 | R | rStats.js | 説明 |
 | --- | --- | --- |
+| `as.dist()` | `asDist` | 正方行列の下三角から距離の形を作る |
 | `stats::cancor()` | `cancor` | 正準相関分析 |
+| `cmdscale()` | `cmdscale` | 古典的 (計量) 多次元尺度法 |
+| `cutree()` | `cutree` | 階層クラスタリングの木を、群の数か高さで切って群に分ける |
+| `dist()` | `dist` | 行どうしの距離 (非類似度) を下三角の順に計算する |
+| `hclust()` | `hclust` | 非類似度による階層クラスタリング (8 つの連結法) |
+| `kmeans()` | `kmeans` | k-means クラスタリング (Hartigan-Wong・Lloyd・Forgy・MacQueen) |
 | `MASS::lda()` | `lda` | 線形判別分析 (moment 法) |
 | `stats::manova()` | `manova` | 多変量分散分析 (逐次の型 I の項) |
 | `predict.lda()` | `ldaPredict` | 線形判別分析によるクラス・事後確率・判別得点の予測 |

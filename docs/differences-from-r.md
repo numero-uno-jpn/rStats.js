@@ -1822,3 +1822,23 @@ The references are R's stats package and MASS; details and the decisions are in
 
 - **LDA discriminant directions:** the singular vectors do not have a uniquely determined sign. rStats.js chooses a deterministic orientation for each direction (the largest absolute coefficient is positive, with the first coefficient winning a tie). R may return the same direction with the opposite sign; predicted classes and posterior probabilities are unaffected.
 - **Canonical correlation coefficients:** each canonical pair is defined up to a simultaneous sign change. rStats.js orients each x coefficient column so that its largest absolute entry is positive (the first entry wins a tie), then chooses the paired y sign to make the correlation positive. R may return a pair with both coefficient columns negated; canonical correlations are unchanged.
+
+
+## Cluster analysis and classical scaling: dist, hclust, kmeans and cmdscale
+
+The references are R's `stats` functions. The implementation decisions are recorded in
+[oracle/dist-behaviour.md](../oracle/dist-behaviour.md),
+[oracle/hclust-behaviour.md](../oracle/hclust-behaviour.md),
+[oracle/kmeans-behaviour.md](../oracle/kmeans-behaviour.md) and
+[oracle/cmdscale-behaviour.md](../oracle/cmdscale-behaviour.md).
+
+- **Extreme distance scales:** `dist` uses scaled arithmetic when the direct sum of powers overflows or underflows. R's direct calculation can return `Inf` after multiplying the input by 1e200 and zero after multiplying by 1e-200; rStats.js retains the scale-equivariant finite distance when it is representable.
+- **Minkowski rounding:** for powers other than 1 and 2, the last bit can differ from R because JavaScript and R's platform math libraries may round `pow` differently.
+- **K-means extreme scales:** when squaring would overflow or underflow, rStats.js normalizes the observations and starting centers for the calculation, then restores centers and sums of squares. The ordinary-scale path and random-start selection are unchanged.
+- **Finite extreme Canberra terms:** when finite opposite-sign values would overflow the direct numerator or denominator, rStats.js evaluates the mathematically equivalent ratio after scaling the pair; the ordinary arithmetic path is unchanged.
+- **Hierarchical-clustering input:** passing a square matrix directly to `hclust` gives a clear error directing the caller to `asDist`; R instead fails later with an internal missing-value message.
+- **Ward.D2 at extreme scales:** rStats.js scales the squared-distance update and returns the scale-equivariant tree for a 1e200 multiple. R 4.6.2 can fail on that input.
+- **Classical MDS signs:** each coordinate column is oriented so its largest absolute component is positive (the first component wins a tie). R's signs depend on LAPACK and may be reversed.
+- **Cailliez rounding:** when the theoretical additive constant is zero, the computed value can be a small positive roundoff quantity; its magnitude depends on the eigensolver and platform.
+- **Classical scaling at extreme magnitudes:** `cmdscale` normalizes dissimilarities before squaring to form the Gram matrix, then restores coordinates, eigenvalues, the optional matrix and the Cailliez constant to the original scale. The Cailliez eigenproblem also uses normalized dissimilarities; ordinary-scale arithmetic is unchanged.
+- **Returned components:** `cmdscale` always returns all eigenvalues and both goodness-of-fit values; R's `eig` and `list.` options are not needed. Warnings are returned in the `warnings` field.

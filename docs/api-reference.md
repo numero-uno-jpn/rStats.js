@@ -149,7 +149,14 @@ After `setSeed(42)`, `rnorm`, `runif`, `sample` and the others give R's numbers 
 The functions in this area are imported from the separate `/multivariate` entry point, not the package root:
 
 ```ts
-import { manova, manovaSummary, lda, ldaPredict, cancor } from "@numero-uno-jpn/rstats/multivariate";
+import { dist, asDist, hclust, cutree, kmeans, cmdscale, manova, manovaSummary, lda, ldaPredict, cancor } from "@numero-uno-jpn/rstats/multivariate";
+
+const distances = dist([[0, 0], [1, 0], [0, 2], [4, 3]], { method: "euclidean" });
+const tree = hclust(distances, { method: "average" });
+cutree(tree, { k: [2, 3] });
+kmeans([[1, 1], [1.2, 0.8], [5, 5], [5.2, 4.8]], [[1, 1], [5, 5]]);
+const dissimilarities = asDist([[0, 1, 1, Math.SQRT2], [1, 0, Math.SQRT2, 1], [1, Math.SQRT2, 0, 1], [Math.SQRT2, 1, 1, 0]]);
+cmdscale(dissimilarities, { k: 2 });
 
 const d = {
   group: ["A", "A", "A", "B", "B", "B", "C", "C", "C"],
