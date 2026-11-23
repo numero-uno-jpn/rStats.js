@@ -81,28 +81,19 @@ function pairsFor(d: number[][], missing: boolean): { pairs: Pair[]; groups: num
     pairs.push({ i, j, delta, group: 0 });
   }
   void missing;
-  pairs.sort((a, b) => a.delta - b.delta || a.i - b.i || a.j - b.j);
-  let groups = 0, last = NaN;
-  for (const pair of pairs) {
-    if (groups === 0 || pair.delta !== last) { groups++; last = pair.delta; }
-    pair.group = groups - 1;
-  }
+  pairs.sort((a, b) => a.delta - b.delta || a.j - b.j || a.i - b.i);
+  let groups = 0;
+  for (const pair of pairs) pair.group = groups++;
   return { pairs, groups, scale: scale || 1 };
 }
 
 /** Weighted pool-adjacent-violators regression; equal input dissimilarities are one primary-tie block. */
 function disparitiesFor(pairs: readonly Pair[], groups: number, distances: readonly number[]): number[] {
-  const sum = new Array<number>(groups).fill(0);
-  const weight = new Array<number>(groups).fill(0);
-  for (let i = 0; i < pairs.length; i++) {
-    const g = pairs[i]!.group;
-    sum[g] = sum[g]! + distances[i]!;
-    weight[g] = weight[g]! + 1;
-  }
-  const means = sum.map((v, i) => v / weight[i]!);
+  // Each pair is an individual observation. Equal dissimilarities retain their
+  // lower-triangle order; they are not pooled into a single tie-block mean.
   const starts: number[] = [], ends: number[] = [], values: number[] = [], weights: number[] = [];
   for (let g = 0; g < groups; g++) {
-    starts.push(g); ends.push(g); values.push(means[g]!); weights.push(weight[g]!);
+    starts.push(g); ends.push(g); values.push(distances[g]!); weights.push(1);
     while (values.length > 1 && values[values.length - 2]! > values[values.length - 1]!) {
       const last = values.length - 1;
       const w = weights[last - 1]! + weights[last]!;
@@ -114,13 +105,8 @@ function disparitiesFor(pairs: readonly Pair[], groups: number, distances: reado
   }
   const fitted = new Array<number>(groups);
   for (let b = 0; b < values.length; b++) for (let g = starts[b]!; g <= ends[b]!; g++) fitted[g] = values[b]!;
-  let normD = 0, normF = 0;
-  for (const v of distances) normD += v * v;
-  for (let g = 0; g < groups; g++) normF += weight[g]! * fitted[g]! * fitted[g]!;
-  const factor = normF > 0 ? Math.sqrt(normD / normF) : 1;
-  return pairs.map((pair) => fitted[pair.group]! * factor);
+  return pairs.map((pair) => fitted[pair.group]!);
 }
-
 function evaluate(y: number[][], pairs: readonly Pair[], groups: number[], p: number): Evaluation {
   const distances = pairs.map((pair) => distance(y[pair.i]!, y[pair.j]!, p));
   const disparities = disparitiesFor(pairs, groups.length, distances);
