@@ -84,12 +84,14 @@ export function ca(input:readonly (readonly number[])[]|CaInputTable,options:CaO
 
 function summaryTable(names:string[]|null,mass:number[],dist:number[],inertia:number[],coords:number[][],sv:number[],nd:number|"NA",sup:number[]):CaMatrix {
   const totalInertia=sum(sv.map(v=>v*v)), requested=nd==="NA"?2:nd, axes=Math.min(requested,sv.length);
-  const fmt=(v:number,w:number)=>Number.isNaN(v)?"NA":String(Math.round(v)).padStart(w);\n  const headers=["name","mass"," qlt"," inr"];
+  const fmt=(v:number,w:number)=>Number.isNaN(v)?"NA":String(Math.round(v)).padStart(w);
+  const headers=["name","mass"," qlt"," inr"];
   for(let k=0;k<axes;k++)headers.push(" k="+(k+1),"cor","ctr");
   const rows=mass.map((m,i)=>{
     const d2=dist[i]!*dist[i]!, principal=coords[i]!.map((v,k)=>v*sv[k]!);
     const qlt=d2===0?0:sum(principal.slice(0,axes).map(v=>v*v))/d2;
-    const name=names?.[i]??String(i+1);\n    const out=[(sup.includes(i+1)?"(*)":"")+name,fmt(m*1000,3),fmt(qlt*1000,4),fmt((totalInertia?inertia[i]!/totalInertia:0)*1000,4)];
+    const name=names?.[i]??String(i+1);
+    const out=[(sup.includes(i+1)?"(*)":"")+name,fmt(m*1000,3),fmt(qlt*1000,4),fmt((totalInertia?inertia[i]!/totalInertia:0)*1000,4)];
     for(let k=0;k<axes;k++){const cor=d2===0?0:principal[k]!*principal[k]!/d2,ctr=sv[k]===0?0:m*principal[k]!*principal[k]!/(sv[k]!*sv[k]!);
       out.push(fmt(principal[k]!*1000,4),fmt(cor*1000,4),fmt(ctr*1000,4));}
     return out;
