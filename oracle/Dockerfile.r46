@@ -124,3 +124,10 @@ RUN install2.r --error --skipinstalled outliers \
     && Rscript -e 'pk <- c("outliers", "PMCMRplus", "MASS"); \
                    for (p in pk) suppressPackageStartupMessages(library(p, character.only = TRUE)); \
                    cat(sprintf("%s %s\n", pk, sapply(pk, function(p) as.character(packageVersion(p)))), sep = "")'
+
+# Correspondence analysis (1.11.0), in a layer of their own: ca (ca, mjca). acf, pacf and ccf are R's own (stats);
+# isoMDS and sammon are MASS's.
+RUN install2.r --error --skipinstalled ca \
+    && Rscript -e 'pk <- c("ca", "MASS"); \
+                   for (p in pk) suppressPackageStartupMessages(library(p, character.only = TRUE)); \
+                   cat(sprintf("%s %s\n", pk, sapply(pk, function(p) as.character(packageVersion(p)))), sep = "")'

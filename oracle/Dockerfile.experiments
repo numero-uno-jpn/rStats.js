@@ -79,3 +79,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends libmpfr6 libgmp
                    got <- sapply(names(want), function(p) as.character(packageVersion(p))); \
                    cat(sprintf("%s %s\n", names(got), got), sep = ""); \
                    if (!identical(unname(got), unname(want))) quit(status = 1)'
+
+# Correspondence analysis (1.11.0): ca (ca, mjca), in a layer of its own, at the version of the fixtures. acf, pacf
+# and ccf are R's own (stats); isoMDS and sammon are MASS's (above).
+RUN install2.r --error --skipinstalled ca \
+    && Rscript -e 'want <- c(ca = "0.72", MASS = "7.3.66"); \
+                   for (p in names(want)) suppressPackageStartupMessages(library(p, character.only = TRUE)); \
+                   got <- sapply(names(want), function(p) as.character(packageVersion(p))); \
+                   cat(sprintf("%s %s\n", names(got), got), sep = ""); \
+                   if (!identical(unname(got), unname(want))) quit(status = 1)'

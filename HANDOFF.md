@@ -1,6 +1,6 @@
 # 引継ぎ: rStats.js (外部レビュー対応 2026-10-30〜11-04、1.0.0 への準備 11-04〜)
 
-最終更新: 2026-11-23 (セッション 28 の終わり、Mac mini: **1.10.0 を公開** (dist・hclust・cutree・kmeans・cmdscale)。次は 1.11.0 = ca・acf・pacf・isoMDS・sammon、1.12.0 = arima (ユーザーの決定)。範囲を決めるところから)。以前: 2026-11-22 夜 (セッション 28、Mac mini: 1.10.0 の範囲をユーザーが決め (全部推奨どおり)、準備 (チェッカー・R の実験・指示書) を main に置き、Issue #556・draft PR #557 を作った。段階 1 を終え、次は ChatGPT の段階 2)。以前: 2026-11-22 夜 (セッション 27 の終わり、Mac mini: **1.9.0 を公開** (T2・Page・Grubbs、manova・lda・cancor)。次は 1.10.0 = クラスタ分析と多次元尺度法 (ユーザーの決定)、範囲を決めるところから)。以前: 2026-11-22 (セッション 27 の始め、Mac mini: 1.9.0 の範囲を決め、準備中)。以前: 2026-11-22 (セッション 26 の終わり、Mac mini: **1.8.0 を公開** (rq・geeglm・glmnet)。次は 1.9.0 = 小さな検定 3 つ + 多変量 3 つ (ユーザーの決定)、範囲を決めるところから)。以前: 2026-11-20 夜 (セッション 26 の始め: 1.8.0 の範囲を決め、準備)。以前: 2026-11-20 夕 (セッション 25 の終わり、Mac mini: **1.7.0 を公開** (回帰 polr・rlm・nls、`/regression`)。次の作業は未定 (ROADMAP の 2 = 1.8.0)。以前: 2026-11-20 昼 (セッション 25、Mac mini: 段階 3 の端の入力の直しも済み (最後は私が引き継いだ)。次は「nls の後」の配線と文書)。以前: 2026-11-19 深夜 (セッション 24、polr・rlm は完了、nls を ChatGPT に依頼)。以前: 2026-11-19 (セッション 23、1.6.0 を公開 (混合モデルの confint と simulate))。以前: 2026-11-17 (セッション 22、1.5.0 を公開)。その前: 2026-11-16 (セッション 21、Mac mini: 1.4.0 を公開、同時刻の Gray の検定を ChatGPT がクリーンルームで修正 (1.4.1 に入る、未公開)、外注用の R の実験の仕組みを作った。次は ROADMAP の 1 番)
+最終更新: 2026-11-23 (セッション 29 の始め、Mac mini: 1.11.0 の範囲をユーザーが決めた (mjca も入れる、ほかは推奨どおり)。準備の 1 (ca をイメージとチェッカーに) が済み、次は準備の 2 = R の実験・指示書)。以前: 2026-11-23 (セッション 28 の終わり、Mac mini: **1.10.0 を公開** (dist・hclust・cutree・kmeans・cmdscale)。次は 1.11.0 = ca・acf・pacf・isoMDS・sammon、1.12.0 = arima (ユーザーの決定)。範囲を決めるところから)。以前: 2026-11-22 夜 (セッション 28、Mac mini: 1.10.0 の範囲をユーザーが決め (全部推奨どおり)、準備 (チェッカー・R の実験・指示書) を main に置き、Issue #556・draft PR #557 を作った。段階 1 を終え、次は ChatGPT の段階 2)。以前: 2026-11-22 夜 (セッション 27 の終わり、Mac mini: **1.9.0 を公開** (T2・Page・Grubbs、manova・lda・cancor)。次は 1.10.0 = クラスタ分析と多次元尺度法 (ユーザーの決定)、範囲を決めるところから)。以前: 2026-11-22 (セッション 27 の始め、Mac mini: 1.9.0 の範囲を決め、準備中)。以前: 2026-11-22 (セッション 26 の終わり、Mac mini: **1.8.0 を公開** (rq・geeglm・glmnet)。次は 1.9.0 = 小さな検定 3 つ + 多変量 3 つ (ユーザーの決定)、範囲を決めるところから)。以前: 2026-11-20 夜 (セッション 26 の始め: 1.8.0 の範囲を決め、準備)。以前: 2026-11-20 夕 (セッション 25 の終わり、Mac mini: **1.7.0 を公開** (回帰 polr・rlm・nls、`/regression`)。次の作業は未定 (ROADMAP の 2 = 1.8.0)。以前: 2026-11-20 昼 (セッション 25、Mac mini: 段階 3 の端の入力の直しも済み (最後は私が引き継いだ)。次は「nls の後」の配線と文書)。以前: 2026-11-19 深夜 (セッション 24、polr・rlm は完了、nls を ChatGPT に依頼)。以前: 2026-11-19 (セッション 23、1.6.0 を公開 (混合モデルの confint と simulate))。以前: 2026-11-17 (セッション 22、1.5.0 を公開)。その前: 2026-11-16 (セッション 21、Mac mini: 1.4.0 を公開、同時刻の Gray の検定を ChatGPT がクリーンルームで修正 (1.4.1 に入る、未公開)、外注用の R の実験の仕組みを作った。次は ROADMAP の 1 番)
 
 ## まず読むこと (セッション 16 から)
 
@@ -23,6 +23,22 @@ ROADMAP の残り (2 番) は isoMDS・sammon、対応分析 (ca)、時系列 (a
 - acf の範囲: `acf` (`type` の correlation・covariance・partial、`lag.max`、`demean`、`na.action`)、`pacf`、`ccf`、
   多変量の系列。符号・信頼区間の線 (図の点線 `qnorm((1 + ci)/2)/sqrt(n)`) を返すか
 - isoMDS・sammon の合格の条件 (1.10.0 の choices 7 の形: 厳しく収束させた R との一致。届かなければ外す)
+
+### 決定 (ユーザー 2026-11-23、セッション 29)
+- **置き場所:** acf・pacf・ccf は新しい `/timeseries` (1.12.0 の arima も同じ所)。ca・mjca・isoMDS・sammon は `/multivariate`
+- **ca の範囲: `ca` と `mjca` の両方** (推奨は ca だけだったが、mjca も入れる)。ca は主座標・標準座標・慣性・`nd`・
+  `suprow`・`supcol`。mjca の `lambda` の種類 (indicator・Burt・adjusted・JCA) の細部は指示書で決める
+- **acf の範囲:** 単変量 + `ccf`。acf (`type` の correlation・covariance・partial、`lag.max`、`demean`、`na.action`)、`pacf`、
+  `ccf`、図の点線の値 `qnorm((1 + ci)/2)/sqrt(n)` も結果に入れる。多変量の系列は後回し
+- **isoMDS・sammon:** `work/isomds-next` を作業ブランチに取り込んで続ける。合格は choices 7 の形 (厳しく収束させた R
+  `isomds_tight_*` と座標・stress が許容内)。sammon も同じ形で fixture を作る。届かなければ外して公開 (決定済み)
+
+### セッション 29 でしたこと
+- **準備の 1 は済み (未コミット):** `oracle/Dockerfile.r46` と `Dockerfile.experiments` に ca の層 (スナップショット
+  2026-10-23 で **ca 0.72**、依存なし、GPL。experiments は 0.72 と MASS 7.3.66 に固定)。イメージ 3 つ (rstats-oracle:4.6.2・
+  rstats-oracle-amd64:4.6.2・rstats-experiments:4.6.2) を作り直した。`scripts/r-experiment-check.mjs` に ca を許すパッケージに、
+  ca の export と S3 メソッド全部、stats の `acf`・`pacf`・`pacf.default`・`ccf`・`print.acf`・`plot.acf` を関数の一覧に。
+  ca・mjca・acf・pacf・ccf を呼ぶ小さな実験がチェッカーを通り、experiments のイメージで動いた
 
 ### 準備 (私、1.10.0 と同じ。教訓は「セッション 28 の教訓」と feedback-chatgpt-write-scope-and-tokens)
 1. **ca パッケージはイメージに無い:** `oracle/Dockerfile.r46` と `Dockerfile.experiments` に足す (版は CRAN の日付

@@ -19,7 +19,7 @@ import { readFileSync } from "node:fs";
 
 const ALLOWED_PACKAGES = new Set([
   "cmprsk", "survival", "epiR", "exact2x2", "clinfun", "powerSurvEpi", "metafor", "metadat", "lme4", "Matrix",
-  "MASS", "quantreg", "SparseM", "MatrixModels", "geepack", "glmnet", "PMCMRplus", "outliers", "jsonlite", "stats",
+  "MASS", "quantreg", "SparseM", "MatrixModels", "geepack", "glmnet", "PMCMRplus", "outliers", "ca", "jsonlite", "stats",
   "utils", "base",
 ]);
 
@@ -237,6 +237,13 @@ const REFERENCE_FUNCTIONS = [
   // Shepard are MASS's, above)
   "dist", "as.dist", "hclust", "as.hclust", "cutree", "cophenetic", "rect.hclust", "identify.hclust", "as.dendrogram",
   "order.dendrogram", "kmeans", "fitted.kmeans", "cmdscale",
+  // ca (correspondence analysis, 1.11.0): its exported functions and S3 methods
+  "ca", "caconv", "cacoord", "iterate.mjca", "mjca", "multilines", "pchlist", "plot.ca", "plot.mjca", "plot3d.ca",
+  "print.ca", "print.mjca", "print.summary.ca", "print.summary.mjca", "summary.ca", "summary.mjca", "ca.matrix",
+  "ca.data.frame", "ca.formula", "ca.table", "ca.xtabs", "ca.default", "mjca.table", "mjca.array", "mjca.data.frame",
+  "mjca.default",
+  // stats autocorrelation (time series, 1.11.0): R's own code, GPL like the packages
+  "acf", "pacf", "pacf.default", "ccf", "print.acf", "plot.acf",
 ];
 
 /** Names that reach code, namespaces, compiled routines, other programs or files: not allowed at all. */
