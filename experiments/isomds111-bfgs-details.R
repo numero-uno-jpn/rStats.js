@@ -71,3 +71,5 @@ for (pp in c(1,2,3)) for (kk in c(1,2,3)) {
   invisible(capture.output(z <- isoMDS(dd,y=yy,p=pp,k=kk,maxit=40,tol=1e-30)))
   cat("p",pp,"k",kk,"stress",sprintf("%.12g",z$stress),"printed",paste(z$printed,collapse=" | "),"\n")
 }
+
+# rerun public-output probes after the optimizer implementation pass
