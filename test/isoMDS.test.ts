@@ -76,44 +76,42 @@ function compare(key: string, actual: IsoMDSResult, stressTol = 1e-8): void {
   const e = num(expected.stress);
   const error = Math.abs(actual.stress - e);
 
-  if (key.startsWith("isomds_tight_")) {
-    if (!actual.trace[actual.trace.length - 1]?.converged) mismatches.push(key + ".trace did not converge");
-    const expectedMax = points.reduce((m: number, row: unknown[]) => row.reduce<number>((v, x) => Math.max(v, Math.abs(num(x))), m), 0);
-    const dim = points[0]?.length ?? 0;
-    let actualPoints = centerPoints(actual.points.values.map((row) => [...row]));
-    const expectedPoints = centerPoints(points.map((row:unknown[])=>row.map(num)));
-    if (key.includes("_p1") || key.includes("_p3")) {
-      const permutations = dim === 1 ? [[0]] : [[0,1],[1,0]];
-      let best = -Infinity, bestMap = permutations[0]!, bestSigns = new Array<number>(dim).fill(1);
-      for (const permutation of permutations) {
-        let score = 0; const signs: number[] = [];
-        for (let j = 0; j < dim; j++) {
-          let dot = 0;
-          for (let i = 0; i < points.length; i++) dot += actualPoints[i]![permutation[j]!]! * expectedPoints[i]![j]!;
-          signs[j] = dot < 0 ? -1 : 1; score += Math.abs(dot);
-        }
-        if (score > best) { best = score; bestMap = permutation; bestSigns = signs; }
-      }
-      actualPoints = actualPoints.map(row => bestMap.map((index,j)=>row[index]!*bestSigns[j]!));
-    } else {
-      const aligned=procrustes(actualPoints,expectedPoints);
-      if(!aligned)mismatches.push(`${key}: Procrustes alignment was singular`);
-      else actualPoints=aligned;
-    }
-    let coordinateError=0;
-    for(let i=0;i<Math.min(points.length,actualPoints.length);i++)for(let j=0;j<dim;j++)coordinateError=Math.max(coordinateError,Math.abs(actualPoints[i]![j]!-expectedPoints[i]![j]!));
-    maxTightCoordinateError=Math.max(maxTightCoordinateError,coordinateError);
-    tightCompared++;
-    const relativeStressError=error/Math.max(Math.abs(e),1e-300);
-    const useAbsoluteStress = absoluteStressCase(key,e);
-    if(!useAbsoluteStress)maxTightStressRelativeError=Math.max(maxTightStressRelativeError,relativeStressError);
-    maxTightStressAbsoluteError=Math.max(maxTightStressAbsoluteError,error);
-    if(coordinateError>1e-5*expectedMax)mismatches.push(`${key}.coordinate max error=${coordinateError}`);
-    if(useAbsoluteStress ? error>1e-6 : relativeStressError>1e-6)mismatches.push(`${key}.stress ${useAbsoluteStress?"absolute":"relative"} error=${useAbsoluteStress?error:relativeStressError}`);
-    console.info(`${key}: stress abs error=${error.toExponential(3)}; ${useAbsoluteStress?"absolute":"relative"}=${(useAbsoluteStress?error:relativeStressError).toExponential(3)}; centered orthogonal max coordinate error=${coordinateError.toExponential(3)} (limit ${(1e-5*expectedMax).toExponential(3)})`);
-  } else if (actual.stress > 1.01 * e) {
-    mismatches.push(key + ".stress exceeds 1.01 x R: actual=" + actual.stress + ", expected=" + e + ", absError=" + error);
+  const tight = key.startsWith("isomds_tight_");
+  const skipRScaleBehavior = key === "isomds_scale" || key === "isomds_scale_y";
+  const expectedMax = points.reduce((m: number, row: unknown[]) => row.reduce<number>((v, x) => Math.max(v, Math.abs(num(x))), m), 0);
+  const dim = points[0]?.length ?? 0;
+  let actualPoints = centerPoints(actual.points.values.map((row) => [...row]));
+  const expectedPoints = centerPoints(points.map((row: unknown[]) => row.map(num)));
+  // BFGS starts at cmdscale and is equivariant under independent column
+  // reflections; choice 12 requires this alignment, not a fitted rotation.
+  for (let j = 0; j < dim; j++) {
+    let dot = 0;
+    for (let i = 0; i < points.length; i++) dot += actualPoints[i]![j]! * expectedPoints[i]![j]!;
+    if (dot < 0) actualPoints = actualPoints.map((row) => row.map((v, q) => q === j ? -v : v));
   }
+  let coordinateError = 0;
+  for (let i = 0; i < Math.min(points.length, actualPoints.length); i++) {
+    for (let j = 0; j < dim; j++) coordinateError = Math.max(coordinateError, Math.abs(actualPoints[i]![j]! - expectedPoints[i]![j]!));
+  }
+  const coordinateLimit = (tight ? 1e-7 : 1e-7) * expectedMax;
+  if (tight) {
+    if (!actual.trace[actual.trace.length - 1]?.converged) mismatches.push(key + ".trace did not converge");
+    maxTightCoordinateError = Math.max(maxTightCoordinateError, coordinateError);
+    tightCompared++;
+  }
+  if (coordinateError > coordinateLimit) mismatches.push(`${key}.coordinate max error=${coordinateError} (limit ${coordinateLimit})`);
+  if (!skipRScaleBehavior) {
+    const relativeStressError = error / Math.max(Math.abs(e), 1e-300);
+    const useAbsoluteStress = Math.abs(e) < 1e-10;
+    if (tight) {
+      if (!useAbsoluteStress) maxTightStressRelativeError = Math.max(maxTightStressRelativeError, relativeStressError);
+      maxTightStressAbsoluteError = Math.max(maxTightStressAbsoluteError, error);
+    }
+    if (useAbsoluteStress ? error > 1e-12 : relativeStressError > 1e-9) {
+      mismatches.push(`${key}.stress ${useAbsoluteStress ? "absolute" : "relative"} error=${useAbsoluteStress ? error : relativeStressError}`);
+    }
+  }
+
   // Default R trace text and coordinate orientation are implementation-specific.
 
 }
