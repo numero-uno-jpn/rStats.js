@@ -42,6 +42,53 @@ The stress formula and primary tie grouping were checked independently for isomd
 4. Expose captured trace lines or return only points and stress. Recommended: return only the numerical result; tracing belongs in an optional callback/log facility, not in the statistical result object.
 5. Decide whether to reject nonpositive dissimilarities and require y for missing inputs. Recommended: match observed R errors.
 
+## 1.11.0 investigation: tight-endpoint comparison and the 1.10.0 gap
+
+The 1.10.0 implementation uses a Guttman/majorization update for \(p=2\), and a gradient update for \(p\ne2\). The stage-1 numerical replay below uses the current `isoMDS.ts` equations, primary tie blocks, `tol=10^{-10}`, and `maxit=5000`, initialized from the public R `cmdscale` coordinates. For \(p=2\), the stress is invariant to an orthogonal change of the initial MDS basis. These are source-equivalent numerical replay results, not a direct invocation of the compiled TypeScript package; the actual package run must be confirmed by stage-2 tests.
+
+| Case | Current-equation stress | R tight stress | Relative difference (current−R)/R |
+|---|---:|---:|---:|
+| Swiss, p=2 | 4.220225394750 | 4.219285752120 | +2.2270e-4 |
+| Swiss, k=3, p=2 | 1.001854756697 | 1.001842186365 | +1.2547e-5 |
+| Swiss, p=1 | 5.475853870230 | 5.480525617111 | −8.5243e-4 |
+| Swiss, p=3 | 4.239547010706 | 4.238551065835 | +2.3497e-4 |
+| Eurodist, p=2 | 5.932506833499 | 5.883547612935 | +8.3214e-3 |
+| USArrests, p=2 | 0.940098796807 | 0.939167715149 | +9.9139e-4 |
+| small, p=2 | approximately 0 | approximately 0 | both numerically zero |
+| small, k=1, p=2 | approximately 0 | 0.004759614736 | current lower |
+| non-Euclidean, p=2 | approximately 0 | approximately 0 | both numerically zero |
+| grid ties, p=2 | approximately 0 | 0.003832935279 | current lower |
+| grid default, p=2 | approximately 0 | approximately 0 | both numerically zero |
+| grid random start, p=2 | approximately 0 | 21.022693568846 | current lower |
+
+The nonzero stress discrepancies are far above the required relative tolerance of \(10^{-6}\). The current equations reached their own tolerance in the Swiss p=2 (149 iterations), Swiss k=3 (310), Eurodist (246), and USArrests (266) cases; these are not simply cases that exhausted the 5000-iteration limit. This points to different optimizer endpoints/local minima rather than a default `maxit` that is too small. The p=1 and p=3 Swiss results also miss the strict stress gate.
+
+For \(p=2\), pairwise-distance comparisons after the best single global scale (a rotation-invariant, and therefore generous, check before Procrustes alignment) still show shape differences: Swiss max relative pair-distance residual 2.22e-5; Swiss k=3 5.80e-6; Eurodist 1.30e-2; USArrests 2.96e-4; small 4.15e-2; small k=1 6.26e-5; non-Euclidean 2.60e-1; grid ties 3.44e-2; grid default 2.20e-15; grid random 5.61e-1. Except for grid default, these cannot be made identical by an orthogonal Procrustes rotation alone. Some cases have the same near-zero stress but different configurations.
+
+### Tie-rule discrepancy
+
+A direct calculation of the primary-tie Stress-1 objective at the R tight coordinates is inconsistent with the R-reported stress in tied-distance cases:
+- `small`: R stress is \(1.94\times10^{-14}\), but primary-tie regression at the returned R coordinates gives 1.21910651902.
+- `grid_ties`: R stress is 0.00383293527945, but primary-tie regression at the returned R coordinates gives 2.41370337405.
+- `small_k1`: primary-tie regression gives 0.00475961473779, agreeing with R's 0.00475961473645.
+
+Therefore the current primary-tie constraint does not reproduce the public R tight result for all tied cases. The public results imply that R permits a different ordering/treatment of pairs with equal input dissimilarity; the exact tie-order rule has **not** been reconstructed here. The `small_k1` case alone is not a sufficient tie oracle because its primary-tie calculation happens to agree.
+
+### Interpretation of the 1.10.0 failure
+
+There are at least two independent incompatibilities:
+1. The tie rule in the current implementation is not consistent with the tied-case R endpoints.
+2. Even in the untied or effectively untied Swiss/Eurodist/USArrests cases, the Guttman endpoint differs from the tight R endpoint. The large Eurodist discrepancy and the much lower grid-random stress show that the two optimization paths can reach different local solutions; this is not explained by tie handling alone.
+
+The default Swiss result in `isomds_swiss` (stress 4.4926687589981045) is not the endpoint oracle. The strict comparison is against the tight result 4.2192857521199683. Matching a default, early-stopped call is not evidence of passing choice 7.
+
+### Decisions for the user
+
+1. **Tie rule:** (a) retain primary ties (the existing choice); (b) change to the MASS-compatible tie treatment after its exact rule is established. **Recommend (b) if choice 7 remains a hard release gate.** This reverses the current primary-tie choice and needs explicit approval; do not silently change it.
+2. **Optimizer for p=2:** (a) keep Guttman/majorization; (b) use the Kruskal gradient method. **Recommend (b) for strict R endpoint compatibility**, while retaining Guttman only as an explicitly different optimization option if desired. The untied stress discrepancies show that changing ties alone is insufficient.
+3. **Optimizer for p≠2:** continue the Kruskal gradient family, but derive and test the exact step and stopping rule against the tight R endpoints; the current gradient implementation misses the Swiss p=1 and p=3 stress gates.
+4. **Release gate:** (a) keep choice 7 (tight coordinates and stress); (b) relax to stress-only or a mathematical local optimum. **Recommend (a)**. Do not claim `isoMDS` passes 1.11.0 until the tie rule and optimizer both meet the strict tolerance.
+
 ## rStats.js's choices
 
 The user's decisions of 2026-11-22 (Issue #556), written by Claude. They take precedence over every other section.
