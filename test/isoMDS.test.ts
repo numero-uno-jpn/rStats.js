@@ -209,5 +209,24 @@ describe("isoMDS: swiss, eurodist and USArrests R fixtures", () => {
       else { try { action(); mismatches.push(key + ": expected error"); } catch { /* expected */ } }
     }
     expect(mismatches).toEqual([]);
+  it("reports movement from strict R endpoints under the current p=2 update", () => {
+    const cases = [
+      ["swiss", swissD, "isomds_tight_swiss"],
+      ["eurodist", euroD, "isomds_tight_eurodist"],
+      ["usarrests", usD, "isomds_tight_usarrests"],
+    ] as const;
+    const results = cases.map(([label, d, key]) => {
+      const expected = fixture[key].value;
+      const y = (expected.points.values as unknown[][]).map((row) => row.map(num));
+      const initial = isoMDS(d, { y, maxit: 0 });
+      const one = isoMDS(d, { y, maxit: 1 });
+      const five = isoMDS(d, { y, maxit: 5 });
+      const tight = isoMDS(d, { y, tol: 1e-10, maxit: 5000 });
+      return { label, rStress: num(expected.stress), initial: initial.stress,
+        one: one.stress, five: five.stress, tight: tight.stress, trace: tight.trace };
+    });
+    console.info("ISO_MDS_FROM_R_ENDPOINTS " + JSON.stringify(results));
+  });
+
   });
 });
