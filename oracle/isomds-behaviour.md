@@ -46,7 +46,7 @@ The stress formula and primary tie grouping were checked independently for isomd
 
 The current implementation is tested with `tol=10^{-10}` and `maxit=5000` against the tight R results. The actual PR #561 CI run (commit `541a14`, test job `test (22)`) reports the following relative stress errors. Values marked approximately zero are at floating-point roundoff; their relative error is not a useful absolute measure.
 
-| Case | Current rStats stress | R tight stress | CI absolute relative error |
+| Case | Current rStats stress | R tight stress | Relative difference (sign from replay; CI confirms magnitude) |
 |---|---:|---:|---:|
 | Swiss, p=2 | 4.22022539475 | 4.21928575212 | +2.227018e-4 |
 | Swiss, k=3, p=2 | 1.00185475670 | 1.00184218637 | +1.254722e-5 |
