@@ -227,7 +227,7 @@ function orient(y: number[][]): void {
 
 /**
  * Kruskal's non-metric multidimensional scaling.
- * Equivalent to `MASS::isoMDS()` in R.
+ * Equivalent to R's `MASS::isoMDS()`.
  * @category Multivariate analysis
  */
 export function isoMDS(
