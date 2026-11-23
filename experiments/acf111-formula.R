@@ -22,6 +22,17 @@ xna <- as.numeric(presidents); nmiss <- length(xna); mean_na <- mean(xna,na.rm=T
 zna <- xna-mean_na
 gna <- sapply(0:5,function(k) { a <- zna[seq_len(nmiss-k)]; b <- zna[(k+1):nmiss]; sum(a*b,na.rm=TRUE)/nmiss })
 rna <- gna/gna[1]
+nvalid <- sapply(0:5,function(k) { a <- zna[seq_len(nmiss-k)]; b <- zna[(k+1):nmiss]; sum(!is.na(a)&!is.na(b)) })
+gna_valid <- gna*nmiss/nvalid
+rna_valid <- gna_valid/gna_valid[1]
+z0 <- zna; z0[is.na(z0)] <- 0
+gna_zero <- sapply(0:5,function(k) sum(z0[seq_len(nmiss-k)]*z0[(k+1):nmiss])/nmiss)
+rna_zero <- gna_zero/gna_zero[1]
+gna_paircenter <- sapply(0:5,function(k) {
+ a <- zna[seq_len(nmiss-k)]; b <- zna[(k+1):nmiss]; ok <- !is.na(a)&!is.na(b)
+ aa <- a[ok]; bb <- b[ok]; mean((aa-mean(aa))*(bb-mean(bb)))
+})
+rna_paircenter <- gna_paircenter/gna_paircenter[1]
 na_public <- as.numeric(stats::acf(presidents,na.action=stats::na.pass,plot=FALSE)$acf[1:6,1,1])
 x10 <- c(3,1,4,1,5,9,2,6,5,3); y10 <- c(2,7,1,8,2,8,1,8,2,8)
 cc <- stats::ccf(x10,y10,lag.max=3,plot=FALSE)
@@ -41,6 +52,6 @@ out <- list(
   ccf_small_public=as.numeric(cc$acf[,1,1]),
   ccf_small_direct=cc_direct,
   ccf_small_lags=as.numeric(cc$lag[,1,1]),
-  presidents_na_pass=na_public, presidents_na_pass_direct=rna
+  presidents_na_pass=na_public, presidents_na_pass_direct=rna, presidents_na_pass_validpair=rna_valid, presidents_na_pass_zerofill=rna_zero, presidents_na_pass_paircenter=rna_paircenter, presidents_na_pass_nvalid=nvalid
 )
 cat(as.character(toJSON(out,digits=I(17),auto_unbox=TRUE,null="null")))
