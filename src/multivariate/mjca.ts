@@ -87,10 +87,12 @@ export function mjca(input:MjcaInputTable,options:MjcaOptions={}):MjcaFit {
   const allLevels=raw.cols.map((_,j)=>Array.from(new Set(raw.data.map(r=>r[j]!))).sort());
   const offsets:number[]=[];let fullJ=0;
   for(const levels of allLevels){offsets.push(fullJ);fullJ+=levels.length;}
-  const selected=idx(options.subsetcat,fullJ,"subsetcat"),selectedSet=selected.length?new Set(selected):null;
+  const selected=idx(options.subsetcat,fullJ,"subsetcat");
   const cats:{factor:number;level:string;global:number}[]=[];
   for(let j=0;j<Q;j++)for(let k=0;k<allLevels[j]!.length;k++)cats.push({factor:j,level:allLevels[j]![k]!,global:offsets[j]!+k});
-  const chosenCats=selectedSet?cats.filter(c=>selectedSet.has(c.global)):cats;
+  // subsetcat selects categories for subsetcol metadata; it does not remove
+  // categories from the fitted indicator/Burt geometry.
+  const chosenCats=cats;
   const activeCats=chosenCats.filter(c=>!supVarSet.has(c.factor));
   const supCats=chosenCats.filter(c=>supVarSet.has(c.factor));
   const activeVars=Array.from(new Set(activeCats.map(c=>c.factor))),activeQ=activeVars.length,activeJ=activeCats.length;
@@ -132,7 +134,7 @@ export function mjca(input:MjcaInputTable,options:MjcaOptions={}):MjcaFit {
     if(at!==undefined)return activeCoords[at]!;
     const profile=activePositions.map(j=>burt[i]![j]!),count=sum(profile);
     if(!(count>0))throw new RangeError("empty supplementary category");
-    return singular.map((_,k)=>sum(profile.map((v,j)=>v/count*activeCoords[j]![k]!)));
+    return singular.map((_,k)=>sum(profile.map((v,j)=>v*activeCoords[j]![k]!))/count);
   });
   const rowDist=rowMass.map((_,i)=>Math.sqrt(sum(activeTable[i]!.map((v,j)=>((v/rowTotals[i]!-activeMass[j]!)**2)/activeMass[j]!))));
   const rowInertia=rowMass.map((v,i)=>v*rowDist[i]!*rowDist[i]!);
