@@ -3,6 +3,8 @@ import { readFileSync } from "node:fs";
 import { mjca, type MjcaInputTable, type MjcaMatrix } from "../src/entries/multivariate.js";
 
 const fixture=JSON.parse(readFileSync(new URL("./fixtures/mjca.json",import.meta.url),"utf8")) as Record<string,any>;
+let maxNumericError=0;
+const comparedFixtureKeys=new Set<string>();
 const wg93Rows=`2343223
 3423134
 2324232
@@ -905,12 +907,13 @@ function expectedFit(x:any):any{
 }
 function compare(a:any,e:any,path:string,out:string[]):void{
   if(e==="NA"){if(a!=="NA"&&!(typeof a==="number"&&Number.isNaN(a)))out.push(path+": expected NA");return;}
-  if(typeof e==="number"){if(typeof a!=="number"||!Number.isFinite(a)||Math.abs(a-e)>1e-12*Math.max(1,Math.abs(e)))out.push(path+": "+a+" vs "+e);return;}
+  if(typeof e==="number"){if(typeof a!=="number"||!Number.isFinite(a)||Math.abs(a-e)>1e-12*Math.max(1,Math.abs(e)))out.push(path+": "+a+" vs "+e);else maxNumericError=Math.max(maxNumericError,Math.abs(a-e));return;}
   if(e===null||typeof e!=="object"){if(a!==e)out.push(path+": "+String(a)+" vs "+String(e));return;}
   if(Array.isArray(e)){if(!Array.isArray(a)||a.length!==e.length){out.push(path+": length "+(a?.length??"not-array")+" vs "+e.length);return;}for(let i=0;i<e.length;i++)compare(a[i],e[i],path+"["+i+"]",out);return;}
   for(const k of Object.keys(e))compare(a?.[k],e[k],path+"."+k,out);
 }
 function check(key:string,input:MjcaInputTable,options:any={}):string[]{
+  comparedFixtureKeys.add(key);
   const actual=mjca(input,options),expected=expectedFit(fixture[key].value.fit),errors:string[]=[];
   const expectedCols=expected.colcoord?.values as number[][]|undefined;
   if(expectedCols&&actual.colcoord.values.length){
@@ -1004,6 +1007,7 @@ describe("mjca",()=>{
       ()=>mjca([[1,2],[3,4]] as any),
     ];
     for(const run of invalid){let threw=false;try{run();}catch{threw=true;}if(!threw)errors.push("expected error");}
+    console.info("mjca fixture comparisons: "+comparedFixtureKeys.size+"/"+Object.keys(fixture).length+"; max |numeric error|="+maxNumericError.toExponential(3));
     expect(errors).toEqual([]);
   });
 });
