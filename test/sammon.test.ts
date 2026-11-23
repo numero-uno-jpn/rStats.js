@@ -95,7 +95,6 @@ describe("sammon",()=>{
     const big:DistResult={...swissD,values:swissD.values.map(v=>v*2**300)};
     const tiny:DistResult={...swissD,values:swissD.values.map(v=>v*2**-300)};
     const scaledStart=cmdscale(swissD).points.values.map(row=>row.map(v=>v*2**100));
-    const tight=(d:DistResult,options:any={})=>({ ...options,niter:0 });
     const valid:Array<[string,DistResult|SammonMatrixInput|readonly (readonly number[])[],any?]>=[
       ["sammon_swiss",swissD],["sammon_swiss_k1",swissD,{k:1}],["sammon_swiss_k3",swissD,{k:3}],
       ["sammon_swiss_niter5",swissD,{niter:5}],["sammon_swiss_niter0",swissD,{niter:0}],["sammon_swiss_niter1",swissD,{niter:1}],
@@ -108,7 +107,7 @@ describe("sammon",()=>{
       ["sammon_three",dist([[0],[1],[3]]),{k:1}],["sammon_two",dist([[0],[1]]),{k:1}],
       ["sammon_grid",dist(grid,gridLabels),{y:gridY}],["sammon_grid_default",dist(grid,gridLabels)],
       ["sammon_scale_big",big],["sammon_scale_small",tiny],["sammon_scale_y",swissD,{y:scaledStart}],
-      ["tight_swiss",swissD,tight(swissD)],["tight_swiss_k1",swissD,{k:1,niter:0}],["tight_swiss_k3",swissD,{k:3,niter:0}],
+      ["tight_swiss",swissD,{niter:0}],["tight_swiss_k1",swissD,{k:1,niter:0}],["tight_swiss_k3",swissD,{k:3,niter:0}],
       ["tight_eurodist",euroD,{niter:0}],["tight_usarrests",usD,{niter:0}],["tight_small",smallD,{niter:0}],
       ["tight_small_k1",smallD,{k:1,niter:0}],["tight_non_euclidean",fromMatrix(nonE),{niter:0}],
       ["tight_line",dist([[0],[1],[3],[6],[10]]),{k:1,niter:0}],["tight_grid",dist(grid,gridLabels),{y:gridY,niter:0}],
@@ -128,7 +127,7 @@ describe("sammon",()=>{
     for(const [key,d,options={}] of valid){
       const expected=fixture[key]?.value?.printed;
       const lines=expected===undefined?[]:Array.isArray(expected)?expected:[expected];
-      const first=lines.map((line:string)=>/Initial stress\\s*:\\s*([0-9.eE+-]+)/.exec(line)).find(Boolean);
+      const first=lines.map((line:string)=>/Initial stress\s*:\s*([0-9.eE+-]+)/.exec(line)).find(Boolean);
       if(!first){mismatches.push(key+": missing R Initial stress");continue;}
       try{
         const actual=sammon(d,{...options,niter:0});
