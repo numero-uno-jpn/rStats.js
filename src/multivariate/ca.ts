@@ -78,12 +78,12 @@ function fit(input:readonly (readonly number[])[]|CaInputTable, options:CaOption
   const projectRows=sr.map(i=>{
     const profile=ac.map(j=>original[i]![j]!),n=sum(profile);
     if(!(n>0))throw new RangeError("zero supplementary row");
-    return singular.map((_,k)=>sum(profile.map((v,j)=>(v/n)*colStd[j]![k]!)));
+    return singular.map((value,k)=>value===0?0:sum(profile.map((v,j)=>(v/n)*colStd[j]![k]!))/value);
   });
   const projectCols=sc.map(j=>{
     const profile=ar.map(i=>original[i]![j]!),n=sum(profile);
     if(!(n>0))throw new RangeError("zero supplementary column");
-    return singular.map((_,k)=>sum(profile.map((v,i)=>(v/n)*rowStd[i]![k]!)));
+    return singular.map((value,k)=>value===0?0:sum(profile.map((v,i)=>(v/n)*rowStd[i]![k]!))/value);
   });
   const rowCoordAll=Array.from({length:nr},(_,i)=>{const at=ar.indexOf(i);return at>=0?rowStd[at]!:projectRows[sr.indexOf(i)]!;});
   const colCoordAll=Array.from({length:nc},(_,j)=>{const at=ac.indexOf(j);return at>=0?colStd[at]!:projectCols[sc.indexOf(j)]!;});
