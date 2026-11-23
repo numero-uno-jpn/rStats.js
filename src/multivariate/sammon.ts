@@ -40,6 +40,7 @@ function parseD(input:DistResult|SammonMatrixInput|readonly (readonly number[])[
     const n=matrix.length;
     if(n<2||matrix.some(row=>row.length!==n))throw new RangeError("dissimilarity matrix must be square");
     values=matrix.map(row=>Array.from(row));
+    if(values.some((row,i)=>row[i]!==0))throw new RangeError("dissimilarity matrix diagonal must be zero");
     for(let i=0;i<n;i++)for(let j=i+1;j<n;j++){
       const a=values[i]![j]!,b=values[j]![i]!;
       if(!Number.isFinite(a)||!Number.isFinite(b))throw new RangeError("dissimilarities must be finite");
@@ -142,7 +143,7 @@ export function sammon(input:DistResult|SammonMatrixInput|readonly (readonly num
       }));
       if(candidate.some(row=>row.some(v=>!Number.isFinite(v))))throw new RangeError("non-finite Sammon update");
       const candidateStress=stressOf(d,candidate,n);
-      if(candidateStress<current){nextY=candidate;nextStress=candidateStress;accepted=true;break;}
+      if(candidateStress<=current){nextY=candidate;nextStress=candidateStress;accepted=true;break;}
       magic*=0.2;
     }
     if(!accepted){reason="backtracking";break;}
@@ -150,7 +151,7 @@ export function sammon(input:DistResult|SammonMatrixInput|readonly (readonly num
     magic=Math.min(0.5,magic*1.5);
     if(step%10===0)trace.push({iteration:step,stress:current});
     const relative=previous===0?0:(previous-current)/previous;
-    if(relative<tol){reason="tol";break;}
+    if((previous>0&&relative<tol)||(previous===0&&step>=10)){reason="tol";break;}
   }
   if(reason===undefined)reason="maxit";
   if(niter>0&&(trace[trace.length-1]!.iteration!==iteration||reason==="backtracking"))trace.push({iteration,stress:current});
