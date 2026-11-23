@@ -19,7 +19,7 @@ fit_indicator <- mjca(dat,lambda="indicator")
 fit_burt <- mjca(dat,lambda="Burt")
 fit_adjusted <- mjca(dat,lambda="adjusted")
 fit_jca <- mjca(dat,lambda="JCA")
-eig <- svd((diag(1/sqrt(colSums(Z)/(nrow(Z)*Q))) %*%
+eig <- svd((diag(sqrt(nrow(Z))) %*%
   (Z/(nrow(Z)*Q) - outer(rep(1/nrow(Z),nrow(Z)),colSums(Z)/(nrow(Z)*Q))) %*%
   diag(1/sqrt(colSums(Z)/(nrow(Z)*Q)))))$d^2
 ben <- ifelse(eig > 1/Q, (Q/(Q-1))^2*(eig-1/Q)^2, 0)
