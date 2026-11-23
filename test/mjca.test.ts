@@ -981,7 +981,7 @@ describe("mjca",()=>{
     expect(result.levelsN.values).toEqual([2,2]);
     expect(result.rownames).toEqual(["1","3","4"]);
     expect(result.rowmass).toEqual([1/3,1/3,1/3]);
-    expect(result.colmass).toEqual([1/3,1/6,1/6,1/3]);
+    expect(result.colmass).toEqual([1/3,1/6,1/3,1/6]);
     const unused:MjcaInputTable={rows:null,cols:["a","b"],values:[["x","p"],["y","q"],["x","q"]]};
     expect(mjca(unused,{lambda:"indicator"}).levelsN.values).toEqual([2,2]);
   });
