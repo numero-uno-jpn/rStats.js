@@ -190,8 +190,8 @@ export function mjca(input:MjcaInputTable,options:MjcaOptions={}):MjcaFit {
   });
   const colStats=coordinateStats(allColCoords,colMass,colPrincipal,colCorDistance2);
   const levelnames=chosenCats.map(c=>raw.cols[c.factor]!+(options.ps??":")+c.level);
-  const factorRows=chosenCats.map(c=>raw.cols[c.factor]!+String(allLevels[c.factor]!.indexOf(c.level)+1));
-  const factorVals=chosenCats.map(c=>[raw.cols[c.factor]!,c.level]);
+  const factorRows=cats.map(c=>raw.cols[c.factor]!+String(allLevels[c.factor]!.indexOf(c.level)+1));
+  const factorVals=cats.map(c=>[raw.cols[c.factor]!,c.level]);
   const factorNames=raw.cols;
   const subVars=raw.cols.map((_,i)=>i).filter(i=>!supVarSet.has(i)),subQ=subVars.length;
   const sub=Array.from({length:subQ},(_,ii)=>Array.from({length:subQ},(_,jj)=>{
