@@ -165,9 +165,9 @@ export function sammon(input:DistResult|SammonMatrixInput|readonly (readonly num
     magic=Math.min(0.5,magic*1.5);
     if(step%10===0){
       trace.push({iteration:step,stress:current});
-      const relative=lastReportedStress===0?0:(lastReportedStress-current)/lastReportedStress;
+      const decrease=lastReportedStress-current;
       lastReportedStress=current;
-      if(relative<tol){reason="tol";break;}
+      if(decrease<tol){reason="tol";break;}
     }
   }
   if(reason===undefined)reason="maxit";
