@@ -145,7 +145,7 @@ describe("acf, pacf and ccf", () => {
     run("acf_long", () => acf(long, { lagMax: 40 }));
     run("acf_long_partial", () => acf(longPartial, { lagMax: 40, type: "partial" }));
 
-    run("pacf_lh", () => pacf(lh), 4);
+    run("pacf_lh", () => pacf(lh), 1);
     run("pacf_lh_lag3", () => pacf(lh, { lagMax: 3 }), 1);
     fail("pacf_lh_lag0", () => pacf(lh, { lagMax: 0 }));
     run("pacf_ldeaths", () => pacf(ld), 12);
