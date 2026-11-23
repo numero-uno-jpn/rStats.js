@@ -1,89 +1,73 @@
 # Non-metric multidimensional scaling: isoMDS
 
-Reference: MASS 7.3.66 isoMDS, its public help, Kruskal (1964, both Psychometrika papers), Venables & Ripley, Modern Applied Statistics with S. No MASS source or Fortran was consulted.
+Reference: Kruskal (1964, both Psychometrika papers), Venables & Ripley, *Modern Applied Statistics with S*; R 4.6.2 public-call results and independent calculations in the `isomds111-*.R` experiments. No MASS source or Fortran was consulted.
 
-## Configuration distances and stress
+## Configuration distances and Stress-1
 
-For a configuration Y=(y1,...,yn) in k dimensions, fitted metric distances are:
-r_ij = (sum over q of |y_iq-y_jq|^p)^(1/p),
-where p=2 by default.
+For a configuration (Y=(y_1,\ldots,y_n)) in (k) dimensions, fitted metric distances are
 
-Let δ_ij be input dissimilarities. A monotone regression of fitted distances on δ produces disparities rhat_ij that are nondecreasing in δ. Equal input dissimilarities share one fitted disparity (Kruskal's primary approach to ties); the isotonic fit is a least-squares monotone fit, equivalently pooled-adjacent-violators regression over ordered dissimilarity groups.
+\[
+r_{ij}=\left(\sum_q|y_{iq}-y_{jq}|^p\right)^{1/p},
+\]
 
-Kruskal Stress-1, reported as a percentage, is:
-Stress = 100 * sqrt( sum_{i<j}(r_ij-rhat_ij)^2 / sum_{i<j} r_ij^2 ).
+with (p=2) by default. Let (\delta_{ij}) be input dissimilarities. The isotonic fit is performed on the configuration-distance vector after sorting pairs by increasing dissimilarity. In R notation, the fixed-pair-order evaluation is `isoreg(r[order(delta)])$yf`; the pair vector from `dist` is in lower-triangle column order. Passing `delta` as the `x` argument to `isoreg` instead, or pooling all equal dissimilarities into one block, does not reproduce R's public stress.
 
-The denominator uses squared configuration distances. Direct calculation of pair distances and isotonic fit for isomds_small_k1 gives 0.004759614736755%, matching R's 0.00475961473676101%. isomds_small has stress 2.13462043281511e-14, and isomds_grid_ties_default is effectively zero. The perturbed-grid initial configuration isomds_grid_ties and gives 0.00383293528945063, verifying that tied dissimilarities are handled as tied blocks rather than assigned independent disparities.
+Kruskal Stress-1 is
 
-## Initialization, iteration, and return values
+\[
+Stress_1=100\sqrt{\frac{\sum_{i<j}(r_{ij}-\hat r_{ij})^2}
+ {\sum_{i<j}r_{ij}^2}},
+\]
 
-The default starting configuration is classical MDS (cmdscale(d,k)). An explicit y supplies starting coordinates; it must have n rows and k columns. The returned points and stress are the final configuration and stress. Since the default start is cmdscale, coordinate columns may differ from R by sign under rStats.js's deterministic largest-absolute-entry-positive convention; stress is invariant. Tests must align each column's sign before comparing all coordinates. R's default trace prints an initial stress, progress every five iterations, and a final status. With maxit=0, the initial configuration is returned unchanged and only the initial stress is printed (isomds_swiss_maxit0); maxit=5 stops after five iterations (isomds_swiss_maxit5).
+where `isoreg` fitted disparities are used without an additional post-regression norm rescaling. The current implementation's factor (\sqrt{\sum r^2/\sum\hat r^2}) changes the objective and must be removed to match this definition.
 
-The mathematical objective and primary-tie isotonic disparities are established. The exact numerical search direction, step-length/line-search schedule, and all stopping-test details have not yet been independently reconstructed from the permitted literature and public outputs. In particular, R's tol behavior is recorded in isomds_swiss_tol but the exact stopping inequality is not confirmed. Do not claim an exact reproduction of MASS's optimizer until these details are checked.
+## Tie ordering and the primary objective
+
+Two distinct evaluations are useful:
+
+- **Fixed ordering:** sort by (\delta), retaining the original lower-triangle pair order within ties, then run `isoreg(r[order])`. This reproduces R's reported endpoint stress.
+- **Free-order primary fit:** within each equal-(\delta) group, order the configuration distances (r) increasingly, then run isotonic regression over the resulting sequence. This chooses the best ordering within each tied group and cannot have greater least-squares stress than any fixed within-tie ordering.
+
+The R endpoint and independent free-order primary results are:
+
+| Case | R / fixed-pair-order stress | Free-order primary stress |
+|---|---:|---:|
+| small | (2.8738\times10^{-14}) | (2.8738\times10^{-14}) |
+| grid ties | 0.00383293527945 | about (7.0\times10^{-14}) |
+| eurodist | 5.88354761298 | 5.81591943098 |
+| swiss | 4.21928575212 | 4.21928575212 |
+| USArrests | 0.939167715149 | 0.939167715149 |
+| non-Euclidean | (1.7611\times10^{-13}) | (9.53\times10^{-15}) |
+
+This supports keeping the user's choice of a primary tie objective, but its operational meaning must be free ordering within tied dissimilarities, not equal fitted disparities for every member of a tie block. The existing equal-disparity block implementation is not that primary objective.
+
+The data are not all tie-free: `eurodist` has 210 pairs and 197 unique dissimilarities (13 tied excess pairs); `USArrests` has 1225 pairs and 1222 unique values (three tied groups); `swiss` has 1081 pairs and 1081 unique values (no ties). Swiss is the clean tie-free endpoint check.
+
+## R endpoint start test and optimizer interpretation
+
+Starting the current rStats p=2 implementation from the tight R endpoints gives:
+
+| Case | R stress | Current rStats stress at R start | After 1 iteration | Tight current result |
+|---|---:|---:|---:|---:|
+| swiss | 4.21928575212 | 4.22022540036 | 4.22022539547 | 4.22022539065 |
+| eurodist | 5.88354761291 | 5.94994494208 | 5.94158952072 | 5.93250683354 |
+| USArrests | 0.939167715149 | 0.940146256682 | 0.940121174828 | 0.940098794696 |
+
+These values do not establish a different local minimum: the current objective still includes the extra disparity rescaling and equal-tie block constraint. For the tie-free Swiss case, the R endpoint's correct unscaled Stress-1 is exactly 4.21928575212; the current implementation reports 4.22022540036 because of its post-isotonic normalization. Fix the objective and free-order tie rule before interpreting any residual movement as a local-minimum/path difference.
+
+The Kruskal (1964b) p=2 step-size rule (gradient-angle coefficient, relaxation coefficient and good-luck coefficient) has not yet been independently reconstructed from the permitted textbook evidence. No coefficients have been guessed. Consequently the p=2 Guttman endpoint test is diagnostic only; a Kruskal-gradient comparison from cmdscale remains pending until the objective is corrected and the exact step-size formula is established.
 
 ## R-observed constraints
 
-- A zero or negative dissimilarity errors (isomds_zero_distance, isomds_negative).
-- Missing/infinite dissimilarities require an explicit initial configuration (isomds_na).
-- An initial configuration with the wrong number of rows errors (isomds_swiss_y_wrong).
-- k must be between 1 and n-1 (isomds_k_too_big).
-- p=1 and p=3 produce results distinct from default p=2: isomds_swiss_p1, isomds_swiss_p3.
-- Multiplying all dissimilarities by 1e150 causes R to stop at initial stress 5.46380043178661, with no coordinate optimization (isomds_scale). Scaling supplied initial configuration by 1e100 has the same reported initial stress (isomds_scale_y). This is a scale-dependent stopping artifact, not a property of Kruskal stress.
-
-## Numerical checks and unresolved items
-
-The stress formula and primary tie grouping were checked independently for isomds_small_k1 and isomds_grid_ties*. Public output cases include Swiss, eurodist, USArrests, small Euclidean and non-Euclidean examples, k=1, k=3, explicit starts, and iteration limits. The optimizer's exact step sequence remains unverified; no claim is made that final Swiss coordinates can be reproduced from the current formula alone.
+A zero or negative dissimilarity errors. Missing/infinite dissimilarities require an explicit initial configuration. An initial configuration must have (n) rows and (k) columns. (k) is between 1 and (n-1). (p=1) and (p=3) produce results distinct from default (p=2). R's (10^{150}) scale behavior (stopping at the start) is a scale-dependent stopping artifact and should not be copied.
 
 ## Decisions for the user
 
-1. Use Kruskal Stress-1 in percent with primary tie handling. Recommended: match this definition; it is numerically verified.
-2. Use classical MDS as the default start, accept explicit y, and use Minkowski p. Recommended: match R's public interface.
-3. Reproduce MASS's exact optimizer and stop rule, or implement a well-defined scale-invariant gradient/majorization optimizer that minimizes the same stress. Recommended: choose a scale-invariant optimizer and document that final coordinates may differ from MASS; the 1e150 behavior in R should not be copied.
-4. Expose captured trace lines or return only points and stress. Recommended: return only the numerical result; tracing belongs in an optional callback/log facility, not in the statistical result object.
-5. Decide whether to reject nonpositive dissimilarities and require y for missing inputs. Recommended: match observed R errors.
-
-## 1.11.0 investigation: strict R endpoint comparison and the 1.10.0 gap
-
-The current implementation is tested with `tol=10^{-10}` and `maxit=5000` against the tight R results. The actual PR #561 CI run (commit `541a14`, test job `test (22)`) reports the following relative stress errors. Values marked approximately zero are at floating-point roundoff; their relative error is not a useful absolute measure.
-
-| Case | Current rStats stress | R tight stress | Relative difference (sign from replay; CI confirms magnitude) |
-|---|---:|---:|---:|
-| Swiss, p=2 | 4.22022539475 | 4.21928575212 | +2.227018e-4 |
-| Swiss, k=3, p=2 | 1.00185475670 | 1.00184218637 | +1.254722e-5 |
-| Swiss, p=1 | 5.47585387022 | 5.48052561711 | −8.524268e-4 |
-| Swiss, p=3 | 4.23954701071 | 4.23855106583 | +2.349730e-4 |
-| Eurodist, p=2 | 5.93250683352 | 5.88354761293 | +8.321377e-3 |
-| USArrests, p=2 | 0.940098796807 | 0.939167715149 | +9.913902e-4 |
-| small, p=2 | approximately zero (roundoff) | 1.94253391535e-14 | 4.069751e-1 (sign immaterial near zero) |
-| small, k=1, p=2 | approximately zero (source-equation replay) | 0.00475961473645 | 1.000000 (current lower in replay) |
-| non-Euclidean, p=2 | approximately zero (roundoff) | 8.09391458903e-14 | 8.794673e-1 (both near zero) |
-| grid ties, p=2 | approximately zero (source-equation replay) | 0.00383293527945 | 1.000000 (current lower in replay) |
-
-The nonzero Swiss/Eurodist/USArrests comparisons miss the required relative stress tolerance of \\(10^{-6}\\). The source-equation replay gives higher current stress for Swiss p=2, Swiss k=3, Swiss p=3, Eurodist and USArrests (case a), and lower stress for Swiss p=1 (case c); the CI log confirms the error magnitudes. For `small` and `non-Euclidean`, both values are at roundoff scale, so the large relative errors are not meaningful; the separate Procrustes-Gram failures establish coordinate mismatch (case b). For `small_k1` and `grid_ties`, the replay gives near-zero current stress against nonzero R stress (case c). The CI message records absolute relative error rather than its sign, so the near-zero direction should be printed explicitly in a follow-up diagnostic before implementation decisions are finalized.\n\nThe same CI run reports Procrustes-Gram coordinate mismatches for all eight tight cases `isomds_tight_swiss`, `isomds_tight_swiss_k3`, `isomds_tight_eurodist`, `isomds_tight_usarrests`, `isomds_tight_small`, `isomds_tight_small_k1`, `isomds_tight_non_euclidean`, and `isomds_tight_grid_ties`. Thus even where the stresses are both near zero, the configurations are not the same after removing orthogonal freedom. The strict coordinate criterion is not met.
-
-### Tie-rule discrepancy
-
-The current implementation explicitly uses primary-tie blocks: equal input dissimilarities are constrained to share one fitted disparity. A direct evaluation of that primary-tie Stress-1 objective at the R tight coordinates gives:
-- `small`: 1.21910651902, whereas R reports \(1.94\times10^{-14}\).
-- `grid_ties`: 2.41370337405, whereas R reports 0.00383293527945.
-- `small_k1`: 0.00475961473779, agreeing with R's 0.00475961473645.
-
-The public R endpoints for `small` and `grid_ties` are therefore incompatible with the current primary-tie constraint. This is evidence that R permits a different ordering/treatment of equal dissimilarities; it does **not** yet identify the exact tie-order algorithm. `small_k1` alone is a misleading tie oracle because the primary-tie calculation happens to agree there.
-
-### Why 1.10.0 did not meet choice 7
-
-There are two independent obstacles:
-1. The primary-tie restriction does not reproduce the R tight endpoint on tied cases.
-2. Even apart from tied cases, the current p=2 Guttman/majorization endpoint differs from R for Swiss, Eurodist and USArrests. The current p≠2 gradient path also misses the p=1 and p=3 Swiss stress gates. The CI comparison uses 5000 iterations and a tight tolerance, so simply increasing the default `maxit=50` is not an adequate explanation. The CI output does not include the final trace for each case, so it does not distinguish a no-descent early stop from a different local minimum.
-
-The default Swiss result in `isomds_swiss` (stress 4.4926687589981045) is not the endpoint oracle. The tight comparison is against 4.2192857521199683. Matching a default, early-stopped call is not evidence of passing choice 7.
-
-### Decisions for the user
-
-1. **Tie rule:** (a) retain primary ties (the existing choice); (b) replace them with the R-compatible tie treatment once its exact rule is established. **Recommend (b) if choice 7 remains a hard release gate.** This reverses the current primary-tie choice and needs explicit approval; do not silently change it.
-2. **Optimizer for p=2:** (a) keep Guttman/majorization; (b) use the Kruskal gradient method. **Recommend (b) for strict R endpoint compatibility**, while keeping Guttman only as an explicitly different optimization option if desired. The untied cases show that changing tie handling alone is insufficient.
-3. **Optimizer for p≠2:** continue the Kruskal gradient family, but derive and test its exact step and stopping rule against the tight R endpoints; the current gradient implementation misses both Swiss p=1 and p=3 stress gates.
-4. **Release gate:** (a) keep choice 7 (tight stress and coordinates); (b) relax to stress-only or a mathematical local optimum. **Recommend (a)**. Do not claim `isoMDS` passes 1.11.0 until both the tie rule and optimizer meet the strict tolerance.
+1. Keep choice 1 (primary ties), but define primary as free ordering within equal-dissimilarity groups by current configuration distance; do not pool the tied group to one disparity. The numbers above show this primary stress is no greater than the R fixed-order stress.
+2. Remove the post-isotonic norm rescaling. It changes Swiss stress from the correct 4.21928575212 to 4.22022540036.
+3. Re-run the R-endpoint start test after correcting the objective and tie ordering. Until then, do not classify the current residual differences as separate local minima.
+4. Do not select or implement guessed Kruskal step-size coefficients. Reconstruct the angle, relaxation and good-luck factors from the specified 1964b method, then compare p=2 from cmdscale with the tight R endpoints.
+5. Keep the strict release gate: stress within (10^{-6}) relative and coordinates within the specified Procrustes tolerance after the objective and tie rule are corrected.
 
 ## rStats.js's choices
 

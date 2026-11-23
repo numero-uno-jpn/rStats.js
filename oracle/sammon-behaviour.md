@@ -1,45 +1,73 @@
 # Sammon nonlinear mapping: sammon
 
-Reference basis: Sammon (1969), “A Nonlinear Mapping for Data Structure Analysis”, *IEEE Transactions on Computers* C-18; Kruskal (1964); Cox & Cox, *Multidimensional Scaling*; Borg & Groenen, *Modern Multidimensional Scaling*; MASS 7.3.66 public-call results in `experiments/sammon111.R` and `experiments/sammon111-formula.R`. No MASS source or C/Fortran code was consulted.
+Reference basis: Sammon (1969), “A Nonlinear Mapping for Data Structure Analysis”, *IEEE Transactions on Computers* C-18; Kruskal (1964); Cox & Cox, *Multidimensional Scaling*; Borg & Groenen, *Modern Multidimensional Scaling*; MASS 7.3.66 public-call results in `experiments/sammon111.R`, `experiments/sammon111-formula.R`, `experiments/sammon111-newton.R`, `experiments/sammon111-step2.R`, and `experiments/sammon111-step3.R`. No MASS source or C/Fortran code was consulted.
 
-## Objective and gradient
+## Objective and pseudo-Newton update
 
-For positive dissimilarities \(\delta_{ij}\) and configuration distances \(d_{ij}(Y)=\lVert y_i-y_j\rVert_2\), Sammon's normalized stress is
+For positive dissimilarities (\delta_{ij}) and configuration distances (r_{ij}=\lVert y_i-y_j\rVert_2), Sammon's normalized stress is
 
 \[
 E(Y)=
-\frac{\displaystyle\sum_{i<j}
- (\delta_{ij}-d_{ij}(Y))^2/\delta_{ij}}
+\frac{\displaystyle\sum_{i<j}(\delta_{ij}-r_{ij})^2/\delta_{ij}}
  {\displaystyle\sum_{i<j}\delta_{ij}}.
 \]
 
-It is a proportion, not a percentage, and is invariant to a common positive scaling of the dissimilarities and configuration. The gradient with respect to point \(y_i\) is
+For (r_{ij}>0), the gradient component is
 
 \[
-\nabla_{y_i}E=
-\frac{2}{\sum_{a<b}\delta_{ab}}
-\sum_{j\ne i}
-\frac{d_{ij}-\delta_{ij}}{\delta_{ij}d_{ij}}
-(y_i-y_j),
+g_{i\alpha}=\frac{2}{\sum_{a<b}\delta_{ab}}
+\sum_{j\ne i}\left(\frac1{\delta_{ij}}-\frac1{r_{ij}}\right)
+(y_{i\alpha}-y_{j\alpha}),
 \]
 
-for nonzero configuration distances. The direct objective agrees with R for `sammon_small`: returned stress 0.0031425560111843593 versus direct 0.0031425560111843598. The initial stress is 0.00898 and the public trace reports 0.00314 after 10 iterations, unchanged after 20. Cases: `sammon_small`, `sammon_small_k1`, `sammon_grid`, `sammon_grid_default`.
+and the diagonal second derivative is
 
-## Initialization, controls and convergence observations
+\[
+h_{i\alpha}=\frac{2}{\sum_{a<b}\delta_{ab}}
+\sum_{j\ne i}\left[
+\frac1{\delta_{ij}}-\frac1{r_{ij}}+
+\frac{(y_{i\alpha}-y_{j\alpha})^2}{r_{ij}^3}
+\right].
+\]
 
-The default initial configuration is classical MDS; an explicit `y` may be supplied. `k`, `niter`, `magic`, and `tol` control dimension and iteration. R's `swiss` case is a notable boundary: the initial stress is 0.019592931432643287, and both the default call and `niter=0` return 0.019592931432643283 with the trace “stress after 0 iters”. The independent analytic gradient norm at the initial configuration is 0.0005582441927090762; small steps along the negative gradient lower the objective slightly (from 0.019592931432643287 to 0.019592928316277784 at step 0.01). Thus there are local descent directions, but the public optimizer does not accept an iteration from this start.
+The pseudo-Newton coordinate update is
 
-The exact diagonal Hessian approximation, proposed Newton step, `magic` backtracking schedule, and stopping inequality have not yet been independently reconstructed. It is therefore not established whether the Swiss zero-iteration result is caused by a rejected Newton step, a scale/conditioning issue, or another stopping condition. Do not claim optimizer compatibility based only on the objective and gradient.
+\[
+y_{i\alpha}\leftarrow y_{i\alpha}
+- magic\,\frac{g_{i\alpha}}{|h_{i\alpha}|}.
+\]
 
-R errors for zero/negative dissimilarities, duplicate initial coordinates, malformed initial configuration, missing distances without explicit `y`, and infinite distances are recorded in `sammon_zero_distance`, `sammon_negative`, `sammon_na`, `sammon_inf`, and the y-shape cases. The dimension must be in 1 through n-1 (`sammon_k_too_big`). Common dissimilarity scaling by 2^300 and 2^-300 preserves stress (`sammon_scale_big`, `sammon_scale_small`); scaling only the initial configuration by 2^100 is a poor numerical start (`sammon_scale_y`). Swiss zero-iteration behavior is also captured in `sammon_swiss` and `tight_swiss`.
+The one-step experiments indicate that the candidate configuration is updated simultaneously from the current configuration before the full stress is evaluated. A sequential coordinatewise sweep is not equivalent and can accept a step that the simultaneous update rejects.
+
+## Magic adaptation and Swiss zero-iteration case
+
+The printed `magic` values identify the adaptation factors. A rejected step shrinks `magic` by 0.2; an accepted step increases it by 1.5; the upper cap is 0.5. In the three-point case, the printed 0.150 is exactly (0.5\times0.2\times1.5). The repeated 0.500 output in `sammon_small` is consistent with the upper cap.
+
+For `swiss`, the cmdscale initial stress is 0.019592931432643287. A simultaneous one-sweep calculation with (magic=0.5\times0.2^j) gives:
+
+| j | magic | stress after one simultaneous sweep |
+|---:|---:|---:|
+| 0 | 0.5 | 1094.6186075388 |
+| 1 | 0.1 | 42.4569898342 |
+| 2 | 0.02 | 1.4991909698 |
+| 3 | 0.004 | 0.0582920375 |
+| 4 | 0.0008 | 0.0194026417 |
+
+The first four trials increase stress; the fifth would decrease it. R nevertheless returns zero iterations. This is consistent with a four-trial backtracking limit that stops after (j=0,1,2,3), before trying (j=4). It is a line-search cutoff, not evidence that the initial configuration has no descent direction.
+
+## Stopping tolerance and progress output
+
+The optimizer prints progress every ten iterations, but the stopping check is performed after each iteration. For `small`, `tol=1e-14` stops at iteration 80: requesting 81 or 89 iterations returns the same stress as 80. With `tol=1e-30`, iteration 81 continues and lowers stress from 0.0031425094422446722 to 0.0031425094422446636. The relative decrease from iteration 79 to 80 is about (4.3\times10^{-15}), below (10^{-14}). Thus the stop condition is a per-iteration relative stress reduction below `tol`, not a comparison only every ten iterations.
+
+Tight public runs stop at 80 iterations for `small`, 140 for `eurodist`, and 370 for `USArrests` at `tol=1e-14`. The returned stress agrees with the direct Sammon objective.
 
 ## Decisions for the user
 
-1. Return value: (a) points and stress only; (b) also structured numeric progress and convergence. **Recommend (b)** if progress can be returned as numeric records rather than console text.
-2. Initialization: (a) default cmdscale plus optional `y`; (b) require `y`. **Recommend (a)**.
-3. Invalid dissimilarities and duplicate `y`: (a) reject; (b) regularize. **Recommend (a)**; zero/negative dissimilarities make the objective undefined.
-4. Optimizer: (a) reproduce MASS's update exactly; (b) use another documented stable optimizer for the same objective. **Recommend (a) only after the diagonal Hessian, line search and stop rule are independently reconstructed. Otherwise defer `sammon` from 1.11.0.**
-5. Swiss zero-iteration behavior: (a) reproduce it; (b) continue whenever a descent direction exists. **Recommend (b)** if the Newton step is shown to be a false rejection; do not copy the early stop without understanding it.
+1. Return points and stress plus structured numeric progress; do not require console text.
+2. Use cmdscale by default and accept explicit `y`.
+3. Reject zero/negative dissimilarities and malformed initial configurations.
+4. Implement the pseudo-Newton update with the absolute diagonal Hessian, simultaneous candidate update, and the observed magic factors. The four-trial cutoff should be a deliberate compatibility choice, not mistaken for convergence.
+5. Check relative stress reduction after each iteration; print/logging cadence is separate and may remain every ten iterations.
 
 ## rStats.js's choices
 
