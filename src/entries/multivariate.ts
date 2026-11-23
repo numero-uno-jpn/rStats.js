@@ -10,4 +10,4 @@ export { cmdscale, type CmdscaleOptions, type CmdscaleResult, type CmdscaleInput
 
 export { ca, caSummary, caCoord, type CaFit, type CaOptions, type CaInputTable, type CaSummary, type CaCoordOptions, type CaMatrix } from "../multivariate/ca.js";
 export { mjca, type MjcaFit, type MjcaInputTable, type MjcaOptions, type MjcaMatrix } from "../multivariate/mjca.js";
-export { sammon, type SammonOptions, type SammonMatrix, type SammonMatrixInput, type SammonTrace, type SammonResult } from "../multivariate/sammon.js";
+export { sammon, type SammonOptions, type SammonMatrix, type SammonInputTable, type SammonTrace, type SammonResult } from "../multivariate/sammon.js";

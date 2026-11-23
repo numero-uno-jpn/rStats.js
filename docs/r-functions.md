@@ -9,16 +9,20 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | R | rStats.js | Description |
 | --- | --- | --- |
 | `as.dist()` | `asDist` | Convert a square matrix using only its lower triangle. |
+| `ca()` | `ca` | Simple correspondence analysis of a contingency table. |
+| `cacoord()` | `caCoord` | Row and column coordinates for a correspondence analysis map. |
 | `stats::cancor()` | `cancor` | Canonical correlation analysis. |
 | `cmdscale()` | `cmdscale` | Classical multidimensional scaling of a dissimilarity structure. |
 | `cutree()` | `cutree` | Cuts a hierarchical clustering tree into groups, by number of groups or by height. |
 | `dist()` | `dist` | Compute pairwise dissimilarities in lower-triangle column order. |
 | `hclust()` | `hclust` | Hierarchical agglomerative clustering of a dissimilarity structure by one of eight linkage methods. |
-| `MASS::isoMDS()` | `isoMDS` | Kruskal's non-metric multidimensional scaling. |
 | `kmeans()` | `kmeans` | K-means clustering by the Hartigan-Wong, Lloyd, Forgy or MacQueen algorithm. |
 | `MASS::lda()` | `lda` | Linear discriminant analysis. |
 | `stats::manova()` | `manova` | Fit a multivariate analysis of variance model with sequential terms. |
+| `ca::mjca()` | `mjca` | Multiple correspondence analysis for categorical columns. |
 | `predict.lda()` | `ldaPredict` | Plug-in prediction for a fitted `lda` model. |
+| `MASS::sammon()` | `sammon` | Sammon's nonlinear mapping of dissimilarities into a lower-dimensional configuration. |
+| `summary.ca()` | `caSummary` | Summary tables for a correspondence analysis. |
 | `summary.manova()` | `manovaSummary` | Summary tables for all four MANOVA statistics, with optional sequential intercept row. |
 
 ## Regression models (`rStats.js/regression`)
@@ -58,6 +62,14 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `vcov.polr()` | `polrVcov` | Covariance matrix of the slopes and cut-points. |
 | `vcov.rlm()` | `rlmVcov` | Covariance matrix of robust-regression coefficients. |
 | `vcov()` | `geeVcov` | Return robust or model-based coefficient covariance. |
+
+## Time series analysis (`rStats.js/timeseries`)
+
+| R | rStats.js | Description |
+| --- | --- | --- |
+| `stats::acf()` | `acf` | Equivalent to R's `stats::acf()`. |
+| `stats::ccf()` | `ccf` | Equivalent to R's `stats::ccf()`. |
+| `stats::pacf()` | `pacf` | Equivalent to R's `stats::pacf()`. |
 
 ## Special functions (`rStats.js/special`)
 

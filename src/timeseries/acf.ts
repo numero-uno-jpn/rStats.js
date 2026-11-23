@@ -148,6 +148,7 @@ function build(x: number[], y: number[], options: { type: "correlation" | "covar
  * @category Descriptive statistics
  */
 export function acf(input: readonly number[] | readonly (readonly number[])[], options: AcfOptions = {}): AcfResult {
+  checkOptions(options, ACF_KEYS, "acf"); // generated: option-keys.mjs
   checkOptions(options, ACF_KEYS, "acf");
   const x = series(input);
   const type = options.type ?? "correlation";
@@ -162,6 +163,7 @@ export function acf(input: readonly number[] | readonly (readonly number[])[], o
  * @category Descriptive statistics
  */
 export function pacf(input: readonly number[] | readonly (readonly number[])[], options: PacfOptions = {}): AcfResult {
+  checkOptions(options, PACF_KEYS, "pacf"); // generated: option-keys.mjs
   checkOptions(options, PACF_KEYS, "pacf");
   return acf(input, { ...options, type: "partial" });
 }
@@ -173,6 +175,7 @@ export function pacf(input: readonly number[] | readonly (readonly number[])[], 
  * @category Descriptive statistics
  */
 export function ccf(xInput: readonly number[] | readonly (readonly number[])[], yInput: readonly number[] | readonly (readonly number[])[], options: CcfOptions = {}): AcfResult {
+  checkOptions(options, CCF_KEYS, "ccf"); // generated: option-keys.mjs
   checkOptions(options, CCF_KEYS, "ccf");
   const x = series(xInput), y = series(yInput);
   const type = options.type ?? "correlation";
