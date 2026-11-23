@@ -87,13 +87,13 @@ export function mjca(input:MjcaInputTable,options:MjcaOptions={}):MjcaFit {
   const allLevels=raw.cols.map((_,j)=>Array.from(new Set(raw.data.map(r=>r[j]!))).sort());
   const offsets:number[]=[];let fullJ=0;
   for(const levels of allLevels){offsets.push(fullJ);fullJ+=levels.length;}
-  const selected=idx(options.subsetcat,fullJ,"subsetcat");
+  const selected=idx(options.subsetcat,fullJ,"subsetcat"),selectedSet=selected.length?new Set(selected):null;
   const cats:{factor:number;level:string;global:number}[]=[];
   for(let j=0;j<Q;j++)for(let k=0;k<allLevels[j]!.length;k++)cats.push({factor:j,level:allLevels[j]![k]!,global:offsets[j]!+k});
-  // subsetcat selects categories for subsetcol metadata; it does not remove
-  // categories from the fitted indicator/Burt geometry.
-  const chosenCats=cats;
-  const activeCats=chosenCats.filter(c=>!supVarSet.has(c.factor));
+  const chosenCats=selectedSet?cats.filter(c=>selectedSet.has(c.global)):cats;
+  // subsetcat selects output categories; the active MCA geometry still uses
+  // every category of every active variable.
+  const activeCats=cats.filter(c=>!supVarSet.has(c.factor));
   const supCats=chosenCats.filter(c=>supVarSet.has(c.factor));
   const activeVars=Array.from(new Set(activeCats.map(c=>c.factor))),activeQ=activeVars.length,activeJ=activeCats.length;
   if(activeQ<2||activeJ<2)throw new RangeError("at least two active categorical variables are required");
@@ -117,22 +117,31 @@ export function mjca(input:MjcaInputTable,options:MjcaOptions={}):MjcaFit {
     const pos=factorsInTable.map(f=>chosenCats.findIndex(c=>c.factor===f&&c.level===row[f])).filter(i=>i>=0);
     for(const x of pos)for(const y of pos)burt[x]![y]=burt[x]![y]!+1;
   }
-  const activePositions=activeCats.map(c=>chosenCats.findIndex(x=>x.global===c.global));
-  const activeBurtRowTotals=activePositions.map(i=>sum(activePositions.map(j=>burt[i]![j]!)));
-  const burtTotal=sum(activeBurtRowTotals);
-  if(!(burtTotal>0)||activeBurtRowTotals.some(v=>v<=0))throw new RangeError("empty active Burt table");
-  const burtMass=activeBurtRowTotals.map(v=>v/burtTotal);
-  const colMass=chosenCats.map(c=>{const at=activePosition.get(c.global);return at===undefined?NaN:burtMass[at]!;});
+  const fullBurt=Array.from({length:chosenCats.length},()=>new Array<number>(activeCats.length).fill(0));
+  for(const row of raw.data){
+    for(let i=0;i<chosenCats.length;i++){
+      const c=chosenCats[i]!;
+      if(row[c.factor]!==c.level)continue;
+      for(let j=0;j<activeCats.length;j++){
+        const a=activeCats[j]!;
+        if(row[a.factor]===a.level)fullBurt[i]![j]=fullBurt[i]![j]!+1;
+      }
+    }
+  }
+  const colMass=chosenCats.map(c=>{
+    const at=activePosition.get(c.global);
+    return at===undefined?NaN:activeMass[at]!;
+  });
   const colDist=chosenCats.map((c,i)=>{
     if(!activePosition.has(c.global))return NaN;
-    const profile=activePositions.map(j=>burt[i]![j]!),count=sum(profile);
-    if(!(count>0))throw new RangeError("empty category profile");
-    return Math.sqrt(sum(profile.map((v,j)=>((v/count-burtMass[j]!)**2)/burtMass[j]!)));
+    const profile=fullBurt[i]!,count=sum(profile);
+    if(!(count>0))throw new RangeError("empty active category profile");
+    return Math.sqrt(sum(profile.map((v,j)=>((v/count-activeMass[j]!)**2)/activeMass[j]!)));
   });
   const coords=chosenCats.map((c,i)=>{
     const at=activePosition.get(c.global);
     if(at!==undefined)return activeCoords[at]!;
-    const profile=activePositions.map(j=>burt[i]![j]!),count=sum(profile);
+    const profile=fullBurt[i]!,count=sum(profile);
     if(!(count>0))throw new RangeError("empty supplementary category");
     return singular.map((_,k)=>{
       let total=0,correction=0;
