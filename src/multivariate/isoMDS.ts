@@ -32,12 +32,12 @@ export interface IsoMDSResult {
 interface Pair { i: number; j: number; delta: number; group: number; }
 interface Evaluation { stress: number; distances: number[]; disparities: number[]; }
 
-function readD(input: DistResult | readonly (readonly number[])[]): { d: number[][]; missing: boolean } {
+function readD(input: DistResult | readonly (readonly number[])[]): { d: number[][]; missing: boolean; labels: string[] | null } {
   if (Array.isArray(input)) {
     const n = input.length;
     if (n < 2 || input.some((r) => r.length !== n)) throw new RangeError("dissimilarity matrix must be square");
     const d = input.map((r) => Array.from(r, Number));
-    return { d, missing: d.some((r) => r.some((v) => !Number.isFinite(v))) };
+    return { d, missing: d.some((r) => r.some((v) => !Number.isFinite(v))), labels: null };
   }
   if (typeof input !== "object" || input === null || !Array.isArray((input as DistResult).values)) {
     throw new TypeError("d must be a dist object or a square matrix");
@@ -52,7 +52,7 @@ function readD(input: DistResult | readonly (readonly number[])[]): { d: number[
     d[j]![i] = value.values[at]!;
     at++;
   }
-  return { d, missing: d.some((r) => r.some((v) => !Number.isFinite(v))) };
+  return { d, missing: d.some((r) => r.some((v) => !Number.isFinite(v))), labels: value.labels === null ? null : [...value.labels] };
 }
 
 function distance(a: readonly number[], b: readonly number[], p: number): number {
@@ -244,6 +244,6 @@ export function isoMDS(
   }
   if (maxit > 0) trace.push({ iteration: lastIter, stress: current.stress, converged });
   orient(y);
-  return { points: { rows: (input as DistResult).labels === undefined ? null : (input as DistResult).labels, cols: null,
+  return { points: { rows: parsed.labels, cols: null,
     values: y.map((r) => r.map((v) => v * scale)) }, stress: current.stress, trace };
 }
