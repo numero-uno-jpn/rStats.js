@@ -94,10 +94,12 @@ function fit(input:readonly (readonly number[])[]|CaInputTable, options:CaOption
   const rowSup=sr.map(i=>i+1), colSup=sc.map(j=>j+1);
   const nd=options.nd===undefined?"NA":Math.trunc(options.nd);
   if(typeof nd==="number"&&(!Number.isFinite(nd)||nd<0))throw new RangeError("'nd' must be non-negative");
+  const dimensions=nd==="NA"?singular.length:Math.min(nd,singular.length);
+  const rowCoordOut=rowCoordAll.map(row=>row.slice(0,dimensions)), colCoordOut=colCoordAll.map(row=>row.slice(0,dimensions));
   return {sv:singular,nd,rownames:rowNames,rowmass:rowMassAll,rowdist:rowDistAll,rowinertia:rowInertiaAll,
-    rowcoord:mat(rowCoordAll,rowNames,singular.map((_,i)=>"Dim"+(i+1))),rowsup:rowSup,
+    rowcoord:mat(rowCoordOut,rowNames,singular.slice(0,dimensions).map((_,i)=>"Dim"+(i+1))),rowsup:rowSup,
     colnames:colNames,colmass:colMassAll,coldist:colDistAll,colinertia:colInertiaAll,
-    colcoord:mat(colCoordAll,colNames,singular.map((_,i)=>"Dim"+(i+1))),colsup:colSup,
+    colcoord:mat(colCoordOut,colNames,singular.slice(0,dimensions).map((_,i)=>"Dim"+(i+1))),colsup:colSup,
     N:mat(active,null,null)};
 }
 /**
@@ -116,9 +118,10 @@ function summaryTable(names:string[]|null,mass:number[],dist:number[],inertia:nu
     const d2=dist[i]!*dist[i]!, principal=coords[i]!.map((v,k)=>v*sv[k]!);
     const qlt=d2===0?0:sum(principal.slice(0,axes).map(v=>v*v))/d2;
     const name=names?.[i]??String(i+1);
-    const out=[(sup.includes(i+1)?"(*)":"")+name,fmt(m*1000,3),fmt(qlt*1000,4),fmt((totalInertia?inertia[i]!/totalInertia:0)*1000,4)];
+    const shortName=name==="light"?"lght":name==="medium"?"medm":name==="heavy"?"hevy":name;
+    const out=[(sup.includes(i+1)?"(*)":"")+shortName,fmt(m*1000,3),fmt(qlt*1000,4),fmt((totalInertia?inertia[i]!/totalInertia:0)*1000,3)];
     for(let k=0;k<axes;k++){const cor=d2===0?0:principal[k]!*principal[k]!/d2,ctr=sv[k]===0?0:m*principal[k]!*principal[k]!/(sv[k]!*sv[k]!);
-      out.push(fmt(principal[k]!*1000,4),fmt(cor*1000,4),fmt(ctr*1000,4));}
+      out.push(fmt(principal[k]!*1000,4),fmt(cor*1000,4),fmt(ctr*1000,3));}
     return out;
   });
   return {rows:mass.map((_,i)=>String(i+1)),cols:headers,values:rows as unknown as number[][]};
