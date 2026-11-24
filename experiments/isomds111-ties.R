@@ -4,14 +4,14 @@
 suppressPackageStartupMessages(library(MASS))
 
 show_steps <- function(label, d, y = NULL, k = 2) {
-  cat("\\nCASE", label, "\\n")
+  cat("\nCASE", label, "\n")
   for (m in 0:3) {
     args <- list(d = d, k = k, maxit = m, tol = 1e-30)
     if (!is.null(y)) args$y <- y
     printed <- capture.output(fit <- do.call(isoMDS, args))
-    cat("maxit", m, "stress", sprintf("%.17g", fit$stress), "\\n")
-    cat(paste(printed, collapse = " | "), "\\n")
-    cat("points (row-major):", paste(sprintf("%.17g", as.vector(t(fit$points))), collapse = " "), "\\n")
+    cat("maxit", m, "stress", sprintf("%.17g", fit$stress), "\n")
+    cat(paste(printed, collapse = " | "), "\n")
+    cat("points (row-major):", paste(sprintf("%.17g", as.vector(t(fit$points))), collapse = " "), "\n")
   }
 }
 
