@@ -76,11 +76,42 @@ describe("survfitCoxph against survfit(coxph, newdata)", () => {
 describe("survfitCoxph: the default profile", () => {
   it("is one curve at the means of the fit, as R", () => {
     const { d, weights, x } = setup("sim", "ATE");
-    const s = survfitCoxph(d.time, d.status, x, { weights, robust: true });
+    const s = survfitCoxph(d.time, d.status, x, { weights: weights!, robust: true });
     const r = fixture.survfit_sim_ATE_efron_default.value;
     expect(s.surv.length).toBe(1);
     s.surv[0]!.forEach((v, j) => expect(Math.abs(v - r.surv[j])).toBeLessThan(1e-10));
     s.stdErr[0]!.forEach((v, j) => expect(Math.abs(v - r["std.err"][j]) / r["std.err"][j]).toBeLessThan(1e-9));
     expect(s.median[0]).toEqual(r.table.values.slice(6, 9).map(Number));
+  });
+});
+
+describe("survfit with inverse probability weights against survfit(Surv ~ tr, weights)", () => {
+  it("gives R's weighted Kaplan-Meier curves, with the robust variance by default", async () => {
+    const { survfit } = await import("../src/entries/tests.js");
+    const bad: string[] = [];
+    const keys = Object.keys(fixture).filter((k) => k.startsWith("km_"));
+    for (const key of keys) {
+      const [, set, est, rob] = /^km_(sim|veteran)_ps_logit_(ATE|ATO)_(default|TRUE|FALSE)$/.exec(key)!;
+      const d = fixture.data[set!];
+      const cv = Object.fromEntries(psCovs[set!]!.map((c) => [c, d[c]]));
+      const weights = weightit(d.tr, cv, { estimand: est as "ATE" }).weights;
+      const s = survfit(d.time, d.status, { group: d.tr, weights, ...(rob === "default" ? {} : { robust: rob === "TRUE" }) });
+      const r = fixture[key].value;
+      const near = (a: number, b: number, tol: number): boolean => (Number.isNaN(b) ? Number.isNaN(a) : Math.abs(a - b) <= tol * Math.max(1, Math.abs(b)));
+      if (s.time.length !== r.time.length) { bad.push(`${key}.rows ${s.time.length} ${r.time.length}`); continue; }
+      for (const [name, a, b, tol] of [["n.risk", s.nRisk, r["n.risk"], 1e-12], ["n.event", s.nEvent, r["n.event"], 1e-12],
+        ["surv", s.surv, r.surv, 1e-12],
+        // R keeps std.err on the log scale when logse (Greenwood); rStats.js gives it on the survival scale
+        ["std.err", r.logse ? s.stdErr.map((e, j) => e / s.surv[j]!) : s.stdErr, r["std.err"], 1e-9], ["lower", s.lower, r.lower, 1e-9],
+        ["upper", s.upper, r.upper, 1e-9]] as const) {
+        (b as unknown[]).forEach((v, j) => { if (!near((a as number[])[j]!, num(v), tol)) bad.push(`${key}.${name}[${j}] ${(a as number[])[j]} ${v}`); });
+      }
+      const tab = r.table.values.map(num);
+      s.median.forEach((md, c) => md.forEach((v, q) => { if (!near(v, tab[(6 + q) * 2 + c]!, 1e-12)) bad.push(`${key}.median`); }));
+      s.rmean.forEach((v, c) => { if (!near(v, tab[4 * 2 + c]!, 1e-10)) bad.push(`${key}.rmean ${v} ${tab[8 + c]}`); });
+      s.seRmean.forEach((v, c) => { if (!near(v, tab[5 * 2 + c]!, 1e-8)) bad.push(`${key}.seRmean ${v} ${tab[10 + c]}`); });
+    }
+    expect(bad.slice(0, 20)).toEqual([]);
+    expect(keys.length).toBe(12);
   });
 });

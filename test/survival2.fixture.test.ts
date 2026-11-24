@@ -65,14 +65,17 @@ describe("survfit2 fixture", () => {
       const weights=(a.weights as string[]|undefined)?.map(number);
       const rmean=a.rmean===undefined?"common":
         ["none","common","individual"].includes(a.rmean)?a.rmean:number(a.rmean);
-      const unsupportedWeight=weights?.some(w=>Number.isFinite(w)&&!Number.isInteger(w));
+      // fractional weights with stype 2 and the robust variance (R's default for them) are not supported
+      const fractional=weights?.some(w=>Number.isFinite(w)&&!Number.isInteger(w))??false;
+      const robustStype2=fractional&&number(a.stype??"1")===2&&a.robust!==false;
       const nonFiniteWeight=weights?.some(w=>!Number.isFinite(w)&&!Number.isNaN(w));
       const allZero=weights!==undefined&&weights.every(w=>w===0);
       const zeroGroup=weights!==undefined&&Array.isArray(a.group)&&Array.from(new Set(a.group)).some((g:string)=>weights.every((w:number,i:number)=>a.group[i]!==g||w===0));
       const origin=Math.min(0,...(a.time as string[]).map(number));
       const belowOrigin=typeof rmean==="number"&&rmean<=origin;
       const unsupportedScale=a.scale!==undefined;
-      const shouldError=(Boolean(e.error)&&!ref.table)||unsupportedWeight||nonFiniteWeight||allZero||zeroGroup||belowOrigin||unsupportedScale;
+      // non-integer weights are R's since 1.13.0 (inverse probability weights)
+      const shouldError=(Boolean(e.error)&&!ref.table)||robustStype2||nonFiniteWeight||allZero||zeroGroup||belowOrigin||unsupportedScale;
       const call=()=>{
         const options:AnyRecord={};
         if(a.group!==undefined)options.group=a.group;
@@ -96,7 +99,8 @@ describe("survfit2 fixture", () => {
       vector(out.time,e.time,"survfit2 #" + index + " time");vector(out.nRisk,e["n.risk"],"survfit2 #" + index + " nRisk");vector(out.nEvent,e["n.event"],"survfit2 #" + index + " nEvent");
       vector(out.nCensor,e["n.censor"],"survfit2 #" + index + " nCensor");vector(out.surv,e.surv,"survfit2 #" + index + " surv");
       vector(out.cumhaz,e.cumhaz,"survfit2 #" + index + " cumhaz");vector(out.stdChaz,e["std.chaz"],"survfit2 #" + index + " stdChaz");
-      const expectedStdErr=e.logse?(e["summary.std.err"]??e["std.err"]):e["std.err"];
+      // reference values where rStats.js corrects R (robust stype 2, docs/differences-from-r.md)
+      const expectedStdErr=ref["summary.std.err"]??(e.logse?(e["summary.std.err"]??e["std.err"]):e["std.err"]);
       if(expectedStdErr)vector(out.stdErr,expectedStdErr,"survfit2 #" + index + " stdErr");
       expect(out.logse, `survfit2 #${index} logse`).toBe(e.logse);
       expect(out.n.map(String), `survfit2 #${index} n`).toEqual(e.n);
@@ -106,8 +110,9 @@ describe("survfit2 fixture", () => {
         vector(out.counts!.nEvent,e.counts["n.event"],"survfit2 #" + index + " counts.nEvent");
         vector(out.counts!.nCensor,e.counts["n.censor"],"survfit2 #" + index + " counts.nCensor");
       }
-      if(e.lower)vector(out.lower,e.lower,"survfit2 #" + index + " lower");
-      if(e.upper)vector(out.upper,e.upper,"survfit2 #" + index + " upper");
+      const expectedLower=ref.lower??e.lower, expectedUpper=ref.upper??e.upper;
+      if(expectedLower)vector(out.lower,expectedLower,"survfit2 #" + index + " lower");
+      if(expectedUpper)vector(out.upper,expectedUpper,"survfit2 #" + index + " upper");
       const expectedTable=ref.table??e.table;
       if(expectedTable)table(out.table,expectedTable,"survfit2 #" + index + " table");
       } catch(error) {

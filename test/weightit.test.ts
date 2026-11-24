@@ -123,7 +123,7 @@ describe("weightit: inputs and warnings", () => {
 describe("balTab of a weightit result against cobalt::bal.tab", () => {
   it("gives R's rows, differences, variance ratios and effective sample sizes", () => {
     const bad: string[] = [];
-    const keys = Object.keys(fixture).filter((k) => k.startsWith("bal_"));
+    const keys = Object.keys(fixture).filter((k) => /^bal_(sim|lalonde|veteran)_/.test(k));
     const num = (v: unknown): number => (v === "NA" || v === null ? NaN : Number(v));
     for (const key of keys) {
       const [, set, base] = /^bal_(sim|lalonde|veteran)_(.+)$/.exec(key)!;
@@ -153,5 +153,15 @@ describe("balTab of a weightit result against cobalt::bal.tab", () => {
     }
     expect(bad).toEqual([]);
     expect(keys.length).toBe(33);
+  });
+});
+
+describe("balTab: a two-level factor", () => {
+  it("is one row for its second level, as cobalt", () => {
+    const sim = fixture.data.sim, r = fixture.bal_twolevel.value;
+    const w = weightit(sim.tr, { x1: sim.x1, sex: r.sex });
+    const b = balTab(sim.tr, { x1: sim.x1, sex: r.sex }, { weightit: w, binary: "std" });
+    expect(b.rows).toEqual(r.std.rows);
+    b.diffAdj.forEach((v, i) => expect(Math.abs(v - r.std.diffAdj[i])).toBeLessThan(1e-12));
   });
 });

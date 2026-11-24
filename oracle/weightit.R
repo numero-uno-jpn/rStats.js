@@ -151,6 +151,28 @@ out$survfit_sim_ATE_efron_default <- run({
   m <- coxph(Surv(time, status) ~ tr + x1 + x2 + x3, data = d, weights = w, robust = TRUE)
   c(list(fit = cx(m)), sf(survfit(m), unique(unname(quantile(d$time, c(0.25, 0.5, 0.75)))))) })
 
+
+## weighted Kaplan-Meier by treatment (ReactiveStat's survfit(Surv(time, status) ~ tr, weights)): the default and robust
+## = FALSE, with summary(times) and the table
+km <- function(v, times) { ss <- summary(v); st <- summary(v, times = times)
+  list(strata = as.vector(v$strata), time = v$time, n.risk = v$n.risk, n.event = v$n.event, n.censor = v$n.censor,
+       surv = v$surv, std.err = v$std.err, lower = v$lower, upper = v$upper, cumhaz = v$cumhaz, std.chaz = v$std.chaz,
+       logse = v$logse, table = mat(ss$table), times = times, atTime = st$time, atStrata = as.character(st$strata),
+       atSurv = st$surv, atStdErr = st$std.err, atNRisk = st$n.risk, atNEvent = st$n.event) }
+for (s in c("sim", "veteran")) for (b in c("ps_logit_ATE", "ps_logit_ATO")) for (rob in c("default", "FALSE", "TRUE")) {
+  d <- sets[[s]]; d$w <- objs[[sprintf("w_%s_%s", s, b)]]$weights
+  times <- unique(unname(quantile(d$time, c(0.25, 0.5, 0.75))))
+  out[[sprintf("km_%s_%s_%s", s, b, rob)]] <- run(km(
+    if (rob == "default") survfit(Surv(time, status) ~ tr, data = d, weights = w)
+    else survfit(Surv(time, status) ~ tr, data = d, weights = w, robust = as.logical(rob)), times))
+}
+
+## bal.tab with a two-level factor (how cobalt shows it)
+two <- data.frame(tr = sim$tr, x1 = sim$x1, sex = factor(ifelse(sim$x2 == 1, "M", "F")))
+w2 <- weightit(tr ~ x1 + sex, data = two, method = "glm", estimand = "ATE")
+out$bal_twolevel <- run(list(std = bal(bal.tab(w2, stats = c("mean.diffs", "variance.ratios"), un = TRUE, binary = "std")),
+                             weights = unname(w2$weights), sex = as.character(two$sex)))
+
 ## inputs R rejects or warns about
 out$err_stab_att <- run(wres(weightit(tr ~ x1 + x2, data = sim, method = "glm", estimand = "ATT", stabilize = TRUE)))
 out$err_ipt_ato <- run(wres(weightit(tr ~ x1 + x2, data = sim, method = "ipt", estimand = "ATO")))
