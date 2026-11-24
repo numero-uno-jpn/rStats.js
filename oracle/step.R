@@ -42,6 +42,11 @@ e$t <- sample(5:15, m, TRUE); e$s <- rbinom(m, e$t, plogis(-0.5 + 0.7 * e$x1)); 
 e$ex <- round(runif(m, 1, 4), 2); e$loge <- log(e$ex); e$cnt <- rpois(m, e$ex * exp(0.2 + 0.5 * e$x2))
 e$x3n <- e$x3; e$x3n[c(3, 17, 40)] <- NA
 e$ys <- as.integer(e$x1 > 0.2); e$ys[c(1, 2)] <- 1L - e$ys[c(1, 2)]
+# the second pass over the edge cases: missing weights and offsets, a constant column, a string response
+e$wna <- e$w; e$wna[c(5, 21)] <- NA
+e$lognA <- e$loge; e$lognA[c(8, 44)] <- NA
+e$k1 <- 1
+e$ychr <- ifelse(e$ys == 1, "yes", "no")
 
 ## the searches
 # the data of the case goes to the global environment (step refits by re-evaluating the call)
@@ -49,9 +54,14 @@ fit_of <- function(cs) {
   data <- get(cs$set)
   data$.w <- if (is.null(cs$weights)) 1 else data[[cs$weights]]
   data$.o <- if (is.null(cs$offset)) 0 else data[[cs$offset]]
+  # a string response as R's factor (rStats.js reads strings as a factor; R's glm refuses a character response)
+  if (!is.null(cs$factor)) data[[cs$factor]] <- factor(data[[cs$factor]])
   assign("cur", data, envir = globalenv())
   fo <- as.formula(cs$start, env = globalenv())
-  if (is.null(cs$family)) return(eval(bquote(lm(.(fo), data = cur, weights = .w)), globalenv()))
+  if (is.null(cs$family)) {
+    if (!is.null(cs$contrasts)) return(eval(bquote(lm(.(fo), data = cur, weights = .w, contrasts = list(f = .(cs$contrasts)))), globalenv()))
+    return(eval(bquote(lm(.(fo), data = cur, weights = .w)), globalenv()))
+  }
   fam <- cs$family
   if (is.null(cs$offset)) eval(bquote(glm(.(fo), family = .(as.name(fam)), data = cur, weights = .w)), globalenv())
   else eval(bquote(glm(.(fo), family = .(as.name(fam)), data = cur, weights = .w, offset = .o)), globalenv())
@@ -142,8 +152,24 @@ cases <- list(
   list(name = "poisson_weights0", set = "e", start = "cnt ~ x1 + x2 + x3 + g", family = "poisson", weights = "w0"),
   list(name = "binomial_separation", set = "e", start = "ys ~ x1 + xa + x2", family = "binomial"),
   list(name = "poisson_interaction", set = "e", start = "cnt ~ x2 * g + x1", family = "poisson", offset = "loge"),
-  list(name = "poisson_missing_forward", set = "e", start = "cnt ~ x1", upper = "~ x1 + x2 + x3n", family = "poisson", direction = "forward", k = 0))
-out <- list(R = R.version.string, MASS = as.character(packageVersion("MASS")), data = list(d = d, e = e))
+  list(name = "poisson_missing_forward", set = "e", start = "cnt ~ x1", upper = "~ x1 + x2 + x3n", family = "poisson", direction = "forward", k = 0),
+  # the second pass over the edge cases
+  list(name = "lm_k_large", set = "e", start = "y ~ x1 + x2 + x3 + g", k = 1e6),
+  list(name = "lm_k_negative", set = "e", start = "y ~ 1", upper = "~ x1 + x2 + x3 + g", direction = "forward", k = -1),
+  list(name = "lm_steps_fraction", set = "d", start = "y ~ x1 + x2 + x3 + x4 + x5 + f", direction = "backward", steps = 2.5),
+  list(name = "poisson_missing_both", set = "e", start = "cnt ~ x1", lower = "~ 1", upper = "~ x1 + x2 + x3n", family = "poisson"),
+  list(name = "lm_weights_missing", set = "e", start = "y ~ x1 + x2 + x3 + g", weights = "wna"),
+  list(name = "poisson_offset_missing", set = "e", start = "cnt ~ x1 + x2 + x3 + g", family = "poisson", offset = "lognA"),
+  list(name = "lm_constant_column", set = "e", start = "y ~ x1 + k1 + x2", direction = "backward"),
+  list(name = "lm_no_intercept_interaction", set = "e", start = "y ~ f:x1 + g - 1", direction = "backward"),
+  list(name = "binomial_string_response", set = "e", start = "ychr ~ x1 + x2 + x3", family = "binomial", factor = "ychr"),
+  list(name = "lm_four_rows", set = "e4", start = "y ~ x1 + x2"),
+  list(name = "lm_contr_sum", set = "e", start = "y ~ f * x1 + x2", contrasts = "contr.sum"),
+  list(name = "gaussian_weights0", set = "e", start = "y ~ x1 + x2 + x3 + g", family = "gaussian", weights = "w0"),
+  list(name = "binomial_bic_forward", set = "e", start = "ys ~ 1", upper = "~ x1 + x2 + x3 + g + f", family = "binomial", k = "log"),
+  list(name = "lm_scope_unknown", set = "e", start = "y ~ x1", upper = "~ x1 + zz"))
+e4 <- e[1:4, ]
+out <- list(R = R.version.string, MASS = as.character(packageVersion("MASS")), data = list(d = d, e = e, e4 = e4))
 out$search <- lapply(cases, function(cs) c(cs, run(search(cs))))
 
 ## the tables

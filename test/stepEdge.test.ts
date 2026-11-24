@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { lm, glm } from "../src/entries/tests.js";
-import { step, drop1, add1 } from "../src/models/step.js";
+import { step, stepAIC, drop1, add1 } from "../src/models/step.js";
 import { setSeed, rnorm, rpois, rbinom, runif } from "../src/entries/distributions.js";
 
 // The edge cases of step (experiments/step115-edge.R, Issue #565): the search does not depend on the scale of the
@@ -11,17 +11,17 @@ setSeed(20261201);
 const n = 80;
 const col = (v: ArrayLike<number>) => Array.from(v);
 const base: Record<string, (number | string)[]> = {
-  x1: col(rnorm(n) as Float64Array), x2: col(rnorm(n) as Float64Array), x3: col(rnorm(n) as Float64Array),
-  x4: col(rnorm(n) as Float64Array), x5: col(rnorm(n) as Float64Array),
+  x1: col(rnorm(n) as ArrayLike<number>), x2: col(rnorm(n) as ArrayLike<number>), x3: col(rnorm(n) as ArrayLike<number>),
+  x4: col(rnorm(n) as ArrayLike<number>), x5: col(rnorm(n) as ArrayLike<number>),
 };
 const num = (k: string) => base[k] as number[];
 base.f = num("x1").map((_, i) => ["a", "b", "c"][i % 3]!);
-const noise = col(rnorm(n) as Float64Array);
+const noise = col(rnorm(n) as ArrayLike<number>);
 base.y = num("x1").map((v, i) => 1 + 0.9 * v - 0.5 * num("x2")[i]! + 0.25 * num("x3")[i]! + 0.3 * (base.f![i] === "c" ? 1 : 0) + noise[i]!);
-base.w = col(runif(n, 0.3, 3) as Float64Array);
-base.e = col(runif(n, 1, 3) as Float64Array);
-base.cnt = num("x1").map((v, i) => (rpois(1, Math.exp(0.4 + 0.5 * v + 0.3 * num("x3")[i]!)) as Float64Array)[0]!);
-base.yb = num("x1").map((v, i) => (rbinom(1, 1, 1 / (1 + Math.exp(-(0.2 + 1.2 * v - 0.8 * num("x2")[i]!)))) as Float64Array)[0]!);
+base.w = col(runif(n, { min: 0.3, max: 3 }) as ArrayLike<number>);
+base.e = col(runif(n, { min: 1, max: 3 }) as ArrayLike<number>);
+base.cnt = num("x1").map((v, i) => (rpois(1, Math.exp(0.4 + 0.5 * v + 0.3 * num("x3")[i]!)) as ArrayLike<number>)[0]!);
+base.yb = num("x1").map((v, i) => (rbinom(1, 1, 1 / (1 + Math.exp(-(0.2 + 1.2 * v - 0.8 * num("x2")[i]!)))) as ArrayLike<number>)[0]!);
 const upper = "~ x1 + x2 + x3 + x4 + x5 + f";
 const withCol = (name: string, f: (v: number) => number, d = base) => ({ ...d, [name]: (d[name] as number[]).map(f) });
 const near = (a: number, b: number, tol: number) => Math.abs(a - b) <= tol * Math.max(1, Math.abs(b));
@@ -90,5 +90,29 @@ describe("step on extreme inputs", () => {
     expect(t.aic.every(Number.isFinite)).toBe(true);
     const a = add1(lm("y ~ 1", d), d, { scope: "~ x1 + x2" });
     expect(a.aic.every(Number.isFinite)).toBe(true);
+  });
+});
+
+describe("step: the checks of the arguments", () => {
+  const fit = lm("y ~ x1 + x2", base);
+  it("refuses a bad direction, k, steps or scope", () => {
+    expect(() => step(fit, base, { direction: "up" as never })).toThrow("'direction' should be one of");
+    expect(() => step(fit, base, { k: NaN })).toThrow("k must be a number");
+    expect(() => step(fit, base, { steps: -1 })).toThrow("steps must be non-negative");
+    expect(() => step(fit, base, { scope: "~ ." })).toThrow("'.' is not supported in the upper scope");
+    expect(() => step(fit, base, { scope: 3 as never })).toThrow("scope must be a formula or { lower, upper }");
+    expect(() => add1(fit, base)).toThrow("no terms in scope for adding to object");
+    expect(() => drop1(fit, base, { scope: "~ x3" })).toThrow("scope is not a subset of term labels");
+  });
+  it("refuses a fit that is not a formula fit, and a copied glm whose options are unknown", () => {
+    expect(() => step(lm([1, 2, 3, 4], [2, 1, 4, 3]) as never, base)).toThrow("step needs a fit of lm or glm with a formula");
+    const g = glm("yb ~ x1", base, { family: "binomial" });
+    expect(() => step({ ...g }, base)).toThrow("step needs the fit as returned by lm or glm");
+    // a copied lm without weights is fine (no options matter)
+    expect(step({ ...fit }, base).fit.termLabels).toEqual(step(fit, base).fit.termLabels);
+  });
+  it("quasi families: no AIC", () => {
+    expect(() => step(glm("cnt ~ x1", base, { family: "quasipoisson" }), base)).toThrow("AIC is not defined for this model, so 'step' cannot proceed");
+    expect(() => stepAIC(glm("cnt ~ x1", base, { family: "quasipoisson" }), base)).toThrow("so 'stepAIC' cannot proceed");
   });
 });

@@ -77,6 +77,15 @@ otherwise.
   the model's and all candidates' variables, with the warning "using the 47/50 rows from a combined fit"; the path
   keeps the values of the model's own rows. (So a forward search may compare on 47 rows and report on 50.)
 - **Weights:** lm weights enter the weighted RSS; glm prior weights as in `glm`. Offsets stay in every model.
+- **add1 for glm on fewer rows** (missing values in a candidate): `<none>` keeps the current fit's own AIC (all its
+  rows) and the candidates' AIC adds to it the scaled changes of deviance on the combined rows; lm recomputes `<none>`
+  on the combined rows. In "both" the `<none>` row is drop1's.
+- **Second pass (oracle/step.R):** k = 1e6 drops every term, k = −1 adds every term; `steps` counts whole moves;
+  missing weights or offsets drop their rows once (no change of rows, no error); a constant column is aliased with
+  the intercept and removed first; `y ~ f:x1 + g - 1` keeps its coding; `contrasts` are passed to every refit (R
+  warns "variable 'f' is absent, its contrast will be ignored" once f is dropped); 4 rows work; an unknown variable in
+  the scope is the error "object 'zz' not found"; R's glm refuses a character response ("y values must be 0 <= y <=
+  1"), so the case compares with a factor (rStats.js reads strings as a factor, first level failure).
 
 ## Choices of rStats.js
 
@@ -86,6 +95,11 @@ otherwise.
 - The result holds `fit` (the selected model), `anova` (the path), `visits` (each model visited: its formula, its
   criterion, and the table examined from it, sorted), and `keep` is not offered (the visits hold what a keep function
   would). drop1 and add1 return their tables unsorted with the test columns asked for.
+- A gaussian glm with weight-0 rows: R's AIC is Inf (their log 0), so R's step makes no move; rStats.js's glm leaves
+  those rows out of the likelihood (an earlier choice, src/models/glmFamily.ts), so the search is that of the data
+  without them.
+- The lm criterion is computed from log RSS (in the log domain from the residuals when the sum overflows or
+  underflows), so that a response of 1e±300 gives the plain path where R makes no move or stops at −Infinity.
 - `'.'` in a scope is refused (R expands it from the model's formula; list the terms instead).
 - The fits remember their options (weights, offset, family, contrasts, levels) beside the result, so a copied result
   with weights or an offset, or any copied glm, is refused (its options are not known).

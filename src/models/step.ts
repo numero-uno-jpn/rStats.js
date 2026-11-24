@@ -390,8 +390,14 @@ function candidateRow(none: Row, label: string, dev: number, rank: number, dfRes
  * the current model matrix (on its rows), not a refit of a formula (dropping x1 from y ~ x1 * f keeps the columns of
  * x1:f as they are coded, so it removes a degree of freedom)
  */
+/** glm: R computes the dispersion for the tables of the families without a fixed one (with its warnings) */
+function dispersionWarnings(fit: StepModel, warnings: Warnings): void {
+  if (isGlmFit(fit) && !fixedDispersion(fit)) glmDispersion(fit, warnings);
+}
+
 function dropRows(fit: StepModel, drops: readonly Term[], k: number, scale: number, warnings: Warnings): Row[] {
   perfectFitCheck(fit, warnings);
+  dispersionWarnings(fit, warnings);
   const none = noneRow(fit, k, scale);
   const terms = termsOfFit(fit);
   const out = [none];
@@ -430,7 +436,11 @@ function addRows(ctx: Context, fit: StepModel, adds: readonly Term[], k: number,
     }
   }
   perfectFitCheck(base, warnings);
+  dispersionWarnings(base, warnings);
   const none = noneRow(base, k, scale);
+  // glm on fewer rows: R keeps the current fit's own AIC for <none> and adds to it the scaled changes of deviance on
+  // the rows of the combined fit (so the table mixes the two sets of rows); lm recomputes <none> on those rows
+  if (isGlmFit(base) && base !== fit) none.aic = noneRow(fit, k, scale).aic;
   const out: Row[] = [none];
   for (const t of adds) {
     const m = refitTerms(ctx, [...fit.termLabels, t.label], rows);
