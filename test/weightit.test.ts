@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
-import { weightit, trimWeights, weightSummary, type WeightitEstimand, type WeightitMethod } from "../src/entries/causal.js";
+import { weightit, trimWeights, weightSummary, balTab, type WeightitEstimand, type WeightitMethod } from "../src/entries/causal.js";
 
 const fixture = JSON.parse(readFileSync(new URL("./fixtures/weightit.json", import.meta.url), "utf8")) as Record<string, any>;
 const covs: Record<string, string[]> = {
@@ -117,5 +117,41 @@ describe("weightit: inputs and warnings", () => {
     expect(weightit(sim.tr, { x1: sim.x1, x2: sim.x2 }, { method: "cbps", stabilize: true }).warnings).toEqual(([] as string[]).concat(fixture.warn_cbps_stab.warnings).map(unwrap));
     const sep = weightit([0, 0, 0, 0, 1, 1, 1, 1], { x1: [1, 2, 3, 4, 5, 6, 7, 8] });
     expect(sep.warnings).toEqual(([] as string[]).concat(fixture.warn_separation.warnings).map(unwrap));
+  });
+});
+
+describe("balTab of a weightit result against cobalt::bal.tab", () => {
+  it("gives R's rows, differences, variance ratios and effective sample sizes", () => {
+    const bad: string[] = [];
+    const keys = Object.keys(fixture).filter((k) => k.startsWith("bal_"));
+    const num = (v: unknown): number => (v === "NA" || v === null ? NaN : Number(v));
+    for (const key of keys) {
+      const [, set, base] = /^bal_(sim|lalonde|veteran)_(.+)$/.exec(key)!;
+      const c = cases.find((x) => x.key === `w_${set}_${base}`)!;
+      const w = fit(c);
+      const lev = fixture.levels[set!];
+      for (const kind of ["std", "raw"] as const) {
+        const e = fixture[key].value[kind];
+        const b = balTab(fixture.data[set!].tr, covariates(set!), { weightit: w, levels: lev, ...(kind === "std" ? { binary: "std" } : {}) });
+        if (JSON.stringify(b.rows) !== JSON.stringify(e.rows)) { bad.push(`${key}.${kind}.rows ${b.rows}`); continue; }
+        if (JSON.stringify(b.type) !== JSON.stringify(e.type)) bad.push(`${key}.${kind}.type`);
+        const tol = c.method === "glm" ? 1e-9 : 1e-5;
+        for (const [f, a, r] of [["diffUn", b.diffUn, e.diffUn], ["diffAdj", b.diffAdj, e.diffAdj],
+          ["vRatioUn", b.vRatioUn, e.vRatioUn], ["vRatioAdj", b.vRatioAdj, e.vRatioAdj]] as const) {
+          if (kind === "raw" && f.startsWith("vRatio")) continue; // the default call shows no variance ratios
+          (r as unknown[]).forEach((rv, i) => {
+            const x = num(rv), y = a[i]!;
+            // differences of exactly balanced covariates are 0 to rounding (absolute)
+            const ok = Number.isNaN(x) ? Number.isNaN(y) : Math.abs(y - x) <= tol * Math.max(1, Math.abs(x));
+            if (!ok) bad.push(`${key}.${kind}.${f}[${e.rows[i]}] ${y} vs ${x}`);
+          });
+        }
+        if (JSON.stringify(b.observations.rows) !== JSON.stringify(e.obsRows)) bad.push(`${key}.obsRows`);
+        [[b.observations.control, e.obsControl], [b.observations.treated, e.obsTreated]].forEach(([a, r]) =>
+          (r as number[]).forEach((x, i) => { if (Math.abs(a![i]! - x) > tol * x) bad.push(`${key}.obs ${a![i]} vs ${x}`); }));
+      }
+    }
+    expect(bad).toEqual([]);
+    expect(keys.length).toBe(33);
   });
 });
