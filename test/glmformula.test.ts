@@ -54,7 +54,6 @@ describe("glm with a formula against R's glm(formula, data)", () => {
     const dn = fixture.data.dn;
     const f = glm("yb ~ x1 + x2", dn, { family: "binomial", weights: "w" });
     expect(f.model.rows).toEqual(Array.from({ length: 60 }, (_, i) => i).filter((i) => ![3, 17, 32, 6, 49].includes(i)));
-    expect(f.options).toEqual({ family: "binomial", weights: "w" });
     expect(glmAnova(f).table.length).toBe(3);
     const p = glmPredict(f, { type: "response" });
     expect(p.fit.length).toBe(55);

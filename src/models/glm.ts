@@ -29,6 +29,7 @@ import { ldexp, ldexpWide, scaleToUnit } from "../internal/summary.js";
 import { NON_ESTIMABLE_WARNING, nonEstimableRows } from "./estimable.js";
 import { checkDot, checkedDot } from "../linalg/dot.js";
 import { dataRowCount, setInputRowCount } from "./inputRows.js";
+import { setFitOptions } from "./fitOptions.js";
 import { parseFormula } from "./formula.js";
 import { design, type ModelMatrixOptions } from "./modelMatrix.js";
 import type { DataFrame } from "./modelFrame.js";
@@ -122,8 +123,6 @@ export interface GlmFormulaResult extends GlmResult {
   variables: string[];
   /** R's factors attribute of the terms (one array per variable, one code per term). */
   factors: number[][];
-  /** The options the fit was given (weights and offset as given), for the refits of {@link step}. */
-  options: GlmFormulaOptions;
 }
 
 /**
@@ -783,8 +782,8 @@ function glmFormula(formula: string, data: DataFrame, options: GlmFormulaOptions
     order: d.terms.order,
     variables: d.terms.variables,
     factors: d.terms.factors,
-    options: { ...options },
   };
+  setFitOptions(out, options);
   const scaled = (fit as { scaled?: GlmResult }).scaled;
   if (scaled !== undefined) Object.defineProperty(out, "scaled", { value: scaled, enumerable: false });
   withUsedRows(USED_ROWS.get(fit), out);

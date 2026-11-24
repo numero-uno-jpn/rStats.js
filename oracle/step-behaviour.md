@@ -52,8 +52,25 @@ otherwise.
   ("- x5", "+ x1"), `Df`, `Deviance` (the change of the residual deviance, positive), `Resid. Df`, `Resid. Dev`,
   `AIC` (or `Cp` with scale > 0). **step's Df is the change of the residual df (−1 for an added term, +2 for a
   dropped 3-level factor); stepAIC's is positive.** This is the only difference found between the two.
-- **The glm candidates** are fresh fits of the candidate models (their deviances equal `glm` fits to 17 digits). The
-  warnings of the refits (separation) are collected; the search goes on.
+- **How drop1 fits a candidate:** the columns of the term are taken out of the current model matrix, on the current
+  model's rows (not a refit of a formula): with `scope = ~ x1 + ...` on `y ~ x1 * f + ...`, dropping x1 keeps the
+  columns of x1:f as coded and removes one degree of freedom (a refit of `y ~ f + x1:f` would recode x1:f and lose
+  none). The deviances equal fresh `glm` fits of the reduced matrices to 17 digits. add1 refits each larger model.
+- **The glm tables' AIC** is not the candidate's own AIC: it is the current model's AIC + the scaled change of
+  deviance + k × the change of rank, the scaled change being n log(dev / dev₀) for gaussian (exact), the change of
+  deviance for binomial and poisson (exact), and the change over the current model's Pearson dispersion for Gamma and
+  inverse.gaussian (an approximation: 139.417 against the refit's 137.831; `experiments/step115-gamma`). The search
+  chooses by these values, and the path then shows the refitted model's own AIC (118.64 after a table value of
+  118.54). The warnings of the refits (separation) are collected; the search goes on.
+- **Tests:** `test = "F"`: (change of deviance / Df) / (deviance / residual df of the larger model: the current one
+  for drop1, the candidate for add1), against F(Df, that residual df), for lm and glm alike. `"Chisq"` / `"LRT"` for
+  glm: the scaled change above against chi-squared(Df); R names the column "LRT" for binomial and poisson and
+  "scaled dev." for the other families.
+- **A perfect fit:** lm's drop1 and add1 warn "attempting model selection on an essentially perfect fit is nonsense"
+  when RSS < 1e-10 Σ w y² of the current model (`experiments/step115-perfect*`); the search goes on.
+- **Moves are decided in the table:** the best row against `<none>` of the same table (with weight-0 rows the path's
+  value is higher than the table's, and no move is made when `<none>` is best). Aliased terms are removed from the
+  last in the model order. `Resid. Df` of the path is nobs − edf (edf of extractAIC).
 - **Missing values (as R, the user's decision).** The rows of each fit are those complete in its own variables.
   When a move changes the number of rows used: error "number of rows in use has changed: remove missing values?".
   add1 with candidates that have missing values computes its whole table (`<none>` included) on the rows complete in
@@ -66,8 +83,12 @@ otherwise.
 - `step(fit, data, options)` and `stepAIC(fit, data, options)` take a formula fit of `lm` or `glm` and the data it was
   fitted on (rStats.js's fits do not keep the data frame); the refits use the fit's own options (weights, offset,
   family, contrasts, levels).
-- The result holds `fit` (the selected model), `anova` (the path), `steps` (the table of each step: the model's
-  formula, its criterion, and the sorted rows), and `keep` is not offered (the tables hold what a keep function would).
+- The result holds `fit` (the selected model), `anova` (the path), `visits` (each model visited: its formula, its
+  criterion, and the table examined from it, sorted), and `keep` is not offered (the visits hold what a keep function
+  would). drop1 and add1 return their tables unsorted with the test columns asked for.
+- `'.'` in a scope is refused (R expands it from the model's formula; list the terms instead).
+- The fits remember their options (weights, offset, family, contrasts, levels) beside the result, so a copied result
+  with weights or an offset, or any copied glm, is refused (its options are not known).
 - The trace is returned, not printed.
 
 ## To check
