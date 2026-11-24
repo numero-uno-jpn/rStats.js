@@ -174,3 +174,21 @@ script keeps the search that succeeded.
     0 in theory: R +2.7e-16, rStats.js -3.8e-16. The mediator's probability is then 0.5 +- 1e-16, and rbinom turns its
     computation around at p = 0.5, so the draws differ. Rounding only; the test leaves those two replicates out.
 41. `test/simSlopes.test.ts` against the fixture: 9 of 10 at once; the case without a real root had inside = FALSE in R although the leading coefficient is negative: inside is FALSE whenever the interval is not found. Then 10 of 10.
+
+## Edge cases, first pass (2026-11-25)
+
+42. `mediation116-edge.R` (R) with `test/mediationEdge.test.ts` (rStats.js). R: quasi-Bayes breaks down when the
+    variables are x 1e+-150 (d0 = 2e251 at 1e150; a proportion mediated of 5.6e-144 at 1e-150; the covariance of
+    coefficients on scales 1e+-150 and 1 loses its small eigenvalues) and errors at 1e+-300 ("infinite or missing
+    values in 'x'"); the bootstrap is right at 1e+-150 and 1e-300 and errors at 1e300; large common values (1e8, 1e15)
+    alias a coefficient and mediate errors; an outcome model without the treatment errors ("undefined columns
+    selected"); HC3 with a leverage-1 row errors; sim_slopes is scale-invariant; n = 2000 takes 27 s (quasi, 1000
+    sims) and 13 s (bootstrap, 200).
+43. rStats.js before changes: the bootstrap exactly equivariant at all four scales; quasi-Bayes plausible at 1e+-150
+    (EISPACK eigen), **silently wrong at 1e-300** (the variances, 1e-600, underflow to 0) and NaN at 1e300.
+44. Changes: the symmetric square root by the cyclic Jacobi method with a relative stopping rule (graded matrices keep
+    their small eigenvalues: S S = V to 1e-13 of the diagonal's scale at 1e+-150), which still matches R to rounding at
+    ordinary scales (all 75 fixture tests unchanged); a covariance outside the normal double range is an error that
+    points to the bootstrap; the treatment required in the outcome model, as R. The first range guard (2^-1000) refused
+    1e-150 data (variances of 1e-302); the normal range (2^-1022) is used.
+45. Times in rStats.js (n = 2000): 1.4 s (quasi, 1000 sims), 1.9 s (bootstrap, 200), logit / logit 1.8 s and 2.3 s.

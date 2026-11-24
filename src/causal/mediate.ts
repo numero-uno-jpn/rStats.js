@@ -196,9 +196,16 @@ const dot = (row: readonly number[], b: readonly number[]): number => {
   return s;
 };
 
-/** Rows of normals filled by row, times the symmetric square root of V, plus mu: R's parameter draws */
-function drawParameters(mu: readonly number[], V: readonly (readonly number[])[], sims: number): number[][] {
+/**
+ * Rows of normals filled by row, times the symmetric square root of V, plus mu: R's parameter draws. A covariance whose
+ * entries leave the double range (variables on scales beyond about 1e+-150 make variances of 1e+-300 and more) cannot
+ * be decomposed: an error, where R errors or gives meaningless draws (experiments/mediation116-edge.R)
+ */
+function drawParameters(mu: readonly number[], V: readonly (readonly number[])[], sims: number, role: string): number[][] {
   const p = mu.length;
+  const MIN = 2 ** -1022, MAX = Number.MAX_VALUE;
+  if (V.some((r, i) => r.some((v) => !Number.isFinite(v)) || !(r[i]! >= MIN && r[i]! <= MAX)))
+    throw new RangeError(`the ${role} model's coefficient covariance is out of the double range (rescale the variables, or use boot: true)`);
   const R = symmetricSqrt(V);
   const z = rnorm(sims * p);
   const out: number[][] = [];
@@ -242,7 +249,7 @@ function mediatorRows(ctx: Context, t: number): number[][] {
 /** The outcome model's design rows at treatment t and mediator values m */
 function outcomeRows(ctx: Context, t: number, m: readonly number[]): number[][] {
   const set = new Map<number, number | readonly number[]>(ctx.yCov);
-  if (ctx.yTreat >= 0) set.set(ctx.yTreat, t);
+  set.set(ctx.yTreat, t);
   set.set(ctx.yMed, m);
   return rowsWith(ctx.y, set, ctx.n);
 }
@@ -366,7 +373,7 @@ export function mediate(modelM: MediationModel, modelY: MediationModel, data: Da
   const ctx: Context = {
     m, y, treat, mediator, t1, t0, n,
     mTreat: numericVariable(m, treat, "mediator", true),
-    yTreat: numericVariable(y, treat, "outcome", false),
+    yTreat: numericVariable(y, treat, "outcome", true),
     yMed: numericVariable(y, mediator, "outcome", true),
     mCov: covariates.map(([k, v]) => [numericVariable(m, k, "mediator", false), v] as [number, number]).filter(([j]) => j >= 0),
     yCov: covariates.map(([k, v]) => [numericVariable(y, k, "outcome", false), v] as [number, number]).filter(([j]) => j >= 0),
@@ -380,7 +387,7 @@ export function mediate(modelM: MediationModel, modelY: MediationModel, data: Da
   if (!boot) {
     const vm = robust ? vcovHC(modelM, { type: "HC3" }).vcov : modelCovariance(modelM).vcov;
     const vy = robust ? vcovHC(modelY, { type: "HC3" }).vcov : modelCovariance(modelY).vcov;
-    const A = drawParameters(m.coef, vm, sims), B = drawParameters(y.coef, vy, sims);
+    const A = drawParameters(m.coef, vm, sims, "mediator"), B = drawParameters(y.coef, vy, sims, "outcome");
     const x1 = mediatorRows(ctx, t1), x0 = mediatorRows(ctx, t0);
     // the mediator for all simulations at once, a sims x n matrix filled by column
     const M1: number[][] = Array.from({ length: sims }, () => new Array<number>(n));
