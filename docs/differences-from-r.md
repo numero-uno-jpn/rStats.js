@@ -1901,3 +1901,32 @@ The references are R's `stats` functions. The implementation decisions are recor
 - `method` is `"exact"` (default) or `"approximate"` (= `"breslow"`); `"efron"` is not offered.
 - The covariates are given as a matrix (no formula). The Wald statistic of `waldtest` is not rounded (R's `summary()` rounds it to 2 decimals).
 - With only uninformative sets (cases only or controls only) R's exact fit runs out of iterations with a coefficient of 0 and a meaningless variance; rStats.js runs out the same way and returns NaN. For the exact likelihood of a large set (for example 2000 members with 1000 cases) each subset size keeps its own power of 2, so the sums do not overflow.
+
+## Inverse probability of treatment weighting (1.13.0)
+
+### `weightit`, `trimWeights` and `weightSummary`
+
+- A binary treatment only. Methods `glm` (`"ps"` is an alias, reported as `"glm"`), `cbps` (just-identified; logit and probit), `ipt` (logit) and `ebal`; not energy, optweight, gbm or bart (they depend on solvers or random numbers and would not give R's values). No `s.weights`, `moments` or `int`.
+- Covariates are columns of numbers or strings (a factor, levels in code-point order); there is no formula. Missing values are an error (R drops, imputes or warns depending on the method).
+- cbps, ipt and ebal solve their balance conditions by Newton's method to machine precision; R's optimisers stop at their tolerance (ipt's weights summed to 80.000000014 instead of 80), so the weights agree with R's to about 1e-8 of the largest weight. Scores are kept within [2.2e-16, 1 − 2.2e-16], as R.
+- Each covariate is rescaled exactly (a power of 2, less its first value) before the fit, and constant or aliased columns are left out, as R's fit drops them. R's cbps, ipt and ebal break down for a covariate near 1e-150 or 1e-300 (weights off by up to 0.78 of the largest) and R's cbps for a large common offset (1e15 + small differences); rStats.js gives the weights of the unscaled data (`experiments/iptw113-edge.R`).
+- When the balance conditions have no solution (near-separated data, a factor level in one group only) both R and rStats.js warn and return weights that do not balance; the weights then differ. The warnings are R's first sentences; R's "Some extreme weights were generated" is not given.
+- `trimWeights` takes a weightit result or a vector; `at` of 1 or more must be a whole number. `weightSummary` counts weights below 1e-10 as zeros, as R.
+
+### `balTab` with a weightit result
+
+- The rows are R's: `prop.score` first when the method has a score, a string covariate split into one row per level (one row, its second level, for two levels); give R's factor levels with `levels` for R's order. For ATO the denominator is the SD of the overlap-weighted whole sample. The `Observations` rows are `Unadjusted` and `Adjusted` (Kish's effective sample size).
+- R's `bal.tab` stops for weights near 1e-200 (`All weights are zero`); rStats.js gives the same values as for unscaled weights.
+
+### `svyglm`
+
+- Only the design `svydesign(ids = ~1, weights)` (no clusters, strata or finite population corrections). The covariates are given as a matrix (no formula). The quasi family is not available. AIC is not given (R gives NA).
+
+### `survfitCoxph`
+
+- Right-censored data without strata; the covariates are given as a matrix and `newdata` as rows of it. The standard error uses the fit's variance of the coefficients (the robust one when the fit uses it, as R). The restricted mean of R's table is not given.
+- For weights near 1e-200 R's `coxph` gives NA coefficients; rStats.js keeps the coefficients and curves of the unscaled weights, with finite standard errors.
+
+### `survfit` with non-integer weights
+
+- Inverse probability weights need not be integers since 1.13.0; as in R the robust (infinitesimal jackknife) variance is then the default. Fractional weights with `stype: 2` and the robust variance are not supported (an error).

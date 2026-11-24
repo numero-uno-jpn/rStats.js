@@ -67,16 +67,35 @@ and ipt fail to converge and ebal degenerate in R; that kind of data is kept for
   binomial and quasibinomial give the same table (binomial warns "non-integer #successes"); `dispersion` is printed but
   does not enter the binomial SEs.
 - **survfit(coxph, newdata).** One curve per newdata row (a matrix `surv`, `std.err`, `lower`, `upper`, `cumhaz`, times =
-  the distinct event and censoring times); `conf.type = "log"`, 0.95. The curves and their SEs are the same whether the
-  coxph was fitted with `robust = TRUE` or not (exactly), so the SE is model-based. `summary(...)$table` has records,
-  n.max and n.start (the sum of the weights), events, rmean, se(rmean), median and its limits.
+  the distinct event and censoring times); `conf.type = "log"`, 0.95. `summary(...)$table` has records, n.max and
+  n.start (the sum of the weights), events, rmean, se(rmean), median and its limits. **Corrected at the fixture
+  stage:** `iptw113` compared a fit with `robust = TRUE` and one without `robust`, which with non-integer weights is
+  robust by default, so both were robust; `weightit.json` (with `robust = FALSE` explicit) shows that the SE uses the
+  fit's `var`, the robust one when the fit uses it.
+
+## Settled at the fixture stage (`oracle/weightit.R`, `test/fixtures/weightit.json`)
+
+- **ipt** has two tiltings only: beta_C with sum over controls of exp(x beta_C) x = the treated sum of x, and beta_T with
+  sum over treated of exp(-x beta_T) x = the control sum (with an intercept the ATE conditions of each group are the same
+  equations). ATE: treated 1 + exp(-x beta_T), controls 1 + exp(x beta_C), ps plogis(x beta_T) and plogis(x beta_C) by
+  group; ATT: controls exp(x beta_C), ps plogis(x beta_C) for every unit; ATC mirrored. ebal ATT is the same solution as
+  ipt ATT (2e-8, R's tolerance); cbps logit ATT and ATC too.
+- R keeps cbps scores within [eps, 1 - eps] and weighs by them; `summary` counts weights below about 1e-10 as zeros
+  (7.9e-11 counted, 1.7e-10 not).
+- **svyglm**: the deviance and the glm iterations are those of the weights rescaled to mean 1 (glm's convergence test
+  `|change| / (|dev| + 0.1)` depends on the scale); the printed dispersion is the weighted variance of the Pearson
+  residuals about their weighted mean, times n / (n - 1). All 20 cases to 1e-9.
+- **Weighted Kaplan-Meier**: with non-integer weights R's default is the robust (infinitesimal jackknife) variance
+  (`logse = FALSE`); `robust = FALSE` gives Greenwood with weights. When every unit still at risk has its event the
+  fraction is 1 (rStats.js decides by the counts, since weight sums round).
+- **bal.tab** shows a two-level factor as one row, its second level.
 
 ## Open (for the fixture stage)
 
-1. The exact SE formula of `survfit.coxph` with case weights (model-based, both the hazard and the coefficient parts) and
-   of `rmean`/`se(rmean)`; to be matched against R in the fixture, from the literature (Kalbfleisch & Prentice).
-2. `svyglm`'s printed `dispersion` (gaussian 1.0355 in `iptw113`): which weighted residual sum it is.
-3. cbps with probit and every estimand, ipt and ebal: R's iterative answers vs an exact solve — the tolerance (Choices).
+1. Settled: the SE of `survfit.coxph` is Tsiatis's with weighted risk sums (the Efron form for tied events) and the
+   fit's variance of the coefficients (12 cases to 1e-9). `rmean` and `se(rmean)` of the Cox curves are not given.
+2. Settled: `svyglm`'s dispersion (above).
+3. Settled by Choices 2: exact solutions, compared at 1e-6 of the largest weight (all cases agree to about 1e-8).
 
 ## Choices (the user, 2026-11-24, all as recommended)
 

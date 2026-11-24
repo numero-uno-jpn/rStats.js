@@ -804,6 +804,101 @@
     "en": "Confidence interval type of {@link survfit}. The unambiguous prefixes \"p\", \"a\", \"n\", \"log-\", and \"logi\" are accepted.",
     "ja": "{@link survfit} の信頼区間の種類です。曖昧さのない接頭辞 p、a、n、log-、logi も指定できます。"
   },
+  "SurvfitCoxphOptions#summary": {
+    "hash": "27403e24c5e2",
+    "en": "Options for {@link survfitCoxph}: those of {@link coxph} for the fit (right-censored data without strata), and of the\ncurves.",
+    "ja": ""
+  },
+  "SurvfitCoxphOptions.confInt#summary": {
+    "hash": "2abc35e638fe",
+    "en": "Confidence level of the curves. Default 0.95.",
+    "ja": ""
+  },
+  "SurvfitCoxphOptions.confType#summary": {
+    "hash": "0109b4953d7a",
+    "en": "Transformation of the pointwise confidence intervals: `\"log\"` (default), `\"log-log\"`, `\"plain\"` or `\"none\"`.",
+    "ja": ""
+  },
+  "SurvfitCoxphOptions.newdata#summary": {
+    "hash": "c953b132090e",
+    "en": "Covariate profiles (rows of the columns of `x`), one curve each. Default: one curve at the means of the fit.",
+    "ja": ""
+  },
+  "SurvfitCoxphOptions.times#summary": {
+    "hash": "dcc255aa8a3a",
+    "en": "Times at which to read the curves, as R's `summary(fit, times)`.",
+    "ja": ""
+  },
+  "SurvfitCoxphResult#summary": {
+    "hash": "be56495d5123",
+    "en": "Result of {@link survfitCoxph}: the rows of R's `survfit(fit, newdata)` (one column of `surv` per profile).",
+    "ja": ""
+  },
+  "SurvfitCoxphResult.at#summary": {
+    "hash": "0684aa0ed7ad",
+    "en": "With `times`: the curves read at those times (R's `summary(fit, times)`): the time, per curve the values, and the\nnumber at risk and of events since the previous time.",
+    "ja": ""
+  },
+  "SurvfitCoxphResult.cumhaz#summary": {
+    "hash": "87d4458c4fa5",
+    "en": "Cumulative hazard, per curve and time.",
+    "ja": ""
+  },
+  "SurvfitCoxphResult.fit#summary": {
+    "hash": "3c78e038274a",
+    "en": "The Cox fit.",
+    "ja": ""
+  },
+  "SurvfitCoxphResult.lower#summary": {
+    "hash": "ec36c5d40c52",
+    "en": "Lower and upper pointwise limits, per curve and time.",
+    "ja": ""
+  },
+  "SurvfitCoxphResult.median#summary": {
+    "hash": "20206227ab0e",
+    "en": "Per curve: the median and its lower and upper limits (NaN when not reached), as R's `summary()$table`.",
+    "ja": ""
+  },
+  "SurvfitCoxphResult.nCensor#summary": {
+    "hash": "cc9487aecc07",
+    "en": "Weighted number censored at each time.",
+    "ja": ""
+  },
+  "SurvfitCoxphResult.nEvent#summary": {
+    "hash": "cee0f66e80e6",
+    "en": "Weighted number of events at each time.",
+    "ja": ""
+  },
+  "SurvfitCoxphResult.nRisk#summary": {
+    "hash": "6dfe62908656",
+    "en": "Weighted number at risk just before each time.",
+    "ja": ""
+  },
+  "SurvfitCoxphResult.records#summary": {
+    "hash": "99b8404b825d",
+    "en": "Number of records, the weighted number at the start (R's n.max and n.start) and the weighted events.",
+    "ja": ""
+  },
+  "SurvfitCoxphResult.stdErr#summary": {
+    "hash": "7881114351ae",
+    "en": "Standard error of the cumulative hazard (of −log S), per curve and time (with the fit's variance of the\ncoefficients: the robust one when the fit uses it).",
+    "ja": ""
+  },
+  "SurvfitCoxphResult.surv#summary": {
+    "hash": "7cbbc86d6d5f",
+    "en": "Survival per curve and time: `surv[curve][row]` (exp(−cumhaz), R's for a Cox fit).",
+    "ja": ""
+  },
+  "SurvfitCoxphResult.time#summary": {
+    "hash": "b86137365605",
+    "en": "Distinct observed times, events and censorings.",
+    "ja": ""
+  },
+  "SurvfitCoxphResult.warnings#summary": {
+    "hash": "012406759507",
+    "en": "R's warnings, each once.",
+    "ja": ""
+  },
   "SurvfitOptions#summary": {
     "hash": "4df02fb61d3c",
     "en": "Options for {@link survfit}.",
@@ -840,9 +935,10 @@
     "ja": "制限平均の上限です。\"common\" (既定)、\"individual\"、\"none\"、または有限の数値を指定できます。"
   },
   "SurvfitOptions.robust#summary": {
-    "hash": "aa5ed6d1274f",
-    "en": "Use the infinitesimal-jackknife variance. Default false; non-integer weights are rejected.",
-    "ja": "無限小ジャックナイフによる分散を使うかどうかです。既定は false です。整数でない重みは受け付けません。"
+    "hash": "96f0aa979e5c",
+    "en": "Use the infinitesimal-jackknife variance. Default as R: true when some weight is not an integer, else false.",
+    "ja": "無限小ジャックナイフによる分散を使うかどうかです。既定は false です。整数でない重みは受け付けません。",
+    "stale": true
   },
   "SurvfitOptions.start#summary": {
     "hash": "cea8307ee925",
@@ -855,9 +951,10 @@
     "ja": "生存率の推定方法です。1 は Kaplan-Meier、2 は累積ハザードの指数変換です。既定は 1 です。"
   },
   "SurvfitOptions.weights#summary": {
-    "hash": "0ea266fc8d1e",
-    "en": "Case weights. Non-negative safe-integer counts are required.",
-    "ja": "ケース重みです。0 以上の安全な整数の度数で指定する必要があります。"
+    "hash": "0fa32e4a01bb",
+    "en": "Case weights, non-negative (inverse probability weights need not be integers; not with `stype: 2` and the robust\nvariance).",
+    "ja": "ケース重みです。0 以上の安全な整数の度数で指定する必要があります。",
+    "stale": true
   },
   "SurvfitResult#summary": {
     "hash": "a355fa79fdfd",
@@ -1253,6 +1350,16 @@
     "hash": "bc8e105d61ab",
     "en": "Kaplan-Meier or exponential cumulative-hazard estimate with pointwise confidence intervals, medians and restricted means.\nEquivalent to R's `survival::survfit()`. Supports right-censored and counting-process data, Nelson-Aalen and Fleming-Harrington cumulative hazards,\ninteger case weights, infinitesimal-jackknife standard errors and all six confidence transformations.\n\nRows with a missing time, status, group, id or weight are dropped. With `start`, the risk set at t is\n`start < t <= time`; without `id`, each split row ending without an event is a censoring. With `id`, a row\nfollowed by another row for the same subject at the same boundary is not a censoring.",
     "ja": "Kaplan-Meier 推定値または累積ハザードの指数変換による推定値で、各時点の信頼区間、中央値、制限平均を返します。\nR の `survival::survfit()` と同等です。右側打ち切りデータと計数過程データ、Nelson-Aalen および Fleming-Harrington の累積ハザード、整数のケース重み、無限小ジャックナイフによる標準誤差、6 種類すべての信頼区間変換に対応します。\n\n時刻、status、群、id、または重みが欠測している行は除外します。`start` を指定した場合、時刻 t のリスク集合は `start < t <= time` です。`id` がない場合、イベントを伴わずに終了する各分割行は打ち切りとして扱います。`id` がある場合、同じ被験者の次の行が同じ境界で続くとき、その行は打ち切りとして扱いません。"
+  },
+  "survfitCoxph#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "survfitCoxph#summary": {
+    "hash": "660cb9bfe971",
+    "en": "Predicted survival curves of a Cox model for covariate profiles (adjusted survival curves). Equivalent to R's\n`survival::survfit.coxph()`. The call followed is\n`survfit(coxph(Surv(time, status) ~ ..., weights, robust = TRUE), newdata)`.\n\nThe baseline cumulative hazard is Breslow's (with `ties: \"breslow\"`) or its Efron form for tied events (the default\n`\"efron\"`), with case weights; the curve of a profile z is exp(−exp((z − means) b) Λ0(t)). The standard error is\nthat of the cumulative hazard (Tsiatis), with the fit's variance of the coefficients (the robust one when the fit\nuses it, as R; with non-integer weights coxph uses it by default). Strata and counting-process data are not supported.",
+    "ja": ""
   },
   "survreg#@example": {
     "hash": "f2167be5edf2",

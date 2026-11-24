@@ -444,6 +444,106 @@
     "en": "Variance functions of the `quasi` family.",
     "ja": "`quasi` の分布族の分散関数です。"
   },
+  "SvyglmOptions#summary": {
+    "hash": "9e3a781c1318",
+    "en": "Options for {@link svyglm}.",
+    "ja": ""
+  },
+  "SvyglmOptions.epsilon#summary": {
+    "hash": "9cd74e234740",
+    "en": "Convergence tolerance, as {@link glm} (default `1e-8`).",
+    "ja": ""
+  },
+  "SvyglmOptions.family#summary": {
+    "hash": "c68ee3aca426",
+    "en": "The family, as {@link glm} (default `\"gaussian\"`).",
+    "ja": ""
+  },
+  "SvyglmOptions.link#summary": {
+    "hash": "bd36a3395714",
+    "en": "The link, as {@link glm}.",
+    "ja": ""
+  },
+  "SvyglmOptions.maxit#summary": {
+    "hash": "d2d768dc77d4",
+    "en": "Maximum number of iterations, as {@link glm} (default `25`).",
+    "ja": ""
+  },
+  "SvyglmOptions.weights#summary": {
+    "hash": "495457adb9dd",
+    "en": "The sampling (inverse probability) weights, one per row, positive.",
+    "ja": ""
+  },
+  "SvyglmResult#summary": {
+    "hash": "5a186a6a8fb2",
+    "en": "Result of {@link svyglm}: the rows of R's `summary(svyglm(...))$coefficients` and the fit.",
+    "ja": ""
+  },
+  "SvyglmResult.coefficients#summary": {
+    "hash": "0260e3e2c7ac",
+    "en": "Coefficients (the weighted glm's).",
+    "ja": ""
+  },
+  "SvyglmResult.deviance#summary": {
+    "hash": "7b1192f303ff",
+    "en": "Deviance and null deviance with the weights rescaled to mean 1 (R's).",
+    "ja": ""
+  },
+  "SvyglmResult.dfResidual#summary": {
+    "hash": "413924d3e64a",
+    "en": "Residual degrees of freedom of the design, n - p.",
+    "ja": ""
+  },
+  "SvyglmResult.dispersion#summary": {
+    "hash": "daa248346736",
+    "en": "The dispersion R prints: the weighted variance of the Pearson residuals (about their weighted mean) times\nn / (n - 1); it does not enter the standard errors.",
+    "ja": ""
+  },
+  "SvyglmResult.fittedValues#summary": {
+    "hash": "90beed261db9",
+    "en": "Fitted means and linear predictors.",
+    "ja": ""
+  },
+  "SvyglmResult.glm#summary": {
+    "hash": "0a980e72e817",
+    "en": "The weighted glm (weights rescaled to mean 1).",
+    "ja": ""
+  },
+  "SvyglmResult.iter#summary": {
+    "hash": "14e95c2946c8",
+    "en": "Iterations and convergence of the glm.",
+    "ja": ""
+  },
+  "SvyglmResult.names#summary": {
+    "hash": "1611761932c6",
+    "en": "Column names: `\"(Intercept)\"`, `\"x1\"`, `\"x2\"`, ...",
+    "ja": ""
+  },
+  "SvyglmResult.pValue#summary": {
+    "hash": "df52486a5b2f",
+    "en": "Two-sided p-values from the t distribution with `dfResidual` degrees of freedom.",
+    "ja": ""
+  },
+  "SvyglmResult.se#summary": {
+    "hash": "ad9165e356c2",
+    "en": "Standard errors, from `vcov`.",
+    "ja": ""
+  },
+  "SvyglmResult.tValue#summary": {
+    "hash": "c9887a11c98b",
+    "en": "t statistics.",
+    "ja": ""
+  },
+  "SvyglmResult.vcov#summary": {
+    "hash": "2bf93c8bdef7",
+    "en": "The design-based variance matrix (array of rows): sandwich HC0 times n / (n - 1).",
+    "ja": ""
+  },
+  "SvyglmResult.warnings#summary": {
+    "hash": "012406759507",
+    "en": "R's warnings, each once.",
+    "ja": ""
+  },
   "glm#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -588,5 +688,15 @@
     "hash": "c5512c6e5e40",
     "en": "Summary of a generalized linear model: the dispersion, the coefficient table and the covariance of the estimates,\nfor a `glm` fit. Equivalent to R's `summary()`.",
     "ja": "一般化線形モデルの要約です。分散パラメータ、係数の表、推定値の共分散行列を含み、\n`glm` の当てはめについてのものです。R の `summary()` と同等です。"
+  },
+  "svyglm#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "svyglm#summary": {
+    "hash": "919ea52fc260",
+    "en": "A generalised linear model for weighted data with design-based (sandwich) standard errors. Equivalent to\n`survey::svyglm()` in R. The call followed is `summary(svyglm(y ~ ..., design, family))` for the design\n`svydesign(ids = ~1, weights = ~w, data)`, the design of inverse probability of treatment weighting.\n\nThe coefficients are those of `glm(y ~ ..., weights = w)`; the variance is the HC0 sandwich of that fit times\nn / (n − 1), and the tests are t tests on n − p degrees of freedom. binomial and quasibinomial give the same table\n(binomial warns about the non-integer successes, as R). AIC is not given (R gives NA).",
+    "ja": ""
   }
 }
