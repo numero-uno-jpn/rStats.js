@@ -205,9 +205,9 @@
     "ja": "{@link trimWeights} のオプションです。WeightIt の `trim()` の引数に相当します。"
   },
   "TrimWeightsOptions.at#summary": {
-    "hash": "254f020d5fd1",
-    "en": "Below 1: the quantile (type 3) of the weights at which they are capped (0.99 caps the top 1%); 1 or more: the\nnumber of largest weights set to the next largest.",
-    "ja": "1 未満のとき: 重みを抑える分位点 (type 3) です (0.99 なら上位 1% を抑えます)。1 以上のとき: 次に大きい重みにそろえる、最も大きい重みの個数です。"
+    "hash": "c5af5c1365e3",
+    "en": "Below 1: the quantile (type 3) of the weights at which they are capped (0.99 caps the top 1%; below 0.5 it is\nread as 1 − `at`, as R); 1 or more: the number of largest weights set to the next largest (above half the units it\nis read as the number of units less `at`; as many as the units or more: no trimming, with R's warning).",
+    "ja": "1 未満のとき: 重みを抑える分位点 (type 3) です (0.99 なら上位 1% を抑えます。R と同じく 0.5 未満は 1 − `at` と読みます)。1 以上のとき: 次に大きい重みにそろえる、最も大きい重みの個数です (単位の数の半分を超えるときは単位の数から `at` を引いた数と読み、単位の数以上なら R の警告を出して切り詰めません)。"
   },
   "TrimWeightsOptions.lower#summary": {
     "hash": "0c9b9dd69375",
@@ -400,9 +400,9 @@
     "ja": "⟦code1⟧"
   },
   "balTab#summary": {
-    "hash": "dbafeaaa17ed",
-    "en": "Covariate balance of two groups before and after matching or weighting: standardised mean differences and variance\nratios. Equivalent to `cobalt::bal.tab()` in R. The calls followed are\n`bal.tab(m, formula = tr ~ ..., data, un = TRUE, disp.v.ratio = TRUE, binary)` for a `Match` object `m` and\n`bal.tab(w, stats = c(\"mean.diffs\", \"variance.ratios\"), un = TRUE, binary)` for a `weightit` object `w`.\n\nThe difference is `(mean treated − mean control) / s`, with means weighted after adjustment. The SD `s` is the same\nbefore and after: of the unadjusted treated for ATT, of the unadjusted controls for ATC, `sqrt((s1² + s0²) / 2)` for\nATE; for ATO that of the whole sample weighted by the (overlap) weights (weighted variance with divisor\n`sum w − sum w² / sum w`). For a binary covariate (with `binary: \"std\"`) `p(1 − p)` takes the place of the variance.\nVariance ratios are treated / control. A string covariate is a factor: one binary row per level.",
-    "ja": "2 群の共変量のバランスを、マッチングまたは重み付けの前後で求めます: 標準化平均差と分散比です。R の `cobalt::bal.tab()` と同等です。`Match` オブジェクト `m` に対する `bal.tab(m, formula = tr ~ ..., data, un = TRUE, disp.v.ratio = TRUE, binary)` と、`weightit` オブジェクト `w` に対する `bal.tab(w, stats = c(\"mean.diffs\", \"variance.ratios\"), un = TRUE, binary)` の呼び方に従います。\n\n差は `(mean treated − mean control) / s` で、調整後は重み付きの平均を使います。SD `s` は前後で同じです: ATT では調整前の処置群、ATC では調整前の対照群、ATE では `sqrt((s1² + s0²) / 2)`、ATO では (重複) 重みで重み付けた標本全体のもの (除数 `sum w − sum w² / sum w` の重み付き分散) です。2 値の共変量 (`binary: \"std\"` のとき) では分散の代わりに `p(1 − p)` を使います。分散比は処置群 / 対照群です。文字列の共変量は因子で、水準ごとに 2 値の行を 1 つずつ作ります。"
+    "hash": "bde0b740d0c4",
+    "en": "Covariate balance of two groups before and after matching or weighting: standardised mean differences and variance\nratios. Equivalent to `cobalt::bal.tab()` in R. The calls followed are\n`bal.tab(m, formula = tr ~ ..., data, un = TRUE, disp.v.ratio = TRUE, binary)` for a `Match` object `m` and\n`bal.tab(w, stats = c(\"mean.diffs\", \"variance.ratios\"), un = TRUE, binary)` for a `weightit` object `w`.\n\nThe difference is `(mean treated − mean control) / s`, with means weighted after adjustment. The SD `s` is the same\nbefore and after: of the unadjusted treated for ATT, of the unadjusted controls for ATC, `sqrt((s1² + s0²) / 2)` for\nATE; for ATO that of the whole sample weighted by the (overlap) weights (weighted variance with divisor\n`sum w − sum w² / sum w`). For a binary covariate (with `binary: \"std\"`) `p(1 − p)` takes the place of the variance.\nAs cobalt, an SD below sqrt(eps) ≈ 1.5e-8 (in the covariate's units) is replaced by that of the whole sample.\nVariance ratios are treated / control. A string covariate is a factor: one binary row per level.",
+    "ja": "2 群の共変量のバランスを、マッチングまたは重み付けの前後で求めます: 標準化平均差と分散比です。R の `cobalt::bal.tab()` と同等です。`Match` オブジェクト `m` に対する `bal.tab(m, formula = tr ~ ..., data, un = TRUE, disp.v.ratio = TRUE, binary)` と、`weightit` オブジェクト `w` に対する `bal.tab(w, stats = c(\"mean.diffs\", \"variance.ratios\"), un = TRUE, binary)` の呼び方に従います。\n\n差は `(mean treated − mean control) / s` で、調整後は重み付きの平均を使います。SD `s` は前後で同じです: ATT では調整前の処置群、ATC では調整前の対照群、ATE では `sqrt((s1² + s0²) / 2)`、ATO では (重複) 重みで重み付けた標本全体のもの (除数 `sum w − sum w² / sum w` の重み付き分散) です。2 値の共変量 (`binary: \"std\"` のとき) では分散の代わりに `p(1 − p)` を使います。cobalt と同じく、SD が sqrt(eps) ≈ 1.5e-8 (共変量の単位で) 未満なら標本全体の SD に置き換えます。分散比は処置群 / 対照群です。文字列の共変量は因子で、水準ごとに 2 値の行を 1 つずつ作ります。"
   },
   "match#@example": {
     "hash": "f2167be5edf2",

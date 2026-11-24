@@ -1894,7 +1894,7 @@ The references are R's `stats` functions. The implementation decisions are recor
 
 - `balTab` covers the `Balance` columns `Diff.Un`, `Diff.Adj`, `V.Ratio.Un` and `V.Ratio.Adj` and the `Observations` table of `bal.tab` for a `Match` object. Covariates are numeric columns; a factor is given as one 0/1 column per level. A variance ratio with a zero control variance is NaN (R's `NA`).
 - `tableOneSmd` handles two groups (not the average over the pairs of groups for more strata).
-- Standardised differences and variance ratios do not depend on the scale or on a common offset, and rStats.js computes them from the column rescaled exactly by powers of 2 and shifted by its first value. R's `bal.tab` gives 0 and NaN for a covariate near 1e300 and wrong values near 1e-300, `tableone` gives 0 and Inf, and both lose digits for a large common offset (1e15 + small differences); rStats.js gives the values of the unscaled data.
+- Standardised differences and variance ratios do not depend on the scale or on a common offset, and rStats.js computes them from the column rescaled exactly by powers of 2 and shifted by its first value. R's `bal.tab` gives 0 and NaN for a covariate near 1e300 and wrong values near 1e-300, `tableone` gives 0 and Inf, and both lose digits for a large common offset (1e15 + small differences); rStats.js gives the values of the unscaled data. Since 1.13.0 `balTab` follows cobalt in one scale-dependent rule: an SD below sqrt(eps) ≈ 1.5e-8 in the covariate's own units is replaced by the SD of the whole sample (divisor n − 1), so a covariate near 1e-300 gets that denominator, as in R.
 
 ### `clogit`
 
@@ -1908,25 +1908,29 @@ The references are R's `stats` functions. The implementation decisions are recor
 
 - A binary treatment only. Methods `glm` (`"ps"` is an alias, reported as `"glm"`), `cbps` (just-identified; logit and probit), `ipt` (logit) and `ebal`; not energy, optweight, gbm or bart (they depend on solvers or random numbers and would not give R's values). No `s.weights`, `moments` or `int`.
 - Covariates are columns of numbers or strings (a factor, levels in code-point order); there is no formula. Missing values are an error (R drops, imputes or warns depending on the method).
-- cbps, ipt and ebal solve their balance conditions by Newton's method to machine precision; R's optimisers stop at their tolerance (ipt's weights summed to 80.000000014 instead of 80), so the weights agree with R's to about 1e-8 of the largest weight. Scores are kept within [2.2e-16, 1 − 2.2e-16], as R.
+- cbps, ipt and ebal solve their balance conditions by Newton's method to machine precision; R's optimisers stop at their tolerance (ipt's weights summed to 80.000000014 instead of 80), so the weights agree with R's to about 1e-8 of the largest weight. Scores are kept within [2.2e-16, 1 − 2.2e-16], as R (glm's too: rStats.js's `glm` itself gives the exact values there).
 - Each covariate is rescaled exactly (a power of 2, less its first value) before the fit, and constant or aliased columns are left out, as R's fit drops them. R's cbps, ipt and ebal break down for a covariate near 1e-150 or 1e-300 (weights off by up to 0.78 of the largest) and R's cbps for a large common offset (1e15 + small differences); rStats.js gives the weights of the unscaled data (`experiments/iptw113-edge.R`).
 - When the balance conditions have no solution (near-separated data, a factor level in one group only) both R and rStats.js warn and return weights that do not balance; the weights then differ. The warnings are R's first sentences; R's "Some extreme weights were generated" is not given.
 - `trimWeights` takes a weightit result or a vector; `at` of 1 or more must be a whole number. `weightSummary` counts weights below 1e-10 as zeros, as R.
 
 ### `balTab` with a weightit result
 
+- As cobalt, an SD below sqrt(eps) ≈ 1.5e-8 (absolute, in the covariate's units) is replaced by the SD of the whole sample: separated data then give R's `prop.score` row.
 - The rows are R's: `prop.score` first when the method has a score, a string covariate split into one row per level (one row, its second level, for two levels); give R's factor levels with `levels` for R's order. For ATO the denominator is the SD of the overlap-weighted whole sample. The `Observations` rows are `Unadjusted` and `Adjusted` (Kish's effective sample size).
 - R's `bal.tab` stops for weights near 1e-200 (`All weights are zero`); rStats.js gives the same values as for unscaled weights.
 
 ### `svyglm`
 
 - Only the design `svydesign(ids = ~1, weights)` (no clusters, strata or finite population corrections). The covariates are given as a matrix (no formula). The quasi family is not available. AIC is not given (R gives NA).
+- The standard errors, t values and p-values come from a fit on the columns (and a gaussian response) divided by powers of 2: for a covariate near 1e±300 R's standard errors are NA (the variances, near 1e∓600, are out of range) and for a response near 1e300 R finds no coefficients; rStats.js gives the unscaled values (the variance matrix and the dispersion may then be ±Infinity or 0, the values they have).
 
 ### `survfitCoxph`
 
 - Right-censored data without strata; the covariates are given as a matrix and `newdata` as rows of it. The standard error uses the fit's variance of the coefficients (the robust one when the fit uses it, as R). The restricted mean of R's table is not given.
 - For weights near 1e-200 R's `coxph` gives NA coefficients; rStats.js keeps the coefficients and curves of the unscaled weights, with finite standard errors.
+- The curves come from a fit on the covariates rescaled exactly, so covariates near 1e±300 (R's `coxph` stops: `infinite argument in coxph.wtest`) give the unscaled curves, and a covariate with a large common offset (1e15 + small differences) keeps its digits (R's curves were off by 6.6e-3 and its standard errors by 0.43 relative). The times are merged as `coxph`'s `timefix` merges them (R's `aeqSurv`, with an absolute tolerance of 1.5e-8: times near 1e-300 become one time, as in R).
 
 ### `survfit` with non-integer weights
 
 - Inverse probability weights need not be integers since 1.13.0; as in R the robust (infinitesimal jackknife) variance is then the default. Fractional weights with `stype: 2` and the robust variance are not supported (an error).
+- Greenwood's variance is summed as (d / n) / (n − d): for weights near 1e-200 R's is NA (n (n − d) underflows); rStats.js gives the variance of those weights.

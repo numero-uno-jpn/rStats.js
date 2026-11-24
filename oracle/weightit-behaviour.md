@@ -90,6 +90,20 @@ and ipt fail to converge and ebal degenerate in R; that kind of data is kept for
   fraction is 1 (rStats.js decides by the counts, since weight sums round).
 - **bal.tab** shows a two-level factor as one row, its second level.
 
+## Settled by the edge-case experiments (`experiments/iptw113-edge2.R`, `iptw113-edge3.R`)
+
+- **trim's `at`:** a quantile below 0.5 is read as 1 − at; a count above half the units as n − at; a count of n or more
+  warns ("`at` must be less than n, the number of units. Weights will not be trimmed.") and does not trim.
+- **glm scores** are within [eps, 1 − eps] (logit: eps beyond |eta| = 30).
+- **bal.tab's denominator:** an SD below sqrt(eps) ≈ 1.5e-8, absolute (the same data times 1000 keep the groups' SD),
+  is replaced by the SD of the whole sample (divisor n − 1); ATO is unaffected. **Choice (the user, 2026-11-24):**
+  rStats.js follows this absolute rule, so `balTab` (also for a Match) depends on the scale below about 1e-8, as R.
+- **summary** with a group of one gives CV NA; with a group of zero weights NA for CV, scaled MAD, negative entropy
+  and ESS.
+- R breaks down (rStats.js does not, `test/iptwEdge.test.ts`): coxph with a covariate near 1e±300, survfit(coxph)
+  with a covariate 1e15 + small differences, Greenwood's variance for weights near 1e-200, svyglm's standard errors
+  for a covariate near 1e±300 and its fit for a response near 1e300.
+
 ## Open (for the fixture stage)
 
 1. Settled: the SE of `survfit.coxph` is Tsiatis's with weighted risk sums (the Efron form for tied events) and the

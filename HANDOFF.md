@@ -26,6 +26,13 @@
   16/16・デモ 1190/1190
 - **日本語の訳 (私、ユーザーの指示 2026-11-24):** API 97 件 + TypeDoc の警告を消すために分けた説明 22 件、未訳 0。README.ja・
   docs/ja/api-reference・docs/ja/differences-from-r・r-functions。英・日の TypeDoc で新しいファイルの警告 0 (残りの 302 件は以前から)
+- **端のケースの 2 回目 (ユーザーの指摘で 2026-11-24):** `experiments/iptw113-edge2.{R,json}`・`iptw113-edge3.{R,json}` (Issue に
+  記録)。直したもの: trim の `at` の読み替え (0.5 未満は 1 − at、件数は n/2 を超えると n − at、n 以上は警告して切らない。以前は
+  件数が誤り)、glm の ps を [eps, 1−eps] に、重みが全部 0 の群の entropy を NaN に、n = 5000 の ipt の収束判定 (直線探索に丸めの
+  幅)、survfitCoxph を共変量の厳密な縮尺の当てはめで (×1e±300 の SE のアンダーフロー、1e15 の桁落ち) と timefix の時点のまとめ、
+  Greenwood を (d/n)/(n−d) に、svyglm の SE・t・p を縮めた当てはめから (x ×1e±300、y ×1e300)。**balTab の分母 (ユーザーの決定):**
+  cobalt と同じく、元の単位の SD が sqrt(eps) 未満なら全体の SD に切り替える (絶対の閾値。1.12.0 の 1e-300 での不変性のテストを
+  この規則に合わせて直した)。テスト `test/iptwEdge.test.ts` に 18 件
 - **残り:** (1) 版 1.13.0 (package.json・lock・README・API の CDN・demo の VERSION・CHANGELOG の日付) (2) main に squash の 1 コミット +
   タグ → `npm stage approve` → `archive/iptw-1.13` のタグ
 

@@ -217,3 +217,27 @@ describe("svyglm: scales of x and y", () => {
     expect(maxDiff(big.pValue, base.pValue)).toBeLessThan(1e-12);
   });
 });
+
+describe("balTab: an SD below sqrt(eps), as cobalt", () => {
+  it("uses the SD of the whole sample there, and the groups' SD above (an absolute threshold)", () => {
+    const tr = [0, 0, 0, 0, 1, 1, 1, 1], w = [1, 2, 1, 1, 1, 1, 2, 1];
+    const keys = Object.keys(e3).filter((k) => /^sd/.test(k));
+    for (const k of keys) {
+      const est = (/_(ATE|ATT|ATO)$/.exec(k)?.[1] ?? "ATE") as "ATE";
+      const r = e3[k].value;
+      const b = balTab(tr, { z: r.z }, { weights: w, estimand: est });
+      const near = (a: number, x: number) => Math.abs(a - x) <= 1e-9 * Math.max(1, Math.abs(x));
+      expect(near(b.diffUn[0]!, r.diffUn), `${k} un ${b.diffUn[0]} ${r.diffUn}`).toBe(true);
+      expect(near(b.diffAdj[0]!, r.diffAdj), `${k} adj ${b.diffAdj[0]} ${r.diffAdj}`).toBe(true);
+    }
+    expect(keys.length).toBe(33);
+  });
+  it("gives R's prop.score row for separated data", () => {
+    const sep = { tr: [0, 0, 0, 0, 1, 1, 1, 1], x1: [1, 2, 3, 4, 5, 6, 7, 8], x2: [0, 1, 0, 1, 1, 0, 1, 0] };
+    const b = balTab(sep.tr, { x1: sep.x1, x2: sep.x2 }, { weightit: weightit(sep.tr, { x1: sep.x1, x2: sep.x2 }), binary: "std" });
+    const r = e2.bal_separation.value;
+    expect(b.rows).toEqual(r.rows);
+    b.diffUn.forEach((v, i) => expect(Math.abs(v - r.diffUn[i])).toBeLessThan(1e-9));
+    b.diffAdj.forEach((v, i) => expect(Math.abs(v - r.diffAdj[i])).toBeLessThan(1e-9));
+  });
+});
