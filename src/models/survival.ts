@@ -333,7 +333,7 @@ function pseudoQuadratic(V: number[][], u: number[]): { chisq: number; df: numbe
  * and lie below 0.5 + sqrt(eps), the first time, or, if the curve equals 0.5 (within sqrt(eps)) there and a later such
  * point is lower, the midpoint between that time and the time of the first lower point. NaN if there is no such point.
  */
-function curveMedian(time: readonly number[], curve: readonly number[]): number {
+export function curveMedian(time: readonly number[], curve: readonly number[]): number {
   const tol = Math.sqrt(Number.EPSILON);
   const first = curve.findIndex((c) => c < 0.5 + tol);
   if (first < 0) return NaN;
