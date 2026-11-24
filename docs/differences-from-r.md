@@ -1878,3 +1878,23 @@ The references are R's `stats` functions. The implementation decisions are recor
   example a one-dimensional start with two equal values), the gradient is undefined and `isoMDS` returns the start
   without moving, as R does.
 - Coordinate signs are oriented deterministically. As with other SVD/MDS methods, sign differences alone do not indicate a different configuration.
+
+## Propensity score matching and conditional logistic regression (1.12.0)
+
+### `match`
+
+- Only `ties = FALSE` and `replace = FALSE` (ReactiveStat's call), on one score `x` (for example logit(PS)); no `Weight`, `exact` or `Z`.
+- Without ties the pairs, `index.dropped`, `ndrops`, `wnobs`, `ecaliper` and the random numbers used are R's (every case of the fixtures). With two candidates at the same distance the choice and the random number used are R's too (the second candidate when u < 0.5). With three or more, R's rule could not be found from its output; rStats.js takes the candidate at index floor(k (1 − u)) among the k remaining for each pick, so the pairs and the later random numbers differ from R's. `tieSizes` lists the candidate sets drawn from.
+- Distances count as tied only when exactly equal. R also treats distances within `distance.tolerance` (1e-5) as ties.
+- For M ≥ 2 the candidates are, as in R, every available unit within the M-th smallest distance, so a uniquely nearest control can be left out when the M-th distance is tied.
+- `M` below 1 is an error (R warns and uses 1). When nothing can be matched R returns `NA` with a warning; rStats.js returns empty pairs with the same warning.
+
+### `balTab`, `matchWeights` and `tableOneSmd`
+
+- `balTab` covers the `Balance` columns `Diff.Un`, `Diff.Adj`, `V.Ratio.Un` and `V.Ratio.Adj` and the `Observations` table of `bal.tab` for a `Match` object. Covariates are numeric columns; a factor is given as one 0/1 column per level. A variance ratio with a zero control variance is NaN (R's `NA`).
+- `tableOneSmd` handles two groups (not the average over the pairs of groups for more strata).
+
+### `clogit`
+
+- `method` is `"exact"` (default) or `"approximate"` (= `"breslow"`); `"efron"` is not offered.
+- The covariates are given as a matrix (no formula). The Wald statistic of `waldtest` is not rounded (R's `summary()` rounds it to 2 decimals).
