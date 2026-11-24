@@ -68,7 +68,24 @@ and effect measures with their confidence intervals, not only p-values. The list
 a statistics web application for medical and psychological research (2026-11-06). In order of priority; the R
 function or package that each item is checked against is given in brackets.
 
-2. **Remaining (planned for 1.12.0):** time series [`arima`].
+The order below (decided 2026-11-24) comes from comparing the methods of EZR, HAD and Excel Toukei (statistics tools
+widely used in Japanese medical and psychological research) and ReactiveStat with what rStats.js already has.
+
+1. **Propensity scores** [MatchIt / Matching, WeightIt, cobalt, survey]: the propensity score (logistic or probit),
+   balance before and after (standardized differences, variance ratios); **matching** (nearest neighbour 1:1 and 1:k,
+   with or without replacement, caliper) with the analyses of the matched sample (paired tests, McNemar, conditional
+   logistic regression, Cox stratified by pair or with clustered robust errors, Kaplan-Meier, the ATT); **IPTW** (ATE and
+   ATT weights, stabilized, trimmed) with the weighted analyses (linear, logistic and Poisson regression with robust
+   errors, weighted Kaplan-Meier and Cox, risk differences and ratios, odds and hazard ratios). Matching and IPTW may be
+   two versions
+2. **Conditional logistic regression** [survival `clogit`] (with item 1)
+3. **Multinomial logistic regression** [nnet `multinom`]
+4. **Stepwise selection** [`step`, MASS `stepAIC`]
+5. **Mediation and moderation analysis** [mediation `mediate`], including moderated mediation
+6. Smaller models: tobit regression (on `survreg`), log-linear models [`loglin`, MASS `loglm`], gamma and beta
+   regression [betareg]
+7. To be considered afterwards: time-dependent ROC [timeROC, survivalROC], network meta-analysis [netmeta],
+   Bradley-Terry paired comparisons [BradleyTerry2], control charts [qcc], time series [`arima`, forecast `auto.arima`]
 
 Mixed models continued (the former item 1) were done for 1.6.0: `confintLmer`, `confintGlmer`, `simulateLmer` and
 `simulateGlmer` after lme4's `confint` (profile likelihood and Wald) and `simulate`. Left out, as decided in the

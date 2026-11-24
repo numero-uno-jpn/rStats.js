@@ -1,8 +1,24 @@
 # 引継ぎ: rStats.js (外部レビュー対応 2026-10-30〜11-04、1.0.0 への準備 11-04〜)
 
-最終更新: 2026-11-24 (セッション 29 の終わり、Mac mini: **1.11.0 を公開** (acf・pacf・ccf の `/timeseries`、ca・caSummary・caCoord・mjca・sammon・isoMDS)。次は 1.12.0 = arima (決定済み)、範囲を決めるところから)。以前: 2026-11-24 (セッション 29: 1.11.0 の作業ブランチは完成、GitHub Actions が支払いのロックで止まっていて取り込み待ち)。以前: 2026-11-23 (セッション 29 の始め、Mac mini: 1.11.0 の範囲をユーザーが決めた (mjca も入れる、ほかは推奨どおり)。準備が全部済んだ (Issue #560・draft PR #561・作業ブランチ `work/ca-acf-mds-1.11`)。段階 1 も済み、Decisions を決めて choices・fixture・段階 2 の指示を置いた (ブランチ `40aa5d94`)。次は ChatGPT の段階 2 (実装))。以前: 2026-11-23 (セッション 28 の終わり、Mac mini: **1.10.0 を公開** (dist・hclust・cutree・kmeans・cmdscale)。次は 1.11.0 = ca・acf・pacf・isoMDS・sammon、1.12.0 = arima (ユーザーの決定)。範囲を決めるところから)。以前: 2026-11-22 夜 (セッション 28、Mac mini: 1.10.0 の範囲をユーザーが決め (全部推奨どおり)、準備 (チェッカー・R の実験・指示書) を main に置き、Issue #556・draft PR #557 を作った。段階 1 を終え、次は ChatGPT の段階 2)。以前: 2026-11-22 夜 (セッション 27 の終わり、Mac mini: **1.9.0 を公開** (T2・Page・Grubbs、manova・lda・cancor)。次は 1.10.0 = クラスタ分析と多次元尺度法 (ユーザーの決定)、範囲を決めるところから)。以前: 2026-11-22 (セッション 27 の始め、Mac mini: 1.9.0 の範囲を決め、準備中)。以前: 2026-11-22 (セッション 26 の終わり、Mac mini: **1.8.0 を公開** (rq・geeglm・glmnet)。次は 1.9.0 = 小さな検定 3 つ + 多変量 3 つ (ユーザーの決定)、範囲を決めるところから)。以前: 2026-11-20 夜 (セッション 26 の始め: 1.8.0 の範囲を決め、準備)。以前: 2026-11-20 夕 (セッション 25 の終わり、Mac mini: **1.7.0 を公開** (回帰 polr・rlm・nls、`/regression`)。次の作業は未定 (ROADMAP の 2 = 1.8.0)。以前: 2026-11-20 昼 (セッション 25、Mac mini: 段階 3 の端の入力の直しも済み (最後は私が引き継いだ)。次は「nls の後」の配線と文書)。以前: 2026-11-19 深夜 (セッション 24、polr・rlm は完了、nls を ChatGPT に依頼)。以前: 2026-11-19 (セッション 23、1.6.0 を公開 (混合モデルの confint と simulate))。以前: 2026-11-17 (セッション 22、1.5.0 を公開)。その前: 2026-11-16 (セッション 21、Mac mini: 1.4.0 を公開、同時刻の Gray の検定を ChatGPT がクリーンルームで修正 (1.4.1 に入る、未公開)、外注用の R の実験の仕組みを作った。次は ROADMAP の 1 番)
+最終更新: 2026-11-24 (セッション 29 の終わり、Mac mini: **1.11.0 を公開** (acf・pacf・ccf の `/timeseries`、ca・caSummary・caCoord・mjca・sammon・isoMDS)。次は 1.12.0 = 傾向スコア (ROADMAP の新しい 1 番)、範囲を決めるところから)。以前: 2026-11-24 (セッション 29: 1.11.0 の作業ブランチは完成、GitHub Actions が支払いのロックで止まっていて取り込み待ち)。以前: 2026-11-23 (セッション 29 の始め、Mac mini: 1.11.0 の範囲をユーザーが決めた (mjca も入れる、ほかは推奨どおり)。準備が全部済んだ (Issue #560・draft PR #561・作業ブランチ `work/ca-acf-mds-1.11`)。段階 1 も済み、Decisions を決めて choices・fixture・段階 2 の指示を置いた (ブランチ `40aa5d94`)。次は ChatGPT の段階 2 (実装))。以前: 2026-11-23 (セッション 28 の終わり、Mac mini: **1.10.0 を公開** (dist・hclust・cutree・kmeans・cmdscale)。次は 1.11.0 = ca・acf・pacf・isoMDS・sammon、1.12.0 = arima (ユーザーの決定)。範囲を決めるところから)。以前: 2026-11-22 夜 (セッション 28、Mac mini: 1.10.0 の範囲をユーザーが決め (全部推奨どおり)、準備 (チェッカー・R の実験・指示書) を main に置き、Issue #556・draft PR #557 を作った。段階 1 を終え、次は ChatGPT の段階 2)。以前: 2026-11-22 夜 (セッション 27 の終わり、Mac mini: **1.9.0 を公開** (T2・Page・Grubbs、manova・lda・cancor)。次は 1.10.0 = クラスタ分析と多次元尺度法 (ユーザーの決定)、範囲を決めるところから)。以前: 2026-11-22 (セッション 27 の始め、Mac mini: 1.9.0 の範囲を決め、準備中)。以前: 2026-11-22 (セッション 26 の終わり、Mac mini: **1.8.0 を公開** (rq・geeglm・glmnet)。次は 1.9.0 = 小さな検定 3 つ + 多変量 3 つ (ユーザーの決定)、範囲を決めるところから)。以前: 2026-11-20 夜 (セッション 26 の始め: 1.8.0 の範囲を決め、準備)。以前: 2026-11-20 夕 (セッション 25 の終わり、Mac mini: **1.7.0 を公開** (回帰 polr・rlm・nls、`/regression`)。次の作業は未定 (ROADMAP の 2 = 1.8.0)。以前: 2026-11-20 昼 (セッション 25、Mac mini: 段階 3 の端の入力の直しも済み (最後は私が引き継いだ)。次は「nls の後」の配線と文書)。以前: 2026-11-19 深夜 (セッション 24、polr・rlm は完了、nls を ChatGPT に依頼)。以前: 2026-11-19 (セッション 23、1.6.0 を公開 (混合モデルの confint と simulate))。以前: 2026-11-17 (セッション 22、1.5.0 を公開)。その前: 2026-11-16 (セッション 21、Mac mini: 1.4.0 を公開、同時刻の Gray の検定を ChatGPT がクリーンルームで修正 (1.4.1 に入る、未公開)、外注用の R の実験の仕組みを作った。次は ROADMAP の 1 番)
 
 ## まず読むこと (セッション 16 から)
+
+## 次のセッションで最初にやること: 1.12.0 (傾向スコアのマッチング) の準備 (セッション 29 → 30、2026-11-24 に作成)
+
+- **手元に未コミットの変更がある:** `ROADMAP.md`・`ROADMAP.ja.md` (新しい順) と `HANDOFF.md` (この節と下の決定)。push すると
+  CI と Pages が動くので、1.12.0 の作業ブランチの最初のコミットにまとめる
+- **進め方が変わった (ユーザー 2026-11-24):** 実装は私が直接 (token は増やしてもらった)。GitHub Actions は節約: 作業ブランチは
+  `work/**` 以外の名前 (例 `dev/psm-1.12`。`work/**` に `experiments/*.R` を push すると r-experiments.yml が動く)、draft PR は
+  作らない、テストは手元で全部 (型・`npx vitest run`・`npm run build`・`npm run test:browser`)、公開は main に squash の 1 コミット
+  + タグ。**R の実験は手元の `rstats-oracle-amd64:4.6.2` で流し、スクリプトと出力を `experiments/` に置いて、Issue に
+  `gh issue comment` で記録する (クリーンルームの証拠)**。記憶 `feedback-rstats-self-implement-and-record`
+- 範囲は下の「1.12.0 (マッチング) の範囲」(ユーザーの決定)。照合先は ReactiveStat (`numero-uno-jpn/ReactiveStat` の
+  `scripts/傾向スコア/`) の呼び方に合わせる
+- 手順: (1) Issue を作る (2) Matching・tableone・cobalt を `oracle/Dockerfile.r46` (と experiments) に足してイメージを作り直し、
+  `scripts/r-experiment-check.mjs` に関数を足す (3) 最初の R の実験 = `Match` の ties = FALSE の乱数の使い方、caliper の単位、
+  estimand ごとの組 (4) 仕様書 (`oracle/match-behaviour.md` など) と choices → fixture → 実装 (`clogit` も) → 数値の点検 → 文書・
+  デモ・訳 (訳は Haiku のエージェントか私) → main に 1 コミット + タグ → ユーザーが `npm stage approve`
 
 ## 次のセッションで最初にやること: 1.11.0 の始め (セッション 28 → 29、2026-11-23 に作成)
 
@@ -82,6 +98,23 @@ ROADMAP の残り (2 番) は isoMDS・sammon、対応分析 (ca)、時系列 (a
   → タグ `v1.11.0` → release.yml の stage (id `2a0b846d-...`) をユーザーが承認。PR #561 は push せずに閉じ、Issue #560 も
   閉じた。jsDelivr は承認前に覗いた 404 を覚えていたので purge した (`purge.jsdelivr.net/npm/...`)。デモは `/timeseries`
   を読み込むよう `demo/app.js` に足した (無い版でも止まらない)
+- **ROADMAP を並べ直した (ユーザー 2026-11-24、手元で直して未 push。次の push とまとめる):** EZR・HAD・エクセル統計
+  (BellCurve の搭載機能一覧、HAD の更新履歴、EZR の CRAN の索引) と ReactiveStat (`numero-uno-jpn/ReactiveStat` の
+  `dokuwiki_pages`・`scripts`) の手法を突き合わせた。順: 1 傾向スコア (マッチングと IPTW、下流の解析まで。2 つの版に
+  分けるかも)、2 条件付きロジスティック (1 と一緒)、3 多項ロジスティック、4 ステップワイズ、5 媒介・調整分析、6 tobit・
+  対数線形・ガンマ/ベータ回帰、7 その後に検討 (時間依存 ROC、ネットワークメタ、Bradley-Terry、管理図、arima・auto.arima)。
+  arima は一度「対象外」にしたが、ReactiveStat の時系列のページが `auto.arima` を使うので 7 に戻した。作業ブランチ 2 本は
+  ユーザーの指示で削除済み
+- **傾向スコアの決定 (ユーザー 2026-11-24):** マッチング (1.12.0) と IPTW (その次) は別の版。照合先は ReactiveStat に合わせる
+  (`scripts/傾向スコア/*.php`): マッチングは Matching `Match` (X = logit(PS)、PS は `glm(binomial)`、ties = FALSE、M = 1〜10、
+  caliper は logit(PS) の SD の倍数 0.1〜0.5、replace = FALSE)、バランスは cobalt `bal.tab`・tableone `CreateTableOne`、
+  下流は `clogit(+ strata(pairmatch))`・`coxph(+ strata(pairmatch), method = "breslow")`・`mantelhaen.test`。IPTW は WeightIt
+  `weightit` (ps の 4 つの link・glm・cbps・ipt・ebal・energy・optweight・gbm・bart、ATE・ATT・ATC・ATO、stabilize、trim)、
+  cobalt `bal.tab`、survey `svydesign`+`svyglm`、`lm`+`vcovHC(HC3)`、`coxph(weights, robust = TRUE)` と調整生存曲線
+- **1.12.0 (マッチング) の範囲 (ユーザー 2026-11-24):** estimand は **ATT・ATE・ATC** (ReactiveStat は ATT だけ)、ties = FALSE は
+  **R と同じ乱数の割り振り** (setSeed の後で R と同じ組)、バランスは**標準化差と分散比** (bal.tab の中心と tableone の前後の
+  SMD。表の体裁は使う側)、下流は **clogit (新しく)・組で層にした Cox (既存の coxph)・Mantel-Haenszel (既存)**。次は準備:
+  Matching・tableone・cobalt をイメージとチェッカーに足す、R の実験は手元で (Actions を節約)
 - **これからの Actions の使い方 (ユーザー 2026-11-24):** 無料枠を使い切った。ChatGPT に Actions を制限なく使わせない
   (PR への push ごとの CI、`work/**` の R の実験)。テストと R の実験は手元で。私が動かす分は必要なら可。公開は「main に
   1 回 + タグ」の形 (Actions は 3 回ほど)
