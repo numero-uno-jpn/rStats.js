@@ -1888,13 +1888,16 @@ The references are R's `stats` functions. The implementation decisions are recor
 - Distances count as tied only when exactly equal. R also treats distances within `distance.tolerance` (1e-5) as ties.
 - For M ≥ 2 the candidates are, as in R, every available unit within the M-th smallest distance, so a uniquely nearest control can be left out when the M-th distance is tied.
 - `M` below 1 is an error (R warns and uses 1). When nothing can be matched R returns `NA` with a warning; rStats.js returns empty pairs with the same warning.
+- Extreme scales (`experiments/psm112-edge.R`): for `x` near 1e300 R fails (`missing value where TRUE/FALSE needed`), and near 1e-300 every distance falls within `distance.tolerance`, so R draws all the pairs at random and its caliper of width 0 matches nothing. rStats.js works in units of a power of 2 of the largest `|x|` (exact, so ties stay ties) and gives the same pairs at every scale, with `ecaliper` in the units of `x`.
 
 ### `balTab`, `matchWeights` and `tableOneSmd`
 
 - `balTab` covers the `Balance` columns `Diff.Un`, `Diff.Adj`, `V.Ratio.Un` and `V.Ratio.Adj` and the `Observations` table of `bal.tab` for a `Match` object. Covariates are numeric columns; a factor is given as one 0/1 column per level. A variance ratio with a zero control variance is NaN (R's `NA`).
 - `tableOneSmd` handles two groups (not the average over the pairs of groups for more strata).
+- Standardised differences and variance ratios do not depend on the scale or on a common offset, and rStats.js computes them from the column rescaled exactly by powers of 2 and shifted by its first value. R's `bal.tab` gives 0 and NaN for a covariate near 1e300 and wrong values near 1e-300, `tableone` gives 0 and Inf, and both lose digits for a large common offset (1e15 + small differences); rStats.js gives the values of the unscaled data.
 
 ### `clogit`
 
 - `method` is `"exact"` (default) or `"approximate"` (= `"breslow"`); `"efron"` is not offered.
 - The covariates are given as a matrix (no formula). The Wald statistic of `waldtest` is not rounded (R's `summary()` rounds it to 2 decimals).
+- With only uninformative sets (cases only or controls only) R's exact fit runs out of iterations with a coefficient of 0 and a meaningless variance; rStats.js runs out the same way and returns NaN. For the exact likelihood of a large set (for example 2000 members with 1000 cases) each subset size keeps its own power of 2, so the sums do not overflow.
