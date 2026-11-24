@@ -8,7 +8,7 @@
 
 ### 状態
 - 1.14.0 は公開済み (main `0fe71c9e`、タグ `v1.14.0`、npm latest 1.14.0、Issue #564 は閉じた)。証拠はタグ `archive/multinom-1.14`
-  (`6f3982a1`)。**作業ブランチ `dev/multinom-1.14` は手元に残っている** (消すかはユーザーに確認。記憶「ブランチ削除は自作でも確認」)
+  (`6f3982a1`)。作業ブランチ `dev/multinom-1.14` はユーザーの指示で削除 (2026-11-25、手元だけにあった)
 - main は origin より HANDOFF のコミットだけ先 (push しない。次の作業ブランチの最初に含める)
 - イメージ・チェッカーは 1.14.0 のまま (nnet まで)。MASS の `stepAIC`・`addterm`・`dropterm` はチェッカーにある。stats の `step`・
   `add1`・`drop1`・`extractAIC` はまだ無い (R の GPL のコードなので、nls のときと同じく「呼ぶだけ」の一覧に足す)
