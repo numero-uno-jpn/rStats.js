@@ -542,7 +542,7 @@
   "IsoMDSOptions#summary": {
     "hash": "baabaf5b289e",
     "en": "Options for Kruskal non-metric multidimensional scaling. Equivalent to R's MASS::isoMDS().",
-    "ja": "Kruskal の非計量多次元尺度構成法のオプションです。R の MASS::isoMDS() と同等です。"
+    "ja": "Kruskal の非計量多次元尺度法のオプションです。R の MASS::isoMDS() と同等です。"
   },
   "IsoMDSOptions.k#summary": {
     "hash": "001072a4fb10",
@@ -572,7 +572,7 @@
   "IsoMDSResult#summary": {
     "hash": "ade100abbd95",
     "en": "Result of non-metric multidimensional scaling.",
-    "ja": "非計量多次元尺度構成法の結果です。"
+    "ja": "非計量多次元尺度法の結果です。"
   },
   "IsoMDSResult.points#summary": {
     "hash": "bce439215c95",
@@ -1447,7 +1447,7 @@
   "cmdscale#summary": {
     "hash": "8eeb2e2817e3",
     "en": "Classical (metric) multidimensional scaling of a dissimilarity structure.\nEquivalent to R's `cmdscale()`.",
-    "ja": "非類似度構造の古典的 (計量) 多次元尺度構成法です。\nR の `cmdscale()` と同等です。"
+    "ja": "非類似度構造の古典的 (計量) 多次元尺度法です。\nR の `cmdscale()` と同等です。"
   },
   "cutree#summary": {
     "hash": "14ccc61484ed",
@@ -1477,7 +1477,7 @@
   "isoMDS#summary": {
     "hash": "f3b7502205b0",
     "en": "Kruskal's non-metric multidimensional scaling.\nEquivalent to R's `MASS::isoMDS()`.",
-    "ja": "Kruskal の非計量多次元尺度構成法です。\nR の `MASS::isoMDS()` と同等です。"
+    "ja": "Kruskal の非計量多次元尺度法です。\nR の `MASS::isoMDS()` と同等です。"
   },
   "kmeans#summary": {
     "hash": "bfb7349a3b7a",
