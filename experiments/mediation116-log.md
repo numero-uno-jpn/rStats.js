@@ -209,3 +209,15 @@ script keeps the search that succeeded.
     R's error; the rest as R or refused with a message of rStats.js (a numeric treatment is required). A rank-1 Sigma in
     3 dimensions: R's draws up to sign, to 3e-8 only, because the zero eigenvalues come out as rounding of either sign
     and their square roots enter the draws (in R too).
+
+## Wiring stage (2026-11-25)
+
+48. A demo example (a binary mediator, n = 10, bootstrap BCa) stopped in rStats.js: a resample made the outcome
+    refit's coefficient of B inestimable. `mediation116-rankdeficient.R`: R takes the NA coefficient as 0 in the
+    prediction (ACME 0 in those 9 replicates) with the warning 'prediction from rank-deficient fit; attr(*, "non-estim")
+    has doubtful cases'; rStats.js now does the same.
+49. Then 8 of the 200 replicates still differed. Same script, added: the mediator refits of the first ones. Not
+    separation: half the X = 0 rows have B = 1, so the logit intercept is 0 in theory, R -2.2e-16, rStats.js +2.2e-16,
+    and rbinom turns its computation around at p = 0.5 (as log 40). Rounding only; with n = 10 such resamples are
+    common. The demo example now shows the binary mediator with quasi-Bayes and the BCa bootstrap with a continuous
+    mediator.

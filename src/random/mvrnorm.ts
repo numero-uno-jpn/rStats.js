@@ -179,7 +179,7 @@ export function checkCovariance(Sigma: readonly (readonly number[])[], p: number
  * @example
  * ```ts
  * setSeed(42);
- * mvrnorm(2, [0, 0], [[2, 0.6], [0.6, 1]]); // [[-1.6738..., -1.4054...], [0.4966..., 1.0221...]] as R (approximately)
+ * mvrnorm(2, [0, 0], [[2, 0.6], [0.6, 1]]); // [[-1.7445, -1.1571], [0.99996, -0.12421]] (R: set.seed(42); MASS::mvrnorm(...))
  * ```
  *
  * @category Random numbers

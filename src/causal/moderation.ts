@@ -173,7 +173,8 @@ function jn(q: Parts, alpha: number): JohnsonNeymanResult {
 
 /**
  * The Johnson-Neyman interval: the moderator values at which the predictor's slope stops being significant.
- * Equivalent to R's `interactions::johnson_neyman()` (the bounds, `inside`, `failed` and `all_sig`; no plot).
+ * Equivalent to `interactions::johnson_neyman()` in R. Its bounds, `inside`, `failed` and `all_sig` are returned; there
+ * is no plot.
  *
  * The bounds solve (b_X + b_XW w)² = t² Var(b_X + b_XW w), with the t quantile on the model's residual degrees of
  * freedom (for a glm too, as interactions does). The slope is significant inside the bounds when the quadratic's
@@ -187,8 +188,13 @@ function jn(q: Parts, alpha: number): JohnsonNeymanResult {
  *
  * @example
  * ```ts
+ * const data = {
+ *   X: [0, 0, 0, 0, 0, 1, 1, 1, 1, 1], C: [1.2, -0.4, 0.3, 0.8, -1.1, 0.5, -0.2, 1.4, -0.7, 0.1],
+ *   M: [1.1, 0.4, 0.9, 1.6, 0.2, 1.9, 1.3, 2.6, 1.0, 1.8], Y: [2.0, 1.1, 1.5, 2.4, 0.8, 3.1, 2.2, 3.9, 1.9, 2.8],
+ *   W: [3.1, 2.2, 4.0, 2.8, 3.5, 2.9, 3.8, 2.4, 3.3, 4.2],
+ * };
  * const fit = lm("Y ~ X * W", data);
- * johnsonNeyman(fit, data, { pred: "X", modx: "W" }).bounds;
+ * johnsonNeyman(fit, data, { pred: "X", modx: "W" }).bounds; // [2.4941, 3.4079]
  * ```
  *
  * @category Causal inference
@@ -199,8 +205,9 @@ export function johnsonNeyman(fit: ModerationModel, data: DataFrame, options: Jo
 }
 
 /**
- * Simple slopes of a predictor at values of a moderator, with the Johnson-Neyman interval. Equivalent to R's
- * `interactions::sim_slopes()` (with `confint = TRUE`; the slopes table and the Johnson-Neyman results).
+ * Simple slopes of a predictor at values of a moderator, with the Johnson-Neyman interval. Equivalent to
+ * `interactions::sim_slopes()` in R. The slopes table (as with `confint = TRUE`) and the Johnson-Neyman results are
+ * returned.
  *
  * The slope at w is b_X + b_XW w with standard error sqrt(V_XX + 2 w V_XW + w² V_WW), from the model's covariance or
  * its HC3 sandwich; intervals and p-values use t on the residual degrees of freedom for lm and the normal distribution
@@ -214,9 +221,14 @@ export function johnsonNeyman(fit: ModerationModel, data: DataFrame, options: Jo
  *
  * @example
  * ```ts
- * const fit = lm("Y ~ X * W + C", data);
- * const s = simSlopes(fit, data, { pred: "X", modx: "W" });
- * s.estimate; s.p; s.jn?.bounds;
+ * const data = {
+ *   X: [0, 0, 0, 0, 0, 1, 1, 1, 1, 1], C: [1.2, -0.4, 0.3, 0.8, -1.1, 0.5, -0.2, 1.4, -0.7, 0.1],
+ *   M: [1.1, 0.4, 0.9, 1.6, 0.2, 1.9, 1.3, 2.6, 1.0, 1.8], Y: [2.0, 1.1, 1.5, 2.4, 0.8, 3.1, 2.2, 3.9, 1.9, 2.8],
+ *   W: [3.1, 2.2, 4.0, 2.8, 3.5, 2.9, 3.8, 2.4, 3.3, 4.2],
+ * };
+ * const s = simSlopes(lm("Y ~ X * W", data), data, { pred: "X", modx: "W" });
+ * s.estimate; // [1.6926, 1.2999, 0.90721]
+ * s.p; // [0.045753, 0.031345, 0.22941]
  * ```
  *
  * @category Causal inference

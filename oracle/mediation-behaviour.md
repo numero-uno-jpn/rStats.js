@@ -99,7 +99,9 @@ The calls followed are ReactiveStat's (`scripts/多変量/媒介分析.php`, `�
   them: rStats.js's p may differ by 2 / sims per such draw (log 39).
 - Rounding at p = 0.5: R's rbinom turns its computation around there, so a mediator probability of 0.5 +- 1e-16 (a
   probit or logit intercept that is 0 in theory) gives different draws from rStats.js's when the two round to
-  different sides (log 40).
+  different sides (log 40, 49): small binary data sets often have resamples with exactly half of a group at 1.
+- A bootstrap refit with an inestimable coefficient (aliased, or a level the resample lost) predicts with it as 0,
+  with R's warning 'prediction from rank-deficient fit; attr(*, "non-estim") has doubtful cases' (log 48).
 
 ## To check
 

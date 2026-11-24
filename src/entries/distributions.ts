@@ -48,6 +48,7 @@ export { rsignrank, rwilcox } from "../random/rank.js";
 export { sample, sampleInt, type SampleOptions } from "../random/sample.js";
 export { rhyper } from "../random/hyper.js";
 export { r2dtable } from "../random/r2dtable.js";
+export { mvrnorm, type MvrnormOptions } from "../random/mvrnorm.js";
 export { rinvgamma, rkumar, rpareto, rtriang, rlaplace, rarcsine } from "../random/extra.js";
 
 // The handler of R's warnings that the tests, models and fits return
