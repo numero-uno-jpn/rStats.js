@@ -53,6 +53,8 @@ probe_path("small_k1", dist(small_data), NULL, 1, 1e-30, 240)
 probe_path("eurodist_tight", eurodist, NULL, 2, 1e-10, 240)
 
 cat("\nCASE swiss_y_k1_zero_configuration_distance\n")
+zero_start <- as.matrix(swiss[, 1, drop = FALSE])
+centered_zero_start <- sweep(zero_start, 2, colMeans(zero_start), "-")
 for (limit in c(0, 1, 2, 5, 8, 9, 20, 50)) {
   warning_text <- character()
   printed_text <- capture.output(fit_value <- withCallingHandlers(
@@ -65,6 +67,6 @@ for (limit in c(0, 1, 2, 5, 8, 9, 20, 50)) {
   cat("maxit", limit, "stress", sprintf("%.15g", fit_value$stress),
       "warnings", if (length(warning_text)) paste(warning_text, collapse = " / ") else "-",
       "printed", if (length(printed_text)) paste(trimws(printed_text), collapse = " | ") else "-",
-      "points_equal_input", isTRUE(all.equal(unname(fit_value$points), unname(as.matrix(swiss[, 1, drop = FALSE])))),
+      "points_equal_centered_start", isTRUE(all.equal(unname(fit_value$points), unname(centered_zero_start))),
       "\n")
 }
