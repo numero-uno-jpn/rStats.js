@@ -8,10 +8,13 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 
 | R | rStats.js | 説明 |
 | --- | --- | --- |
-| `cobalt::bal.tab()` | `balTab` | マッチング前後の共変量のバランス (標準化差と分散比) |
+| `cobalt::bal.tab()` | `balTab` | マッチング・重み付けの前後の共変量のバランス (標準化差と分散比) |
 | `tableone::ExtractSmd()` | `tableOneSmd` | 2 群の標準化差 (tableone の SMD) |
 | `cobalt::get.w()` | `matchWeights` | マッチング後の各単位の重み |
 | `Matching::Match()` | `match` | 傾向スコアなど 1 つの値での最近傍マッチング (非復元、同点は乱数) |
+| `WeightIt::summary.weightit()` | `weightSummary` | 重みの群ごとの要約 (範囲・変動係数・有効サンプルサイズ) |
+| `WeightIt::trim()` | `trimWeights` | 極端な重みの切り詰め (分位点で上下を抑える) |
+| `WeightIt::weightit()` | `weightit` | 二値の処置の釣り合いの重み (逆確率重み付け: glm・CBPS・逆確率傾斜・エントロピーバランシング) |
 
 ## Multivariate analysis (`rStats.js/multivariate`)
 
@@ -378,8 +381,10 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `summary()` | `aovSummary` | `aov` で当てはめた分散分析の表 |
 | `summary()` | `glmSummary` | `glm` で当てはめた一般化線形モデルの要約: 分散パラメータ、係数の表、推定値の共分散 |
 | `survival::survdiff()` | `survdiff` | 生存曲線の差の検定: Harrington と Fleming の G-rho 族 (`rho = 0` でログランク検定) |
+| `survival::survfit.coxph()` | `survfitCoxph` | Cox モデルの共変量の値ごとの予測生存曲線 (調整生存曲線) |
 | `survival::survfit()` | `survfit` | 生存関数の Kaplan-Meier 推定、または累積ハザードの指数による推定 (各点での信頼区間、中央値、制限平均つき) |
 | `survival::survreg()` | `survreg` | パラメトリック生存時間回帰モデルを当てはめる |
+| `survey::svyglm()` | `svyglm` | 重み付きデータの一般化線形モデル (デザインに基づくサンドイッチ標準誤差) |
 | `TOSTER::t_TOST()` | `tTOST` | 1 標本・2 標本・対応のある標本の平均についての同等性検定 (TOST) と最小効果検定、標準化平均差とその区間つき |
 | `t.test()` | `tTest` | Student の t 検定 |
 | `PMCMRplus::tamhaneT2Test()` | `tamhaneT2Test` | 等分散を仮定しない、平均の Tamhane の T2 (と T2') の全対比較検定 |

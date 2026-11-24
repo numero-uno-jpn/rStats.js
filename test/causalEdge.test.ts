@@ -47,9 +47,17 @@ describe("balTab and tableOneSmd at extreme scales", () => {
     const base = stats(age);
     const r = edge.baltab.base.value;
     [r.diffUn, r.diffAdj, r.vUn, r.vAdj].forEach((e: number, i: number) => expect(rel(base[i]!, e)).toBeLessThan(1e-13));
-    for (const v of [age.map((a) => a * 1e300), age.map((a) => a * 1e-300), age.map((a) => a + 1e15), age.map((a) => a * 1e200)]) {
+    for (const v of [age.map((a) => a * 1e300), age.map((a) => a + 1e15), age.map((a) => a * 1e200)]) {
       stats(v).forEach((s, i) => expect(rel(s, base[i]!)).toBeLessThan(1e-13));
     }
+    // near 1e-300 the SD is below sqrt(eps) in the covariate's units, and balTab then uses the SD of the whole sample,
+    // as cobalt does (1.13.0; experiments/iptw113-edge3.json); the variance ratios do not change
+    const sd = (a: number[]) => { const mu = a.reduce((x, y) => x + y) / a.length; return Math.sqrt(a.reduce((x, y) => x + (y - mu) ** 2, 0) / (a.length - 1)); };
+    const ratio = sd(age.filter((_, i) => tr[i] === 1)) / sd(age);
+    const tiny = stats(age.map((a) => a * 1e-300));
+    expect(rel(tiny[0]!, base[0]! * ratio)).toBeLessThan(1e-13);
+    expect(rel(tiny[1]!, base[1]! * ratio)).toBeLessThan(1e-13);
+    tiny.slice(2).forEach((s, i) => expect(rel(s, base[2 + i]!)).toBeLessThan(1e-13));
     const c = stats(age.map(() => 3));
     expect(c.slice(0, 2)).toEqual([0, 0]);
     expect(c.slice(2).every(Number.isNaN)).toBe(true);

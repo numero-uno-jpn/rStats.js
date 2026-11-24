@@ -77,7 +77,8 @@ widely used in Japanese medical and psychological research) and ReactiveStat wit
    logistic regression, Cox stratified by pair or with clustered robust errors, Kaplan-Meier, the ATT); **IPTW** (ATE and
    ATT weights, stabilized, trimmed) with the weighted analyses (linear, logistic and Poisson regression with robust
    errors, weighted Kaplan-Meier and Cox, risk differences and ratios, odds and hazard ratios). Matching and IPTW may be
-   two versions. **Matching** (`match`, `balTab`, `tableOneSmd`, `clogit`) is done for 1.12.0; IPTW is next
+   two versions. **Matching** (`match`, `balTab`, `tableOneSmd`, `clogit`) is done for 1.12.0; **IPTW** (`weightit`, `trimWeights`,
+   `weightSummary`, `svyglm`, `survfitCoxph`, weighted `survfit`) for 1.13.0
 2. **Conditional logistic regression** [survival `clogit`] (with item 1): done for 1.12.0
 3. **Multinomial logistic regression** [nnet `multinom`]
 4. **Stepwise selection** [`step`, MASS `stepAIC`]

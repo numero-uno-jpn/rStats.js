@@ -804,6 +804,156 @@
     "en": "Confidence interval type of {@link survfit}. The unambiguous prefixes \"p\", \"a\", \"n\", \"log-\", and \"logi\" are accepted.",
     "ja": "{@link survfit} の信頼区間の種類です。曖昧さのない接頭辞 p、a、n、log-、logi も指定できます。"
   },
+  "SurvfitCoxphAt#summary": {
+    "hash": "5af7328c979b",
+    "en": "The curves of {@link survfitCoxph} read at given times (R's `summary(fit, times)`).",
+    "ja": "与えた時点で読み取った {@link survfitCoxph} の曲線です (R の `summary(fit, times)`)。"
+  },
+  "SurvfitCoxphAt.lower#summary": {
+    "hash": "3c3f5c9cbee5",
+    "en": "Lower pointwise limits per curve and time.",
+    "ja": "各点の信頼区間の下限です。曲線と時点ごとです。"
+  },
+  "SurvfitCoxphAt.nEvent#summary": {
+    "hash": "6d606afbea89",
+    "en": "Weighted number of events since the previous time.",
+    "ja": "前の時点からの重み付きのイベント数です。"
+  },
+  "SurvfitCoxphAt.nRisk#summary": {
+    "hash": "27f63643c54b",
+    "en": "Weighted number at risk at each time.",
+    "ja": "各時点のリスク集合の重み付きの大きさです。"
+  },
+  "SurvfitCoxphAt.stdErr#summary": {
+    "hash": "64221c8fc1e1",
+    "en": "Standard error of the cumulative hazard per curve and time.",
+    "ja": "累積ハザードの標準誤差です。曲線と時点ごとです。"
+  },
+  "SurvfitCoxphAt.surv#summary": {
+    "hash": "cd8de3398876",
+    "en": "Survival per curve and time.",
+    "ja": "生存率です。曲線と時点ごとです。"
+  },
+  "SurvfitCoxphAt.time#summary": {
+    "hash": "4015a7783179",
+    "en": "The times (those not after the last observed time).",
+    "ja": "時点です (最後の観測時点より後でないもの)。"
+  },
+  "SurvfitCoxphAt.upper#summary": {
+    "hash": "78a173aa3484",
+    "en": "Upper pointwise limits per curve and time.",
+    "ja": "各点の信頼区間の上限です。曲線と時点ごとです。"
+  },
+  "SurvfitCoxphOptions#summary": {
+    "hash": "27403e24c5e2",
+    "en": "Options for {@link survfitCoxph}: those of {@link coxph} for the fit (right-censored data without strata), and of the\ncurves.",
+    "ja": "{@link survfitCoxph} のオプションです: 当てはめのための {@link coxph} のもの (層の無い右側打ち切りのデータ) と、曲線のものです。"
+  },
+  "SurvfitCoxphOptions.confInt#summary": {
+    "hash": "2abc35e638fe",
+    "en": "Confidence level of the curves. Default 0.95.",
+    "ja": "曲線の信頼水準です。既定は 0.95 です。"
+  },
+  "SurvfitCoxphOptions.confType#summary": {
+    "hash": "0109b4953d7a",
+    "en": "Transformation of the pointwise confidence intervals: `\"log\"` (default), `\"log-log\"`, `\"plain\"` or `\"none\"`.",
+    "ja": "各点の信頼区間の変換です: `\"log\"` (既定)、`\"log-log\"`、`\"plain\"` または `\"none\"`。"
+  },
+  "SurvfitCoxphOptions.newdata#summary": {
+    "hash": "c953b132090e",
+    "en": "Covariate profiles (rows of the columns of `x`), one curve each. Default: one curve at the means of the fit.",
+    "ja": "共変量の値の組 (`x` の列に対応する行) で、1 つにつき曲線 1 本です。既定は当てはめの平均での曲線 1 本です。"
+  },
+  "SurvfitCoxphOptions.times#summary": {
+    "hash": "dcc255aa8a3a",
+    "en": "Times at which to read the curves, as R's `summary(fit, times)`.",
+    "ja": "曲線を読み取る時点です。R の `summary(fit, times)` と同じです。"
+  },
+  "SurvfitCoxphResult#summary": {
+    "hash": "be56495d5123",
+    "en": "Result of {@link survfitCoxph}: the rows of R's `survfit(fit, newdata)` (one column of `surv` per profile).",
+    "ja": "{@link survfitCoxph} の結果です: R の `survfit(fit, newdata)` の行です (値の組ごとに `surv` の列が 1 つ)。"
+  },
+  "SurvfitCoxphResult.at#summary": {
+    "hash": "e4b0120e3c77",
+    "en": "With `times`: the curves read at those times (R's `summary(fit, times)`).",
+    "ja": "`times` を与えたとき: その時点で読み取った曲線です (R の `summary(fit, times)`)。"
+  },
+  "SurvfitCoxphResult.cumhaz#summary": {
+    "hash": "87d4458c4fa5",
+    "en": "Cumulative hazard, per curve and time.",
+    "ja": "累積ハザードです。曲線と時点ごとです。"
+  },
+  "SurvfitCoxphResult.events#summary": {
+    "hash": "a7f8e2a30ad0",
+    "en": "The weighted number of events.",
+    "ja": "重み付きのイベント数です。"
+  },
+  "SurvfitCoxphResult.fit#summary": {
+    "hash": "3c78e038274a",
+    "en": "The Cox fit.",
+    "ja": "Cox の当てはめです。"
+  },
+  "SurvfitCoxphResult.lower#summary": {
+    "hash": "c53640f95a9d",
+    "en": "Lower pointwise limits, per curve and time.",
+    "ja": "各点の信頼区間の下限です。曲線と時点ごとです。"
+  },
+  "SurvfitCoxphResult.median#summary": {
+    "hash": "20206227ab0e",
+    "en": "Per curve: the median and its lower and upper limits (NaN when not reached), as R's `summary()$table`.",
+    "ja": "曲線ごとに、中央値とその下限・上限です (到達しないときは NaN)。R の `summary()$table` と同じです。"
+  },
+  "SurvfitCoxphResult.nCensor#summary": {
+    "hash": "cc9487aecc07",
+    "en": "Weighted number censored at each time.",
+    "ja": "各時点で打ち切られた重み付きの数です。"
+  },
+  "SurvfitCoxphResult.nEvent#summary": {
+    "hash": "cee0f66e80e6",
+    "en": "Weighted number of events at each time.",
+    "ja": "各時点の重み付きのイベント数です。"
+  },
+  "SurvfitCoxphResult.nRisk#summary": {
+    "hash": "6dfe62908656",
+    "en": "Weighted number at risk just before each time.",
+    "ja": "各時点の直前のリスク集合の重み付きの大きさです。"
+  },
+  "SurvfitCoxphResult.nStart#summary": {
+    "hash": "0f835673b569",
+    "en": "The weighted number at the start (R's n.max and n.start).",
+    "ja": "開始時の重み付きの数です (R の n.max と n.start)。"
+  },
+  "SurvfitCoxphResult.records#summary": {
+    "hash": "8343c26cb760",
+    "en": "Number of records.",
+    "ja": "記録の数です。"
+  },
+  "SurvfitCoxphResult.stdErr#summary": {
+    "hash": "7881114351ae",
+    "en": "Standard error of the cumulative hazard (of −log S), per curve and time (with the fit's variance of the\ncoefficients: the robust one when the fit uses it).",
+    "ja": "累積ハザード (−log S) の標準誤差です。曲線と時点ごとです (係数の分散には当てはめのものを使い、当てはめが頑健な分散を使うときはそれを使います)。"
+  },
+  "SurvfitCoxphResult.surv#summary": {
+    "hash": "7cbbc86d6d5f",
+    "en": "Survival per curve and time: `surv[curve][row]` (exp(−cumhaz), R's for a Cox fit).",
+    "ja": "曲線と時点ごとの生存率です: `surv[curve][row]` (exp(−cumhaz)。Cox の当てはめに対する R のもの)。"
+  },
+  "SurvfitCoxphResult.time#summary": {
+    "hash": "b86137365605",
+    "en": "Distinct observed times, events and censorings.",
+    "ja": "観測された異なる時点です (イベントと打ち切り)。"
+  },
+  "SurvfitCoxphResult.upper#summary": {
+    "hash": "bd6ba1b38bce",
+    "en": "Upper pointwise limits, per curve and time.",
+    "ja": "各点の信頼区間の上限です。曲線と時点ごとです。"
+  },
+  "SurvfitCoxphResult.warnings#summary": {
+    "hash": "012406759507",
+    "en": "R's warnings, each once.",
+    "ja": "R の警告です。それぞれ 1 回ずつです。"
+  },
   "SurvfitOptions#summary": {
     "hash": "4df02fb61d3c",
     "en": "Options for {@link survfit}.",
@@ -840,9 +990,9 @@
     "ja": "制限平均の上限です。\"common\" (既定)、\"individual\"、\"none\"、または有限の数値を指定できます。"
   },
   "SurvfitOptions.robust#summary": {
-    "hash": "aa5ed6d1274f",
-    "en": "Use the infinitesimal-jackknife variance. Default false; non-integer weights are rejected.",
-    "ja": "無限小ジャックナイフによる分散を使うかどうかです。既定は false です。整数でない重みは受け付けません。"
+    "hash": "96f0aa979e5c",
+    "en": "Use the infinitesimal-jackknife variance. Default as R: true when some weight is not an integer, else false.",
+    "ja": "無限小ジャックナイフによる分散を使うかどうかです。既定は R と同じく、整数でない重みがあるとき true、それ以外は false です。"
   },
   "SurvfitOptions.start#summary": {
     "hash": "cea8307ee925",
@@ -855,9 +1005,9 @@
     "ja": "生存率の推定方法です。1 は Kaplan-Meier、2 は累積ハザードの指数変換です。既定は 1 です。"
   },
   "SurvfitOptions.weights#summary": {
-    "hash": "0ea266fc8d1e",
-    "en": "Case weights. Non-negative safe-integer counts are required.",
-    "ja": "ケース重みです。0 以上の安全な整数の度数で指定する必要があります。"
+    "hash": "0fa32e4a01bb",
+    "en": "Case weights, non-negative (inverse probability weights need not be integers; not with `stype: 2` and the robust\nvariance).",
+    "ja": "ケース重みです。0 以上の値です (逆確率重みは整数でなくてかまいません。ただし `stype: 2` と頑健な分散の組み合わせでは使えません)。"
   },
   "SurvfitResult#summary": {
     "hash": "a355fa79fdfd",
@@ -1253,6 +1403,16 @@
     "hash": "bc8e105d61ab",
     "en": "Kaplan-Meier or exponential cumulative-hazard estimate with pointwise confidence intervals, medians and restricted means.\nEquivalent to R's `survival::survfit()`. Supports right-censored and counting-process data, Nelson-Aalen and Fleming-Harrington cumulative hazards,\ninteger case weights, infinitesimal-jackknife standard errors and all six confidence transformations.\n\nRows with a missing time, status, group, id or weight are dropped. With `start`, the risk set at t is\n`start < t <= time`; without `id`, each split row ending without an event is a censoring. With `id`, a row\nfollowed by another row for the same subject at the same boundary is not a censoring.",
     "ja": "Kaplan-Meier 推定値または累積ハザードの指数変換による推定値で、各時点の信頼区間、中央値、制限平均を返します。\nR の `survival::survfit()` と同等です。右側打ち切りデータと計数過程データ、Nelson-Aalen および Fleming-Harrington の累積ハザード、整数のケース重み、無限小ジャックナイフによる標準誤差、6 種類すべての信頼区間変換に対応します。\n\n時刻、status、群、id、または重みが欠測している行は除外します。`start` を指定した場合、時刻 t のリスク集合は `start < t <= time` です。`id` がない場合、イベントを伴わずに終了する各分割行は打ち切りとして扱います。`id` がある場合、同じ被験者の次の行が同じ境界で続くとき、その行は打ち切りとして扱いません。"
+  },
+  "survfitCoxph#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": "⟦code1⟧"
+  },
+  "survfitCoxph#summary": {
+    "hash": "660cb9bfe971",
+    "en": "Predicted survival curves of a Cox model for covariate profiles (adjusted survival curves). Equivalent to R's\n`survival::survfit.coxph()`. The call followed is\n`survfit(coxph(Surv(time, status) ~ ..., weights, robust = TRUE), newdata)`.\n\nThe baseline cumulative hazard is Breslow's (with `ties: \"breslow\"`) or its Efron form for tied events (the default\n`\"efron\"`), with case weights; the curve of a profile z is exp(−exp((z − means) b) Λ0(t)). The standard error is\nthat of the cumulative hazard (Tsiatis), with the fit's variance of the coefficients (the robust one when the fit\nuses it, as R; with non-integer weights coxph uses it by default). Strata and counting-process data are not supported.",
+    "ja": "Cox モデルの共変量の値の組ごとの予測生存曲線 (調整生存曲線) です。R の `survival::survfit.coxph()` と同等です。`survfit(coxph(Surv(time, status) ~ ..., weights, robust = TRUE), newdata)` の呼び方に従います。\n\n基準の累積ハザードは、Breslow のもの (`ties: \"breslow\"` のとき) か、同時点のイベントに対するその Efron 形 (既定の `\"efron\"`) で、ケース重みを使います。値の組 z の曲線は exp(−exp((z − means) b) Λ0(t)) です。標準誤差は累積ハザードのもの (Tsiatis) で、係数の分散には当てはめのものを使います (R と同じく、当てはめが頑健な分散を使うときはそれを使います。整数でない重みでは coxph は既定でそれを使います)。層と計数過程のデータには対応していません。"
   },
   "survreg#@example": {
     "hash": "f2167be5edf2",

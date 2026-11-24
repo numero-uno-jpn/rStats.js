@@ -7,6 +7,18 @@ While the version is 0.x, a minor release (0.y.0) may contain breaking changes;
 they are listed under **Breaking** for each release. From 1.0.0 the project follows
 [Semantic Versioning](https://semver.org/).
 
+## 1.13.0 - 2026-11-24
+
+### Added
+
+- **Inverse probability of treatment weighting** in `/causal`: balancing weights (`weightit`, after `WeightIt::weightit`: methods glm, cbps, ipt and ebal; ATE, ATT, ATC and ATO; stabilized), trimming (`trimWeights`, after `WeightIt::trim`) and the weight summary (`weightSummary`, Kish's effective sample size by group).
+- `balTab` takes a weightit result (the `prop.score` row, factor levels, the ATO denominator).
+- **Weighted analyses**: `svyglm` (after `survey::svyglm` for `svydesign(ids = ~1, weights)`: design-based standard errors and t tests) and `survfitCoxph` (adjusted survival curves of a weighted Cox fit, after `survfit(coxph, newdata)`).
+
+### Changed
+
+- `survfit` takes non-integer case weights (inverse probability weights), with the robust variance by default as R; not with `stype: 2` and the robust variance.
+
 ## 1.12.0 - 2026-11-24
 
 ### Added

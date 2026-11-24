@@ -85,13 +85,14 @@ export interface SurvfitOptions {
   start?: readonly number[];
   /** Subject identifiers for counting-process data; requires `start`; adjacent split rows are not censorings. */
   id?: readonly (GroupLabel | null)[];
-  /** Case weights. Non-negative safe-integer counts are required. */
+  /** Case weights, non-negative (inverse probability weights need not be integers; not with `stype: 2` and the robust
+   * variance). */
   weights?: readonly number[];
   /** Cumulative hazard estimator: 1 Nelson-Aalen, 2 Fleming-Harrington. Default 1. */
   ctype?: 1 | 2;
   /** Survival estimator: 1 Kaplan-Meier, 2 exponential of cumulative hazard. Default 1. */
   stype?: 1 | 2;
-  /** Use the infinitesimal-jackknife variance. Default false; non-integer weights are rejected. */
+  /** Use the infinitesimal-jackknife variance. Default as R: true when some weight is not an integer, else false. */
   robust?: boolean;
   /** Restricted-mean upper limit: "common" (default), "individual", "none", or a finite number. */
   rmean?: "none" | "common" | "individual" | number;
@@ -333,7 +334,7 @@ function pseudoQuadratic(V: number[][], u: number[]): { chisq: number; df: numbe
  * and lie below 0.5 + sqrt(eps), the first time, or, if the curve equals 0.5 (within sqrt(eps)) there and a later such
  * point is lower, the midpoint between that time and the time of the first lower point. NaN if there is no such point.
  */
-function curveMedian(time: readonly number[], curve: readonly number[]): number {
+export function curveMedian(time: readonly number[], curve: readonly number[]): number {
   const tol = Math.sqrt(Number.EPSILON);
   const first = curve.findIndex((c) => c < 0.5 + tol);
   if (first < 0) return NaN;
@@ -368,7 +369,7 @@ function curveMedian(time: readonly number[], curve: readonly number[]): number 
  */
 export function survfit(time: readonly number[], status: readonly number[], options: SurvfitOptions = {}): SurvfitResult {
   checkOptions(options, SURVFIT_KEYS, "survfit"); // generated: option-keys.mjs
-  const { group, start: startTimes, id, weights, ctype = 1, stype = 1, robust = false, rmean = "common",
+  const { group, start: startTimes, id, weights, ctype = 1, stype = 1, rmean = "common",
     confType: confTypeInput = "log", confInt = 0.95 } = options;
   if (typeof confTypeInput !== "string") throw new TypeError("confType must be a string");
   const confTypes = ["log", "log-log", "plain", "none", "logit", "arcsin"] as const;
@@ -393,7 +394,14 @@ export function survfit(time: readonly number[], status: readonly number[], opti
   if (id !== undefined && startTimes === undefined) throw new RangeError("'id' requires 'start'");
   if (weights !== undefined && !Array.isArray(weights)) throw new TypeError("'weights' must be an array");
   if (weights !== undefined && weights.length !== time.length) throw new RangeError("'weights' must have the same length as 'time'");
+  // R's default: the robust (infinitesimal jackknife) variance when a case weight is not an integer
+  const robust = options.robust ?? (weights !== undefined && Array.from(weights).some((w) => w != null && Number.isFinite(w) && !Number.isInteger(w)));
   if (typeof robust !== "boolean") throw new TypeError("'robust' must be a boolean");
+  // the robust exponential-hazard curve (stype 2) has been checked with integer weights only (its restricted-mean
+  // standard error is not right with fractional ones): kept out
+  if (robust && stype === 2 && weights !== undefined && Array.from(weights).some((w) => w != null && Number.isFinite(w) && !Number.isInteger(w))) {
+    throw new RangeError("non-integer weights with stype 2 and the robust variance are not supported");
+  }
   if (typeof rmean !== "number" && typeof rmean !== "string") throw new TypeError("rmean must be a number or string");
   if (typeof rmean === "number" && !Number.isFinite(rmean)) throw new RangeError("'rmean' must be finite");
   if (typeof rmean !== "number" && rmean !== "none" && rmean !== "common" && rmean !== "individual") {
@@ -407,7 +415,6 @@ export function survfit(time: readonly number[], status: readonly number[], opti
     const w = rawWeight ?? 1;
     if (!Number.isFinite(w)) throw new RangeError("weights must be finite");
     if (w < 0) throw new RangeError("weights must be non-negative");
-    if (!Number.isSafeInteger(w)) throw new RangeError("weights must be non-negative safe integers");
     if (time[i] != null && typeof time[i] !== "number") throw new TypeError("'time' must contain numbers");
     if (status[i] != null && typeof status[i] !== "number") throw new TypeError("'status' must contain numbers");
     if (startTimes !== undefined && startTimes[i] != null && typeof startTimes[i] !== "number") {
@@ -480,9 +487,6 @@ export function survfit(time: readonly number[], status: readonly number[], opti
       let totalWeight = 0;
       for (const o of rows) {
         totalWeight += o.weight;
-        if (!Number.isSafeInteger(totalWeight)) {
-          throw new RangeError("total case weight per group must be a safe integer");
-        }
       }
       nRisk = totalWeight;
       nUnweighted = rows.length;
@@ -508,7 +512,6 @@ export function survfit(time: readonly number[], status: readonly number[], opti
         nRisk=active.reduce((sum,o)=>sum+o.weight,0);
         nUnweighted=active.length;
         uwRisk=nUnweighted;
-        if(!Number.isSafeInteger(nRisk)) throw new RangeError("total case weight at risk must be a safe integer");
       }
       const eventRowsAtTime=atTime.filter(o=>o.event);
       const censorRows=atTime.filter(o=>!o.event && (allRowsById===undefined ||
@@ -524,7 +527,11 @@ export function survfit(time: readonly number[], status: readonly number[], opti
         if(ctype===1){inc=d/nRisk;incVar=d/(nRisk*nRisk);}
         else {for(let k=0;k<e;k++){const a=d/e,den=nRisk-k*a;inc+=a/den;incVar+=a/(den*den);}}
         H+=inc;varH+=incVar;
-        if(stype===1){S*=1-d/nRisk;green+=d<nRisk?d/(nRisk*(nRisk-d)):Infinity;}
+        // (d / n) / (n - d): n (n - d) under- or overflows for weights near 1e-200 or 1e200
+        // every row still at risk has its event: the fraction is 1 exactly (sums of non-integer weights round, and
+        // d / nRisk could otherwise come out just above or below 1)
+        const frac=e===uwRisk&&uwRisk>0?1:d/nRisk;
+        if(stype===1){S*=1-frac;green+=frac<1?(d/nRisk)/(nRisk-d):Infinity;}
         else S=Math.exp(-H);
         eventRows.push({t,d,n:nRisk,e,S});
       }

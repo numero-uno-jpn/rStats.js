@@ -117,6 +117,8 @@ export {
   type QuasiVariance,
 } from "../models/glm.js";
 export { glmConfint, type GlmConfintOptions } from "../models/glmConfint.js";
+export { svyglm, type SvyglmOptions, type SvyglmResult } from "../models/svyglm.js";
+export { survfitCoxph, type SurvfitCoxphOptions, type SurvfitCoxphResult, type SurvfitCoxphAt } from "../models/survfitCoxph.js";
 export {
   vcovHC,
   vcovCL,

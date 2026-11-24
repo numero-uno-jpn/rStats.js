@@ -44,7 +44,7 @@ penalized regression (`glmnet`). For example, `rq("y ~ x", data, { tau: 0.5 })` 
 `glmnet(x, y, { family: "gaussian", alpha: 1 })` fits a lasso path. Use `rqSummary` / `rqPredictInterval`,
 `geeSummary` / `geeVcov` / `geeQIC`, and `glmnetCoef` / `glmnetPredict` / `cvGlmnet` for their methods.
 
-Without a bundler, `https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@1.12.0/dist/rstats.js` is one ES module with
+Without a bundler, `https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@1.13.0/dist/rstats.js` is one ES module with
 every function except mixed models, regression, multivariate analysis, time series and causal inference, which are in
 `dist/mixed.js`, `dist/regression.js`, `dist/multivariate.js`, `dist/timeseries.js` and `dist/causal.js`. Keep a version in the URL (an exact one, or a
 major version such as `@1` from 1.0.0 on): a URL without one follows every new release, breaking changes included.
@@ -207,3 +207,29 @@ tableOneSmd(age, tr); // tableone's SMD
 ```
 
 `match` follows `Matching::Match(Tr, X, estimand, M, caliper, ties = FALSE, replace = FALSE)`: without ties its pairs are R's; ties among three or more candidates are broken by a documented rule of its own (`tieSizes` reports them). The caliper is in standard deviations of `x` with divisor n. `balTab` takes the weights of the match (`matchWeights`) and uses the SD of the unmatched sample in the denominator (treated for ATT, controls for ATC, pooled for ATE). The matched pairs are analysed with `clogit` (exact or approximate), with `coxph` using the pairs as `strata` and `ties: "breslow"`, or with `mantelhaenTest` using the pairs as strata.
+
+Inverse probability of treatment weighting is in `/causal` too; the weighted analyses (`svyglm`, `survfitCoxph`, and
+`lm`, `coxph` and `survfit` with `weights`) are in the main entry point:
+
+```ts
+import { svyglm, coxph, survfit, survfitCoxph } from "@numero-uno-jpn/rstats";
+import { weightit, trimWeights, weightSummary, balTab } from "@numero-uno-jpn/rstats/causal";
+
+const cov = { age, smoker }; // a string column is a factor
+const w = weightit(tr, cov, { method: "glm", link: "logit", estimand: "ATE" });
+const t = trimWeights(w, { at: 0.99, lower: true }); // cap the top and bottom 1%
+weightSummary(t); // range, coefficient of variation, effective sample size by group
+balTab(tr, cov, { weightit: t, binary: "std" }); // SMDs and variance ratios before and after
+svyglm(tr.map((v) => [v]), y, { weights: t.weights, family: "quasibinomial" }); // design-based standard errors
+survfit(time, status, { group: tr, weights: t.weights }); // weighted Kaplan-Meier (robust variance by default)
+survfitCoxph(time, status, tr.map((v, i) => [v, age[i]]), { weights: t.weights, robust: true, newdata: [[0, 50], [1, 50]] });
+```
+
+`weightit` follows `WeightIt::weightit(tr ~ ..., method, link, estimand, stabilize)` with the methods `glm` (`ps`;
+logit, probit, cauchit, cloglog), `cbps` (logit, probit), `ipt` and `ebal`, and the estimands ATE, ATT, ATC and ATO
+(overlap weights; not with ipt or ebal). `stabilize` multiplies the ATE weights of glm by the group's share. cbps, ipt
+and ebal solve their balance conditions exactly, so their weights agree with R's to about 1e-8 (R stops its optimisers
+earlier). `trimWeights` caps at R's type-3 quantile of the weights that the estimand does not fix. `balTab` with
+`weightit` adds the `prop.score` row and splits a string covariate into its levels; for ATO the denominator is the SD of
+the overlap-weighted sample. `svyglm` is `survey::svyglm` for `svydesign(ids = ~1, weights)`: the weighted glm with the
+sandwich variance times n/(n − 1) and t tests on n − p degrees of freedom.

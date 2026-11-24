@@ -1,8 +1,76 @@
 # 引継ぎ: rStats.js (外部レビュー対応 2026-10-30〜11-04、1.0.0 への準備 11-04〜)
 
-最終更新: 2026-11-24 (セッション 30、Mac mini: 1.12.0 (マッチング) の準備。作業ブランチ `dev/psm-1.12` (手元だけ)、Issue #562、イメージとチェッカーに Matching・cobalt・tableone、最初の R の実験 3 本と仕様書の下書き `oracle/match-behaviour.md`。Match・バランス・clogit を実装して R と一致、端のケースも点検、訳・文書・デモ・版 1.12.0 まで済み。次は main への push とタグ)。以前: 2026-11-24 (セッション 29 の終わり、Mac mini: **1.11.0 を公開** (acf・pacf・ccf の `/timeseries`、ca・caSummary・caCoord・mjca・sammon・isoMDS)。次は 1.12.0 = 傾向スコア (ROADMAP の新しい 1 番)、範囲を決めるところから)。以前: 2026-11-24 (セッション 29: 1.11.0 の作業ブランチは完成、GitHub Actions が支払いのロックで止まっていて取り込み待ち)。以前: 2026-11-23 (セッション 29 の始め、Mac mini: 1.11.0 の範囲をユーザーが決めた (mjca も入れる、ほかは推奨どおり)。準備が全部済んだ (Issue #560・draft PR #561・作業ブランチ `work/ca-acf-mds-1.11`)。段階 1 も済み、Decisions を決めて choices・fixture・段階 2 の指示を置いた (ブランチ `40aa5d94`)。次は ChatGPT の段階 2 (実装))。以前: 2026-11-23 (セッション 28 の終わり、Mac mini: **1.10.0 を公開** (dist・hclust・cutree・kmeans・cmdscale)。次は 1.11.0 = ca・acf・pacf・isoMDS・sammon、1.12.0 = arima (ユーザーの決定)。範囲を決めるところから)。以前: 2026-11-22 夜 (セッション 28、Mac mini: 1.10.0 の範囲をユーザーが決め (全部推奨どおり)、準備 (チェッカー・R の実験・指示書) を main に置き、Issue #556・draft PR #557 を作った。段階 1 を終え、次は ChatGPT の段階 2)。以前: 2026-11-22 夜 (セッション 27 の終わり、Mac mini: **1.9.0 を公開** (T2・Page・Grubbs、manova・lda・cancor)。次は 1.10.0 = クラスタ分析と多次元尺度法 (ユーザーの決定)、範囲を決めるところから)。以前: 2026-11-22 (セッション 27 の始め、Mac mini: 1.9.0 の範囲を決め、準備中)。以前: 2026-11-22 (セッション 26 の終わり、Mac mini: **1.8.0 を公開** (rq・geeglm・glmnet)。次は 1.9.0 = 小さな検定 3 つ + 多変量 3 つ (ユーザーの決定)、範囲を決めるところから)。以前: 2026-11-20 夜 (セッション 26 の始め: 1.8.0 の範囲を決め、準備)。以前: 2026-11-20 夕 (セッション 25 の終わり、Mac mini: **1.7.0 を公開** (回帰 polr・rlm・nls、`/regression`)。次の作業は未定 (ROADMAP の 2 = 1.8.0)。以前: 2026-11-20 昼 (セッション 25、Mac mini: 段階 3 の端の入力の直しも済み (最後は私が引き継いだ)。次は「nls の後」の配線と文書)。以前: 2026-11-19 深夜 (セッション 24、polr・rlm は完了、nls を ChatGPT に依頼)。以前: 2026-11-19 (セッション 23、1.6.0 を公開 (混合モデルの confint と simulate))。以前: 2026-11-17 (セッション 22、1.5.0 を公開)。その前: 2026-11-16 (セッション 21、Mac mini: 1.4.0 を公開、同時刻の Gray の検定を ChatGPT がクリーンルームで修正 (1.4.1 に入る、未公開)、外注用の R の実験の仕組みを作った。次は ROADMAP の 1 番)
+最終更新: 2026-11-24 (セッション 31 の続き、Mac mini: 1.13.0 の fixture・実装・端のケース・文書 (英・日)・訳・デモまで済み (作業ブランチ `dev/iptw-1.13`、手元だけ)。残りは版 1.13.0 と公開)。以前: 2026-11-24 (セッション 31、Mac mini: 1.13.0 (IPTW) の準備。作業ブランチ `dev/iptw-1.13` (手元だけ)、Issue #563、イメージとチェッカーに WeightIt・CBPS・survey・sandwich、最初の R の実験 `experiments/iptw113` と仕様書 `oracle/weightit-behaviour.md`、Choices をユーザーが決めた。次は fixture と実装)。以前: 2026-11-24 (セッション 30 の終わり、Mac mini: **1.12.0 を公開** (`/causal` の match・matchWeights・balTab・tableOneSmd、`/tests` の clogit)。次は 1.13.0 = IPTW、範囲はユーザーが決めた (下の節))。以前: 2026-11-24 (セッション 30、Mac mini: 1.12.0 (マッチング) の準備。作業ブランチ `dev/psm-1.12` (手元だけ)、Issue #562、イメージとチェッカーに Matching・cobalt・tableone、最初の R の実験 3 本と仕様書の下書き `oracle/match-behaviour.md`。Match・バランス・clogit を実装して R と一致、端のケースも点検、訳・文書・デモ・版 1.12.0 まで済み。次は main への push とタグ)。以前: 2026-11-24 (セッション 29 の終わり、Mac mini: **1.11.0 を公開** (acf・pacf・ccf の `/timeseries`、ca・caSummary・caCoord・mjca・sammon・isoMDS)。次は 1.12.0 = 傾向スコア (ROADMAP の新しい 1 番)、範囲を決めるところから)。以前: 2026-11-24 (セッション 29: 1.11.0 の作業ブランチは完成、GitHub Actions が支払いのロックで止まっていて取り込み待ち)。以前: 2026-11-23 (セッション 29 の始め、Mac mini: 1.11.0 の範囲をユーザーが決めた (mjca も入れる、ほかは推奨どおり)。準備が全部済んだ (Issue #560・draft PR #561・作業ブランチ `work/ca-acf-mds-1.11`)。段階 1 も済み、Decisions を決めて choices・fixture・段階 2 の指示を置いた (ブランチ `40aa5d94`)。次は ChatGPT の段階 2 (実装))。以前: 2026-11-23 (セッション 28 の終わり、Mac mini: **1.10.0 を公開** (dist・hclust・cutree・kmeans・cmdscale)。次は 1.11.0 = ca・acf・pacf・isoMDS・sammon、1.12.0 = arima (ユーザーの決定)。範囲を決めるところから)。以前: 2026-11-22 夜 (セッション 28、Mac mini: 1.10.0 の範囲をユーザーが決め (全部推奨どおり)、準備 (チェッカー・R の実験・指示書) を main に置き、Issue #556・draft PR #557 を作った。段階 1 を終え、次は ChatGPT の段階 2)。以前: 2026-11-22 夜 (セッション 27 の終わり、Mac mini: **1.9.0 を公開** (T2・Page・Grubbs、manova・lda・cancor)。次は 1.10.0 = クラスタ分析と多次元尺度法 (ユーザーの決定)、範囲を決めるところから)。以前: 2026-11-22 (セッション 27 の始め、Mac mini: 1.9.0 の範囲を決め、準備中)。以前: 2026-11-22 (セッション 26 の終わり、Mac mini: **1.8.0 を公開** (rq・geeglm・glmnet)。次は 1.9.0 = 小さな検定 3 つ + 多変量 3 つ (ユーザーの決定)、範囲を決めるところから)。以前: 2026-11-20 夜 (セッション 26 の始め: 1.8.0 の範囲を決め、準備)。以前: 2026-11-20 夕 (セッション 25 の終わり、Mac mini: **1.7.0 を公開** (回帰 polr・rlm・nls、`/regression`)。次の作業は未定 (ROADMAP の 2 = 1.8.0)。以前: 2026-11-20 昼 (セッション 25、Mac mini: 段階 3 の端の入力の直しも済み (最後は私が引き継いだ)。次は「nls の後」の配線と文書)。以前: 2026-11-19 深夜 (セッション 24、polr・rlm は完了、nls を ChatGPT に依頼)。以前: 2026-11-19 (セッション 23、1.6.0 を公開 (混合モデルの confint と simulate))。以前: 2026-11-17 (セッション 22、1.5.0 を公開)。その前: 2026-11-16 (セッション 21、Mac mini: 1.4.0 を公開、同時刻の Gray の検定を ChatGPT がクリーンルームで修正 (1.4.1 に入る、未公開)、外注用の R の実験の仕組みを作った。次は ROADMAP の 1 番)
 
 ## まず読むこと (セッション 16 から)
+
+## セッション 31 の続き (2026-11-24): 1.13.0 の fixture と実装
+
+- **fixture** `oracle/weightit.R` → `test/fixtures/weightit.json` (x86_64、3.2 MB): sim・cobalt の lalonde・survival の veteran で
+  weightit の全手法 × estimand、trim 120 件、summary、bal.tab 33 件 + 2 水準の factor、svyglm 20 件、survfit(coxph) 12 件 +
+  既定の newdata、重み付き KM 12 件、エラーと警告
+- **実装 (全部 R と一致):** `src/causal/weightit.ts` (weightit・trimWeights・weightSummary・covariateColumns)、`src/causal/balance.ts`
+  (weightit を受ける、prop.score の行、factor の水準 (`levels` で R の順)、ATO の分母)、`src/models/svyglm.ts`、
+  `src/models/survfitCoxph.ts`、`src/models/survival.ts` (survfit が整数でない重みを受ける、既定は robust。stype 2 + robust +
+  整数でない重みだけは断る: se(rmean) がおかしかった)。テスト `test/weightit.test.ts`・`svyglm.test.ts`・`survfitCoxph.test.ts`・
+  `iptwEdge.test.ts`、既存の `survival2*.test.ts` を整数でない重みの照合に直した (R を直した既知の違いは reference と比べる)
+- **分かったこと** (仕様書 `oracle/weightit-behaviour.md` の「Settled at the fixture stage」): ipt は対照と処置の 2 つの傾きだけ
+  (ebal・cbps logit の ATT と同じ解)、cbps の ps は [eps, 1−eps]、summary の 0 は 1e-10 未満、svyglm の deviance は重みを平均 1 に
+  した glm (反復の回数も)、dispersion は Pearson 残差の重み付き分散 × n/(n−1)、survfit(coxph) の SE は fit の `var` (robust なら
+  robust。最初の実験の「robust に依らない」は誤り: 整数でない重みの coxph は既定で robust)、重み付き KM の既定は robust
+- **端のケース** `experiments/iptw113-edge.{R,json}` (Issue #563 に記録): 共変量の尺度 1e-150・1e-300 で R の cbps・ipt・ebal が
+  崩れる (rStats.js は列を厳密に縮めるので不変)、1e15 の共通の値、定数・共線の列は落とす、収束しないときは R の警告文、
+  重み 1e-200 で R の bal.tab・coxph が崩れる (rStats.js は不変)
+- **配線:** option-keys、R の名前の文、例、R の関数の索引 (英・日)、デモの例 4 つ (R の結果は既存の 257 件が不変)、README・
+  API・差異・CHANGELOG の Unreleased・ROADMAP (英・日)。手元で型・全テスト (既知の issue179・513 以外)・ビルド・ブラウザ
+  16/16・デモ 1190/1190
+- **日本語の訳 (私、ユーザーの指示 2026-11-24):** API 97 件 + TypeDoc の警告を消すために分けた説明 22 件、未訳 0。README.ja・
+  docs/ja/api-reference・docs/ja/differences-from-r・r-functions。英・日の TypeDoc で新しいファイルの警告 0 (残りの 302 件は以前から)
+- **端のケースの 2 回目 (ユーザーの指摘で 2026-11-24):** `experiments/iptw113-edge2.{R,json}`・`iptw113-edge3.{R,json}` (Issue に
+  記録)。直したもの: trim の `at` の読み替え (0.5 未満は 1 − at、件数は n/2 を超えると n − at、n 以上は警告して切らない。以前は
+  件数が誤り)、glm の ps を [eps, 1−eps] に、重みが全部 0 の群の entropy を NaN に、n = 5000 の ipt の収束判定 (直線探索に丸めの
+  幅)、survfitCoxph を共変量の厳密な縮尺の当てはめで (×1e±300 の SE のアンダーフロー、1e15 の桁落ち) と timefix の時点のまとめ、
+  Greenwood を (d/n)/(n−d) に、svyglm の SE・t・p を縮めた当てはめから (x ×1e±300、y ×1e300)。**balTab の分母 (ユーザーの決定):**
+  cobalt と同じく、元の単位の SD が sqrt(eps) 未満なら全体の SD に切り替える (絶対の閾値。1.12.0 の 1e-300 での不変性のテストを
+  この規則に合わせて直した)。テスト `test/iptwEdge.test.ts` に 18 件
+- **残り:** (1) 版 1.13.0 (package.json・lock・README・API の CDN・demo の VERSION・CHANGELOG の日付) (2) main に squash の 1 コミット +
+  タグ → `npm stage approve` → `archive/iptw-1.13` のタグ
+
+## セッション 31 でしたこと (2026-11-24): 1.13.0 の準備
+
+- 作業ブランチ **`dev/iptw-1.13`** (push していない、main の未 push の HANDOFF の 3 コミットを含む)。**Issue #563**、実験の記録の
+  コメント 1 件
+- イメージ: `oracle/Dockerfile.r46` と `oracle/Dockerfile.experiments` に WeightIt 2.1.0・CBPS 0.24・sandwich 3.1.3 の層
+  (`oracle/Dockerfile` は R 4.5.2 用で据え置き)。3 つのイメージを作り直し、match と acf の fixture が変わらないことを確かめた。
+  チェッカーに WeightIt・CBPS・survey・sandwich の export と S3 メソッド、survival の coxph・survfit (survey の `cv`・`SE` は
+  過去の実験の変数名とぶつかるので外した)
+- R の実験 `experiments/iptw113.{R,json}` (x86_64)。分かったことは `oracle/weightit-behaviour.md` の Settled: ps/glm は教科書の
+  重み、stabilize は ATE だけで群の割合を掛ける、cbps は just-identified の釣り合い、ipt・ebal は群ごとに目標の平均へ (ATO は
+  不可)、trim は type 3 の分位点で正規化なし、summary の各量、bal.tab の ATO の分母は ATO で重み付けた全体の SD、svyglm は
+  HC0 × n/(n−1) と t (df = n − p)、survfit(coxph) の SE は robust に依らない
+- **Choices (ユーザー 2026-11-24、全部推奨どおり):** 置き場所は案のとおり、cbps・ipt・ebal は厳密に解いて許容 (相対 1e-6 程度)
+  で比べる、共変量は文字列の列を factor として受ける、収束しないときは `converged: false` と警告で返す
+- **未解明 (fixture で):** 重み付きの survfit.coxph の SE と rmean、svyglm の表示する dispersion
+- **次:** fixture `oracle/weightit.R` (x86_64) → 実装 → 端のケース (分離に近いデータ、極端な尺度) → 文書・訳・デモ → 公開
+
+## 次のセッションで最初にやること: 1.13.0 (IPTW) の準備 (セッション 30 の終わり、2026-11-24 に作成)
+
+### 1.13.0 の範囲 (ユーザーの決定 2026-11-24、全部推奨どおり)
+- **重み:** WeightIt 2.1.0 の `weightit(tr ~ 共変量, method, link, estimand)` のうち **ps (logit・probit・cauchit・cloglog)・glm
+  (logit)・cbps (logit・probit、CBPS 0.24)・ipt (logit)・ebal**。energy・optweight・gbm・bart は外す (ソルバーや乱数しだいで R と
+  同じ値にならない)。ReactiveStat (`scripts/傾向スコア/逆確率重み付け.php`) の選択肢に合わせる
+- **推定対象:** ATE・ATT・ATC・ATO、`stabilize`、`trim(at, lower = TRUE)` (ReactiveStat は at = 0.9・0.95・0.98・0.99)
+- **バランス:** 既存の `balTab` に weightit の結果を渡せるようにし、ATO (両群をまとめた SD) を足す。群ごとの有効サンプル
+  サイズ (Kish) と重みの要約 (WeightIt の `summary`) も返す
+- **下流 (新しく):** `svyglm` (survey 4.5、`svydesign(ids = ~1, weights)` だけ、t 分布の p 値)、Cox からの調整生存曲線
+  (`survfit(coxph, newdata)`)。既存: `lm` の weights + `vcovHC(type = "HC3")`、`coxph(weights, robust = TRUE)`、重み付きの `survfit`
+- 置き場所の案 (始めに確かめる): weightit・trim・重みの要約は `/causal`、svyglm と調整生存曲線は glm・coxph と同じ `/tests`
+
+### 手順 (1.12.0 と同じ。教訓: 端のケースと極端な尺度は実装の直後に必ず点検する、作業ブランチは消す前に `archive/` のタグ)
+1. Issue を作る。作業ブランチ (`dev/iptw-1.13`)。手元の未 push の HANDOFF のコミットを最初に含める
+2. WeightIt・CBPS (と依存) をイメージ 3 つとチェッカーに足す (survey・sandwich は入っている)
+3. R の実験 (x86_64、17 桁) → 仕様書 `oracle/weightit-behaviour.md` → Decisions → fixture → 実装 → 端のケース → 文書・訳 (私)・
+   デモ → main に 1 コミット + タグ → `npm stage approve`
 
 ## セッション 30 でしたこと (2026-11-24): 1.12.0 の準備
 
@@ -47,8 +115,11 @@
   R と違う (NaN、文書に書いた)。match は n = 5000 で 0.7 秒
 - **公開の準備は済み (2026-11-24):** デモの例 4 つ (match・balTab と matchWeights・tableOneSmd・clogit、R の結果は既存の 253 件が
   不変)、版 1.12.0 (package.json・lock・README・API の CDN・demo の VERSION・CHANGELOG の日付)
-- 残り: main に squash の 1 コミットを push + タグ `v1.12.0` (ユーザーの確認の後)、release.yml の stage をユーザーが
-  `npm stage approve`、jsDelivr を purge、Issue #562 を閉じる、`dev/psm-1.12` の扱いを聞く
+- **1.12.0 を公開した (2026-11-24):** main `f65ba78d` (16 コミットを squash、中身は作業ブランチと同じ)、CI・Pages 緑 → タグ
+  `v1.12.0` → Release の stage (id `2cedf6dd-...`) をユーザーが承認。npm latest = 1.12.0、jsDelivr の `dist/causal.js` (purge は不要
+  だった)、`/api/` と `/ja/api/` の match のページ、デモ v1.12.0 を確かめた。Issue #562 を閉じた。HANDOFF のこの更新は手元の
+  コミットだけ (次の作業とまとめて push)。`dev/psm-1.12` はユーザーの指示で手元と GitHub から削除。途中のコミット (Issue の実験の記録が指す) は
+  タグ `archive/psm-1.12` (`e3513ad2`) で残した (クリーンルームの証拠。`v` で始まらないので Actions は動かない)
   (`oracle/match.R` など、x86_64) → 実装 (Match・バランス・clogit の exact) → 点検 → 文書・デモ → 訳は ChatGPT
 
 ## 次のセッションで最初にやること: 1.12.0 (傾向スコアのマッチング) の準備 (セッション 29 → 30、2026-11-24 に作成)

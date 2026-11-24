@@ -138,3 +138,10 @@ RUN install2.r --error --skipinstalled Matching cobalt tableone \
     && Rscript -e 'pk <- c("Matching", "cobalt", "tableone", "survey", "survival"); \
                    for (p in pk) suppressPackageStartupMessages(library(p, character.only = TRUE)); \
                    cat(sprintf("%s %s\n", pk, sapply(pk, function(p) as.character(packageVersion(p)))), sep = "")'
+
+# Inverse probability of treatment weighting (1.13.0), in a layer of its own: WeightIt (weightit, trim, summary) and
+# CBPS (method = "cbps"). survey (svyglm) came with tableone; sandwich (vcovHC) is installed here if missing.
+RUN install2.r --error --skipinstalled WeightIt CBPS sandwich \
+    && Rscript -e 'pk <- c("WeightIt", "CBPS", "sandwich", "survey", "survival"); \
+                   for (p in pk) suppressPackageStartupMessages(library(p, character.only = TRUE)); \
+                   cat(sprintf("%s %s\n", pk, sapply(pk, function(p) as.character(packageVersion(p)))), sep = "")'

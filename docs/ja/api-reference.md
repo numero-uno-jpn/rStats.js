@@ -35,7 +35,7 @@ import { glmnet, glmnetCoef, glmnetPredict, cvGlmnet } from "@numero-uno-jpn/rst
 メソッドはそれぞれ `rqSummary` / `rqPredictInterval`、`geeSummary` / `geeVcov` / `geeQIC`、
 `glmnetCoef` / `glmnetPredict` / `cvGlmnet` です。
 
-バンドラーを使わないときは、`https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@1.12.0/dist/rstats.js` が、混合モデル・回帰・多変量解析・時系列・因果推論以外のすべての関数を含む 1 つの ES モジュールです。混合モデルは `dist/mixed.js`、回帰は `dist/regression.js`、多変量解析は `dist/multivariate.js`、時系列は `dist/timeseries.js`、因果推論は `dist/causal.js` にあります。URL にはバージョンを含めてください (正確なバージョン、または 1.0.0 以降の `@1` のようなメジャーバージョン)。バージョンのない URL は、破壊的変更を含むすべての新しいリリースに追従してしまいます。1 つのページでは、`dist/rstats.js` か分野ごとのバンドル (`dist/tests.js`、`dist/mixed.js`、`dist/regression.js`、`dist/multivariate.js` など) のどちらか一方だけを使ってください。両方を混ぜると、共通のコードが 2 度読み込まれ、乱数の状態も 2 つになります。
+バンドラーを使わないときは、`https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@1.13.0/dist/rstats.js` が、混合モデル・回帰・多変量解析・時系列・因果推論以外のすべての関数を含む 1 つの ES モジュールです。混合モデルは `dist/mixed.js`、回帰は `dist/regression.js`、多変量解析は `dist/multivariate.js`、時系列は `dist/timeseries.js`、因果推論は `dist/causal.js` にあります。URL にはバージョンを含めてください (正確なバージョン、または 1.0.0 以降の `@1` のようなメジャーバージョン)。バージョンのない URL は、破壊的変更を含むすべての新しいリリースに追従してしまいます。1 つのページでは、`dist/rstats.js` か分野ごとのバンドル (`dist/tests.js`、`dist/mixed.js`、`dist/regression.js`、`dist/multivariate.js` など) のどちらか一方だけを使ってください。両方を混ぜると、共通のコードが 2 度読み込まれ、乱数の状態も 2 つになります。
 
 ## 規約
 
@@ -169,3 +169,21 @@ tableOneSmd(age, tr); // tableone の SMD
 ```
 
 `match` は `Matching::Match(Tr, X, estimand, M, caliper, ties = FALSE, replace = FALSE)` に従います。同点が無ければ組は R と同じです。3 つ以上の候補の同点は、文書化した独自の規則で選びます (`tieSizes` に出ます)。キャリパーは `x` の標準偏差 (n で割る) を単位とします。`balTab` はマッチングの重み (`matchWeights`) を使い、分母にはマッチング前の標本の SD を使います (ATT では処置群、ATC では対照群、ATE では両群をまとめたもの)。マッチした組は、`clogit` (正確な尤度または近似)、組を `strata` にして `ties: "breslow"` とした `coxph`、組を層にした `mantelhaenTest` で解析します。
+
+逆確率重み付けも `/causal` にあります。重み付きの解析 (`svyglm`、`survfitCoxph`、`weights` を与えた `lm`・`coxph`・`survfit`) は主な入口にあります。
+
+```ts
+import { svyglm, coxph, survfit, survfitCoxph } from "@numero-uno-jpn/rstats";
+import { weightit, trimWeights, weightSummary, balTab } from "@numero-uno-jpn/rstats/causal";
+
+const cov = { age, smoker }; // 文字列の列は因子
+const w = weightit(tr, cov, { method: "glm", link: "logit", estimand: "ATE" });
+const t = trimWeights(w, { at: 0.99, lower: true }); // 上下 1% を抑える
+weightSummary(t); // 群ごとの範囲・変動係数・有効サンプルサイズ
+balTab(tr, cov, { weightit: t, binary: "std" }); // 重み付けの前後の SMD と分散比
+svyglm(tr.map((v) => [v]), y, { weights: t.weights, family: "quasibinomial" }); // デザインに基づく標準誤差
+survfit(time, status, { group: tr, weights: t.weights }); // 重み付きの Kaplan-Meier (既定は頑健な分散)
+survfitCoxph(time, status, tr.map((v, i) => [v, age[i]]), { weights: t.weights, robust: true, newdata: [[0, 50], [1, 50]] });
+```
+
+`weightit` は `WeightIt::weightit(tr ~ ..., method, link, estimand, stabilize)` に従います。手法は `glm` (`ps`。logit・probit・cauchit・cloglog)、`cbps` (logit・probit)、`ipt`、`ebal`、推定対象は ATE・ATT・ATC・ATO (重複重み。ipt と ebal にはありません) です。`stabilize` は glm の ATE の重みに群の割合を掛けます。cbps・ipt・ebal は釣り合いの条件を厳密に解くので、重みは R と 1e-8 程度で一致します (R は最適化を早めに止めます)。`trimWeights` は、推定対象が固定しない重みの R の type 3 の分位点で抑えます。`weightit` を与えた `balTab` は `prop.score` の行を足し、文字列の共変量を水準に分けます。ATO の分母は重複重みで重み付けた標本の SD です。`svyglm` は `svydesign(ids = ~1, weights)` に対する `survey::svyglm` です: 重み付きの glm に、サンドイッチ分散に n/(n − 1) を掛けた分散と、自由度 n − p の t 検定を組み合わせます。

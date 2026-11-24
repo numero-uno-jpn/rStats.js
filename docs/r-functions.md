@@ -8,10 +8,13 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 
 | R | rStats.js | Description |
 | --- | --- | --- |
-| `cobalt::bal.tab()` | `balTab` | Covariate balance of two groups before and after matching: standardised mean differences and variance ratios. |
+| `cobalt::bal.tab()` | `balTab` | Covariate balance of two groups before and after matching or weighting: standardised mean differences and variance ratios. |
 | `tableone::ExtractSmd()` | `tableOneSmd` | Standardised mean difference of one variable between two groups. |
 | `cobalt::get.w()` | `matchWeights` | The weight of each unit after matching: every pair adds its weight `1 / M` to both of its units; unmatched units weigh 0. |
 | `Matching::Match()` | `match` | Nearest-neighbour matching on a scalar score, without replacement and with random tie-breaking. |
+| `WeightIt::summary.weightit()` | `weightSummary` | Summary of balancing weights by group: range, largest weights, coefficient of variation, scaled MAD, negative entropy, zeros and Kish's effective sample size. |
+| `WeightIt::trim()` | `trimWeights` | Trims extreme weights: those above a quantile, and with `lower` those below the opposite one, are set to it. |
+| `WeightIt::weightit()` | `weightit` | Balancing weights for a binary treatment. |
 
 ## Multivariate analysis (`rStats.js/multivariate`)
 
@@ -378,8 +381,10 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `summary()` | `aovSummary` | The table of an analysis of variance fitted by `aov`. |
 | `summary()` | `glmSummary` | Summary of a generalized linear model: the dispersion, the coefficient table and the covariance of the estimates, for a `glm` fit. |
 | `survival::survdiff()` | `survdiff` | Test of the difference between survival curves: the G-rho family of Harrington and Fleming, the log-rank test for `rho = 0`. |
+| `survival::survfit.coxph()` | `survfitCoxph` | Predicted survival curves of a Cox model for covariate profiles. |
 | `survival::survfit()` | `survfit` | Kaplan-Meier or exponential cumulative-hazard estimate with pointwise confidence intervals, medians and restricted means. |
 | `survival::survreg()` | `survreg` | Fit a parametric survival regression model. |
+| `survey::svyglm()` | `svyglm` | A generalised linear model for weighted data with design-based standard errors. |
 | `TOSTER::t_TOST()` | `tTOST` | Two one-sided t tests of equivalence, or minimal-effect tests, for one sample, two samples or paired samples, with the standardised mean difference and its interval. |
 | `t.test()` | `tTest` | Student's t-test. |
 | `PMCMRplus::tamhaneT2Test()` | `tamhaneT2Test` | Tamhane's T2 or T2' all-pairs test of means. |

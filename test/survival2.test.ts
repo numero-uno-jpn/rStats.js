@@ -41,10 +41,9 @@ describe("survfit continued", () => {
     expect(r.records[0]).toBe(12);
   });
 
-  it("rejects fractional, unsafe, and overflowing case weights", () => {
-    expect(() => survfit([1,2], [1,0], { weights: [0.5,1] })).toThrow(RangeError);
-    expect(() => survfit([1,2], [1,0], { weights: [Number.MAX_SAFE_INTEGER+1,1] })).toThrow(RangeError);
-    expect(() => survfit([1,2], [1,0], { weights: [Number.MAX_SAFE_INTEGER,1] })).toThrow("total case weight per group must be a safe integer");
+  it("takes fractional case weights (with the robust variance by default, as R) and rejects all-zero ones", () => {
+    expect(survfit([1,2], [1,0], { weights: [0.5,1] }).logse).toBe(false);
+    expect(survfit([1,2], [1,0], { weights: [0.5,1], robust: false }).logse).toBe(true);
     expect(() => survfit([1,2], [1,0], { weights: [0,0] })).toThrow("no positive weight");
   });
 
@@ -107,9 +106,8 @@ describe("survfit input validation", () => {
     expect(()=>survfit(time,status,{unknownOption:true} as any)).toThrow(RangeError);
   });
 
-  it("validates integer case weights and observation arrays", () => {
+  it("validates case weights and observation arrays", () => {
     expect(()=>survfit(time,status,{weights:"1,1,1,1" as any})).toThrow(TypeError);
-    expect(()=>survfit(time,status,{weights:[1,0.5,1,1]})).toThrow(RangeError);
     expect(()=>survfit(time,status,{weights:[1,-1,1,1]})).toThrow(RangeError);
     expect(()=>survfit(time,status,{weights:[1,Infinity,1,1]})).toThrow(RangeError);
     expect(()=>survfit(time,status,{weights:[1,1]})).toThrow(RangeError);
