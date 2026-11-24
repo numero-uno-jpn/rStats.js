@@ -1,15 +1,48 @@
 # 引継ぎ: rStats.js (外部レビュー対応 2026-10-30〜11-04、1.0.0 への準備 11-04〜)
 
-最終更新: 2026-11-25 (セッション 33 の終わり、Mac mini: **1.15.0 を公開** (step・stepAIC・drop1・add1・extractAIC、glm の式の入口)。次の版は未定 (ROADMAP の 5 から))。以前: 2026-11-25 (セッション 33、1.15.0 の範囲を決め、glm の式の入口と step 本体を実装)。以前: 2026-11-24 (セッション 32 の終わり、Mac mini: **1.14.0 を公開** (`/regression` の multinom とその関数)。次は 1.15.0 = 変数選択 (`step`・`stepAIC`、ROADMAP の 4)、範囲を決めるところから (下の節))。以前: 2026-11-24 (セッション 32、Mac mini: 1.14.0 を版 1.14.0 まで済み)。以前: 2026-11-24 (セッション 31 の終わり、Mac mini: **1.13.0 を公開** (`/causal` の weightit・trimWeights・weightSummary、`/tests` の svyglm・survfitCoxph、整数でない重みの survfit)。次の作業は未定 (ROADMAP の 3 = 多項ロジスティック回帰 `multinom` から))。以前: 2026-11-24 (セッション 31 の続き、Mac mini: 1.13.0 の fixture・実装・端のケース・文書 (英・日)・訳・デモまで済み)。以前: 2026-11-24 (セッション 31、Mac mini: 1.13.0 (IPTW) の準備。作業ブランチ `dev/iptw-1.13` (手元だけ)、Issue #563、イメージとチェッカーに WeightIt・CBPS・survey・sandwich、最初の R の実験 `experiments/iptw113` と仕様書 `oracle/weightit-behaviour.md`、Choices をユーザーが決めた。次は fixture と実装)。以前: 2026-11-24 (セッション 30 の終わり、Mac mini: **1.12.0 を公開** (`/causal` の match・matchWeights・balTab・tableOneSmd、`/tests` の clogit)。次は 1.13.0 = IPTW、範囲はユーザーが決めた (下の節))。以前: 2026-11-24 (セッション 30、Mac mini: 1.12.0 (マッチング) の準備。作業ブランチ `dev/psm-1.12` (手元だけ)、Issue #562、イメージとチェッカーに Matching・cobalt・tableone、最初の R の実験 3 本と仕様書の下書き `oracle/match-behaviour.md`。Match・バランス・clogit を実装して R と一致、端のケースも点検、訳・文書・デモ・版 1.12.0 まで済み。次は main への push とタグ)。以前: 2026-11-24 (セッション 29 の終わり、Mac mini: **1.11.0 を公開** (acf・pacf・ccf の `/timeseries`、ca・caSummary・caCoord・mjca・sammon・isoMDS)。次は 1.12.0 = 傾向スコア (ROADMAP の新しい 1 番)、範囲を決めるところから)。以前: 2026-11-24 (セッション 29: 1.11.0 の作業ブランチは完成、GitHub Actions が支払いのロックで止まっていて取り込み待ち)。以前: 2026-11-23 (セッション 29 の始め、Mac mini: 1.11.0 の範囲をユーザーが決めた (mjca も入れる、ほかは推奨どおり)。準備が全部済んだ (Issue #560・draft PR #561・作業ブランチ `work/ca-acf-mds-1.11`)。段階 1 も済み、Decisions を決めて choices・fixture・段階 2 の指示を置いた (ブランチ `40aa5d94`)。次は ChatGPT の段階 2 (実装))。以前: 2026-11-23 (セッション 28 の終わり、Mac mini: **1.10.0 を公開** (dist・hclust・cutree・kmeans・cmdscale)。次は 1.11.0 = ca・acf・pacf・isoMDS・sammon、1.12.0 = arima (ユーザーの決定)。範囲を決めるところから)。以前: 2026-11-22 夜 (セッション 28、Mac mini: 1.10.0 の範囲をユーザーが決め (全部推奨どおり)、準備 (チェッカー・R の実験・指示書) を main に置き、Issue #556・draft PR #557 を作った。段階 1 を終え、次は ChatGPT の段階 2)。以前: 2026-11-22 夜 (セッション 27 の終わり、Mac mini: **1.9.0 を公開** (T2・Page・Grubbs、manova・lda・cancor)。次は 1.10.0 = クラスタ分析と多次元尺度法 (ユーザーの決定)、範囲を決めるところから)。以前: 2026-11-22 (セッション 27 の始め、Mac mini: 1.9.0 の範囲を決め、準備中)。以前: 2026-11-22 (セッション 26 の終わり、Mac mini: **1.8.0 を公開** (rq・geeglm・glmnet)。次は 1.9.0 = 小さな検定 3 つ + 多変量 3 つ (ユーザーの決定)、範囲を決めるところから)。以前: 2026-11-20 夜 (セッション 26 の始め: 1.8.0 の範囲を決め、準備)。以前: 2026-11-20 夕 (セッション 25 の終わり、Mac mini: **1.7.0 を公開** (回帰 polr・rlm・nls、`/regression`)。次の作業は未定 (ROADMAP の 2 = 1.8.0)。以前: 2026-11-20 昼 (セッション 25、Mac mini: 段階 3 の端の入力の直しも済み (最後は私が引き継いだ)。次は「nls の後」の配線と文書)。以前: 2026-11-19 深夜 (セッション 24、polr・rlm は完了、nls を ChatGPT に依頼)。以前: 2026-11-19 (セッション 23、1.6.0 を公開 (混合モデルの confint と simulate))。以前: 2026-11-17 (セッション 22、1.5.0 を公開)。その前: 2026-11-16 (セッション 21、Mac mini: 1.4.0 を公開、同時刻の Gray の検定を ChatGPT がクリーンルームで修正 (1.4.1 に入る、未公開)、外注用の R の実験の仕組みを作った。次は ROADMAP の 1 番)
+最終更新: 2026-11-25 (セッション 33 の終わり、Mac mini: **1.15.0 を公開** (step・stepAIC・drop1・add1・extractAIC、glm の式の入口)。次は 1.16.0 = 媒介・調整・調整媒介分析、範囲はユーザーが決めた (下の節))。以前: 2026-11-25 (セッション 33、1.15.0 の範囲を決め、glm の式の入口と step 本体を実装)。以前: 2026-11-24 (セッション 32 の終わり、Mac mini: **1.14.0 を公開** (`/regression` の multinom とその関数)。次は 1.15.0 = 変数選択 (`step`・`stepAIC`、ROADMAP の 4)、範囲を決めるところから (下の節))。以前: 2026-11-24 (セッション 32、Mac mini: 1.14.0 を版 1.14.0 まで済み)。以前: 2026-11-24 (セッション 31 の終わり、Mac mini: **1.13.0 を公開** (`/causal` の weightit・trimWeights・weightSummary、`/tests` の svyglm・survfitCoxph、整数でない重みの survfit)。次の作業は未定 (ROADMAP の 3 = 多項ロジスティック回帰 `multinom` から))。以前: 2026-11-24 (セッション 31 の続き、Mac mini: 1.13.0 の fixture・実装・端のケース・文書 (英・日)・訳・デモまで済み)。以前: 2026-11-24 (セッション 31、Mac mini: 1.13.0 (IPTW) の準備。作業ブランチ `dev/iptw-1.13` (手元だけ)、Issue #563、イメージとチェッカーに WeightIt・CBPS・survey・sandwich、最初の R の実験 `experiments/iptw113` と仕様書 `oracle/weightit-behaviour.md`、Choices をユーザーが決めた。次は fixture と実装)。以前: 2026-11-24 (セッション 30 の終わり、Mac mini: **1.12.0 を公開** (`/causal` の match・matchWeights・balTab・tableOneSmd、`/tests` の clogit)。次は 1.13.0 = IPTW、範囲はユーザーが決めた (下の節))。以前: 2026-11-24 (セッション 30、Mac mini: 1.12.0 (マッチング) の準備。作業ブランチ `dev/psm-1.12` (手元だけ)、Issue #562、イメージとチェッカーに Matching・cobalt・tableone、最初の R の実験 3 本と仕様書の下書き `oracle/match-behaviour.md`。Match・バランス・clogit を実装して R と一致、端のケースも点検、訳・文書・デモ・版 1.12.0 まで済み。次は main への push とタグ)。以前: 2026-11-24 (セッション 29 の終わり、Mac mini: **1.11.0 を公開** (acf・pacf・ccf の `/timeseries`、ca・caSummary・caCoord・mjca・sammon・isoMDS)。次は 1.12.0 = 傾向スコア (ROADMAP の新しい 1 番)、範囲を決めるところから)。以前: 2026-11-24 (セッション 29: 1.11.0 の作業ブランチは完成、GitHub Actions が支払いのロックで止まっていて取り込み待ち)。以前: 2026-11-23 (セッション 29 の始め、Mac mini: 1.11.0 の範囲をユーザーが決めた (mjca も入れる、ほかは推奨どおり)。準備が全部済んだ (Issue #560・draft PR #561・作業ブランチ `work/ca-acf-mds-1.11`)。段階 1 も済み、Decisions を決めて choices・fixture・段階 2 の指示を置いた (ブランチ `40aa5d94`)。次は ChatGPT の段階 2 (実装))。以前: 2026-11-23 (セッション 28 の終わり、Mac mini: **1.10.0 を公開** (dist・hclust・cutree・kmeans・cmdscale)。次は 1.11.0 = ca・acf・pacf・isoMDS・sammon、1.12.0 = arima (ユーザーの決定)。範囲を決めるところから)。以前: 2026-11-22 夜 (セッション 28、Mac mini: 1.10.0 の範囲をユーザーが決め (全部推奨どおり)、準備 (チェッカー・R の実験・指示書) を main に置き、Issue #556・draft PR #557 を作った。段階 1 を終え、次は ChatGPT の段階 2)。以前: 2026-11-22 夜 (セッション 27 の終わり、Mac mini: **1.9.0 を公開** (T2・Page・Grubbs、manova・lda・cancor)。次は 1.10.0 = クラスタ分析と多次元尺度法 (ユーザーの決定)、範囲を決めるところから)。以前: 2026-11-22 (セッション 27 の始め、Mac mini: 1.9.0 の範囲を決め、準備中)。以前: 2026-11-22 (セッション 26 の終わり、Mac mini: **1.8.0 を公開** (rq・geeglm・glmnet)。次は 1.9.0 = 小さな検定 3 つ + 多変量 3 つ (ユーザーの決定)、範囲を決めるところから)。以前: 2026-11-20 夜 (セッション 26 の始め: 1.8.0 の範囲を決め、準備)。以前: 2026-11-20 夕 (セッション 25 の終わり、Mac mini: **1.7.0 を公開** (回帰 polr・rlm・nls、`/regression`)。次の作業は未定 (ROADMAP の 2 = 1.8.0)。以前: 2026-11-20 昼 (セッション 25、Mac mini: 段階 3 の端の入力の直しも済み (最後は私が引き継いだ)。次は「nls の後」の配線と文書)。以前: 2026-11-19 深夜 (セッション 24、polr・rlm は完了、nls を ChatGPT に依頼)。以前: 2026-11-19 (セッション 23、1.6.0 を公開 (混合モデルの confint と simulate))。以前: 2026-11-17 (セッション 22、1.5.0 を公開)。その前: 2026-11-16 (セッション 21、Mac mini: 1.4.0 を公開、同時刻の Gray の検定を ChatGPT がクリーンルームで修正 (1.4.1 に入る、未公開)、外注用の R の実験の仕組みを作った。次は ROADMAP の 1 番)
 
 ## まず読むこと (セッション 16 から)
 
-## 次のセッションで最初にやること: 次の版の範囲を決める (ROADMAP の 5 = 媒介・調整分析 `mediate` から。セッション 33 の終わり、2026-11-25)
+## 次のセッションで最初にやること: 1.16.0 = 媒介・調整・調整媒介分析の準備 (範囲はユーザーが決めた、2026-11-25)
 
-- **1.15.0 を公開した (2026-11-25):** main `07c63d22` (作業ブランチを squash、中身は同じ)、CI・Pages 緑 → タグ `v1.15.0` → stage
-  (id `1ee15d1b-...`) をユーザーが承認。npm latest = 1.15.0、jsDelivr、`/api/`・`/ja/api/` の step のページ、デモ v1.15.0 を確かめた。
-  Issue #565 を閉じた。証拠はタグ `archive/step-1.15` (`a6190480`)。作業ブランチ `dev/step-1.15` はユーザーの指示で削除 (2026-11-25、手元だけにあった)
-- ユーザーは「進めろ」で、drop1・add1・extractAIC の公開、glm の読み込みサイズの増加、後ろ向きの速さも含めて了承した
+### 範囲 (ユーザーの決定 2026-11-25、すべて推奨どおり)
+- **3 つとも:** 媒介分析 (`mediation::mediate`、Sobel 検定、係数の Monte Carlo)、調整分析 (交互作用モデル、単純傾斜、Johnson-Neyman、
+  `interactions::sim_slopes` に合わせる)、調整媒介分析 (index of moderated mediation)
+- **mediate の区間:** 準ベイズ (`boot = FALSE`) と非パラメトリック・ブートストラップ (`boot = TRUE`、パーセンタイルと BCa)
+- **乱数:** 同じ `setSeed` で R と同じ値 (`MASS::mvrnorm` の固有分解と R の乱数の使い方まで合わせる。固有ベクトルの符号などで無理な所が
+  あれば、そこだけ統計的な一致にして理由を記録)
+- **置き場所:** `/causal` (傾向スコア・IPTW と同じ)
+
+### ReactiveStat の呼び方 (`numero-uno-jpn/ReactiveStat` の `scripts/多変量/媒介分析.php`・`調整分析.php`・`調整媒介分析.php`)
+- 媒介: `med_model <- lm(M ~ X + 共変量)` か `glm(..., binomial(logit))`、`out_model <- lm(Y ~ X + M + 共変量)` か glm。Sobel は
+  a・b と標準誤差から `sqrt(b² sa² + a² sb²)`。M・Y がともに連続なら係数の Monte Carlo: `set.seed(1234)`、NMC = 20000、
+  `a_mc <- rnorm(NMC, a, sa)`、`bc <- MASS::mvrnorm(NMC, coef(out)[c(M, X)], vcov(out)[...])`、間接・直接・総効果・割合の分位点 (type 7)。
+  どちらかが 2 値なら `set.seed(1234); mediation::mediate(med, out, treat, mediator, control.value, treat.value, boot = FALSE,
+  sims (100〜1000), conf.level, robustSE)`、X が 2 値ならその 2 水準、連続なら平均 ± 1SD
+- 調整: `lm(Y ~ X * W + 共変量)` か glm(logit)、X・W の中心化 (`scale(scale = FALSE)`)、`lmtest::coeftest(model, vcovHC(type = "HC3"))`、
+  効果量 (主効果モデルとの比較)、`interactions::sim_slopes(model, pred, modx, modx.values = "mean-plus-minus" | 四分位 | ± 2SD |
+  2 値の W の 2 値, johnson_neyman = TRUE, jnalpha, confint = TRUE, ci.width, robust = "HC3" | FALSE)`、`interact_plot` (図は対象外)
+- 調整媒介: W を両方のモデルに主効果 (と X:W) で入れ、連続なら係数の Monte Carlo (`set.seed(1234)`、`mvrnorm` を両モデルに)、
+  2 値なら W の低・高で `mediate` を同じ `set.seed(1234)` で 2 回、index は `d0.sims`/`d1.sims` の差の分位点
+
+### 手順 (1.15.0 と同じ)
+Issue → 作業ブランチ `dev/mediation-1.16` (main の HANDOFF のコミット込み) → イメージ (`oracle/Dockerfile.r46` と experiments) に
+mediation・interactions (と依存の jtools) を足して作り直す → `scripts/r-experiment-check.mjs` の許すパッケージと「呼ぶだけ」の関数 →
+R の実験 (x86_64、`experiments/mediation116*`、Issue に記録。まず mediate の乱数の使い方と mvrnorm の固有分解、sims・boot の区間、
+sim_slopes の数値と JN の境界) → 仕様書 `oracle/mediation-behaviour.md` → fixture (既存の名前と重ならないか先に確かめる) → 実装 →
+端のケースと極端な尺度を 2 回 → 配線・文書・訳・デモ → 版 1.16.0 → ユーザーの確認 → main に squash + タグ → `npm stage approve`
+→ `archive/mediation-1.16`
+
+### 細部 (実験で決める、必要ならユーザーに聞く)
+M・Y のモデルの種類 (ReactiveStat は lm と logit。probit などを足すか)、X の型 (2 値・連続)、共変量、robustSE、mediate の
+`treat.value`/`control.value`、ACME・ADE の control と treated の両方と平均、割合 (prop.mediated)、p 値の定義、sims の上限
+(rStats.js にはクラウド R の 20 秒の制約がない)、sim_slopes の評価点と HC3、JN の境界の求め方、glm の調整分析の単純傾斜 (logit の尺度)
+
+### 1.15.0 の公開 (2026-11-25)
+- main `07c63d22` (作業ブランチを squash、中身は同じ)、CI・Pages 緑 → タグ `v1.15.0` → stage (id `1ee15d1b-...`) をユーザーが承認。
+  npm latest = 1.15.0、jsDelivr、`/api/`・`/ja/api/` の step のページ、デモ v1.15.0 を確かめた。Issue #565 を閉じた。証拠はタグ
+  `archive/step-1.15` (`a6190480`)。作業ブランチ `dev/step-1.15` はユーザーの指示で削除 (2026-11-25、手元だけにあった)
 - main は origin より HANDOFF のコミットだけ先 (push しない。次の作業ブランチの最初に含める)
 
 ### 1.15.0 の記録 (公開前の状態)
