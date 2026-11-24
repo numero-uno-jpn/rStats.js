@@ -35,7 +35,7 @@ import { glmnet, glmnetCoef, glmnetPredict, cvGlmnet } from "@numero-uno-jpn/rst
 メソッドはそれぞれ `rqSummary` / `rqPredictInterval`、`geeSummary` / `geeVcov` / `geeQIC`、
 `glmnetCoef` / `glmnetPredict` / `cvGlmnet` です。
 
-バンドラーを使わないときは、`https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@1.11.0/dist/rstats.js` が、混合モデル・回帰・多変量解析・時系列以外のすべての関数を含む 1 つの ES モジュールです。混合モデルは `dist/mixed.js`、回帰は `dist/regression.js`、多変量解析は `dist/multivariate.js`、時系列は `dist/timeseries.js` にあります。URL にはバージョンを含めてください (正確なバージョン、または 1.0.0 以降の `@1` のようなメジャーバージョン)。バージョンのない URL は、破壊的変更を含むすべての新しいリリースに追従してしまいます。1 つのページでは、`dist/rstats.js` か分野ごとのバンドル (`dist/tests.js`、`dist/mixed.js`、`dist/regression.js`、`dist/multivariate.js` など) のどちらか一方だけを使ってください。両方を混ぜると、共通のコードが 2 度読み込まれ、乱数の状態も 2 つになります。
+バンドラーを使わないときは、`https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@1.11.0/dist/rstats.js` が、混合モデル・回帰・多変量解析・時系列・因果推論以外のすべての関数を含む 1 つの ES モジュールです。混合モデルは `dist/mixed.js`、回帰は `dist/regression.js`、多変量解析は `dist/multivariate.js`、時系列は `dist/timeseries.js`、因果推論は `dist/causal.js` にあります。URL にはバージョンを含めてください (正確なバージョン、または 1.0.0 以降の `@1` のようなメジャーバージョン)。バージョンのない URL は、破壊的変更を含むすべての新しいリリースに追従してしまいます。1 つのページでは、`dist/rstats.js` か分野ごとのバンドル (`dist/tests.js`、`dist/mixed.js`、`dist/regression.js`、`dist/multivariate.js` など) のどちらか一方だけを使ってください。両方を混ぜると、共通のコードが 2 度読み込まれ、乱数の状態も 2 つになります。
 
 ## 規約
 
@@ -152,3 +152,20 @@ ccf(x, y, { lagMax: 3 });
 ```
 
 `acf` は既定で自己相関を返します。`type: "covariance"` で自己共分散を返し、`pacf` は偏自己相関を返します。`ccf` は `-lagMax` から `lagMax` までの交差相関 (または交差共分散) を返します。ラグは整数の観測単位で、暦時間の単位や R の `frequency` メタデータは扱いません。欠測値は既定でエラーになり、`naAction: "pass"` では欠測を含む組を除きます。
+
+## 因果推論
+
+傾向スコアのマッチングとバランスは、別の入口 `/causal` から読み込みます。`clogit` (マッチした組の条件付きロジスティック回帰) は `coxph` と同じく主な入口にあります。
+
+```ts
+import { clogit, setSeed } from "@numero-uno-jpn/rstats";
+import { match, balTab, tableOneSmd } from "@numero-uno-jpn/rstats/causal";
+
+// x はロジスティックモデルの logit(PS)。R では ps <- fitted(glm(tr ~ age + male, family = binomial()))
+setSeed(1234);
+const m = match(tr, logitPs, { estimand: "ATT", M: 1, caliper: 0.2 });
+balTab(tr, { age, male }, { match: m, binary: "std" }); // マッチング前後の SMD と分散比
+tableOneSmd(age, tr); // tableone の SMD
+```
+
+`match` は `Matching::Match(Tr, X, estimand, M, caliper, ties = FALSE, replace = FALSE)` に従います。同点が無ければ組は R と同じです。3 つ以上の候補の同点は、文書化した独自の規則で選びます (`tieSizes` に出ます)。キャリパーは `x` の標準偏差 (n で割る) を単位とします。`balTab` はマッチングの重み (`matchWeights`) を使い、分母にはマッチング前の標本の SD を使います (ATT では処置群、ATC では対照群、ATE では両群をまとめたもの)。マッチした組は、`clogit` (正確な尤度または近似)、組を `strata` にして `ties: "breslow"` とした `coxph`、組を層にした `mantelhaenTest` で解析します。

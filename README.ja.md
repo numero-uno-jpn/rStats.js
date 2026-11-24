@@ -219,6 +219,7 @@ eigen([[2, 1], [1, 3]]).values;     // ≈ [3.618033989, 1.381966011]
 | 分布 (d/p/q) | 正規、t、カイ二乗、F、ベータ、ガンマ、二項、ポアソン、一様、指数、対数正規、ロジスティック、コーシー、ワイブル、幾何、負の二項、超幾何、Wilcoxon の符号付き順位と順位和、スチューデント化された範囲 (`ptukey`, `qtukey`)、非心カイ二乗・t・F・ベータ (`ncp`)。多項分布の確率 (`dmultinom`)。逆ガンマ、Kumaraswamy、Pareto、三角、Laplace (extraDistr) と逆正弦。`distSummary` (平均・分散・標準偏差・中央値・最頻値・歪度・尖度) |
 | 乱数 | `setSeed` (`set.seed`), `RNGkind` (Mersenne-Twister と L'Ecuyer-CMRG、`sample.kind` の Rejection と Rounding), `getRandomSeed`/`setRandomSeed` (`.Random.seed`), `nextRNGStream`/`nextRNGSubStream` (`parallel`), 26 個の `r*` 関数, `sample`, `sampleInt` (`sample.int`), `r2dtable` |
 | 時系列 | `acf`、`pacf`、`ccf` (`stats::acf`、`stats::pacf`、`stats::ccf`)、`@numero-uno-jpn/rstats/timeseries` |
+| 因果推論 | `match` (傾向スコアのマッチング: `ties = FALSE`・`replace = FALSE` の `Matching::Match`。ATT・ATE・ATC、1:M、キャリパー)、`matchWeights` (`cobalt::get.w`)、`balTab` (マッチング前後の標準化平均差と分散比: `cobalt::bal.tab`)、`tableOneSmd` (`tableone::ExtractSmd`)、`@numero-uno-jpn/rstats/causal` |
 | 記述統計 | `sum`, `prod`, `mean`, `weightedMean` (`weighted.mean`), `variance` (`var`), `sd`, `median`, `range`, `cumsum`, `cumprod`, `cummax`, `cummin`, `diff`, `quantile`, `IQR`, `fivenum`, `mad`, `rank`, `cov`, `cor`, `tabulate`, `table`, `unique`, `cut`, `findInterval`, `pretty`, `hist`, `ecdf`, `scale`, `skewness`, `kurtosis`, `geometricMean`, `modes`, `meanAD`, `cv` |
 | 検定 | `tTest`, `chisqTest`, `fisherTest`, `wilcoxTest`, `corTest`, `binomTest`, `poissonTest`, `propTest`, `mcnemarTest`, `varTest`, `bartlettTest`, `kruskalTest`, `friedmanTest`, `quadeTest`, `flignerTest`, `moodTest`, `onewayTest`, `shapiroTest`, `mantelhaenTest`, `ansariTest`, `ksTest`, `pairwiseTTest`, `pairwiseWilcoxTest`, `pairwisePropTest`, `aov` (一元配置。表は当てはめの `aovSummary`), `TukeyHSD`, `zTest`, `brunnerMunzelTest`, `tamhaneT2Test` (Tamhane の T2 と T2')、`pageTest`、`grubbsTest`・`pgrubbs`・`qgrubbs`、`pAdjust` (`p.adjust`) |
 | 分散分析 | formula で呼ぶ `aov` と `aovSummary` (多元、交互作用、共変量、`Error()` の層), `anova` (`anova.lm`。逐次の表とモデルの比較), `Anova` (car の Type II と III), `aovEz` (afex。反復測定と混合計画、Greenhouse-Geisser と Huynh-Feldt の補正、一般化 η² と偏 η²), `mauchlyTest` (`mauchly.test`) |
@@ -233,7 +234,7 @@ eigen([[2, 1], [1, 3]]).values;     // ≈ [3.618033989, 1.381966011]
 | ほかの検定 | `leveneTest`、`propTrendTest` (`prop.trend.test`)、`jonckheereTest`、`cochranQTest`、`adTest`、`lillieTest`、`cvmTest`、`sfTest`、`pearsonTest` (car、DescTools、clinfun、nortest)。`tTOST`、`tsumTOST` (TOSTER: 平均の同等性検定と最小効果検定) |
 | 分割表と比率 | `binomCI`、`binomDiffCI`、`binomRatioCI` (DescTools の `BinomCI`、`BinomDiffCI`、`BinomRatioCI`)、`oddsRatio` (epitools と epiR のスコア区間)、`fisherTest(x, { midp: true })` (exact2x2)、`boschlooTest` (Exact)、`gTest`、`stuartMaxwellTest`、`goodmanKruskalGamma` (DescTools)、`lblTest` (coin)、`chisqTest(x, { nMinus1: true })` (Campbell の N − 1 検定) と Freeman-Tukey 残差、`tost` (equivalence)、`binomDiffEquivalenceTest` (2 つの比率のスコア法の TOST) |
 | 多重比較 | `dscfAllPairsTest` (Steel-Dwass)、`kwAllPairsDunnTest`、`kwManyOneDunnTest`、`manyOneUTest` (Steel の多対一の順位検定)、`dunnettTest`、`gamesHowellTest`、`tukeyTest` (PMCMRplus)、`dunnTest` (dunn.test)、`glhtDunnett` (multcomp) |
-| 生存時間解析 | `survdiff` (log-rank と G-rho 族)、`survfit` (Kaplan-Meier と Nelson-Aalen・Fleming-Harrington の累積ハザード、重み、ロバスト標準誤差、信頼区間、中央値、制限平均、計数過程データ)、`rmst2` (非調整・共変量調整の制限平均生存時間と制限平均損失時間)、`coxph` (Cox 回帰。Efron と Breslow のタイ、ケース重み、層、Wald・尤度比・スコア検定、計数過程データ、ロバスト分散と `cluster`)、`coxZph` (比例ハザード性の検定)、`cuminc`・`timepoints` (累積発生率と Gray の検定)、`crr`・`predictCrr` (Fine-Gray 回帰と予測)、`survreg`・`survregPredict`・`survregResiduals` (パラメトリックな加速故障時間回帰) |
+| 生存時間解析 | `survdiff` (log-rank と G-rho 族)、`survfit` (Kaplan-Meier と Nelson-Aalen・Fleming-Harrington の累積ハザード、重み、ロバスト標準誤差、信頼区間、中央値、制限平均、計数過程データ)、`rmst2` (非調整・共変量調整の制限平均生存時間と制限平均損失時間)、`coxph` (Cox 回帰。Efron と Breslow のタイ、ケース重み、層、Wald・尤度比・スコア検定、計数過程データ、ロバスト分散と `cluster`)、`clogit` (マッチした組の条件付きロジスティック回帰: 正確な尤度と近似の尤度)、`coxZph` (比例ハザード性の検定)、`cuminc`・`timepoints` (累積発生率と Gray の検定)、`crr`・`predictCrr` (Fine-Gray 回帰と予測)、`survreg`・`survregPredict`・`survregResiduals` (パラメトリックな加速故障時間回帰) |
 | 診断の精度と測定法の比較 | `roc`、`auc`、`ciAuc` (`ci.auc`)、`rocTest` (`roc.test`)、`coords` (pROC: DeLong の区間と検定、ブートストラップ、部分 AUC)、`diagnosticTests` (epiR の `epi.tests`)、`blandAltman` (BlandAltmanLeh の `bland.altman.stats`)、`mcreg` (mcr: Deming 回帰、重み付き Deming 回帰、Passing-Bablok 回帰) |
 | 一致度と信頼性 | `kappa2`、`kappamFleiss`、`icc` (irr)、`ICC` (psych: Shrout と Fleiss の 6 つの形式)、`cronbachAlpha`、`partialR` (psych)、`polychor`、`polyserial` (polycor)、`pbvnorm`、`factanal`、`omega` (McDonald の ω。psych) |
 | データの扱い | `completeCases` (`complete.cases`)、`naOmit` (`na.omit`)、`subset`、`merge`、データフレームの `rbind`・`cbind`、`tapply`、`split`、`aggregate`、`pivotLonger` と `pivotWider` (tidyr)、`fromRows` と `toRows` (行のオブジェクトの配列とデータフレームの相互の変換)。検定の formula 版 (`tTest("y ~ g", data)`、`kruskalTest`、`friedmanTest("y ~ w \| b", data)`、`corTest("~ x + y", data)` など) |
@@ -330,13 +331,13 @@ minify 済みの ES モジュール、gzip で 322 KB) を jsDelivr から読み
 
 一部の分野だけを使うページでは、代わりに分野ごとのバンドルを読み込めます。`dist/distributions.js`、
 `dist/tests.js`、`dist/linalg.js`、`dist/descriptive.js`、`dist/numerics.js`、`dist/special.js`、
-`dist/mixed.js`、`dist/regression.js`、`dist/multivariate.js`、`dist/timeseries.js` は上のサブパスと同じ関数を export し、共通のコードを `dist/chunks/` で共有します。そのため、
+`dist/mixed.js`、`dist/regression.js`、`dist/multivariate.js`、`dist/timeseries.js`、`dist/causal.js` は上のサブパスと同じ関数を export し、共通のコードを `dist/chunks/` で共有します。そのため、
 2 つの分野を読み込んでも共通部分は 1 回しか読み込まれません。chunk を含めた 1 分野の転送量は、gzip で
 39 KB (`special`) から 288 KB (`tests`) です。
 
 1 つのページでは、`dist/rstats.js` か分野ごとのバンドルのどちらか一方だけを使ってください。両者は別々の
 モジュールの集まりなので、混ぜると共通のコードが 2 回読み込まれ、乱数の状態も 2 つになります (一方の `setSeed`
-は他方の乱数に効きません)。`dist/rstats.js` と `dist/mixed.js`・`dist/regression.js`・`dist/multivariate.js`・`dist/timeseries.js` を一緒に読み込む場合も、
+は他方の乱数に効きません)。`dist/rstats.js` と `dist/mixed.js`・`dist/regression.js`・`dist/multivariate.js`・`dist/timeseries.js`・`dist/causal.js` を一緒に読み込む場合も、
 これらは共通のコードを別に持ち込みます。
 
 npm を元にしたほかの CDN も使えます。たとえば `https://esm.sh/@numero-uno-jpn/rstats` です。ビルド結果

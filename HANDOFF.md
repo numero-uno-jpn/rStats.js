@@ -35,9 +35,10 @@
   落ちた単位」(ATE で分かった)。配線 (package.json・bundle・size・typedoc・api-reference・docExamples・demo・r-index)、
   英語の文書 (README・API・差異・CHANGELOG の Unreleased・ROADMAP)。手元で型・全テスト (既知の issue179・513 以外)・ビルド・
   ブラウザ 16/16・デモ 1190/1190 が通る
-- **ChatGPT 待ち (ユーザーが依頼):** 日本語 API の訳 67 件 (Issue #562 のコメント `7125740655`) と日本語の文書 4 つ
-  (README.ja・ROADMAP.ja・docs/ja/api-reference・docs/ja/differences-from-r、英文はコメント `7125745167`)。返ってきたら私が
-  `docs/ja/api/*.json` に入れて `node scripts/api-ja-extract.mjs` と検査
+- **日本語の訳 (私、ユーザーの指示で ChatGPT から引き取った 2026-11-24):** ChatGPT (GitHub 連携) は 6 件でインラインコードの
+  点検が通らず止まった → 原因は英文 (コードが行をまたぐ、数式がコードでない) なので英文を直し、API の訳 72 件と日本語の文書
+  4 つ (README.ja・ROADMAP.ja・docs/ja/api-reference・docs/ja/differences-from-r) を私が書いた。未訳 0、TypeDoc の /causal と
+  clogit の警告 0。`dev/psm-1.12` は GitHub に push 済み (`f1fd3dd5` まで、ChatGPT 用。Actions は動かない)
 - 残り (公開の時): デモの例 (examples.json に match・balTab・tableOneSmd・clogit、`npm run demo:r`、NOT_IN_DEMO_YET から外す)、
   版 1.12.0 (package.json・README と API の CDN の版・CHANGELOG の日付)、main に squash の 1 コミット + タグ、ユーザーが
   `npm stage approve`

@@ -10,7 +10,7 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | --- | --- | --- |
 | `cobalt::bal.tab()` | `balTab` | Covariate balance of two groups before and after matching: standardised mean differences and variance ratios. |
 | `tableone::ExtractSmd()` | `tableOneSmd` | Standardised mean difference of one variable between two groups. |
-| `cobalt::get.w()` | `matchWeights` | The weight of each unit after matching: every pair adds its weight (1 / M) to both of its units; unmatched units weigh 0. |
+| `cobalt::get.w()` | `matchWeights` | The weight of each unit after matching: every pair adds its weight `1 / M` to both of its units; unmatched units weigh 0. |
 | `Matching::Match()` | `match` | Nearest-neighbour matching on a scalar score, without replacement and with random tie-breaking. |
 
 ## Multivariate analysis (`rStats.js/multivariate`)

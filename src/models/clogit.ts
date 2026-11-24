@@ -22,7 +22,12 @@ export interface ClogitOptions {
   /** Confidence level of the intervals of exp(coef). Default 0.95. */
   confLevel?: number;
   /** Convergence: relative change of the log likelihood (default 1e-9) and the most iterations (default 20). */
-  control?: { eps?: number; iterMax?: number };
+  control?: {
+    /** Tolerance of the relative change of the log likelihood. Default 1e-9. */
+    eps?: number;
+    /** Most iterations. Default 20. */
+    iterMax?: number;
+  };
 }
 
 /** Result of {@link clogit}: the fields of R's `clogit` fit and of its `summary()`.

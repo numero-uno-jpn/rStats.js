@@ -75,8 +75,8 @@ rStats.js に既にあるものと照らし合わせて決めました (2026-11-
    (対応のある検定、McNemar、条件付きロジスティック回帰、組で層にした Cox・組でまとめた頑健な誤差の Cox、Kaplan-Meier、
    ATT)。**IPTW** (ATE・ATT の重み、安定化、切り詰め) と、重みつきの解析 (頑健な誤差つきの線形・ロジスティック・Poisson
    回帰、重みつきの Kaplan-Meier と Cox、リスク差・リスク比・オッズ比・ハザード比)。マッチングと IPTW は 2 つの版に
-   分けるかもしれない
-2. **条件付きロジスティック回帰** [survival `clogit`] (1 と一緒に)
+   分けるかもしれない。**マッチング** (`match`・`balTab`・`tableOneSmd`・`clogit`) は 1.12.0 で済み、次は IPTW
+2. **条件付きロジスティック回帰** [survival `clogit`] (1 と一緒に): 1.12.0 で済み
 3. **多項ロジスティック回帰** [nnet `multinom`]
 4. **ステップワイズの変数選択** [`step`、MASS `stepAIC`]
 5. **媒介分析・調整分析** [mediation `mediate`] (調整媒介分析を含む)

@@ -78,7 +78,7 @@ widely used in Japanese medical and psychological research) and ReactiveStat wit
    ATT weights, stabilized, trimmed) with the weighted analyses (linear, logistic and Poisson regression with robust
    errors, weighted Kaplan-Meier and Cox, risk differences and ratios, odds and hazard ratios). Matching and IPTW may be
    two versions. **Matching** (`match`, `balTab`, `tableOneSmd`, `clogit`) is done for 1.12.0; IPTW is next
-2. **Conditional logistic regression** [survival `clogit`] (with item 1)
+2. **Conditional logistic regression** [survival `clogit`] (with item 1): done for 1.12.0
 3. **Multinomial logistic regression** [nnet `multinom`]
 4. **Stepwise selection** [`step`, MASS `stepAIC`]
 5. **Mediation and moderation analysis** [mediation `mediate`], including moderated mediation
