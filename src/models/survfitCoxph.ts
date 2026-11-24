@@ -138,9 +138,11 @@ export function survfitCoxph(time: readonly number[], status: readonly number[],
     for (let s = 0; s < steps; s++) {
       const f = ties === "efron" ? s / d : 0;
       const den = S0 - f * E0, share = dw / steps;
-      hazard[j]! += share / den;
-      varTerm[j]! += share / (den * den);
-      for (let a = 0; a < p; a++) xbarHaz[j]![a]! += (share * (S1[a]! - f * E1[a]!)) / (den * den);
+      // divided one factor at a time: den * den under- or overflows for weights near 1e-200 or 1e200
+      const h = share / den;
+      hazard[j]! += h;
+      varTerm[j]! += h / den;
+      for (let a = 0; a < p; a++) xbarHaz[j]![a]! += h * ((S1[a]! - f * E1[a]!) / den);
     }
   }
   const profiles = newdata ?? [fit.means.slice()];
