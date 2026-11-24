@@ -1,0 +1,212 @@
+{
+  "BalTabOptions#summary": {
+    "hash": "ce918217195b",
+    "en": "Options of {@link balTab}. Equivalent to the arguments of cobalt's `bal.tab()` for a `Match` object.",
+    "ja": ""
+  },
+  "BalTabOptions.binary#summary": {
+    "hash": "176d1249a3ee",
+    "en": "Binary covariates: `\"raw\"` difference in proportions (default, as cobalt) or `\"std\"` standardised.",
+    "ja": ""
+  },
+  "BalTabOptions.estimand#summary": {
+    "hash": "2e1cd4cb898a",
+    "en": "The estimand, which chooses the SD of the denominator (default `\"ATT\"`).",
+    "ja": ""
+  },
+  "BalTabOptions.match#summary": {
+    "hash": "b7473741df33",
+    "en": "The result of {@link BalTabOptions.match | match}: gives the weights ({@link matchWeights}), the estimand and, with a caliper, the\ndiscarded units. Alternative to `weights` and `estimand`.",
+    "ja": ""
+  },
+  "BalTabOptions.weights#summary": {
+    "hash": "5f52084d3e81",
+    "en": "The weights after matching (from {@link matchWeights}); without them only the unadjusted columns are filled.",
+    "ja": ""
+  },
+  "BalTabResult#summary": {
+    "hash": "5dab319bad73",
+    "en": "Result of {@link balTab}: one entry per covariate, in the order given (cobalt's `Balance` table), and the counts.",
+    "ja": ""
+  },
+  "BalTabResult.diffAdj#summary": {
+    "hash": "0598c41cffa4",
+    "en": "The same after matching (weighted); NaN without weights.",
+    "ja": ""
+  },
+  "BalTabResult.diffUn#summary": {
+    "hash": "116efdb30742",
+    "en": "Difference treated − control before matching: standardised (continuous, or binary with `binary: \"std\"`) or raw.",
+    "ja": ""
+  },
+  "BalTabResult.observations#summary": {
+    "hash": "89efcffa64a7",
+    "en": "Sample sizes of the control and treated groups (cobalt's `Observations`): all (effective sample size, the same as\nthe count), all (unweighted), matched (effective sample size (sum w)^2 / sum w^2), matched (unweighted: w > 0),\nunmatched (w = 0) and, when `match` has a caliper, discarded (its `indexDropped`, not counted as unmatched). The\nmatched rows are NaN without weights.",
+    "ja": ""
+  },
+  "BalTabResult.rows#summary": {
+    "hash": "0a9707c5200d",
+    "en": "Covariate names.",
+    "ja": ""
+  },
+  "BalTabResult.type#summary": {
+    "hash": "f962c438c960",
+    "en": "`\"Contin.\"` or `\"Binary\"` (a covariate with two distinct values, 0 and 1).",
+    "ja": ""
+  },
+  "BalTabResult.vRatioAdj#summary": {
+    "hash": "fa5c503e5557",
+    "en": "The same after matching, with weighted variances; NaN for binary covariates or without weights.",
+    "ja": ""
+  },
+  "BalTabResult.vRatioUn#summary": {
+    "hash": "a4cd74dc14d9",
+    "en": "Variance ratio treated / control before matching (NaN for binary covariates).",
+    "ja": ""
+  },
+  "MatchEstimand#summary": {
+    "hash": "5b0b04c34709",
+    "en": "The population the matching estimates for: the treated (ATT), everyone (ATE) or the controls (ATC).",
+    "ja": ""
+  },
+  "MatchOptions#summary": {
+    "hash": "e6ea441700a8",
+    "en": "Options of {@link match}. Equivalent to the arguments of the Matching package's `Match()` with `ties = FALSE` and\n`replace = FALSE`.",
+    "ja": ""
+  },
+  "MatchOptions.M#summary": {
+    "hash": "739ec2e92994",
+    "en": "The number of matches for each matched unit (default 1), a positive integer.",
+    "ja": ""
+  },
+  "MatchOptions.caliper#summary": {
+    "hash": "a3ee50a98376",
+    "en": "The caliper in standard deviations of `x` (the SD with divisor n over all units, as R's `ecaliper`): a match\nfarther than `caliper * sd` is not made, and a unit with fewer than `M` controls within it is dropped.",
+    "ja": ""
+  },
+  "MatchOptions.estimand#summary": {
+    "hash": "93fe4abf2c97",
+    "en": "The estimand (default `\"ATT\"`): the treated units are matched (ATT), the controls (ATC), or both (ATE).",
+    "ja": ""
+  },
+  "MatchResult#summary": {
+    "hash": "c7f795cc7c87",
+    "en": "Result of {@link match}. The fields are those of R's `Match` object, with 1-based row numbers.",
+    "ja": ""
+  },
+  "MatchResult.M#summary": {
+    "hash": "e2f216eca034",
+    "en": "The number of matches per matched unit.",
+    "ja": ""
+  },
+  "MatchResult.caliper#summary": {
+    "hash": "2a9d94a72cd7",
+    "en": "The caliper as given (in standard deviations), `null` without one.",
+    "ja": ""
+  },
+  "MatchResult.ecaliper#summary": {
+    "hash": "0a17fa858f5e",
+    "en": "The caliper on the scale of `x` (R's `ecaliper`), `null` without one.",
+    "ja": ""
+  },
+  "MatchResult.estimand#summary": {
+    "hash": "b1962b4deda5",
+    "en": "The estimand.",
+    "ja": ""
+  },
+  "MatchResult.indexControl#summary": {
+    "hash": "7f83d693f361",
+    "en": "Rows (1-based) of the control unit of each pair.",
+    "ja": ""
+  },
+  "MatchResult.indexDropped#summary": {
+    "hash": "8acf95b41e86",
+    "en": "Rows (1-based) of the dropped units that appear in no pair (R's `index.dropped`), only when a caliper is given;\n`null` otherwise or when none. Under ATE a dropped unit can still be another unit's match and is then not listed.\nWithout a caliper R lists none even when units are dropped (`ndrops` counts them).",
+    "ja": ""
+  },
+  "MatchResult.indexTreated#summary": {
+    "hash": "3cefb81d7619",
+    "en": "Rows (1-based) of the treated unit of each pair.",
+    "ja": ""
+  },
+  "MatchResult.ndrops#summary": {
+    "hash": "7c4a673dc7d6",
+    "en": "Number of matched-for units left without matches, for either reason (R's `ndrops`).",
+    "ja": ""
+  },
+  "MatchResult.nobs#summary": {
+    "hash": "312d6c2a20c5",
+    "en": "Number of units (R's `nobs`).",
+    "ja": ""
+  },
+  "MatchResult.tieSizes#summary": {
+    "hash": "8236e9a2f615",
+    "en": "Size of each candidate set from which matches were drawn at random (more candidates than needed at equal\ndistance), in the order of the draws. Empty when there were no ties; the pairs are then R's. With sets of 2 only\nthe pairs and the random numbers used are also R's; larger sets are broken by rStats.js's own rule (see\n{@link match}).",
+    "ja": ""
+  },
+  "MatchResult.warnings#summary": {
+    "hash": "1121b64a0f7e",
+    "en": "Warnings (R's, e.g. when no unit could be matched).",
+    "ja": ""
+  },
+  "MatchResult.weights#summary": {
+    "hash": "acff2b02dcaf",
+    "en": "Weight of each pair: 1 / M.",
+    "ja": ""
+  },
+  "MatchResult.wnobs#summary": {
+    "hash": "14e31228cfe3",
+    "en": "Number of matched units (R's `wnobs`: units that found their matches).",
+    "ja": ""
+  },
+  "TableOneSmdOptions#summary": {
+    "hash": "f51fd1745a95",
+    "en": "Options of {@link tableOneSmd}.",
+    "ja": ""
+  },
+  "TableOneSmdOptions.factor#summary": {
+    "hash": "8ec68b3a5c96",
+    "en": "Treat `x` as categorical (tableone's `factorVars`): numbers or strings as levels. Default false.",
+    "ja": ""
+  },
+  "balTab#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "balTab#summary": {
+    "hash": "228935f092d8",
+    "en": "Covariate balance of two groups before and after matching: standardised mean differences and variance ratios.\nEquivalent to `cobalt::bal.tab()` in R. The call followed is `bal.tab(m, formula = tr ~ ..., data, un = TRUE,\ndisp.v.ratio = TRUE, binary)` for a `Match` object `m`.\n\nThe difference is (mean treated − mean control) / s, with means weighted after matching. The SD s is always that of\nthe unmatched sample: of the treated for ATT, of the controls for ATC, sqrt((s1² + s0²) / 2) for ATE; for a binary\ncovariate (with `binary: \"std\"`) sqrt(p(1 − p)) in place of the SD (the mean of p1(1 − p1) and p0(1 − p0) for ATE).\nVariance ratios are treated / control. Factor covariates are not split: give one 0/1 column per level.",
+    "ja": ""
+  },
+  "match#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "match#summary": {
+    "hash": "aef98ba0f3ae",
+    "en": "Nearest-neighbour matching on a scalar score, without replacement and with random tie-breaking. Equivalent to\n`Matching::Match()` in R. The call followed is `Match(Tr = tr, X = x, estimand, M, caliper, ties = FALSE, replace =\nFALSE)`, used with the linear predictor logit(PS) of a propensity score model.\n\nThe matched units (the treated for ATT, the controls for ATC, all for ATE) are processed in data order. Each takes\nits matches from the units of the other group not yet used: every available unit within the M-th smallest distance\nis a candidate (within the caliper when one is given), and when there are more candidates than M, M of them are\ndrawn at random. A unit with fewer than M available candidates is dropped. Pairs are listed in the order of the\nmatched units, the controls of one treated unit (ATT) in row order.\n\nRandom draws use rStats.js's generator (`setSeed`): one uniform u for each pick, and the candidate at 0-based index\nfloor(k (1 - u)) among the k remaining (in row order) is taken. Without ties no random number is used and the pairs\nare R's; with sets of two candidates the rule is R's (the second when u < 0.5). Known differences from R: larger\ntie sets are broken differently (R's rule is not documented), and distances count as tied only when exactly equal\n(R also treats distances within `distance.tolerance` = 1e-5 as ties). `M` below 1 is an error (R warns and uses 1).",
+    "ja": ""
+  },
+  "matchWeights#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "matchWeights#summary": {
+    "hash": "57347e3523ae",
+    "en": "The weight of each unit after matching: every pair adds its weight (1 / M) to both of its units; unmatched units\nweigh 0. Equivalent to `cobalt::get.w()` in R. The call followed is `get.w(m)` for a `Match` object `m`.",
+    "ja": ""
+  },
+  "tableOneSmd#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "tableOneSmd#summary": {
+    "hash": "10a3a8483f9a",
+    "en": "Standardised mean difference of one variable between two groups. Equivalent to `tableone::ExtractSmd()` in R. The\ncall followed is `ExtractSmd(CreateTableOne(vars, strata, data, factorVars))` with two groups. Missing values (NaN,\nnull) are left out.\n\nNumeric: |mean1 − mean0| / sqrt((s1² + s0²) / 2) with the groups' SDs (divisor n − 1). Categorical (`factor: true`):\nYang and Dalton's sqrt(d' S⁻¹ d), d the differences of the proportions of the levels after the first, S the mean of\nthe two groups' multinomial covariance matrices p_k(δ_kl − p_l); with two levels |p1 − p0| / sqrt((p1(1 − p1) +\np0(1 − p0)) / 2). 0 when both the difference and the spread are 0.",
+    "ja": ""
+  }
+}
