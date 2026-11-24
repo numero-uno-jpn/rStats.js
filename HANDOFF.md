@@ -1,8 +1,36 @@
 # 引継ぎ: rStats.js (外部レビュー対応 2026-10-30〜11-04、1.0.0 への準備 11-04〜)
 
-最終更新: 2026-11-24 (セッション 31 の続き、Mac mini: 1.13.0 の fixture・実装・端のケース・文書 (英・日)・訳・デモまで済み (作業ブランチ `dev/iptw-1.13`、手元だけ)。残りは版 1.13.0 と公開)。以前: 2026-11-24 (セッション 31、Mac mini: 1.13.0 (IPTW) の準備。作業ブランチ `dev/iptw-1.13` (手元だけ)、Issue #563、イメージとチェッカーに WeightIt・CBPS・survey・sandwich、最初の R の実験 `experiments/iptw113` と仕様書 `oracle/weightit-behaviour.md`、Choices をユーザーが決めた。次は fixture と実装)。以前: 2026-11-24 (セッション 30 の終わり、Mac mini: **1.12.0 を公開** (`/causal` の match・matchWeights・balTab・tableOneSmd、`/tests` の clogit)。次は 1.13.0 = IPTW、範囲はユーザーが決めた (下の節))。以前: 2026-11-24 (セッション 30、Mac mini: 1.12.0 (マッチング) の準備。作業ブランチ `dev/psm-1.12` (手元だけ)、Issue #562、イメージとチェッカーに Matching・cobalt・tableone、最初の R の実験 3 本と仕様書の下書き `oracle/match-behaviour.md`。Match・バランス・clogit を実装して R と一致、端のケースも点検、訳・文書・デモ・版 1.12.0 まで済み。次は main への push とタグ)。以前: 2026-11-24 (セッション 29 の終わり、Mac mini: **1.11.0 を公開** (acf・pacf・ccf の `/timeseries`、ca・caSummary・caCoord・mjca・sammon・isoMDS)。次は 1.12.0 = 傾向スコア (ROADMAP の新しい 1 番)、範囲を決めるところから)。以前: 2026-11-24 (セッション 29: 1.11.0 の作業ブランチは完成、GitHub Actions が支払いのロックで止まっていて取り込み待ち)。以前: 2026-11-23 (セッション 29 の始め、Mac mini: 1.11.0 の範囲をユーザーが決めた (mjca も入れる、ほかは推奨どおり)。準備が全部済んだ (Issue #560・draft PR #561・作業ブランチ `work/ca-acf-mds-1.11`)。段階 1 も済み、Decisions を決めて choices・fixture・段階 2 の指示を置いた (ブランチ `40aa5d94`)。次は ChatGPT の段階 2 (実装))。以前: 2026-11-23 (セッション 28 の終わり、Mac mini: **1.10.0 を公開** (dist・hclust・cutree・kmeans・cmdscale)。次は 1.11.0 = ca・acf・pacf・isoMDS・sammon、1.12.0 = arima (ユーザーの決定)。範囲を決めるところから)。以前: 2026-11-22 夜 (セッション 28、Mac mini: 1.10.0 の範囲をユーザーが決め (全部推奨どおり)、準備 (チェッカー・R の実験・指示書) を main に置き、Issue #556・draft PR #557 を作った。段階 1 を終え、次は ChatGPT の段階 2)。以前: 2026-11-22 夜 (セッション 27 の終わり、Mac mini: **1.9.0 を公開** (T2・Page・Grubbs、manova・lda・cancor)。次は 1.10.0 = クラスタ分析と多次元尺度法 (ユーザーの決定)、範囲を決めるところから)。以前: 2026-11-22 (セッション 27 の始め、Mac mini: 1.9.0 の範囲を決め、準備中)。以前: 2026-11-22 (セッション 26 の終わり、Mac mini: **1.8.0 を公開** (rq・geeglm・glmnet)。次は 1.9.0 = 小さな検定 3 つ + 多変量 3 つ (ユーザーの決定)、範囲を決めるところから)。以前: 2026-11-20 夜 (セッション 26 の始め: 1.8.0 の範囲を決め、準備)。以前: 2026-11-20 夕 (セッション 25 の終わり、Mac mini: **1.7.0 を公開** (回帰 polr・rlm・nls、`/regression`)。次の作業は未定 (ROADMAP の 2 = 1.8.0)。以前: 2026-11-20 昼 (セッション 25、Mac mini: 段階 3 の端の入力の直しも済み (最後は私が引き継いだ)。次は「nls の後」の配線と文書)。以前: 2026-11-19 深夜 (セッション 24、polr・rlm は完了、nls を ChatGPT に依頼)。以前: 2026-11-19 (セッション 23、1.6.0 を公開 (混合モデルの confint と simulate))。以前: 2026-11-17 (セッション 22、1.5.0 を公開)。その前: 2026-11-16 (セッション 21、Mac mini: 1.4.0 を公開、同時刻の Gray の検定を ChatGPT がクリーンルームで修正 (1.4.1 に入る、未公開)、外注用の R の実験の仕組みを作った。次は ROADMAP の 1 番)
+最終更新: 2026-11-24 (セッション 32、Mac mini: 1.14.0 (多項ロジスティック回帰 multinom) を版 1.14.0 まで済み、作業ブランチ `dev/multinom-1.14` (手元だけ)。次は main への push・タグ・公開 (ユーザーの確認の後))。以前: 2026-11-24 (セッション 31 の終わり、Mac mini: **1.13.0 を公開** (`/causal` の weightit・trimWeights・weightSummary、`/tests` の svyglm・survfitCoxph、整数でない重みの survfit)。次の作業は未定 (ROADMAP の 3 = 多項ロジスティック回帰 `multinom` から))。以前: 2026-11-24 (セッション 31 の続き、Mac mini: 1.13.0 の fixture・実装・端のケース・文書 (英・日)・訳・デモまで済み)。以前: 2026-11-24 (セッション 31、Mac mini: 1.13.0 (IPTW) の準備。作業ブランチ `dev/iptw-1.13` (手元だけ)、Issue #563、イメージとチェッカーに WeightIt・CBPS・survey・sandwich、最初の R の実験 `experiments/iptw113` と仕様書 `oracle/weightit-behaviour.md`、Choices をユーザーが決めた。次は fixture と実装)。以前: 2026-11-24 (セッション 30 の終わり、Mac mini: **1.12.0 を公開** (`/causal` の match・matchWeights・balTab・tableOneSmd、`/tests` の clogit)。次は 1.13.0 = IPTW、範囲はユーザーが決めた (下の節))。以前: 2026-11-24 (セッション 30、Mac mini: 1.12.0 (マッチング) の準備。作業ブランチ `dev/psm-1.12` (手元だけ)、Issue #562、イメージとチェッカーに Matching・cobalt・tableone、最初の R の実験 3 本と仕様書の下書き `oracle/match-behaviour.md`。Match・バランス・clogit を実装して R と一致、端のケースも点検、訳・文書・デモ・版 1.12.0 まで済み。次は main への push とタグ)。以前: 2026-11-24 (セッション 29 の終わり、Mac mini: **1.11.0 を公開** (acf・pacf・ccf の `/timeseries`、ca・caSummary・caCoord・mjca・sammon・isoMDS)。次は 1.12.0 = 傾向スコア (ROADMAP の新しい 1 番)、範囲を決めるところから)。以前: 2026-11-24 (セッション 29: 1.11.0 の作業ブランチは完成、GitHub Actions が支払いのロックで止まっていて取り込み待ち)。以前: 2026-11-23 (セッション 29 の始め、Mac mini: 1.11.0 の範囲をユーザーが決めた (mjca も入れる、ほかは推奨どおり)。準備が全部済んだ (Issue #560・draft PR #561・作業ブランチ `work/ca-acf-mds-1.11`)。段階 1 も済み、Decisions を決めて choices・fixture・段階 2 の指示を置いた (ブランチ `40aa5d94`)。次は ChatGPT の段階 2 (実装))。以前: 2026-11-23 (セッション 28 の終わり、Mac mini: **1.10.0 を公開** (dist・hclust・cutree・kmeans・cmdscale)。次は 1.11.0 = ca・acf・pacf・isoMDS・sammon、1.12.0 = arima (ユーザーの決定)。範囲を決めるところから)。以前: 2026-11-22 夜 (セッション 28、Mac mini: 1.10.0 の範囲をユーザーが決め (全部推奨どおり)、準備 (チェッカー・R の実験・指示書) を main に置き、Issue #556・draft PR #557 を作った。段階 1 を終え、次は ChatGPT の段階 2)。以前: 2026-11-22 夜 (セッション 27 の終わり、Mac mini: **1.9.0 を公開** (T2・Page・Grubbs、manova・lda・cancor)。次は 1.10.0 = クラスタ分析と多次元尺度法 (ユーザーの決定)、範囲を決めるところから)。以前: 2026-11-22 (セッション 27 の始め、Mac mini: 1.9.0 の範囲を決め、準備中)。以前: 2026-11-22 (セッション 26 の終わり、Mac mini: **1.8.0 を公開** (rq・geeglm・glmnet)。次は 1.9.0 = 小さな検定 3 つ + 多変量 3 つ (ユーザーの決定)、範囲を決めるところから)。以前: 2026-11-20 夜 (セッション 26 の始め: 1.8.0 の範囲を決め、準備)。以前: 2026-11-20 夕 (セッション 25 の終わり、Mac mini: **1.7.0 を公開** (回帰 polr・rlm・nls、`/regression`)。次の作業は未定 (ROADMAP の 2 = 1.8.0)。以前: 2026-11-20 昼 (セッション 25、Mac mini: 段階 3 の端の入力の直しも済み (最後は私が引き継いだ)。次は「nls の後」の配線と文書)。以前: 2026-11-19 深夜 (セッション 24、polr・rlm は完了、nls を ChatGPT に依頼)。以前: 2026-11-19 (セッション 23、1.6.0 を公開 (混合モデルの confint と simulate))。以前: 2026-11-17 (セッション 22、1.5.0 を公開)。その前: 2026-11-16 (セッション 21、Mac mini: 1.4.0 を公開、同時刻の Gray の検定を ChatGPT がクリーンルームで修正 (1.4.1 に入る、未公開)、外注用の R の実験の仕組みを作った。次は ROADMAP の 1 番)
 
 ## まず読むこと (セッション 16 から)
+
+## セッション 32 (2026-11-24): 1.14.0 = 多項ロジスティック回帰 (multinom)
+
+- **範囲 (ユーザーの決定 2026-11-24):** `/regression` に式とデータ (polr と同じ)、厳密な最尤推定 (Newton) で R を厳しく収束させた
+  値と照合、summary (標準誤差・Wald・exp・confint・logLik・deviance・AIC)・擬似 R² (McFadden・Cox-Snell・Nagelkerke)・
+  predict (class・probs・newdata)・尤度比検定 (anova)・weights・decay まで全部
+- 作業ブランチ **`dev/multinom-1.14`** (push していない)、**Issue #564** (実験の記録 3 件)。チェッカーに nnet (`trace = FALSE` は
+  チェッカーが断るので、実験では `capture.output` で反復の表示を捨てる。`...` で包むと multinom の weights の評価が壊れるので
+  weights はデータの列で渡す)
+- R の実験 `experiments/multinom114{,-ties,-edge}.{R,json}`、仕様書 `oracle/multinom-behaviour.md`。分かったこと: 既定の BFGS は
+  最大値から 6e-5、厳しくしても 5e-8。Hess は −log L の解析的な Hessian、decay は切片を含む全係数の 2 乗和 (deviance・AIC は
+  罰則込み、Hessian は罰則なし)、confint は Wald、anova は残差自由度の大きい順、**予測クラスの同点は max.col と同じ (相対 1e-5、
+  k 番目の同点を k u < 1 で選び直す、setSeed で R と同じ)**
+- fixture `oracle/multinomreg.R` → `test/fixtures/multinomreg.json` (**既存の `oracle/multinom.R` は dmultinom 用。一度上書きして
+  しまい git から戻した**)。sim・weights・5 水準・MASS survey (欠損値)・housing (度数の重み)・decay・2 水準・anova・predict。
+  iris (萼だけ) は setosa が分離するので端のケースへ
+- 実装 `src/models/multinom.ts`: multinom・multinomSummary・multinomConfint・multinomPredict・multinomAnova・multinomVcov。
+  列を中心化して 2 のべき乗で縮め (尺度・大きな共通の値に不変)、別の列で表せる列は落として NaN、分離は `converged: false` と警告。
+  **擬似 R² の null モデルはモデルが使った行で** (rStats.js の選択。ReactiveStat は全行、欠測値があると違う)。テスト
+  `test/multinomreg.test.ts`・`multinomEdge.test.ts`
+- 端のケース: R は共変量 1e±150・1e300・共通の値 1e8・1e15・重み 1e±200 で崩れる、rStats.js は不変。n = 20000 は 0.04 秒 (R 10 秒)
+- 配線・例・索引 (英・日)・デモの例 3 つ・文書 (英・日)・訳 74 件 (私)・TypeDoc の新しいファイルの警告 0・版 1.14.0。手元で型・
+  全テスト (既知の issue179・513 以外)・ブラウザ・デモ 1190/1190
+- **端のケースの 2 回目 (ユーザーの指摘で 2026-11-24):** `experiments/multinom114-edge2.{R,json}` (Issue に記録)。decay と尺度・共通の
+  値の組み合わせは R と一致、**R の標準誤差は共通の値 100 からもう崩れる** (rStats.js は理論の変換と 13 桁一致)、重み 0 の行は R と
+  同じ、準完全分離と iris も収束しない印、係数 180 個は 0.8 秒 (R 42 秒)、newdata の極端な尺度、擬似 R² を −expm1 に (重み 1e-200 で
+  Cox-Snell が 0、Nagelkerke が NaN だった)。`test/multinomEdge.test.ts` は 15 件
+- **次:** main に squash の 1 コミット → CI・Pages → タグ `v1.14.0` → ユーザーが `npm stage approve` → 確認 → `archive/multinom-1.14`
 
 ## セッション 31 の続き (2026-11-24): 1.13.0 の fixture と実装
 
@@ -33,7 +61,12 @@
   Greenwood を (d/n)/(n−d) に、svyglm の SE・t・p を縮めた当てはめから (x ×1e±300、y ×1e300)。**balTab の分母 (ユーザーの決定):**
   cobalt と同じく、元の単位の SD が sqrt(eps) 未満なら全体の SD に切り替える (絶対の閾値。1.12.0 の 1e-300 での不変性のテストを
   この規則に合わせて直した)。テスト `test/iptwEdge.test.ts` に 18 件
-- **残り:** (1) 版 1.13.0 (package.json・lock・README・API の CDN・demo の VERSION・CHANGELOG の日付) (2) main に squash の 1 コミット +
+- **1.13.0 を公開した (2026-11-24):** 版 1.13.0 (package.json・lock・README・API の CDN・demo の VERSION・CHANGELOG の日付)、
+  main `80e803fc` (作業ブランチを squash、中身は同じ)、CI・Pages 緑 → タグ `v1.13.0` → Release の stage (id `0d91daed-...`) を
+  ユーザーが承認。npm latest = 1.13.0、jsDelivr の `dist/causal.js`・`dist/rstats.js`、`/api/`・`/ja/api/` の weightit などのページ、
+  デモ v1.13.0 を確かめた。Issue #563 を閉じた。途中のコミットはタグ `archive/iptw-1.13` (`06a4ddd0`) で残した。作業ブランチ
+  `dev/iptw-1.13` はユーザーの指示で削除 (手元だけにあった。GitHub には push していない)。HANDOFF のこの更新は手元のコミットだけ (次の作業とまとめて push)
+- (公開前の記録) **残り:** (1) 版 1.13.0 (package.json・lock・README・API の CDN・demo の VERSION・CHANGELOG の日付) (2) main に squash の 1 コミット +
   タグ → `npm stage approve` → `archive/iptw-1.13` のタグ
 
 ## セッション 31 でしたこと (2026-11-24): 1.13.0 の準備

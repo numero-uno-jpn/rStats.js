@@ -20,7 +20,7 @@ import { readFileSync } from "node:fs";
 const ALLOWED_PACKAGES = new Set([
   "cmprsk", "survival", "epiR", "exact2x2", "clinfun", "powerSurvEpi", "metafor", "metadat", "lme4", "Matrix",
   "MASS", "quantreg", "SparseM", "MatrixModels", "geepack", "glmnet", "PMCMRplus", "outliers", "ca", "Matching", "cobalt",
-  "tableone", "WeightIt", "CBPS", "survey", "sandwich", "jsonlite", "stats", "utils", "base",
+  "tableone", "WeightIt", "CBPS", "survey", "sandwich", "nnet", "jsonlite", "stats", "utils", "base",
 ]);
 
 /** Functions of the reference packages: they may only be called. */
@@ -401,6 +401,11 @@ const REFERENCE_FUNCTIONS = [
   "vcovHAC.default", "vcovHC", "vcovHC.default", "vcovHC.mlm", "vcovJK", "vcovJK.default", "vcovOPG", "vcovPC",
   "vcovPL", "weave", "weightsAndrews", "weightsLumley",
   "coxph", "survfit", "survfit.coxph",
+  // Multinomial logistic regression (1.14.0): nnet's exported functions and S3 methods
+  "add1.multinom", "anova.multinom", "class.ind", "coef.multinom", "coef.nnet", "confint.multinom", "drop1.multinom",
+  "extractAIC.multinom", "logLik.multinom", "model.frame.multinom", "multinom", "nnet", "nnet.default", "nnet.formula",
+  "nnetHess", "predict.multinom", "predict.nnet", "print.multinom", "print.nnet", "print.summary.multinom",
+  "print.summary.nnet", "summary.multinom", "summary.nnet", "vcov.multinom", "which.is.max",
 ];
 
 /** Names that reach code, namespaces, compiled routines, other programs or files: not allowed at all. */

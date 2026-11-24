@@ -1934,3 +1934,15 @@ The references are R's `stats` functions. The implementation decisions are recor
 
 - Inverse probability weights need not be integers since 1.13.0; as in R the robust (infinitesimal jackknife) variance is then the default. Fractional weights with `stype: 2` and the robust variance are not supported (an error).
 - Greenwood's variance is summed as (d / n) / (n − d): for weights near 1e-200 R's is NA (n (n − d) underflows); rStats.js gives the variance of those weights.
+
+## Multinomial logistic regression (1.14.0)
+
+### `multinom` and its methods
+
+- The coefficients are the exact maximum of the likelihood (Newton's method to machine precision). nnet's BFGS stops earlier: by default about 1e-5 from it (6e-5 in `experiments/multinom114.R`), and even with `reltol = 1e-16` about 5e-8; the log-likelihood agrees to 17 digits. `maxit` counts Newton iterations (default 100).
+- A formula and a data frame (no matrix response, no `censored`, `subset` or `contrasts` other than the treatment, sum and Helmert contrasts). For two levels the coefficients are a one-row matrix, and `multinomPredict(..., { type: "probs" })` gives both columns (R gives the probability of the second level).
+- Constant and aliased columns are left out with a warning (`design appears to be rank-deficient, so dropping some coefs`) and NaN coefficients; R keeps all coefficients, which are then not identified (the deviance is the same). `edf` counts the coefficients estimated.
+- Each column is centred and divided by a power of 2 before the fit, so the fit does not depend on the scale of a covariate or on a large common offset. R's fit breaks down for a covariate near 1e±150 (deviance off by 45) and stops near 1e300 (`infinite or missing values in 'x'`), and for an offset of 1e8 or 1e15; for weights near 1e±200 R's fit breaks down while rStats.js's coefficients do not change (`experiments/multinom114-edge.R`). R's standard errors break down already for a covariate with a common offset of 100 (that of x1 came out as 0.0033 instead of 0.247, the intercept's as 1e-4 instead of 24.7), while the fit is still right; rStats.js's equal those of the unshifted fit transformed exactly (`experiments/multinom114-edge2.R`).
+- Separated data (the maximum does not exist): R stops where its optimiser stops; rStats.js reports `converged: false` with the warning `fitted probabilities numerically 0 or 1 occurred: ...`; the coefficients differ.
+- `multinomSummary` adds what ReactiveStat computes: the Wald p-values 2(1 − Φ(|z|)), the odds ratios and the pseudo R². The null model of the pseudo R² is the intercept-only fit on the rows the model uses, and n is their number (ReactiveStat fits it to every row with a response and divides by `nrow(data)`, which differs when a predictor has missing values).
+- `multinomPredict(type: "class")` breaks ties as R (`max.col`: within 1e-5 relative, one uniform per tie after the first), so the classes are R's after the same `setSeed`.

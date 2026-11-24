@@ -16,7 +16,7 @@ JavaScript とブラウザで使える、R と互換の統計関数のライブ�
 - **どこでも動きます。** ESM のみで、依存パッケージはなく、Node 専用の API も使っていません。
   tree-shaking が効きます (`pnorm` だけなら gzip で 1.6 KB)。
 
-状態: **1.13.0。** R の stats パッケージの数値計算の中心
+状態: **1.14.0。** R の stats パッケージの数値計算の中心
 (分布・記述統計・検定・線形モデル・特殊関数・数値計算・線形代数の基本) を、R と同じ結果でカバーすることを目指しています。残っている作業は
 [ROADMAP.ja.md](ROADMAP.ja.md)、変更履歴は [CHANGELOG.md](CHANGELOG.md) (英語) にあります。
 
@@ -227,7 +227,7 @@ eigen([[2, 1], [1, 3]]).values;     // ≈ [3.618033989, 1.381966011]
 | 試験デザインの標本サイズと検出力 | `epiSsequb`・`epiSsequc`・`epiSsninfb`・`epiSsninfc`・`epiSssupb`・`epiSssupc` (epiR: 比率と平均の同等性・非劣性・優越性)、`powerPaired2x2` (対応のある 2 × 2 表の正確な McNemar 検定の検出力)、`ssizeCT`・`powerCT`・`ssizeEpi`・`powerEpi`・`numDEpi` (生存時間の標本サイズと検出力)、`ph2simon` (Simon の 2 段階デザイン) |
 | メタアナリシス | `escalc` (効果量と標本分散)、`rma` (等効果・ランダム効果のメタアナリシスとメタ回帰)、`confintRma`・`predictRma`・`regtest` (metafor) |
 | 線形モデル | `lm` (formula とデータフレーム、または行列で渡す。`summary` の値も返す), `modelMatrix` (`model.matrix`), `confint`, `predict`。`glm` (行列で渡す形。R の `stats` のすべての族とリンク) と `glmSummary` (`summary.glm`)、`svyglm` (逆確率重みに対する `survey::svyglm`: デザインに基づく標準誤差)、`glmResiduals` (4 種類)、`glmHatvalues`、`glmRstandard`、`glmCooksDistance`、`glmPredict` (標準誤差つき)、`glmConfint` (プロファイル尤度、厳密な限界)、`glmAnova` (`anova.glm`)。`vcovHC`、`vcovCL` (sandwich: HC0〜HC5、一元と多元のクラスター)、`coeftest`、`coefci` (lmtest) |
-| 回帰 | `polr`・`polrSummary`・`polrVcov`・`polrPredict`・`polrConfint`・`polrAnova` (MASS: logistic・probit・cloglog・loglog・cauchit のリンクによる順序ロジスティック回帰)、`rlm`・`rlmSummary`・`rlmVcov`・`psiHuber`・`psiHampel`・`psiBisquare` (MASS: M 推定と MM 推定によるロバスト回帰)、`nls`・`nlsSummary`・`nlsVcov`・`nlsPredict`・`nlsConfint`・`nlsAnova` (非線形最小二乗法: 既定・`plinear`・`port` のアルゴリズムと 10 個の自己開始モデル)、`rq`・`rqSummary`・`rqPredict`・`rqPredictInterval`・`rqAnova` (分位点回帰)、`geeglm`・`geeSummary`・`geeVcov`・`geePredict`・`geeAnova`・`geeQIC` (一般化推定方程式)、`glmnet`・`glmnetCoef`・`glmnetPredict`・`cvGlmnet` (Gaussian・binomial・Poisson・multinomial の正則化回帰)。`@numero-uno-jpn/rstats/regression` から import します |
+| 回帰 | `multinom`・`multinomSummary`・`multinomConfint`・`multinomPredict`・`multinomAnova`・`multinomVcov` (nnet: 重みと decay つきの多項ロジスティック回帰)、`polr`・`polrSummary`・`polrVcov`・`polrPredict`・`polrConfint`・`polrAnova` (MASS: logistic・probit・cloglog・loglog・cauchit のリンクによる順序ロジスティック回帰)、`rlm`・`rlmSummary`・`rlmVcov`・`psiHuber`・`psiHampel`・`psiBisquare` (MASS: M 推定と MM 推定によるロバスト回帰)、`nls`・`nlsSummary`・`nlsVcov`・`nlsPredict`・`nlsConfint`・`nlsAnova` (非線形最小二乗法: 既定・`plinear`・`port` のアルゴリズムと 10 個の自己開始モデル)、`rq`・`rqSummary`・`rqPredict`・`rqPredictInterval`・`rqAnova` (分位点回帰)、`geeglm`・`geeSummary`・`geeVcov`・`geePredict`・`geeAnova`・`geeQIC` (一般化推定方程式)、`glmnet`・`glmnetCoef`・`glmnetPredict`・`cvGlmnet` (Gaussian・binomial・Poisson・multinomial の正則化回帰)。`@numero-uno-jpn/rstats/regression` から import します |
 | 多変量解析 | `manova`・`manovaSummary` (逐次 MANOVA: Pillai・Wilks・Hotelling-Lawley・Roy)、`lda`・`ldaPredict` (線形判別分析)、`cancor` (正準相関)、`dist`・`asDist`・`hclust`・`cutree`・`kmeans` (クラスタ分析)、`cmdscale` (古典的多次元尺度法)、`ca`・`caSummary`・`caCoord` (対応分析)、`mjca` (多重対応分析)、`sammon`・`isoMDS` (非計量多次元尺度法)。`@numero-uno-jpn/rstats/multivariate` から import します |
 | 混合モデル | `lmer` (lme4: REML と最尤法、相関のある変量効果と相関のない変量効果、交差と入れ子の群。`fixef`、`vcov`、`VarCorr`、`ranef`、`logLik`、`AIC`、`BIC`、`REMLcrit`、`isSingular`)、`lmerSummary`・`lmerContest`・`lmerAnova` (lmerTest: Satterthwaite の t 検定と F 検定、Type I/II/III の分散分析表。当てはめどうしの尤度比検定)、`glmer` (lme4: glm のすべての族、ラプラス近似と適応的 Gauss-Hermite 求積)、`glmerSummary`・`glmerAnova`・`glmerPredict`・`lmerPredict`・`confintLmer`・`confintGlmer`・`simulateLmer`・`simulateGlmer`。
 `@numero-uno-jpn/rstats/mixed` から import する |
@@ -317,7 +317,7 @@ minify 済みの ES モジュール、gzip で 322 KB) を jsDelivr から読み
 
 ```html
 <script type="module">
-  import { pnorm } from "https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@1.13.0/dist/rstats.js";
+  import { pnorm } from "https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@1.14.0/dist/rstats.js";
   console.log(pnorm(1.96)); // ≈ 0.9750021049
 </script>
 ```

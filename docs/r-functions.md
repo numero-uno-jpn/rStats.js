@@ -42,20 +42,24 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 
 | R | rStats.js | Description |
 | --- | --- | --- |
+| `nnet::anova.multinom()` | `multinomAnova` | Likelihood-ratio tests of nested multinomial logistic regressions. |
 | `anova.nls()` | `nlsAnova` | Analysis of variance for nested nonlinear least-squares fits. |
 | `anova.polr()` | `polrAnova` | Equivalent to R's `anova.polr()`. |
 | `anova.rq()` | `rqAnova` | Wald comparisons for nested models or slopes across multiple quantiles. |
 | `anova()` | `geeAnova` | Compare GEE terms or nested models using Wald tests. |
 | `coef.glmnet()` | `glmnetCoef` | Extract coefficients at selected penalty values. |
+| `nnet::confint.multinom()` | `multinomConfint` | Wald confidence intervals of the coefficients of a multinomial logistic regression. |
 | `confint.nls()` | `nlsConfint` | Wald or profile confidence intervals for nonlinear parameters. |
 | `confint.polr()` | `polrConfint` | Equivalent to R's `confint.polr()`. |
 | `cv.glmnet()` | `cvGlmnet` | Cross-validate a penalized generalized linear model. |
 | `geepack::geeglm()` | `geeglm` | Fit a marginal generalized estimating equation model. |
 | `glmnet::glmnet()` | `glmnet` | Fit a penalized generalized linear model path. |
+| `nnet::multinom()` | `multinom` | Multinomial logistic regression: baseline-category logits for a response with two or more levels, the first level the reference. |
 | `nls()` | `nls` | Nonlinear least-squares regression. |
 | `MASS::polr()` | `polr` | Fit a cumulative-link ordinal regression. |
 | `predict.geeglm()` | `geePredict` | Predict marginal means on the link or response scale. |
 | `predict.glmnet()` | `glmnetPredict` | Predict from a penalized generalized linear model. |
+| `nnet::predict.multinom()` | `multinomPredict` | Predictions of a multinomial logistic regression: probabilities of the levels, or the most probable level. |
 | `predict.nls()` | `nlsPredict` | Predictions from a nonlinear least-squares fit. |
 | `predict.polr()` | `polrPredict` | Predict ordinal categories or their probabilities for new observations. |
 | `quantreg::predict.rq()` | `rqPredict` | Predict conditional quantiles for new observations. |
@@ -67,10 +71,12 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `MASS::rlm()` | `rlm` | Robust M regression. |
 | `quantreg::rq()` | `rq` | Fit a linear conditional quantile model. |
 | `summary.geeglm()` | `geeSummary` | Summarize the coefficient estimates of a GEE fit. |
+| `nnet::summary.multinom()` | `multinomSummary` | Summary of a multinomial logistic regression. |
 | `summary.nls()` | `nlsSummary` | Summary of a nonlinear least-squares fit. |
 | `summary.polr()` | `polrSummary` | Summary table of the slope and cut-point estimates. |
 | `summary.rlm()` | `rlmSummary` | Coefficient table of a robust fit. |
 | `summary.rq()` | `rqSummary` | Coefficient summary with Hall–Sheather bandwidth and the nid sandwich covariance. |
+| `nnet::vcov.multinom()` | `multinomVcov` | Variance matrix of the coefficients of a multinomial logistic regression. |
 | `vcov.nls()` | `nlsVcov` | Covariance matrix of a nonlinear least-squares fit. |
 | `vcov.polr()` | `polrVcov` | Covariance matrix of the slopes and cut-points. |
 | `vcov.rlm()` | `rlmVcov` | Covariance matrix of robust-regression coefficients. |

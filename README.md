@@ -14,7 +14,7 @@ R-compatible statistical functions for JavaScript and the browser, written in Ty
 - **Runs anywhere.** ESM only, no dependencies, no Node-specific APIs, tree-shakable
   (`pnorm` alone is 1.6 KB gzipped).
 
-Status: **1.13.0.** The goal is to cover the numerical core of R's
+Status: **1.14.0.** The goal is to cover the numerical core of R's
 `stats` package (distributions, descriptive statistics, hypothesis tests, linear models, special
 functions, numerical methods and the basics of linear algebra) with R-compatible results; see [ROADMAP.md](ROADMAP.md) for what remains. See [CHANGELOG.md](CHANGELOG.md).
 
@@ -225,7 +225,7 @@ eigen([[2, 1], [1, 3]]).values;     // ≈ [3.618033989, 1.381966011]
 | Sample size and power for trial designs | `epiSsequb`, `epiSsequc`, `epiSsninfb`, `epiSsninfc`, `epiSssupb`, `epiSssupc` (epiR: equivalence, non-inferiority and superiority for proportions and means), `powerPaired2x2` (exact paired McNemar power), `ssizeCT`, `powerCT`, `ssizeEpi`, `powerEpi`, `numDEpi` (survival sample size and power), `ph2simon` (Simon two-stage designs) |
 | Meta-analysis | `escalc` (effect sizes and sampling variances), `rma` (equal- and random-effects meta-analysis and meta-regression), `confintRma`, `predictRma`, `regtest` (metafor) |
 | Linear models | `lm` (a formula and a data frame, or a matrix, with the `summary` quantities), `modelMatrix` (`model.matrix`), `confint`, `predict`; `glm` (matrix interface, every family and link of R's `stats`) with `glmSummary` (`summary.glm`), `svyglm` (`survey::svyglm` for inverse probability weights: design-based standard errors), `glmResiduals` (the four kinds), `glmHatvalues`, `glmRstandard`, `glmCooksDistance`, `glmPredict` (with standard errors), `glmConfint` (profile likelihood, exact limits), `glmAnova` (`anova.glm`); `vcovHC`, `vcovCL` (sandwich: HC0 to HC5, one-way and multi-way clustered), `coeftest`, `coefci` (lmtest) |
-| Regression | `polr`, `polrSummary`, `polrVcov`, `polrPredict`, `polrConfint`, `polrAnova` (MASS: ordinal logistic regression with logistic, probit, cloglog, loglog and cauchit links); `rlm`, `rlmSummary`, `rlmVcov`, `psiHuber`, `psiHampel`, `psiBisquare` (MASS: robust M and MM regression); `nls`, `nlsSummary`, `nlsVcov`, `nlsPredict`, `nlsConfint`, `nlsAnova` (nonlinear least squares: default, `plinear` and `port` algorithms, and 10 self-starting models); `rq`, `rqSummary`, `rqPredict`, `rqPredictInterval`, `rqAnova` (quantile regression); `geeglm`, `geeSummary`, `geeVcov`, `geePredict`, `geeAnova`, `geeQIC` (generalized estimating equations); `glmnet`, `glmnetCoef`, `glmnetPredict`, `cvGlmnet` (penalized Gaussian, binomial, Poisson and multinomial regression), from `@numero-uno-jpn/rstats/regression` |
+| Regression | `multinom`, `multinomSummary`, `multinomConfint`, `multinomPredict`, `multinomAnova`, `multinomVcov` (nnet: multinomial logistic regression with weights and decay), `polr`, `polrSummary`, `polrVcov`, `polrPredict`, `polrConfint`, `polrAnova` (MASS: ordinal logistic regression with logistic, probit, cloglog, loglog and cauchit links); `rlm`, `rlmSummary`, `rlmVcov`, `psiHuber`, `psiHampel`, `psiBisquare` (MASS: robust M and MM regression); `nls`, `nlsSummary`, `nlsVcov`, `nlsPredict`, `nlsConfint`, `nlsAnova` (nonlinear least squares: default, `plinear` and `port` algorithms, and 10 self-starting models); `rq`, `rqSummary`, `rqPredict`, `rqPredictInterval`, `rqAnova` (quantile regression); `geeglm`, `geeSummary`, `geeVcov`, `geePredict`, `geeAnova`, `geeQIC` (generalized estimating equations); `glmnet`, `glmnetCoef`, `glmnetPredict`, `cvGlmnet` (penalized Gaussian, binomial, Poisson and multinomial regression), from `@numero-uno-jpn/rstats/regression` |
 | Multivariate analysis | `manova`, `manovaSummary` (sequential MANOVA: Pillai, Wilks, Hotelling-Lawley and Roy); `lda`, `ldaPredict` (linear discriminant analysis); `cancor` (canonical correlation); `dist`, `asDist`, `hclust`, `cutree`, `kmeans` (cluster analysis); `cmdscale` (classical multidimensional scaling); `ca`, `caSummary`, `caCoord` (correspondence analysis); `mjca` (multiple correspondence analysis); `sammon` and `isoMDS` (non-metric multidimensional scaling), from `@numero-uno-jpn/rstats/multivariate` |
 | Mixed models | `lmer` (lme4: REML and ML, correlated and uncorrelated random effects, crossed and nested grouping factors; `fixef`, `vcov`, `VarCorr`, `ranef`, `logLik`, `AIC`, `BIC`, `REMLcrit`, `isSingular`), `lmerSummary`, `lmerContest` and `lmerAnova` (lmerTest: Satterthwaite's t- and F-tests, Type I/II/III ANOVA tables; likelihood-ratio comparison of fits), `glmer` (lme4: all glm families, Laplace approximation and adaptive Gauss-Hermite quadrature), `glmerSummary`, `glmerAnova`, `glmerPredict`, `lmerPredict`, `confintLmer`, `confintGlmer`, `simulateLmer` and
 `simulateGlmer`, from `@numero-uno-jpn/rstats/mixed` |
@@ -316,7 +316,7 @@ function except those of `/mixed` and `/regression`, 322 KB gzipped) from jsDeli
 
 ```html
 <script type="module">
-  import { pnorm } from "https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@1.13.0/dist/rstats.js";
+  import { pnorm } from "https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@1.14.0/dist/rstats.js";
   console.log(pnorm(1.96)); // ≈ 0.9750021049
 </script>
 ```
