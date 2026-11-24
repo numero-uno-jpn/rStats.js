@@ -64,6 +64,8 @@ export interface MultinomModel {
   weights: number[];
   /** 0-based rows of `data` used (rows with missing values are dropped). */
   rows: number[];
+  /** The fit in its internal units; internal. @internal */
+  internal: { centre: number[]; exps: number[]; kept: number[]; intercept: number; scaledCoef: number[][] };
 }
 
 /**
@@ -113,7 +115,7 @@ export interface MultinomResult {
 }
 
 /** The penalised −log L, its gradient and Hessian (unpenalised and penalised) at the coefficients `b` (category-major) */
-function evaluate(x: number[][], y: number[], w: number[], K: number, b: number[], penalty: number[]) {
+function evaluate(x: number[][], y: number[], w: number[], K: number, b: number[], penalty: number[][]) {
   const p = x[0]!.length, P = (K - 1) * p;
   let f = 0;
   const g = new Array<number>(P).fill(0);
@@ -149,12 +151,14 @@ function evaluate(x: number[][], y: number[], w: number[], K: number, b: number[
       }
     }
   }
+  // the decay penalty b_k^T Pen b_k for each category's block
   const Hp = H.map((row) => row.slice());
-  for (let q = 0; q < P; q++) {
-    if (penalty[q] === 0) continue;
-    f += penalty[q]! * b[q]! * b[q]!;
-    g[q]! += 2 * penalty[q]! * b[q]!;
-    Hp[q]![q]! += 2 * penalty[q]!;
+  for (let k = 0; k < K - 1; k++) for (let a = 0; a < p; a++) for (let c = 0; c < p; c++) {
+    const v = penalty[a]![c]!;
+    if (v === 0) continue;
+    f += b[k * p + a]! * v * b[k * p + c]!;
+    g[k * p + a]! += 2 * v * b[k * p + c]!;
+    Hp[k * p + a]![k * p + c]! += 2 * v;
   }
   return { f, g, H, Hp };
 }
@@ -190,6 +194,28 @@ function spdInverse(A: number[][]): number[][] | null {
     V[i]![j] = s; V[j]![i] = s;
   }
   return V;
+}
+
+/** Indices of the columns that are neither constant nor in the span of the intercept and the earlier ones */
+function estimable(x: readonly (readonly number[])[], intercept: number): number[] {
+  const n = x.length, p = x[0]?.length ?? 0;
+  const basis: number[][] = intercept >= 0 ? [new Array<number>(n).fill(1 / Math.sqrt(n))] : [];
+  const kept: number[] = intercept >= 0 ? [intercept] : [];
+  for (let j = 0; j < p; j++) {
+    if (j === intercept) continue;
+    const v = x.map((row) => row[j]!);
+    const norm0 = Math.hypot(...v);
+    for (let pass = 0; pass < 2; pass++) for (const e of basis) {
+      let dot = 0;
+      for (let i = 0; i < n; i++) dot += e[i]! * v[i]!;
+      for (let i = 0; i < n; i++) v[i]! -= dot * e[i]!;
+    }
+    const norm = Math.hypot(...v);
+    if (!(norm0 > 0) || !(norm > 1e-7 * norm0)) continue;
+    basis.push(v.map((e) => e / norm));
+    kept.push(j);
+  }
+  return kept.sort((a, c) => a - c);
 }
 
 /** Probabilities of every level at the coefficients (original units) for rows x */
@@ -257,50 +283,101 @@ export function multinom(formula: string, data: DataFrame, options: MultinomOpti
   if (x.some((row) => row.some((v) => !Number.isFinite(v)))) throw new RangeError("NA/NaN/Inf in the model matrix");
   const p = x[0]?.length ?? 0;
   if (p === 0) throw new RangeError("the model has no coefficients");
-  const P = (K - 1) * p;
-  // columns divided by powers of 2 (exactly): the fit is well scaled for columns near 1e300 or 1e-300; the decay
-  // penalty on the original coefficients b_j = b'_j 2^-e_j is decay 2^-2e_j b'_j^2
+  const intercept = d.terms.intercept ? 0 : -1;
+  // each column other than the intercept is centred (with an intercept) and divided by a power of 2: the fit is well
+  // scaled for columns near 1e300 or 1e-300 and for a large common offset (1e15 + small differences); the original
+  // coefficients follow exactly in the scale, and the intercept absorbs the centring
+  const centre = Array.from({ length: p }, (_, j) => (j === intercept || intercept < 0 ? 0 : x.reduce((a, r) => a + r[j]!, 0) / x.length));
   const exps = Array.from({ length: p }, (_, j) => {
+    if (j === intercept) return 0;
     let top = 0;
-    for (const row of x) top = Math.max(top, Math.abs(row[j]!));
+    for (const row of x) top = Math.max(top, Math.abs(row[j]! - centre[j]!));
     return top > 0 ? Math.floor(Math.log2(top)) : 0;
   });
-  const xs = x.map((row) => row.map((v, j) => ldexp(v, -exps[j]!)));
-  const penalty = Array.from({ length: P }, (_, q) => (decay === 0 ? 0 : ldexp(decay, -2 * exps[q % p]!)));
+  const scaled = x.map((row) => row.map((v, j) => (j === intercept ? v : ldexp(v - centre[j]!, -exps[j]!))));
+  // the estimable columns: not constant and not in the span of the intercept and the earlier columns (R's fit cannot
+  // identify them; rStats.js leaves them out with NaN coefficients, as polr)
+  const kept = estimable(scaled, intercept);
+  const dropped = d.colNames.filter((_, j) => !kept.includes(j));
+  if (dropped.length > 0) warnings.push(`design appears to be rank-deficient, so dropping some coefs: ${dropped.join(", ")}`);
+  const q = kept.length, Q = (K - 1) * q;
+  const xs = scaled.map((row) => kept.map((j) => row[j]!));
+  // original coefficients of a category: b_j = b'_j 2^-e_j (j not the intercept), b_0 = b'_0 - sum_j c_j b_j; the decay
+  // penalty decay |b|^2 is the quadratic form decay b'^T M^T M b' with M that map
+  const M = kept.map((ja) => kept.map((jb) => {
+    if (ja === jb) return ja === intercept ? 1 : ldexp(1, -exps[ja]!);
+    if (ja === intercept && jb !== intercept) return -centre[jb]! * ldexp(1, -exps[jb]!);
+    return 0;
+  }));
+  const pen = kept.map((_, a) => kept.map((__, b) => (decay === 0 ? 0 : decay * M.reduce((sum, row) => sum + row[a]! * row[b]!, 0))));
   // start: the intercepts at the log odds of the levels against the reference (weighted), the rest 0
   const counts = new Array<number>(K).fill(0);
   y.forEach((c, i) => { counts[c]! += weights[i]!; });
-  let b = new Array<number>(P).fill(0);
-  if (d.terms.intercept && counts.every((c) => c > 0)) for (let k = 1; k < K; k++) b[(k - 1) * p] = Math.log(counts[k]! / counts[0]!);
+  let b = new Array<number>(Q).fill(0);
+  const ii = kept.indexOf(intercept);
+  if (ii >= 0 && counts.every((c) => c > 0)) for (let k = 1; k < K; k++) b[(k - 1) * q + ii] = Math.log(counts[k]! / counts[0]!);
   const totalWeight = weights.reduce((a, v) => a + v, 0);
-  const tol = 1e-10 * Math.max(totalWeight, Number.MIN_VALUE);
-  let cur = evaluate(xs, y, weights, K, b, penalty);
+  const tol = 1e-10 * totalWeight;
+  let cur = evaluate(xs, y, weights, K, b, pen);
   let converged = false, iter = 0;
   for (; iter < maxit; iter++) {
     if (Math.max(...cur.g.map(Math.abs)) <= tol) { converged = true; break; }
     const Hi = spdInverse(cur.Hp);
     if (Hi === null) break;
-    const step = Hi.map((row) => -row.reduce((a, v, q) => a + v * cur.g[q]!, 0));
+    const step = Hi.map((row) => -row.reduce((a, v, r) => a + v * cur.g[r]!, 0));
     // the decrease near the maximum falls below the rounding of the objective: a rise within it is accepted
-    const slack = 1e-12 * (Math.abs(cur.f) + 1);
-    let t = 1, next = b.map((v, q) => v + step[q]!), nxt = evaluate(xs, y, weights, K, next, penalty);
-    while (!(nxt.f <= cur.f + slack) && t > 1e-10) { t /= 2; next = b.map((v, q) => v + t * step[q]!); nxt = evaluate(xs, y, weights, K, next, penalty); }
+    const slack = 1e-12 * Math.abs(cur.f);
+    let t = 1, next = b.map((v, r) => v + step[r]!), nxt = evaluate(xs, y, weights, K, next, pen);
+    while (!(nxt.f <= cur.f + slack) && t > 1e-10) { t /= 2; next = b.map((v, r) => v + t * step[r]!); nxt = evaluate(xs, y, weights, K, next, pen); }
     if (!(nxt.f <= cur.f + slack)) break;
-    const moved = step.some((v, q) => Math.abs(t * v) > 1e-15 * Math.max(1, Math.abs(b[q]!)));
+    const moved = step.some((v, r) => Math.abs(t * v) > 1e-15 * Math.max(1, Math.abs(b[r]!)));
     b = next; cur = nxt;
-    if (!moved) { converged = Math.max(...cur.g.map(Math.abs)) <= 1e-7 * Math.max(totalWeight, Number.MIN_VALUE); iter++; break; }
+    if (!moved) { converged = Math.max(...cur.g.map(Math.abs)) <= 1e-7 * totalWeight; iter++; break; }
   }
-  if (!converged) warnings.push("the Newton iterations did not converge: the maximum of the likelihood may not exist (separated data)");
-  // back to the original units
-  const coefficients = Array.from({ length: K - 1 }, (_, k) => Array.from({ length: p }, (_, j) => ldexp(b[k * p + j]!, -exps[j]!)));
-  const scaleOf = (q: number): number => exps[q % p]!;
-  const hessian = cur.H.map((row, q) => row.map((v, r) => ldexp(v, scaleOf(q) + scaleOf(r))));
+  // separated data: the likelihood rises towards a limit as some coefficients grow without bound, and the fitted
+  // probabilities reach 0 or 1 numerically (glm's test); the maximum does not exist
+  const fittedScaled = probabilities(xs, Array.from({ length: K - 1 }, (_, k) => b.slice(k * q, (k + 1) * q)));
+  if (converged && fittedScaled.some((r) => r.some((v) => v < 10 * Number.EPSILON))) {
+    converged = false;
+    warnings.push("fitted probabilities numerically 0 or 1 occurred: the maximum of the likelihood does not exist (separated data)");
+  } else if (!converged) warnings.push("the Newton iterations did not converge: the maximum of the likelihood may not exist (separated data)");
+  // back to the original units (NaN for the dropped columns)
+  const orig = (k: number): number[] => kept.map((_, a) => M[a]!.reduce((sum, m, c) => sum + m * b[k * q + c]!, 0));
+  const coefficients = Array.from({ length: K - 1 }, (_, k) => {
+    const o = orig(k);
+    return Array.from({ length: p }, (_, j) => (kept.includes(j) ? o[kept.indexOf(j)]! : NaN));
+  });
+  // the Hessian and the variance in the original units: H = Minv^T H' Minv, V = M V' M^T (block by block), with
+  // Minv[0][j] = c_j and Minv[j][j] = 2^e_j; a standard error from its own scaled variance (no under- or overflow)
+  const Minv = kept.map((ja) => kept.map((jb) => (ja === jb ? (ja === intercept ? 1 : ldexp(1, exps[ja]!))
+    : ja === intercept && jb !== intercept ? centre[jb]! : 0)));
+  const P = (K - 1) * p;
+  const full = (k: number, j: number): number => k * p + j;
+  const hessian = Array.from({ length: P }, () => new Array<number>(P).fill(NaN));
+  const vcov = Array.from({ length: P }, () => new Array<number>(P).fill(NaN));
   const Vs = spdInverse(cur.H);
-  const vcov = Vs === null ? cur.H.map((row) => row.map(() => NaN))
-    : Vs.map((row, q) => row.map((v, r) => ldexp(v, -scaleOf(q) - scaleOf(r))));
-  const se = coefficients.map((row, k) => row.map((_, j) => Math.sqrt(vcov[k * p + j]![k * p + j]!)));
+  for (let k = 0; k < K - 1; k++) for (let l = 0; l < K - 1; l++) {
+    for (let a = 0; a < q; a++) for (let c = 0; c < q; c++) {
+      let h = 0, v = 0;
+      for (let u = 0; u < q; u++) for (let w2 = 0; w2 < q; w2++) {
+        const hu = cur.H[k * q + u]![l * q + w2]!;
+        if (Minv[u]![a] !== 0 && Minv[w2]![c] !== 0) h += Minv[u]![a]! * hu * Minv[w2]![c]!;
+        if (Vs !== null && M[a]![u] !== 0 && M[c]![w2] !== 0) v += M[a]![u]! * Vs[k * q + u]![l * q + w2]! * M[c]![w2]!;
+      }
+      hessian[full(k, kept[a]!)]![full(l, kept[c]!)] = h;
+      vcov[full(k, kept[a]!)]![full(l, kept[c]!)] = Vs === null ? NaN : v;
+    }
+  }
+  const se = coefficients.map((row, k) => row.map((_, j) => {
+    const a = kept.indexOf(j);
+    if (a < 0 || Vs === null) return NaN;
+    const vs = Vs[k * q + a]![k * q + a]!;
+    return j === intercept ? Math.sqrt(vcov[full(k, j)]![full(k, j)]!) : ldexp(Math.sqrt(vs), -exps[j]!);
+  }));
   const value = cur.f;
-  const edf = P;
+  const edf = Q;
+  // probabilities from the internal units (a column 1e15 + small differences keeps its digits)
+  const scaledCoef = Array.from({ length: K - 1 }, (_, k) => b.slice(k * q, (k + 1) * q));
   const factorLevels: Record<string, readonly string[]> = {};
   for (let i = 1; i < d.terms.variables.length; i++) {
     const variable = d.frame.variables[i];
@@ -310,9 +387,10 @@ export function multinom(formula: string, data: DataFrame, options: MultinomOpti
     levels, columnNames: d.colNames.slice(), coefficients, se, vcov, hessian,
     parameterNames: levels.slice(1).flatMap((lv) => d.colNames.map((c) => `${lv}:${c}`)),
     value, deviance: 2 * value, logLik: -value, edf, aic: 2 * value + 2 * edf,
-    fittedValues: probabilities(x, coefficients), n: y.length, decay, converged, iter,
+    fittedValues: probabilities(xs, scaledCoef), n: y.length, decay, converged, iter,
     model: { formula, rhs: parsed.rhs, predictorVariables: d.terms.variables.slice(1), factorLevels,
-      contrasts: (options.contrasts ?? {}) as Record<string, DesignContrast>, x, y, weights, rows: d.frame.rows },
+      contrasts: (options.contrasts ?? {}) as Record<string, DesignContrast>, x, y, weights, rows: d.frame.rows,
+      internal: { centre, exps, kept, intercept, scaledCoef } },
     warnings,
   });
 }
@@ -481,7 +559,11 @@ export function multinomPredict(fit: MultinomResult, options: MultinomPredictOpt
     const d = design({ response: undefined, rhs: model.rhs }, data, { levels: model.factorLevels, contrasts: model.contrasts });
     const columns = fit.columnNames.map((name) => d.colNames.indexOf(name));
     if (columns.some((j) => j < 0)) throw new RangeError("newdata does not produce the fitted model matrix columns");
-    probs = probabilities(d.x.map((row) => columns.map((j) => row[j]!)), fit.coefficients);
+    const { centre, exps, kept, intercept, scaledCoef } = model.internal;
+    probs = probabilities(d.x.map((row) => kept.map((j) => {
+      const v = row[columns[j]!]!;
+      return j === intercept ? v : ldexp(v - centre[j]!, -exps[j]!);
+    })), scaledCoef);
   }
   if (type === "probs") return probs;
   return probs.map((r) => {
