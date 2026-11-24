@@ -116,3 +116,21 @@ script keeps the search that succeeded.
 28. Same script, added: the whole formula for all ten effects, sims 400 and 999, conf.level 0.95 and 0.9: **40 of 40
     identical (difference 0). Settled:** z0 = qnorm(mean(v < mean(v))), a as above, levels
     pnorm(z0 + (z0 + zq) / (1 - a (z0 + zq))), quantile type 7.
+
+## sim_slopes and Johnson-Neyman (2026-11-25)
+
+29. `mediation116-slopes.R` (first run): textbook candidates (slope b1 + b3 w, Var = V11 + 2 w V13 + w^2 V33, t or z,
+    JN = roots of (b1 + b3 w)^2 = crit^2 Var(w)). **Error:** "subscript out of bounds" at ss$jn[[1]] (ss$jn is an empty
+    list).
+30. `mediation116-slopes-probe.R`: names and attributes of the result: `mods`, `jn` (empty), `slopes`, `ints`; the
+    Johnson-Neyman results are in `attr(ss, "jns")`.
+31. `mediation116-slopes.R` with jns: estimates, SEs, p-values and JN bounds of lm matched (<= 3e-12); the interval and
+    statistic columns showed large differences because the script read them one column too early (column 1 is the
+    moderator's value). glm: slopes and p-values with z matched, but the JN bounds were 0.16 off with z and **matched
+    with t on df.residual (1e-14)**.
+32. Columns corrected: **every lm case (mean-plus-minus, conf 0.9 / jnalpha 0.1, given values, HC3), glm (z for slopes,
+    t for JN), glm with HC3 (the same) and the binary moderator matched to <= 3e-12.** "mean-plus-minus" = mean(W) +-
+    sd(W) of the model's data; HC3 = sandwich::vcovHC(type = "HC3"). **Settled.**
+33. Same script, added: the JN flags. inside = (leading coefficient b3^2 - crit^2 V33 < 0); no real root: bounds
+    (-Inf, Inf), failed = TRUE, printed "could not be found"; all_sig = TRUE when no bound lies within the observed
+    range of W (also in the failed case, where nothing is significant). **Settled.**
