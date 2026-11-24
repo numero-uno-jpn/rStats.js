@@ -75,7 +75,9 @@ export interface WeightitResult {
   warnings: string[];
 }
 
-/** A covariate: numbers, or strings (a factor with its levels in code-point order). */
+/** A covariate: numbers, or strings (a factor with its levels in code-point order).
+ * @category Causal inference
+ */
 export type CovariateColumn = readonly number[] | readonly string[];
 
 const EPS = Number.EPSILON;
@@ -297,7 +299,8 @@ const METHOD_NAME = { cbps: "covariate balancing propensity score weighting", ip
  * const tr = [1, 0, 1, 0, 0, 1, 0, 0, 1, 0];
  * const age = [52, 40, 61, 58, 33, 47, 50, 45, 39, 44];
  * const w = weightit(tr, { age }, { estimand: "ATE" });
- * w.weights[0]; // 1 / w.ps[0]
+ * w.ps[0]; // 0.48529828581084455
+ * w.weights[0]; // 2.0605883623289194 (1 / ps for a treated unit)
  * ```
  */
 export function weightit(tr: readonly (number | boolean)[], covariates: Readonly<Record<string, CovariateColumn>>,
@@ -440,7 +443,7 @@ function trimmed(w: readonly number[], rows: readonly number[], at: number, lowe
 export function trimWeights(w: WeightitResult, options: TrimWeightsOptions): WeightitResult;
 export function trimWeights(w: readonly number[], options: TrimWeightsOptions): number[];
 export function trimWeights(w: WeightitResult | readonly number[], options: TrimWeightsOptions): WeightitResult | number[] {
-    checkOptions(options, TRIM_WEIGHTS_KEYS, "trimWeights"); // generated: option-keys.mjs
+  checkOptions(options, TRIM_WEIGHTS_KEYS, "trimWeights"); // generated: option-keys.mjs
   const { at, lower = false } = options;
   if (!(at > 0) || !Number.isFinite(at)) throw new RangeError("'at' must be a positive number");
   if (Array.isArray(w) || ArrayBuffer.isView(w)) {
@@ -511,7 +514,7 @@ function groupSummary(w: readonly number[], index: readonly number[]): WeightSum
 
 /**
  * Summary of balancing weights by group: range, largest weights, coefficient of variation, scaled MAD, negative
- * entropy, zeros and Kish's effective sample size. Equivalent to `summary()` of a weightit object in R.
+ * entropy, zeros and Kish's effective sample size. Equivalent to `WeightIt::summary.weightit()` in R.
  * @category Causal inference
  */
 export function weightSummary(w: WeightitResult): WeightSummaryResult {
