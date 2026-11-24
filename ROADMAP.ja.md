@@ -67,7 +67,22 @@ SciPy (`scipy.stats`、`scipy.special`、`scipy.linalg`) は移植元のコー�
 指標とその信頼区間を出せることを重視します。この一覧は、医学・心理学の研究向けの統計ウェブアプリの手法と
 照らし合わせて作りました (2026-11-06)。優先度の高い順です。括弧内は、各項目の照合先の R の関数またはパッケージです。
 
-2. **残り (1.12.0 予定):** 時系列 [`arima`]。
+次の順は、EZR・HAD・エクセル統計 (日本の医学・心理学の研究でよく使われる統計ソフト) と ReactiveStat の手法を、
+rStats.js に既にあるものと照らし合わせて決めました (2026-11-24)。
+
+1. **傾向スコア** [MatchIt・Matching、WeightIt、cobalt、survey]: 傾向スコア (ロジスティックか probit)、調整の前後の
+   バランス (標準化差、分散比)。**マッチング** (最近傍の 1:1 と 1:k、復元あり・なし、caliper) と、マッチした標本の解析
+   (対応のある検定、McNemar、条件付きロジスティック回帰、組で層にした Cox・組でまとめた頑健な誤差の Cox、Kaplan-Meier、
+   ATT)。**IPTW** (ATE・ATT の重み、安定化、切り詰め) と、重みつきの解析 (頑健な誤差つきの線形・ロジスティック・Poisson
+   回帰、重みつきの Kaplan-Meier と Cox、リスク差・リスク比・オッズ比・ハザード比)。マッチングと IPTW は 2 つの版に
+   分けるかもしれない。**マッチング** (`match`・`balTab`・`tableOneSmd`・`clogit`) は 1.12.0 で済み、次は IPTW
+2. **条件付きロジスティック回帰** [survival `clogit`] (1 と一緒に): 1.12.0 で済み
+3. **多項ロジスティック回帰** [nnet `multinom`]
+4. **ステップワイズの変数選択** [`step`、MASS `stepAIC`]
+5. **媒介分析・調整分析** [mediation `mediate`] (調整媒介分析を含む)
+6. 小さなモデル: tobit 回帰 (`survreg` の上に)、対数線形モデル [`loglin`、MASS `loglm`]、ガンマ回帰とベータ回帰 [betareg]
+7. その後に検討: 時間依存 ROC [timeROC、survivalROC]、ネットワークメタアナリシス [netmeta]、Bradley-Terry の一対比較
+   [BradleyTerry2]、管理図 [qcc]、時系列 [`arima`、forecast `auto.arima`]
 
 混合モデルの続き (以前の項目 1) は 1.6.0 に向けて済ませました: lme4 の `confint` (プロファイル尤度と Wald) と
 `simulate` に合わせた `confintLmer`、`confintGlmer`、`simulateLmer`、`simulateGlmer`。

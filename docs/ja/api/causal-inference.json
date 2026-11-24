@@ -1,0 +1,227 @@
+{
+  "BalTabOptions#summary": {
+    "hash": "ce918217195b",
+    "en": "Options of {@link balTab}. Equivalent to the arguments of cobalt's `bal.tab()` for a `Match` object.",
+    "ja": "{@link balTab} のオプションです。`Match` オブジェクトに対する cobalt の `bal.tab()` の引数に相当します。"
+  },
+  "BalTabOptions.binary#summary": {
+    "hash": "176d1249a3ee",
+    "en": "Binary covariates: `\"raw\"` difference in proportions (default, as cobalt) or `\"std\"` standardised.",
+    "ja": "2 値の共変量: `\"raw\"` は割合の差 (既定、cobalt と同じ)、`\"std\"` は標準化した差です。"
+  },
+  "BalTabOptions.estimand#summary": {
+    "hash": "2e1cd4cb898a",
+    "en": "The estimand, which chooses the SD of the denominator (default `\"ATT\"`).",
+    "ja": "推定対象です。分母の SD をこれで決めます (既定は `\"ATT\"`)。"
+  },
+  "BalTabOptions.match#summary": {
+    "hash": "b7473741df33",
+    "en": "The result of {@link BalTabOptions.match | match}: gives the weights ({@link matchWeights}), the estimand and, with a caliper, the\ndiscarded units. Alternative to `weights` and `estimand`.",
+    "ja": "{@link BalTabOptions.match | match} の結果です。重み ({@link matchWeights})、推定対象、キャリパーがあれば除外された単位を与えます。`weights` と `estimand` の代わりに使います。"
+  },
+  "BalTabOptions.weights#summary": {
+    "hash": "5f52084d3e81",
+    "en": "The weights after matching (from {@link matchWeights}); without them only the unadjusted columns are filled.",
+    "ja": "マッチング後の重みです ({@link matchWeights} から)。無いときは調整前の列だけを埋めます。"
+  },
+  "BalTabResult#summary": {
+    "hash": "5dab319bad73",
+    "en": "Result of {@link balTab}: one entry per covariate, in the order given (cobalt's `Balance` table), and the counts.",
+    "ja": "{@link balTab} の結果です。共変量ごとに 1 項目を与えた順に並べたもの (cobalt の `Balance` の表) と、標本の大きさです。"
+  },
+  "BalTabResult.diffAdj#summary": {
+    "hash": "0598c41cffa4",
+    "en": "The same after matching (weighted); NaN without weights.",
+    "ja": "マッチング後の同じ値です (重み付き)。重みが無いときは NaN です。"
+  },
+  "BalTabResult.diffUn#summary": {
+    "hash": "116efdb30742",
+    "en": "Difference treated − control before matching: standardised (continuous, or binary with `binary: \"std\"`) or raw.",
+    "ja": "マッチング前の差 (処置群 − 対照群) です。標準化した差 (連続、または `binary: \"std\"` のときの 2 値) か、そのままの差です。"
+  },
+  "BalTabResult.observations#summary": {
+    "hash": "5daf95f6fccc",
+    "en": "Sample sizes of the control and treated groups (cobalt's `Observations`): all (effective sample size, the same as\nthe count), all (unweighted), matched (effective sample size `(sum w)^2 / sum w^2`), matched (unweighted:\n`w > 0`), unmatched (`w = 0`) and, when `match` has a caliper, discarded (its `indexDropped`, not counted as unmatched). The\nmatched rows are NaN without weights.",
+    "ja": "対照群と処置群の標本の大きさです (cobalt の `Observations`): 全体 (有効サンプルサイズ、数と同じ)、全体 (重みなし)、マッチ後 (有効サンプルサイズ `(sum w)^2 / sum w^2`)、マッチ後 (重みなし: `w > 0`)、マッチしなかったもの (`w = 0`)、さらに `match` にキャリパーがあるときは除外されたもの (その `indexDropped`。マッチしなかったものには数えません)。重みが無いとき、マッチ後の行は NaN です。"
+  },
+  "BalTabResult.observations.control#summary": {
+    "hash": "7b91b769e7f2",
+    "en": "Counts of the control group.",
+    "ja": "対照群の数です。"
+  },
+  "BalTabResult.observations.rows#summary": {
+    "hash": "8d17f2b7afaf",
+    "en": "Row names, in the order of the counts.",
+    "ja": "行の名前です (数の並びと同じ順)。"
+  },
+  "BalTabResult.observations.treated#summary": {
+    "hash": "b91595608985",
+    "en": "Counts of the treated group.",
+    "ja": "処置群の数です。"
+  },
+  "BalTabResult.rows#summary": {
+    "hash": "0a9707c5200d",
+    "en": "Covariate names.",
+    "ja": "共変量の名前です。"
+  },
+  "BalTabResult.type#summary": {
+    "hash": "f962c438c960",
+    "en": "`\"Contin.\"` or `\"Binary\"` (a covariate with two distinct values, 0 and 1).",
+    "ja": "`\"Contin.\"` または `\"Binary\"` (0 と 1 の 2 つの値だけを取る共変量) です。"
+  },
+  "BalTabResult.vRatioAdj#summary": {
+    "hash": "fa5c503e5557",
+    "en": "The same after matching, with weighted variances; NaN for binary covariates or without weights.",
+    "ja": "マッチング後の同じ値です (重み付きの分散)。2 値の共変量のとき、または重みが無いときは NaN です。"
+  },
+  "BalTabResult.vRatioUn#summary": {
+    "hash": "a4cd74dc14d9",
+    "en": "Variance ratio treated / control before matching (NaN for binary covariates).",
+    "ja": "マッチング前の分散比 (処置群 / 対照群) です (2 値の共変量では NaN)。"
+  },
+  "MatchEstimand#summary": {
+    "hash": "5b0b04c34709",
+    "en": "The population the matching estimates for: the treated (ATT), everyone (ATE) or the controls (ATC).",
+    "ja": "マッチングで推定する対象の集団です: 処置群 (ATT)、全員 (ATE)、対照群 (ATC)。"
+  },
+  "MatchOptions#summary": {
+    "hash": "e6ea441700a8",
+    "en": "Options of {@link match}. Equivalent to the arguments of the Matching package's `Match()` with `ties = FALSE` and\n`replace = FALSE`.",
+    "ja": "{@link match} のオプションです。Matching パッケージの `Match()` を `ties = FALSE`、`replace = FALSE` で呼ぶときの引数に相当します。"
+  },
+  "MatchOptions.M#summary": {
+    "hash": "739ec2e92994",
+    "en": "The number of matches for each matched unit (default 1), a positive integer.",
+    "ja": "マッチさせる側の各単位に付ける相手の数です (既定は 1)。正の整数です。"
+  },
+  "MatchOptions.caliper#summary": {
+    "hash": "a3ee50a98376",
+    "en": "The caliper in standard deviations of `x` (the SD with divisor n over all units, as R's `ecaliper`): a match\nfarther than `caliper * sd` is not made, and a unit with fewer than `M` controls within it is dropped.",
+    "ja": "`x` の標準偏差を単位とするキャリパーです (全単位で n で割った SD、R の `ecaliper` と同じ)。`caliper * sd` より遠い相手とはマッチさせず、その範囲内の対照が `M` 個に満たない単位は落とします。"
+  },
+  "MatchOptions.estimand#summary": {
+    "hash": "93fe4abf2c97",
+    "en": "The estimand (default `\"ATT\"`): the treated units are matched (ATT), the controls (ATC), or both (ATE).",
+    "ja": "推定対象です (既定は `\"ATT\"`)。処置群の単位にマッチさせる (ATT)、対照群の単位にマッチさせる (ATC)、両方 (ATE) のいずれかです。"
+  },
+  "MatchResult#summary": {
+    "hash": "c7f795cc7c87",
+    "en": "Result of {@link match}. The fields are those of R's `Match` object, with 1-based row numbers.",
+    "ja": "{@link match} の結果です。項目は R の `Match` オブジェクトのもので、行番号は 1 始まりです。"
+  },
+  "MatchResult.M#summary": {
+    "hash": "e2f216eca034",
+    "en": "The number of matches per matched unit.",
+    "ja": "マッチさせる側の 1 単位あたりの相手の数です。"
+  },
+  "MatchResult.caliper#summary": {
+    "hash": "2a9d94a72cd7",
+    "en": "The caliper as given (in standard deviations), `null` without one.",
+    "ja": "与えたキャリパー (標準偏差の単位) です。無いときは `null` です。"
+  },
+  "MatchResult.ecaliper#summary": {
+    "hash": "0a17fa858f5e",
+    "en": "The caliper on the scale of `x` (R's `ecaliper`), `null` without one.",
+    "ja": "`x` の尺度に直したキャリパーです (R の `ecaliper`)。無いときは `null` です。"
+  },
+  "MatchResult.estimand#summary": {
+    "hash": "b1962b4deda5",
+    "en": "The estimand.",
+    "ja": "推定対象です。"
+  },
+  "MatchResult.indexControl#summary": {
+    "hash": "7f83d693f361",
+    "en": "Rows (1-based) of the control unit of each pair.",
+    "ja": "各組の対照群の単位の行番号 (1 始まり) です。"
+  },
+  "MatchResult.indexDropped#summary": {
+    "hash": "8acf95b41e86",
+    "en": "Rows (1-based) of the dropped units that appear in no pair (R's `index.dropped`), only when a caliper is given;\n`null` otherwise or when none. Under ATE a dropped unit can still be another unit's match and is then not listed.\nWithout a caliper R lists none even when units are dropped (`ndrops` counts them).",
+    "ja": "落とした単位のうち、どの組にも現れないものの行番号 (1 始まり) です (R の `index.dropped`)。キャリパーを与えたときだけで、それ以外または該当が無いときは `null` です。ATE では落とした単位がほかの単位の相手になることがあり、そのときは載りません。キャリパーが無いと、単位を落としても R は何も載せません (`ndrops` には数えます)。"
+  },
+  "MatchResult.indexTreated#summary": {
+    "hash": "3cefb81d7619",
+    "en": "Rows (1-based) of the treated unit of each pair.",
+    "ja": "各組の処置群の単位の行番号 (1 始まり) です。"
+  },
+  "MatchResult.ndrops#summary": {
+    "hash": "7c4a673dc7d6",
+    "en": "Number of matched-for units left without matches, for either reason (R's `ndrops`).",
+    "ja": "マッチさせる側の単位のうち、どちらかの理由で相手が付かなかったものの数です (R の `ndrops`)。"
+  },
+  "MatchResult.nobs#summary": {
+    "hash": "312d6c2a20c5",
+    "en": "Number of units (R's `nobs`).",
+    "ja": "単位の数です (R の `nobs`)。"
+  },
+  "MatchResult.tieSizes#summary": {
+    "hash": "8236e9a2f615",
+    "en": "Size of each candidate set from which matches were drawn at random (more candidates than needed at equal\ndistance), in the order of the draws. Empty when there were no ties; the pairs are then R's. With sets of 2 only\nthe pairs and the random numbers used are also R's; larger sets are broken by rStats.js's own rule (see\n{@link match}).",
+    "ja": "相手を乱数で選んだ候補の集合 (必要な数より多い候補が同じ距離にあるもの) の大きさを、引いた順に並べたものです。同点が無ければ空で、そのとき組は R と同じです。大きさが 2 の集合だけなら、組と使った乱数も R と同じです。それより大きい集合は rStats.js 独自の規則で選びます ({@link match} を参照)。"
+  },
+  "MatchResult.warnings#summary": {
+    "hash": "1121b64a0f7e",
+    "en": "Warnings (R's, e.g. when no unit could be matched).",
+    "ja": "警告です (R のもの。たとえば、どの単位もマッチしなかったとき)。"
+  },
+  "MatchResult.weights#summary": {
+    "hash": "ddd813269ec4",
+    "en": "Weight of each pair: `1 / M`.",
+    "ja": "各組の重みです: `1 / M`。"
+  },
+  "MatchResult.wnobs#summary": {
+    "hash": "14e31228cfe3",
+    "en": "Number of matched units (R's `wnobs`: units that found their matches).",
+    "ja": "マッチした単位の数です (R の `wnobs`: 相手が付いた単位)。"
+  },
+  "TableOneSmdOptions#summary": {
+    "hash": "f51fd1745a95",
+    "en": "Options of {@link tableOneSmd}.",
+    "ja": "{@link tableOneSmd} のオプションです。"
+  },
+  "TableOneSmdOptions.factor#summary": {
+    "hash": "8ec68b3a5c96",
+    "en": "Treat `x` as categorical (tableone's `factorVars`): numbers or strings as levels. Default false.",
+    "ja": "`x` をカテゴリ変数として扱います (tableone の `factorVars`)。数値または文字列を水準とします。既定は false です。"
+  },
+  "balTab#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": "⟦code1⟧"
+  },
+  "balTab#summary": {
+    "hash": "5cab03e51bff",
+    "en": "Covariate balance of two groups before and after matching: standardised mean differences and variance ratios.\nEquivalent to `cobalt::bal.tab()` in R. The call followed is\n`bal.tab(m, formula = tr ~ ..., data, un = TRUE, disp.v.ratio = TRUE, binary)` for a `Match` object `m`.\n\nThe difference is `(mean treated − mean control) / s`, with means weighted after matching. The SD `s` is always that\nof the unmatched sample: of the treated for ATT, of the controls for ATC, `sqrt((s1² + s0²) / 2)` for ATE; for a\nbinary covariate (with `binary: \"std\"`) `sqrt(p(1 − p))` in place of the SD (the mean of `p1(1 − p1)` and\n`p0(1 − p0)` for ATE).\nVariance ratios are treated / control. Factor covariates are not split: give one 0/1 column per level.",
+    "ja": "2 群の共変量のバランスを、マッチングの前後で求めます: 標準化平均差と分散比です。R の `cobalt::bal.tab()` と同等です。`Match` オブジェクト `m` に対する `bal.tab(m, formula = tr ~ ..., data, un = TRUE, disp.v.ratio = TRUE, binary)` の呼び方に従います。\n\n差は `(mean treated − mean control) / s` で、マッチング後は重み付きの平均を使います。SD `s` は常にマッチング前の標本のものです: ATT では処置群、ATC では対照群、ATE では `sqrt((s1² + s0²) / 2)` です。2 値の共変量 (`binary: \"std\"` のとき) では SD の代わりに `sqrt(p(1 − p))` を使います (ATE では `p1(1 − p1)` と `p0(1 − p0)` の平均)。分散比は処置群 / 対照群です。因子の共変量は分割しません: 水準ごとに 0/1 の列を 1 つずつ与えてください。"
+  },
+  "match#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": "⟦code1⟧"
+  },
+  "match#summary": {
+    "hash": "cd53eb7170b0",
+    "en": "Nearest-neighbour matching on a scalar score, without replacement and with random tie-breaking. Equivalent to\n`Matching::Match()` in R. The call followed is\n`Match(Tr = tr, X = x, estimand, M, caliper, ties = FALSE, replace = FALSE)`, used with the linear predictor\n`logit(PS)` of a propensity score model.\n\nThe matched units (the treated for ATT, the controls for ATC, all for ATE) are processed in data order. Each takes\nits matches from the units of the other group not yet used: every available unit within the M-th smallest distance\nis a candidate (within the caliper when one is given), and when there are more candidates than M, M of them are\ndrawn at random. A unit with fewer than M available candidates is dropped. Pairs are listed in the order of the\nmatched units, the controls of one treated unit (ATT) in row order.\n\nRandom draws use rStats.js's generator (`setSeed`): one uniform `u` for each pick, and the candidate at 0-based\nindex `floor(k (1 - u))` among the `k` remaining (in row order) is taken. Without ties no random number is used and\nthe pairs are R's; with sets of two candidates the rule is R's (the second when `u < 0.5`). Known differences from\nR: larger tie sets are broken differently (R's rule is not documented), and distances count as tied only when\nexactly equal (R also treats distances within `distance.tolerance = 1e-5` as ties). `M` below 1 is an error (R\nwarns and uses 1).",
+    "ja": "1 つの値 (スコア) による最近傍マッチングです。非復元で、同点は乱数で選びます。R の `Matching::Match()` と同等です。`Match(Tr = tr, X = x, estimand, M, caliper, ties = FALSE, replace = FALSE)` の呼び方に従い、傾向スコアのモデルの線形予測子 `logit(PS)` に使います。\n\nマッチさせる側の単位 (ATT では処置群、ATC では対照群、ATE では全員) をデータの順に処理します。各単位は、相手の群のまだ使われていない単位から相手を取ります: M 番目に小さい距離以内の使える単位がすべて候補になり (キャリパーがあればその範囲内)、候補が M より多いときは、そのうち M 個を乱数で選びます。使える候補が M 個に満たない単位は落とします。組はマッチさせる側の単位の順に並び、1 つの処置群の単位 (ATT) の対照は行の順に並びます。\n\n乱数は rStats.js の生成器 (`setSeed`) を使います: 1 個選ぶごとに一様乱数 `u` を 1 つ引き、残りの `k` 個 (行の順) のうち 0 始まりの添字 `floor(k (1 - u))` の候補を取ります。同点が無ければ乱数は使わず、組は R と同じです。候補が 2 つの集合では規則も R と同じです (`u < 0.5` なら 2 番目)。R との既知の違い: より大きい同点の集合は別の方法で選びます (R の規則は文書化されていません)。また、距離はちょうど等しいときだけ同点とします (R は `distance.tolerance = 1e-5` 以内の距離も同点として扱います)。`M` が 1 未満ならエラーです (R は警告を出して 1 を使います)。"
+  },
+  "matchWeights#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": "⟦code1⟧"
+  },
+  "matchWeights#summary": {
+    "hash": "d0a3eb63c7f4",
+    "en": "The weight of each unit after matching: every pair adds its weight `1 / M` to both of its units; unmatched units\nweigh 0. Equivalent to `cobalt::get.w()` in R. The call followed is `get.w(m)` for a `Match` object `m`.",
+    "ja": "マッチング後の各単位の重みです: 各組はその重み `1 / M` を両方の単位に加え、マッチしなかった単位の重みは 0 です。R の `cobalt::get.w()` と同等です。`Match` オブジェクト `m` に対する `get.w(m)` の呼び方に従います。"
+  },
+  "tableOneSmd#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": "⟦code1⟧"
+  },
+  "tableOneSmd#summary": {
+    "hash": "019e13d2c9d1",
+    "en": "Standardised mean difference of one variable between two groups. Equivalent to `tableone::ExtractSmd()` in R. The\ncall followed is `ExtractSmd(CreateTableOne(vars, strata, data, factorVars))` with two groups. Missing values (`NaN`,\n`null`) are left out.\n\nNumeric: `|mean1 − mean0| / sqrt((s1² + s0²) / 2)` with the groups' SDs (divisor `n − 1`). Categorical\n(`factor: true`): Yang and Dalton's `sqrt(d' S⁻¹ d)`, `d` the differences of the proportions of the levels after the\nfirst, `S` the mean of the two groups' multinomial covariance matrices `p_k (δ_kl − p_l)`; with two levels\n`|p1 − p0| / sqrt((p1(1 − p1) + p0(1 − p0)) / 2)`. 0 when both the difference and the spread are 0. When `S` is\nsingular (a level in one group only) the generalised inverse is used, as tableone; when `S` is 0 (one level in each\ngroup) the result is NaN, as tableone.",
+    "ja": "1 つの変数の 2 群間の標準化平均差です。R の `tableone::ExtractSmd()` と同等です。2 群での `ExtractSmd(CreateTableOne(vars, strata, data, factorVars))` の呼び方に従います。欠測値 (`NaN`、`null`) は除きます。\n\n数値: 各群の SD (割る数 `n − 1`) を使って `|mean1 − mean0| / sqrt((s1² + s0²) / 2)` です。カテゴリ (`factor: true`): Yang と Dalton の `sqrt(d' S⁻¹ d)` です。`d` は最初の水準を除いた各水準の割合の差、`S` は 2 群の多項分布の共分散行列 `p_k (δ_kl − p_l)` の平均です。水準が 2 つなら `|p1 − p0| / sqrt((p1(1 − p1) + p0(1 − p0)) / 2)` です。差とばらつきがともに 0 なら 0 です。`S` が特異 (ある水準が片方の群にしか無い) のときは tableone と同じく一般化逆行列を使い、`S` が 0 (各群に水準が 1 つずつ) のときは tableone と同じく NaN です。"
+  }
+}

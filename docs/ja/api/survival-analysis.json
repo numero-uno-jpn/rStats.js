@@ -1,4 +1,129 @@
 {
+  "ClogitOptions#summary": {
+    "hash": "193cd2570924",
+    "en": "Options of {@link clogit}. Equivalent to the arguments of survival's `clogit()`.",
+    "ja": "{@link clogit} のオプションです。survival の `clogit()` の引数に相当します。"
+  },
+  "ClogitOptions.confLevel#summary": {
+    "hash": "f8c806fc5453",
+    "en": "Confidence level of the intervals of exp(coef). Default 0.95.",
+    "ja": "exp(coef) の信頼区間の信頼水準です。既定は 0.95 です。"
+  },
+  "ClogitOptions.control#summary": {
+    "hash": "36523d23c909",
+    "en": "Convergence: relative change of the log likelihood (default 1e-9) and the most iterations (default 20).",
+    "ja": "収束: 対数尤度の相対変化 (既定は 1e-9) と反復の最大回数 (既定は 20) です。"
+  },
+  "ClogitOptions.control.eps#summary": {
+    "hash": "7620899fc5b8",
+    "en": "Tolerance of the relative change of the log likelihood. Default 1e-9.",
+    "ja": "対数尤度の相対変化の許容誤差です。既定は 1e-9 です。"
+  },
+  "ClogitOptions.control.iterMax#summary": {
+    "hash": "f1e8de092857",
+    "en": "Most iterations. Default 20.",
+    "ja": "反復の最大回数です。既定は 20 です。"
+  },
+  "ClogitOptions.method#summary": {
+    "hash": "3fc13ecae1bf",
+    "en": "The likelihood: `\"exact\"` (default, R's), or `\"approximate\"` / `\"breslow\"` (the Cox likelihood with Breslow's ties).",
+    "ja": "尤度: `\"exact\"` (既定、R と同じ)、または `\"approximate\"` / `\"breslow\"` (Breslow の同順位の扱いによる Cox の尤度) です。"
+  },
+  "ClogitResult#summary": {
+    "hash": "95c43a247909",
+    "en": "Result of {@link clogit}: the fields of R's `clogit` fit and of its `summary()`.",
+    "ja": "{@link clogit} の結果です。R の `clogit` の当てはめとその `summary()` の項目です。"
+  },
+  "ClogitResult.coefficients#summary": {
+    "hash": "e97a3d7d4f84",
+    "en": "Coefficients.",
+    "ja": "係数です。"
+  },
+  "ClogitResult.iter#summary": {
+    "hash": "d35ada18fc0a",
+    "en": "Number of iterations.",
+    "ja": "反復の回数です。"
+  },
+  "ClogitResult.loglik#summary": {
+    "hash": "8ae1df1d0a54",
+    "en": "Log conditional likelihood at 0 and at the end.",
+    "ja": "0 と終了時点における対数条件付き尤度です。"
+  },
+  "ClogitResult.logtest#summary": {
+    "hash": "94545386aa9a",
+    "en": "Likelihood ratio test.",
+    "ja": "尤度比検定です。"
+  },
+  "ClogitResult.lower#summary": {
+    "hash": "3d424d6e19df",
+    "en": "Lower confidence limits of exp(coef).",
+    "ja": "exp(coef) の信頼区間の下限です。"
+  },
+  "ClogitResult.method#summary": {
+    "hash": "2d3d42bdb1a1",
+    "en": "`\"exact\"` or `\"breslow\"` (R's `method`).",
+    "ja": "`\"exact\"` または `\"breslow\"` です (R の `method`)。"
+  },
+  "ClogitResult.n#summary": {
+    "hash": "7bec08620fae",
+    "en": "Number of observations.",
+    "ja": "観測値の数です。"
+  },
+  "ClogitResult.nevent#summary": {
+    "hash": "e9fc34144d4a",
+    "en": "Number of cases.",
+    "ja": "症例の数です。"
+  },
+  "ClogitResult.p#summary": {
+    "hash": "1a1a1d37b906",
+    "en": "Two-sided p-values.",
+    "ja": "両側 p 値です。"
+  },
+  "ClogitResult.score#summary": {
+    "hash": "75e623d6c2a1",
+    "en": "Score test statistic at 0.",
+    "ja": "0 におけるスコア検定統計量です。"
+  },
+  "ClogitResult.sctest#summary": {
+    "hash": "6ce048bb2b51",
+    "en": "Score test.",
+    "ja": "スコア検定です。"
+  },
+  "ClogitResult.se#summary": {
+    "hash": "9e6c3ed87c11",
+    "en": "Standard errors.",
+    "ja": "標準誤差です。"
+  },
+  "ClogitResult.upper#summary": {
+    "hash": "88963aa25167",
+    "en": "Upper confidence limits of exp(coef).",
+    "ja": "exp(coef) の信頼区間の上限です。"
+  },
+  "ClogitResult.var#summary": {
+    "hash": "c3cb63f43b40",
+    "en": "Variance matrix of the coefficients (array of rows).",
+    "ja": "係数の分散行列です (行の配列)。"
+  },
+  "ClogitResult.wald#summary": {
+    "hash": "e54572f81e68",
+    "en": "Wald statistic.",
+    "ja": "Wald 統計量です。"
+  },
+  "ClogitResult.waldtest#summary": {
+    "hash": "4d59c7d644a1",
+    "en": "Wald test (the statistic unrounded; R's `summary()` prints it rounded to 2 decimals).",
+    "ja": "Wald 検定です (統計量は丸めません。R の `summary()` は小数 2 桁に丸めて表示します)。"
+  },
+  "ClogitResult.warnings#summary": {
+    "hash": "c496d403e179",
+    "en": "Warnings (R's, e.g. when the iterations ran out).",
+    "ja": "警告です (R のもの。たとえば反復の回数が尽きたとき)。"
+  },
+  "ClogitResult.z#summary": {
+    "hash": "cb055788100a",
+    "en": "Wald z statistics.",
+    "ja": "Wald の z 統計量です。"
+  },
   "CoxZphOptions#summary": {
     "hash": "56a1c697e03f",
     "en": "Options for Schoenfeld-residual tests of proportional hazards.",
@@ -873,6 +998,16 @@
     "hash": "7fb95860db1f",
     "en": "Result of {@link timepoints}.",
     "ja": "{@link timepoints} の結果です。"
+  },
+  "clogit#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": "⟦code1⟧"
+  },
+  "clogit#summary": {
+    "hash": "55af69c8f63a",
+    "en": "Conditional logistic regression for matched sets (1:1, 1:M or several cases per set). Equivalent to\n`survival::clogit()` in R. The call followed is `clogit(y ~ x1 + ... + strata(set), method)`.\n\n`y` is 1 for a case and 0 for a control, `x` one row of covariates per observation, `strata` the matched set of\neach observation (for matched pairs from {@link match}, the pair number). Sets with only cases or only controls\ncarry no information. `\"exact\"` (R's default) uses the exact conditional likelihood, summing over the subsets of each\nset with as many members as it has cases; `\"approximate\"` is Breslow's approximation, the same as {@link coxph}\nwith equal times, `ties: \"breslow\"` and these strata.",
+    "ja": "マッチした組 (1:1、1:M、または組あたり複数の症例) の条件付きロジスティック回帰です。R の `survival::clogit()` と同等です。`clogit(y ~ x1 + ... + strata(set), method)` の呼び方に従います。\n\n`y` は症例なら 1、対照なら 0、`x` は観測値ごとに 1 行の共変量、`strata` は各観測値のマッチした組です ({@link match} からの組では組の番号)。症例だけ、または対照だけの組は情報を持ちません。`\"exact\"` (R の既定) は正確な条件付き尤度を使い、各組の中で症例の数と同じ大きさの部分集合すべてについて和を取ります。`\"approximate\"` は Breslow の近似で、等しい時間、`ties: \"breslow\"`、これらの層での {@link coxph} と同じです。"
   },
   "coxZph#@param fit": {
     "hash": "84e59f1f2192",

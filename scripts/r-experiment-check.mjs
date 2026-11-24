@@ -19,8 +19,8 @@ import { readFileSync } from "node:fs";
 
 const ALLOWED_PACKAGES = new Set([
   "cmprsk", "survival", "epiR", "exact2x2", "clinfun", "powerSurvEpi", "metafor", "metadat", "lme4", "Matrix",
-  "MASS", "quantreg", "SparseM", "MatrixModels", "geepack", "glmnet", "PMCMRplus", "outliers", "ca", "jsonlite", "stats",
-  "utils", "base",
+  "MASS", "quantreg", "SparseM", "MatrixModels", "geepack", "glmnet", "PMCMRplus", "outliers", "ca", "Matching", "cobalt",
+  "tableone", "jsonlite", "stats", "utils", "base",
 ]);
 
 /** Functions of the reference packages: they may only be called. */
@@ -244,6 +244,27 @@ const REFERENCE_FUNCTIONS = [
   "mjca.default",
   // stats autocorrelation (time series, 1.11.0): R's own code, GPL like the packages
   "acf", "pacf", "pacf.default", "ccf", "print.acf", "plot.acf",
+  // Propensity score matching (1.12.0): the exported functions and S3 methods of Matching, cobalt and tableone,
+  // and survival's clogit
+  "balanceUV", "GenMatch", "ks.boot", "Match", "MatchBalance", "Matchby", "print.summary.ks.boot",
+  "print.summary.Match", "print.summary.Matchby", "qqstats", "summary.balanceUV", "summary.ks.boot", "summary.Match",
+  "summary.Matchby",
+  "as.data.frame.bal.tab", "autoplot.bal.tab", "available.stats", "bal.compute", "bal.compute.bal.init",
+  "bal.compute.default", "bal.init", "bal.plot", "bal.tab", "bal.tab.CBMSM", "bal.tab.CBPS", "bal.tab.cem.match",
+  "bal.tab.data.frame", "bal.tab.data.frame.list", "bal.tab.default", "bal.tab.designmatch", "bal.tab.ebalance",
+  "bal.tab.formula", "bal.tab.formula.list", "bal.tab.iptw", "bal.tab.Match", "bal.tab.matchit", "bal.tab.matrix",
+  "bal.tab.mimids", "bal.tab.mnps", "bal.tab.optmatch", "bal.tab.ps", "bal.tab.ps.cont", "bal.tab.sbwcau",
+  "bal.tab.weightit", "bal.tab.wimids", "col_w_corr", "col_w_cov", "col_w_dcorr", "col_w_dcov", "col_w_ks",
+  "col_w_mean", "col_w_ovl", "col_w_sd", "col_w_smd", "col_w_vr", "f.build", "format.bal.tab", "get.cobalt.options",
+  "get.w", "get.w.CBMSM", "get.w.CBPS", "get.w.cem.match", "get.w.designmatch", "get.w.ebalance", "get.w.iptw",
+  "get.w.Match", "get.w.matchit", "get.w.mimids", "get.w.mnps", "get.w.optmatch", "get.w.ps", "get.w.ps.cont",
+  "get.w.sbwcau", "get.w.weightit", "get.w.wimids", "love.plot", "plot.bal.tab", "print.bal.init", "print.bal.tab",
+  "print.love.plot", "set.cobalt.options", "splitfactor", "unsplitfactor", "var.names",
+  "CreateCatTable", "CreateContTable", "CreateTableOne", "ExtractSmd", "kableone", "print.CatTable",
+  "print.ContTable", "print.svyCatTable", "print.svyContTable", "print.TableOne", "ShowRegTable", "summary.CatTable",
+  "summary.ContTable", "summary.svyCatTable", "summary.svyContTable", "summary.TableOne", "svyCreateCatTable",
+  "svyCreateContTable", "svyCreateTableOne",
+  "clogit",
 ];
 
 /** Names that reach code, namespaces, compiled routines, other programs or files: not allowed at all. */

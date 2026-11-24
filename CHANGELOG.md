@@ -7,6 +7,14 @@ While the version is 0.x, a minor release (0.y.0) may contain breaking changes;
 they are listed under **Breaking** for each release. From 1.0.0 the project follows
 [Semantic Versioning](https://semver.org/).
 
+## 1.12.0 - 2026-11-24
+
+### Added
+
+- **Causal inference** in the separate `/causal` area: propensity score matching (`match`, after `Matching::Match` with `ties = FALSE` and `replace = FALSE`: ATT, ATE and ATC, 1:M, caliper), matching weights (`matchWeights`), covariate balance before and after (`balTab`, after `cobalt::bal.tab`) and tableone's standardized mean difference (`tableOneSmd`).
+- **Conditional logistic regression** (`clogit`, after `survival::clogit`): the exact conditional likelihood and the approximate (Breslow) one.
+- Ties among three or more matching candidates are broken by rStats.js's own rule; without ties, and with two tied candidates, the pairs and the random numbers are R's ([the differences](docs/differences-from-r.md#propensity-score-matching-and-conditional-logistic-regression-1120)).
+
 ## 1.11.0 - 2026-11-24
 
 ### Added

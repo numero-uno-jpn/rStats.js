@@ -44,9 +44,9 @@ penalized regression (`glmnet`). For example, `rq("y ~ x", data, { tau: 0.5 })` 
 `glmnet(x, y, { family: "gaussian", alpha: 1 })` fits a lasso path. Use `rqSummary` / `rqPredictInterval`,
 `geeSummary` / `geeVcov` / `geeQIC`, and `glmnetCoef` / `glmnetPredict` / `cvGlmnet` for their methods.
 
-Without a bundler, `https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@1.11.0/dist/rstats.js` is one ES module with
-every function except mixed models, regression, multivariate analysis and time series, which are in `dist/mixed.js`,
-`dist/regression.js`, `dist/multivariate.js` and `dist/timeseries.js`. Keep a version in the URL (an exact one, or a
+Without a bundler, `https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@1.12.0/dist/rstats.js` is one ES module with
+every function except mixed models, regression, multivariate analysis, time series and causal inference, which are in
+`dist/mixed.js`, `dist/regression.js`, `dist/multivariate.js`, `dist/timeseries.js` and `dist/causal.js`. Keep a version in the URL (an exact one, or a
 major version such as `@1` from 1.0.0 on): a URL without one follows every new release, breaking changes included.
 Use either `dist/rstats.js` or the per-area bundles (`dist/tests.js`, `dist/mixed.js`, `dist/regression.js`, `dist/multivariate.js`, ...) on one page: mixing them
 loads the common code twice, with two random number states.
@@ -189,3 +189,21 @@ ccf(x, y, { lagMax: 3 });
 ```
 
 `acf` returns autocorrelation by default; use `type: "covariance"` for autocovariance or `pacf` for partial autocorrelation. `ccf` returns cross-correlation (or cross-covariance) at lags from `-lagMax` through `lagMax`. Lags are integer observation offsets; calendar time units and R's `frequency` metadata are not represented. Missing values are rejected by default; `naAction: "pass"` omits incomplete pairs.
+
+## Causal inference
+
+Propensity score matching and balance are imported from the separate `/causal` entry point; `clogit` (conditional
+logistic regression for the matched sets) is with `coxph` in the main entry point:
+
+```ts
+import { clogit, setSeed } from "@numero-uno-jpn/rstats";
+import { match, balTab, tableOneSmd } from "@numero-uno-jpn/rstats/causal";
+
+// x = logit(PS) from a logistic model, as in R: ps <- fitted(glm(tr ~ age + male, family = binomial()))
+setSeed(1234);
+const m = match(tr, logitPs, { estimand: "ATT", M: 1, caliper: 0.2 });
+balTab(tr, { age, male }, { match: m, binary: "std" }); // SMDs and variance ratios before and after
+tableOneSmd(age, tr); // tableone's SMD
+```
+
+`match` follows `Matching::Match(Tr, X, estimand, M, caliper, ties = FALSE, replace = FALSE)`: without ties its pairs are R's; ties among three or more candidates are broken by a documented rule of its own (`tieSizes` reports them). The caliper is in standard deviations of `x` with divisor n. `balTab` takes the weights of the match (`matchWeights`) and uses the SD of the unmatched sample in the denominator (treated for ATT, controls for ATC, pooled for ATE). The matched pairs are analysed with `clogit` (exact or approximate), with `coxph` using the pairs as `strata` and `ties: "breslow"`, or with `mantelhaenTest` using the pairs as strata.

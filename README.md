@@ -14,7 +14,7 @@ R-compatible statistical functions for JavaScript and the browser, written in Ty
 - **Runs anywhere.** ESM only, no dependencies, no Node-specific APIs, tree-shakable
   (`pnorm` alone is 1.6 KB gzipped).
 
-Status: **1.11.0.** The goal is to cover the numerical core of R's
+Status: **1.12.0.** The goal is to cover the numerical core of R's
 `stats` package (distributions, descriptive statistics, hypothesis tests, linear models, special
 functions, numerical methods and the basics of linear algebra) with R-compatible results; see [ROADMAP.md](ROADMAP.md) for what remains. See [CHANGELOG.md](CHANGELOG.md).
 
@@ -217,6 +217,7 @@ eigen([[2, 1], [1, 3]]).values;     // ≈ [3.618033989, 1.381966011]
 | Distributions (d/p/q) | normal, t, chi-squared, F, beta, gamma, binomial, Poisson, uniform, exponential, log-normal, logistic, Cauchy, Weibull, geometric, negative binomial, hypergeometric, Wilcoxon signed rank and rank sum, studentized range (`ptukey`, `qtukey`), non-central chi-squared, t, F and beta (`ncp`); the multinomial probability (`dmultinom`); inverse gamma, Kumaraswamy, Pareto, triangular, Laplace (extraDistr) and arcsine; `distSummary` (mean, variance, sd, median, mode, skewness, kurtosis) |
 | Random numbers | `setSeed` (`set.seed`), `RNGkind` (Mersenne-Twister and L'Ecuyer-CMRG, `sample.kind` Rejection and Rounding), `getRandomSeed`/`setRandomSeed` (`.Random.seed`), `nextRNGStream`/`nextRNGSubStream` (`parallel`), 26 `r*` functions, `sample`, `sampleInt` (`sample.int`), `r2dtable` |
 | Time series | `acf`, `pacf`, `ccf` (`stats::acf`, `stats::pacf`, `stats::ccf`) from `@numero-uno-jpn/rstats/timeseries` |
+| Causal inference | `match` (propensity score matching: `Matching::Match` with `ties = FALSE`, `replace = FALSE`; ATT, ATE and ATC, 1:M, caliper), `matchWeights` (`cobalt::get.w`), `balTab` (standardized mean differences and variance ratios before and after: `cobalt::bal.tab`) and `tableOneSmd` (`tableone::ExtractSmd`), from `@numero-uno-jpn/rstats/causal` |
 | Descriptive statistics | `sum`, `prod`, `mean`, `weightedMean` (`weighted.mean`), `variance` (`var`), `sd`, `median`, `range`, `cumsum`, `cumprod`, `cummax`, `cummin`, `diff`, `quantile`, `IQR`, `fivenum`, `mad`, `rank`, `cov`, `cor`, `tabulate`, `table`, `unique`, `cut`, `findInterval`, `pretty`, `hist`, `ecdf`, `scale`, `skewness`, `kurtosis`, `geometricMean`, `modes`, `meanAD`, `cv` |
 | Hypothesis tests | `tTest`, `chisqTest`, `fisherTest`, `wilcoxTest`, `corTest`, `binomTest`, `poissonTest`, `propTest`, `mcnemarTest`, `varTest`, `bartlettTest`, `kruskalTest`, `friedmanTest`, `quadeTest`, `flignerTest`, `moodTest`, `onewayTest`, `shapiroTest`, `mantelhaenTest`, `ansariTest`, `ksTest`, `pairwiseTTest`, `pairwiseWilcoxTest`, `pairwisePropTest`, `aov` (one way, a fit whose table is `aovSummary`), `TukeyHSD`, `zTest`, `brunnerMunzelTest`, `tamhaneT2Test` (Tamhane's T2/T2'), `pageTest`, `grubbsTest`, `pgrubbs`, `qgrubbs`, `pAdjust` (`p.adjust`) |
 | Analysis of variance | `aov` and `aovSummary` with a formula (several factors, interactions, covariates, `Error()` strata), `anova` (`anova.lm`, sequential and model comparison), `Anova` (car: types II and III), `aovEz` (afex: repeated-measures and mixed designs, Greenhouse-Geisser and Huynh-Feldt corrections, generalized and partial eta squared), `mauchlyTest` (`mauchly.test`) |
@@ -231,7 +232,7 @@ eigen([[2, 1], [1, 3]]).values;     // ≈ [3.618033989, 1.381966011]
 | More tests | `leveneTest`, `propTrendTest` (`prop.trend.test`), `jonckheereTest`, `cochranQTest`, `adTest`, `lillieTest`, `cvmTest`, `sfTest`, `pearsonTest` (car, DescTools, clinfun, nortest); `tTOST`, `tsumTOST` (TOSTER: equivalence and minimal-effect t tests) |
 | Contingency tables and proportions | `binomCI`, `binomDiffCI`, `binomRatioCI` (DescTools' `BinomCI`, `BinomDiffCI`, `BinomRatioCI`), `oddsRatio` (epitools, and epiR's score interval), `fisherTest(x, { midp: true })` (exact2x2), `boschlooTest` (Exact), `gTest`, `stuartMaxwellTest`, `goodmanKruskalGamma` (DescTools), `lblTest` (coin), `chisqTest(x, { nMinus1: true })` (Campbell's 'N − 1' test) and Freeman-Tukey residuals, `tost` (equivalence), `binomDiffEquivalenceTest` (score TOST of two proportions) |
 | Multiple comparisons | `dscfAllPairsTest` (Steel-Dwass), `kwAllPairsDunnTest`, `kwManyOneDunnTest`, `manyOneUTest` (Steel's many-one rank test), `dunnettTest`, `gamesHowellTest`, `tukeyTest` (PMCMRplus), `dunnTest` (dunn.test), `glhtDunnett` (multcomp) |
-| Survival analysis | `survdiff` (log-rank and the G-rho family), `survfit` (Kaplan-Meier and Nelson-Aalen/Fleming-Harrington cumulative hazards, weights, robust standard errors, confidence intervals, medians, restricted means and counting-process data), `rmst2` (unadjusted and covariate-adjusted restricted mean survival time and time lost), `coxph` (Cox regression: Efron and Breslow ties, case weights, strata, Wald, likelihood-ratio and score tests, counting-process data, robust variance and `cluster`), `coxZph` (proportional-hazards tests), `cuminc` and `timepoints` (cumulative incidence and Gray's tests), `crr` and `predictCrr` (Fine-Gray regression and predictions), `survreg`, `survregPredict` and `survregResiduals` (parametric accelerated-failure-time regression) |
+| Survival analysis | `survdiff` (log-rank and the G-rho family), `survfit` (Kaplan-Meier and Nelson-Aalen/Fleming-Harrington cumulative hazards, weights, robust standard errors, confidence intervals, medians, restricted means and counting-process data), `rmst2` (unadjusted and covariate-adjusted restricted mean survival time and time lost), `coxph` (Cox regression: Efron and Breslow ties, case weights, strata, Wald, likelihood-ratio and score tests, counting-process data, robust variance and `cluster`), `clogit` (conditional logistic regression for matched sets: exact and approximate likelihoods), `coxZph` (proportional-hazards tests), `cuminc` and `timepoints` (cumulative incidence and Gray's tests), `crr` and `predictCrr` (Fine-Gray regression and predictions), `survreg`, `survregPredict` and `survregResiduals` (parametric accelerated-failure-time regression) |
 | Diagnostic accuracy and method comparison | `roc`, `auc`, `ciAuc` (`ci.auc`), `rocTest` (`roc.test`), `coords` (pROC: DeLong's interval and test, the bootstrap, partial AUC), `diagnosticTests` (epiR's `epi.tests`), `blandAltman` (BlandAltmanLeh's `bland.altman.stats`), `mcreg` (mcr: Deming, weighted Deming and Passing-Bablok regression) |
 | Agreement and reliability | `kappa2`, `kappamFleiss`, `icc` (irr), `ICC` (psych: the six forms of Shrout and Fleiss), `cronbachAlpha`, `partialR` (psych), `polychor`, `polyserial` (polycor), `pbvnorm`, `factanal`, `omega` (McDonald's ω, psych) |
 | Data handling | `completeCases` (`complete.cases`), `naOmit` (`na.omit`), `subset`, `merge`, `rbind` and `cbind` of data frames, `tapply`, `split`, `aggregate`, `pivotLonger` and `pivotWider` (tidyr), `fromRows` and `toRows` (a data frame from an array of row objects and back); formula forms of the tests (`tTest("y ~ g", data)`, `kruskalTest`, `friedmanTest("y ~ w \| b", data)`, `corTest("~ x + y", data)`, ...) |
@@ -315,7 +316,7 @@ function except those of `/mixed` and `/regression`, 322 KB gzipped) from jsDeli
 
 ```html
 <script type="module">
-  import { pnorm } from "https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@1.11.0/dist/rstats.js";
+  import { pnorm } from "https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@1.12.0/dist/rstats.js";
   console.log(pnorm(1.96)); // ≈ 0.9750021049
 </script>
 ```
@@ -329,13 +330,13 @@ browser console, assign `window.rs = rs` yourself.
 
 A page that needs only some areas can load the per-area bundles instead: `dist/distributions.js`,
 `dist/tests.js`, `dist/linalg.js`, `dist/descriptive.js`, `dist/numerics.js`, `dist/special.js`,
-`dist/mixed.js`, `dist/regression.js`, `dist/multivariate.js` and `dist/timeseries.js` export the same functions as the subpaths above, and share their common code through
+`dist/mixed.js`, `dist/regression.js`, `dist/multivariate.js`, `dist/timeseries.js` and `dist/causal.js` export the same functions as the subpaths above, and share their common code through
 `dist/chunks/`, so loading two areas does not load that code twice. With its chunks, one area
 transfers 39 KB (`special`) to 288 KB (`tests`) gzipped.
 
 Use either `dist/rstats.js` or the per-area bundles on one page, not both: they are separate sets of modules, so a
 page that mixes them loads the common code twice and has two random number states (`setSeed` from one does not seed
-the generators of the other). The same holds for `dist/rstats.js` with `dist/mixed.js`, `dist/regression.js`, `dist/multivariate.js` or `dist/timeseries.js`, which bring their own copy
+the generators of the other). The same holds for `dist/rstats.js` with `dist/mixed.js`, `dist/regression.js`, `dist/multivariate.js`, `dist/timeseries.js` or `dist/causal.js`, which bring their own copy
 of the common code.
 
 Other npm-based CDNs work as well, for example `https://esm.sh/@numero-uno-jpn/rstats`. Release tags also contain

@@ -88,3 +88,12 @@ RUN install2.r --error --skipinstalled ca \
                    got <- sapply(names(want), function(p) as.character(packageVersion(p))); \
                    cat(sprintf("%s %s\n", names(got), got), sep = ""); \
                    if (!identical(unname(got), unname(want))) quit(status = 1)'
+
+# Propensity score matching (1.12.0): Matching (Match), cobalt (bal.tab) and tableone (CreateTableOne), in a layer of
+# their own, at the versions of the fixtures. survival (clogit, coxph) is one of R's recommended packages.
+RUN install2.r --error --skipinstalled Matching cobalt tableone \
+    && Rscript -e 'want <- c(Matching = "4.10.15", cobalt = "5.0.0", tableone = "0.13.2"); \
+                   for (p in names(want)) suppressPackageStartupMessages(library(p, character.only = TRUE)); \
+                   got <- sapply(names(want), function(p) as.character(packageVersion(p))); \
+                   cat(sprintf("%s %s\n", names(got), got), sep = ""); \
+                   if (!identical(unname(got), unname(want))) quit(status = 1)'

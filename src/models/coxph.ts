@@ -618,7 +618,7 @@ function scoreResidualsCounting(data: SortedData, beta: readonly number[], efron
  * Generalised Cholesky factorisation M = L D L' in place (D on the diagonal, L below it), pivots below the tolerance
  * set to 0. Returns the rank (negative when M is not non-negative definite).
  */
-function cholFactor(m: number[][], tol: number): number {
+export function cholFactor(m: number[][], tol: number): number {
   const p = m.length;
   let scale = 0;
   let anyPositive = false;
@@ -655,7 +655,7 @@ function cholFactor(m: number[][], tol: number): number {
 }
 
 /** Solves M y = b with the factor of {@link cholFactor} (0 for the dropped pivots) */
-function cholSolve(m: readonly number[][], b: readonly number[]): number[] {
+export function cholSolve(m: readonly number[][], b: readonly number[]): number[] {
   const p = m.length;
   const y = b.slice();
   for (let i = 0; i < p; i++) {
@@ -676,7 +676,7 @@ function cholSolve(m: readonly number[][], b: readonly number[]): number[] {
 }
 
 /** The (generalised) inverse from the factor of {@link cholFactor}, in place; returns the full symmetric matrix */
-function cholInverse(m: number[][]): number[][] {
+export function cholInverse(m: number[][]): number[][] {
   const p = m.length;
   for (let i = 0; i < p; i++) {
     if (!(m[i]![i]! > 0)) continue;

@@ -512,7 +512,15 @@ examples <- list(
   list(id = "ca-contingency-summary", title = "Correspondence analysis of the smoke table",
        value = function() local({ z <- ca::ca(ca::smoke); c(z$sv, summary(z)$scree[1, ]) })),
   list(id = "sammon-small-configuration", title = "Sammon mapping of six points in three dimensions",
-       value = function() local({ x <- matrix(c(0, 0, 1, 1, 0, 3, 0, 2, 0, 1, 1, 2, 3, 2, 1, 2, 4, 3), ncol = 3, byrow = TRUE); MASS::sammon(stats::dist(x), k = 2, niter = 20)$stress }))
+       value = function() local({ x <- matrix(c(0, 0, 1, 1, 0, 3, 0, 2, 0, 1, 1, 2, 3, 2, 1, 2, 4, 3), ncol = 3, byrow = TRUE); MASS::sammon(stats::dist(x), k = 2, niter = 20)$stress })),
+  list(id = "match-propensity-caliper", title = "Propensity score matching (1:1 nearest neighbour, caliper 0.5)",
+       value = function() local({ set.seed(1234); m <- Matching::Match(Tr = c(1, 0, 1, 0, 0, 1, 0, 0, 1, 0), X = c(0.31, -0.42, 1.25, 0.97, -1.6, 0.05, 0.28, -0.21, 0.66, 0.6), ties = FALSE, replace = FALSE, caliper = 0.5); c(m$index.treated, m$index.control, m$ecaliper) })),
+  list(id = "baltab-before-after-matching", title = "Covariate balance before and after matching (weights, SMD, variance ratio)",
+       value = function() local({ tr <- c(1, 0, 1, 0, 0, 1, 0, 0, 1, 0); set.seed(1234); m <- Matching::Match(Tr = tr, X = c(0.31, -0.42, 1.25, 0.97, -1.6, 0.05, 0.28, -0.21, 0.66, 0.6), ties = FALSE, replace = FALSE); b <- cobalt::bal.tab(m, formula = tr ~ age, data = data.frame(tr = tr, age = c(52, 40, 61, 58, 33, 47, 50, 45, 39, 55)), un = TRUE, disp.v.ratio = TRUE); c(cobalt::get.w(m), b$Balance$Diff.Un, b$Balance$Diff.Adj, b$Balance$V.Ratio.Un, b$Balance$V.Ratio.Adj) })),
+  list(id = "tableone-smd-numeric-factor", title = "Standardized mean differences of tableone (numeric and categorical)",
+       value = function() local({ d <- data.frame(g = c(0, 0, 0, 0, 1, 1, 1, 1), v = c(1, 2, 4, 3, 5, 4, 6, 7), f = c("a", "b", "a", "c", "b", "c", "c", "b")); c(as.vector(tableone::ExtractSmd(tableone::CreateTableOne(vars = "v", strata = "g", data = d, test = FALSE))), as.vector(tableone::ExtractSmd(tableone::CreateTableOne(vars = "f", strata = "g", data = d, factorVars = "f", test = FALSE)))) })),
+  list(id = "clogit-matched-pairs", title = "Conditional logistic regression on matched pairs (exact)",
+       value = function() local({ fit <- survival::clogit(y ~ x + survival::strata(s), data = data.frame(y = c(1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0), x = c(1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0), s = c(1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6))); c(coef(fit), sqrt(diag(fit$var)), fit$loglik) }))
 )
 
 if (!exists(".rstats_oracle")) {

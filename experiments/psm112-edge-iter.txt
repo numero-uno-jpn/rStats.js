@@ -1,0 +1,8 @@
+exact       iter.max=1 coef=2 iter=1 loglik=-0.76156806625783613
+exact       iter.max=2 coef=2 iter=2 loglik=-0.76156806625783613
+exact       iter.max=3 coef=3.1353352832366124 iter=3 loglik=-0.25539742271194754
+exact       iter.max=5 coef=5.1941370182675213 iter=5 loglik=-0.0332019836317059
+approximate iter.max=1 coef=2 iter=2 loglik=-0.76156806625783613
+approximate iter.max=2 coef=3.1353352832366133 iter=3 loglik=-0.25539742271194488
+approximate iter.max=3 coef=4.1788204547723993 iter=4 loglik=-0.091202694507167337
+approximate iter.max=5 coef=6.1996860212049976 iter=6 loglik=-0.01216806078679511
