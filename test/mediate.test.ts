@@ -1,13 +1,13 @@
 // mediate against R's mediation::mediate (test/fixtures/mediation.json from oracle/mediation.R)
 import { describe, it, expect } from "vitest";
-import fx from "./fixtures/mediation.json";
+import { readFileSync } from "node:fs";
 import { mediate, type MediationModel } from "../src/causal/mediate.js";
 import { lm } from "../src/models/lm.js";
 import { glm } from "../src/models/glm.js";
 import { setSeed } from "../src/random/rng.js";
 import type { DataFrame } from "../src/models/modelFrame.js";
 
-const F = fx as any;
+const F = JSON.parse(readFileSync(new URL("./fixtures/mediation.json", import.meta.url), "utf8")) as any;
 const data = F.data.d as DataFrame;
 const fit = (f: string, fam: string): MediationModel =>
   fam === "gaussian" ? lm(f, data) : glm(f, data, { family: "binomial", link: fam as "logit" | "probit" });

@@ -173,3 +173,4 @@ script keeps the search that succeeded.
     `mediation116-probit-separation.R`: no separation; the resamples have 15 vs 15 at Xb = 0, so the probit intercept is
     0 in theory: R +2.7e-16, rStats.js -3.8e-16. The mediator's probability is then 0.5 +- 1e-16, and rbinom turns its
     computation around at p = 0.5, so the draws differ. Rounding only; the test leaves those two replicates out.
+41. `test/simSlopes.test.ts` against the fixture: 9 of 10 at once; the case without a real root had inside = FALSE in R although the leading coefficient is negative: inside is FALSE whenever the interval is not found. Then 10 of 10.
