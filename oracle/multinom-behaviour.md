@@ -44,6 +44,15 @@ logit; case weights in (0.5, 2).
 - **Separation** (`separation`): R stops at `maxit` (`convergence = 1`) with coefficients near −20; the maximum does not
   exist.
 
+## Choices (rStats.js, 2026-11-24)
+
+- **Pseudo R²** (not in nnet): the null model is the intercept-only fit on the rows the model uses (with their
+  weights), and n is their number. ReactiveStat fits `multinom(y ~ 1)` to every row with a response and divides by
+  `nrow(data)`, which differs when a predictor has missing values (MASS's survey: McFadden 0.0292 against 0.0305);
+  a likelihood-ratio quantity compares models on the same rows.
+- **Separated data** (iris on the sepals: setosa is separated): the maximum does not exist; R stops where its
+  optimiser stops, rStats.js where the score falls below its tolerance, with a warning; the coefficients differ.
+
 ## Open
 
 1. The pseudo R² are not in nnet: computed as ReactiveStat does, from the null model `multinom(y ~ 1)`: McFadden

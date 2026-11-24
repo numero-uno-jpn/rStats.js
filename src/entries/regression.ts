@@ -21,6 +21,26 @@ export {
   type RlmPsiBisquareOptions,
 } from "../models/rlm.js";
 
+// Multinomial logistic regression (rStats.js/regression)
+
+export {
+  multinom,
+  multinomSummary,
+  multinomConfint,
+  multinomPredict,
+  multinomAnova,
+  multinomVcov,
+  type MultinomOptions,
+  type MultinomModel,
+  type MultinomResult,
+  type MultinomSummaryResult,
+  type MultinomConfintOptions,
+  type MultinomConfintResult,
+  type MultinomPredictOptions,
+  type MultinomAnovaResult,
+  type MultinomVcovResult,
+} from "../models/multinom.js";
+
 // Ordinal regression (rStats.js/regression)
 
 export {
