@@ -82,6 +82,11 @@
       "import": "./dist/entries/timeseries.js",
       "default": "./dist/entries/timeseries.js"
     },
+    "./causal": {
+      "types": "./dist/entries/causal.d.ts",
+      "import": "./dist/entries/causal.js",
+      "default": "./dist/entries/causal.js"
+    },
     "./package.json": "./package.json"
   },
   "types": "./dist/index.d.ts",

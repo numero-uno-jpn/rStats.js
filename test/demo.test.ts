@@ -10,6 +10,7 @@ import * as mixed from "../src/entries/mixed.js";
 import * as regression from "../src/entries/regression.js";
 import * as multivariate from "../src/entries/multivariate.js";
 import * as timeseries from "../src/entries/timeseries.js";
+import * as causal from "../src/entries/causal.js";
 import * as lib from "../src/index.js";
 
 interface Example {
@@ -28,14 +29,14 @@ const rResults = (JSON.parse(readFileSync(path("demo/r-results.json"), "utf8")) 
 }).results;
 
 /** Every export of the areas: src/index.ts and the areas that are not in it (src/entries/mixed.ts) */
-const scope: Record<string, unknown> = { ...lib, ...mixed, ...regression, ...multivariate, ...timeseries };
+const scope: Record<string, unknown> = { ...lib, ...mixed, ...regression, ...multivariate, ...timeseries, ...causal };
 const names = Object.keys(scope);
 
 /**
  * Exports added since the last release. The public demo loads the released build from jsDelivr, so their examples
  * (with R results from `npm run demo:r`) are added when the next version is tagged; until then they are listed here
  */
-const NOT_IN_DEMO_YET: string[] = ["caCoord", "mjca", "isoMDS"];
+const NOT_IN_DEMO_YET: string[] = ["caCoord", "mjca", "isoMDS", "match", "matchWeights", "balTab", "tableOneSmd", "clogit"];
 
 /**
  * Exports that have no demo example: they return no value to compare with R's (an example evaluates to numbers).

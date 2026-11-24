@@ -4,6 +4,15 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 関数は `package::function()` と書いています。引数の書き方は [JavaScript の開発者のための rStats.js](guide-for-js-developers.md) を、
 各関数の詳しい説明は [API リファレンス](https://numero-uno-jpn.github.io/rStats.js/ja/api/) を参照してください。
 
+## Causal inference (`rStats.js/causal`)
+
+| R | rStats.js | 説明 |
+| --- | --- | --- |
+| `cobalt::bal.tab()` | `balTab` | マッチング前後の共変量のバランス (標準化差と分散比) |
+| `tableone::ExtractSmd()` | `tableOneSmd` | 2 群の標準化差 (tableone の SMD) |
+| `cobalt::get.w()` | `matchWeights` | マッチング後の各単位の重み |
+| `Matching::Match()` | `match` | 傾向スコアなど 1 つの値での最近傍マッチング (非復元、同点は乱数) |
+
 ## Multivariate analysis (`rStats.js/multivariate`)
 
 | R | rStats.js | 説明 |
@@ -245,6 +254,7 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `lawstat::brunner.munzel.test()` | `brunnerMunzelTest` | 2 標本の相対効果 P(X < Y) + P(X = Y)/2 が 1/2 であることについての Brunner-Munzel 検定 (等分散も分布の形が同じことも仮定しない) |
 | `chisq.test()` | `chisqTest` | Pearson のカイ二乗検定 |
 | `pROC::ci.auc()` | `ciAuc` | ROC 曲線の下の面積の信頼区間 (DeLong の方法またはブートストラップ) |
+| `survival::clogit()` | `clogit` | 条件付きロジスティック回帰 (マッチした組) |
 | `DescTools::CochranQTest()` | `cochranQTest` | 反復のない完全ブロック計画での 2 値応答に対する Cochran の Q 検定 |
 | `lmtest::coefci()` | `coefci` | 与えた共分散行列による `lm` または `glm` の当てはめの係数の信頼区間 |
 | `lmtest::coeftest()` | `coeftest` | 与えた共分散行列による `lm` または `glm` の当てはめの係数の検定 |

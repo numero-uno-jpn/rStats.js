@@ -31,6 +31,8 @@ const regressionUrl = `${distUrl}regression.js`;
 const multivariateUrl = `${distUrl}multivariate.js`;
 /** The time-series area (acf, pacf, ccf, from 1.11.0): a separate file, since it is not in dist/rstats.js */
 const timeseriesUrl = `${distUrl}timeseries.js`;
+/** The causal-inference area (match, balTab, from 1.12.0): a separate file, since it is not in dist/rstats.js */
+const causalUrl = `${distUrl}causal.js`;
 
 const ALL_TABS = ["distributions", "descriptive", "special", "random", "tests", "linalg", "numerics", "compare"];
 /** Tabs that need functions newer than some builds: shown only when the loaded build has them */
@@ -207,11 +209,14 @@ async function start() {
   let regression;
   let multivariate;
   let timeseries;
+  let causal;
   try {
-    [lib, mixed, regression, multivariate, timeseries] = await Promise.all([
+    [lib, mixed, regression, multivariate, timeseries, causal] = await Promise.all([
       import(libUrl), import(mixedUrl), import(regressionUrl), import(multivariateUrl),
       // a release before 1.11.0 has no timeseries.js: the demo then runs without it
       import(timeseriesUrl).catch(() => ({})),
+      // and a release before 1.12.0 no causal.js
+      import(causalUrl).catch(() => ({})),
     ]);
   } catch (err) {
     showLoadError(err);
@@ -221,9 +226,10 @@ async function start() {
   const regressionNames = new Set(Object.keys(regression));
   const multivariateNames = new Set(Object.keys(multivariate));
   const timeseriesNames = new Set(Object.keys(timeseries));
+  const causalNames = new Set(Object.keys(causal));
   const [examplesFile, rResults] = await Promise.all([fetchJSON("examples.json"), fetchJSON("r-results.json")]);
   const ctx = {
-    lib: { ...lib, ...mixed, ...regression, ...multivariate, ...timeseries },
+    lib: { ...lib, ...mixed, ...regression, ...multivariate, ...timeseries, ...causal },
     examples: Array.isArray(examplesFile?.examples) ? examplesFile.examples : null,
     rResults: rResults?.results ? rResults : null,
     refreshers: [],
@@ -233,14 +239,16 @@ async function start() {
       const fromRegression = unique.filter((n) => regressionNames.has(n));
       const fromMultivariate = unique.filter((n) => multivariateNames.has(n));
       const fromTimeseries = unique.filter((n) => timeseriesNames.has(n));
+      const fromCausal = unique.filter((n) => causalNames.has(n));
       const fromMain = unique.filter((n) => !mixedNames.has(n) && !regressionNames.has(n) && !multivariateNames.has(n) &&
-        !timeseriesNames.has(n));
+        !timeseriesNames.has(n) && !causalNames.has(n));
       return [
         ...(fromMain.length ? [`const { ${fromMain.join(", ")} } = await import("${libUrl}");`] : []),
         ...(fromMixed.length ? [`const { ${fromMixed.join(", ")} } = await import("${mixedUrl}");`] : []),
         ...(fromRegression.length ? [`const { ${fromRegression.join(", ")} } = await import("${regressionUrl}");`] : []),
         ...(fromMultivariate.length ? [`const { ${fromMultivariate.join(", ")} } = await import("${multivariateUrl}");`] : []),
         ...(fromTimeseries.length ? [`const { ${fromTimeseries.join(", ")} } = await import("${timeseriesUrl}");`] : []),
+        ...(fromCausal.length ? [`const { ${fromCausal.join(", ")} } = await import("${causalUrl}");`] : []),
       ].join("\n");
     },
   };

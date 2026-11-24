@@ -31,6 +31,7 @@ const CATEGORIES = [
   "Linear algebra",
   "Numerical methods",
   "Time series",
+  "Causal inference",
 ];
 
 /** The values of the `@category` tags of a doc comment (as returned by the helpers: no leading ` * `). */
