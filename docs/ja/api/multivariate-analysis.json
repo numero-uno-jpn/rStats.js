@@ -22,202 +22,202 @@
   "CaCoordMaps#summary": {
     "hash": "7e8a694b698d",
     "en": "The row and column coordinates of a correspondence-analysis map, returned by `caCoord` when both are requested.",
-    "ja": ""
+    "ja": "対応分析マップの行座標と列座標です。両方が要求された場合に `caCoord` が返します。"
   },
   "CaCoordMaps.columns#summary": {
     "hash": "fd80c8d2d79e",
     "en": "Column coordinates (one row per active and supplementary column, one column per dimension).",
-    "ja": ""
+    "ja": "列座標です (有効な列と補助列ごとに 1 行、次元ごとに 1 列)。"
   },
   "CaCoordMaps.rows#summary": {
     "hash": "f75c0a088297",
     "en": "Row coordinates (one row per active and supplementary row, one column per dimension).",
-    "ja": ""
+    "ja": "行座標です (有効な行と補助行ごとに 1 行、次元ごとに 1 列)。"
   },
   "CaCoordOptions#summary": {
     "hash": "0e721f4ddf1a",
     "en": "Options for constructing a correspondence-analysis map.",
-    "ja": ""
+    "ja": "対応分析マップを作成するためのオプションです。"
   },
   "CaCoordOptions.cols#summary": {
     "hash": "ce55c0f8ebe4",
     "en": "Whether to return only column coordinates.",
-    "ja": ""
+    "ja": "列座標のみを返すかどうか。"
   },
   "CaCoordOptions.dim#summary": {
     "hash": "584d328d78a0",
     "en": "One-based dimensions to include.",
-    "ja": ""
+    "ja": "含める次元の 1 始まりのインデックス。"
   },
   "CaCoordOptions.rows#summary": {
     "hash": "c1228c55bc2a",
     "en": "Whether to return only row coordinates.",
-    "ja": ""
+    "ja": "行座標のみを返すかどうか。"
   },
   "CaCoordOptions.type#summary": {
     "hash": "7cc490e8d985",
     "en": "Coordinate scaling convention for the row and column maps.",
-    "ja": ""
+    "ja": "行マップと列マップの座標の尺度化方式。"
   },
   "CaFit#summary": {
     "hash": "1cbc6c50435b",
     "en": "Result of simple correspondence analysis.",
-    "ja": ""
+    "ja": "単純対応分析の結果です。"
   },
   "CaFit.N#summary": {
     "hash": "ed2635bda5eb",
     "en": "Active contingency table after supplementary rows and columns are removed.",
-    "ja": ""
+    "ja": "補助行と補助列を除いた後の有効な分割表です。"
   },
   "CaFit.colcoord#summary": {
     "hash": "5e7b42f65fe5",
     "en": "Standard column coordinates, including supplementary columns.",
-    "ja": ""
+    "ja": "補助列を含む標準列座標です。"
   },
   "CaFit.coldist#summary": {
     "hash": "45b45f3cc4de",
     "en": "Chi-square distances of columns from the row profile centroid.",
-    "ja": ""
+    "ja": "行プロファイルの重心からの列のカイ二乗距離です。"
   },
   "CaFit.colinertia#summary": {
     "hash": "1d896e0ce68f",
     "en": "Column contributions to total inertia.",
-    "ja": ""
+    "ja": "全慣性に対する列の寄与です。"
   },
   "CaFit.colmass#summary": {
     "hash": "2747ad6639fe",
     "en": "Column masses in the active table.",
-    "ja": ""
+    "ja": "有効な表における列質量です。"
   },
   "CaFit.colnames#summary": {
     "hash": "dde9cf1c51fd",
     "en": "Original column labels.",
-    "ja": ""
+    "ja": "元の列ラベルです。"
   },
   "CaFit.colsup#summary": {
     "hash": "4598e6d70cf1",
     "en": "One-based indices of supplementary columns.",
-    "ja": ""
+    "ja": "補助列の 1 始まりのインデックスです。"
   },
   "CaFit.nd#summary": {
     "hash": "6032927a8b0d",
     "en": "Number of retained dimensions, or \"NA\" when not specified.",
-    "ja": ""
+    "ja": "保持された次元数です。指定されていない場合は \"NA\" です。"
   },
   "CaFit.rowcoord#summary": {
     "hash": "cac7d25eedf8",
     "en": "Standard row coordinates, including supplementary rows.",
-    "ja": ""
+    "ja": "補助行を含む標準行座標です。"
   },
   "CaFit.rowdist#summary": {
     "hash": "d4bd17ae9126",
     "en": "Chi-square distances of rows from the column profile centroid.",
-    "ja": ""
+    "ja": "列プロファイルの重心からの行のカイ二乗距離です。"
   },
   "CaFit.rowinertia#summary": {
     "hash": "d21dad296cf1",
     "en": "Row contributions to total inertia.",
-    "ja": ""
+    "ja": "全慣性に対する行の寄与です。"
   },
   "CaFit.rowmass#summary": {
     "hash": "e494cadffb3e",
     "en": "Row masses in the active table.",
-    "ja": ""
+    "ja": "有効な表における行質量です。"
   },
   "CaFit.rownames#summary": {
     "hash": "f7fc40f162bd",
     "en": "Original row labels.",
-    "ja": ""
+    "ja": "元の行ラベルです。"
   },
   "CaFit.rowsup#summary": {
     "hash": "328b076e9c8d",
     "en": "One-based indices of supplementary rows.",
-    "ja": ""
+    "ja": "補助行の 1 始まりのインデックスです。"
   },
   "CaFit.sv#summary": {
     "hash": "ba3f06b54e15",
     "en": "Singular values of the standardized residual matrix.",
-    "ja": ""
+    "ja": "標準化残差行列の特異値です。"
   },
   "CaInputTable#summary": {
     "hash": "e4e8bf7684af",
     "en": "A contingency table with optional row and column labels.",
-    "ja": ""
+    "ja": "任意の行ラベルと列ラベルを持つ分割表です。"
   },
   "CaInputTable.cols#summary": {
     "hash": "bbd6af1d8a5c",
     "en": "Column labels, or null when the columns are unnamed.",
-    "ja": ""
+    "ja": "列ラベルです。列に名前がない場合は null です。"
   },
   "CaInputTable.rows#summary": {
     "hash": "a8084db943a6",
     "en": "Row labels, or null when the rows are unnamed.",
-    "ja": ""
+    "ja": "行ラベルです。行に名前がない場合は null です。"
   },
   "CaInputTable.values#summary": {
     "hash": "7760a32ad8ae",
     "en": "Non-negative cell counts, arranged as rows.",
-    "ja": ""
+    "ja": "行ごとに配置された非負のセル度数です。"
   },
   "CaMatrix#summary": {
     "hash": "4aa7e65ac72c",
     "en": "A labelled numeric matrix returned by correspondence analysis.",
-    "ja": ""
+    "ja": "対応分析が返すラベル付き数値行列です。"
   },
   "CaMatrix.cols#summary": {
     "hash": "e96f441a7dc3",
     "en": "Column labels, or null when unnamed.",
-    "ja": ""
+    "ja": "列ラベルです。名前がない場合は null です。"
   },
   "CaMatrix.rows#summary": {
     "hash": "e9b8016c9c92",
     "en": "Row labels, or null when unnamed.",
-    "ja": ""
+    "ja": "行ラベルです。名前がない場合は null です。"
   },
   "CaMatrix.values#summary": {
     "hash": "4494d0219aaf",
     "en": "Matrix values in row-major order.",
-    "ja": ""
+    "ja": "行優先順の行列値です。"
   },
   "CaOptions#summary": {
     "hash": "5d88326b0ad1",
     "en": "Options for simple correspondence analysis. Equivalent to R's ca::ca().",
-    "ja": ""
+    "ja": "単純対応分析のオプションです。R の ca::ca() と同等です。"
   },
   "CaOptions.nd#summary": {
     "hash": "c88790bd2f9c",
     "en": "Number of dimensions to retain in the returned coordinates.",
-    "ja": ""
+    "ja": "返される座標に保持する次元数です。"
   },
   "CaOptions.supcol#summary": {
     "hash": "c9f96d5da7be",
     "en": "One-based indices of supplementary columns, excluded from the active analysis.",
-    "ja": ""
+    "ja": "有効な分析から除外する補助列の 1 始まりのインデックスです。"
   },
   "CaOptions.suprow#summary": {
     "hash": "1f535b95bb30",
     "en": "One-based indices of supplementary rows, excluded from the active analysis.",
-    "ja": ""
+    "ja": "有効な分析から除外する補助行の 1 始まりのインデックスです。"
   },
   "CaSummary#summary": {
     "hash": "4ff69307b20b",
     "en": "Summary tables for eigenvalues, rows and columns.",
-    "ja": ""
+    "ja": "固有値、行、列の要約表です。"
   },
   "CaSummary.columns#summary": {
     "hash": "b0f8ed96a0d5",
     "en": "Column mass, quality, inertia and axis contributions.",
-    "ja": ""
+    "ja": "列の質量、質、慣性、および軸への寄与です。"
   },
   "CaSummary.rows#summary": {
     "hash": "dc976ad24889",
     "en": "Row mass, quality, inertia and axis contributions.",
-    "ja": ""
+    "ja": "行の質量、質、慣性、および軸への寄与です。"
   },
   "CaSummary.scree#summary": {
     "hash": "9525c464b01a",
     "en": "Eigenvalues, percentages of inertia and cumulative percentages.",
-    "ja": ""
+    "ja": "固有値、慣性の割合、および累積割合です。"
   },
   "CancorOptions#summary": {
     "hash": "29a1c46366a1",
@@ -522,92 +522,92 @@
   "IsoMDSMatrix#summary": {
     "hash": "586d1416d4c5",
     "en": "A labelled coordinate matrix from isoMDS.",
-    "ja": ""
+    "ja": "isoMDS によるラベル付き座標行列です。"
   },
   "IsoMDSMatrix.cols#summary": {
     "hash": "e7a990254b09",
     "en": "Coordinate labels, or null when unnamed.",
-    "ja": ""
+    "ja": "座標ラベルです。名前がない場合は null です。"
   },
   "IsoMDSMatrix.rows#summary": {
     "hash": "cd38b353390e",
     "en": "Object labels, or null when unnamed.",
-    "ja": ""
+    "ja": "オブジェクトラベルです。名前がない場合は null です。"
   },
   "IsoMDSMatrix.values#summary": {
     "hash": "201ce0de8bfe",
     "en": "Object coordinates.",
-    "ja": ""
+    "ja": "オブジェクトの座標です。"
   },
   "IsoMDSOptions#summary": {
     "hash": "baabaf5b289e",
     "en": "Options for Kruskal non-metric multidimensional scaling. Equivalent to R's MASS::isoMDS().",
-    "ja": ""
+    "ja": "Kruskal の非計量多次元尺度構成法のオプションです。R の MASS::isoMDS() と同等です。"
   },
   "IsoMDSOptions.k#summary": {
     "hash": "001072a4fb10",
     "en": "Number of output dimensions.",
-    "ja": ""
+    "ja": "出力する次元数です。"
   },
   "IsoMDSOptions.maxit#summary": {
     "hash": "ab92210fe28f",
     "en": "Maximum number of reported iterations.",
-    "ja": ""
+    "ja": "報告する反復の最大回数です。"
   },
   "IsoMDSOptions.p#summary": {
     "hash": "20a78bfdce18",
     "en": "Minkowski power used to measure distances between configuration points.",
-    "ja": ""
+    "ja": "配置の点間距離の測定に使用する Minkowski のべき指数です。"
   },
   "IsoMDSOptions.tol#summary": {
     "hash": "4595f6a902ed",
     "en": "Relative stress-change tolerance for stopping.",
-    "ja": ""
+    "ja": "停止判定に使用するストレス変化の相対許容誤差です。"
   },
   "IsoMDSOptions.y#summary": {
     "hash": "5275cbd3ff70",
     "en": "Initial configuration with one row per object and k columns.",
-    "ja": ""
+    "ja": "オブジェクトごとに 1 行、k 列を持つ初期配置です。"
   },
   "IsoMDSResult#summary": {
     "hash": "ade100abbd95",
     "en": "Result of non-metric multidimensional scaling.",
-    "ja": ""
+    "ja": "非計量多次元尺度構成法の結果です。"
   },
   "IsoMDSResult.points#summary": {
     "hash": "bce439215c95",
     "en": "Final low-dimensional coordinates.",
-    "ja": ""
+    "ja": "最終的な低次元座標です。"
   },
   "IsoMDSResult.stress#summary": {
     "hash": "9e001f83b008",
     "en": "Final Kruskal Stress-1, expressed as a percentage.",
-    "ja": ""
+    "ja": "パーセントで表した最終的な Kruskal Stress-1 です。"
   },
   "IsoMDSResult.trace#summary": {
     "hash": "c29870c0a5d1",
     "en": "Initial, periodic and final stress values.",
-    "ja": ""
+    "ja": "初期、定期、および最終のストレス値です。"
   },
   "IsoMDSTrace#summary": {
     "hash": "6d401b66b91d",
     "en": "One recorded isoMDS stress value.",
-    "ja": ""
+    "ja": "記録された isoMDS のストレス値 1 件です。"
   },
   "IsoMDSTrace.converged#summary": {
     "hash": "2332e0fd32f8",
     "en": "Whether the stopping condition has been met.",
-    "ja": ""
+    "ja": "停止条件を満たしたかどうかです。"
   },
   "IsoMDSTrace.iteration#summary": {
     "hash": "288f84ad26af",
     "en": "Reported iteration number.",
-    "ja": ""
+    "ja": "報告された反復番号です。"
   },
   "IsoMDSTrace.stress#summary": {
     "hash": "0a8b6c239568",
     "en": "Kruskal Stress-1, expressed as a percentage.",
-    "ja": ""
+    "ja": "パーセントで表した Kruskal Stress-1 です。"
   },
   "KmeansFit.betweenss#summary": {
     "hash": "9050b99e2de1",
@@ -1037,372 +1037,372 @@
   "MjcaFit#summary": {
     "hash": "aecce46db0dd",
     "en": "Result of multiple correspondence analysis.",
-    "ja": ""
+    "ja": "多重対応分析の結果です。"
   },
   "MjcaFit.Burt#summary": {
     "hash": "04cf4aa75d40",
     "en": "Burt cross-product table.",
-    "ja": ""
+    "ja": "Burt の交差積表です。"
   },
   "MjcaFit.BurtUpd#summary": {
     "hash": "91b324556511",
     "en": "Updated Burt table, or \"NA\" when not returned.",
-    "ja": ""
+    "ja": "更新された Burt 表です。返されない場合は \"NA\" です。"
   },
   "MjcaFit.colcoord#summary": {
     "hash": "f54f629fc846",
     "en": "Standard category coordinates.",
-    "ja": ""
+    "ja": "標準カテゴリ座標です。"
   },
   "MjcaFit.colcor#summary": {
     "hash": "32d6f0704150",
     "en": "Squared correlations of categories with axes.",
-    "ja": ""
+    "ja": "軸とカテゴリの間の相関の二乗です。"
   },
   "MjcaFit.colctr#summary": {
     "hash": "79564eca2345",
     "en": "Category contributions by axis.",
-    "ja": ""
+    "ja": "軸ごとのカテゴリの寄与です。"
   },
   "MjcaFit.coldist#summary": {
     "hash": "851064d7056e",
     "en": "Chi-square distances of categories from the centroid.",
-    "ja": ""
+    "ja": "重心からのカテゴリのカイ二乗距離です。"
   },
   "MjcaFit.colinertia#summary": {
     "hash": "d8b3611a52e7",
     "en": "Category contributions to inertia.",
-    "ja": ""
+    "ja": "慣性に対するカテゴリの寄与です。"
   },
   "MjcaFit.colmass#summary": {
     "hash": "dcbc8ab60ca1",
     "en": "Category masses.",
-    "ja": ""
+    "ja": "カテゴリ質量です。"
   },
   "MjcaFit.colnames#summary": {
     "hash": "dcfe7d264648",
     "en": "Names of the categorical variables.",
-    "ja": ""
+    "ja": "カテゴリ変数の名前です。"
   },
   "MjcaFit.colpcoord#summary": {
     "hash": "360e35c0e473",
     "en": "Principal category coordinates.",
-    "ja": ""
+    "ja": "主カテゴリ座標です。"
   },
   "MjcaFit.colsup#summary": {
     "hash": "d969c1b3ee55",
     "en": "One-based indices of supplementary categories, or \"NA\".",
-    "ja": ""
+    "ja": "補助カテゴリの 1 始まりのインデックスです。該当しない場合は \"NA\" です。"
   },
   "MjcaFit.factors#summary": {
     "hash": "eb83a82eb978",
     "en": "Factor and level names for the complete category set.",
-    "ja": ""
+    "ja": "完全なカテゴリ集合の因子名と水準名です。"
   },
   "MjcaFit.indmat#summary": {
     "hash": "111cbd0c0b0a",
     "en": "Indicator matrix when reti is true, or \"NA\" otherwise.",
-    "ja": ""
+    "ja": "reti が true の場合の指示行列です。それ以外の場合は \"NA\" です。"
   },
   "MjcaFit.inertiaE#summary": {
     "hash": "f3fefbb75d21",
     "en": "Percentage contributions to total inertia for the retained axes.",
-    "ja": ""
+    "ja": "保持された軸の全慣性に対する寄与率です。"
   },
   "MjcaFit.inertiaEt#summary": {
     "hash": "faf91aab1091",
     "en": "Inertia adjustment metadata, or \"NA\" when not applicable.",
-    "ja": ""
+    "ja": "慣性調整のメタデータです。該当しない場合は \"NA\" です。"
   },
   "MjcaFit.inertiaT#summary": {
     "hash": "dc4d97e7fdc2",
     "en": "Total inertia for the selected analysis variant.",
-    "ja": ""
+    "ja": "選択された分析方式の全慣性です。"
   },
   "MjcaFit.lambda#summary": {
     "hash": "79f8b43f9c89",
     "en": "Analysis variant used.",
-    "ja": ""
+    "ja": "使用された分析方式です。"
   },
   "MjcaFit.levelnames#summary": {
     "hash": "12fb92770f73",
     "en": "Category labels in analysis order.",
-    "ja": ""
+    "ja": "分析順のカテゴリラベルです。"
   },
   "MjcaFit.levelsN#summary": {
     "hash": "0ced4d7c9ba2",
     "en": "Variable names and observed level counts.",
-    "ja": ""
+    "ja": "変数名と観測された水準数です。"
   },
   "MjcaFit.nd#summary": {
     "hash": "626219d3e3b2",
     "en": "Number of dimensions requested.",
-    "ja": ""
+    "ja": "要求された次元数です。"
   },
   "MjcaFit.ndMax#summary": {
     "hash": "21cec1bc7e5e",
     "en": "Maximum available number of dimensions.",
-    "ja": ""
+    "ja": "利用可能な次元数の最大値です。"
   },
   "MjcaFit.omitted#summary": {
     "hash": "07388de20e47",
     "en": "Number of incomplete rows omitted from the analysis.",
-    "ja": ""
+    "ja": "分析から除外された不完全な行数です。"
   },
   "MjcaFit.rowcoord#summary": {
     "hash": "783ccc63d4e7",
     "en": "Standard row coordinates when available.",
-    "ja": ""
+    "ja": "利用可能な場合の標準行座標です。"
   },
   "MjcaFit.rowcor#summary": {
     "hash": "9279fd529b99",
     "en": "Squared row correlations by axis, or \"NA\" for unsupported variants.",
-    "ja": ""
+    "ja": "軸ごとの行相関の二乗です。サポートされない方式では \"NA\" です。"
   },
   "MjcaFit.rowctr#summary": {
     "hash": "52471aee4450",
     "en": "Row contributions by axis, or \"NA\" for unsupported variants.",
-    "ja": ""
+    "ja": "軸ごとの行の寄与です。サポートされない方式では \"NA\" です。"
   },
   "MjcaFit.rowdist#summary": {
     "hash": "8616f20260a9",
     "en": "Row chi-square distances when row results are available.",
-    "ja": ""
+    "ja": "行の結果が利用可能な場合の行のカイ二乗距離です。"
   },
   "MjcaFit.rowinertia#summary": {
     "hash": "9a857d1b9f36",
     "en": "Row contributions to inertia when row results are available.",
-    "ja": ""
+    "ja": "行の結果が利用可能な場合の慣性に対する行の寄与です。"
   },
   "MjcaFit.rowmass#summary": {
     "hash": "c2d688ea196b",
     "en": "Row masses when row results are available.",
-    "ja": ""
+    "ja": "行の結果が利用可能な場合の行質量です。"
   },
   "MjcaFit.rownames#summary": {
     "hash": "24c89f77fb56",
     "en": "Row labels when row results are available.",
-    "ja": ""
+    "ja": "行の結果が利用可能な場合の行ラベルです。"
   },
   "MjcaFit.rowpcoord#summary": {
     "hash": "2705cc7c5185",
     "en": "Principal row coordinates when available.",
-    "ja": ""
+    "ja": "利用可能な場合の主行座標です。"
   },
   "MjcaFit.subinertia#summary": {
     "hash": "555ba36f2f53",
     "en": "Within-variable sub-inertia table.",
-    "ja": ""
+    "ja": "変数内サブ慣性表です。"
   },
   "MjcaFit.subsetcol#summary": {
     "hash": "554486cf0799",
     "en": "One-based selected category indices, or \"NA\" for the full set.",
-    "ja": ""
+    "ja": "選択されたカテゴリの 1 始まりのインデックスです。全カテゴリを使用する場合は \"NA\" です。"
   },
   "MjcaFit.sv#summary": {
     "hash": "bc3aeabbee36",
     "en": "Singular values or adjusted eigenvalue roots, according to lambda.",
-    "ja": ""
+    "ja": "lambda に応じた特異値または調整済み固有値平方根です。"
   },
   "MjcaInputTable#summary": {
     "hash": "ab86f36278d2",
     "en": "A categorical data frame for multiple correspondence analysis.",
-    "ja": ""
+    "ja": "多重対応分析用のカテゴリデータフレームです。"
   },
   "MjcaInputTable.cols#summary": {
     "hash": "dcfe7d264648",
     "en": "Names of the categorical variables.",
-    "ja": ""
+    "ja": "カテゴリ変数の名前です。"
   },
   "MjcaInputTable.rows#summary": {
     "hash": "92bcd94c5e1e",
     "en": "Row labels, or null to use one-based row numbers.",
-    "ja": ""
+    "ja": "行ラベルです。指定しない場合は 1 始まりの行番号を使用します。"
   },
   "MjcaInputTable.values#summary": {
     "hash": "50045c062e07",
     "en": "Categorical values; null and non-string entries are omitted as incomplete rows.",
-    "ja": ""
+    "ja": "カテゴリ値です。null および文字列以外の項目は不完全な行として除外されます。"
   },
   "MjcaLevelsN#summary": {
     "hash": "1873996e9e87",
     "en": "Variable names and observed category counts.",
-    "ja": ""
+    "ja": "変数名と観測されたカテゴリ数です。"
   },
   "MjcaLevelsN.names#summary": {
     "hash": "dcfe7d264648",
     "en": "Names of the categorical variables.",
-    "ja": ""
+    "ja": "カテゴリ変数の名前です。"
   },
   "MjcaLevelsN.values#summary": {
     "hash": "2e8bbe439802",
     "en": "Number of observed levels for each variable.",
-    "ja": ""
+    "ja": "各変数で観測された水準数です。"
   },
   "MjcaMatrix#summary": {
     "hash": "b2c4e634b111",
     "en": "A labelled matrix returned by multiple correspondence analysis.",
-    "ja": ""
+    "ja": "多重対応分析が返すラベル付き行列です。"
   },
   "MjcaMatrix.cols#summary": {
     "hash": "e96f441a7dc3",
     "en": "Column labels, or null when unnamed.",
-    "ja": ""
+    "ja": "列ラベルです。名前がない場合は null です。"
   },
   "MjcaMatrix.rows#summary": {
     "hash": "e9b8016c9c92",
     "en": "Row labels, or null when unnamed.",
-    "ja": ""
+    "ja": "行ラベルです。名前がない場合は null です。"
   },
   "MjcaMatrix.values#summary": {
     "hash": "98faa957102e",
     "en": "Matrix values.",
-    "ja": ""
+    "ja": "行列値です。"
   },
   "MjcaOptions#summary": {
     "hash": "80b436f9e5ff",
     "en": "Options for multiple correspondence analysis. Equivalent to R's ca::mjca().",
-    "ja": ""
+    "ja": "多重対応分析のオプションです。R の ca::mjca() と同等です。"
   },
   "MjcaOptions.lambda#summary": {
     "hash": "32a4f89b759d",
     "en": "Analysis variant: adjusted (default), indicator or Burt; JCA is explicitly unsupported.",
-    "ja": ""
+    "ja": "分析方式です: adjusted (既定)、indicator、または Burt。JCA は明示的にサポートされていません。"
   },
   "MjcaOptions.nd#summary": {
     "hash": "111adbba3286",
     "en": "Number of dimensions requested in the result.",
-    "ja": ""
+    "ja": "結果に要求する次元数です。"
   },
   "MjcaOptions.ps#summary": {
     "hash": "a2954e4cd021",
     "en": "Separator used when constructing category labels.",
-    "ja": ""
+    "ja": "カテゴリラベルの作成に使用する区切り文字です。"
   },
   "MjcaOptions.reti#summary": {
     "hash": "a7a285d344c5",
     "en": "Whether to include the indicator matrix in the result.",
-    "ja": ""
+    "ja": "結果に指示行列を含めるかどうかです。"
   },
   "MjcaOptions.subsetcat#summary": {
     "hash": "803bfb996ed4",
     "en": "One-based category indices in variable/level order to include in the active analysis.",
-    "ja": ""
+    "ja": "有効な分析に含める、変数と水準の順序におけるカテゴリの 1 始まりのインデックスです。"
   },
   "MjcaOptions.supcol#summary": {
     "hash": "9dcabfbc8124",
     "en": "One-based variable indices treated as supplementary.",
-    "ja": ""
+    "ja": "補助として扱う変数の 1 始まりのインデックスです。"
   },
   "SammonInputTable#summary": {
     "hash": "e8139c74bbd2",
     "en": "A labelled square dissimilarity matrix.",
-    "ja": ""
+    "ja": "ラベル付きの正方非類似度行列です。"
   },
   "SammonInputTable.cols#summary": {
     "hash": "e96f441a7dc3",
     "en": "Column labels, or null when unnamed.",
-    "ja": ""
+    "ja": "列ラベルです。名前がない場合は null です。"
   },
   "SammonInputTable.rows#summary": {
     "hash": "cd38b353390e",
     "en": "Object labels, or null when unnamed.",
-    "ja": ""
+    "ja": "オブジェクトラベルです。名前がない場合は null です。"
   },
   "SammonInputTable.values#summary": {
     "hash": "6ca1ef3bbe2f",
     "en": "Symmetric dissimilarity matrix with a zero diagonal and positive off-diagonal entries.",
-    "ja": ""
+    "ja": "対角成分が 0 で、対角以外の成分が正の対称非類似度行列です。"
   },
   "SammonMatrix#summary": {
     "hash": "026e756070a9",
     "en": "A labelled coordinate matrix from Sammon mapping.",
-    "ja": ""
+    "ja": "Sammon マッピングによるラベル付き座標行列です。"
   },
   "SammonMatrix.cols#summary": {
     "hash": "e7a990254b09",
     "en": "Coordinate labels, or null when unnamed.",
-    "ja": ""
+    "ja": "座標ラベルです。名前がない場合は null です。"
   },
   "SammonMatrix.rows#summary": {
     "hash": "cd38b353390e",
     "en": "Object labels, or null when unnamed.",
-    "ja": ""
+    "ja": "オブジェクトラベルです。名前がない場合は null です。"
   },
   "SammonMatrix.values#summary": {
     "hash": "201ce0de8bfe",
     "en": "Object coordinates.",
-    "ja": ""
+    "ja": "オブジェクトの座標です。"
   },
   "SammonOptions#summary": {
     "hash": "eb687cabd7a2",
     "en": "Options for Sammon nonlinear mapping. Equivalent to R's MASS::sammon().",
-    "ja": ""
+    "ja": "Sammon の非線形マッピングのオプションです。R の MASS::sammon() と同等です。"
   },
   "SammonOptions.k#summary": {
     "hash": "001072a4fb10",
     "en": "Number of output dimensions.",
-    "ja": ""
+    "ja": "出力する次元数です。"
   },
   "SammonOptions.magic#summary": {
     "hash": "8d8a44289020",
     "en": "Initial step-size multiplier in (0, 0.5].",
-    "ja": ""
+    "ja": "初期ステップサイズの乗数です (0, 0.5]。"
   },
   "SammonOptions.niter#summary": {
     "hash": "00288c281e33",
     "en": "Maximum number of update iterations.",
-    "ja": ""
+    "ja": "更新反復の最大回数です。"
   },
   "SammonOptions.tol#summary": {
     "hash": "b7faca6f0b8a",
     "en": "Absolute decrease in stress used for stopping after at least 20 iterations.",
-    "ja": ""
+    "ja": "少なくとも 20 回反復した後の停止判定に使用するストレスの絶対減少量です。"
   },
   "SammonOptions.y#summary": {
     "hash": "5275cbd3ff70",
     "en": "Initial configuration with one row per object and k columns.",
-    "ja": ""
+    "ja": "オブジェクトごとに 1 行、k 列を持つ初期配置です。"
   },
   "SammonResult#summary": {
     "hash": "4af18676e299",
     "en": "Result of Sammon nonlinear mapping.",
-    "ja": ""
+    "ja": "Sammon の非線形マッピングの結果です。"
   },
   "SammonResult.points#summary": {
     "hash": "bce439215c95",
     "en": "Final low-dimensional coordinates.",
-    "ja": ""
+    "ja": "最終的な低次元座標です。"
   },
   "SammonResult.stress#summary": {
     "hash": "98f9a0f6350d",
     "en": "Final normalized Sammon stress.",
-    "ja": ""
+    "ja": "正規化された最終的な Sammon ストレスです。"
   },
   "SammonResult.trace#summary": {
     "hash": "ffeadddab445",
     "en": "Initial, periodic and final stress values with the stopping reason.",
-    "ja": ""
+    "ja": "停止理由を含む初期、定期、および最終のストレス値です。"
   },
   "SammonTrace#summary": {
     "hash": "3ed234e8db97",
     "en": "One recorded Sammon stress value.",
-    "ja": ""
+    "ja": "記録された Sammon ストレス値 1 件です。"
   },
   "SammonTrace.iteration#summary": {
     "hash": "b3fea9b6fad3",
     "en": "Completed update iteration.",
-    "ja": ""
+    "ja": "完了した更新反復です。"
   },
   "SammonTrace.reason#summary": {
     "hash": "bdc9d5374fc6",
     "en": "Why iteration stopped, present on the final trace entry.",
-    "ja": ""
+    "ja": "反復が停止した理由です。最終の trace エントリに含まれます。"
   },
   "SammonTrace.stress#summary": {
     "hash": "042e306c9bcc",
     "en": "Normalized Sammon stress at this iteration.",
-    "ja": ""
+    "ja": "この反復における正規化された Sammon ストレスです。"
   },
   "asDist#summary": {
     "hash": "c5427c6f2769",
@@ -1412,17 +1412,17 @@
   "ca#summary": {
     "hash": "6803e4d6c8a4",
     "en": "Computes simple correspondence analysis of a contingency table.\nEquivalent to R's `ca::ca()`.",
-    "ja": ""
+    "ja": "分割表の単純対応分析を計算します。\nR の `ca::ca()` と同等です。"
   },
   "caCoord#summary": {
     "hash": "27105d94e957",
     "en": "Computes row and column coordinates for a correspondence-analysis map.\nEquivalent to R's `ca::cacoord()`.",
-    "ja": ""
+    "ja": "対応分析マップの行座標と列座標を計算します。\nR の `ca::cacoord()` と同等です。"
   },
   "caSummary#summary": {
     "hash": "9cd25f2743c8",
     "en": "Summarizes eigenvalues and row and column contributions from correspondence analysis.\nEquivalent to R's `summary.ca()`.",
-    "ja": ""
+    "ja": "対応分析の固有値、行の寄与、および列の寄与を要約します。\nR の `summary.ca()` と同等です。"
   },
   "cancor#@param options": {
     "hash": "27f966eb4a72",
@@ -1477,7 +1477,7 @@
   "isoMDS#summary": {
     "hash": "f3b7502205b0",
     "en": "Kruskal's non-metric multidimensional scaling.\nEquivalent to R's `MASS::isoMDS()`.",
-    "ja": ""
+    "ja": "Kruskal の非計量多次元尺度構成法です。\nR の `MASS::isoMDS()` と同等です。"
   },
   "kmeans#summary": {
     "hash": "bfb7349a3b7a",
@@ -1592,11 +1592,11 @@
   "mjca#summary": {
     "hash": "29bde9eb7368",
     "en": "Computes multiple correspondence analysis for categorical columns.\nEquivalent to R's `ca::mjca()`.",
-    "ja": ""
+    "ja": "カテゴリ列の多重対応分析を計算します。\nR の `ca::mjca()` と同等です。"
   },
   "sammon#summary": {
     "hash": "f6d67282fe04",
     "en": "Maps dissimilarities into a lower-dimensional configuration by minimizing Sammon stress.\nEquivalent to R's `MASS::sammon()`.",
-    "ja": ""
+    "ja": "Sammon ストレスを最小化して、非類似度を低次元の配置に写像します。\nR の `MASS::sammon()` と同等です。"
   }
 }
