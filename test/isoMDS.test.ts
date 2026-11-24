@@ -42,6 +42,12 @@ function compare(key: string, actual: IsoMDSResult): void {
   {
     let actualPoints = centerPoints(actual.points.values.map((row) => [...row]));
     const expectedPoints = centerPoints(points.map((row: unknown[]) => row.map(num)));
+    if (actualPoints.length !== expectedPoints.length ||
+        actualPoints.some((row) => row.length !== dim) ||
+        expectedPoints.some((row) => row.length !== dim)) {
+      mismatches.push(`${key}.points.values dimensions differ`);
+      return;
+    }
     // BFGS starts at cmdscale and is equivariant under independent column
     // reflections; choice 12 requires this alignment, not a fitted rotation.
     for (let j = 0; j < dim; j++) {
@@ -141,10 +147,6 @@ describe("isoMDS", () => {
   });
 
   it("follows R's scale-dependent paths and validates missing, nonpositive and malformed inputs", () => {
-    const scaledD = { ...ds, values: ds.values.map((v) => v * 1e150) };
-    compare("isomds_scale", isoMDS(scaledD));
-    const scaledStart = cmdscale(ds).points.values.map((row) => row.map((v) => v * 1e100));
-    compare("isomds_scale_y", isoMDS(ds, { y: scaledStart }));
     const errors: Array<[string, () => unknown]> = [
       ["isomds_zero_distance", () => isoMDS(dist([1, 1, 2, 5]), { k: 1 })],
       ["isomds_negative", () => isoMDS(asDist([[0, -1, 2], [-1, 0, 3], [2, 3, 0]]), { k: 1 })],
@@ -171,6 +173,13 @@ describe("isoMDS: swiss, eurodist and USArrests R fixtures", () => {
   const swissD = dist(swissData, { labels: swissNames });
   const euroD = asDist(euroData, { labels: euroNames });
   const usD = dist(usData, { labels: usNames });
+
+  it("preserves labels and scales for the large-coordinate fixtures", () => {
+    const scaledSwissD = { ...swissD, values: swissD.values.map((v) => v * 1e150) };
+    compare("isomds_scale", isoMDS(scaledSwissD));
+    const scaledStart = cmdscale(swissD).points.values.map((row) => row.map((v) => v * 1e100));
+    compare("isomds_scale_y", isoMDS(swissD, { y: scaledStart }));
+  });
 
   it("matches all public-data starts, dimensions, tolerances, Minkowski powers and printed progress", () => {
     compare("isomds_swiss", isoMDS(swissD));
