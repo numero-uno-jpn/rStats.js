@@ -131,3 +131,10 @@ RUN install2.r --error --skipinstalled ca \
     && Rscript -e 'pk <- c("ca", "MASS"); \
                    for (p in pk) suppressPackageStartupMessages(library(p, character.only = TRUE)); \
                    cat(sprintf("%s %s\n", pk, sapply(pk, function(p) as.character(packageVersion(p)))), sep = "")'
+
+# Propensity score matching (1.12.0), in a layer of its own: Matching (Match), cobalt (bal.tab) and tableone
+# (CreateTableOne). survival (clogit, coxph) is one of R's recommended packages; glm and mantelhaen.test are stats'.
+RUN install2.r --error --skipinstalled Matching cobalt tableone \
+    && Rscript -e 'pk <- c("Matching", "cobalt", "tableone", "survey", "survival"); \
+                   for (p in pk) suppressPackageStartupMessages(library(p, character.only = TRUE)); \
+                   cat(sprintf("%s %s\n", pk, sapply(pk, function(p) as.character(packageVersion(p)))), sep = "")'
