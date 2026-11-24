@@ -16,7 +16,7 @@ JavaScript とブラウザで使える、R と互換の統計関数のライブ�
 - **どこでも動きます。** ESM のみで、依存パッケージはなく、Node 専用の API も使っていません。
   tree-shaking が効きます (`pnorm` だけなら gzip で 1.6 KB)。
 
-状態: **1.10.0。** R の stats パッケージの数値計算の中心
+状態: **1.11.0。** R の stats パッケージの数値計算の中心
 (分布・記述統計・検定・線形モデル・特殊関数・数値計算・線形代数の基本) を、R と同じ結果でカバーすることを目指しています。残っている作業は
 [ROADMAP.ja.md](ROADMAP.ja.md)、変更履歴は [CHANGELOG.md](CHANGELOG.md) (英語) にあります。
 
@@ -218,6 +218,7 @@ eigen([[2, 1], [1, 3]]).values;     // ≈ [3.618033989, 1.381966011]
 | 特殊関数 | `gamma`, `lgamma`, `beta`, `lbeta`, `choose`, `lchoose`, `factorial`, `lfactorial`, `digamma`, `trigamma`, `psigamma`, `besselI`, `besselK`, `besselJ`, `besselY`。R にはない `erf`, `erfc`, `erfinv`, `erfcinv`, `gammainc`, `perm` と、R の C API (Rmath.h) の `log1pmx`, `lgamma1p`, `log1mexp`, `log1pexp` も |
 | 分布 (d/p/q) | 正規、t、カイ二乗、F、ベータ、ガンマ、二項、ポアソン、一様、指数、対数正規、ロジスティック、コーシー、ワイブル、幾何、負の二項、超幾何、Wilcoxon の符号付き順位と順位和、スチューデント化された範囲 (`ptukey`, `qtukey`)、非心カイ二乗・t・F・ベータ (`ncp`)。多項分布の確率 (`dmultinom`)。逆ガンマ、Kumaraswamy、Pareto、三角、Laplace (extraDistr) と逆正弦。`distSummary` (平均・分散・標準偏差・中央値・最頻値・歪度・尖度) |
 | 乱数 | `setSeed` (`set.seed`), `RNGkind` (Mersenne-Twister と L'Ecuyer-CMRG、`sample.kind` の Rejection と Rounding), `getRandomSeed`/`setRandomSeed` (`.Random.seed`), `nextRNGStream`/`nextRNGSubStream` (`parallel`), 26 個の `r*` 関数, `sample`, `sampleInt` (`sample.int`), `r2dtable` |
+| 時系列 | `acf`、`pacf`、`ccf` (`stats::acf`、`stats::pacf`、`stats::ccf`)、`@numero-uno-jpn/rstats/timeseries` |
 | 記述統計 | `sum`, `prod`, `mean`, `weightedMean` (`weighted.mean`), `variance` (`var`), `sd`, `median`, `range`, `cumsum`, `cumprod`, `cummax`, `cummin`, `diff`, `quantile`, `IQR`, `fivenum`, `mad`, `rank`, `cov`, `cor`, `tabulate`, `table`, `unique`, `cut`, `findInterval`, `pretty`, `hist`, `ecdf`, `scale`, `skewness`, `kurtosis`, `geometricMean`, `modes`, `meanAD`, `cv` |
 | 検定 | `tTest`, `chisqTest`, `fisherTest`, `wilcoxTest`, `corTest`, `binomTest`, `poissonTest`, `propTest`, `mcnemarTest`, `varTest`, `bartlettTest`, `kruskalTest`, `friedmanTest`, `quadeTest`, `flignerTest`, `moodTest`, `onewayTest`, `shapiroTest`, `mantelhaenTest`, `ansariTest`, `ksTest`, `pairwiseTTest`, `pairwiseWilcoxTest`, `pairwisePropTest`, `aov` (一元配置。表は当てはめの `aovSummary`), `TukeyHSD`, `zTest`, `brunnerMunzelTest`, `tamhaneT2Test` (Tamhane の T2 と T2')、`pageTest`、`grubbsTest`・`pgrubbs`・`qgrubbs`、`pAdjust` (`p.adjust`) |
 | 分散分析 | formula で呼ぶ `aov` と `aovSummary` (多元、交互作用、共変量、`Error()` の層), `anova` (`anova.lm`。逐次の表とモデルの比較), `Anova` (car の Type II と III), `aovEz` (afex。反復測定と混合計画、Greenhouse-Geisser と Huynh-Feldt の補正、一般化 η² と偏 η²), `mauchlyTest` (`mauchly.test`) |
@@ -226,7 +227,7 @@ eigen([[2, 1], [1, 3]]).values;     // ≈ [3.618033989, 1.381966011]
 | メタアナリシス | `escalc` (効果量と標本分散)、`rma` (等効果・ランダム効果のメタアナリシスとメタ回帰)、`confintRma`・`predictRma`・`regtest` (metafor) |
 | 線形モデル | `lm` (formula とデータフレーム、または行列で渡す。`summary` の値も返す), `modelMatrix` (`model.matrix`), `confint`, `predict`。`glm` (行列で渡す形。R の `stats` のすべての族とリンク) と `glmSummary` (`summary.glm`)、`glmResiduals` (4 種類)、`glmHatvalues`、`glmRstandard`、`glmCooksDistance`、`glmPredict` (標準誤差つき)、`glmConfint` (プロファイル尤度、厳密な限界)、`glmAnova` (`anova.glm`)。`vcovHC`、`vcovCL` (sandwich: HC0〜HC5、一元と多元のクラスター)、`coeftest`、`coefci` (lmtest) |
 | 回帰 | `polr`・`polrSummary`・`polrVcov`・`polrPredict`・`polrConfint`・`polrAnova` (MASS: logistic・probit・cloglog・loglog・cauchit のリンクによる順序ロジスティック回帰)、`rlm`・`rlmSummary`・`rlmVcov`・`psiHuber`・`psiHampel`・`psiBisquare` (MASS: M 推定と MM 推定によるロバスト回帰)、`nls`・`nlsSummary`・`nlsVcov`・`nlsPredict`・`nlsConfint`・`nlsAnova` (非線形最小二乗法: 既定・`plinear`・`port` のアルゴリズムと 10 個の自己開始モデル)、`rq`・`rqSummary`・`rqPredict`・`rqPredictInterval`・`rqAnova` (分位点回帰)、`geeglm`・`geeSummary`・`geeVcov`・`geePredict`・`geeAnova`・`geeQIC` (一般化推定方程式)、`glmnet`・`glmnetCoef`・`glmnetPredict`・`cvGlmnet` (Gaussian・binomial・Poisson・multinomial の正則化回帰)。`@numero-uno-jpn/rstats/regression` から import します |
-| 多変量解析 | `manova`・`manovaSummary` (逐次 MANOVA: Pillai・Wilks・Hotelling-Lawley・Roy)、`lda`・`ldaPredict` (線形判別分析)、`cancor` (正準相関)、`dist`・`asDist`・`hclust`・`cutree`・`kmeans` (クラスタ分析)、`cmdscale` (古典的多次元尺度法)。`@numero-uno-jpn/rstats/multivariate` から import します |
+| 多変量解析 | `manova`・`manovaSummary` (逐次 MANOVA: Pillai・Wilks・Hotelling-Lawley・Roy)、`lda`・`ldaPredict` (線形判別分析)、`cancor` (正準相関)、`dist`・`asDist`・`hclust`・`cutree`・`kmeans` (クラスタ分析)、`cmdscale` (古典的多次元尺度法)、`ca`・`caSummary`・`caCoord` (対応分析)、`mjca` (多重対応分析)、`sammon`・`isoMDS` (非計量多次元尺度法)。`@numero-uno-jpn/rstats/multivariate` から import します |
 | 混合モデル | `lmer` (lme4: REML と最尤法、相関のある変量効果と相関のない変量効果、交差と入れ子の群。`fixef`、`vcov`、`VarCorr`、`ranef`、`logLik`、`AIC`、`BIC`、`REMLcrit`、`isSingular`)、`lmerSummary`・`lmerContest`・`lmerAnova` (lmerTest: Satterthwaite の t 検定と F 検定、Type I/II/III の分散分析表。当てはめどうしの尤度比検定)、`glmer` (lme4: glm のすべての族、ラプラス近似と適応的 Gauss-Hermite 求積)、`glmerSummary`・`glmerAnova`・`glmerPredict`・`lmerPredict`・`confintLmer`・`confintGlmer`・`simulateLmer`・`simulateGlmer`。
 `@numero-uno-jpn/rstats/mixed` から import する |
 | ほかの検定 | `leveneTest`、`propTrendTest` (`prop.trend.test`)、`jonckheereTest`、`cochranQTest`、`adTest`、`lillieTest`、`cvmTest`、`sfTest`、`pearsonTest` (car、DescTools、clinfun、nortest)。`tTOST`、`tsumTOST` (TOSTER: 平均の同等性検定と最小効果検定) |
@@ -315,7 +316,7 @@ minify 済みの ES モジュール、gzip で 322 KB) を jsDelivr から読み
 
 ```html
 <script type="module">
-  import { pnorm } from "https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@1.10.0/dist/rstats.js";
+  import { pnorm } from "https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@1.11.0/dist/rstats.js";
   console.log(pnorm(1.96)); // ≈ 0.9750021049
 </script>
 ```
@@ -329,13 +330,13 @@ minify 済みの ES モジュール、gzip で 322 KB) を jsDelivr から読み
 
 一部の分野だけを使うページでは、代わりに分野ごとのバンドルを読み込めます。`dist/distributions.js`、
 `dist/tests.js`、`dist/linalg.js`、`dist/descriptive.js`、`dist/numerics.js`、`dist/special.js`、
-`dist/mixed.js`、`dist/regression.js`、`dist/multivariate.js` は上のサブパスと同じ関数を export し、共通のコードを `dist/chunks/` で共有します。そのため、
+`dist/mixed.js`、`dist/regression.js`、`dist/multivariate.js`、`dist/timeseries.js` は上のサブパスと同じ関数を export し、共通のコードを `dist/chunks/` で共有します。そのため、
 2 つの分野を読み込んでも共通部分は 1 回しか読み込まれません。chunk を含めた 1 分野の転送量は、gzip で
 39 KB (`special`) から 288 KB (`tests`) です。
 
 1 つのページでは、`dist/rstats.js` か分野ごとのバンドルのどちらか一方だけを使ってください。両者は別々の
 モジュールの集まりなので、混ぜると共通のコードが 2 回読み込まれ、乱数の状態も 2 つになります (一方の `setSeed`
-は他方の乱数に効きません)。`dist/rstats.js` と `dist/mixed.js`・`dist/regression.js`・`dist/multivariate.js` を一緒に読み込む場合も、
+は他方の乱数に効きません)。`dist/rstats.js` と `dist/mixed.js`・`dist/regression.js`・`dist/multivariate.js`・`dist/timeseries.js` を一緒に読み込む場合も、
 これらは共通のコードを別に持ち込みます。
 
 npm を元にしたほかの CDN も使えます。たとえば `https://esm.sh/@numero-uno-jpn/rstats` です。ビルド結果

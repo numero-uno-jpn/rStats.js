@@ -7,6 +7,15 @@ While the version is 0.x, a minor release (0.y.0) may contain breaking changes;
 they are listed under **Breaking** for each release. From 1.0.0 the project follows
 [Semantic Versioning](https://semver.org/).
 
+## 1.11.0 - 2026-11-24
+
+### Added
+
+- **Time series** in the separate `/timeseries` area: autocorrelation, partial autocorrelation and cross-correlation (`acf`, `pacf`, `ccf`).
+- **Multivariate analysis** in `/multivariate`: correspondence analysis (`ca`, `caSummary`, `caCoord`), multiple correspondence analysis (`mjca`) and non-metric multidimensional scaling (`sammon`, `isoMDS`).
+- Numerical safeguards and independent checks for extreme scales, large offsets, long series, close points and large multivariate inputs.
+- `isoMDS` follows R's BFGS path from the identity in the original coordinate scale; PACF uses the ordinary double-precision Durbin–Levinson recursion.
+
 ## 1.10.0 - 2026-11-23
 
 ### Added

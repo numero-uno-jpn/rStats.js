@@ -525,7 +525,7 @@ try {
     // names exported by both files (setWarningHandler) count once, as in the demo's merged library
     const exportCount = new Set(
       (
-        await Promise.all(["rstats.js", "mixed.js", "regression.js", "multivariate.js"].map((f) => import(new URL(`../../dist/${f}`, import.meta.url).href)))
+        await Promise.all(["rstats.js", "mixed.js", "regression.js", "multivariate.js", "timeseries.js"].map((f) => import(new URL(`../../dist/${f}`, import.meta.url).href)))
       ).flatMap((m) => Object.keys(m)),
     ).size;
     check(`status mentions ${exportCount} functions`, (await page.textContent(tid("status"))).includes(String(exportCount)));

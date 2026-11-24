@@ -1,46 +1,47 @@
 # Non-metric multidimensional scaling: isoMDS
 
-Reference: MASS 7.3.66 isoMDS, its public help, Kruskal (1964, both Psychometrika papers), Venables & Ripley, Modern Applied Statistics with S. No MASS source or Fortran was consulted.
+Reference: Kruskal (1964, both Psychometrika papers), Venables & Ripley, *Modern Applied Statistics with S*; R 4.6.2 public-call results and independent calculations in the `isomds111-*.R` experiments. No MASS source or Fortran was consulted.
 
-## Configuration distances and stress
+## Configuration distances and Stress-1
 
-For a configuration Y=(y1,...,yn) in k dimensions, fitted metric distances are:
-r_ij = (sum over q of |y_iq-y_jq|^p)^(1/p),
-where p=2 by default.
+For a configuration (Y=\(y_1,\ldots,y_n\)) in (k) dimensions, fitted metric distances are
 
-Let δ_ij be input dissimilarities. A monotone regression of fitted distances on δ produces disparities rhat_ij that are nondecreasing in δ. Equal input dissimilarities share one fitted disparity (Kruskal's primary approach to ties); the isotonic fit is a least-squares monotone fit, equivalently pooled-adjacent-violators regression over ordered dissimilarity groups.
+\[
+r_{ij}=\left\(\sum_q|y_{iq}-y_{jq}|^p\right\)^{1/p},
+\]
 
-Kruskal Stress-1, reported as a percentage, is:
-Stress = 100 * sqrt( sum_{i<j}(r_ij-rhat_ij)^2 / sum_{i<j} r_ij^2 ).
+with (p=2) by default. Let \(\delta_{ij}\) be input dissimilarities. The isotonic fit is performed on the configuration-distance vector after sorting pairs by increasing dissimilarity. In R notation, the fixed-pair-order evaluation is `isoreg(r[order(delta)])$yf`; the pair vector from `dist` is in lower-triangle column order. Passing `delta` as the `x` argument to `isoreg` instead, or pooling all equal dissimilarities into one block, does not reproduce R's public stress.
 
-The denominator uses squared configuration distances. Direct calculation of pair distances and isotonic fit for isomds_small_k1 gives 0.004759614736755%, matching R's 0.00475961473676101%. isomds_small has stress 2.13462043281511e-14, and isomds_grid_ties_default is effectively zero. The perturbed-grid initial configuration isomds_grid_ties and gives 0.00383293528945063, verifying that tied dissimilarities are handled as tied blocks rather than assigned independent disparities.
+Kruskal Stress-1 is
 
-## Initialization, iteration, and return values
+\[
+Stress_1=100\sqrt{\frac{\sum_{i<j}\(r_{ij}-\hat r_{ij}\)^2}
+ {\sum_{i<j}r_{ij}^2}},
+\]
 
-The default starting configuration is classical MDS (cmdscale(d,k)). An explicit y supplies starting coordinates; it must have n rows and k columns. The returned points and stress are the final configuration and stress. Since the default start is cmdscale, coordinate columns may differ from R by sign under rStats.js's deterministic largest-absolute-entry-positive convention; stress is invariant. Tests must align each column's sign before comparing all coordinates. R's default trace prints an initial stress, progress every five iterations, and a final status. With maxit=0, the initial configuration is returned unchanged and only the initial stress is printed (isomds_swiss_maxit0); maxit=5 stops after five iterations (isomds_swiss_maxit5).
+where `isoreg` fitted disparities are used without an additional post-regression norm rescaling. 
 
-The mathematical objective and primary-tie isotonic disparities are established. The exact numerical search direction, step-length/line-search schedule, and all stopping-test details have not yet been independently reconstructed from the permitted literature and public outputs. In particular, R's tol behavior is recorded in isomds_swiss_tol but the exact stopping inequality is not confirmed. Do not claim an exact reproduction of MASS's optimizer until these details are checked.
+## Tie ordering
+
+R's public results use a fixed pair order. Sort all pairs by increasing dissimilarity and preserve the original lower-triangle column order within equal dissimilarities. Apply isotonic regression to individual pair distances in that order; do not pool tied dissimilarities into one block and do not reorder pairs within a tie by their configuration distances.
+
+The fixture suite includes tied grid, eurodist and USArrests data, as well as tie-free swiss data. These cases distinguish the fixed-order convention from free ordering within tied groups.
+
+## Stress-1 scaling
+
+Use the disparities returned by isotonic regression directly. Do not rescale the fitted disparities to match the norm of the configuration-distance vector. The denominator of Stress-1 is the sum of squared configuration distances.
+
+## Optimizer endpoint check
+
+The endpoint comparison must be performed after applying the fixed tie order and unscaled Stress-1 objective above. The earlier endpoint table in the stage-1 investigation was produced by the pre-correction objective and tie-block implementation; it is historical diagnostic data only and is not evidence about the corrected implementation. The stage-2 gate is the tight R fixture comparison specified in the choices below.
 
 ## R-observed constraints
 
-- A zero or negative dissimilarity errors (isomds_zero_distance, isomds_negative).
-- Missing/infinite dissimilarities require an explicit initial configuration (isomds_na).
-- An initial configuration with the wrong number of rows errors (isomds_swiss_y_wrong).
-- k must be between 1 and n-1 (isomds_k_too_big).
-- p=1 and p=3 produce results distinct from default p=2: isomds_swiss_p1, isomds_swiss_p3.
-- Multiplying all dissimilarities by 1e150 causes R to stop at initial stress 5.46380043178661, with no coordinate optimization (isomds_scale). Scaling supplied initial configuration by 1e100 has the same reported initial stress (isomds_scale_y). This is a scale-dependent stopping artifact, not a property of Kruskal stress.
+A zero or negative dissimilarity errors. Missing/infinite dissimilarities require an explicit initial configuration. An initial configuration must have (n) rows and (k) columns. (k) is between 1 and (n-1). (p=1) and (p=3) produce results distinct from default (p=2). R's \(10^{150}\) scale behavior (stopping at the start) is a scale-dependent stopping artifact and should not be copied.
 
-## Numerical checks and unresolved items
+## Stage-2 implementation notes
 
-The stress formula and primary tie grouping were checked independently for isomds_small_k1 and isomds_grid_ties*. Public output cases include Swiss, eurodist, USArrests, small Euclidean and non-Euclidean examples, k=1, k=3, explicit starts, and iteration limits. The optimizer's exact step sequence remains unverified; no claim is made that final Swiss coordinates can be reproduced from the current formula alone.
-
-## Decisions for the user
-
-1. Use Kruskal Stress-1 in percent with primary tie handling. Recommended: match this definition; it is numerically verified.
-2. Use classical MDS as the default start, accept explicit y, and use Minkowski p. Recommended: match R's public interface.
-3. Reproduce MASS's exact optimizer and stop rule, or implement a well-defined scale-invariant gradient/majorization optimizer that minimizes the same stress. Recommended: choose a scale-invariant optimizer and document that final coordinates may differ from MASS; the 1e150 behavior in R should not be copied.
-4. Expose captured trace lines or return only points and stress. Recommended: return only the numerical result; tracing belongs in an optional callback/log facility, not in the statistical result object.
-5. Decide whether to reject nonpositive dissimilarities and require y for missing inputs. Recommended: match observed R errors.
+The user's current decisions are recorded in the `rStats.js's choices` section below and supersede the historical stage-1 investigation. In particular, the fixed pair order and unscaled Stress-1 definition above are authoritative; the older primary-tie recommendation and pre-correction endpoint figures are not current requirements.
 
 ## rStats.js's choices
 
@@ -64,3 +65,44 @@ The user's decisions of 2026-11-22 (Issue #556), written by Claude. They take pr
    `maxit = 5000`, all converged): stress within 1e-6 relative, points within 1e-5 of R's largest absolute coordinate after
    an orthogonal Procrustes alignment (p = 2) or column reflections and permutations (other p). At the default settings
    the points are a documented difference; rStats.js's default stress must be at most 1.01 times R's
+8. **Ties (user's decision of 2026-11-23, Issue #560; replaces "primary approach to ties" in choice 1):** R's fixed
+   order. Sort the pairs by dissimilarity with a stable sort, keeping the lower-triangle (column-wise) pair order within
+   equal dissimilarities, and fit the isotonic regression in that order. R's reported stress is this evaluation in
+   every case (grid ties 0.00383293527945, eurodist 5.88354761298), while the free-order primary fit is lower there, so
+   the primary approach cannot reach choice 7. Documented as R's convention
+9. Stress-1 without any rescaling after the isotonic fit: `100 sqrt(sum((r - fitted)^2) / sum(r^2))` (swiss at R's tight
+   endpoint: 4.21928575212). Fix the objective and the tie rule first, then repeat the R-endpoint start test
+10. The optimizer is free under choice 7 (the path does not have to be R's): Kruskal's gradient for every p, or another
+    method that converges to R's tight endpoints from rStats.js's `cmdscale` start. Report the endpoint test and the
+    tight comparison per case. **If choice 7 is not reached, isoMDS leaves 1.11.0** (user's decision of 2026-11-23)
+
+11. **The optimizer (Claude's experiments of 2026-11-24, user's decision to bring isoMDS back into 1.11.0; replaces the
+    freedom of choice 10):** R's iterates are those of a textbook BFGS on the stress in percent, found from public outputs
+    only (`experiments/isomds111-iterates.{R,txt}`, `experiments/isomds111-bfgs.{R,txt}`; the reasoning is in
+    `briefs/isomds-1.11-bfgs.ja.md`). The inverse-Hessian BFGS update (Nocedal & Wright, ch. 6) from the identity, a unit
+    first trial step along `-H g`, Armijo backtracking, a reset to the identity when the curvature `s'y` is not positive,
+    the gradient of the fixed-order Stress-1 (choices 8, 9) with the isotonic fit held fixed. R's `maxit = 1` and `2`
+    give the same point and `maxit = k + 1` gives the k-th BFGS iterate (swiss within 1.6e-14, eurodist within 2.2e-11
+    of R's largest coordinate over 11 iterates). Still open (ChatGPT, from R's outputs): the backtracking factor and the
+    Armijo constant (no backtracking occurred in those 11 iterates), the reset rule after a failed line search, the
+    iteration count, the stopping rule (`tol`), the gradient for p != 2 and the k = 1 and k = 3 cases
+12. **Pass condition (replaces choice 7's switch):** at the default settings, R's printed progress (the stress every 5
+    iterations), the final stress within 1e-9 relative and the points within 1e-7 of R's largest absolute coordinate
+    after column-sign alignment (BFGS from the identity is equivariant under the column reflections of the start), in
+    every fixture case; the tight cases (`isomds_tight_*`) within choice 7's tolerances. A case that cannot reach this is
+    reported with the iterate where it departs from R. Choice 5 (scale-invariant stopping) stays
+13. **Scale (user's decision of 2026-11-24; replaces choice 5 and any scale equivariance of the path):** R's BFGS starts
+    from the identity in the original coordinates (the first step is exactly `-g`, step 1; `experiments/isomds111-bfgs`),
+    so the path depends on the scale of the start, as R. rStats.js does the same: no normalization of the coordinates or
+    of the initial inverse Hessian. The stopping rule is R's (choice 11, from R's outputs). The extreme-scale cases
+    (`isomds_scale`, `isomds_scale_y`) are compared with R where R's result is determined; otherwise they are a
+    documented difference ("the answer depends on the scale of the configuration, as in R"). No equivariance test of
+    the path
+14. **Where R stops away from a minimum (Claude, 2026-11-24, under the user's standing rule "where R is inaccurate,
+    return the statistically correct value"):** rStats.js follows R's iterates (choices 11-13; the extra step at the tol
+    stop only when the inverse Hessian is not the identity; a zero configuration distance stops without moving, as R in
+    `isomds_swiss_y_k1`). In `isomds_grid_ties` and `isomds_small_k1` (and their tight cases) R agrees for 21 and 11
+    iterates and then stops at 0.00383 and 0.00476 where rStats.js goes on to 0 (a perfect monotone fit); in
+    `isomds_tight_eurodist` R stops at 5.883548 in a flat valley where rStats.js reaches 5.883535; `isomds_grid_ties_default`
+    is a perfect fit for both, whose configuration is not unique. Those six cases compare the stress only (at most R's;
+    within 1e-6 when R's is below 1e-6), a documented difference

@@ -14,7 +14,7 @@ R-compatible statistical functions for JavaScript and the browser, written in Ty
 - **Runs anywhere.** ESM only, no dependencies, no Node-specific APIs, tree-shakable
   (`pnorm` alone is 1.6 KB gzipped).
 
-Status: **1.10.0.** The goal is to cover the numerical core of R's
+Status: **1.11.0.** The goal is to cover the numerical core of R's
 `stats` package (distributions, descriptive statistics, hypothesis tests, linear models, special
 functions, numerical methods and the basics of linear algebra) with R-compatible results; see [ROADMAP.md](ROADMAP.md) for what remains. See [CHANGELOG.md](CHANGELOG.md).
 
@@ -216,6 +216,7 @@ eigen([[2, 1], [1, 3]]).values;     // ≈ [3.618033989, 1.381966011]
 | Special functions | `gamma`, `lgamma`, `beta`, `lbeta`, `choose`, `lchoose`, `factorial`, `lfactorial`, `digamma`, `trigamma`, `psigamma`, `besselI`, `besselK`, `besselJ`, `besselY`; also `erf`, `erfc`, `erfinv`, `erfcinv`, `gammainc` and `perm`, which R lacks, and `log1pmx`, `lgamma1p`, `log1mexp`, `log1pexp` from R's C API (Rmath.h) |
 | Distributions (d/p/q) | normal, t, chi-squared, F, beta, gamma, binomial, Poisson, uniform, exponential, log-normal, logistic, Cauchy, Weibull, geometric, negative binomial, hypergeometric, Wilcoxon signed rank and rank sum, studentized range (`ptukey`, `qtukey`), non-central chi-squared, t, F and beta (`ncp`); the multinomial probability (`dmultinom`); inverse gamma, Kumaraswamy, Pareto, triangular, Laplace (extraDistr) and arcsine; `distSummary` (mean, variance, sd, median, mode, skewness, kurtosis) |
 | Random numbers | `setSeed` (`set.seed`), `RNGkind` (Mersenne-Twister and L'Ecuyer-CMRG, `sample.kind` Rejection and Rounding), `getRandomSeed`/`setRandomSeed` (`.Random.seed`), `nextRNGStream`/`nextRNGSubStream` (`parallel`), 26 `r*` functions, `sample`, `sampleInt` (`sample.int`), `r2dtable` |
+| Time series | `acf`, `pacf`, `ccf` (`stats::acf`, `stats::pacf`, `stats::ccf`) from `@numero-uno-jpn/rstats/timeseries` |
 | Descriptive statistics | `sum`, `prod`, `mean`, `weightedMean` (`weighted.mean`), `variance` (`var`), `sd`, `median`, `range`, `cumsum`, `cumprod`, `cummax`, `cummin`, `diff`, `quantile`, `IQR`, `fivenum`, `mad`, `rank`, `cov`, `cor`, `tabulate`, `table`, `unique`, `cut`, `findInterval`, `pretty`, `hist`, `ecdf`, `scale`, `skewness`, `kurtosis`, `geometricMean`, `modes`, `meanAD`, `cv` |
 | Hypothesis tests | `tTest`, `chisqTest`, `fisherTest`, `wilcoxTest`, `corTest`, `binomTest`, `poissonTest`, `propTest`, `mcnemarTest`, `varTest`, `bartlettTest`, `kruskalTest`, `friedmanTest`, `quadeTest`, `flignerTest`, `moodTest`, `onewayTest`, `shapiroTest`, `mantelhaenTest`, `ansariTest`, `ksTest`, `pairwiseTTest`, `pairwiseWilcoxTest`, `pairwisePropTest`, `aov` (one way, a fit whose table is `aovSummary`), `TukeyHSD`, `zTest`, `brunnerMunzelTest`, `tamhaneT2Test` (Tamhane's T2/T2'), `pageTest`, `grubbsTest`, `pgrubbs`, `qgrubbs`, `pAdjust` (`p.adjust`) |
 | Analysis of variance | `aov` and `aovSummary` with a formula (several factors, interactions, covariates, `Error()` strata), `anova` (`anova.lm`, sequential and model comparison), `Anova` (car: types II and III), `aovEz` (afex: repeated-measures and mixed designs, Greenhouse-Geisser and Huynh-Feldt corrections, generalized and partial eta squared), `mauchlyTest` (`mauchly.test`) |
@@ -224,7 +225,7 @@ eigen([[2, 1], [1, 3]]).values;     // ≈ [3.618033989, 1.381966011]
 | Meta-analysis | `escalc` (effect sizes and sampling variances), `rma` (equal- and random-effects meta-analysis and meta-regression), `confintRma`, `predictRma`, `regtest` (metafor) |
 | Linear models | `lm` (a formula and a data frame, or a matrix, with the `summary` quantities), `modelMatrix` (`model.matrix`), `confint`, `predict`; `glm` (matrix interface, every family and link of R's `stats`) with `glmSummary` (`summary.glm`), `glmResiduals` (the four kinds), `glmHatvalues`, `glmRstandard`, `glmCooksDistance`, `glmPredict` (with standard errors), `glmConfint` (profile likelihood, exact limits), `glmAnova` (`anova.glm`); `vcovHC`, `vcovCL` (sandwich: HC0 to HC5, one-way and multi-way clustered), `coeftest`, `coefci` (lmtest) |
 | Regression | `polr`, `polrSummary`, `polrVcov`, `polrPredict`, `polrConfint`, `polrAnova` (MASS: ordinal logistic regression with logistic, probit, cloglog, loglog and cauchit links); `rlm`, `rlmSummary`, `rlmVcov`, `psiHuber`, `psiHampel`, `psiBisquare` (MASS: robust M and MM regression); `nls`, `nlsSummary`, `nlsVcov`, `nlsPredict`, `nlsConfint`, `nlsAnova` (nonlinear least squares: default, `plinear` and `port` algorithms, and 10 self-starting models); `rq`, `rqSummary`, `rqPredict`, `rqPredictInterval`, `rqAnova` (quantile regression); `geeglm`, `geeSummary`, `geeVcov`, `geePredict`, `geeAnova`, `geeQIC` (generalized estimating equations); `glmnet`, `glmnetCoef`, `glmnetPredict`, `cvGlmnet` (penalized Gaussian, binomial, Poisson and multinomial regression), from `@numero-uno-jpn/rstats/regression` |
-| Multivariate analysis | `manova`, `manovaSummary` (sequential MANOVA: Pillai, Wilks, Hotelling-Lawley and Roy); `lda`, `ldaPredict` (linear discriminant analysis); `cancor` (canonical correlation); `dist`, `asDist`, `hclust`, `cutree`, `kmeans` (cluster analysis) and `cmdscale` (classical multidimensional scaling), from `@numero-uno-jpn/rstats/multivariate` |
+| Multivariate analysis | `manova`, `manovaSummary` (sequential MANOVA: Pillai, Wilks, Hotelling-Lawley and Roy); `lda`, `ldaPredict` (linear discriminant analysis); `cancor` (canonical correlation); `dist`, `asDist`, `hclust`, `cutree`, `kmeans` (cluster analysis); `cmdscale` (classical multidimensional scaling); `ca`, `caSummary`, `caCoord` (correspondence analysis); `mjca` (multiple correspondence analysis); `sammon` and `isoMDS` (non-metric multidimensional scaling), from `@numero-uno-jpn/rstats/multivariate` |
 | Mixed models | `lmer` (lme4: REML and ML, correlated and uncorrelated random effects, crossed and nested grouping factors; `fixef`, `vcov`, `VarCorr`, `ranef`, `logLik`, `AIC`, `BIC`, `REMLcrit`, `isSingular`), `lmerSummary`, `lmerContest` and `lmerAnova` (lmerTest: Satterthwaite's t- and F-tests, Type I/II/III ANOVA tables; likelihood-ratio comparison of fits), `glmer` (lme4: all glm families, Laplace approximation and adaptive Gauss-Hermite quadrature), `glmerSummary`, `glmerAnova`, `glmerPredict`, `lmerPredict`, `confintLmer`, `confintGlmer`, `simulateLmer` and
 `simulateGlmer`, from `@numero-uno-jpn/rstats/mixed` |
 | More tests | `leveneTest`, `propTrendTest` (`prop.trend.test`), `jonckheereTest`, `cochranQTest`, `adTest`, `lillieTest`, `cvmTest`, `sfTest`, `pearsonTest` (car, DescTools, clinfun, nortest); `tTOST`, `tsumTOST` (TOSTER: equivalence and minimal-effect t tests) |
@@ -314,7 +315,7 @@ function except those of `/mixed` and `/regression`, 322 KB gzipped) from jsDeli
 
 ```html
 <script type="module">
-  import { pnorm } from "https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@1.10.0/dist/rstats.js";
+  import { pnorm } from "https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@1.11.0/dist/rstats.js";
   console.log(pnorm(1.96)); // ≈ 0.9750021049
 </script>
 ```
@@ -328,13 +329,13 @@ browser console, assign `window.rs = rs` yourself.
 
 A page that needs only some areas can load the per-area bundles instead: `dist/distributions.js`,
 `dist/tests.js`, `dist/linalg.js`, `dist/descriptive.js`, `dist/numerics.js`, `dist/special.js`,
-`dist/mixed.js`, `dist/regression.js` and `dist/multivariate.js` export the same functions as the subpaths above, and share their common code through
+`dist/mixed.js`, `dist/regression.js`, `dist/multivariate.js` and `dist/timeseries.js` export the same functions as the subpaths above, and share their common code through
 `dist/chunks/`, so loading two areas does not load that code twice. With its chunks, one area
 transfers 39 KB (`special`) to 288 KB (`tests`) gzipped.
 
 Use either `dist/rstats.js` or the per-area bundles on one page, not both: they are separate sets of modules, so a
 page that mixes them loads the common code twice and has two random number states (`setSeed` from one does not seed
-the generators of the other). The same holds for `dist/rstats.js` with `dist/mixed.js`, `dist/regression.js` or `dist/multivariate.js`, which bring their own copy
+the generators of the other). The same holds for `dist/rstats.js` with `dist/mixed.js`, `dist/regression.js`, `dist/multivariate.js` or `dist/timeseries.js`, which bring their own copy
 of the common code.
 
 Other npm-based CDNs work as well, for example `https://esm.sh/@numero-uno-jpn/rstats`. Release tags also contain

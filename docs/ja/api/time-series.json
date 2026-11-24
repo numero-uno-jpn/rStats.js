@@ -1,0 +1,132 @@
+{
+  "AcfNaAction#summary": {
+    "hash": "d16b6c246da1",
+    "en": "Policy for missing observations in a time series.",
+    "ja": "時系列の欠損観測値に対する処理方針です。"
+  },
+  "AcfOptions#summary": {
+    "hash": "cdde8613137d",
+    "en": "Options for autocorrelation and autocovariance. Equivalent to the arguments of R's stats::acf().",
+    "ja": "自己相関と自己共分散のオプションです。R の stats::acf() の引数と同等です。"
+  },
+  "AcfOptions.ci#summary": {
+    "hash": "55d733a909bc",
+    "en": "Confidence level used for the white-noise bounds.",
+    "ja": "白色雑音の境界に使用する信頼水準です。"
+  },
+  "AcfOptions.demean#summary": {
+    "hash": "3023995a9e69",
+    "en": "Whether to subtract the series mean before computing products.",
+    "ja": "積を計算する前に系列の平均を差し引くかどうかです。"
+  },
+  "AcfOptions.lagMax#summary": {
+    "hash": "8dddcd7613fc",
+    "en": "Maximum non-negative lag to return, in observation units.",
+    "ja": "返すラグの最大値です (非負の値で、観測単位)。"
+  },
+  "AcfOptions.naAction#summary": {
+    "hash": "cd9bc4ce9d5f",
+    "en": "Whether missing values cause an error or are omitted pairwise.",
+    "ja": "欠損値がエラーの原因となるか、ペアごとに除外されるかを指定します。"
+  },
+  "AcfOptions.type#summary": {
+    "hash": "bef4be497092",
+    "en": "Statistic to return: correlation, covariance or partial autocorrelation.",
+    "ja": "返す統計量です: 相関、共分散、または偏自己相関。"
+  },
+  "AcfResult#summary": {
+    "hash": "a794e09fd5ab",
+    "en": "Result of an autocorrelation, partial-autocorrelation or cross-correlation calculation.",
+    "ja": "自己相関、偏自己相関、または相互相関の計算結果です。"
+  },
+  "AcfResult.acf#summary": {
+    "hash": "691aff22a83b",
+    "en": "Autocorrelation, autocovariance or partial-autocorrelation values at each lag.",
+    "ja": "各ラグにおける自己相関、自己共分散、または偏自己相関の値です。"
+  },
+  "AcfResult.clim#summary": {
+    "hash": "e980674b73be",
+    "en": "White-noise confidence bound for the selected confidence level.",
+    "ja": "選択した信頼水準に対する白色雑音の信頼限界です。"
+  },
+  "AcfResult.lag#summary": {
+    "hash": "2c1b0185b797",
+    "en": "Integer lags corresponding to the returned values.",
+    "ja": "返された値に対応する整数のラグです。"
+  },
+  "AcfResult.nUsed#summary": {
+    "hash": "85033ae947e5",
+    "en": "Number of observations in the input series.",
+    "ja": "入力系列の観測値の数です。"
+  },
+  "AcfResult.type#summary": {
+    "hash": "854b9ecfdf48",
+    "en": "Kind of statistic returned.",
+    "ja": "返された統計量の種類です。"
+  },
+  "AcfType#summary": {
+    "hash": "75aabc2c9d7f",
+    "en": "Kind of autocorrelation statistic returned by acf().",
+    "ja": "acf() が返す自己相関統計量の種類です。"
+  },
+  "CcfOptions#summary": {
+    "hash": "5c727c2ac872",
+    "en": "Options for cross-correlation and cross-covariance. Equivalent to the arguments of R's stats::ccf().",
+    "ja": "相互相関と相互共分散のオプションです。R の stats::ccf() の引数と同等です。"
+  },
+  "CcfOptions.ci#summary": {
+    "hash": "55d733a909bc",
+    "en": "Confidence level used for the white-noise bounds.",
+    "ja": "白色雑音の境界に使用する信頼水準です。"
+  },
+  "CcfOptions.demean#summary": {
+    "hash": "2b57a41b1a9b",
+    "en": "Whether to subtract each series mean before computing products.",
+    "ja": "積を計算する前に各系列の平均を差し引くかどうかです。"
+  },
+  "CcfOptions.lagMax#summary": {
+    "hash": "330de5bd14e9",
+    "en": "Maximum absolute lag to return, in observation units.",
+    "ja": "返すラグの絶対値の最大値です (観測単位)。"
+  },
+  "CcfOptions.naAction#summary": {
+    "hash": "cd9bc4ce9d5f",
+    "en": "Whether missing values cause an error or are omitted pairwise.",
+    "ja": "欠損値がエラーの原因となるか、ペアごとに除外されるかを指定します。"
+  },
+  "CcfOptions.type#summary": {
+    "hash": "69a79594bcff",
+    "en": "Statistic to return: correlation or covariance.",
+    "ja": "返す統計量です: 相関または共分散。"
+  },
+  "PacfOptions#summary": {
+    "hash": "d6327edae629",
+    "en": "Options for partial autocorrelation. Equivalent to the arguments of R's stats::pacf().",
+    "ja": "偏自己相関のオプションです。R の stats::pacf() の引数と同等です。"
+  },
+  "PacfOptions.lagMax#summary": {
+    "hash": "2bcc171b1cb5",
+    "en": "Maximum positive lag to return, in observation units.",
+    "ja": "返す正のラグの最大値です (観測単位)。"
+  },
+  "PacfOptions.naAction#summary": {
+    "hash": "cd9bc4ce9d5f",
+    "en": "Whether missing values cause an error or are omitted pairwise.",
+    "ja": "欠損値がエラーの原因となるか、ペアごとに除外されるかを指定します。"
+  },
+  "acf#summary": {
+    "hash": "8950bb5836c9",
+    "en": "Computes autocorrelation, autocovariance or partial autocorrelation of a univariate series.\nEquivalent to R's `stats::acf()`.",
+    "ja": "単変量時系列の自己相関、自己共分散、または偏自己相関を計算します。\nR の `stats::acf()` と同等です。"
+  },
+  "ccf#summary": {
+    "hash": "54ffa675f482",
+    "en": "Computes cross-correlation or cross-covariance of two equal-length series. Lag k pairs x[t+k] with y[t].\nEquivalent to R's `stats::ccf()`.",
+    "ja": "長さが等しい 2 つの時系列の相互相関または相互共分散を計算します。ラグ k では x[t+k] と y[t] を組み合わせます。\nR の `stats::ccf()` と同等です。"
+  },
+  "pacf#summary": {
+    "hash": "e893717b8428",
+    "en": "Computes partial autocorrelation of a univariate series with the Durbin–Levinson recursion.\nEquivalent to R's `stats::pacf()`.",
+    "ja": "Durbin–Levinson の再帰計算により、単変量時系列の偏自己相関を計算します。\nR の `stats::pacf()` と同等です。"
+  }
+}

@@ -9,15 +9,21 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | R | rStats.js | 説明 |
 | --- | --- | --- |
 | `as.dist()` | `asDist` | 正方行列の下三角から距離の形を作る |
+| `ca::ca()` | `ca` | 単純対応分析 (行・列の座標、慣性、補助の行・列) |
+| `ca::cacoord()` | `caCoord` | 対応分析の地図の種類ごとの座標 (主・標準・対称・バイプロットなど) |
 | `stats::cancor()` | `cancor` | 正準相関分析 |
 | `cmdscale()` | `cmdscale` | 古典的 (計量) 多次元尺度法 |
 | `cutree()` | `cutree` | 階層クラスタリングの木を、群の数か高さで切って群に分ける |
 | `dist()` | `dist` | 行どうしの距離 (非類似度) を下三角の順に計算する |
 | `hclust()` | `hclust` | 非類似度による階層クラスタリング (8 つの連結法) |
+| `MASS::isoMDS()` | `isoMDS` | Kruskal の非計量多次元尺度法 |
 | `kmeans()` | `kmeans` | k-means クラスタリング (Hartigan-Wong・Lloyd・Forgy・MacQueen) |
 | `MASS::lda()` | `lda` | 線形判別分析 (moment 法) |
 | `stats::manova()` | `manova` | 多変量分散分析 (逐次の型 I の項) |
+| `ca::mjca()` | `mjca` | 多重対応分析 (指示行列・Burt 行列・調整) |
 | `predict.lda()` | `ldaPredict` | 線形判別分析によるクラス・事後確率・判別得点の予測 |
+| `MASS::sammon()` | `sammon` | Sammon の非線形写像 |
+| `summary.ca()` | `caSummary` | 対応分析の要約 (固有値の表、行・列の質・慣性・相関・寄与) |
 | `summary.manova()` | `manovaSummary` | 多変量分散分析の検定表 (Pillai・Wilks・Hotelling-Lawley・Roy) |
 
 ## Regression models (`rStats.js/regression`)
@@ -57,6 +63,14 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `vcov.polr()` | `polrVcov` | 順序回帰の傾きとカットポイントの共分散行列 (観測情報量から) |
 | `vcov.rlm()` | `rlmVcov` | ロバスト回帰の係数の共分散行列 (Huber の有限標本の補正つき) |
 | `vcov()` | `geeVcov` | 一般化推定方程式の係数のサンドイッチ共分散行列 |
+
+## Time series analysis (`rStats.js/timeseries`)
+
+| R | rStats.js | 説明 |
+| --- | --- | --- |
+| `stats::acf()` | `acf` | 自己相関・自己共分散・偏自己相関 |
+| `stats::ccf()` | `ccf` | 2 つの系列の相互相関・相互共分散 |
+| `stats::pacf()` | `pacf` | 偏自己相関 |
 
 ## 特殊関数 (`rStats.js/special`)
 

@@ -30,6 +30,7 @@ const CATEGORIES = [
   "Agreement, reliability and factor analysis",
   "Linear algebra",
   "Numerical methods",
+  "Time series",
 ];
 
 /** The values of the `@category` tags of a doc comment (as returned by the helpers: no leading ` * `). */

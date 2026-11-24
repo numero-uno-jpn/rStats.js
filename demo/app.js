@@ -1,5 +1,5 @@
 // rStats.js demo: loads the library (jsDelivr by default, ../dist/rstats.js with ?src=local), mixed models, regression
-// and multivariate analysis, which are separate area bundles, and builds the tabs.
+// multivariate analysis and time series, which are separate area bundles, and builds the tabs.
 
 import { applyI18n, getLang, initLang, setLang, t } from "./i18n.js";
 import { h, setChildren, storage } from "./util.js";
@@ -13,7 +13,7 @@ import { createNumericsTab } from "./numerics.js";
 import { createCompareTab } from "./examples.js";
 
 /** The release whose build is loaded from jsDelivr. */
-const VERSION = "v1.10.0";
+const VERSION = "v1.11.0";
 // jsDelivr's npm route: its GitHub route (cdn.jsdelivr.net/gh/...) does not serve release tags from v0.12.0 on, since
 // the repository with its test fixtures exceeds its size limit of 50 MB
 const CDN_DIST = `https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@${VERSION.slice(1)}/dist/`;
@@ -29,6 +29,8 @@ const mixedUrl = `${distUrl}mixed.js`;
 const regressionUrl = `${distUrl}regression.js`;
 /** The multivariate area (manova, lda, cancor): a separate file, since it is not in dist/rstats.js */
 const multivariateUrl = `${distUrl}multivariate.js`;
+/** The time-series area (acf, pacf, ccf, from 1.11.0): a separate file, since it is not in dist/rstats.js */
+const timeseriesUrl = `${distUrl}timeseries.js`;
 
 const ALL_TABS = ["distributions", "descriptive", "special", "random", "tests", "linalg", "numerics", "compare"];
 /** Tabs that need functions newer than some builds: shown only when the loaded build has them */
@@ -204,9 +206,12 @@ async function start() {
   let mixed;
   let regression;
   let multivariate;
+  let timeseries;
   try {
-    [lib, mixed, regression, multivariate] = await Promise.all([
+    [lib, mixed, regression, multivariate, timeseries] = await Promise.all([
       import(libUrl), import(mixedUrl), import(regressionUrl), import(multivariateUrl),
+      // a release before 1.11.0 has no timeseries.js: the demo then runs without it
+      import(timeseriesUrl).catch(() => ({})),
     ]);
   } catch (err) {
     showLoadError(err);
@@ -215,9 +220,10 @@ async function start() {
   const mixedNames = new Set(Object.keys(mixed));
   const regressionNames = new Set(Object.keys(regression));
   const multivariateNames = new Set(Object.keys(multivariate));
+  const timeseriesNames = new Set(Object.keys(timeseries));
   const [examplesFile, rResults] = await Promise.all([fetchJSON("examples.json"), fetchJSON("r-results.json")]);
   const ctx = {
-    lib: { ...lib, ...mixed, ...regression, ...multivariate },
+    lib: { ...lib, ...mixed, ...regression, ...multivariate, ...timeseries },
     examples: Array.isArray(examplesFile?.examples) ? examplesFile.examples : null,
     rResults: rResults?.results ? rResults : null,
     refreshers: [],
@@ -226,12 +232,15 @@ async function start() {
       const fromMixed = unique.filter((n) => mixedNames.has(n));
       const fromRegression = unique.filter((n) => regressionNames.has(n));
       const fromMultivariate = unique.filter((n) => multivariateNames.has(n));
-      const fromMain = unique.filter((n) => !mixedNames.has(n) && !regressionNames.has(n) && !multivariateNames.has(n));
+      const fromTimeseries = unique.filter((n) => timeseriesNames.has(n));
+      const fromMain = unique.filter((n) => !mixedNames.has(n) && !regressionNames.has(n) && !multivariateNames.has(n) &&
+        !timeseriesNames.has(n));
       return [
         ...(fromMain.length ? [`const { ${fromMain.join(", ")} } = await import("${libUrl}");`] : []),
         ...(fromMixed.length ? [`const { ${fromMixed.join(", ")} } = await import("${mixedUrl}");`] : []),
         ...(fromRegression.length ? [`const { ${fromRegression.join(", ")} } = await import("${regressionUrl}");`] : []),
         ...(fromMultivariate.length ? [`const { ${fromMultivariate.join(", ")} } = await import("${multivariateUrl}");`] : []),
+        ...(fromTimeseries.length ? [`const { ${fromTimeseries.join(", ")} } = await import("${timeseriesUrl}");`] : []),
       ].join("\n");
     },
   };

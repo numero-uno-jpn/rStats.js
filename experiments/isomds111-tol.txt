@@ -1,0 +1,6 @@
+tol 0.001 maxit 4..12: 4.505580 4.499103 4.492669 4.492669 4.492669 4.492669 4.492669 4.492669 4.492669 
+   printed: initial  value 5.463800 | iter   5 value 4.499103 | iter   5 value 4.495335 | iter   5 value 4.492669 | final  value 4.492669 | converged 
+tol 0.01 maxit 4..12: 5.449274 5.449274 5.449274 5.449274 5.449274 5.449274 5.449274 5.449274 5.449274 
+   printed: initial  value 5.463800 | final  value 5.449274 | converged 
+tol 1e-04 maxit 4..12: 4.505580 4.499103 4.495335 4.462289 4.416122 4.344342 4.301693 4.289963 4.288530 
+   printed: initial  value 5.463800 | iter   5 value 4.499103 | iter  10 value 4.301693 | iter  15 value 4.278027 | final  value 4.245169 | converged 

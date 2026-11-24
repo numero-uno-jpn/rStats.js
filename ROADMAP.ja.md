@@ -33,10 +33,11 @@ SciPy (`scipy.stats`、`scipy.special`、`scipy.linalg`) は移植元のコー�
 | 特殊関数 | `gamma`、`lgamma`、`beta`、`lbeta`、`choose`、`lchoose`、`factorial`、`lfactorial`、`digamma`、`trigamma`、`psigamma`、`besselI`、`besselK`、`besselJ`、`besselY` と、R にはない `erf`、`erfc`、`erfinv`、`erfcinv`、`gammainc`、`perm`、R の C API の log1p 系の関数 `log1pmx`、`lgamma1p`、`log1mexp`、`log1pexp` を export |
 | 分布 | R の `stats` にある 20 の分布すべて (スチューデント化された範囲を含む)、非心カイ二乗・t・F・ベータ分布、逆ガンマ・Kumaraswamy・Pareto・三角・Laplace (extraDistr)・逆正弦の d/p/q (`lowerTail` と `logP` 付き)。23 の分布の `distSummary` (ウィルコクソンの符号付き順位と順位和の分布、スチューデント化された範囲の分布を除く) |
 | 乱数 | R の既定の Mersenne-Twister と `set.seed()` 互換の乱数列、`RNGkind` による `"L'Ecuyer-CMRG"` (`parallel` の `nextRNGStream`・`nextRNGSubStream` 付き) と `sample.kind = "Rounding"`、`rmultinom` を含む 26 の `r*` 関数 (R にない分布は extraDistr と同じ乱数列)、`sample`、`sampleInt`、`r2dtable` |
+| 時系列 | `acf`、`pacf`、`ccf` (自己相関、偏自己相関、交差相関) |
 | 記述統計 | R の要約 (`mean`、`variance`、9 種類の `quantile`、`rank`、行列の `cov`/`cor`、`table`、`cut`、`hist`、`ecdf`、`scale` など) と e1071・DescTools のもの (`skewness`、`kurtosis`、`geometricMean`、`modes`、`meanAD`、`cv`) |
 | 仮説検定 | R の `htest` の関数: `tTest`、`chisqTest` (シミュレーションによる p 値と 2 つの因子ベクトルを含む)、`fisherTest` (r × c とシミュレーションによる p 値を含む)、`wilcoxTest`、`corTest`、`binomTest`、`poissonTest`、`propTest`、`mcnemarTest`、`varTest`、`bartlettTest`、`kruskalTest`、`friedmanTest`、`quadeTest`、`flignerTest`、`moodTest`、`onewayTest`、`shapiroTest`、`mantelhaenTest`、`ansariTest` (信頼区間を含む)、`ksTest`、`pairwise*`、`pAdjust`。一元配置の `aov`、`TukeyHSD`、`zTest` (BSDA)、`brunnerMunzelTest` (lawstat)、Tamhane の T2・Page の検定・type 10 の Grubbs 検定 |
 | 回帰 | 順序ロジスティック回帰 (`polr`)、ロバスト回帰 (`rlm`)、非線形最小二乗法 (`nls`) と、それぞれの要約・共分散・予測・信頼区間・モデル比較。自己開始モデル 10 個。独立した `/regression` 分野。 |
-| 多変量解析 | 逐次 MANOVA (`manova`・`manovaSummary`)、線形判別分析 (`lda`・`ldaPredict`)、正準相関 (`cancor`)、距離 (`dist`・`asDist`)、階層的クラスタ分析 (`hclust`・`cutree`)、k-means (`kmeans`)、古典的多次元尺度法 (`cmdscale`)。独立した `/multivariate` の分野 |
+| 多変量解析 | 逐次 MANOVA (`manova`・`manovaSummary`)、線形判別分析 (`lda`・`ldaPredict`)、正準相関 (`cancor`)、距離 (`dist`・`asDist`)、階層的クラスタ分析 (`hclust`・`cutree`)、k-means (`kmeans`)、古典的多次元尺度法 (`cmdscale`)、対応分析 (`ca`・`caSummary`・`caCoord`)、多重対応分析 (`mjca`)、非計量多次元尺度法 (`sammon`・`isoMDS`)。独立した `/multivariate` の分野 |
 | 線形モデル | 行列で渡す `lm` と `summary.lm` の値、`confint`、`predict`。行列で渡す `glm` (R の `stats` のすべての族とリンク)、`summary.glm`、4 種類の残差、`hatvalues`、`rstandard`、`cooks.distance`、標準誤差つきの `predict`、プロファイル尤度の `confint` (厳密な限界)、`anova`。頑健な共分散: sandwich の `vcovHC` (HC0〜HC5) と `vcovCL` (一元と多元のクラスター、HC0〜HC3)、lmtest の `coeftest` と `coefci`。修正ポアソン回帰 (リスク比)、逆確率重み付けの後の重み付き回帰、差の差分析に使える |
 | 分散分析 | formula で呼ぶ `aov`、`lm`、`modelMatrix` (多元、交互作用、共変量、`Error()` の層)、`anova` (逐次の表とモデルの比較)、car の `Anova` (Type II と III)、afex の `aov_ez` に当たる `aovEz` (反復測定、Greenhouse-Geisser と Huynh-Feldt、一般化 η²)、`mauchly.test` |
 | 効果量と検出力 | effectsize の `cohens_d`、`hedges_g`、`eta_squared`、`omega_squared`、`epsilon_squared` (`anova` と `Anova` の表から。信頼区間は厳密な限界)、`power.t.test`、`power.prop.test`、`power.anova.test` と `pwr` の検出力の関数 |
@@ -66,7 +67,7 @@ SciPy (`scipy.stats`、`scipy.special`、`scipy.linalg`) は移植元のコー�
 指標とその信頼区間を出せることを重視します。この一覧は、医学・心理学の研究向けの統計ウェブアプリの手法と
 照らし合わせて作りました (2026-11-06)。優先度の高い順です。括弧内は、各項目の照合先の R の関数またはパッケージです。
 
-2. **残り:** 非計量多次元尺度法 (MASS `isoMDS`・Sammon 法)、対応分析 (ca)、時系列 [`acf`・`arima`]。
+2. **残り (1.12.0 予定):** 時系列 [`arima`]。
 
 混合モデルの続き (以前の項目 1) は 1.6.0 に向けて済ませました: lme4 の `confint` (プロファイル尤度と Wald) と
 `simulate` に合わせた `confintLmer`、`confintGlmer`、`simulateLmer`、`simulateGlmer`。
