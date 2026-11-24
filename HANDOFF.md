@@ -37,7 +37,7 @@
   main `80e803fc` (作業ブランチを squash、中身は同じ)、CI・Pages 緑 → タグ `v1.13.0` → Release の stage (id `0d91daed-...`) を
   ユーザーが承認。npm latest = 1.13.0、jsDelivr の `dist/causal.js`・`dist/rstats.js`、`/api/`・`/ja/api/` の weightit などのページ、
   デモ v1.13.0 を確かめた。Issue #563 を閉じた。途中のコミットはタグ `archive/iptw-1.13` (`06a4ddd0`) で残した。作業ブランチ
-  `dev/iptw-1.13` は手元に残っている (消すかはユーザーに確認)。HANDOFF のこの更新は手元のコミットだけ (次の作業とまとめて push)
+  `dev/iptw-1.13` はユーザーの指示で削除 (手元だけにあった。GitHub には push していない)。HANDOFF のこの更新は手元のコミットだけ (次の作業とまとめて push)
 - (公開前の記録) **残り:** (1) 版 1.13.0 (package.json・lock・README・API の CDN・demo の VERSION・CHANGELOG の日付) (2) main に squash の 1 コミット +
   タグ → `npm stage approve` → `archive/iptw-1.13` のタグ
 
