@@ -1,0 +1,132 @@
+{
+  "AcfNaAction#summary": {
+    "hash": "d16b6c246da1",
+    "en": "Policy for missing observations in a time series.",
+    "ja": ""
+  },
+  "AcfOptions#summary": {
+    "hash": "cdde8613137d",
+    "en": "Options for autocorrelation and autocovariance. Equivalent to the arguments of R's stats::acf().",
+    "ja": ""
+  },
+  "AcfOptions.ci#summary": {
+    "hash": "55d733a909bc",
+    "en": "Confidence level used for the white-noise bounds.",
+    "ja": ""
+  },
+  "AcfOptions.demean#summary": {
+    "hash": "3023995a9e69",
+    "en": "Whether to subtract the series mean before computing products.",
+    "ja": ""
+  },
+  "AcfOptions.lagMax#summary": {
+    "hash": "8dddcd7613fc",
+    "en": "Maximum non-negative lag to return, in observation units.",
+    "ja": ""
+  },
+  "AcfOptions.naAction#summary": {
+    "hash": "cd9bc4ce9d5f",
+    "en": "Whether missing values cause an error or are omitted pairwise.",
+    "ja": ""
+  },
+  "AcfOptions.type#summary": {
+    "hash": "bef4be497092",
+    "en": "Statistic to return: correlation, covariance or partial autocorrelation.",
+    "ja": ""
+  },
+  "AcfResult#summary": {
+    "hash": "a794e09fd5ab",
+    "en": "Result of an autocorrelation, partial-autocorrelation or cross-correlation calculation.",
+    "ja": ""
+  },
+  "AcfResult.acf#summary": {
+    "hash": "691aff22a83b",
+    "en": "Autocorrelation, autocovariance or partial-autocorrelation values at each lag.",
+    "ja": ""
+  },
+  "AcfResult.clim#summary": {
+    "hash": "e980674b73be",
+    "en": "White-noise confidence bound for the selected confidence level.",
+    "ja": ""
+  },
+  "AcfResult.lag#summary": {
+    "hash": "2c1b0185b797",
+    "en": "Integer lags corresponding to the returned values.",
+    "ja": ""
+  },
+  "AcfResult.nUsed#summary": {
+    "hash": "85033ae947e5",
+    "en": "Number of observations in the input series.",
+    "ja": ""
+  },
+  "AcfResult.type#summary": {
+    "hash": "854b9ecfdf48",
+    "en": "Kind of statistic returned.",
+    "ja": ""
+  },
+  "AcfType#summary": {
+    "hash": "75aabc2c9d7f",
+    "en": "Kind of autocorrelation statistic returned by acf().",
+    "ja": ""
+  },
+  "CcfOptions#summary": {
+    "hash": "5c727c2ac872",
+    "en": "Options for cross-correlation and cross-covariance. Equivalent to the arguments of R's stats::ccf().",
+    "ja": ""
+  },
+  "CcfOptions.ci#summary": {
+    "hash": "55d733a909bc",
+    "en": "Confidence level used for the white-noise bounds.",
+    "ja": ""
+  },
+  "CcfOptions.demean#summary": {
+    "hash": "2b57a41b1a9b",
+    "en": "Whether to subtract each series mean before computing products.",
+    "ja": ""
+  },
+  "CcfOptions.lagMax#summary": {
+    "hash": "330de5bd14e9",
+    "en": "Maximum absolute lag to return, in observation units.",
+    "ja": ""
+  },
+  "CcfOptions.naAction#summary": {
+    "hash": "cd9bc4ce9d5f",
+    "en": "Whether missing values cause an error or are omitted pairwise.",
+    "ja": ""
+  },
+  "CcfOptions.type#summary": {
+    "hash": "69a79594bcff",
+    "en": "Statistic to return: correlation or covariance.",
+    "ja": ""
+  },
+  "PacfOptions#summary": {
+    "hash": "d6327edae629",
+    "en": "Options for partial autocorrelation. Equivalent to the arguments of R's stats::pacf().",
+    "ja": ""
+  },
+  "PacfOptions.lagMax#summary": {
+    "hash": "2bcc171b1cb5",
+    "en": "Maximum positive lag to return, in observation units.",
+    "ja": ""
+  },
+  "PacfOptions.naAction#summary": {
+    "hash": "cd9bc4ce9d5f",
+    "en": "Whether missing values cause an error or are omitted pairwise.",
+    "ja": ""
+  },
+  "acf#summary": {
+    "hash": "8950bb5836c9",
+    "en": "Computes autocorrelation, autocovariance or partial autocorrelation of a univariate series.\nEquivalent to R's `stats::acf()`.",
+    "ja": ""
+  },
+  "ccf#summary": {
+    "hash": "54ffa675f482",
+    "en": "Computes cross-correlation or cross-covariance of two equal-length series. Lag k pairs x[t+k] with y[t].\nEquivalent to R's `stats::ccf()`.",
+    "ja": ""
+  },
+  "pacf#summary": {
+    "hash": "e893717b8428",
+    "en": "Computes partial autocorrelation of a univariate series with the Durbin–Levinson recursion.\nEquivalent to R's `stats::pacf()`.",
+    "ja": ""
+  }
+}

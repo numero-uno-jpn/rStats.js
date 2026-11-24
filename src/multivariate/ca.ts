@@ -233,11 +233,22 @@ export function caSummary(result:CaFit):CaSummary {
     columns:summaryTable(result.colnames,result.colmass,result.colinertia,result.colcoord.values,result.sv,result.nd,result.colsup)};
 }
 /**
+ * The row and column coordinates of a correspondence-analysis map, returned by `caCoord` when both are requested.
+ * @category Multivariate analysis
+ */
+export interface CaCoordMaps {
+  /** Row coordinates (one row per active and supplementary row, one column per dimension). */
+  rows: CaMatrix;
+  /** Column coordinates (one row per active and supplementary column, one column per dimension). */
+  columns: CaMatrix;
+}
+
+/**
  * Computes row and column coordinates for a correspondence-analysis map.
  * Equivalent to R's `ca::cacoord()`.
  * @category Multivariate analysis
  */
-export function caCoord(result:CaFit,options:CaCoordOptions={}):CaMatrix|{rows:CaMatrix;columns:CaMatrix} {
+export function caCoord(result:CaFit,options:CaCoordOptions={}):CaMatrix|CaCoordMaps {
   checkOptions(options, CA_COORD_KEYS, "caCoord"); // generated: option-keys.mjs
   const type=options.type??"symmetric", allowed=["standard","principal","symmetric","rowprincipal","colprincipal","symbiplot","rowgab","colgab","rowgreen","colgreen"];
   if(!allowed.includes(type))throw new RangeError("invalid coordinate type");

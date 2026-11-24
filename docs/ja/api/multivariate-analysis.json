@@ -19,6 +19,206 @@
     "en": "Store the upper-triangle display flag in the result.",
     "ja": "結果に上三角表示フラグを保存します。"
   },
+  "CaCoordMaps#summary": {
+    "hash": "7e8a694b698d",
+    "en": "The row and column coordinates of a correspondence-analysis map, returned by `caCoord` when both are requested.",
+    "ja": ""
+  },
+  "CaCoordMaps.columns#summary": {
+    "hash": "fd80c8d2d79e",
+    "en": "Column coordinates (one row per active and supplementary column, one column per dimension).",
+    "ja": ""
+  },
+  "CaCoordMaps.rows#summary": {
+    "hash": "f75c0a088297",
+    "en": "Row coordinates (one row per active and supplementary row, one column per dimension).",
+    "ja": ""
+  },
+  "CaCoordOptions#summary": {
+    "hash": "0e721f4ddf1a",
+    "en": "Options for constructing a correspondence-analysis map.",
+    "ja": ""
+  },
+  "CaCoordOptions.cols#summary": {
+    "hash": "ce55c0f8ebe4",
+    "en": "Whether to return only column coordinates.",
+    "ja": ""
+  },
+  "CaCoordOptions.dim#summary": {
+    "hash": "584d328d78a0",
+    "en": "One-based dimensions to include.",
+    "ja": ""
+  },
+  "CaCoordOptions.rows#summary": {
+    "hash": "c1228c55bc2a",
+    "en": "Whether to return only row coordinates.",
+    "ja": ""
+  },
+  "CaCoordOptions.type#summary": {
+    "hash": "7cc490e8d985",
+    "en": "Coordinate scaling convention for the row and column maps.",
+    "ja": ""
+  },
+  "CaFit#summary": {
+    "hash": "1cbc6c50435b",
+    "en": "Result of simple correspondence analysis.",
+    "ja": ""
+  },
+  "CaFit.N#summary": {
+    "hash": "ed2635bda5eb",
+    "en": "Active contingency table after supplementary rows and columns are removed.",
+    "ja": ""
+  },
+  "CaFit.colcoord#summary": {
+    "hash": "5e7b42f65fe5",
+    "en": "Standard column coordinates, including supplementary columns.",
+    "ja": ""
+  },
+  "CaFit.coldist#summary": {
+    "hash": "45b45f3cc4de",
+    "en": "Chi-square distances of columns from the row profile centroid.",
+    "ja": ""
+  },
+  "CaFit.colinertia#summary": {
+    "hash": "1d896e0ce68f",
+    "en": "Column contributions to total inertia.",
+    "ja": ""
+  },
+  "CaFit.colmass#summary": {
+    "hash": "2747ad6639fe",
+    "en": "Column masses in the active table.",
+    "ja": ""
+  },
+  "CaFit.colnames#summary": {
+    "hash": "dde9cf1c51fd",
+    "en": "Original column labels.",
+    "ja": ""
+  },
+  "CaFit.colsup#summary": {
+    "hash": "4598e6d70cf1",
+    "en": "One-based indices of supplementary columns.",
+    "ja": ""
+  },
+  "CaFit.nd#summary": {
+    "hash": "6032927a8b0d",
+    "en": "Number of retained dimensions, or \"NA\" when not specified.",
+    "ja": ""
+  },
+  "CaFit.rowcoord#summary": {
+    "hash": "cac7d25eedf8",
+    "en": "Standard row coordinates, including supplementary rows.",
+    "ja": ""
+  },
+  "CaFit.rowdist#summary": {
+    "hash": "d4bd17ae9126",
+    "en": "Chi-square distances of rows from the column profile centroid.",
+    "ja": ""
+  },
+  "CaFit.rowinertia#summary": {
+    "hash": "d21dad296cf1",
+    "en": "Row contributions to total inertia.",
+    "ja": ""
+  },
+  "CaFit.rowmass#summary": {
+    "hash": "e494cadffb3e",
+    "en": "Row masses in the active table.",
+    "ja": ""
+  },
+  "CaFit.rownames#summary": {
+    "hash": "f7fc40f162bd",
+    "en": "Original row labels.",
+    "ja": ""
+  },
+  "CaFit.rowsup#summary": {
+    "hash": "328b076e9c8d",
+    "en": "One-based indices of supplementary rows.",
+    "ja": ""
+  },
+  "CaFit.sv#summary": {
+    "hash": "ba3f06b54e15",
+    "en": "Singular values of the standardized residual matrix.",
+    "ja": ""
+  },
+  "CaInputTable#summary": {
+    "hash": "e4e8bf7684af",
+    "en": "A contingency table with optional row and column labels.",
+    "ja": ""
+  },
+  "CaInputTable.cols#summary": {
+    "hash": "bbd6af1d8a5c",
+    "en": "Column labels, or null when the columns are unnamed.",
+    "ja": ""
+  },
+  "CaInputTable.rows#summary": {
+    "hash": "a8084db943a6",
+    "en": "Row labels, or null when the rows are unnamed.",
+    "ja": ""
+  },
+  "CaInputTable.values#summary": {
+    "hash": "7760a32ad8ae",
+    "en": "Non-negative cell counts, arranged as rows.",
+    "ja": ""
+  },
+  "CaMatrix#summary": {
+    "hash": "4aa7e65ac72c",
+    "en": "A labelled numeric matrix returned by correspondence analysis.",
+    "ja": ""
+  },
+  "CaMatrix.cols#summary": {
+    "hash": "e96f441a7dc3",
+    "en": "Column labels, or null when unnamed.",
+    "ja": ""
+  },
+  "CaMatrix.rows#summary": {
+    "hash": "e9b8016c9c92",
+    "en": "Row labels, or null when unnamed.",
+    "ja": ""
+  },
+  "CaMatrix.values#summary": {
+    "hash": "4494d0219aaf",
+    "en": "Matrix values in row-major order.",
+    "ja": ""
+  },
+  "CaOptions#summary": {
+    "hash": "5d88326b0ad1",
+    "en": "Options for simple correspondence analysis. Equivalent to R's ca::ca().",
+    "ja": ""
+  },
+  "CaOptions.nd#summary": {
+    "hash": "c88790bd2f9c",
+    "en": "Number of dimensions to retain in the returned coordinates.",
+    "ja": ""
+  },
+  "CaOptions.supcol#summary": {
+    "hash": "c9f96d5da7be",
+    "en": "One-based indices of supplementary columns, excluded from the active analysis.",
+    "ja": ""
+  },
+  "CaOptions.suprow#summary": {
+    "hash": "1f535b95bb30",
+    "en": "One-based indices of supplementary rows, excluded from the active analysis.",
+    "ja": ""
+  },
+  "CaSummary#summary": {
+    "hash": "4ff69307b20b",
+    "en": "Summary tables for eigenvalues, rows and columns.",
+    "ja": ""
+  },
+  "CaSummary.columns#summary": {
+    "hash": "b0f8ed96a0d5",
+    "en": "Column mass, quality, inertia and axis contributions.",
+    "ja": ""
+  },
+  "CaSummary.rows#summary": {
+    "hash": "dc976ad24889",
+    "en": "Row mass, quality, inertia and axis contributions.",
+    "ja": ""
+  },
+  "CaSummary.scree#summary": {
+    "hash": "9525c464b01a",
+    "en": "Eigenvalues, percentages of inertia and cumulative percentages.",
+    "ja": ""
+  },
   "CancorOptions#summary": {
     "hash": "29a1c46366a1",
     "en": "Options for canonical correlation.",
@@ -318,6 +518,96 @@
     "hash": "dfb781c664bd",
     "en": "Linkage method; a unique prefix and the alias ward are accepted.",
     "ja": "連結法です。一意に特定できる接頭辞と別名 ward を指定できます。"
+  },
+  "IsoMDSMatrix#summary": {
+    "hash": "586d1416d4c5",
+    "en": "A labelled coordinate matrix from isoMDS.",
+    "ja": ""
+  },
+  "IsoMDSMatrix.cols#summary": {
+    "hash": "e7a990254b09",
+    "en": "Coordinate labels, or null when unnamed.",
+    "ja": ""
+  },
+  "IsoMDSMatrix.rows#summary": {
+    "hash": "cd38b353390e",
+    "en": "Object labels, or null when unnamed.",
+    "ja": ""
+  },
+  "IsoMDSMatrix.values#summary": {
+    "hash": "201ce0de8bfe",
+    "en": "Object coordinates.",
+    "ja": ""
+  },
+  "IsoMDSOptions#summary": {
+    "hash": "baabaf5b289e",
+    "en": "Options for Kruskal non-metric multidimensional scaling. Equivalent to R's MASS::isoMDS().",
+    "ja": ""
+  },
+  "IsoMDSOptions.k#summary": {
+    "hash": "001072a4fb10",
+    "en": "Number of output dimensions.",
+    "ja": ""
+  },
+  "IsoMDSOptions.maxit#summary": {
+    "hash": "ab92210fe28f",
+    "en": "Maximum number of reported iterations.",
+    "ja": ""
+  },
+  "IsoMDSOptions.p#summary": {
+    "hash": "20a78bfdce18",
+    "en": "Minkowski power used to measure distances between configuration points.",
+    "ja": ""
+  },
+  "IsoMDSOptions.tol#summary": {
+    "hash": "4595f6a902ed",
+    "en": "Relative stress-change tolerance for stopping.",
+    "ja": ""
+  },
+  "IsoMDSOptions.y#summary": {
+    "hash": "5275cbd3ff70",
+    "en": "Initial configuration with one row per object and k columns.",
+    "ja": ""
+  },
+  "IsoMDSResult#summary": {
+    "hash": "ade100abbd95",
+    "en": "Result of non-metric multidimensional scaling.",
+    "ja": ""
+  },
+  "IsoMDSResult.points#summary": {
+    "hash": "bce439215c95",
+    "en": "Final low-dimensional coordinates.",
+    "ja": ""
+  },
+  "IsoMDSResult.stress#summary": {
+    "hash": "9e001f83b008",
+    "en": "Final Kruskal Stress-1, expressed as a percentage.",
+    "ja": ""
+  },
+  "IsoMDSResult.trace#summary": {
+    "hash": "c29870c0a5d1",
+    "en": "Initial, periodic and final stress values.",
+    "ja": ""
+  },
+  "IsoMDSTrace#summary": {
+    "hash": "6d401b66b91d",
+    "en": "One recorded isoMDS stress value.",
+    "ja": ""
+  },
+  "IsoMDSTrace.converged#summary": {
+    "hash": "2332e0fd32f8",
+    "en": "Whether the stopping condition has been met.",
+    "ja": ""
+  },
+  "IsoMDSTrace.iteration#summary": {
+    "hash": "288f84ad26af",
+    "en": "Reported iteration number.",
+    "ja": ""
+  },
+  "IsoMDSTrace.stress#summary": {
+    "hash": "0a8b6c239568",
+    "en": "Kruskal Stress-1, expressed as a percentage.",
+    "ja": ""
   },
   "KmeansFit.betweenss#summary": {
     "hash": "9050b99e2de1",
@@ -744,10 +1034,395 @@
     "en": "Numeric table entries in row-major order.",
     "ja": "行優先順の数値テーブル要素。"
   },
+  "MjcaFit#summary": {
+    "hash": "aecce46db0dd",
+    "en": "Result of multiple correspondence analysis.",
+    "ja": ""
+  },
+  "MjcaFit.Burt#summary": {
+    "hash": "04cf4aa75d40",
+    "en": "Burt cross-product table.",
+    "ja": ""
+  },
+  "MjcaFit.BurtUpd#summary": {
+    "hash": "91b324556511",
+    "en": "Updated Burt table, or \"NA\" when not returned.",
+    "ja": ""
+  },
+  "MjcaFit.colcoord#summary": {
+    "hash": "f54f629fc846",
+    "en": "Standard category coordinates.",
+    "ja": ""
+  },
+  "MjcaFit.colcor#summary": {
+    "hash": "32d6f0704150",
+    "en": "Squared correlations of categories with axes.",
+    "ja": ""
+  },
+  "MjcaFit.colctr#summary": {
+    "hash": "79564eca2345",
+    "en": "Category contributions by axis.",
+    "ja": ""
+  },
+  "MjcaFit.coldist#summary": {
+    "hash": "851064d7056e",
+    "en": "Chi-square distances of categories from the centroid.",
+    "ja": ""
+  },
+  "MjcaFit.colinertia#summary": {
+    "hash": "d8b3611a52e7",
+    "en": "Category contributions to inertia.",
+    "ja": ""
+  },
+  "MjcaFit.colmass#summary": {
+    "hash": "dcbc8ab60ca1",
+    "en": "Category masses.",
+    "ja": ""
+  },
+  "MjcaFit.colnames#summary": {
+    "hash": "dcfe7d264648",
+    "en": "Names of the categorical variables.",
+    "ja": ""
+  },
+  "MjcaFit.colpcoord#summary": {
+    "hash": "360e35c0e473",
+    "en": "Principal category coordinates.",
+    "ja": ""
+  },
+  "MjcaFit.colsup#summary": {
+    "hash": "d969c1b3ee55",
+    "en": "One-based indices of supplementary categories, or \"NA\".",
+    "ja": ""
+  },
+  "MjcaFit.factors#summary": {
+    "hash": "eb83a82eb978",
+    "en": "Factor and level names for the complete category set.",
+    "ja": ""
+  },
+  "MjcaFit.indmat#summary": {
+    "hash": "111cbd0c0b0a",
+    "en": "Indicator matrix when reti is true, or \"NA\" otherwise.",
+    "ja": ""
+  },
+  "MjcaFit.inertiaE#summary": {
+    "hash": "f3fefbb75d21",
+    "en": "Percentage contributions to total inertia for the retained axes.",
+    "ja": ""
+  },
+  "MjcaFit.inertiaEt#summary": {
+    "hash": "faf91aab1091",
+    "en": "Inertia adjustment metadata, or \"NA\" when not applicable.",
+    "ja": ""
+  },
+  "MjcaFit.inertiaT#summary": {
+    "hash": "dc4d97e7fdc2",
+    "en": "Total inertia for the selected analysis variant.",
+    "ja": ""
+  },
+  "MjcaFit.lambda#summary": {
+    "hash": "79f8b43f9c89",
+    "en": "Analysis variant used.",
+    "ja": ""
+  },
+  "MjcaFit.levelnames#summary": {
+    "hash": "12fb92770f73",
+    "en": "Category labels in analysis order.",
+    "ja": ""
+  },
+  "MjcaFit.levelsN#summary": {
+    "hash": "0ced4d7c9ba2",
+    "en": "Variable names and observed level counts.",
+    "ja": ""
+  },
+  "MjcaFit.nd#summary": {
+    "hash": "626219d3e3b2",
+    "en": "Number of dimensions requested.",
+    "ja": ""
+  },
+  "MjcaFit.ndMax#summary": {
+    "hash": "21cec1bc7e5e",
+    "en": "Maximum available number of dimensions.",
+    "ja": ""
+  },
+  "MjcaFit.omitted#summary": {
+    "hash": "07388de20e47",
+    "en": "Number of incomplete rows omitted from the analysis.",
+    "ja": ""
+  },
+  "MjcaFit.rowcoord#summary": {
+    "hash": "783ccc63d4e7",
+    "en": "Standard row coordinates when available.",
+    "ja": ""
+  },
+  "MjcaFit.rowcor#summary": {
+    "hash": "9279fd529b99",
+    "en": "Squared row correlations by axis, or \"NA\" for unsupported variants.",
+    "ja": ""
+  },
+  "MjcaFit.rowctr#summary": {
+    "hash": "52471aee4450",
+    "en": "Row contributions by axis, or \"NA\" for unsupported variants.",
+    "ja": ""
+  },
+  "MjcaFit.rowdist#summary": {
+    "hash": "8616f20260a9",
+    "en": "Row chi-square distances when row results are available.",
+    "ja": ""
+  },
+  "MjcaFit.rowinertia#summary": {
+    "hash": "9a857d1b9f36",
+    "en": "Row contributions to inertia when row results are available.",
+    "ja": ""
+  },
+  "MjcaFit.rowmass#summary": {
+    "hash": "c2d688ea196b",
+    "en": "Row masses when row results are available.",
+    "ja": ""
+  },
+  "MjcaFit.rownames#summary": {
+    "hash": "24c89f77fb56",
+    "en": "Row labels when row results are available.",
+    "ja": ""
+  },
+  "MjcaFit.rowpcoord#summary": {
+    "hash": "2705cc7c5185",
+    "en": "Principal row coordinates when available.",
+    "ja": ""
+  },
+  "MjcaFit.subinertia#summary": {
+    "hash": "555ba36f2f53",
+    "en": "Within-variable sub-inertia table.",
+    "ja": ""
+  },
+  "MjcaFit.subsetcol#summary": {
+    "hash": "554486cf0799",
+    "en": "One-based selected category indices, or \"NA\" for the full set.",
+    "ja": ""
+  },
+  "MjcaFit.sv#summary": {
+    "hash": "bc3aeabbee36",
+    "en": "Singular values or adjusted eigenvalue roots, according to lambda.",
+    "ja": ""
+  },
+  "MjcaInputTable#summary": {
+    "hash": "ab86f36278d2",
+    "en": "A categorical data frame for multiple correspondence analysis.",
+    "ja": ""
+  },
+  "MjcaInputTable.cols#summary": {
+    "hash": "dcfe7d264648",
+    "en": "Names of the categorical variables.",
+    "ja": ""
+  },
+  "MjcaInputTable.rows#summary": {
+    "hash": "92bcd94c5e1e",
+    "en": "Row labels, or null to use one-based row numbers.",
+    "ja": ""
+  },
+  "MjcaInputTable.values#summary": {
+    "hash": "50045c062e07",
+    "en": "Categorical values; null and non-string entries are omitted as incomplete rows.",
+    "ja": ""
+  },
+  "MjcaLevelsN#summary": {
+    "hash": "1873996e9e87",
+    "en": "Variable names and observed category counts.",
+    "ja": ""
+  },
+  "MjcaLevelsN.names#summary": {
+    "hash": "dcfe7d264648",
+    "en": "Names of the categorical variables.",
+    "ja": ""
+  },
+  "MjcaLevelsN.values#summary": {
+    "hash": "2e8bbe439802",
+    "en": "Number of observed levels for each variable.",
+    "ja": ""
+  },
+  "MjcaMatrix#summary": {
+    "hash": "b2c4e634b111",
+    "en": "A labelled matrix returned by multiple correspondence analysis.",
+    "ja": ""
+  },
+  "MjcaMatrix.cols#summary": {
+    "hash": "e96f441a7dc3",
+    "en": "Column labels, or null when unnamed.",
+    "ja": ""
+  },
+  "MjcaMatrix.rows#summary": {
+    "hash": "e9b8016c9c92",
+    "en": "Row labels, or null when unnamed.",
+    "ja": ""
+  },
+  "MjcaMatrix.values#summary": {
+    "hash": "98faa957102e",
+    "en": "Matrix values.",
+    "ja": ""
+  },
+  "MjcaOptions#summary": {
+    "hash": "80b436f9e5ff",
+    "en": "Options for multiple correspondence analysis. Equivalent to R's ca::mjca().",
+    "ja": ""
+  },
+  "MjcaOptions.lambda#summary": {
+    "hash": "32a4f89b759d",
+    "en": "Analysis variant: adjusted (default), indicator or Burt; JCA is explicitly unsupported.",
+    "ja": ""
+  },
+  "MjcaOptions.nd#summary": {
+    "hash": "111adbba3286",
+    "en": "Number of dimensions requested in the result.",
+    "ja": ""
+  },
+  "MjcaOptions.ps#summary": {
+    "hash": "a2954e4cd021",
+    "en": "Separator used when constructing category labels.",
+    "ja": ""
+  },
+  "MjcaOptions.reti#summary": {
+    "hash": "a7a285d344c5",
+    "en": "Whether to include the indicator matrix in the result.",
+    "ja": ""
+  },
+  "MjcaOptions.subsetcat#summary": {
+    "hash": "803bfb996ed4",
+    "en": "One-based category indices in variable/level order to include in the active analysis.",
+    "ja": ""
+  },
+  "MjcaOptions.supcol#summary": {
+    "hash": "9dcabfbc8124",
+    "en": "One-based variable indices treated as supplementary.",
+    "ja": ""
+  },
+  "SammonInputTable#summary": {
+    "hash": "e8139c74bbd2",
+    "en": "A labelled square dissimilarity matrix.",
+    "ja": ""
+  },
+  "SammonInputTable.cols#summary": {
+    "hash": "e96f441a7dc3",
+    "en": "Column labels, or null when unnamed.",
+    "ja": ""
+  },
+  "SammonInputTable.rows#summary": {
+    "hash": "cd38b353390e",
+    "en": "Object labels, or null when unnamed.",
+    "ja": ""
+  },
+  "SammonInputTable.values#summary": {
+    "hash": "6ca1ef3bbe2f",
+    "en": "Symmetric dissimilarity matrix with a zero diagonal and positive off-diagonal entries.",
+    "ja": ""
+  },
+  "SammonMatrix#summary": {
+    "hash": "026e756070a9",
+    "en": "A labelled coordinate matrix from Sammon mapping.",
+    "ja": ""
+  },
+  "SammonMatrix.cols#summary": {
+    "hash": "e7a990254b09",
+    "en": "Coordinate labels, or null when unnamed.",
+    "ja": ""
+  },
+  "SammonMatrix.rows#summary": {
+    "hash": "cd38b353390e",
+    "en": "Object labels, or null when unnamed.",
+    "ja": ""
+  },
+  "SammonMatrix.values#summary": {
+    "hash": "201ce0de8bfe",
+    "en": "Object coordinates.",
+    "ja": ""
+  },
+  "SammonOptions#summary": {
+    "hash": "eb687cabd7a2",
+    "en": "Options for Sammon nonlinear mapping. Equivalent to R's MASS::sammon().",
+    "ja": ""
+  },
+  "SammonOptions.k#summary": {
+    "hash": "001072a4fb10",
+    "en": "Number of output dimensions.",
+    "ja": ""
+  },
+  "SammonOptions.magic#summary": {
+    "hash": "8d8a44289020",
+    "en": "Initial step-size multiplier in (0, 0.5].",
+    "ja": ""
+  },
+  "SammonOptions.niter#summary": {
+    "hash": "00288c281e33",
+    "en": "Maximum number of update iterations.",
+    "ja": ""
+  },
+  "SammonOptions.tol#summary": {
+    "hash": "b7faca6f0b8a",
+    "en": "Absolute decrease in stress used for stopping after at least 20 iterations.",
+    "ja": ""
+  },
+  "SammonOptions.y#summary": {
+    "hash": "5275cbd3ff70",
+    "en": "Initial configuration with one row per object and k columns.",
+    "ja": ""
+  },
+  "SammonResult#summary": {
+    "hash": "4af18676e299",
+    "en": "Result of Sammon nonlinear mapping.",
+    "ja": ""
+  },
+  "SammonResult.points#summary": {
+    "hash": "bce439215c95",
+    "en": "Final low-dimensional coordinates.",
+    "ja": ""
+  },
+  "SammonResult.stress#summary": {
+    "hash": "98f9a0f6350d",
+    "en": "Final normalized Sammon stress.",
+    "ja": ""
+  },
+  "SammonResult.trace#summary": {
+    "hash": "ffeadddab445",
+    "en": "Initial, periodic and final stress values with the stopping reason.",
+    "ja": ""
+  },
+  "SammonTrace#summary": {
+    "hash": "3ed234e8db97",
+    "en": "One recorded Sammon stress value.",
+    "ja": ""
+  },
+  "SammonTrace.iteration#summary": {
+    "hash": "b3fea9b6fad3",
+    "en": "Completed update iteration.",
+    "ja": ""
+  },
+  "SammonTrace.reason#summary": {
+    "hash": "bdc9d5374fc6",
+    "en": "Why iteration stopped, present on the final trace entry.",
+    "ja": ""
+  },
+  "SammonTrace.stress#summary": {
+    "hash": "042e306c9bcc",
+    "en": "Normalized Sammon stress at this iteration.",
+    "ja": ""
+  },
   "asDist#summary": {
     "hash": "c5427c6f2769",
     "en": "Convert a square matrix using only its lower triangle. Equivalent to R's `as.dist()`.\nAn existing DistResult is returned unchanged.",
     "ja": "下三角のみを使用して正方行列を変換します。R の `as.dist()` と同等です。\n既存の DistResult は変更せずに返します。"
+  },
+  "ca#summary": {
+    "hash": "6803e4d6c8a4",
+    "en": "Computes simple correspondence analysis of a contingency table.\nEquivalent to R's `ca::ca()`.",
+    "ja": ""
+  },
+  "caCoord#summary": {
+    "hash": "27105d94e957",
+    "en": "Computes row and column coordinates for a correspondence-analysis map.\nEquivalent to R's `ca::cacoord()`.",
+    "ja": ""
+  },
+  "caSummary#summary": {
+    "hash": "9cd25f2743c8",
+    "en": "Summarizes eigenvalues and row and column contributions from correspondence analysis.\nEquivalent to R's `summary.ca()`.",
+    "ja": ""
   },
   "cancor#@param options": {
     "hash": "27f966eb4a72",
@@ -798,6 +1473,11 @@
     "hash": "61cd312320ea",
     "en": "Hierarchical agglomerative clustering of a dissimilarity structure by one of eight linkage methods.\nEquivalent to R's `hclust()`.",
     "ja": "8 種類の連結法のいずれかを用いて、非類似度構造を階層的に併合クラスタリングします。\nR の `hclust()` と同等です。"
+  },
+  "isoMDS#summary": {
+    "hash": "f3b7502205b0",
+    "en": "Kruskal's non-metric multidimensional scaling.\nEquivalent to R's `MASS::isoMDS()`.",
+    "ja": ""
   },
   "kmeans#summary": {
     "hash": "bfb7349a3b7a",
@@ -908,5 +1588,15 @@
     "hash": "2be5813ace65",
     "en": "Summary tables for all four MANOVA statistics, with optional sequential intercept row. Equivalent to R's `summary.manova()`.",
     "ja": "4 種類すべての MANOVA 統計量の要約表です。逐次切片行を任意で含められます。R の `summary.manova()` と同等です。"
+  },
+  "mjca#summary": {
+    "hash": "29bde9eb7368",
+    "en": "Computes multiple correspondence analysis for categorical columns.\nEquivalent to R's `ca::mjca()`.",
+    "ja": ""
+  },
+  "sammon#summary": {
+    "hash": "f6d67282fe04",
+    "en": "Maps dissimilarities into a lower-dimensional configuration by minimizing Sammon stress.\nEquivalent to R's `MASS::sammon()`.",
+    "ja": ""
   }
 }
