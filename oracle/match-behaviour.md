@@ -40,7 +40,12 @@ The call followed is ReactiveStat's: `ps <- fitted(glm(tr ~ ..., family = binomi
 1. **How ties = FALSE chooses among k tied controls.** k = 2: one draw u; the second tied control (in data order) when
    u < 0.5, else the first (12 seeds). k >= 3: the number of draws varies with the seed (k = 3: mostly 2, sometimes 3 or
    5; k = 4: 3 to 9; k = 5: 5 to 9) and does not equal that of `sample(k, 1)`, `sample(k, k - 1)` or `sample(k)`
-   (`psm112-sample.txt`). The rule is not found in 3 experiments.
+   (`psm112-sample.txt`), nor the cumulative draws of 1 to 6 calls of `rnorm`, `rexp`, `rbinom`, `rpois`, `rgamma` or
+   `sample(2|3|4, 1)` (`psm112-rng.txt`). An outside analysis of the numbers alone (ChatGPT, no source) confirmed the
+   k = 2 rule and found M = 2 to take its candidates as every control within the M-th smallest distance (`m2_k4` and
+   `m2_near_then_k3` agree in all 12 seeds), but no rule for k >= 3.
+   **Decision (the user, 2026-11-24):** ties among k >= 3 candidates are broken by rStats.js's own documented rule,
+   reproducible with `setSeed`, and listed as a known difference from R. Without ties the pairs are R's.
 2. The quantity compared with `distance.tolerance`.
 3. The order of the ATE output.
 4. clogit `method = "efron"` gives the same coefficients as `"breslow"` but a different log-likelihood (not needed for
