@@ -98,3 +98,21 @@ script keeps the search that succeeded.
     median of the replicates, and the first original draw. **One more original-data draw after the replicates = d0
     exactly, and the generator's state then equals mediate's. Settled:** index matrix, an original-data draw (value
     unused), the replicates, the original-data draw that gives the point estimate. ADE point = c' of the original fit.
+
+## BCa intervals (2026-11-25)
+
+24. `mediation116-bca.R` (lm / lm, sims 400 and 999): 30 candidates per effect: z0 = qnorm(mean(v < est)) or with <=;
+    acceleration 0, jackknife of the original data (either sign), the replicates' skewness (either sign); levels read
+    with quantile types 7, 6 or normal-scale interpolation of the order statistics. **Only the ADE at sims = 400
+    matched** (5e-17, "v < est, replicates' skewness, type 7"); the others 0.01-3.3 off.
+25. Same script, added: the details of that candidate for every effect: R's intervals narrower than it, and at
+    sims = 999 R's point estimate differs from the original fit in the last digit (it comes from the extra
+    original-data draw).
+26. Same script, added: R's interval ends inverted to type-7 levels, then the BCa equation solved for z0 and a from the
+    two ends. **a = the replicates' skewness sum(u^3) / (6 sum(u^2)^1.5), u = mean(v) - v, in all 8 cases**; Phi(z0)
+    = a count / sims, but not mean(v < est) except for the ADE.
+27. Same script, added: the proportion below each effect's point estimate, mean(v) and median(v). **Only mean(v)
+    matched in all 8 cases** (for the ADE at 400 the point estimate happened to give the same count).
+28. Same script, added: the whole formula for all ten effects, sims 400 and 999, conf.level 0.95 and 0.9: **40 of 40
+    identical (difference 0). Settled:** z0 = qnorm(mean(v < mean(v))), a as above, levels
+    pnorm(z0 + (z0 + zq) / (1 - a (z0 + zq))), quantile type 7.
