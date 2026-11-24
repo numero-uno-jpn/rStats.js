@@ -527,10 +527,11 @@ export function survfit(time: readonly number[], status: readonly number[], opti
         if(ctype===1){inc=d/nRisk;incVar=d/(nRisk*nRisk);}
         else {for(let k=0;k<e;k++){const a=d/e,den=nRisk-k*a;inc+=a/den;incVar+=a/(den*den);}}
         H+=inc;varH+=incVar;
+        // (d / n) / (n - d): n (n - d) under- or overflows for weights near 1e-200 or 1e200
         // every row still at risk has its event: the fraction is 1 exactly (sums of non-integer weights round, and
         // d / nRisk could otherwise come out just above or below 1)
         const frac=e===uwRisk&&uwRisk>0?1:d/nRisk;
-        if(stype===1){S*=1-frac;green+=frac<1?d/(nRisk*(nRisk-d)):Infinity;}
+        if(stype===1){S*=1-frac;green+=frac<1?(d/nRisk)/(nRisk-d):Infinity;}
         else S=Math.exp(-H);
         eventRows.push({t,d,n:nRisk,e,S});
       }
