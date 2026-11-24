@@ -1868,6 +1868,7 @@ The references are R's `stats` functions. The implementation decisions are recor
 ### `sammon` and `isoMDS`
 
 - Both accept the package's `DistResult` representation; the default starting configuration is classical MDS (`cmdscale`).
+- For tied dissimilarities, pairs are sorted by increasing dissimilarity and ties retain the lower-triangle column order of R's condensed `dist` vector. Each pair remains a separate isotonic observation; tied dissimilarities are not pooled.
 - Sammon's trace records the initial value, periodic updates and final stopping reason. Extreme dissimilarity scales are normalized internally and restored in the returned coordinates.
 - `isoMDS` exposes the Minkowski power `p` and a stress trace. BFGS starts from the identity inverse Hessian in the original coordinates: neither the initial coordinates nor the inverse Hessian is normalized by scale. Its optimization path therefore depends on the starting scale, as R's does; no scale-equivariance guarantee is made. The optimizer was inferred from public R outputs, not translated from MASS source code.
 - Coordinate signs are oriented deterministically. As with other SVD/MDS methods, sign differences alone do not indicate a different configuration.
