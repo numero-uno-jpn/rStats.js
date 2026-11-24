@@ -50,7 +50,8 @@
 - **1.12.0 を公開した (2026-11-24):** main `f65ba78d` (16 コミットを squash、中身は作業ブランチと同じ)、CI・Pages 緑 → タグ
   `v1.12.0` → Release の stage (id `2cedf6dd-...`) をユーザーが承認。npm latest = 1.12.0、jsDelivr の `dist/causal.js` (purge は不要
   だった)、`/api/` と `/ja/api/` の match のページ、デモ v1.12.0 を確かめた。Issue #562 を閉じた。HANDOFF のこの更新は手元の
-  コミットだけ (次の作業とまとめて push)。`dev/psm-1.12` (手元と GitHub) の扱いはユーザーに聞く
+  コミットだけ (次の作業とまとめて push)。`dev/psm-1.12` はユーザーの指示で手元と GitHub から削除。途中のコミット (Issue の実験の記録が指す) は
+  タグ `archive/psm-1.12` (`e3513ad2`) で残した (クリーンルームの証拠。`v` で始まらないので Actions は動かない)
   (`oracle/match.R` など、x86_64) → 実装 (Match・バランス・clogit の exact) → 点検 → 文書・デモ → 訳は ChatGPT
 
 ## 次のセッションで最初にやること: 1.12.0 (傾向スコアのマッチング) の準備 (セッション 29 → 30、2026-11-24 に作成)
