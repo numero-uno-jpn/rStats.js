@@ -106,3 +106,12 @@ RUN install2.r --error --skipinstalled WeightIt CBPS sandwich \
                    got <- sapply(names(want), function(p) as.character(packageVersion(p))); \
                    cat(sprintf("%s %s\n", names(got), got), sep = ""); \
                    if (!identical(unname(got), unname(want))) quit(status = 1)'
+
+# Mediation, moderation and moderated mediation (1.16.0): mediation (mediate), interactions (sim_slopes,
+# johnson_neyman) with jtools, and lmtest (coeftest), in a layer of their own, at the versions of the fixtures.
+RUN install2.r --error --skipinstalled mediation interactions jtools lmtest \
+    && Rscript -e 'want <- c(mediation = "4.5.1", interactions = "1.2.0", jtools = "2.3.1", lmtest = "0.9.40", MASS = "7.3.66"); \
+                   for (p in names(want)) suppressPackageStartupMessages(library(p, character.only = TRUE)); \
+                   got <- sapply(names(want), function(p) as.character(packageVersion(p))); \
+                   cat(sprintf("%s %s\n", names(got), got), sep = ""); \
+                   if (!identical(unname(got), unname(want))) quit(status = 1)'

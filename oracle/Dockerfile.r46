@@ -145,3 +145,10 @@ RUN install2.r --error --skipinstalled WeightIt CBPS sandwich \
     && Rscript -e 'pk <- c("WeightIt", "CBPS", "sandwich", "survey", "survival"); \
                    for (p in pk) suppressPackageStartupMessages(library(p, character.only = TRUE)); \
                    cat(sprintf("%s %s\n", pk, sapply(pk, function(p) as.character(packageVersion(p)))), sep = "")'
+
+# Mediation, moderation and moderated mediation (1.16.0), in a layer of its own: mediation (mediate), interactions
+# (sim_slopes, johnson_neyman) with jtools. MASS (mvrnorm), sandwich and lmtest (HC3) came before.
+RUN install2.r --error --skipinstalled mediation interactions jtools lmtest \
+    && Rscript -e 'pk <- c("mediation", "interactions", "jtools", "lmtest", "sandwich", "MASS"); \
+                   for (p in pk) suppressPackageStartupMessages(library(p, character.only = TRUE)); \
+                   cat(sprintf("%s %s\n", pk, sapply(pk, function(p) as.character(packageVersion(p)))), sep = "")'
