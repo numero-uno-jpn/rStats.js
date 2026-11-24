@@ -233,6 +233,32 @@ const nObs = (fit: StepModel): number => (isGlmFit(fit) ? fit.priorWeights.filte
 const devianceOf = (fit: StepModel): number => (isGlmFit(fit) ? fit.deviance : fit.rss);
 const rankOf = (fit: StepModel): number => fit.rank;
 
+/**
+ * log RSS of an lm fit: log(rss) while the sum is in range; otherwise (a response of 1e±300 overflows or underflows
+ * the squares) from the residuals and weights in the log domain, so that the criterion stays finite where R's is
+ * Inf (no move) or −Inf (an error). R gives the same values wherever its own are finite
+ */
+function logRss(fit: LmFormulaResult): number {
+  const rss = fit.rss;
+  if (rss > 1e-290 && rss < Infinity) return Math.log(rss);
+  const w = fit.weights;
+  const a: number[] = [];
+  fit.residuals.forEach((r, i) => {
+    const wi = w?.[i] ?? 1;
+    if (wi > 0 && r !== 0) a.push(Math.log(Math.abs(r)) + 0.5 * Math.log(wi));
+  });
+  if (a.length === 0) return -Infinity;
+  const m = Math.max(...a);
+  return 2 * m + Math.log(a.reduce((t, v) => t + Math.exp(2 * (v - m)), 0));
+}
+
+/** log RSS of a fit of the matrix form (yScale: fitted to the response scaled by 2^-k) */
+function logRssCore(core: { rss: number; yScale?: number; rssScaled?: number }): number {
+  if (core.rss > 1e-290 && core.rss < Infinity) return Math.log(core.rss);
+  if (core.yScale !== undefined && core.rssScaled !== undefined && core.rssScaled > 0) return Math.log(core.rssScaled) + 2 * core.yScale * Math.LN2;
+  return Math.log(core.rss);
+}
+
 /** R's extractAIC: [edf, criterion] */
 function criterionOf(fit: StepModel, k: number, scale: number): [number, number] {
   const n = nResiduals(fit);
@@ -240,9 +266,8 @@ function criterionOf(fit: StepModel, k: number, scale: number): [number, number]
   // number, as R's extractAIC (the selection is unchanged: every model of a search carries the same excess)
   const edf = n - fit.dfResidual;
   if (isGlmFit(fit)) return [edf, fit.aic + (k - 2) * edf];
-  const rss = fit.rss;
-  if (scale > 0) return [edf, rss / scale - n + k * edf];
-  return [edf, n * Math.log(rss / n) + k * edf];
+  if (scale > 0) return [edf, fit.rss / scale - n + k * edf];
+  return [edf, n * (logRss(fit) - Math.log(n)) + k * edf];
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -300,6 +325,8 @@ interface Row {
   aic: number;
   rank: number;
   dfResidual: number;
+  /** lm: log of the RSS (see logRss) */
+  logDev: number;
   /** The model's fit, for <none> and the adds (refitted from a formula); undefined for drops (fits of columns) */
   fit: StepModel | undefined;
 }
@@ -313,8 +340,9 @@ function perfectFitCheck(fit: StepModel, warnings: Warnings): void {
   if (fit.rss < 1e-10 * ssy) warnings.add("attempting model selection on an essentially perfect fit is nonsense");
 }
 
+/** The warnings of a refit, without lm's warning of summary() (R's step does not call summary) */
 function addWarnings(warnings: Warnings, fit: StepModel): void {
-  for (const m of fit.warnings) warnings.add(m);
+  for (const m of fit.warnings) if (isGlmFit(fit) || m !== "essentially perfect fit: summary may be unreliable") warnings.add(m);
 }
 
 /** The rows of positive prior weight of a glm */
@@ -339,21 +367,22 @@ function noneRow(fit: StepModel, k: number, scale: number): Row {
   const n = nResiduals(fit);
   // the table's edf is the rank (R's drop1 / add1), not extractAIC's n − df.residual
   const edf = rankOf(fit);
-  const aic = isGlmFit(fit) ? fit.aic + (k - 2) * edf : scale > 0 ? fit.rss / scale - n + k * edf : n * Math.log(fit.rss / n) + k * edf;
-  return { label: "<none>", df: NaN, sumOfSq: NaN, deviance: devianceOf(fit), aic, rank: edf, dfResidual: fit.dfResidual, fit };
+  const logDev = isGlmFit(fit) ? NaN : logRss(fit);
+  const aic = isGlmFit(fit) ? fit.aic + (k - 2) * edf : scale > 0 ? fit.rss / scale - n + k * edf : n * (logDev - Math.log(n)) + k * edf;
+  return { label: "<none>", df: NaN, sumOfSq: NaN, deviance: devianceOf(fit), aic, rank: edf, dfResidual: fit.dfResidual, logDev, fit };
 }
 
 /** A row from a model's deviance and rank, against the current model's row */
-function candidateRow(none: Row, label: string, dev: number, rank: number, dfResidual: number, adding: boolean, k: number, scale: number, fit?: StepModel): Row {
+function candidateRow(none: Row, label: string, dev: number, rank: number, dfResidual: number, adding: boolean, k: number, scale: number, logDev = Math.log(dev), fit?: StepModel): Row {
   const base = none.fit!;
   const df = adding ? rank - none.rank : none.rank - rank;
   let aic: number;
   if (isGlmFit(base)) aic = none.aic + scaledDeviance(base, dev) + k * (rank - none.rank);
   else {
     const n = nResiduals(base);
-    aic = scale > 0 ? dev / scale - n + k * rank : n * Math.log(dev / n) + k * rank;
+    aic = scale > 0 ? dev / scale - n + k * rank : n * (logDev - Math.log(n)) + k * rank;
   }
-  return { label, df, sumOfSq: adding ? none.deviance - dev : dev - none.deviance, deviance: dev, aic, rank, dfResidual, fit };
+  return { label, df, sumOfSq: adding ? none.deviance - dev : dev - none.deviance, deviance: dev, aic, rank, dfResidual, logDev, fit };
 }
 
 /**
@@ -376,7 +405,7 @@ function dropRows(fit: StepModel, drops: readonly Term[], k: number, scale: numb
       out.push(candidateRow(none, t.label, r.fit.deviance, r.fit.rank, positiveRows(fit) - r.fit.rank, false, k, scale));
     } else {
       const core = fitLm(fit.x.map((row) => cols.map((c) => row[c]!)), fit.y, fit.weights, fit.coefNames[0] === "(Intercept)" && cols[0] === 0, true);
-      out.push(candidateRow(none, t.label, core.rss, core.result.rank, core.result.dfResidual, false, k, scale));
+      out.push(candidateRow(none, t.label, core.rss, core.result.rank, core.result.dfResidual, false, k, scale, logRssCore(core)));
     }
   }
   return out;
@@ -406,7 +435,7 @@ function addRows(ctx: Context, fit: StepModel, adds: readonly Term[], k: number,
   for (const t of adds) {
     const m = refitTerms(ctx, [...fit.termLabels, t.label], rows);
     addWarnings(warnings, m);
-    out.push(candidateRow(none, t.label, devianceOf(m), rankOf(m), m.dfResidual, true, k, scale, m));
+    out.push(candidateRow(none, t.label, devianceOf(m), rankOf(m), m.dfResidual, true, k, scale, isGlmFit(m) ? NaN : logRss(m), m));
   }
   return out;
 }
