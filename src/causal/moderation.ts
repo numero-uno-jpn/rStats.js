@@ -98,8 +98,9 @@ export interface SimSlopesResult {
   estimate: number[];
   /** Their standard errors. */
   se: number[];
-  /** Lower and upper confidence limits. */
+  /** Lower confidence limits. */
   lower: number[];
+  /** Upper confidence limits. */
   upper: number[];
   /** The t (lm) or z (glm) statistics. */
   statistic: number[];

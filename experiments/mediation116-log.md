@@ -221,3 +221,10 @@ script keeps the search that succeeded.
     and rbinom turns its computation around at p = 0.5 (as log 40). Rounding only; with n = 10 such resamples are
     common. The demo example now shows the binary mediator with quasi-Bayes and the BCa bootstrap with a continuous
     mediator.
+50. The browser demo failed 3 new examples: the demo merges dist/rstats.js with dist/causal.js, which have separate
+    module state. (a) A fit's remembered options lived in a module-level WeakMap, so causal.js's mediate refused
+    rstats.js's lm ("must be a formula fit"); they are now a non-enumerable property under `Symbol.for`, readable by
+    every bundle (copies still do not carry them). (b) causal.js draws from the per-area bundles' generator (shared
+    chunks), not dist/rstats.js's: the demo now seeds both, and the API reference says to seed with
+    dist/distributions.js's setSeed from the CDN (checked in node: R's 0.8851 via distributions.js, 0.8764 via
+    rstats.js). Then the demo passed 1190 / 1190.

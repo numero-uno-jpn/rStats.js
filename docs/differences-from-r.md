@@ -1957,3 +1957,23 @@ The references are R's `stats` functions. The implementation decisions are recor
 - A gaussian glm with weight-0 rows: R's AIC is Inf (their log 0), so R's `step` makes no move; rStats.js's glm leaves those rows out of the likelihood, so the search is that of the data without them.
 - As in R (kept on purpose): the moves are decided on the tables of `drop1` and `add1`; for Gamma and inverse.gaussian glms their AIC is an approximation (the current AIC plus the change of deviance over the current dispersion), not the refitted model's AIC; a move that changes the rows used stops with "number of rows in use has changed: remove missing values?"; `add1` with missing values in a candidate computes its table on the rows complete in all candidates (warning "using the m/n rows from a combined fit"); with weight-0 rows the path's criterion counts them in edf; lm warns "attempting model selection on an essentially perfect fit is nonsense" when RSS < 1e-10 Σ w y².
 - `glm` has a formula interface for this (`glm(formula, data, options)`): the formula language of `lm` and `glmer` (no function calls; the binomial response as `cbind(successes, failures)` with two column names; weights and offset as arrays or column names). Strings in a binomial response are a factor (the first level failure); R's `glm` refuses a character response.
+
+## Mediation and moderation (1.16.0)
+
+### `mediate`
+
+- It takes the two fits and the data frame they were fitted on (`mediate(modelM, modelY, data, options)`), formula fits of `lm` or of `glm` with the binomial family (logit or probit) or gaussian, on the same rows, without weights or offsets. The treatment, the mediator and the `covariates` must be numeric variables (R also accepts a factor treatment, with a warning). The treatment must be in the outcome model (R: "undefined columns selected").
+- With the same `setSeed`, the draws, estimates, intervals and p-values are R's. Two exceptions come from rounding only. A linear outcome's effects are taken as means of (row difference) × coefficients, so a draw whose two conditions agree is exactly 0; R's differences of predictions leave residues of about 1e-17 of either sign, which its p-value counts (rStats.js's p may differ by 2 / sims per such draw). And a binomial mediator's probability of exactly 0.5 in theory (a logit or probit intercept that is 0, common in bootstrap resamples of small binary data) comes out as 0.5 ± 1e-16 on different sides in R and rStats.js, and `rbinom` draws differently on the two sides.
+- `sims` must be at least 2 (R's `sims = 1` errors without the bootstrap and with it for some models). `robustSE` with the bootstrap is ignored with R's warning; a bootstrap refit with an inestimable coefficient predicts with it as 0, with R's warning, as R's `predict` does.
+- The parameters are drawn with the symmetric square root of their covariance (as R), computed by the Jacobi method, which keeps the small eigenvalues of a covariance on very different scales: with the variables × 1e±150 the quasi-Bayesian draws have the same distribution as unscaled (R's break down: a proportion mediated of 5.6e-144, an ACME of 2e251). A covariance outside the double range (variables × 1e±300) is an error that points to the bootstrap (R errors too); the bootstrap is exactly scale-equivariant there (R errors at 1e300).
+- The draws are returned (`sims` of each effect); there is no `summary` printout, plot or `medsens`.
+
+### `simSlopes`, `johnsonNeyman`
+
+- Only the slopes table (as with `confint = TRUE`) and the Johnson-Neyman bounds and flags are returned; the conditional intercepts, the plots and the false discovery rate control are not offered. The moderator is numeric.
+
+### `mvrnorm`
+
+- In 3 or more dimensions the eigenvectors come from the Jacobi method, whose signs differ from LAPACK's (dsyevr's MRRR path, whose signs follow from intermediate quantities): the draws have R's distribution, not R's values. In 1 and 2 dimensions (LAPACK's closed form for 2 × 2, ported) they are R's. `empirical` is not offered; the result always has one row per draw (R returns a vector for `n = 1`).
+- So `moderatedMediation` with linear models (the Monte Carlo on all coefficients) agrees with ReactiveStat's R statistically; with a binary mediator or outcome (`mediate` twice) it gives R's values.
+

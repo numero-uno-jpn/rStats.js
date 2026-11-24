@@ -48,16 +48,21 @@ export interface SobelTestOptions {
  * @category Causal inference
  */
 export interface SobelTestResult {
-  /** The treatment's coefficient in the mediator model and its standard error. */
+  /** The treatment's coefficient in the mediator model. */
   a: number;
+  /** Its standard error. */
   sa: number;
-  /** The mediator's coefficient in the outcome model and its standard error. */
+  /** The mediator's coefficient in the outcome model. */
   b: number;
+  /** Its standard error. */
   sb: number;
-  /** The indirect effect a b, its standard error sqrt(b² sa² + a² sb²), z and the two-sided p-value. */
+  /** The indirect effect a b. */
   ab: number;
+  /** Its standard error sqrt(b² sa² + a² sb²). */
   se: number;
+  /** The z statistic a b / se. */
   z: number;
+  /** The two-sided p-value. */
   p: number;
 }
 
@@ -110,8 +115,11 @@ export function sobelTest(modelM: MediationModel, modelY: MediationModel, option
  * @category Causal inference
  */
 export interface MonteCarloEffect {
+  /** The estimate (from the fitted coefficients, or as mediate's). */
   estimate: number;
+  /** The confidence interval (type-7 quantiles of the draws). */
   ci: [number, number];
+  /** The draws. */
   sims: number[];
 }
 
@@ -204,11 +212,13 @@ export function mediationMonteCarlo(modelM: MediationModel, modelY: MediationMod
 export interface ModeratedMediationOptions extends SobelTestOptions {
   /** The moderator W (a numeric variable of both models). */
   moderator: string;
-  /** The treated and control values (default: the two values of a binary treatment, else its mean ± SD). */
+  /** The treated value (default: the larger value of a binary treatment, else its mean + SD). */
   treatValue?: number;
+  /** The control value (default: the smaller value of a binary treatment, else its mean − SD). */
   controlValue?: number;
-  /** The moderator's low and high values (default: the two values of a binary moderator, else its mean ± SD). */
+  /** The moderator's low value (default: the smaller value of a binary moderator, else its mean − SD). */
   wLow?: number;
+  /** The moderator's high value (default: the larger value of a binary moderator, else its mean + SD). */
   wHigh?: number;
   /**
    * `"monteCarlo"` (draws of all the coefficients of both models) or `"mediate"` ({@link mediate} at the two moderator
@@ -232,23 +242,33 @@ export interface ModeratedMediationOptions extends SobelTestOptions {
  * @category Causal inference
  */
 export interface ModeratedMediationResult {
+  /** The method used. */
   method: "monteCarlo" | "mediate";
-  /** The moderator's low and high values, and the treatment's control and treated values. */
+  /** The moderator's low value. */
   wLow: number;
+  /** The moderator's high value. */
   wHigh: number;
+  /** The treated value. */
   treatValue: number;
+  /** The control value. */
   controlValue: number;
-  /** The indirect, direct and total effects at the low and high moderator values. */
+  /** The indirect effect (ACME; with `mediate`, the average of d0 and d1) at the low moderator value. */
   indirectLow: MonteCarloEffect;
+  /** The indirect effect at the high moderator value. */
   indirectHigh: MonteCarloEffect;
+  /** The direct effect (ADE) at the low moderator value. */
   directLow: MonteCarloEffect;
+  /** The direct effect at the high moderator value. */
   directHigh: MonteCarloEffect;
+  /** The total effect at the low moderator value. */
   totalLow: MonteCarloEffect;
+  /** The total effect at the high moderator value. */
   totalHigh: MonteCarloEffect;
   /** The index of moderated mediation: the indirect effect at the high value minus that at the low value. */
   index: MonteCarloEffect;
-  /** With `method: "mediate"`, the two {@link mediate} results. */
+  /** With `method: "mediate"`, the {@link mediate} result at the low moderator value. */
   low?: MediateResult;
+  /** With `method: "mediate"`, the {@link mediate} result at the high moderator value. */
   high?: MediateResult;
 }
 

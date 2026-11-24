@@ -1810,3 +1810,23 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
 - 重み 0 の行のある gaussian の glm: R の AIC は (その行の log 0 のため) Inf で、R の `step` は動きません。rStats.js の glm はその行を尤度から外すので、探索はその行を除いたデータと同じになります。
 - R と同じにしている点: 動くかどうかは `drop1` と `add1` の表で決めます。Gamma と inverse.gaussian の glm では、表の AIC は作り直したモデルの AIC ではなく近似 (今の AIC + 逸脱度の差 ÷ 今の分散) です。使う行が変わる動きは "number of rows in use has changed: remove missing values?" で止まります。候補に欠損値があると `add1` は全候補のそろった行で表を計算します (警告 "using the m/n rows from a combined fit")。重み 0 の行があると経路の規準は edf にその行を数えます。lm は RSS < 1e-10 Σ w y² のとき "attempting model selection on an essentially perfect fit is nonsense" と警告します。
 - このために `glm` に式の入口を足しました (`glm(formula, data, options)`)。式の文法は `lm`・`glmer` と同じです (関数呼び出しは使えず、binomial の応答は 2 つの列名の `cbind(successes, failures)`、weights と offset は配列か列名)。binomial の応答の文字列は factor として読みます (最初の水準が失敗)。R の `glm` は文字列の応答を受け付けません。
+
+## 媒介分析と調整分析 (1.16.0)
+
+### `mediate`
+
+- 2 つの当てはめと、それに使ったデータフレームを受け取ります (`mediate(modelM, modelY, data, options)`)。`lm`、または 2 項 (logit・probit) かガウスの `glm` の式による当てはめで、同じ行・重みとオフセットなしに限ります。処置・媒介変数・`covariates` は数値の変数です (R は factor の処置も警告つきで受けます)。処置は結果モデルに含まれている必要があります (R: "undefined columns selected")。
+- 同じ `setSeed` なら、抽出値・推定値・区間・p 値は R と同じです。例外は丸めだけによる 2 つです。線形の結果モデルの効果は (行の差) × 係数の平均で求めるので、2 つの条件が一致する抽出はちょうど 0 になります。R は予測値の差なので 1e-17 程度の正負の残りが出て、それを p 値で数えます (rStats.js の p 値はそのような抽出 1 つにつき 2 / sims だけ違いえます)。また、理論上ちょうど 0.5 になる 2 値の媒介変数の確率 (logit・probit の切片が 0 のとき。小さな 2 値のデータのブートストラップでよく起きる) は、R と rStats.js で 0.5 ± 1e-16 の別の側に出ることがあり、`rbinom` はその両側で違う値を引きます。
+- `sims` は 2 以上です (R の `sims = 1` はブートストラップなしでエラー、ありでもモデルによってエラー)。ブートストラップでの `robustSE` は R と同じ警告つきで無視します。ブートストラップの当てはめ直しで推定できない係数は、R の `predict` と同じく 0 として予測し、R と同じ警告を出します。
+- 母数は共分散の対称な平方根で抽出します (R と同じ)。その計算は Jacobi 法で、尺度の大きく違う共分散でも小さな固有値を保ちます。変数が × 1e±150 のとき、準ベイズの抽出は尺度を変えない場合と同じ分布になります (R は壊れます: 媒介割合 5.6e-144、ACME 2e251)。倍精度の範囲を外れる共分散 (変数 × 1e±300) はエラーにして、ブートストラップを勧めます (R もエラー)。ブートストラップはそこでも尺度に対して正確に同変です (R は 1e300 でエラー)。
+- 抽出値はそれぞれの効果の `sims` として返します。`summary` の表示・図・`medsens` はありません。
+
+### `simSlopes`, `johnsonNeyman`
+
+- 返すのは傾きの表 (`confint = TRUE` のとき) と Johnson-Neyman の境界と印だけで、条件付き切片・図・偽発見率の制御はありません。調整変数は数値です。
+
+### `mvrnorm`
+
+- 3 次元以上では固有ベクトルを Jacobi 法で求め、その符号は LAPACK (dsyevr の MRRR の経路。符号は途中の量で決まる) と違うので、抽出は R と同じ分布ですが同じ値にはなりません。1 次元と 2 次元 (2 × 2 は LAPACK の閉じた形を移植) では R と同じ値です。`empirical` はありません。結果は常に抽出ごとに 1 行です (R は `n = 1` でベクトルを返す)。
+- そのため、線形のモデルでの `moderatedMediation` (全係数の Monte Carlo) は ReactiveStat の R と統計的に一致します。2 値の媒介変数か結果のとき (`mediate` を 2 回) は R と同じ値です。
+

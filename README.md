@@ -14,7 +14,7 @@ R-compatible statistical functions for JavaScript and the browser, written in Ty
 - **Runs anywhere.** ESM only, no dependencies, no Node-specific APIs, tree-shakable
   (`pnorm` alone is 1.6 KB gzipped).
 
-Status: **1.15.0.** The goal is to cover the numerical core of R's
+Status: **1.16.0.** The goal is to cover the numerical core of R's
 `stats` package (distributions, descriptive statistics, hypothesis tests, linear models, special
 functions, numerical methods and the basics of linear algebra) with R-compatible results; see [ROADMAP.md](ROADMAP.md) for what remains. See [CHANGELOG.md](CHANGELOG.md).
 
@@ -215,9 +215,9 @@ eigen([[2, 1], [1, 3]]).values;     // ≈ [3.618033989, 1.381966011]
 |---|---|
 | Special functions | `gamma`, `lgamma`, `beta`, `lbeta`, `choose`, `lchoose`, `factorial`, `lfactorial`, `digamma`, `trigamma`, `psigamma`, `besselI`, `besselK`, `besselJ`, `besselY`; also `erf`, `erfc`, `erfinv`, `erfcinv`, `gammainc` and `perm`, which R lacks, and `log1pmx`, `lgamma1p`, `log1mexp`, `log1pexp` from R's C API (Rmath.h) |
 | Distributions (d/p/q) | normal, t, chi-squared, F, beta, gamma, binomial, Poisson, uniform, exponential, log-normal, logistic, Cauchy, Weibull, geometric, negative binomial, hypergeometric, Wilcoxon signed rank and rank sum, studentized range (`ptukey`, `qtukey`), non-central chi-squared, t, F and beta (`ncp`); the multinomial probability (`dmultinom`); inverse gamma, Kumaraswamy, Pareto, triangular, Laplace (extraDistr) and arcsine; `distSummary` (mean, variance, sd, median, mode, skewness, kurtosis) |
-| Random numbers | `setSeed` (`set.seed`), `RNGkind` (Mersenne-Twister and L'Ecuyer-CMRG, `sample.kind` Rejection and Rounding), `getRandomSeed`/`setRandomSeed` (`.Random.seed`), `nextRNGStream`/`nextRNGSubStream` (`parallel`), 26 `r*` functions, `sample`, `sampleInt` (`sample.int`), `r2dtable` |
+| Random numbers | `setSeed` (`set.seed`), `RNGkind` (Mersenne-Twister and L'Ecuyer-CMRG, `sample.kind` Rejection and Rounding), `getRandomSeed`/`setRandomSeed` (`.Random.seed`), `nextRNGStream`/`nextRNGSubStream` (`parallel`), 26 `r*` functions, `sample`, `sampleInt` (`sample.int`), `r2dtable`, `mvrnorm` (`MASS::mvrnorm`) |
 | Time series | `acf`, `pacf`, `ccf` (`stats::acf`, `stats::pacf`, `stats::ccf`) from `@numero-uno-jpn/rstats/timeseries` |
-| Causal inference | `match` (propensity score matching: `Matching::Match` with `ties = FALSE`, `replace = FALSE`; ATT, ATE and ATC, 1:M, caliper), `matchWeights` (`cobalt::get.w`), `weightit` (inverse probability weights: `WeightIt::weightit` with glm, cbps, ipt and ebal; ATE, ATT, ATC and ATO), `trimWeights` and `weightSummary`, `balTab` (standardized mean differences and variance ratios before and after: `cobalt::bal.tab`) and `tableOneSmd` (`tableone::ExtractSmd`), from `@numero-uno-jpn/rstats/causal` |
+| Causal inference | `match` (propensity score matching: `Matching::Match` with `ties = FALSE`, `replace = FALSE`; ATT, ATE and ATC, 1:M, caliper), `matchWeights` (`cobalt::get.w`), `weightit` (inverse probability weights: `WeightIt::weightit` with glm, cbps, ipt and ebal; ATE, ATT, ATC and ATO), `trimWeights` and `weightSummary`, `balTab` (standardized mean differences and variance ratios before and after: `cobalt::bal.tab`) and `tableOneSmd` (`tableone::ExtractSmd`); `mediate` (causal mediation analysis: `mediation::mediate`, quasi-Bayesian and bootstrap), `simSlopes` and `johnsonNeyman` (`interactions::sim_slopes`), `sobelTest`, `mediationMonteCarlo` and `moderatedMediation` (the index of moderated mediation), from `@numero-uno-jpn/rstats/causal` |
 | Descriptive statistics | `sum`, `prod`, `mean`, `weightedMean` (`weighted.mean`), `variance` (`var`), `sd`, `median`, `range`, `cumsum`, `cumprod`, `cummax`, `cummin`, `diff`, `quantile`, `IQR`, `fivenum`, `mad`, `rank`, `cov`, `cor`, `tabulate`, `table`, `unique`, `cut`, `findInterval`, `pretty`, `hist`, `ecdf`, `scale`, `skewness`, `kurtosis`, `geometricMean`, `modes`, `meanAD`, `cv` |
 | Hypothesis tests | `tTest`, `chisqTest`, `fisherTest`, `wilcoxTest`, `corTest`, `binomTest`, `poissonTest`, `propTest`, `mcnemarTest`, `varTest`, `bartlettTest`, `kruskalTest`, `friedmanTest`, `quadeTest`, `flignerTest`, `moodTest`, `onewayTest`, `shapiroTest`, `mantelhaenTest`, `ansariTest`, `ksTest`, `pairwiseTTest`, `pairwiseWilcoxTest`, `pairwisePropTest`, `aov` (one way, a fit whose table is `aovSummary`), `TukeyHSD`, `zTest`, `brunnerMunzelTest`, `tamhaneT2Test` (Tamhane's T2/T2'), `pageTest`, `grubbsTest`, `pgrubbs`, `qgrubbs`, `pAdjust` (`p.adjust`) |
 | Analysis of variance | `aov` and `aovSummary` with a formula (several factors, interactions, covariates, `Error()` strata), `anova` (`anova.lm`, sequential and model comparison), `Anova` (car: types II and III), `aovEz` (afex: repeated-measures and mixed designs, Greenhouse-Geisser and Huynh-Feldt corrections, generalized and partial eta squared), `mauchlyTest` (`mauchly.test`) |
@@ -300,8 +300,8 @@ removed. Approximate sizes after minification and gzip:
 | `glm` and `glmSummary` / `glm` with all its methods | 40.6 / 56.9 KB |
 | `lmer` (from `/mixed`) / with `lmerSummary`, `lmerContest`, `lmerAnova` | 19.4 / 70.0 KB |
 | `glmer` (from `/mixed`) / with `glmerSummary`, `glmerAnova`, `glmerPredict` | 47.2 / 66.1 KB |
-| `polr` / `rlm` / `nls` (from `/regression`) | 24.6 / 14.6 / 7.9 KB |
-| everything (except `/mixed` and `/regression`) | 332.9 KB |
+| `polr` / `rlm` / `nls` (from `/regression`) | 25.0 / 14.6 / 8.0 KB |
+| everything (except `/mixed` and `/regression`) | 333.9 KB |
 
 (`npm run size` measures these.)
 
@@ -312,11 +312,11 @@ Each area is also a subpath export, for importing one area without the rest:
 areas are only available this way, not from the main entry point.
 
 Without a bundler, load the single-file build `dist/rstats.js` (one minified ES module with every
-function except those of `/mixed` and `/regression`, 333 KB gzipped) from jsDelivr, which serves each npm release:
+function except those of `/mixed` and `/regression`, 334 KB gzipped) from jsDelivr, which serves each npm release:
 
 ```html
 <script type="module">
-  import { pnorm } from "https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@1.15.0/dist/rstats.js";
+  import { pnorm } from "https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@1.16.0/dist/rstats.js";
   console.log(pnorm(1.96)); // ≈ 0.9750021049
 </script>
 ```

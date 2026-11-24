@@ -13,7 +13,7 @@ import { createNumericsTab } from "./numerics.js";
 import { createCompareTab } from "./examples.js";
 
 /** The release whose build is loaded from jsDelivr. */
-const VERSION = "v1.15.0";
+const VERSION = "v1.16.0";
 // jsDelivr's npm route: its GitHub route (cdn.jsdelivr.net/gh/...) does not serve release tags from v0.12.0 on, since
 // the repository with its test fixtures exceeds its size limit of 50 MB
 const CDN_DIST = `https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@${VERSION.slice(1)}/dist/`;
@@ -33,6 +33,11 @@ const multivariateUrl = `${distUrl}multivariate.js`;
 const timeseriesUrl = `${distUrl}timeseries.js`;
 /** The causal-inference area (match, balTab, from 1.12.0): a separate file, since it is not in dist/rstats.js */
 const causalUrl = `${distUrl}causal.js`;
+/**
+ * The random numbers of the per-area bundles (their shared chunks): the areas above have a generator of their own,
+ * apart from dist/rstats.js's, so setSeed seeds both (mediate in causal.js draws from the area generator, from 1.16.0)
+ */
+const areaRandomUrl = `${distUrl}distributions.js`;
 
 const ALL_TABS = ["distributions", "descriptive", "special", "random", "tests", "linalg", "numerics", "compare"];
 /** Tabs that need functions newer than some builds: shown only when the loaded build has them */
@@ -210,13 +215,15 @@ async function start() {
   let multivariate;
   let timeseries;
   let causal;
+  let areaRandom;
   try {
-    [lib, mixed, regression, multivariate, timeseries, causal] = await Promise.all([
+    [lib, mixed, regression, multivariate, timeseries, causal, areaRandom] = await Promise.all([
       import(libUrl), import(mixedUrl), import(regressionUrl), import(multivariateUrl),
       // a release before 1.11.0 has no timeseries.js: the demo then runs without it
       import(timeseriesUrl).catch(() => ({})),
       // and a release before 1.12.0 no causal.js
       import(causalUrl).catch(() => ({})),
+      import(areaRandomUrl).catch(() => ({})),
     ]);
   } catch (err) {
     showLoadError(err);
@@ -229,7 +236,10 @@ async function start() {
   const causalNames = new Set(Object.keys(causal));
   const [examplesFile, rResults] = await Promise.all([fetchJSON("examples.json"), fetchJSON("r-results.json")]);
   const ctx = {
-    lib: { ...lib, ...mixed, ...regression, ...multivariate, ...timeseries, ...causal },
+    lib: {
+      ...lib, ...mixed, ...regression, ...multivariate, ...timeseries, ...causal,
+      ...(typeof areaRandom.setSeed === "function" ? { setSeed: (seed) => { areaRandom.setSeed(seed); return lib.setSeed(seed); } } : {}),
+    },
     examples: Array.isArray(examplesFile?.examples) ? examplesFile.examples : null,
     rResults: rResults?.results ? rResults : null,
     refreshers: [],

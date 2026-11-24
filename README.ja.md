@@ -16,7 +16,7 @@ JavaScript とブラウザで使える、R と互換の統計関数のライブ�
 - **どこでも動きます。** ESM のみで、依存パッケージはなく、Node 専用の API も使っていません。
   tree-shaking が効きます (`pnorm` だけなら gzip で 1.6 KB)。
 
-状態: **1.15.0。** R の stats パッケージの数値計算の中心
+状態: **1.16.0。** R の stats パッケージの数値計算の中心
 (分布・記述統計・検定・線形モデル・特殊関数・数値計算・線形代数の基本) を、R と同じ結果でカバーすることを目指しています。残っている作業は
 [ROADMAP.ja.md](ROADMAP.ja.md)、変更履歴は [CHANGELOG.md](CHANGELOG.md) (英語) にあります。
 
@@ -217,9 +217,9 @@ eigen([[2, 1], [1, 3]]).values;     // ≈ [3.618033989, 1.381966011]
 |---|---|
 | 特殊関数 | `gamma`, `lgamma`, `beta`, `lbeta`, `choose`, `lchoose`, `factorial`, `lfactorial`, `digamma`, `trigamma`, `psigamma`, `besselI`, `besselK`, `besselJ`, `besselY`。R にはない `erf`, `erfc`, `erfinv`, `erfcinv`, `gammainc`, `perm` と、R の C API (Rmath.h) の `log1pmx`, `lgamma1p`, `log1mexp`, `log1pexp` も |
 | 分布 (d/p/q) | 正規、t、カイ二乗、F、ベータ、ガンマ、二項、ポアソン、一様、指数、対数正規、ロジスティック、コーシー、ワイブル、幾何、負の二項、超幾何、Wilcoxon の符号付き順位と順位和、スチューデント化された範囲 (`ptukey`, `qtukey`)、非心カイ二乗・t・F・ベータ (`ncp`)。多項分布の確率 (`dmultinom`)。逆ガンマ、Kumaraswamy、Pareto、三角、Laplace (extraDistr) と逆正弦。`distSummary` (平均・分散・標準偏差・中央値・最頻値・歪度・尖度) |
-| 乱数 | `setSeed` (`set.seed`), `RNGkind` (Mersenne-Twister と L'Ecuyer-CMRG、`sample.kind` の Rejection と Rounding), `getRandomSeed`/`setRandomSeed` (`.Random.seed`), `nextRNGStream`/`nextRNGSubStream` (`parallel`), 26 個の `r*` 関数, `sample`, `sampleInt` (`sample.int`), `r2dtable` |
+| 乱数 | `setSeed` (`set.seed`), `RNGkind` (Mersenne-Twister と L'Ecuyer-CMRG、`sample.kind` の Rejection と Rounding), `getRandomSeed`/`setRandomSeed` (`.Random.seed`), `nextRNGStream`/`nextRNGSubStream` (`parallel`), 26 個の `r*` 関数, `sample`, `sampleInt` (`sample.int`), `r2dtable`, `mvrnorm` (`MASS::mvrnorm`) |
 | 時系列 | `acf`、`pacf`、`ccf` (`stats::acf`、`stats::pacf`、`stats::ccf`)、`@numero-uno-jpn/rstats/timeseries` |
-| 因果推論 | `match` (傾向スコアのマッチング: `ties = FALSE`・`replace = FALSE` の `Matching::Match`。ATT・ATE・ATC、1:M、キャリパー)、`matchWeights` (`cobalt::get.w`)、`weightit` (逆確率重み: glm・cbps・ipt・ebal の `WeightIt::weightit`。ATE・ATT・ATC・ATO)、`trimWeights`・`weightSummary`、`balTab` (マッチング・重み付けの前後の標準化平均差と分散比: `cobalt::bal.tab`)、`tableOneSmd` (`tableone::ExtractSmd`)、`@numero-uno-jpn/rstats/causal` |
+| 因果推論 | `match` (傾向スコアのマッチング: `ties = FALSE`・`replace = FALSE` の `Matching::Match`。ATT・ATE・ATC、1:M、キャリパー)、`matchWeights` (`cobalt::get.w`)、`weightit` (逆確率重み: glm・cbps・ipt・ebal の `WeightIt::weightit`。ATE・ATT・ATC・ATO)、`trimWeights`・`weightSummary`、`balTab` (マッチング・重み付けの前後の標準化平均差と分散比: `cobalt::bal.tab`)、`tableOneSmd` (`tableone::ExtractSmd`)、`mediate` (因果媒介分析: `mediation::mediate`、準ベイズ近似とブートストラップ)、`simSlopes`・`johnsonNeyman` (`interactions::sim_slopes`)、`sobelTest`・`mediationMonteCarlo`・`moderatedMediation` (index of moderated mediation)、`@numero-uno-jpn/rstats/causal` |
 | 記述統計 | `sum`, `prod`, `mean`, `weightedMean` (`weighted.mean`), `variance` (`var`), `sd`, `median`, `range`, `cumsum`, `cumprod`, `cummax`, `cummin`, `diff`, `quantile`, `IQR`, `fivenum`, `mad`, `rank`, `cov`, `cor`, `tabulate`, `table`, `unique`, `cut`, `findInterval`, `pretty`, `hist`, `ecdf`, `scale`, `skewness`, `kurtosis`, `geometricMean`, `modes`, `meanAD`, `cv` |
 | 検定 | `tTest`, `chisqTest`, `fisherTest`, `wilcoxTest`, `corTest`, `binomTest`, `poissonTest`, `propTest`, `mcnemarTest`, `varTest`, `bartlettTest`, `kruskalTest`, `friedmanTest`, `quadeTest`, `flignerTest`, `moodTest`, `onewayTest`, `shapiroTest`, `mantelhaenTest`, `ansariTest`, `ksTest`, `pairwiseTTest`, `pairwiseWilcoxTest`, `pairwisePropTest`, `aov` (一元配置。表は当てはめの `aovSummary`), `TukeyHSD`, `zTest`, `brunnerMunzelTest`, `tamhaneT2Test` (Tamhane の T2 と T2')、`pageTest`、`grubbsTest`・`pgrubbs`・`qgrubbs`、`pAdjust` (`p.adjust`) |
 | 分散分析 | formula で呼ぶ `aov` と `aovSummary` (多元、交互作用、共変量、`Error()` の層), `anova` (`anova.lm`。逐次の表とモデルの比較), `Anova` (car の Type II と III), `aovEz` (afex。反復測定と混合計画、Greenhouse-Geisser と Huynh-Feldt の補正、一般化 η² と偏 η²), `mauchlyTest` (`mauchly.test`) |
@@ -301,8 +301,8 @@ double-double 演算で計算しているためです。詳しくは [docs/ja/ac
 | `glm` と `glmSummary` / `glm` とそのすべての関数 | 40.6 / 56.9 KB |
 | `lmer` (`/mixed` から) / `lmerSummary`・`lmerContest`・`lmerAnova` も | 19.4 / 70.0 KB |
 | `glmer` (`/mixed` から) / `glmerSummary`・`glmerAnova`・`glmerPredict` も | 47.2 / 66.1 KB |
-| `polr` / `rlm` / `nls` (`/regression` から) | 24.6 / 14.6 / 7.9 KB |
-| すべて (`/mixed` と `/regression` を除く) | 332.9 KB |
+| `polr` / `rlm` / `nls` (`/regression` から) | 25.0 / 14.6 / 8.0 KB |
+| すべて (`/mixed` と `/regression` を除く) | 333.9 KB |
 
 (`npm run size` で測れます。)
 
@@ -312,12 +312,12 @@ double-double 演算で計算しているためです。詳しくは [docs/ja/ac
 `/regression` の `polr`・`rlm`・`nls` とその関数は、この方法でしか import できません。メインの入口には含めていません)。
 
 バンドラを使わない場合は、1 ファイルにまとめたビルド `dist/rstats.js` (`/mixed` と `/regression` 以外のすべての関数を含む
-minify 済みの ES モジュール、gzip で 333 KB) を jsDelivr から読み込めます。jsDelivr は、npm のリリースを
+minify 済みの ES モジュール、gzip で 334 KB) を jsDelivr から読み込めます。jsDelivr は、npm のリリースを
 そのまま配信します。
 
 ```html
 <script type="module">
-  import { pnorm } from "https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@1.15.0/dist/rstats.js";
+  import { pnorm } from "https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@1.16.0/dist/rstats.js";
   console.log(pnorm(1.96)); // ≈ 0.9750021049
 </script>
 ```

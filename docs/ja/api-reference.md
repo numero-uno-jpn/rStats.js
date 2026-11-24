@@ -35,7 +35,7 @@ import { glmnet, glmnetCoef, glmnetPredict, cvGlmnet } from "@numero-uno-jpn/rst
 メソッドはそれぞれ `rqSummary` / `rqPredictInterval`、`geeSummary` / `geeVcov` / `geeQIC`、
 `glmnetCoef` / `glmnetPredict` / `cvGlmnet` です。
 
-バンドラーを使わないときは、`https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@1.14.0/dist/rstats.js` が、混合モデル・回帰・多変量解析・時系列・因果推論以外のすべての関数を含む 1 つの ES モジュールです。混合モデルは `dist/mixed.js`、回帰は `dist/regression.js`、多変量解析は `dist/multivariate.js`、時系列は `dist/timeseries.js`、因果推論は `dist/causal.js` にあります。URL にはバージョンを含めてください (正確なバージョン、または 1.0.0 以降の `@1` のようなメジャーバージョン)。バージョンのない URL は、破壊的変更を含むすべての新しいリリースに追従してしまいます。1 つのページでは、`dist/rstats.js` か分野ごとのバンドル (`dist/tests.js`、`dist/mixed.js`、`dist/regression.js`、`dist/multivariate.js` など) のどちらか一方だけを使ってください。両方を混ぜると、共通のコードが 2 度読み込まれ、乱数の状態も 2 つになります。
+バンドラーを使わないときは、`https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@1.16.0/dist/rstats.js` が、混合モデル・回帰・多変量解析・時系列・因果推論以外のすべての関数を含む 1 つの ES モジュールです。混合モデルは `dist/mixed.js`、回帰は `dist/regression.js`、多変量解析は `dist/multivariate.js`、時系列は `dist/timeseries.js`、因果推論は `dist/causal.js` にあります。URL にはバージョンを含めてください (正確なバージョン、または 1.0.0 以降の `@1` のようなメジャーバージョン)。バージョンのない URL は、破壊的変更を含むすべての新しいリリースに追従してしまいます。1 つのページでは、`dist/rstats.js` か分野ごとのバンドル (`dist/tests.js`、`dist/mixed.js`、`dist/regression.js`、`dist/multivariate.js` など) のどちらか一方だけを使ってください。両方を混ぜると、共通のコードが 2 度読み込まれ、乱数の状態も 2 つになります。
 
 ## 規約
 
@@ -226,3 +226,35 @@ survfitCoxph(time, status, tr.map((v, i) => [v, age[i]]), { weights: t.weights, 
 ```
 
 `weightit` は `WeightIt::weightit(tr ~ ..., method, link, estimand, stabilize)` に従います。手法は `glm` (`ps`。logit・probit・cauchit・cloglog)、`cbps` (logit・probit)、`ipt`、`ebal`、推定対象は ATE・ATT・ATC・ATO (重複重み。ipt と ebal にはありません) です。`stabilize` は glm の ATE の重みに群の割合を掛けます。cbps・ipt・ebal は釣り合いの条件を厳密に解くので、重みは R と 1e-8 程度で一致します (R は最適化を早めに止めます)。`trimWeights` は、推定対象が固定しない重みの R の type 3 の分位点で抑えます。`weightit` を与えた `balTab` は `prop.score` の行を足し、文字列の共変量を水準に分けます。ATO の分母は重複重みで重み付けた標本の SD です。`svyglm` は `svydesign(ids = ~1, weights)` に対する `survey::svyglm` です: 重み付きの glm に、サンドイッチ分散に n/(n − 1) を掛けた分散と、自由度 n − p の t 検定を組み合わせます。
+
+媒介分析・調整分析・調整媒介分析も `/causal` にあります。`mvrnorm` は乱数と一緒です:
+
+```ts
+import { lm, glm, setSeed } from "@numero-uno-jpn/rstats";
+import { mediate, simSlopes, sobelTest, mediationMonteCarlo, moderatedMediation } from "@numero-uno-jpn/rstats/causal";
+
+const m = lm("M ~ X + C", data), y = lm("Y ~ X + M + C", data);
+setSeed(1234);
+const r = mediate(m, y, data, { treat: "X", mediator: "M", sims: 1000 }); // r.d0, r.z0, r.tau, r.n0 ...
+setSeed(1234);
+mediate(m, y, data, { treat: "X", mediator: "M", boot: true, bootCiType: "bca" }); // ノンパラメトリック・ブートストラップ
+simSlopes(lm("Y ~ X * W + C", data), data, { pred: "X", modx: "W", robust: "HC3" }); // 平均 ± SD での単純傾斜と Johnson-Neyman 区間
+sobelTest(m, y, { treat: "X", mediator: "M" });
+setSeed(1234);
+mediationMonteCarlo(m, y, { treat: "X", mediator: "M" }); // a は rnorm、(b, c') は mvrnorm、20000 回
+moderatedMediation(lm("M ~ X * W", data), lm("Y ~ X * W + M * W", data), data, { treat: "X", mediator: "M", moderator: "W" });
+```
+
+`mediate` は `lm` と 2 項 (logit・probit) の `glm` の式による当てはめについて `mediation::mediate(model.m, model.y,
+treat, mediator, treat.value, control.value, covariates, sims, boot, boot.ci.type, conf.level, robustSE)` に従い、
+当てはめに使ったデータを受け取ります。同じ `setSeed` なら、抽出値・推定値・区間・p 値は R と同じです。母数は共分散の
+対称な平方根で抽出し、媒介変数はシミュレーションと観測ごとに抽出し、ブートストラップのリサンプルは
+`sample(n, n * sims, replace = TRUE)` を 1 回で引きます。`simSlopes` と `johnsonNeyman` は `interactions::sim_slopes` と
+`johnson_neyman` に従います (lm は残差自由度の t、glm の傾きは z、Johnson-Neyman の境界はどちらも t。interactions と同じ)。
+`sobelTest`・`mediationMonteCarlo`・`moderatedMediation` は、これらを使う ReactiveStat の手順です。`mvrnorm` は
+`MASS::mvrnorm` で、1 次元と 2 次元では R と同じ値、3 次元以上では R と同じ分布です (LAPACK の固有ベクトルの符号は
+再現しないため)。
+
+npm から使うときは、すべての入口が 1 つの乱数生成器を共有します。CDN から使うときは、`dist/causal.js` は分野ごとの
+バンドルと同じ生成器を使うので、`dist/distributions.js` の `setSeed` で種を設定してください (`dist/rstats.js` は別の
+生成器を持ちます)。`lm` と `glm` の当てはめは、どのバンドルのものでも受け付けます。

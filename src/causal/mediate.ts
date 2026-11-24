@@ -115,17 +115,21 @@ export interface MediateResult {
   zAvg: MediateEffect;
   /** The average proportion mediated, (n0 + n1) / 2. */
   nAvg: MediateEffect;
-  /** The treated and control values used. */
+  /** The treated value used. */
   treatValue: number;
+  /** The control value used. */
   controlValue: number;
   /** Number of observations. */
   nobs: number;
   /** Number of simulations or replicates. */
   sims: number;
-  /** Whether the bootstrap was used, and its interval type. */
+  /** Whether the bootstrap was used. */
   boot: boolean;
+  /** The bootstrap interval type. */
   bootCiType: "perc" | "bca";
+  /** The confidence level. */
   confLevel: number;
+  /** Whether HC3 covariances were used (false with the bootstrap, which ignores them). */
   robustSE: boolean;
   /** Whether the outcome model has an interaction of the treatment and the mediator (R's `INT`). */
   INT: boolean;
