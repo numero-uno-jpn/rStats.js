@@ -1704,7 +1704,7 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
 - ラグは整数の観測単位です。R の `ts` クラス、暦時間のラグ単位、`frequency` メタデータは表現しません。
 - `ccf` は同じ長さの数値配列を受け取り、長さの異なる `ts` の期間を自動整列しません。
 - `naAction` は `"fail"` とペア単位の `"pass"` のみです。R の欠測値処理の全選択肢は公開していません。
-- PACF は通常の double 精度による Durbin–Levinson 再帰を使います。`acf_long_partial_exact` fixture では独立した高精度参照値と絶対誤差 `1e-12` 以内で照合します。固定小数点演算は使いません。
+- PACF は通常の double 精度による Durbin–Levinson 再帰を使います。`acf_long_partial_exact` fixture では 5,000 点のランダムウォーク系列を独立した 200 ビット参照値と照合し、rStats.js の最大絶対誤差は `1.9e-13`、R 4.6.2 は `5.0e-12` です。
 - 極端な尺度や大きな共通オフセットでは、相関計算を正規化してから行います。共分散は IEEE-754 の表現範囲に従うため、数学的に表現範囲外の値は 0 または無限大になります。
 
 ### `ca`、`caSummary`、`caCoord`

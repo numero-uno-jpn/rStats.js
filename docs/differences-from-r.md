@@ -1850,7 +1850,7 @@ The references are R's `stats` functions. The implementation decisions are recor
 - Lags are integer observation offsets. R time-series classes, calendar-time lag units and `frequency` metadata are not represented.
 - `ccf` accepts two equal-length numeric arrays; it does not align unequal `ts` ranges.
 - `naAction` supports only `"fail"` and pairwise `"pass"`; R's full set of missing-value policies is not exposed.
-- PACF uses the ordinary double-precision Durbin–Levinson recursion. The `acf_long_partial_exact` fixture checks its values against an independent high-precision reference with an absolute tolerance of `1e-12`; no fixed-point arithmetic is used.
+- PACF uses the ordinary double-precision Durbin–Levinson recursion. The `acf_long_partial_exact` fixture compares a 5,000-point random-walk series with an independent 200-bit reference: rStats.js's maximum absolute error is `1.9e-13`, versus `5.0e-12` for R 4.6.2.
 - Correlations are evaluated after scale normalization for extreme magnitudes and large common offsets. Covariance results still obey IEEE-754 representability: a mathematically out-of-range covariance can be returned as zero or infinity.
 
 ### `ca`, `caSummary` and `caCoord`
