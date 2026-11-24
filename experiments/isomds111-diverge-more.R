@@ -64,9 +64,12 @@ for (limit in c(0, 1, 2, 5, 8, 9, 20, 50)) {
       invokeRestart("muffleWarning")
     }
   ))
+  aligned_start <- centered_zero_start
+  if (sum(fit_value$points * aligned_start) < 0) aligned_start <- -aligned_start
+  start_delta <- max(abs(fit_value$points - aligned_start))
   cat("maxit", limit, "stress", sprintf("%.15g", fit_value$stress),
       "warnings", if (length(warning_text)) paste(warning_text, collapse = " / ") else "-",
       "printed", if (length(printed_text)) paste(trimws(printed_text), collapse = " | ") else "-",
-      "points_equal_centered_start", isTRUE(all.equal(unname(fit_value$points), unname(centered_zero_start))),
+      "max_delta_from_centered_start", sprintf("%.6g", start_delta),
       "\n")
 }
