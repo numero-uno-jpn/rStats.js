@@ -134,3 +134,17 @@ script keeps the search that succeeded.
 33. Same script, added: the JN flags. inside = (leading coefficient b3^2 - crit^2 V33 < 0); no real root: bounds
     (-Inf, Inf), failed = TRUE, printed "could not be found"; all_sig = TRUE when no bound lies within the observed
     range of W (also in the failed case, where nothing is significant). **Settled.**
+
+## The whole of mediate against a candidate reimplementation (2026-11-25)
+
+34. `mediation116-reimpl.R` (first run): a reimplementation in R from findings 2-28 (robustSE as vcovHC HC3 or HC0,
+    the bootstrap's mediator error sd from each refit, glm outcomes on the response scale), compared with mediate for
+    7 model pairs (lm, logit, probit mediators and outcomes, covariates, X:M interactions) x 6 settings (quasi-Bayes at
+    0.95 and 0.9, robustSE HC3 / HC0, bootstrap percentile / BCa) and a continuous treatment (mean +- SD, the defaults
+    1 and 0, reversed). Draws, intervals and p-values matched everywhere (<= 2.5e-12) except robustSE with HC0 (0.23;
+    **robustSE = HC3**). The quasi-Bayesian point estimates differed by up to 0.019 where d0 != d1.
+35. Same script, added: per-effect point estimates against the mean and the median of the draws: all are the mean
+    except n0 and n1 (the median) and **n.avg = (n0 + n1) / 2 of those medians** (neither the mean nor the median of the
+    n.avg draws).
+36. Candidate corrected: **38 of 38 settings match to <= 1e-11** (HC0 the control that should differ). **mediate
+    settled.**
