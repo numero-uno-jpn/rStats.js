@@ -140,6 +140,8 @@ const REFERENCE_FUNCTIONS = [
   "nls", "nls.control", "selfStart", "getInitial", "numericDeriv", "sortedXyData", "NLSstClosestX",
   "NLSstRtReplicate", "NLSstLfAsymptote", "NLSstAsymptotic", "SSasymp", "SSasympOff", "SSasympOrig", "SSbiexp",
   "SSfol", "SSfpl", "SSgompertz", "SSlogis", "SSmicmen", "SSweibull",
+  // stats' stepwise model selection (step, 1.15.0): R's own code, GPL like the packages
+  "step", "add1", "drop1", "extractAIC", "add.scope", "drop.scope", "factor.scope",
   // quantreg, geepack and glmnet (regression, 1.8.0): their exported functions (geepack's re-exported %>% is left out)
   "AIC.nlrq", "AIC.rq", "AIC.rqs", "AIC.rqss", "akj", "anova.rq", "anova.rqlist", "anova.rqs", "bandwidth.rq",
   "boot.crq", "boot.rq", "boot.rq.mcmb", "boot.rq.pwxy", "boot.rq.pwy", "boot.rq.pxy", "boot.rq.spwy", "boot.rq.wxy",
