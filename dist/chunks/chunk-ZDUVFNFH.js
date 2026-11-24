@@ -1,0 +1,2 @@
+/*! rStats.js 1.15.0 | MIT License | includes code ported from SciPy, Boost.Math, statsmodels, LAPACK and others: see THIRD_PARTY_NOTICES.md at https://github.com/numero-uno-jpn/rStats.js */
+function a(t){return Math.abs(t-r(t))>1e-9*Math.max(1,Math.abs(t))}function o(t){let n=r(t);return Math.abs(t-n)<=Math.min(1e-7,1e-9*Math.max(1,Math.abs(t)))?n:Math.floor(t)}function r(t){if(!Number.isFinite(t))return t;let n=Math.round(t);return n-t===.5&&n%2!==0?n-1:n}export{a,o as b,r as c};
