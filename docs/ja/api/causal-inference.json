@@ -2,8 +2,7 @@
   "BalTabOptions#summary": {
     "hash": "4ee4e79feb84",
     "en": "Options of {@link balTab}. Equivalent to the arguments of cobalt's `bal.tab()` for a `Match` or `weightit` object.",
-    "ja": "{@link balTab} のオプションです。`Match` オブジェクトに対する cobalt の `bal.tab()` の引数に相当します。",
-    "stale": true
+    "ja": "{@link balTab} のオプションです。`Match` または `weightit` オブジェクトに対する cobalt の `bal.tab()` の引数に相当します。"
   },
   "BalTabOptions.binary#summary": {
     "hash": "176d1249a3ee",
@@ -13,13 +12,12 @@
   "BalTabOptions.estimand#summary": {
     "hash": "3c2b4ad57f78",
     "en": "The estimand, which chooses the SD of the denominator (default `\"ATT\"`); `\"ATO\"` needs the weights.",
-    "ja": "推定対象です。分母の SD をこれで決めます (既定は `\"ATT\"`)。",
-    "stale": true
+    "ja": "推定対象です。分母の SD をこれで決めます (既定は `\"ATT\"`)。`\"ATO\"` には重みが必要です。"
   },
   "BalTabOptions.levels#summary": {
     "hash": "20a982920098",
     "en": "The order of the levels of string covariates (R's factor levels); default code-point order.",
-    "ja": ""
+    "ja": "文字列の共変量の水準の順序です (R の因子の水準)。既定はコードポイント順です。"
   },
   "BalTabOptions.match#summary": {
     "hash": "b7473741df33",
@@ -29,13 +27,12 @@
   "BalTabOptions.weightit#summary": {
     "hash": "927aecf1507a",
     "en": "The result of {@link BalTabOptions.weightit | weightit}: gives the weights, the estimand and the propensity score (the first row,\n`\"prop.score\"`, when the method has one). Alternative to `match`, `weights` and `estimand`.",
-    "ja": ""
+    "ja": "{@link BalTabOptions.weightit | weightit} の結果です: 重み、推定対象、傾向スコア (手法に傾向スコアがあるとき、最初の行 `\"prop.score\"`) を与えます。`match`、`weights`、`estimand` の代わりに使います。"
   },
   "BalTabOptions.weights#summary": {
     "hash": "2f6f7176fbe7",
     "en": "The weights after matching or weighting; without them only the unadjusted columns are filled.",
-    "ja": "マッチング後の重みです ({@link matchWeights} から)。無いときは調整前の列だけを埋めます。",
-    "stale": true
+    "ja": "マッチングまたは重み付けの後の重みです。無いときは調整前の列だけを埋めます。"
   },
   "BalTabResult#summary": {
     "hash": "5dab319bad73",
@@ -55,8 +52,7 @@
   "BalTabResult.observations#summary": {
     "hash": "ccef44725450",
     "en": "Sample sizes of the control and treated groups (cobalt's `Observations`): all (effective sample size, the same as\nthe count), all (unweighted), matched (effective sample size `(sum w)^2 / sum w^2`), matched (unweighted:\n`w > 0`), unmatched (`w = 0`) and, when `match` has a caliper, discarded (its `indexDropped`, not counted as unmatched). The\nmatched rows are NaN without weights. For a weightit result: unadjusted (the count)\nand adjusted (the effective sample size).",
-    "ja": "対照群と処置群の標本の大きさです (cobalt の `Observations`): 全体 (有効サンプルサイズ、数と同じ)、全体 (重みなし)、マッチ後 (有効サンプルサイズ `(sum w)^2 / sum w^2`)、マッチ後 (重みなし: `w > 0`)、マッチしなかったもの (`w = 0`)、さらに `match` にキャリパーがあるときは除外されたもの (その `indexDropped`。マッチしなかったものには数えません)。重みが無いとき、マッチ後の行は NaN です。",
-    "stale": true
+    "ja": "対照群と処置群の標本の大きさです (cobalt の `Observations`): 全体 (有効サンプルサイズ、数と同じ)、全体 (重みなし)、マッチ後 (有効サンプルサイズ `(sum w)^2 / sum w^2`)、マッチ後 (重みなし: `w > 0`)、マッチしなかったもの (`w = 0`)、さらに `match` にキャリパーがあるときは除外されたもの (その `indexDropped`。マッチしなかったものには数えません)。重みが無いとき、マッチ後の行は NaN です。weightit の結果では、調整前 (数) と調整後 (有効サンプルサイズ) です。"
   },
   "BalTabResult.observations.control#summary": {
     "hash": "7b91b769e7f2",
@@ -76,14 +72,12 @@
   "BalTabResult.rows#summary": {
     "hash": "5e5e7480c0bd",
     "en": "Covariate names (`\"prop.score\"` first for a weightit result with a score; a string covariate gives a row\n`name_level` per level, one row for the second level when it has two).",
-    "ja": "共変量の名前です。",
-    "stale": true
+    "ja": "共変量の名前です (傾向スコアのある weightit の結果では最初が `\"prop.score\"`。文字列の共変量は水準ごとに行 `name_level` を作り、水準が 2 つのときは 2 番目の水準の 1 行だけです)。"
   },
   "BalTabResult.type#summary": {
     "hash": "6d0a87a7113b",
     "en": "`\"Distance\"` (the propensity score), `\"Contin.\"` or `\"Binary\"` (two distinct values, 0 and 1).",
-    "ja": "`\"Contin.\"` または `\"Binary\"` (0 と 1 の 2 つの値だけを取る共変量) です。",
-    "stale": true
+    "ja": "`\"Distance\"` (傾向スコア)、`\"Contin.\"` または `\"Binary\"` (0 と 1 の 2 つの値だけを取るもの) です。"
   },
   "BalTabResult.vRatioAdj#summary": {
     "hash": "fa5c503e5557",
@@ -98,7 +92,7 @@
   "CovariateColumn#summary": {
     "hash": "9c10ec15690d",
     "en": "A covariate: numbers, or strings (a factor with its levels in code-point order).",
-    "ja": ""
+    "ja": "共変量です: 数値、または文字列 (水準をコードポイント順に並べた因子) です。"
   },
   "MatchEstimand#summary": {
     "hash": "5b0b04c34709",
@@ -208,187 +202,197 @@
   "TrimWeightsOptions#summary": {
     "hash": "ce3e27708c26",
     "en": "Options of {@link trimWeights}. Equivalent to the arguments of WeightIt's `trim()`.",
-    "ja": ""
+    "ja": "{@link trimWeights} のオプションです。WeightIt の `trim()` の引数に相当します。"
   },
   "TrimWeightsOptions.at#summary": {
     "hash": "254f020d5fd1",
     "en": "Below 1: the quantile (type 3) of the weights at which they are capped (0.99 caps the top 1%); 1 or more: the\nnumber of largest weights set to the next largest.",
-    "ja": ""
+    "ja": "1 未満のとき: 重みを抑える分位点 (type 3) です (0.99 なら上位 1% を抑えます)。1 以上のとき: 次に大きい重みにそろえる、最も大きい重みの個数です。"
   },
   "TrimWeightsOptions.lower#summary": {
     "hash": "0c9b9dd69375",
     "en": "Also raise the weights below the quantile 1 − `at` (or the `at` smallest) to it. Default false.",
-    "ja": ""
+    "ja": "分位点 1 − `at` より小さい重み (または `at` 個の最も小さい重み) もその値まで引き上げます。既定は false です。"
   },
   "TrimWeightsOptions.treat#summary": {
     "hash": "23ba6b96b411",
     "en": "For a plain vector of weights: the treatment (only informative with a focal group, which a vector has not).",
-    "ja": ""
+    "ja": "重みのベクトルだけを渡すときの処置です (意味を持つのは焦点となる群があるときだけで、ベクトルにはそれがありません)。"
   },
   "WeightSummaryGroup#summary": {
     "hash": "5579381f1943",
     "en": "One group's part of {@link weightSummary}.",
-    "ja": ""
+    "ja": "{@link weightSummary} の 1 つの群の部分です。"
   },
   "WeightSummaryGroup.coefOfVar#summary": {
     "hash": "5505fde1439d",
     "en": "Coefficient of variation: SD (divisor n − 1) / mean.",
-    "ja": ""
+    "ja": "変動係数です: SD (除数 n − 1) / 平均。"
   },
   "WeightSummaryGroup.ess#summary": {
     "hash": "211ac040c29c",
     "en": "Kish's effective sample size (sum w)² / sum w².",
-    "ja": ""
+    "ja": "Kish の有効サンプルサイズ (sum w)² / sum w² です。"
   },
   "WeightSummaryGroup.mean#summary": {
     "hash": "c76a8d22f65a",
     "en": "Mean weight (R prints it for stabilised weights only).",
-    "ja": ""
+    "ja": "重みの平均です (R は安定化した重みのときだけ表示します)。"
   },
   "WeightSummaryGroup.n#summary": {
     "hash": "464a3cdba7fd",
     "en": "Number of units.",
-    "ja": ""
+    "ja": "単位の数です。"
   },
   "WeightSummaryGroup.negativeEntropy#summary": {
     "hash": "97054e370c5b",
     "en": "Mean of r log r, r = w / mean(w).",
-    "ja": ""
+    "ja": "r log r の平均です。r = w / mean(w) です。"
   },
   "WeightSummaryGroup.numZeros#summary": {
     "hash": "6d168bdc6416",
     "en": "Number of zero weights (below 1e-10, as R counts them).",
-    "ja": ""
+    "ja": "0 の重みの数です (R と同じく 1e-10 未満を数えます)。"
   },
   "WeightSummaryGroup.range#summary": {
     "hash": "f14be69bcd7d",
     "en": "Smallest and largest weight.",
-    "ja": ""
+    "ja": "最小と最大の重みです。"
   },
   "WeightSummaryGroup.scaledMad#summary": {
     "hash": "4970775b4b20",
     "en": "Mean absolute deviation of w / mean(w) from 1.",
-    "ja": ""
+    "ja": "w / mean(w) の 1 からの平均絶対偏差です。"
   },
   "WeightSummaryGroup.top#summary": {
-    "hash": "682f245a8a88",
-    "en": "The (up to) 5 largest weights in increasing order, and their units (1-based); among equal weights the earliest\nunits, as R lists them.",
-    "ja": ""
+    "hash": "98452d0be5f1",
+    "en": "The (up to) 5 largest weights in increasing order; among equal weights the earliest units, as R lists them.",
+    "ja": "最も大きい (最大で) 5 つの重みを小さい順に並べたものです。等しい重みの中では、R の並べ方と同じく先頭に近い単位を選びます。"
+  },
+  "WeightSummaryGroup.top.index#summary": {
+    "hash": "812d06518c24",
+    "en": "The units (1-based).",
+    "ja": "単位です (1 から数えた番号)。"
+  },
+  "WeightSummaryGroup.top.weights#summary": {
+    "hash": "4193402098f8",
+    "en": "Their weights.",
+    "ja": "その重みです。"
   },
   "WeightSummaryResult#summary": {
     "hash": "e95745ea8e1a",
     "en": "Result of {@link weightSummary}.",
-    "ja": ""
+    "ja": "{@link weightSummary} の結果です。"
   },
   "WeightSummaryResult.control#summary": {
     "hash": "4f515eff03fc",
     "en": "The control group's summary.",
-    "ja": ""
+    "ja": "対照群の要約です。"
   },
   "WeightSummaryResult.stabilized#summary": {
     "hash": "0a07a79a90c0",
     "en": "Whether the weights were stabilised (R shows the mean weights then).",
-    "ja": ""
+    "ja": "重みを安定化したかどうかです (そのとき R は重みの平均を表示します)。"
   },
   "WeightSummaryResult.treated#summary": {
     "hash": "dbc770cd9c9c",
     "en": "The treated group's summary.",
-    "ja": ""
+    "ja": "処置群の要約です。"
   },
   "WeightitEstimand#summary": {
     "hash": "b675670c0793",
     "en": "The estimand of {@link weightit}: the population whose average treatment effect the weights target.",
-    "ja": ""
+    "ja": "{@link weightit} の推定対象です: 重みが平均処置効果の対象とする集団です。"
   },
   "WeightitMethod#summary": {
     "hash": "5be028a770ba",
     "en": "The method of {@link weightit} (WeightIt's `method`; `\"ps\"` is an alias of `\"glm\"`).",
-    "ja": ""
+    "ja": "{@link weightit} の手法です (WeightIt の `method`。`\"ps\"` は `\"glm\"` の別名です)。"
   },
   "WeightitOptions#summary": {
     "hash": "8689fec8b5ad",
     "en": "Options of {@link weightit}. Equivalent to the arguments of WeightIt's `weightit()`.",
-    "ja": ""
+    "ja": "{@link weightit} のオプションです。WeightIt の `weightit()` の引数に相当します。"
   },
   "WeightitOptions.estimand#summary": {
     "hash": "162c7b123628",
     "en": "The estimand (default `\"ATE\"`). ipt and ebal do not allow `\"ATO\"`.",
-    "ja": ""
+    "ja": "推定対象です (既定は `\"ATE\"`)。ipt と ebal は `\"ATO\"` を受け付けません。"
   },
   "WeightitOptions.link#summary": {
     "hash": "1ad9cd8e3c05",
     "en": "The link of the propensity score model: `\"logit\"` (default), `\"probit\"`, `\"cauchit\"` or `\"cloglog\"` for glm,\n`\"logit\"` or `\"probit\"` for cbps, `\"logit\"` for ipt; ebal has none.",
-    "ja": ""
+    "ja": "傾向スコアのモデルのリンクです: glm では `\"logit\"` (既定)、`\"probit\"`、`\"cauchit\"` または `\"cloglog\"`、cbps では `\"logit\"` または `\"probit\"`、ipt では `\"logit\"` です。ebal にはありません。"
   },
   "WeightitOptions.method#summary": {
     "hash": "5a8af3e7487f",
     "en": "How the weights are estimated (default `\"glm\"`): see {@link weightit}.",
-    "ja": ""
+    "ja": "重みの推定の仕方です (既定は `\"glm\"`): {@link weightit} を参照してください。"
   },
   "WeightitOptions.stabilize#summary": {
     "hash": "a77c8a33f4c0",
     "en": "Multiply the weights by the share of the unit's group in the sample (glm with ATE only; ignored with a warning\nby the other methods, an error with another estimand, as R). Default false.",
-    "ja": ""
+    "ja": "重みに、標本の中で単位の群が占める割合を掛けます (glm の ATE だけです。R と同じく、ほかの手法では警告を出して無視し、ほかの推定対象ではエラーです)。既定は false です。"
   },
   "WeightitResult#summary": {
     "hash": "7c5a47d682c3",
     "en": "Result of {@link weightit}.",
-    "ja": ""
+    "ja": "{@link weightit} の結果です。"
   },
   "WeightitResult.columnNames#summary": {
     "hash": "4a37bb2229e9",
     "en": "The columns of the model matrix after the intercept: the numeric covariates and, for a string covariate, one 0/1\ncolumn per level after the first (R's treatment contrasts, levels in code-point order).",
-    "ja": ""
+    "ja": "切片の後のモデル行列の列です: 数値の共変量と、文字列の共変量では最初の水準より後の水準ごとに 0/1 の列が 1 つです (R の処理対比、水準はコードポイント順)。"
   },
   "WeightitResult.converged#summary": {
     "hash": "31a47ec7aeb4",
     "en": "Whether the estimation converged (the glm, or the solution of the balance conditions).",
-    "ja": ""
+    "ja": "推定が収束したかどうかです (glm、または釣り合いの条件の解)。"
   },
   "WeightitResult.estimand#summary": {
     "hash": "b1962b4deda5",
     "en": "The estimand.",
-    "ja": ""
+    "ja": "推定対象です。"
   },
   "WeightitResult.focal#summary": {
     "hash": "5bfa38eff28c",
     "en": "The focal group of ATT (`1`) and ATC (`0`), null otherwise: its weights are 1.",
-    "ja": ""
+    "ja": "ATT (`1`) と ATC (`0`) の焦点となる群です。それ以外では null です: その群の重みは 1 です。"
   },
   "WeightitResult.link#summary": {
     "hash": "58f82e01135d",
     "en": "The link (null for ebal).",
-    "ja": ""
+    "ja": "リンクです (ebal では null)。"
   },
   "WeightitResult.method#summary": {
     "hash": "f8bcfbaa9667",
     "en": "The method as R reports it (`\"glm\"` for `\"ps\"`).",
-    "ja": ""
+    "ja": "R が報告する手法です (`\"ps\"` では `\"glm\"`)。"
   },
   "WeightitResult.ps#summary": {
     "hash": "ce1497e002e0",
     "en": "The propensity scores (null for ebal, which has none): for ipt the score of the tilting that weights the unit's\ngroup (ATE), or of the weighted group for all units (ATT: the controls' tilting; ATC: the treated's).",
-    "ja": ""
+    "ja": "傾向スコアです (傾向スコアの無い ebal では null)。ipt では、単位の群を重み付ける傾きのスコア (ATE)、または重み付ける群の傾きのスコアをすべての単位について (ATT: 対照群の傾き、ATC: 処置群の傾き) 返します。"
   },
   "WeightitResult.stabilized#summary": {
     "hash": "56ccdcf09a0e",
     "en": "Whether the weights were stabilised.",
-    "ja": ""
+    "ja": "重みを安定化したかどうかです。"
   },
   "WeightitResult.treat#summary": {
     "hash": "baa9734acb9d",
     "en": "The treatment, 0 or 1 per unit.",
-    "ja": ""
+    "ja": "処置です。単位ごとに 0 または 1 です。"
   },
   "WeightitResult.warnings#summary": {
     "hash": "012406759507",
     "en": "R's warnings, each once.",
-    "ja": ""
+    "ja": "R の警告です。それぞれ 1 回ずつです。"
   },
   "WeightitResult.weights#summary": {
     "hash": "f14df508bd55",
     "en": "The weights, one per unit, in the order of `tr`.",
-    "ja": ""
+    "ja": "重みです。単位ごとに 1 つ、`tr` の順です。"
   },
   "balTab#@example": {
     "hash": "f2167be5edf2",
@@ -398,8 +402,7 @@
   "balTab#summary": {
     "hash": "dbafeaaa17ed",
     "en": "Covariate balance of two groups before and after matching or weighting: standardised mean differences and variance\nratios. Equivalent to `cobalt::bal.tab()` in R. The calls followed are\n`bal.tab(m, formula = tr ~ ..., data, un = TRUE, disp.v.ratio = TRUE, binary)` for a `Match` object `m` and\n`bal.tab(w, stats = c(\"mean.diffs\", \"variance.ratios\"), un = TRUE, binary)` for a `weightit` object `w`.\n\nThe difference is `(mean treated − mean control) / s`, with means weighted after adjustment. The SD `s` is the same\nbefore and after: of the unadjusted treated for ATT, of the unadjusted controls for ATC, `sqrt((s1² + s0²) / 2)` for\nATE; for ATO that of the whole sample weighted by the (overlap) weights (weighted variance with divisor\n`sum w − sum w² / sum w`). For a binary covariate (with `binary: \"std\"`) `p(1 − p)` takes the place of the variance.\nVariance ratios are treated / control. A string covariate is a factor: one binary row per level.",
-    "ja": "2 群の共変量のバランスを、マッチングの前後で求めます: 標準化平均差と分散比です。R の `cobalt::bal.tab()` と同等です。`Match` オブジェクト `m` に対する `bal.tab(m, formula = tr ~ ..., data, un = TRUE, disp.v.ratio = TRUE, binary)` の呼び方に従います。\n\n差は `(mean treated − mean control) / s` で、マッチング後は重み付きの平均を使います。SD `s` は常にマッチング前の標本のものです: ATT では処置群、ATC では対照群、ATE では `sqrt((s1² + s0²) / 2)` です。2 値の共変量 (`binary: \"std\"` のとき) では SD の代わりに `sqrt(p(1 − p))` を使います (ATE では `p1(1 − p1)` と `p0(1 − p0)` の平均)。分散比は処置群 / 対照群です。因子の共変量は分割しません: 水準ごとに 0/1 の列を 1 つずつ与えてください。",
-    "stale": true
+    "ja": "2 群の共変量のバランスを、マッチングまたは重み付けの前後で求めます: 標準化平均差と分散比です。R の `cobalt::bal.tab()` と同等です。`Match` オブジェクト `m` に対する `bal.tab(m, formula = tr ~ ..., data, un = TRUE, disp.v.ratio = TRUE, binary)` と、`weightit` オブジェクト `w` に対する `bal.tab(w, stats = c(\"mean.diffs\", \"variance.ratios\"), un = TRUE, binary)` の呼び方に従います。\n\n差は `(mean treated − mean control) / s` で、調整後は重み付きの平均を使います。SD `s` は前後で同じです: ATT では調整前の処置群、ATC では調整前の対照群、ATE では `sqrt((s1² + s0²) / 2)`、ATO では (重複) 重みで重み付けた標本全体のもの (除数 `sum w − sum w² / sum w` の重み付き分散) です。2 値の共変量 (`binary: \"std\"` のとき) では分散の代わりに `p(1 − p)` を使います。分散比は処置群 / 対照群です。文字列の共変量は因子で、水準ごとに 2 値の行を 1 つずつ作ります。"
   },
   "match#@example": {
     "hash": "f2167be5edf2",
@@ -434,26 +437,26 @@
   "trimWeights(0)#summary": {
     "hash": "81352aca2936",
     "en": "Trims (winsorises) extreme weights: those above a quantile, and with `lower` those below the opposite one, are set to\nit. Equivalent to `WeightIt::trim()` in R. The call followed is `trim(w, at, lower = TRUE)` for a weightit result or a\nvector of weights.\n\nThe quantile is R's type 3 of the weights that are not fixed by the estimand: all units for ATE and ATO, the controls\nfor ATT, the treated for ATC. The other weights do not change (no renormalisation). For a weightit result the\nreturned object is a copy with the trimmed weights.",
-    "ja": ""
+    "ja": "極端な重みを切り詰めます (winsorize): 分位点より大きい重みを、`lower` のときは反対側の分位点より小さい重みも、その値にします。R の `WeightIt::trim()` と同等です。weightit の結果または重みのベクトルに対する `trim(w, at, lower = TRUE)` の呼び方に従います。\n\n分位点は、推定対象が固定しない重みについての R の type 3 です: ATE と ATO ではすべての単位、ATT では対照群、ATC では処置群です。ほかの重みは変わりません (正規化し直しません)。weightit の結果に対しては、重みを切り詰めた写しを返します。"
   },
   "trimWeights(1)#summary": {
     "hash": "81352aca2936",
     "en": "Trims (winsorises) extreme weights: those above a quantile, and with `lower` those below the opposite one, are set to\nit. Equivalent to `WeightIt::trim()` in R. The call followed is `trim(w, at, lower = TRUE)` for a weightit result or a\nvector of weights.\n\nThe quantile is R's type 3 of the weights that are not fixed by the estimand: all units for ATE and ATO, the controls\nfor ATT, the treated for ATC. The other weights do not change (no renormalisation). For a weightit result the\nreturned object is a copy with the trimmed weights.",
-    "ja": ""
+    "ja": "極端な重みを切り詰めます (winsorize): 分位点より大きい重みを、`lower` のときは反対側の分位点より小さい重みも、その値にします。R の `WeightIt::trim()` と同等です。weightit の結果または重みのベクトルに対する `trim(w, at, lower = TRUE)` の呼び方に従います。\n\n分位点は、推定対象が固定しない重みについての R の type 3 です: ATE と ATO ではすべての単位、ATT では対照群、ATC では処置群です。ほかの重みは変わりません (正規化し直しません)。weightit の結果に対しては、重みを切り詰めた写しを返します。"
   },
   "weightSummary#summary": {
     "hash": "be9fed1cef5e",
     "en": "Summary of balancing weights by group: range, largest weights, coefficient of variation, scaled MAD, negative\nentropy, zeros and Kish's effective sample size. Equivalent to `WeightIt::summary.weightit()` in R.",
-    "ja": ""
+    "ja": "釣り合いの重みの群ごとの要約です: 範囲、最も大きい重み、変動係数、尺度化した MAD、負のエントロピー、0 の数、Kish の有効サンプルサイズ。R の `WeightIt::summary.weightit()` と同等です。"
   },
   "weightit#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "weightit#summary": {
     "hash": "83e438557dbd",
     "en": "Balancing weights for a binary treatment. Equivalent to `WeightIt::weightit()` in R. The call followed is\n`weightit(tr ~ covariates, data, method, link, estimand, stabilize)`.\n\n- `\"glm\"` (`\"ps\"`): the propensity score `p` of a binomial glm with the link, and the weights 1/p and 1/(1 − p)\n  (ATE), 1 and p/(1 − p) (ATT), (1 − p)/p and 1 (ATC), 1 − p and p (ATO, the overlap weights).\n- `\"cbps\"`: the just-identified covariate balancing propensity score: the score whose weights (the same formulas)\n  make the weighted means of every covariate column equal in the two groups (ATT: the controls' to the treated's).\n- `\"ipt\"`: inverse probability tilting, a logistic score per weighted group whose weights move the group's means to\n  the target (ATE: the whole sample's). Not ATO.\n- `\"ebal\"`: entropy balancing: the weights closest to uniform in entropy with the target means, summing to the\n  target size. No propensity score; not ATO.\n\ncbps, ipt and ebal are solved exactly (Newton's method on the balance conditions); R stops its optimisers earlier, so\nthose weights agree with R's to about 1e-8 relative. A string covariate is a factor (levels in code-point order);\nmissing values are an error (R drops or imputes them depending on the method).",
-    "ja": ""
+    "ja": "2 値の処置に対する釣り合いの重みです。R の `WeightIt::weightit()` と同等です。`weightit(tr ~ covariates, data, method, link, estimand, stabilize)` の呼び方に従います。\n\n- `\"glm\"` (`\"ps\"`): リンクを指定した二項 glm の傾向スコア `p` と、重み 1/p と 1/(1 − p) (ATE)、1 と p/(1 − p) (ATT)、(1 − p)/p と 1 (ATC)、1 − p と p (ATO、重複重み) です。\n- `\"cbps\"`: ちょうど識別される共変量バランシング傾向スコアです: その (同じ式の) 重みで、共変量のすべての列の重み付き平均が 2 群で等しくなるスコアです (ATT では対照群を処置群に合わせます)。\n- `\"ipt\"`: 逆確率傾斜です。重み付ける群ごとのロジスティックのスコアで、その重みが群の平均を目標 (ATE では標本全体の平均) に動かします。ATO はありません。\n- `\"ebal\"`: エントロピーバランシングです。目標の平均を持ち、目標の大きさに合計する重みのうち、エントロピーで一様に最も近いものです。傾向スコアはなく、ATO もありません。\n\ncbps、ipt、ebal は厳密に解きます (釣り合いの条件に Newton 法)。R は最適化を早めに止めるので、これらの重みは R と相対 1e-8 程度で一致します。文字列の共変量は因子です (水準はコードポイント順)。欠測値はエラーです (R は手法によって除くか補完します)。"
   }
 }

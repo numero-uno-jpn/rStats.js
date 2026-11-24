@@ -447,102 +447,117 @@
   "SvyglmOptions#summary": {
     "hash": "9e3a781c1318",
     "en": "Options for {@link svyglm}.",
-    "ja": ""
+    "ja": "{@link svyglm} のオプションです。"
   },
   "SvyglmOptions.epsilon#summary": {
     "hash": "9cd74e234740",
     "en": "Convergence tolerance, as {@link glm} (default `1e-8`).",
-    "ja": ""
+    "ja": "収束の許容誤差です。{@link glm} と同じです (既定は `1e-8`)。"
   },
   "SvyglmOptions.family#summary": {
     "hash": "c68ee3aca426",
     "en": "The family, as {@link glm} (default `\"gaussian\"`).",
-    "ja": ""
+    "ja": "分布族です。{@link glm} と同じです (既定は `\"gaussian\"`)。"
   },
   "SvyglmOptions.link#summary": {
     "hash": "bd36a3395714",
     "en": "The link, as {@link glm}.",
-    "ja": ""
+    "ja": "リンクです。{@link glm} と同じです。"
   },
   "SvyglmOptions.maxit#summary": {
     "hash": "d2d768dc77d4",
     "en": "Maximum number of iterations, as {@link glm} (default `25`).",
-    "ja": ""
+    "ja": "反復の最大回数です。{@link glm} と同じです (既定は `25`)。"
   },
   "SvyglmOptions.weights#summary": {
     "hash": "495457adb9dd",
     "en": "The sampling (inverse probability) weights, one per row, positive.",
-    "ja": ""
+    "ja": "抽出 (逆確率) 重みです。行ごとに 1 つ、正の値です。"
   },
   "SvyglmResult#summary": {
     "hash": "5a186a6a8fb2",
     "en": "Result of {@link svyglm}: the rows of R's `summary(svyglm(...))$coefficients` and the fit.",
-    "ja": ""
+    "ja": "{@link svyglm} の結果です: R の `summary(svyglm(...))$coefficients` の行と当てはめです。"
   },
   "SvyglmResult.coefficients#summary": {
     "hash": "0260e3e2c7ac",
     "en": "Coefficients (the weighted glm's).",
-    "ja": ""
+    "ja": "係数です (重み付きの glm の係数)。"
+  },
+  "SvyglmResult.converged#summary": {
+    "hash": "a44529bf4a34",
+    "en": "Whether the glm converged.",
+    "ja": "glm が収束したかどうかです。"
   },
   "SvyglmResult.deviance#summary": {
-    "hash": "7b1192f303ff",
-    "en": "Deviance and null deviance with the weights rescaled to mean 1 (R's).",
-    "ja": ""
+    "hash": "182c0a70cad0",
+    "en": "Deviance with the weights rescaled to mean 1 (R's).",
+    "ja": "重みを平均 1 にそろえたときの逸脱度です (R のもの)。"
   },
   "SvyglmResult.dfResidual#summary": {
     "hash": "413924d3e64a",
     "en": "Residual degrees of freedom of the design, n - p.",
-    "ja": ""
+    "ja": "デザインの残差自由度 n - p です。"
   },
   "SvyglmResult.dispersion#summary": {
     "hash": "daa248346736",
     "en": "The dispersion R prints: the weighted variance of the Pearson residuals (about their weighted mean) times\nn / (n - 1); it does not enter the standard errors.",
-    "ja": ""
+    "ja": "R が表示する分散パラメータです: Pearson 残差の (その重み付き平均のまわりの) 重み付き分散に n / (n - 1) を掛けたものです。標準誤差には入りません。"
   },
   "SvyglmResult.fittedValues#summary": {
-    "hash": "90beed261db9",
-    "en": "Fitted means and linear predictors.",
-    "ja": ""
+    "hash": "2daf7e90dc85",
+    "en": "Fitted means.",
+    "ja": "当てはめた平均です。"
   },
   "SvyglmResult.glm#summary": {
     "hash": "0a980e72e817",
     "en": "The weighted glm (weights rescaled to mean 1).",
-    "ja": ""
+    "ja": "重み付きの glm です (重みは平均 1 にそろえます)。"
   },
   "SvyglmResult.iter#summary": {
-    "hash": "14e95c2946c8",
-    "en": "Iterations and convergence of the glm.",
-    "ja": ""
+    "hash": "3c577a2ab49b",
+    "en": "Iterations of the glm.",
+    "ja": "glm の反復の回数です。"
+  },
+  "SvyglmResult.linearPredictors#summary": {
+    "hash": "605d7f13ed5b",
+    "en": "Linear predictors.",
+    "ja": "線形予測子です。"
   },
   "SvyglmResult.names#summary": {
     "hash": "1611761932c6",
     "en": "Column names: `\"(Intercept)\"`, `\"x1\"`, `\"x2\"`, ...",
-    "ja": ""
+    "ja": "列名です: `\"(Intercept)\"`、`\"x1\"`、`\"x2\"`、..."
+  },
+  "SvyglmResult.nullDeviance#summary": {
+    "hash": "895b99bd1a89",
+    "en": "Null deviance with the weights rescaled to mean 1 (R's).",
+    "ja": "重みを平均 1 にそろえたときの帰無逸脱度です (R のもの)。"
   },
   "SvyglmResult.pValue#summary": {
     "hash": "df52486a5b2f",
     "en": "Two-sided p-values from the t distribution with `dfResidual` degrees of freedom.",
-    "ja": ""
+    "ja": "自由度 `dfResidual` の t 分布による両側 p 値です。"
   },
   "SvyglmResult.se#summary": {
     "hash": "ad9165e356c2",
     "en": "Standard errors, from `vcov`.",
-    "ja": ""
+    "ja": "標準誤差です。`vcov` から求めます。"
   },
   "SvyglmResult.tValue#summary": {
     "hash": "c9887a11c98b",
     "en": "t statistics.",
-    "ja": ""
+    "ja": "t 統計量です。"
   },
   "SvyglmResult.vcov#summary": {
     "hash": "2bf93c8bdef7",
     "en": "The design-based variance matrix (array of rows): sandwich HC0 times n / (n - 1).",
-    "ja": ""
+    "ja": "デザインに基づく分散行列です (行の配列): サンドイッチ HC0 に n / (n - 1) を掛けたものです。"
   },
   "SvyglmResult.warnings#summary": {
     "hash": "012406759507",
     "en": "R's warnings, each once.",
-    "ja": ""
+    "ja": "R の警告です。それぞれ 1 回ずつです。"
   },
   "glm#@example": {
     "hash": "f2167be5edf2",
@@ -692,11 +707,11 @@
   "svyglm#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "svyglm#summary": {
     "hash": "919ea52fc260",
     "en": "A generalised linear model for weighted data with design-based (sandwich) standard errors. Equivalent to\n`survey::svyglm()` in R. The call followed is `summary(svyglm(y ~ ..., design, family))` for the design\n`svydesign(ids = ~1, weights = ~w, data)`, the design of inverse probability of treatment weighting.\n\nThe coefficients are those of `glm(y ~ ..., weights = w)`; the variance is the HC0 sandwich of that fit times\nn / (n − 1), and the tests are t tests on n − p degrees of freedom. binomial and quasibinomial give the same table\n(binomial warns about the non-integer successes, as R). AIC is not given (R gives NA).",
-    "ja": ""
+    "ja": "重み付きデータの一般化線形モデルを、デザインに基づく (サンドイッチ) 標準誤差で当てはめます。R の `survey::svyglm()` と同等です。逆確率重み付けのデザイン `svydesign(ids = ~1, weights = ~w, data)` に対する `summary(svyglm(y ~ ..., design, family))` の呼び方に従います。\n\n係数は `glm(y ~ ..., weights = w)` のものです。分散はその当てはめの HC0 サンドイッチに n / (n − 1) を掛けたもので、検定は自由度 n − p の t 検定です。binomial と quasibinomial は同じ表を返します (R と同じく、binomial は整数でない成功数について警告します)。AIC は返しません (R は NA を返します)。"
   }
 }

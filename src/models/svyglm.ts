@@ -56,14 +56,17 @@ export interface SvyglmResult {
   /** The dispersion R prints: the weighted variance of the Pearson residuals (about their weighted mean) times
    * n / (n - 1); it does not enter the standard errors. */
   dispersion: number;
-  /** Deviance and null deviance with the weights rescaled to mean 1 (R's). */
+  /** Deviance with the weights rescaled to mean 1 (R's). */
   deviance: number;
+  /** Null deviance with the weights rescaled to mean 1 (R's). */
   nullDeviance: number;
-  /** Fitted means and linear predictors. */
+  /** Fitted means. */
   fittedValues: number[];
+  /** Linear predictors. */
   linearPredictors: number[];
-  /** Iterations and convergence of the glm. */
+  /** Iterations of the glm. */
   iter: number;
+  /** Whether the glm converged. */
   converged: boolean;
   /** The weighted glm (weights rescaled to mean 1). */
   glm: GlmResult;

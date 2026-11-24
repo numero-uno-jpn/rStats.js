@@ -53,22 +53,46 @@ export interface SurvfitCoxphResult {
   /** Standard error of the cumulative hazard (of −log S), per curve and time (with the fit's variance of the
    * coefficients: the robust one when the fit uses it). */
   stdErr: number[][];
-  /** Lower and upper pointwise limits, per curve and time. */
+  /** Lower pointwise limits, per curve and time. */
   lower: number[][];
+  /** Upper pointwise limits, per curve and time. */
   upper: number[][];
   /** Cumulative hazard, per curve and time. */
   cumhaz: number[][];
   /** Per curve: the median and its lower and upper limits (NaN when not reached), as R's `summary()$table`. */
   median: number[][];
-  /** Number of records, the weighted number at the start (R's n.max and n.start) and the weighted events. */
+  /** Number of records. */
   records: number;
+  /** The weighted number at the start (R's n.max and n.start). */
   nStart: number;
+  /** The weighted number of events. */
   events: number;
-  /** With `times`: the curves read at those times (R's `summary(fit, times)`): the time, per curve the values, and the
-   * number at risk and of events since the previous time. */
-  at?: { time: number[]; surv: number[][]; stdErr: number[][]; lower: number[][]; upper: number[][]; nRisk: number[]; nEvent: number[] };
+  /** With `times`: the curves read at those times (R's `summary(fit, times)`). */
+  at?: SurvfitCoxphAt;
   /** R's warnings, each once. */
   warnings: string[];
+}
+
+/**
+ * The curves of {@link survfitCoxph} read at given times (R's `summary(fit, times)`).
+ *
+ * @category Survival analysis
+ */
+export interface SurvfitCoxphAt {
+  /** The times (those not after the last observed time). */
+  time: number[];
+  /** Survival per curve and time. */
+  surv: number[][];
+  /** Standard error of the cumulative hazard per curve and time. */
+  stdErr: number[][];
+  /** Lower pointwise limits per curve and time. */
+  lower: number[][];
+  /** Upper pointwise limits per curve and time. */
+  upper: number[][];
+  /** Weighted number at risk at each time. */
+  nRisk: number[];
+  /** Weighted number of events since the previous time. */
+  nEvent: number[];
 }
 
 /**
@@ -193,9 +217,9 @@ function limits(s: number, se: number, z: number, type: string): [number, number
 }
 
 /** The curves read at given times: the last row at or before each time; before the first, the start of the curve */
-function readAt(r: SurvfitCoxphResult, times: readonly number[]): NonNullable<SurvfitCoxphResult["at"]> {
+function readAt(r: SurvfitCoxphResult, times: readonly number[]): SurvfitCoxphAt {
   const sorted = [...times].sort((a, b) => a - b);
-  const out: NonNullable<SurvfitCoxphResult["at"]> = { time: [], surv: r.surv.map(() => []), stdErr: r.surv.map(() => []),
+  const out: SurvfitCoxphAt = { time: [], surv: r.surv.map(() => []), stdErr: r.surv.map(() => []),
     lower: r.surv.map(() => []), upper: r.surv.map(() => []), nRisk: [], nEvent: [] };
   let from = 0;
   for (const t of sorted) {

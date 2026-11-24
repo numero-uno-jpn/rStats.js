@@ -462,9 +462,13 @@ export function trimWeights(w: WeightitResult | readonly number[], options: Trim
 export interface WeightSummaryGroup {
   /** Smallest and largest weight. */
   range: [number, number];
-  /** The (up to) 5 largest weights in increasing order, and their units (1-based); among equal weights the earliest
-   * units, as R lists them. */
-  top: { index: number[]; weights: number[] };
+  /** The (up to) 5 largest weights in increasing order; among equal weights the earliest units, as R lists them. */
+  top: {
+    /** The units (1-based). */
+    index: number[];
+    /** Their weights. */
+    weights: number[];
+  };
   /** Mean weight (R prints it for stabilised weights only). */
   mean: number;
   /** Coefficient of variation: SD (divisor n − 1) / mean. */
