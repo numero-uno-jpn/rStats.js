@@ -934,6 +934,341 @@
     "en": "Null-model deviance for the fitted family.",
     "ja": "当てはめた分布族に対する帰無モデルの逸脱度です。"
   },
+  "MultinomAnovaResult#summary": {
+    "hash": "3af162e2d68b",
+    "en": "Result of {@link multinomAnova}: one row per model, in increasing order of the number of coefficients.",
+    "ja": "{@link multinomAnova} の結果です: モデルごとに 1 行、係数の数の少ない順です。"
+  },
+  "MultinomAnovaResult.df#summary": {
+    "hash": "0f143ba3a59e",
+    "en": "Degrees of freedom of each test (NaN for the first).",
+    "ja": "各検定の自由度です (最初の行は NaN)。"
+  },
+  "MultinomAnovaResult.lrStat#summary": {
+    "hash": "9581bda6564c",
+    "en": "Likelihood-ratio statistics, the differences of deviances (NaN for the first).",
+    "ja": "尤度比統計量、つまり逸脱度の差です (最初の行は NaN)。"
+  },
+  "MultinomAnovaResult.model#summary": {
+    "hash": "37a9fe2f5e3b",
+    "en": "The right-hand sides of the formulas (`\"1\"` for the intercept-only model).",
+    "ja": "式の右辺です (切片だけのモデルは `\"1\"`)。"
+  },
+  "MultinomAnovaResult.pValue#summary": {
+    "hash": "37e80bf46e5e",
+    "en": "Upper chi-squared p-values (NaN for the first).",
+    "ja": "カイ二乗分布の上側の p 値です (最初の行は NaN)。"
+  },
+  "MultinomAnovaResult.residDev#summary": {
+    "hash": "a440fbf76b69",
+    "en": "Deviances.",
+    "ja": "逸脱度です。"
+  },
+  "MultinomAnovaResult.residDf#summary": {
+    "hash": "6fb7e0a14fc1",
+    "en": "Residual degrees of freedom, n (K − 1) − edf.",
+    "ja": "残差自由度 n (K − 1) − edf です。"
+  },
+  "MultinomAnovaResult.test#summary": {
+    "hash": "c41940c72b80",
+    "en": "`\"1 vs 2\"`, ... (`\"\"` for the first).",
+    "ja": "`\"1 vs 2\"`、... です (最初の行は `\"\"`)。"
+  },
+  "MultinomConfintOptions#summary": {
+    "hash": "50068a446114",
+    "en": "Options for {@link multinomConfint}.",
+    "ja": "{@link multinomConfint} のオプションです。"
+  },
+  "MultinomConfintOptions.level#summary": {
+    "hash": "f18f020efba3",
+    "en": "Confidence level. Default 0.95.",
+    "ja": "信頼水準です。既定は 0.95 です。"
+  },
+  "MultinomConfintResult#summary": {
+    "hash": "7e394ac4236a",
+    "en": "Result of {@link multinomConfint}: limits with the shape of the coefficients.",
+    "ja": "{@link multinomConfint} の結果です: 係数と同じ形の信頼限界です。"
+  },
+  "MultinomConfintResult.level#summary": {
+    "hash": "b01d237f1ff5",
+    "en": "The confidence level.",
+    "ja": "信頼水準です。"
+  },
+  "MultinomConfintResult.lower#summary": {
+    "hash": "084aa5f58bf9",
+    "en": "Lower limits (rows the non-reference levels).",
+    "ja": "下限です (行は基準以外の水準)。"
+  },
+  "MultinomConfintResult.upper#summary": {
+    "hash": "0767bbeb571a",
+    "en": "Upper limits.",
+    "ja": "上限です。"
+  },
+  "MultinomModel#summary": {
+    "hash": "b2eb62bd376f",
+    "en": "The data of a {@link multinom} fit kept for its methods.",
+    "ja": "{@link multinom} の当てはめについて、その関数のために保つデータです。"
+  },
+  "MultinomModel.factorLevels#summary": {
+    "hash": "f2a968847da8",
+    "en": "Levels of the factor predictors.",
+    "ja": "因子の説明変数の水準です。"
+  },
+  "MultinomModel.formula#summary": {
+    "hash": "b0def051d655",
+    "en": "The formula.",
+    "ja": "式です。"
+  },
+  "MultinomModel.predictorVariables#summary": {
+    "hash": "4708bb9581e3",
+    "en": "Predictor variables in model-matrix order.",
+    "ja": "モデル行列の順の説明変数です。"
+  },
+  "MultinomModel.rows#summary": {
+    "hash": "21d939081c7e",
+    "en": "0-based rows of `data` used (rows with missing values are dropped).",
+    "ja": "使った `data` の行 (0 から数えた番号) です (欠測値のある行は除きます)。"
+  },
+  "MultinomModel.weights#summary": {
+    "hash": "9038ddcc30d3",
+    "en": "Case weights of the rows used.",
+    "ja": "使った行のケース重みです。"
+  },
+  "MultinomModel.x#summary": {
+    "hash": "2a5cf3c11891",
+    "en": "The model matrix (with its intercept column).",
+    "ja": "モデル行列です (切片の列を含みます)。"
+  },
+  "MultinomModel.y#summary": {
+    "hash": "b8fbd8e42eb3",
+    "en": "The response as level indices (0 is the reference).",
+    "ja": "水準の番号で表した応答です (0 が基準)。"
+  },
+  "MultinomOptions#summary": {
+    "hash": "34c3ed30cef0",
+    "en": "Options for {@link multinom}.",
+    "ja": "{@link multinom} のオプションです。"
+  },
+  "MultinomOptions.contrasts#summary": {
+    "hash": "a2112eba4ffc",
+    "en": "A contrast per factor predictor (default `\"contr.treatment\"`).",
+    "ja": "因子の説明変数ごとの対比です (既定は `\"contr.treatment\"`)。"
+  },
+  "MultinomOptions.decay#summary": {
+    "hash": "673caad4b626",
+    "en": "Weight decay: `decay` times the sum of squares of all coefficients (intercepts included) is added to −log L, as\nnnet's `decay`. Default 0.",
+    "ja": "重みの減衰です: nnet の `decay` と同じく、全係数 (切片を含む) の 2 乗和の `decay` 倍を −log L に加えます。既定は 0 です。"
+  },
+  "MultinomOptions.levels#summary": {
+    "hash": "ea80f535b8de",
+    "en": "The order of the levels of factors (the response's first level is the reference category).",
+    "ja": "因子の水準の順序です (応答の最初の水準が基準カテゴリです)。"
+  },
+  "MultinomOptions.maxit#summary": {
+    "hash": "1db8b711c948",
+    "en": "Maximum number of Newton iterations. Default 100.",
+    "ja": "Newton 法の反復の最大回数です。既定は 100 です。"
+  },
+  "MultinomOptions.weights#summary": {
+    "hash": "f6231c04d9f3",
+    "en": "Case weights, one per row of `data` (non-negative; need not be integers), or the name of a column of `data`.",
+    "ja": "ケース重みです。`data` の行ごとに 1 つ (0 以上で、整数でなくてかまいません)、または `data` の列の名前です。"
+  },
+  "MultinomPredictOptions#summary": {
+    "hash": "555154940468",
+    "en": "Options for {@link multinomPredict}.",
+    "ja": "{@link multinomPredict} のオプションです。"
+  },
+  "MultinomPredictOptions.newdata#summary": {
+    "hash": "0bc1c3006586",
+    "en": "New values of the predictors (default: the rows of the fit).",
+    "ja": "説明変数の新しい値です (既定は当てはめの行)。"
+  },
+  "MultinomPredictOptions.type#summary": {
+    "hash": "d9b2a671089c",
+    "en": "`\"class\"` (default): the most probable level; `\"probs\"`: the probabilities.",
+    "ja": "`\"class\"` (既定): 最も確率の高い水準、`\"probs\"`: 確率です。"
+  },
+  "MultinomResult#summary": {
+    "hash": "3f70f946f164",
+    "en": "Result of {@link multinom}.",
+    "ja": "{@link multinom} の結果です。"
+  },
+  "MultinomResult.aic#summary": {
+    "hash": "b9690ea08fb7",
+    "en": "`deviance` + 2 `edf` (R's `AIC`).",
+    "ja": "`deviance` + 2 `edf` です (R の `AIC`)。"
+  },
+  "MultinomResult.coefficients#summary": {
+    "hash": "ad8e1f105f20",
+    "en": "Coefficients, one row per non-reference level (R's `coef()`: rows `levels[1]`, ...).",
+    "ja": "係数です。基準以外の水準ごとに 1 行です (R の `coef()`: 行は `levels[1]`、...)。"
+  },
+  "MultinomResult.columnNames#summary": {
+    "hash": "a53d5eb9fbde",
+    "en": "Columns of the model matrix: `\"(Intercept)\"`, then the predictors' columns.",
+    "ja": "モデル行列の列です: `\"(Intercept)\"`、続いて説明変数の列です。"
+  },
+  "MultinomResult.converged#summary": {
+    "hash": "3bc1d2a49417",
+    "en": "Whether Newton's method met its tolerance on the score.",
+    "ja": "Newton 法がスコアの許容誤差を満たしたかどうかです。"
+  },
+  "MultinomResult.decay#summary": {
+    "hash": "e9a2d7b34819",
+    "en": "The decay used.",
+    "ja": "使った decay です。"
+  },
+  "MultinomResult.deviance#summary": {
+    "hash": "e94d4e9cdb41",
+    "en": "Twice `value` (R's `deviance`, which includes the penalty).",
+    "ja": "`value` の 2 倍です (罰則を含む R の `deviance`)。"
+  },
+  "MultinomResult.edf#summary": {
+    "hash": "034cb610ad78",
+    "en": "Number of coefficients estimated, (K − 1) p less the aliased columns (R's `edf`).",
+    "ja": "推定した係数の数、(K − 1) p から別の列で表せる列を除いたものです (R の `edf`)。"
+  },
+  "MultinomResult.fittedValues#summary": {
+    "hash": "4d20f69ebbd1",
+    "en": "Fitted probabilities, one row per observation used, one column per level.",
+    "ja": "当てはめた確率です。使った観測ごとに 1 行、水準ごとに 1 列です。"
+  },
+  "MultinomResult.hessian#summary": {
+    "hash": "2738d637257e",
+    "en": "Hessian of −log L in the same order (R's `Hessian` with `Hess = TRUE`; without the decay term, as R).",
+    "ja": "同じ順の −log L の Hessian です (`Hess = TRUE` のときの R の `Hessian`。R と同じく decay の項を含みません)。"
+  },
+  "MultinomResult.iter#summary": {
+    "hash": "e1071e085fb9",
+    "en": "Newton iterations.",
+    "ja": "Newton 法の反復の回数です。"
+  },
+  "MultinomResult.levels#summary": {
+    "hash": "4303e9aff001",
+    "en": "The response's levels; the first is the reference category (R's `lev`).",
+    "ja": "応答の水準です。最初が基準カテゴリです (R の `lev`)。"
+  },
+  "MultinomResult.logLik#summary": {
+    "hash": "ba12527beee0",
+    "en": "The log-likelihood as R reports it: −`value`.",
+    "ja": "R が報告する対数尤度: −`value` です。"
+  },
+  "MultinomResult.model#summary": {
+    "hash": "ee8661f7af87",
+    "en": "The data kept for the methods.",
+    "ja": "関数のために保つデータです。"
+  },
+  "MultinomResult.n#summary": {
+    "hash": "802a817520d6",
+    "en": "Number of observations used.",
+    "ja": "使った観測の数です。"
+  },
+  "MultinomResult.parameterNames#summary": {
+    "hash": "633a515d66b8",
+    "en": "Names of the rows and columns of `vcov` and `hessian` (`\"B:x1\"`, ...).",
+    "ja": "`vcov` と `hessian` の行と列の名前です (`\"B:x1\"`、...)。"
+  },
+  "MultinomResult.se#summary": {
+    "hash": "a2cfe85b4729",
+    "en": "Standard errors, the same shape (from the inverse of the Hessian of −log L).",
+    "ja": "標準誤差です。係数と同じ形です (−log L の Hessian の逆行列から)。"
+  },
+  "MultinomResult.value#summary": {
+    "hash": "2a713d84242f",
+    "en": "The minimised objective: −log L plus the decay penalty (R's `value`).",
+    "ja": "最小化した目的関数: −log L に decay の罰則を加えたものです (R の `value`)。"
+  },
+  "MultinomResult.vcov#summary": {
+    "hash": "5a03457b3a02",
+    "en": "Variance matrix of the coefficients in R's order (`B:(Intercept)`, `B:x1`, ..., `C:(Intercept)`, ...).",
+    "ja": "R の順の係数の分散行列です (`B:(Intercept)`、`B:x1`、...、`C:(Intercept)`、...)。"
+  },
+  "MultinomResult.warnings#summary": {
+    "hash": "012406759507",
+    "en": "R's warnings, each once.",
+    "ja": "R の警告です。それぞれ 1 回ずつです。"
+  },
+  "MultinomSummaryResult#summary": {
+    "hash": "0f0d5d179c37",
+    "en": "Result of {@link multinomSummary}.",
+    "ja": "{@link multinomSummary} の結果です。"
+  },
+  "MultinomSummaryResult.aic#summary": {
+    "hash": "2ee7d93dd109",
+    "en": "AIC of the fit (R's).",
+    "ja": "当てはめの AIC です (R のもの)。"
+  },
+  "MultinomSummaryResult.coefficients#summary": {
+    "hash": "f64c47ab4f0e",
+    "en": "Coefficients (rows the non-reference levels).",
+    "ja": "係数です (行は基準以外の水準)。"
+  },
+  "MultinomSummaryResult.coxSnell#summary": {
+    "hash": "5124031eca90",
+    "en": "Cox and Snell's: 1 − exp(2 (nullLogLik − logLik) / n).",
+    "ja": "Cox と Snell のもの: 1 − exp(2 (nullLogLik − logLik) / n) です。"
+  },
+  "MultinomSummaryResult.deviance#summary": {
+    "hash": "00c67838ee0b",
+    "en": "Deviance of the fit (R's).",
+    "ja": "当てはめの逸脱度です (R のもの)。"
+  },
+  "MultinomSummaryResult.logLik#summary": {
+    "hash": "eda609b766c9",
+    "en": "Log-likelihood of the fit (R's).",
+    "ja": "当てはめの対数尤度です (R のもの)。"
+  },
+  "MultinomSummaryResult.mcFadden#summary": {
+    "hash": "cbf00dc32461",
+    "en": "McFadden's pseudo R²: 1 − logLik / nullLogLik.",
+    "ja": "McFadden の擬似 R²: 1 − logLik / nullLogLik です。"
+  },
+  "MultinomSummaryResult.nagelkerke#summary": {
+    "hash": "30f0a463e548",
+    "en": "Nagelkerke's: Cox and Snell's / (1 − exp(2 nullLogLik / n)).",
+    "ja": "Nagelkerke のもの: Cox と Snell のもの / (1 − exp(2 nullLogLik / n)) です。"
+  },
+  "MultinomSummaryResult.nullLogLik#summary": {
+    "hash": "c570b84794ab",
+    "en": "The log-likelihood of the intercept-only model on the same rows and weights.",
+    "ja": "同じ行と重みでの、切片だけのモデルの対数尤度です。"
+  },
+  "MultinomSummaryResult.oddsRatios#summary": {
+    "hash": "091d261bff4e",
+    "en": "exp(coefficients): the odds ratios against the reference level.",
+    "ja": "exp(係数): 基準の水準に対するオッズ比です。"
+  },
+  "MultinomSummaryResult.pValue#summary": {
+    "hash": "fb5379f5565f",
+    "en": "Two-sided p-values 2 (1 − Φ(|z|)).",
+    "ja": "両側 p 値 2 (1 − Φ(|z|)) です。"
+  },
+  "MultinomSummaryResult.se#summary": {
+    "hash": "9e6c3ed87c11",
+    "en": "Standard errors.",
+    "ja": "標準誤差です。"
+  },
+  "MultinomSummaryResult.zValue#summary": {
+    "hash": "2e14337b38c0",
+    "en": "Wald z statistics, coefficient / standard error (R's `Wald.ratios`).",
+    "ja": "Wald の z 統計量、係数 / 標準誤差です (R の `Wald.ratios`)。"
+  },
+  "MultinomVcovResult#summary": {
+    "hash": "7c53ac70bae8",
+    "en": "Result of {@link multinomVcov}.",
+    "ja": "{@link multinomVcov} の結果です。"
+  },
+  "MultinomVcovResult.names#summary": {
+    "hash": "295b1ea3402c",
+    "en": "Row and column names, `\"B:(Intercept)\"`, `\"B:x1\"`, ...",
+    "ja": "行と列の名前です。`\"B:(Intercept)\"`、`\"B:x1\"`、..."
+  },
+  "MultinomVcovResult.vcov#summary": {
+    "hash": "0c54e5d90eba",
+    "en": "The variance matrix (array of rows).",
+    "ja": "分散行列です (行の配列)。"
+  },
   "NlsAlgorithm#summary": {
     "hash": "5186605eace4",
     "en": "Algorithm used to fit a nonlinear least-squares model.",
@@ -2463,6 +2798,41 @@
     "hash": "f95fa91f356b",
     "en": "Predict from a penalized generalized linear model. Equivalent to R's `predict.glmnet()`.",
     "ja": "ペナルティ付き一般化線形モデルから予測します。R の `predict.glmnet()` と同等です。"
+  },
+  "multinom#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": "⟦code1⟧"
+  },
+  "multinom#summary": {
+    "hash": "8187361a2f6e",
+    "en": "Multinomial logistic regression: baseline-category logits for a response with two or more levels, the first level\nthe reference. Equivalent to `nnet::multinom()` in R. The call followed is\n`multinom(y ~ ..., data, weights, decay, Hess = TRUE)`.\n\nThe coefficients maximise the (weighted) log-likelihood less `decay` times the sum of squares of all coefficients,\nby Newton's method to machine precision; R's BFGS stops earlier (by default about 1e-5 from the maximum). The\nstandard errors come from the Hessian of −log L (without the decay term, as R). A numeric response is made a factor;\nan unused level is dropped with R's warning; rows with missing values are dropped.",
+    "ja": "多項ロジスティック回帰: 2 つ以上の水準を持つ応答に対する基準カテゴリロジットで、最初の水準が基準です。R の `nnet::multinom()` と同等です。`multinom(y ~ ..., data, weights, decay, Hess = TRUE)` の呼び方に従います。\n\n係数は、(重み付きの) 対数尤度から全係数の 2 乗和の `decay` 倍を引いたものを、Newton 法で機械精度まで最大化します。R の BFGS はそれより早く止まります (既定では最大値から 1e-5 程度手前)。標準誤差は −log L の Hessian から求めます (R と同じく decay の項を含みません)。数値の応答は因子にし、使われない水準は R の警告とともに除き、欠測値のある行は除きます。"
+  },
+  "multinomAnova#summary": {
+    "hash": "afcb174371d1",
+    "en": "Likelihood-ratio tests of nested multinomial logistic regressions. Equivalent to `nnet::anova.multinom()` in R. The\nmodels are ordered by their residual degrees of freedom (largest first), whatever the order given.",
+    "ja": "入れ子の多項ロジスティック回帰の尤度比検定です。R の `nnet::anova.multinom()` と同等です。モデルは与えた順にかかわらず、残差自由度の大きい順に並べます。"
+  },
+  "multinomConfint#summary": {
+    "hash": "860f6b5a1871",
+    "en": "Wald confidence intervals of the coefficients of a multinomial logistic regression. Equivalent to\n`nnet::confint.multinom()` in R. The limits are coefficient ± qnorm((1 + level) / 2) se.",
+    "ja": "多項ロジスティック回帰の係数の Wald 信頼区間です。R の `nnet::confint.multinom()` と同等です。信頼限界は 係数 ± qnorm((1 + level) / 2) se です。"
+  },
+  "multinomPredict#summary": {
+    "hash": "8a4592377228",
+    "en": "Predictions of a multinomial logistic regression: probabilities of the levels, or the most probable level. Equivalent\nto `nnet::predict.multinom()` in R.\n\nTies are broken as R's `max.col`: probabilities within 1e-5 (relative) of the row's largest are tied, and the k-th\ntied level replaces the choice when k u < 1, u a uniform of {@link runif} (one per tie after the first), so the\nclasses are R's after the same `setSeed`.",
+    "ja": "多項ロジスティック回帰の予測です: 水準の確率、または最も確率の高い水準です。R の `nnet::predict.multinom()` と同等です。\n\n同点は R の `max.col` と同じく決めます: 行の最大値から相対 1e-5 以内の確率を同点とし、k 番目の同点の水準は k u < 1 のとき選び直します (u は {@link runif} の一様乱数で、最初の後の同点ごとに 1 つ)。そのため同じ `setSeed` の後では R と同じクラスになります。"
+  },
+  "multinomSummary#summary": {
+    "hash": "37926639bc88",
+    "en": "Summary of a multinomial logistic regression: Wald tests of the coefficients, odds ratios and pseudo R². Equivalent\nto `nnet::summary.multinom()` in R. The call followed is `summary(fit, Wald.ratios = TRUE)`, with the p-values, odds\nratios and pseudo R² as ReactiveStat computes them (the null model `multinom(y ~ 1)` on the same rows, n the number\nof rows).",
+    "ja": "多項ロジスティック回帰の要約です: 係数の Wald 検定、オッズ比、擬似 R² です。R の `nnet::summary.multinom()` と同等です。`summary(fit, Wald.ratios = TRUE)` の呼び方に従い、p 値・オッズ比・擬似 R² は ReactiveStat の計算と同じです (null モデル `multinom(y ~ 1)` は同じ行で当てはめ、n はその行数です)。"
+  },
+  "multinomVcov#summary": {
+    "hash": "70e2fc356daa",
+    "en": "Variance matrix of the coefficients of a multinomial logistic regression. Equivalent to `nnet::vcov.multinom()` in R.",
+    "ja": "多項ロジスティック回帰の係数の分散行列です。R の `nnet::vcov.multinom()` と同等です。"
   },
   "nls#@example": {
     "hash": "f2167be5edf2",

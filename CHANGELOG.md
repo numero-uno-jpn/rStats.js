@@ -7,6 +7,12 @@ While the version is 0.x, a minor release (0.y.0) may contain breaking changes;
 they are listed under **Breaking** for each release. From 1.0.0 the project follows
 [Semantic Versioning](https://semver.org/).
 
+## Unreleased
+
+### Added
+
+- **Multinomial logistic regression** in `/regression`: `multinom` (after `nnet::multinom`: baseline-category logits, case weights, decay), `multinomSummary` (Wald tests, odds ratios, McFadden's, Cox-Snell's and Nagelkerke's pseudo R²), `multinomConfint`, `multinomPredict` (probabilities and classes, R's tie-breaking), `multinomAnova` (likelihood-ratio tests of nested models) and `multinomVcov`. The coefficients are the exact maximum; R's BFGS stops about 1e-5 from it ([the differences](docs/differences-from-r.md#multinomial-logistic-regression-1140)).
+
 ## 1.13.0 - 2026-11-24
 
 ### Added

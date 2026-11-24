@@ -1,6 +1,6 @@
 # rStats.js API リファレンス
 
-rStats.js は、R の数値計算の中心を JavaScript に提供します。確率分布、R の `set.seed()` と一致する乱数、記述統計、仮説検定、線形モデル、一般化線形モデル、順序・ロバスト・非線形回帰、(一般化) 線形混合モデルと頑健な共分散、生存時間解析、試験デザインの標本サイズと検出力、メタアナリシスとメタ回帰、診断の精度と測定法の比較、線形代数、数値計算です。関数の名前と結果は R に従い、関数は R と比べてテストしています (相対誤差で、分布は 1e-14、検定とモデルは 1e-12 まで。[精度](https://numero-uno-jpn.github.io/rStats.js/docs/ja/accuracy.html) を参照)。R と比べる代わりに、R 自身が不正確な場合や R にその関数がない場合は、高精度の参照値と比べています。
+rStats.js は、R の数値計算の中心を JavaScript に提供します。確率分布、R の `set.seed()` と一致する乱数、記述統計、仮説検定、線形モデル、一般化線形モデル、順序・多項・ロバスト・非線形回帰、(一般化) 線形混合モデルと頑健な共分散、生存時間解析、試験デザインの標本サイズと検出力、メタアナリシスとメタ回帰、診断の精度と測定法の比較、線形代数、数値計算です。関数の名前と結果は R に従い、関数は R と比べてテストしています (相対誤差で、分布は 1e-14、検定とモデルは 1e-12 まで。[精度](https://numero-uno-jpn.github.io/rStats.js/docs/ja/accuracy.html) を参照)。R と比べる代わりに、R 自身が不正確な場合や R にその関数がない場合は、高精度の参照値と比べています。
 
 このリファレンスでは、すべての関数について、そのオプション、結果、使用例を載せています (使用例はテストで実行しています)。関数は、メニューで分野ごとにまとめてあります。
 
@@ -106,6 +106,22 @@ R の名前が JavaScript の予約語である場合や、一般的すぎてそ
 
 `setSeed(42)` の後では、`rnorm`、`runif`、`sample` などは、R で `set.seed(42)` とした後と同じ数値を返します。
 
+
+## 多項ロジスティック回帰
+
+`multinom` とその関数は `/regression` にあり、`polr` と同じく式とデータフレームで与えます。
+
+```ts
+import { multinom, multinomSummary, multinomConfint, multinomPredict, multinomAnova } from "@numero-uno-jpn/rstats/regression";
+
+const fit = multinom("smoke ~ sex + age + exercise", data, { levels: { smoke: ["Never", "Occas", "Regul", "Heavy"] } });
+const s = multinomSummary(fit); // 係数・標準誤差・Wald の z と p・オッズ比・擬似 R²
+multinomConfint(fit, { level: 0.95 }); // Wald 信頼区間
+multinomPredict(fit, { type: "class" }); // 同点は R の max.col と同じ (setSeed で R と同じクラス)
+multinomAnova(multinom("smoke ~ sex", data), fit); // 尤度比検定
+```
+
+`multinom` は `nnet::multinom(y ~ ..., data, weights, decay, Hess = TRUE)` に従います。応答の最初の水準を基準カテゴリとする基準カテゴリロジットです。係数は厳密な最尤推定値です (Newton 法)。R の BFGS は既定ではそこから 1e-5 程度手前で止まります。標準誤差は −log L の Hessian から求めます。`weights` はケース重みで、`decay` は全係数の 2 乗和の decay 倍を加えます (nnet と同じく、逸脱度と AIC には含み、標準誤差には含みません)。擬似 R² (McFadden・Cox-Snell・Nagelkerke) には、同じ行での切片だけのモデルを使います。
 
 ## 多変量解析
 

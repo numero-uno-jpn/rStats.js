@@ -1,7 +1,7 @@
 # rStats.js API reference
 
 rStats.js gives JavaScript the numerical core of R: probability distributions, random numbers that match R's
-`set.seed()`, descriptive statistics, hypothesis tests, linear, generalized linear, ordinal, robust and nonlinear regression, and (generalized) linear mixed models with
+`set.seed()`, descriptive statistics, hypothesis tests, linear, generalized linear, ordinal, multinomial, robust and nonlinear regression, and (generalized) linear mixed models with
 robust covariances, survival analysis, trial-design sample-size and power calculations, meta-analysis and meta-regression,
 diagnostic accuracy and method comparison, linear algebra and numerical methods. Function names and results follow R, and the functions are tested
 against R (to a relative 1e-14 for distributions and 1e-12 for tests and models; see
@@ -143,6 +143,26 @@ front: `glmSummary`, `glmPredict`, `lmerSummary`, `lmerAnova`, `glmerSummary`, `
 
 After `setSeed(42)`, `rnorm`, `runif`, `sample` and the others give R's numbers after `set.seed(42)`.
 
+
+## Multinomial logistic regression
+
+`multinom` and its methods are in `/regression`, with a formula and a data frame like `polr`:
+
+```ts
+import { multinom, multinomSummary, multinomConfint, multinomPredict, multinomAnova } from "@numero-uno-jpn/rstats/regression";
+
+const fit = multinom("smoke ~ sex + age + exercise", data, { levels: { smoke: ["Never", "Occas", "Regul", "Heavy"] } });
+const s = multinomSummary(fit); // coefficients, standard errors, Wald z and p, odds ratios, pseudo R²
+multinomConfint(fit, { level: 0.95 }); // Wald intervals
+multinomPredict(fit, { type: "class" }); // ties broken as R's max.col (setSeed for R's classes)
+multinomAnova(multinom("smoke ~ sex", data), fit); // likelihood-ratio test
+```
+
+`multinom` follows `nnet::multinom(y ~ ..., data, weights, decay, Hess = TRUE)`: baseline-category logits with the
+first level of the response as the reference. The coefficients are the exact maximum (Newton's method); R's BFGS stops
+about 1e-5 from it by default. The standard errors come from the Hessian of −log L. `weights` are case weights,
+`decay` adds decay times the sum of squares of all coefficients (as nnet; deviance and AIC include it, the standard
+errors do not). The pseudo R² (McFadden, Cox-Snell, Nagelkerke) use the intercept-only model on the same rows.
 
 ## Multivariate analysis
 

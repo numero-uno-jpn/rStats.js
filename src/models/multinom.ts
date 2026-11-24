@@ -94,7 +94,7 @@ export interface MultinomResult {
   deviance: number;
   /** The log-likelihood as R reports it: −`value`. */
   logLik: number;
-  /** Number of coefficients, (K − 1) p (R's `edf`). */
+  /** Number of coefficients estimated, (K − 1) p less the aliased columns (R's `edf`). */
   edf: number;
   /** `deviance` + 2 `edf` (R's `AIC`). */
   aic: number;
@@ -241,9 +241,10 @@ function probabilities(x: readonly (readonly number[])[], coef: readonly (readon
  * @category Regression
  * @example
  * ```ts
- * const data = { y: ["a", "b", "c", "a", "b", "c", "b", "a", "c", "c"], x: [1, 2, 3, 1.5, 2.2, 2.8, 1.9, 1.2, 3.1, 2.5] };
+ * const data = { y: ["a", "b", "c", "b", "a", "c", "c", "a", "b", "a"], x: [1, 2, 3, 1.5, 2.2, 2.8, 1.9, 1.2, 3.1, 2.5] };
  * const fit = multinom("y ~ x", data);
- * fit.coefficients; // rows b and c: [intercept, x]
+ * fit.coefficients; // [[-2.503002448686904, 1.1313364602572131], [-4.9150873979421785, 2.1386561772142767]] (rows b, c)
+ * fit.deviance; // 18.97233634263671
  * ```
  */
 export function multinom(formula: string, data: DataFrame, options: MultinomOptions = {}): MultinomResult {
@@ -411,9 +412,11 @@ export interface MultinomSummaryResult {
   pValue: number[][];
   /** exp(coefficients): the odds ratios against the reference level. */
   oddsRatios: number[][];
-  /** Deviance, AIC and log-likelihood of the fit (R's). */
+  /** Deviance of the fit (R's). */
   deviance: number;
+  /** AIC of the fit (R's). */
   aic: number;
+  /** Log-likelihood of the fit (R's). */
   logLik: number;
   /** The log-likelihood of the intercept-only model on the same rows and weights. */
   nullLogLik: number;
@@ -502,7 +505,7 @@ export interface MultinomConfintResult {
 
 /**
  * Wald confidence intervals of the coefficients of a multinomial logistic regression. Equivalent to
- * `nnet::confint.multinom()` in R: coefficient ± qnorm((1 + level) / 2) se.
+ * `nnet::confint.multinom()` in R. The limits are coefficient ± qnorm((1 + level) / 2) se.
  * @category Regression
  */
 export function multinomConfint(fit: MultinomResult, options: MultinomConfintOptions = {}): MultinomConfintResult {
@@ -601,7 +604,7 @@ export interface MultinomAnovaResult {
 }
 
 /**
- * Likelihood-ratio tests of nested multinomial logistic regressions. Equivalent to `nnet::anova.multinom()` in R: the
+ * Likelihood-ratio tests of nested multinomial logistic regressions. Equivalent to `nnet::anova.multinom()` in R. The
  * models are ordered by their residual degrees of freedom (largest first), whatever the order given.
  * @category Regression
  */
