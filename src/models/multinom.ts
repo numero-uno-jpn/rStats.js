@@ -440,13 +440,14 @@ export function multinomSummary(fit: MultinomResult): MultinomSummaryResult {
   const zValue = coefficients.map((row, k) => row.map((c, j) => c / se[k]![j]!));
   const nullFit = unreported(() => multinomNull(fit));
   const n = fit.n, ll = fit.logLik, l0 = nullFit;
-  const coxSnell = 1 - Math.exp((2 / n) * (l0 - ll));
+  // -expm1: 1 - exp(x) loses every digit when x is tiny (weights near 1e-200 give a log-likelihood near 1e-198)
+  const coxSnell = -Math.expm1((2 / n) * (l0 - ll));
   return {
     coefficients: coefficients.map((r) => r.slice()), se: se.map((r) => r.slice()), zValue,
     pValue: zValue.map((row) => row.map((z) => 2 * pnorm(-Math.abs(z)))),
     oddsRatios: coefficients.map((row) => row.map(Math.exp)),
     deviance: fit.deviance, aic: fit.aic, logLik: ll, nullLogLik: l0, mcFadden: 1 - ll / l0, coxSnell,
-    nagelkerke: coxSnell / (1 - Math.exp((2 / n) * l0)),
+    nagelkerke: coxSnell / -Math.expm1((2 / n) * l0),
   };
 }
 

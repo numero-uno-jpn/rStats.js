@@ -1795,7 +1795,7 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
 - 係数は尤度の厳密な最大値です (Newton 法で機械精度まで)。nnet の BFGS はそれより早く止まります: 既定では 1e-5 程度手前 (`experiments/multinom114.R` で 6e-5)、`reltol = 1e-16` でも 5e-8 程度です。対数尤度は 17 桁一致します。`maxit` は Newton 法の反復の回数です (既定は 100)。
 - 式とデータフレームで与えます (応答の行列、`censored`、`subset` はありません。対比は処理対比・和対比・Helmert 対比です)。2 水準のときの係数は 1 行の行列で、`multinomPredict(..., { type: "probs" })` は 2 列を返します (R は 2 番目の水準の確率を返します)。
 - 定数の列や別の列で表せる列は、警告 (`design appears to be rank-deficient, so dropping some coefs`) を出して除き、係数を NaN にします。R はすべての係数を残し、それらは識別できません (逸脱度は同じです)。`edf` は推定した係数の数です。
-- 当てはめの前に各列を中心化し、2 のべき乗で割るので、共変量の尺度や大きな共通の値に依りません。R の当てはめは 1e±150 付近の共変量で崩れ (逸脱度が 45 ずれます)、1e300 付近で止まり (`infinite or missing values in 'x'`)、1e8 や 1e15 の共通の値でも崩れます。1e±200 付近の重みでも R の当てはめは崩れますが、rStats.js の係数は変わりません (`experiments/multinom114-edge.R`)。
+- 当てはめの前に各列を中心化し、2 のべき乗で割るので、共変量の尺度や大きな共通の値に依りません。R の当てはめは 1e±150 付近の共変量で崩れ (逸脱度が 45 ずれます)、1e300 付近で止まり (`infinite or missing values in 'x'`)、1e8 や 1e15 の共通の値でも崩れます。1e±200 付近の重みでも R の当てはめは崩れますが、rStats.js の係数は変わりません (`experiments/multinom114-edge.R`)。R の標準誤差は、共通の値が 100 の共変量でもう崩れます (当てはめは正しいのに、x1 の標準誤差が 0.247 ではなく 0.0033、切片が 24.7 ではなく 1e-4 になりました)。rStats.js の標準誤差は、ずらす前の当てはめを厳密に変換したものと一致します (`experiments/multinom114-edge2.R`)。
 - 分離したデータ (最大値が存在しない) では、R は最適化が止まったところで止まります。rStats.js は `converged: false` と警告 `fitted probabilities numerically 0 or 1 occurred: ...` を返します。係数は異なります。
 - `multinomSummary` には ReactiveStat が計算するものを加えています: Wald の p 値 2(1 − Φ(|z|))、オッズ比、擬似 R²。擬似 R² の null モデルは、モデルが使った行での切片だけの当てはめで、n はその行数です (ReactiveStat は応答のあるすべての行に当てはめ、`nrow(data)` で割るので、説明変数に欠測値があると異なります)。
 - `multinomPredict(type: "class")` は R と同じく同点を決めます (`max.col`: 相対 1e-5 以内、最初の後の同点ごとに一様乱数 1 つ)。そのため同じ `setSeed` の後では R と同じクラスになります。
