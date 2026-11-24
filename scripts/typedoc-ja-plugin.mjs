@@ -42,6 +42,7 @@ const CATEGORY_NAMES = {
   "Effect sizes and power": "効果量と検出力",
   "Linear models and ANOVA": "線形モデルと分散分析",
   "Generalized linear models": "一般化線形モデル",
+  "Model selection": "変数選択",
   "Mixed models": "混合モデル",
   "Survival analysis": "生存時間解析",
   "Agreement, reliability and factor analysis": "一致度・信頼性・因子分析",

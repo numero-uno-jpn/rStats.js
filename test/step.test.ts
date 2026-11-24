@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { lm, glm } from "../src/entries/tests.js";
-import { step, stepAIC, drop1, add1, extractAIC, type StepModel } from "../src/models/step.js";
+import { step, stepAIC, drop1, add1, extractAIC, type StepModel } from "../src/entries/tests.js";
 
 // R's step / stepAIC / drop1 / add1 / extractAIC (oracle/step.R, R 4.6.2 x86_64): the selected model, the path
 // ($anova), the models visited (keep) and the order of the rows of each printed table

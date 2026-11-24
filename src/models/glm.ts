@@ -587,7 +587,8 @@ export function refit(
 }
 
 /**
- * Fit a generalized linear model from a formula. Equivalent to R's `glm(formula, family, data, weights, offset)`.
+ * Fit a generalized linear model by iteratively reweighted least squares, from a formula and a data frame. Equivalent
+ * to R's `glm(formula, family, data, weights, offset)`.
  * The model matrix is that of {@link lm} with a formula (factors, interactions, contrasts, levels). The response
  * is numeric; for the binomial families also `cbind(successes, failures)` with two column names, proportions with
  * the numbers of trials as `weights`, a boolean column (FALSE 0, TRUE 1) or strings (the first level is failure,
@@ -609,9 +610,8 @@ export function refit(
  */
 export function glm(formula: string, data: DataFrame, options?: GlmFormulaOptions): GlmFormulaResult;
 /**
- * Fit a generalized linear model by iteratively reweighted least squares. Equivalent to R's
- * `glm(y ~ x, family = ...)`. Or `y ~ x - 1` without intercept; the predictors are given as a matrix instead of a
- * formula. Rows with a missing value (NaN) in `x`, `y`, the weights or the offset are dropped. Every family and link
+ * Fit a generalized linear model by iteratively reweighted least squares, the predictors given as a matrix: R's
+ * `glm(y ~ x, family = ...)`, or `y ~ x - 1` without intercept. Rows with a missing value (NaN) in `x`, `y`, the weights or the offset are dropped. Every family and link
  * of R's `stats` is available; R's warnings are returned in `warnings`. See {@link glmSummary}, {@link glmResiduals},
  * {@link glmPredict}, {@link glmConfint} and {@link glmAnova} for the methods.
  *

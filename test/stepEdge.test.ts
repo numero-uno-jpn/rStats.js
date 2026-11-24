@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { lm, glm } from "../src/entries/tests.js";
-import { step, stepAIC, drop1, add1 } from "../src/models/step.js";
+import { step, stepAIC, drop1, add1 } from "../src/entries/tests.js";
 import { setSeed, rnorm, rpois, rbinom, runif } from "../src/entries/distributions.js";
 
 // The edge cases of step (experiments/step115-edge.R, Issue #565): the search does not depend on the scale of the

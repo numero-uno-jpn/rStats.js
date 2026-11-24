@@ -79,7 +79,7 @@ rStats.js に既にあるものと照らし合わせて決めました (2026-11-
    `trimWeights`・`weightSummary`・`svyglm`・`survfitCoxph`・重みつきの `survfit`) は 1.13.0 で済み
 2. **条件付きロジスティック回帰** [survival `clogit`] (1 と一緒に): 1.12.0 で済み
 3. **多項ロジスティック回帰** [nnet `multinom`]: 1.14.0 で済み
-4. **ステップワイズの変数選択** [`step`、MASS `stepAIC`]
+4. **ステップワイズの変数選択** [`step`、MASS `stepAIC`]: 1.15.0 で済み (lm と glm。`glm` に式の入口を足した)
 5. **媒介分析・調整分析** [mediation `mediate`] (調整媒介分析を含む)
 6. 小さなモデル: tobit 回帰 (`survreg` の上に)、対数線形モデル [`loglin`、MASS `loglm`]、ガンマ回帰とベータ回帰 [betareg]
 7. その後に検討: 時間依存 ROC [timeROC、survivalROC]、ネットワークメタアナリシス [netmeta]、Bradley-Terry の一対比較

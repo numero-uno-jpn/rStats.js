@@ -103,6 +103,8 @@ export {
   glmPredict,
   type GlmOptions,
   type GlmResult,
+  type GlmFormulaOptions,
+  type GlmFormulaResult,
   type GlmModel,
   type GlmSummary,
   type GlmSummaryOptions,
@@ -117,6 +119,20 @@ export {
   type QuasiVariance,
 } from "../models/glm.js";
 export { glmConfint, type GlmConfintOptions } from "../models/glmConfint.js";
+export {
+  step,
+  stepAIC,
+  drop1,
+  add1,
+  extractAIC,
+  type StepModel,
+  type StepOptions,
+  type StepResult,
+  type StepVisit,
+  type AddDropOptions,
+  type AddDropTable,
+  type ExtractAicOptions,
+} from "../models/step.js";
 export { svyglm, type SvyglmOptions, type SvyglmResult } from "../models/svyglm.js";
 export { survfitCoxph, type SurvfitCoxphOptions, type SurvfitCoxphResult, type SurvfitCoxphAt } from "../models/survfitCoxph.js";
 export {
