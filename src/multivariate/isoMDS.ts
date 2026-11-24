@@ -110,7 +110,10 @@ function pairsFor(d: number[][], missing: boolean): { pairs: Pair[]; groups: num
     pairs.push({ i, j, delta, group: 0 });
   }
   void missing;
-  pairs.sort((a, b) => a.delta - b.delta || a.j - b.j || a.i - b.i);
+  // R's as.vector(dist) visits the lower triangle column by column. Keep that
+  // order for equal dissimilarities; the same ordered pairs feed disparities
+  // and the gradient, so a different tie order changes the optimization path.
+  pairs.sort((a, b) => a.delta - b.delta || a.i - b.i || a.j - b.j);
   let groups = 0;
   for (const pair of pairs) pair.group = groups++;
   return { pairs, groups };
