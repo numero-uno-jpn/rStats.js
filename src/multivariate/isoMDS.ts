@@ -283,9 +283,17 @@ export function isoMDS(
   // each additional requested iteration contributes one update.
   const steps = maxit === 0 ? 0 : maxit === 1 ? 1 : maxit - 1;
   let failedSearchWasReset = false;
+  // Whether the inverse Hessian is the identity: at the start, after a non-descent direction, a failed line search or
+  // an update with a nonpositive curvature. R's extra step at the tol stop happens only when it is not (Claude,
+  // 2026-11-24: swiss_y stops at its 4th update without the extra step; swiss at tol 1e-3, 1e-4, 1e-8 takes it)
+  let hessianIsIdentity = true;
   for (let stepIndex = 0; stepIndex < steps && !converged; stepIndex++) {
     const iteration = maxit === 1 ? 1 : stepIndex + 2;
     lastIter = iteration;
+    // A zero configuration distance leaves the gradient undefined. R then does not move: it returns the start, printing
+    // "stopped after 1 iterations" for maxit = 1 and "converged" otherwise, without a warning (swiss_y_k1: the start has
+    // two equal values; experiments/isomds111-diverge-more, Claude 2026-11-24)
+    if (current.distances.some((v) => v === 0)) { converged = maxit > 1; break; }
     const grad = flatten(gradient(y, built.pairs, current, p));
     let direction = multiply(inverseHessian, grad, size);
     for (let i = 0; i < size; i++) direction[i] = -direction[i]!;
@@ -293,6 +301,7 @@ export function isoMDS(
     for (let i = 0; i < size; i++) directionalDerivative += grad[i]! * direction[i]!;
     if (!(directionalDerivative < 0) || !Number.isFinite(directionalDerivative)) {
       inverseHessian = identity(size, resetDiagonal);
+      hessianIsIdentity = true;
       direction = grad.map((v) => -v);
       directionalDerivative = 0;
       for (let i = 0; i < size; i++) directionalDerivative += grad[i]! * direction[i]!;
@@ -322,6 +331,7 @@ export function isoMDS(
     let accepted = lineSearch(direction, directionalDerivative);
     if (accepted === null) {
       inverseHessian = identity(size, resetDiagonal);
+      hessianIsIdentity = true;
       if (failedSearchWasReset) { converged = true; break; }
       failedSearchWasReset = true;
       direction = grad.map((v) => -v);
@@ -338,6 +348,10 @@ export function isoMDS(
       displacement[i] = accepted.x[i]! - x[i]!;
       gradientChange[i] = nextGradient[i]! - grad[i]!;
     }
+    const wasIdentity = hessianIsIdentity;
+    let curvature = 0;
+    for (let i = 0; i < size; i++) curvature += displacement[i]! * gradientChange[i]!;
+    hessianIsIdentity = !(curvature > 0) || !Number.isFinite(curvature);
     inverseHessian = updateInverseHessian(inverseHessian, displacement, gradientChange, size, resetDiagonal);
     x = accepted.x;
     y = accepted.y;
@@ -353,7 +367,7 @@ export function isoMDS(
       // configuration, rather than the freshly evaluated gradient or -H*g.
       // On swiss this gives 4.492668758998103 (R: 4.4926687589981045);
       // at tol=1e-8 it gives 4.219287127030445 (R: 4.21928712703045).
-      if (stepIndex > 0) {
+      if (!wasIdentity && !hessianIsIdentity) {
         const finalDirection = grad.map((value) => -value);
         let finalSlope = 0;
         for (let i = 0; i < size; i++) finalSlope += grad[i]! * finalDirection[i]!;
@@ -375,6 +389,8 @@ export function isoMDS(
           lastIter = reportIteration;
         }
       }
+      // R prints no "iter" line for the iteration at which it stops without the extra step (swiss_y at 5)
+      if (!(!wasIdentity && !hessianIsIdentity) && iteration % 5 === 0 && trace.at(-1)?.iteration === iteration) trace.pop();
       converged = true;
     }
   }

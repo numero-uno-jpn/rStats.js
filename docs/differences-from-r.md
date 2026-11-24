@@ -1871,4 +1871,10 @@ The references are R's `stats` functions. The implementation decisions are recor
 - For tied dissimilarities, pairs are sorted by increasing dissimilarity and ties retain the lower-triangle column order of R's condensed `dist` vector. Each pair remains a separate isotonic observation; tied dissimilarities are not pooled.
 - Sammon's trace records the initial value, periodic updates and final stopping reason. Extreme dissimilarity scales are normalized internally and restored in the returned coordinates.
 - `isoMDS` exposes the Minkowski power `p` and a stress trace. BFGS starts from the identity inverse Hessian in the original coordinates: neither the initial coordinates nor the inverse Hessian is normalized by scale. Its optimization path therefore depends on the starting scale, as R's does; no scale-equivariance guarantee is made. The optimizer was inferred from public R outputs, not translated from MASS source code.
+- `isoMDS` follows R's iterates, but where R stops away from a minimum rStats.js goes on: on a 3 × 3 grid with tied
+  dissimilarities and on a small one-dimensional example R stops at a stress of 0.0038 and 0.0048 (percent) where
+  rStats.js reaches 0, a perfect monotone fit; on `eurodist` run to a tight tolerance R stops at 5.883548 in a flat valley
+  where rStats.js reaches 5.883535. The configurations then differ from R's. When a configuration distance is 0 (for
+  example a one-dimensional start with two equal values), the gradient is undefined and `isoMDS` returns the start
+  without moving, as R does.
 - Coordinate signs are oriented deterministically. As with other SVD/MDS methods, sign differences alone do not indicate a different configuration.

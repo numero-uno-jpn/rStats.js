@@ -98,3 +98,11 @@ The user's decisions of 2026-11-22 (Issue #556), written by Claude. They take pr
     (`isomds_scale`, `isomds_scale_y`) are compared with R where R's result is determined; otherwise they are a
     documented difference ("the answer depends on the scale of the configuration, as in R"). No equivariance test of
     the path
+14. **Where R stops away from a minimum (Claude, 2026-11-24, under the user's standing rule "where R is inaccurate,
+    return the statistically correct value"):** rStats.js follows R's iterates (choices 11-13; the extra step at the tol
+    stop only when the inverse Hessian is not the identity; a zero configuration distance stops without moving, as R in
+    `isomds_swiss_y_k1`). In `isomds_grid_ties` and `isomds_small_k1` (and their tight cases) R agrees for 21 and 11
+    iterates and then stops at 0.00383 and 0.00476 where rStats.js goes on to 0 (a perfect monotone fit); in
+    `isomds_tight_eurodist` R stops at 5.883548 in a flat valley where rStats.js reaches 5.883535; `isomds_grid_ties_default`
+    is a perfect fit for both, whose configuration is not unique. Those six cases compare the stress only (at most R's;
+    within 1e-6 when R's is below 1e-6), a documented difference
