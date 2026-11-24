@@ -39,13 +39,36 @@ M・Y のモデルの種類 (ReactiveStat は lm と logit。probit などを足
 `treat.value`/`control.value`、ACME・ADE の control と treated の両方と平均、割合 (prop.mediated)、p 値の定義、sims の上限
 (rStats.js にはクラウド R の 20 秒の制約がない)、sim_slopes の評価点と HC3、JN の境界の求め方、glm の調整分析の単純傾斜 (logit の尺度)
 
-### 1.15.0 の公開 (2026-11-25)
-- main `07c63d22` (作業ブランチを squash、中身は同じ)、CI・Pages 緑 → タグ `v1.15.0` → stage (id `1ee15d1b-...`) をユーザーが承認。
+### 始めに確かめること
+- `git status -sb` で main にいて、origin より HANDOFF のコミットだけ先 (push しない) こと。作業ブランチは無い (`dev/step-1.15` は削除済み)
+- `colima status` (止まっていたら `colima start`)、イメージ `rstats-oracle-amd64:4.6.2` があること (`docker images | grep rstats`)
+- 最初に Issue を作り、作業ブランチ `dev/mediation-1.16` を main から切る (HANDOFF のコミット込み)
+
+### セッション 33 で分かった注意 (1.16.0 でも当てはまる)
+- **チェッカーは `trace` という名前を断る** (base の trace のため)。step・mediate などの引数 `trace` は既定のまま (表示は
+  `capture.output`) か位置で渡す。ほかにも `deparse` などは使えないので、項は `attr(terms(fit), "term.labels")` で取る
+- R の `update()` や `step` は呼び出しを作り直して評価するので、**データは大域に置く** (`assign("cur", d, envir = globalenv())`)。
+  関数の中の局所変数だと "object not found" になる。`keep` の関数に渡る aic は数 1 つ
+- `toJSON` の data.frame は既定で行の形。fixture には `dataframe = "columns"`、欠損は `na = "null"`
+- **macOS に `timeout` コマンドは無い** (付けると何も実行されず黙って終わる)。全テスト (`npx vitest run`) は約 2 分なので
+  バックグラウンドで流し、結果はファイルに残す
+- `node scripts/option-keys.mjs --write` は新しい関数の options の検査を自動で入れる。新しいカテゴリは `test/categories.test.ts`・
+  `typedoc.json`・`scripts/typedoc-ja-plugin.mjs` の 3 か所。doc comment の「Equivalent to R's `f()`.」は重ね定義のうち 1 つだけ
+  (`test/rNames.test.ts`)。デモの例は全部の新しい関数を含める (`test/demo.test.ts`)、`node scripts/demo-examples.mjs` →
+  `npm run oracle -- demo`。訳は `node scripts/api-ja-extract.mjs` → 空と stale を埋める
+- タグの push で GitHub が Internal Server Error を返しても、タグは届いていることがある (`git ls-remote --tags origin` で確かめる)
+- README のサイズ表は `node scripts/size.mjs` の値に合わせる (1.15.0 で glm+glmSummary 40.6 KB、全部入り 332.9 KB)
+
+## セッション 33 (2026-11-25): 1.15.0 = 変数選択 (step・stepAIC・drop1・add1・extractAIC、glm の式の入口)
+
+- **範囲 (ユーザーの決定):** lm と glm、step と stepAIC の両方、k は数、結果は fit・経路・途中の表、`/tests`。glm に式の入口を足す、
+  欠損値で行が変わるときと重み 0 の edf は R と同じ。drop1・add1・extractAIC の公開とサイズの増加は「進めろ」で了承
+- **公開:** main `07c63d22` (作業ブランチを squash、中身は同じ)、CI・Pages 緑 → タグ `v1.15.0` → stage (id `1ee15d1b-...`) をユーザーが承認。
   npm latest = 1.15.0、jsDelivr、`/api/`・`/ja/api/` の step のページ、デモ v1.15.0 を確かめた。Issue #565 を閉じた。証拠はタグ
   `archive/step-1.15` (`a6190480`)。作業ブランチ `dev/step-1.15` はユーザーの指示で削除 (2026-11-25、手元だけにあった)
 - main は origin より HANDOFF のコミットだけ先 (push しない。次の作業ブランチの最初に含める)
 
-### 1.15.0 の記録 (公開前の状態)
+### 作業ブランチでの記録
 - **1.15.0 は作業ブランチ `dev/step-1.15` で完成** (手元だけ、push していない。main の HANDOFF の 3 コミットを含む)。Issue #565 に実験の記録 6 件
 - **範囲 (ユーザーの決定 2026-11-25):** lm と glm、step と stepAIC の両方、k は数、結果は fit・経路 (`anova`)・途中の表 (`visits`)、
   置き場所は lm・glm の隣 (`/tests`)。glm に式の入口を足す、欠損値で行が変わるときと重み 0 の edf は R と同じ。**drop1・add1・
@@ -65,10 +88,6 @@ M・Y のモデルの種類 (ReactiveStat は lm と logit。probit などを足
 - 時間 (rStats.js / R): 60 項 + 20 水準、300 行の後ろ向き 23 秒 / 22 秒 (候補を double-double で当てはめるため。倍精度なら 10 倍速いが完全な
   当てはめの fixture から外れる)、前向き 0.9 秒 / 2.2 秒、n = 20000・10 項で 2〜5 秒
 
-### 残り (ユーザーの確認の後)
-1. ユーザーに確かめること: drop1・add1・extractAIC を公開してよいか、glm の読み込みサイズの増加 (+5.5 KB gzip)、後ろ向きの速さ
-2. main に squash の 1 コミット + タグ `v1.15.0` → push → CI・Pages → Release の stage → `npm stage approve <id>` (id はユーザーに知らせる)
-   → Issue #565 を閉じる → 証拠のタグ `archive/step-1.15` → 作業ブランチの削除は聞いてから
 
 ## セッション 32 (2026-11-24): 1.14.0 = 多項ロジスティック回帰 (multinom)
 
