@@ -39,6 +39,12 @@
   点検が通らず止まった → 原因は英文 (コードが行をまたぐ、数式がコードでない) なので英文を直し、API の訳 72 件と日本語の文書
   4 つ (README.ja・ROADMAP.ja・docs/ja/api-reference・docs/ja/differences-from-r) を私が書いた。未訳 0、TypeDoc の /causal と
   clogit の警告 0。`dev/psm-1.12` は GitHub に push 済み (`f1fd3dd5` まで、ChatGPT 用。Actions は動かない)
+- **端のケースの点検 (ユーザーの指摘で 2026-11-24、`fa6c759b`):** `experiments/psm112-edge*.R`。R は 1e±300 で崩れる (Match が
+  止まる・全部 tolerance の同点、bal.tab・tableone が 0/NaN/Inf) → rStats.js は 2 のべき乗で誤差なく尺度をそろえ、先頭の値を
+  引いて計算 (`src/causal/scale.ts`、ldexp)。尺度・共通の値に依らないことを `test/causalEdge.test.ts` で確かめる。tableone の
+  カテゴリの SMD は一般化逆行列 (R と同じ)。clogit exact: 共線は NaN (coxph の Cholesky を export して共用)、反復を使い切った
+  ときは R と同じく iter.max 回・max(1, iter.max − 1) 回分の係数、大きな組は大きさごとの 2 のべき乗。情報の無いデータだけ
+  R と違う (NaN、文書に書いた)。match は n = 5000 で 0.7 秒
 - 残り (公開の時): デモの例 (examples.json に match・balTab・tableOneSmd・clogit、`npm run demo:r`、NOT_IN_DEMO_YET から外す)、
   版 1.12.0 (package.json・README と API の CDN の版・CHANGELOG の日付)、main に squash の 1 コミット + タグ、ユーザーが
   `npm stage approve`
