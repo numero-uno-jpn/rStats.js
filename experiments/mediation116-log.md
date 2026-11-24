@@ -160,3 +160,16 @@ script keeps the search that succeeded.
     observation's prediction of the mediator and the outcome", for a moderator W in both models with X:W and M:W
     interactions (lm / lm, lm / logit, logit / lm), quasi-Bayes and bootstrap, W at mean +- SD. **12 of 12 match
     (<= 3e-11); without the fixing they are far off (0.3-580). Settled.**
+
+## Implementation stage (2026-11-25)
+
+39. `test/mediate.test.ts` against `oracle/mediation.R` (52 cases): 48 matched at once. Two p-values differed by 0.01
+    (a binary mediator, a linear outcome): R's draws were +-3.2e-18 multiples (2.2e-16 / 70), residues of an exact 0
+    with a sign of their own; rStats.js's residues had other signs. The residues come from R's predictions (BLAS
+    products), which cannot be reproduced bit for bit. rStats.js now takes a linear outcome's differences as
+    (row difference) x b, which gives exactly 0 there; R's p-value counts its residues, so p may differ by 2 / sims
+    per residue (a recorded difference from R).
+40. The other two (probit mediator, bootstrap) differed in replicates 37 and 46 by 0.004-0.009.
+    `mediation116-probit-separation.R`: no separation; the resamples have 15 vs 15 at Xb = 0, so the probit intercept is
+    0 in theory: R +2.7e-16, rStats.js -3.8e-16. The mediator's probability is then 0.5 +- 1e-16, and rbinom turns its
+    computation around at p = 0.5, so the draws differ. Rounding only; the test leaves those two replicates out.

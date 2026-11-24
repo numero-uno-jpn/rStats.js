@@ -94,6 +94,12 @@ The calls followed are ReactiveStat's (`scripts/多変量/媒介分析.php`, `�
   have R's distribution but not R's numbers (the user's decision 2026-11-25: matching every sign would mean porting
   LAPACK's dstemr). So `moderatedMediation` with a continuous path agrees with R statistically only.
 - The draws are returned (as R's `*.sims`); printing is not offered.
+- A linear outcome's effects are means of (row difference) x b, so a draw whose conditions agree gives exactly 0. R's
+  differences of predictions leave residues of about 1e-17 of either sign (its BLAS products), and its p-value counts
+  them: rStats.js's p may differ by 2 / sims per such draw (log 39).
+- Rounding at p = 0.5: R's rbinom turns its computation around there, so a mediator probability of 0.5 +- 1e-16 (a
+  probit or logit intercept that is 0 in theory) gives different draws from rStats.js's when the two round to
+  different sides (log 40).
 
 ## To check
 
