@@ -1,0 +1,332 @@
+{
+  "AddDropOptions#summary": {
+    "hash": "6345d3527541",
+    "en": "Options of {@link drop1} and {@link add1}.",
+    "ja": "{@link drop1} と {@link add1} のオプションです。"
+  },
+  "AddDropOptions.scope#summary": {
+    "hash": "f59ca33ec03e",
+    "en": "The terms to consider, as a one-sided formula such as `\"~ x1 + x2 + f\"`. drop1: default the terms that can be\ndropped respecting marginality; add1: required, the largest model (the terms that can be added respecting\nmarginality are taken from it).",
+    "ja": "調べる項です。`\"~ x1 + x2 + f\"` のような片側の式で与えます。drop1: 既定は周辺性を保って除ける項です。add1: 必須で、最大のモデルです (周辺性を保って加えられる項をここから取ります)。"
+  },
+  "AddDropOptions.test#summary": {
+    "hash": "f9010c3c80cb",
+    "en": "A test column: `\"F\"` (lm; glm with an estimated dispersion), `\"Chisq\"` or `\"LRT\"` (the likelihood-ratio test of\nglm; for lm the change of RSS scaled by the residual variance), or `\"none\"` (default).",
+    "ja": "検定の列です: `\"F\"` (lm、分散を推定する glm)、`\"Chisq\"` または `\"LRT\"` (glm の尤度比検定。lm では残差分散で割った RSS の変化)、または `\"none\"` (既定)。"
+  },
+  "AddDropTable#summary": {
+    "hash": "4f3cd3c3e8e5",
+    "en": "Result of {@link drop1} and {@link add1}: R's table, one row for the current model (`\"<none>\"`) and one per term.",
+    "ja": "{@link drop1} と {@link add1} の結果です: R の表で、今のモデル (`\"<none>\"`) の行と、項ごとの行です。"
+  },
+  "AddDropTable.aic#summary": {
+    "hash": "384fb540a832",
+    "en": "The criterion of each model (AIC, or Cp with `scale > 0`).",
+    "ja": "各モデルの規準です (AIC、`scale > 0` では Cp)。"
+  },
+  "AddDropTable.criterion#summary": {
+    "hash": "05ad000d3ad2",
+    "en": "`\"AIC\"` or `\"Cp\"`: the name of the criterion's column in R.",
+    "ja": "`\"AIC\"` または `\"Cp\"`: R での規準の列の名前です。"
+  },
+  "AddDropTable.deviance#summary": {
+    "hash": "ce3c1af7ca99",
+    "en": "lm: the residual sum of squares of each model (R's `RSS`); glm: its deviance (R's `Deviance`).",
+    "ja": "lm: 各モデルの残差平方和 (R の `RSS`)。glm: その逸脱度 (R の `Deviance`)。"
+  },
+  "AddDropTable.df#summary": {
+    "hash": "ebf239f8fb9d",
+    "en": "Degrees of freedom of each term (the change of rank; NaN for `<none>`).",
+    "ja": "各項の自由度です (階数の変化。`<none>` は NaN)。"
+  },
+  "AddDropTable.pValue#summary": {
+    "hash": "c71d9674b44a",
+    "en": "The p-values of the test (R's `Pr(>F)` or `Pr(>Chi)`; NaN for `<none>`).",
+    "ja": "検定の p 値です (R の `Pr(>F)` または `Pr(>Chi)`。`<none>` は NaN)。"
+  },
+  "AddDropTable.statistic#summary": {
+    "hash": "7f421c167aa6",
+    "en": "The statistic of the test (R's `F value`, `LRT` or `scaled dev.`; NaN for `<none>`), when a test was asked for.",
+    "ja": "検定統計量です (R の `F value`、`LRT` または `scaled dev.`。`<none>` は NaN)。検定を指定したときだけあります。"
+  },
+  "AddDropTable.statisticName#summary": {
+    "hash": "acc5b2a56b83",
+    "en": "R's name of the statistic's column: `\"F value\"`, `\"LRT\"` (binomial, poisson) or `\"scaled dev.\"` (the others).",
+    "ja": "R での統計量の列の名前です: `\"F value\"`、`\"LRT\"` (binomial、poisson)、または `\"scaled dev.\"` (それ以外)。"
+  },
+  "AddDropTable.sumOfSq#summary": {
+    "hash": "aa143a389764",
+    "en": "lm: the change of the residual sum of squares (R's `Sum of Sq`; NaN for `<none>`). Absent for glm.",
+    "ja": "lm: 残差平方和の変化です (R の `Sum of Sq`。`<none>` は NaN)。glm にはありません。"
+  },
+  "AddDropTable.term#summary": {
+    "hash": "09ceda1b1def",
+    "en": "`\"<none>\"` and the terms.",
+    "ja": "`\"<none>\"` と項です。"
+  },
+  "AddDropTable.test#summary": {
+    "hash": "276433bb2e2c",
+    "en": "The test, when one was asked for: `\"F\"` or `\"Chisq\"`.",
+    "ja": "検定を指定したときの検定です: `\"F\"` または `\"Chisq\"`。"
+  },
+  "AddDropTable.warnings#summary": {
+    "hash": "012406759507",
+    "en": "R's warnings, each once.",
+    "ja": "R の警告です (それぞれ 1 回)。"
+  },
+  "ExtractAicOptions#summary": {
+    "hash": "b8bdd00b46e0",
+    "en": "Options of {@link extractAIC}.",
+    "ja": "{@link extractAIC} のオプションです。"
+  },
+  "ExtractAicOptions.k#summary": {
+    "hash": "8a2c6926aabd",
+    "en": "The weight of the equivalent degrees of freedom: 2 (default) for AIC, `Math.log(n)` for BIC.",
+    "ja": "等価自由度にかける重みです: AIC では 2 (既定)、BIC では `Math.log(n)`。"
+  },
+  "ExtractAicOptions.scale#summary": {
+    "hash": "b3633ba5560c",
+    "en": "lm only: a known residual variance; when positive the criterion is Mallows' Cp. Default 0. glm ignores it.",
+    "ja": "lm だけ: 既知の残差分散です。正のとき規準は Mallows の Cp になります。既定は 0。glm では無視します。"
+  },
+  "StepModel#summary": {
+    "hash": "ec10168dc49f",
+    "en": "A formula fit that the stepwise functions take: the result of {@link lm} or {@link glm} with a formula.",
+    "ja": "段階的選択の関数が受け取る、式で当てはめたモデルです: 式で当てはめた {@link lm} または {@link glm} の結果です。"
+  },
+  "StepOptions#summary": {
+    "hash": "e3102fe5ae3f",
+    "en": "Options of {@link step} and {@link stepAIC}.",
+    "ja": "{@link step} と {@link stepAIC} のオプションです。"
+  },
+  "StepOptions.direction#summary": {
+    "hash": "bf59a767fc1d",
+    "en": "`\"both\"` (default), `\"backward\"` or `\"forward\"`.",
+    "ja": "`\"both\"` (既定)、`\"backward\"` または `\"forward\"`。"
+  },
+  "StepOptions.k#summary": {
+    "hash": "8a2c6926aabd",
+    "en": "The weight of the equivalent degrees of freedom: 2 (default) for AIC, `Math.log(n)` for BIC.",
+    "ja": "等価自由度にかける重みです: AIC では 2 (既定)、BIC では `Math.log(n)`。"
+  },
+  "StepOptions.scale#summary": {
+    "hash": "ea876ba68a92",
+    "en": "lm only: a known residual variance; when positive the criterion is Mallows' Cp. Default 0.",
+    "ja": "lm だけ: 既知の残差分散です。正のとき規準は Mallows の Cp になります。既定は 0。"
+  },
+  "StepOptions.scope#summary": {
+    "hash": "81cce6e69dba",
+    "en": "The range of models: a one-sided formula for the largest (`\"~ x1 + x2 + f\"`), or `{ lower, upper }` (either may be\nleft out: lower default no terms, upper default the start model). Without a scope only terms of the start\nmodel can be dropped.",
+    "ja": "モデルの範囲です: 最大のモデルの片側の式 (`\"~ x1 + x2 + f\"`)、または `{ lower, upper }` (どちらも省略でき、lower の既定は項なし、upper の既定は開始モデル)。scope がなければ、開始モデルの項を除くことだけができます。"
+  },
+  "StepOptions.steps#summary": {
+    "hash": "24040977c866",
+    "en": "The largest number of moves. Default 1000.",
+    "ja": "動きの最大の回数です。既定は 1000。"
+  },
+  "StepResult#summary": {
+    "hash": "e2633dde62cb",
+    "en": "Result of {@link step} and {@link stepAIC}.",
+    "ja": "{@link step} と {@link stepAIC} の結果です。"
+  },
+  "StepResult.anova#summary": {
+    "hash": "d1d2f8960db1",
+    "en": "The path (R's `$anova`): one row for the start (step `\"\"`, df and deviance NaN) and one per move. `df` is the change\nof the residual degrees of freedom (step: −1 for an added term) or its size (stepAIC: positive); `deviance` the\nchange of the residual deviance (positive); `residDf` = nobs − edf; `aic` the criterion.",
+    "ja": "経路です (R の `$anova`): 開始の行 (step は `\"\"`、df と deviance は NaN) と、動きごとの行です。`df` は残差自由度の変化 (step: 項を加えると −1) またはその大きさ (stepAIC: 正の値)、`deviance` は残差逸脱度の変化 (正の値)、`residDf` は nobs − edf、`aic` は規準です。"
+  },
+  "StepResult.anova.aic#summary": {
+    "hash": "184af9894b1d",
+    "en": "The criterion of each model (R's `AIC` or `Cp` column).",
+    "ja": "各モデルの規準です (R の `AIC` または `Cp` の列)。"
+  },
+  "StepResult.anova.deviance#summary": {
+    "hash": "e70e5e1015d9",
+    "en": "The change of the residual deviance (positive); NaN for the start.",
+    "ja": "残差逸脱度の変化です (正の値)。開始は NaN。"
+  },
+  "StepResult.anova.df#summary": {
+    "hash": "f66f56c7f3e9",
+    "en": "The change of the residual degrees of freedom (step) or its size (stepAIC); NaN for the start.",
+    "ja": "残差自由度の変化 (step) またはその大きさ (stepAIC) です。開始は NaN。"
+  },
+  "StepResult.anova.residDeviance#summary": {
+    "hash": "7d021600f2f9",
+    "en": "The residual deviance of each model (lm: the RSS).",
+    "ja": "各モデルの残差逸脱度です (lm では RSS)。"
+  },
+  "StepResult.anova.residDf#summary": {
+    "hash": "f4de9217dc91",
+    "en": "nobs − edf of each model.",
+    "ja": "各モデルの nobs − edf です。"
+  },
+  "StepResult.anova.step#summary": {
+    "hash": "6e791b25e4ad",
+    "en": "`\"\"` for the start, `\"- term\"` or `\"+ term\"` for each move.",
+    "ja": "開始は `\"\"`、各動きは `\"- term\"` または `\"+ term\"` です。"
+  },
+  "StepResult.criterion#summary": {
+    "hash": "05ad000d3ad2",
+    "en": "`\"AIC\"` or `\"Cp\"`: the name of the criterion's column in R.",
+    "ja": "`\"AIC\"` または `\"Cp\"`: R での規準の列の名前です。"
+  },
+  "StepResult.fit#summary": {
+    "hash": "3b712b32fd4c",
+    "en": "The selected model: the result of `lm` or `glm` with its formula.",
+    "ja": "選ばれたモデルです: 式つきの `lm` または `glm` の結果です。"
+  },
+  "StepResult.visits#summary": {
+    "hash": "276d1a13cb2d",
+    "en": "Each model visited, the start first, with the table examined from it (R's printed trace).",
+    "ja": "たどった各モデルです。開始モデルが最初で、そこで調べた表がついています (R が表示する trace)。"
+  },
+  "StepResult.warnings#summary": {
+    "hash": "ec6f723d30ca",
+    "en": "R's warnings, each once (those of the refits, of add1's combined fit, of a perfect fit).",
+    "ja": "R の警告です (それぞれ 1 回。当てはめ直し、add1 の合わせた当てはめ、完全な当てはめの警告)。"
+  },
+  "StepVisit#summary": {
+    "hash": "a53378b74023",
+    "en": "One model of the search: its formula and criterion, and the table of moves that was examined from it (sorted by the\ncriterion, `\"<none>\"` the current model, `\"- term\"` a drop, `\"+ term\"` an add), as R prints them.",
+    "ja": "探索の 1 つのモデルです: その式と規準、そこで調べた動きの表 (規準で並べ替え、`\"<none>\"` は今のモデル、`\"- term\"` は除く、`\"+ term\"` は加える)。R の表示と同じです。"
+  },
+  "StepVisit.aic#summary": {
+    "hash": "c042b0ce1453",
+    "en": "Its criterion (R's `extractAIC`).",
+    "ja": "その規準です (R の `extractAIC`)。"
+  },
+  "StepVisit.formula#summary": {
+    "hash": "9c4ae1311bf0",
+    "en": "The model's formula.",
+    "ja": "モデルの式です。"
+  },
+  "StepVisit.table#summary": {
+    "hash": "b95f6720dcb9",
+    "en": "The table examined from it; absent when an aliased term was removed without a table, or the steps ran out.",
+    "ja": "そこで調べた表です。別名の項を表なしで除いたとき、または steps を使い切ったときはありません。"
+  },
+  "StepVisit.table.aic#summary": {
+    "hash": "26f64aaadbdd",
+    "en": "The criterion after the move.",
+    "ja": "動いた後の規準です。"
+  },
+  "StepVisit.table.deviance#summary": {
+    "hash": "8ea88dd47bbe",
+    "en": "lm: residual sum of squares; glm: deviance (of the model after the move).",
+    "ja": "lm: 残差平方和。glm: 逸脱度 (動いた後のモデルの値)。"
+  },
+  "StepVisit.table.df#summary": {
+    "hash": "d714e986e433",
+    "en": "Degrees of freedom of each move (NaN for `<none>`).",
+    "ja": "各動きの自由度です (`<none>` は NaN)。"
+  },
+  "StepVisit.table.move#summary": {
+    "hash": "f4d57636455b",
+    "en": "`\"<none>\"`, `\"- term\"` and `\"+ term\"`, sorted by the criterion.",
+    "ja": "`\"<none>\"`、`\"- term\"`、`\"+ term\"` です。規準で並べ替えてあります。"
+  },
+  "StepVisit.table.sumOfSq#summary": {
+    "hash": "17076e6d75d8",
+    "en": "lm: the change of the residual sum of squares (NaN for `<none>`). Absent for glm.",
+    "ja": "lm: 残差平方和の変化です (`<none>` は NaN)。glm にはありません。"
+  },
+  "StepVisit.termLabels#summary": {
+    "hash": "9cd7bc2295a1",
+    "en": "The labels of its terms.",
+    "ja": "その項のラベルです。"
+  },
+  "add1#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": "⟦code1⟧"
+  },
+  "add1#@param data": {
+    "hash": "9f88b229f911",
+    "en": "The data frame the fit was made from.",
+    "ja": "当てはめに使ったデータフレームです。"
+  },
+  "add1#@param fit": {
+    "hash": "7b165c8e5f05",
+    "en": "A fit of {@link lm} or {@link glm} with a formula.",
+    "ja": "式で当てはめた {@link lm} または {@link glm} です。"
+  },
+  "add1#summary": {
+    "hash": "49fba54499cc",
+    "en": "The models with one term added, for lm and glm. Equivalent to R's `add1()`. With the change of the residual sum of squares or the\ndeviance, the criterion of {@link extractAIC} (edf the rank) and optionally a test. The terms are those of `scope`\nthat can be added respecting marginality. Every model is refitted on the rows complete in the variables of the\nmodel and of all the terms; when these are fewer than the fit's rows the current model is refitted on them too,\nwith R's warning \"using the m/n rows from a combined fit\".",
+    "ja": "lm と glm で、項を 1 つずつ加えたモデルです。R の `add1()` と同等です。残差平方和または逸脱度の変化、{@link extractAIC} の規準 (edf は階数)、指定すれば検定を返します。項は `scope` のうち周辺性を保って加えられるものです。各モデルは、モデルとすべての項の変数がそろった行で当てはめ直します。それが当てはめの行より少ないときは、今のモデルもその行で当てはめ直し、R と同じ警告 \"using the m/n rows from a combined fit\" を出します。"
+  },
+  "drop1#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": "⟦code1⟧"
+  },
+  "drop1#@param data": {
+    "hash": "9f88b229f911",
+    "en": "The data frame the fit was made from.",
+    "ja": "当てはめに使ったデータフレームです。"
+  },
+  "drop1#@param fit": {
+    "hash": "7b165c8e5f05",
+    "en": "A fit of {@link lm} or {@link glm} with a formula.",
+    "ja": "式で当てはめた {@link lm} または {@link glm} です。"
+  },
+  "drop1#summary": {
+    "hash": "28eba24a8fa0",
+    "en": "The models with one term dropped, for lm and glm. Equivalent to R's `drop1()`. With the change of the residual sum of squares or\nthe deviance, the criterion of {@link extractAIC} (edf the rank) and optionally a test. As in R, each model is the\nfit's model matrix without the columns of the term, on the rows of `fit` (not a refit of a formula). By default\nonly the terms not contained in another term of the model are dropped (marginality).",
+    "ja": "lm と glm で、項を 1 つずつ除いたモデルです。R の `drop1()` と同等です。残差平方和または逸脱度の変化、{@link extractAIC} の規準 (edf は階数)、指定すれば検定を返します。R と同じく、各モデルは当てはめのモデル行列からその項の列を除いたもので、`fit` の行で当てはめます (式から当てはめ直すのではありません)。既定では、モデルのほかの項に含まれない項だけを除きます (周辺性)。"
+  },
+  "extractAIC#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": "⟦code1⟧"
+  },
+  "extractAIC#@param fit": {
+    "hash": "7b165c8e5f05",
+    "en": "A fit of {@link lm} or {@link glm} with a formula.",
+    "ja": "式で当てはめた {@link lm} または {@link glm} です。"
+  },
+  "extractAIC#summary": {
+    "hash": "2304ae26faa7",
+    "en": "The criterion of a fit for model selection: `[edf, criterion]`. Equivalent to R's `extractAIC()`. lm: n log(RSS / n) + k edf, or with `scale > 0`\nMallows' Cp = RSS / scale − n + k edf; glm: AIC + (k − 2) edf. n counts the rows used (weight-0 rows included) and\nedf = n − the residual degrees of freedom, so that with weight-0 rows edf exceeds the rank by their number, as in R.",
+    "ja": "モデル選択のための当てはめの規準です: `[edf, criterion]`。R の `extractAIC()` と同等です。lm: n log(RSS / n) + k edf、`scale > 0` では Mallows の Cp = RSS / scale − n + k edf。glm: AIC + (k − 2) edf。n は使った行の数 (重み 0 の行も含む) で、edf = n − 残差自由度なので、R と同じく重み 0 の行があると edf は階数よりその行数だけ大きくなります。"
+  },
+  "step#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": "⟦code1⟧"
+  },
+  "step#@param data": {
+    "hash": "9f88b229f911",
+    "en": "The data frame the fit was made from.",
+    "ja": "当てはめに使ったデータフレームです。"
+  },
+  "step#@param fit": {
+    "hash": "16b8e8a1b1e3",
+    "en": "The start model: a fit of {@link lm} or {@link glm} with a formula.",
+    "ja": "開始モデルです: 式で当てはめた {@link lm} または {@link glm} です。"
+  },
+  "step#summary": {
+    "hash": "c932ebb18717",
+    "en": "Stepwise selection of the terms of a linear or generalized linear model by AIC. Equivalent to R's `step()`. From the start model,\neach step examines the models with one term dropped (respecting marginality, keeping the lower scope) and, with an\nupper scope, one term added, and moves to the one with the smallest criterion of {@link extractAIC} when it is\nstrictly below the current model's; it stops when no move improves it, or after `steps` moves. `k = Math.log(n)`\ngives BIC. Terms whose columns are all aliased are removed first. The result holds the selected fit, the path\n(R's `$anova`) and every table examined (R's printed trace).\n\nAs in R, the models are refitted on their own rows: when a move changes the number of rows used (a variable with\nmissing values dropped or added) the search stops with an error, and the table of adds is computed on the rows\ncomplete in all the candidates' variables (with a warning when those are fewer).",
+    "ja": "AIC による、線形モデルまたは一般化線形モデルの項の段階的選択です。R の `step()` と同等です。開始モデルから、各段で項を 1 つ除いたモデル (周辺性を保ち、lower の範囲は残す) と、upper の範囲があれば項を 1 つ加えたモデルを調べ、{@link extractAIC} の規準が最小のものが今のモデルより厳密に小さければそこへ動きます。どの動きでも良くならないか、`steps` 回動いたら止まります。`k = Math.log(n)` で BIC になります。列がすべて別名の項は最初に除きます。結果は、選ばれた当てはめ、経路 (R の `$anova`)、調べたすべての表 (R が表示する trace) です。\n\nR と同じく、各モデルはそれ自身の行で当てはめ直します。動きによって使う行の数が変わるとき (欠測値のある変数を除く・加える) はエラーで止まり、加える候補の表は全候補の変数がそろった行で計算します (その行が少ないときは警告します)。"
+  },
+  "stepAIC#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": "⟦code1⟧"
+  },
+  "stepAIC#@param data": {
+    "hash": "9f88b229f911",
+    "en": "The data frame the fit was made from.",
+    "ja": "当てはめに使ったデータフレームです。"
+  },
+  "stepAIC#@param fit": {
+    "hash": "16b8e8a1b1e3",
+    "en": "The start model: a fit of {@link lm} or {@link glm} with a formula.",
+    "ja": "開始モデルです: 式で当てはめた {@link lm} または {@link glm} です。"
+  },
+  "stepAIC#summary": {
+    "hash": "d68ab0cfa800",
+    "en": "Stepwise selection by AIC. Equivalent to `MASS::stepAIC()` in R. The same search as {@link step}; the only difference R shows is the\npath's `df`, which stepAIC gives as the size of the term moved (positive) where step gives the change of the\nresidual degrees of freedom.",
+    "ja": "AIC による段階的選択です。R の `MASS::stepAIC()` と同等です。{@link step} と同じ探索で、R で違うのは経路の `df` だけです: step は残差自由度の変化を、stepAIC は動かした項の大きさ (正の値) を返します。"
+  }
+}

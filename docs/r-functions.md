@@ -246,6 +246,7 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | R | rStats.js | Description |
 | --- | --- | --- |
 | `nortest::ad.test()` | `adTest` | Anderson-Darling test for normality. |
+| `add1()` | `add1` | The models with one term added, for lm and glm. |
 | `psych::alpha()` | `cronbachAlpha` | Cronbach's alpha of a set of items, standardized alpha, Guttman's lambda 6 and the mean inter-item correlation, and alpha with each item dropped. |
 | `anova()` | `anova` | Analysis of variance of linear models fitted from a formula. |
 | `car::Anova()` | `Anova` | Type II or type III tests of the terms of a linear model. |
@@ -280,6 +281,7 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `cmprsk::crr()` | `crr` | Fine-Gray proportional subdistribution hazards regression. |
 | `cmprsk::cuminc()` | `cuminc` | Cumulative incidence functions and Gray's tests for competing risks. |
 | `nortest::cvm.test()` | `cvmTest` | Cramer-von Mises test for normality. |
+| `drop1()` | `drop1` | The models with one term dropped, for lm and glm. |
 | `PMCMRplus::dscfAllPairsTest()` | `dscfAllPairsTest` | Dwass-Steel-Critchlow-Fligner all-pairs test of pairwise Mann-Whitney statistics. |
 | `dunn.test::dunn.test()` | `dunnTest` | Dunn's test of all pairs of mean ranks. |
 | `PMCMRplus::dunnettTest()` | `dunnettTest` | Dunnett's many-to-one test of means against the control, with the pooled variance. |
@@ -297,13 +299,14 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `metafor::escalc()` | `escalc` | Computes study-level effect sizes and sampling variances. |
 | `effectsize::eta_squared()` | `etaSquared` | Eta squared of the terms of an analysis-of-variance table, with confidence intervals from the noncentral F distribution. |
 | `Exact::exact.test()` | `boschlooTest` | Boschloo's exact unconditional test for a 2 x 2 table whose rows are two independent binomial samples. |
+| `extractAIC()` | `extractAIC` | The criterion of a fit for model selection. |
 | `factanal()` | `factanal` | Maximum-likelihood factor analysis of a data matrix or, with `options.covmat`, of a covariance matrix. |
 | `fisher.test()` | `fisherTest` | Fisher's exact test for count data. |
 | `fligner.test()` | `flignerTest` | Fligner-Killeen test of homogeneity of variances. |
 | `friedman.test()` | `friedmanTest` | Friedman rank sum test for an unreplicated complete block design. |
 | `PMCMRplus::gamesHowellTest()` | `gamesHowellTest` | Games-Howell all-pairs test of means with Welch's standard errors and degrees of freedom. |
 | `multcomp::glht()` | `glhtDunnett` | Dunnett's many-to-one comparisons of a one-way ANOVA with simultaneous p-values. |
-| `glm()` | `glm` | Fit a generalized linear model by iteratively reweighted least squares. |
+| `glm()` | `glm` | Fit a generalized linear model by iteratively reweighted least squares, from a formula and a data frame. |
 | `DescTools::GoodmanKruskalGamma()` | `goodmanKruskalGamma` | Goodman and Kruskal's gamma of a table of two ordered classifications, with its asymptotic standard error and a Wald confidence interval. |
 | `outliers::grubbs.test()` | `grubbsTest` | Grubbs' test for one outlier. |
 | `DescTools::GTest()` | `gTest` | Log-likelihood ratio (G) test of independence in a contingency table, or of goodness of fit of counts to given probabilities. |
@@ -383,6 +386,8 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `shapiro.test()` | `shapiroTest` | Shapiro-Wilk test of normality. |
 | `powerSurvEpi::ssizeCT.default()` | `ssizeCT` | Freedman clinical-trial sample size. |
 | `powerSurvEpi::ssizeEpi.default()` | `ssizeEpi` | Schoenfeld/Latouche total sample size. |
+| `step()` | `step` | Stepwise selection of the terms of a linear or generalized linear model by AIC. |
+| `MASS::stepAIC()` | `stepAIC` | Stepwise selection by AIC. |
 | `DescTools::StuartMaxwellTest()` | `stuartMaxwellTest` | Stuart-Maxwell test of marginal homogeneity of a square table. |
 | `summary()` | `aovSummary` | The table of an analysis of variance fitted by `aov`. |
 | `summary()` | `glmSummary` | Summary of a generalized linear model: the dispersion, the coefficient table and the covariance of the estimates, for a `glm` fit. |

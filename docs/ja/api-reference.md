@@ -107,6 +107,29 @@ R の名前が JavaScript の予約語である場合や、一般的すぎてそ
 `setSeed(42)` の後では、`rnorm`、`runif`、`sample` などは、R で `set.seed(42)` とした後と同じ数値を返します。
 
 
+## 変数選択 (段階的なモデル選択)
+
+`step`・`stepAIC`・`drop1`・`add1`・`extractAIC` は、式で当てはめた `lm` か `glm` (1.15.0 から式で当てはめられる) と、
+当てはめに使ったデータフレームを受け取ります。
+
+```ts
+import { lm, glm, step, stepAIC, drop1, add1, extractAIC } from "@numero-uno-jpn/rstats";
+
+const full = lm("y ~ x1 + x2 + x3 + f", data);
+const s = step(lm("y ~ 1", data), data, { scope: { lower: "~ 1", upper: "~ x1 + x2 + x3 + f" } }); // "both"
+s.fit;      // 選ばれた lm の当てはめ
+s.anova;    // 経路 (R の $anova): step, df, deviance, residDf, residDeviance, aic
+s.visits;   // たどった各モデルと、そこで調べた表 (R の trace)
+step(full, data, { direction: "backward", k: Math.log(full.nObs) }); // BIC
+step(glm("y01 ~ x1 + x2 + f", data, { family: "binomial" }), data); // glm
+drop1(full, data, { test: "F" }); // add1(fit, data, { scope, test }) も
+extractAIC(full); // [edf, AIC]
+```
+
+探索は R と同じです。項は周辺性を保って丸ごと出し入れし、規準が厳密に小さくなるときだけ動き、別名の項は最初に外します。
+R と同じく、使う行が変わる動き (欠損値) はエラーで止まります。`stepAIC` は同じ探索で、経路の `df` だけが違います (正の値)。
+glm の表の AIC は R の値です (Gamma と inverse.gaussian では分散を通した近似で、探索もそれに従います)。
+
 ## 多項ロジスティック回帰
 
 `multinom` とその関数は `/regression` にあり、`polr` と同じく式とデータフレームで与えます。

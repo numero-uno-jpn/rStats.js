@@ -7,6 +7,13 @@ While the version is 0.x, a minor release (0.y.0) may contain breaking changes;
 they are listed under **Breaking** for each release. From 1.0.0 the project follows
 [Semantic Versioning](https://semver.org/).
 
+## 1.15.0 - 2026-11-25
+
+### Added
+
+- **Stepwise model selection** for `lm` and `glm` fits: `step` and `stepAIC` (after `stats::step` and `MASS::stepAIC`: backward, forward and both directions with a lower and an upper scope, AIC or BIC through `k`, Mallows' Cp through `scale`; the selected fit, the path and every table examined), `drop1` and `add1` (with F and likelihood-ratio tests) and `extractAIC`. The search follows R, including its handling of missing values and its approximate AIC for Gamma glms ([the differences](docs/differences-from-r.md#stepwise-model-selection-1150)).
+- **`glm` with a formula and a data frame**: `glm(formula, data, { family, weights, offset, contrasts, levels })`, the formula language of `lm` (the binomial response also as `cbind(successes, failures)`); the result is the matrix form's with the formula's terms, and every glm method applies to it.
+
 ## 1.14.0 - 2026-11-24
 
 ### Added

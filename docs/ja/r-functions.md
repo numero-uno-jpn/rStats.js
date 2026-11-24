@@ -246,6 +246,7 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | R | rStats.js | 説明 |
 | --- | --- | --- |
 | `nortest::ad.test()` | `adTest` | Anderson-Darling の正規性検定 |
+| `add1()` | `add1` | 項を 1 つずつ加えたモデルの比較 (lm と glm) |
 | `psych::alpha()` | `cronbachAlpha` | 項目群の Cronbach の α、標準化 α、Guttman の λ6、項目間相関の平均、各項目を除いたときの α |
 | `anova()` | `anova` | 式から当てはめた線形モデルの分散分析 |
 | `car::Anova()` | `Anova` | 線形モデルの項の Type II または Type III の検定 |
@@ -280,6 +281,7 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `cmprsk::crr()` | `crr` | Fine-Gray の部分分布ハザードの比例ハザード回帰 |
 | `cmprsk::cuminc()` | `cuminc` | 競合リスクの累積発生関数と Gray の検定 |
 | `nortest::cvm.test()` | `cvmTest` | Cramer-von Mises の正規性検定 |
+| `drop1()` | `drop1` | 項を 1 つずつ除いたモデルの比較 (lm と glm) |
 | `PMCMRplus::dscfAllPairsTest()` | `dscfAllPairsTest` | 対ごとの Mann-Whitney 統計量による Dwass-Steel-Critchlow-Fligner の全対比較検定 |
 | `dunn.test::dunn.test()` | `dunnTest` | 平均順位のすべての対についての Dunn の検定 |
 | `PMCMRplus::dunnettTest()` | `dunnettTest` | プールした分散による、対照群に対する平均の Dunnett の多対一検定 |
@@ -297,13 +299,14 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `metafor::escalc()` | `escalc` | 研究ごとの効果量とその標本分散 |
 | `effectsize::eta_squared()` | `etaSquared` | 分散分析表の各項のイータ二乗と、非心 F 分布による信頼区間 |
 | `Exact::exact.test()` | `boschlooTest` | 行が独立な 2 つの二項標本である 2 x 2 表に対する Boschloo の正確な無条件検定 |
+| `extractAIC()` | `extractAIC` | モデル選択の規準 (AIC・BIC・Cp) |
 | `factanal()` | `factanal` | データ行列、または `options.covmat` を与えたときは共分散行列の最尤因子分析 |
 | `fisher.test()` | `fisherTest` | 計数データに対する Fisher の正確検定 |
 | `fligner.test()` | `flignerTest` | 分散の均一性についての Fligner-Killeen 検定 |
 | `friedman.test()` | `friedmanTest` | 反復のない完全ブロック計画に対する Friedman の順位和検定 |
 | `PMCMRplus::gamesHowellTest()` | `gamesHowellTest` | Welch の標準誤差と自由度による、平均の Games-Howell の全対比較検定 |
 | `multcomp::glht()` | `glhtDunnett` | 一元配置分散分析での Dunnett の多対一比較 (同時 p 値つき) |
-| `glm()` | `glm` | 反復重み付き最小二乗法による一般化線形モデルの当てはめ |
+| `glm()` | `glm` | 反復重み付き最小二乗法による一般化線形モデルの当てはめ (式とデータ、または行列) |
 | `DescTools::GoodmanKruskalGamma()` | `goodmanKruskalGamma` | 2 つの順序のある分類の表の Goodman と Kruskal のガンマ (漸近標準誤差と Wald 信頼区間つき) |
 | `outliers::grubbs.test()` | `grubbsTest` | 外れ値 1 つについての Grubbs の検定 (type 10) |
 | `DescTools::GTest()` | `gTest` | 分割表の独立性、または計数の与えた確率への適合度についての対数尤度比 (G) 検定 |
@@ -383,6 +386,8 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `shapiro.test()` | `shapiroTest` | Shapiro-Wilk の正規性検定 |
 | `powerSurvEpi::ssizeCT.default()` | `ssizeCT` | Freedman の方法による臨床試験の標本サイズ |
 | `powerSurvEpi::ssizeEpi.default()` | `ssizeEpi` | Schoenfeld・Latouche の方法による全体の標本サイズ |
+| `step()` | `step` | AIC による線形・一般化線形モデルの項の段階的選択 |
+| `MASS::stepAIC()` | `stepAIC` | AIC による段階的選択 (MASS) |
 | `DescTools::StuartMaxwellTest()` | `stuartMaxwellTest` | 正方の表の周辺の一様性についての Stuart-Maxwell 検定 |
 | `summary()` | `aovSummary` | `aov` で当てはめた分散分析の表 |
 | `summary()` | `glmSummary` | `glm` で当てはめた一般化線形モデルの要約: 分散パラメータ、係数の表、推定値の共分散 |

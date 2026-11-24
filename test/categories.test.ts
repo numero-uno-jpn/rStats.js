@@ -23,6 +23,7 @@ const CATEGORIES = [
   "Meta-analysis",
   "Linear models and ANOVA",
   "Generalized linear models",
+  "Model selection",
   "Mixed models",
   "Regression",
   "Multivariate analysis",

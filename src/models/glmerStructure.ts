@@ -46,10 +46,10 @@ export interface GlmerStructure extends MixedModelStructure {
   nAGQ: number;
 }
 
-type Column = readonly (number | null)[] | Float64Array;
+export type Column = readonly (number | null)[] | Float64Array;
 
 /** A weights or offset argument as numbers over all rows of the data (NaN for missing) */
-function rowValues(given: Column | string, data: DataFrame, nAll: number, what: "weights" | "offset"): number[] {
+export function rowValues(given: Column | string, data: DataFrame, nAll: number, what: "weights" | "offset"): number[] {
   let col: unknown;
   if (typeof given === "string") {
     col = Object.hasOwn(data, given) ? data[given] : undefined;
@@ -66,7 +66,7 @@ function rowValues(given: Column | string, data: DataFrame, nAll: number, what: 
 }
 
 /** Whether a column of the data holds booleans (a logical response is 0/1, not a factor) */
-const isLogicalColumn = (data: DataFrame, name: string): boolean => {
+export const isLogicalColumn = (data: DataFrame, name: string): boolean => {
   const col = Object.hasOwn(data, name) ? data[name] : undefined;
   return Array.isArray(col) && col.some((v) => typeof v === "boolean");
 };

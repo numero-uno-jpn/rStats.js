@@ -1,0 +1,245 @@
+{
+  "R": "R version 4.6.2 (2026-10-29)",
+  "gamma": {
+    "family": "Gamma",
+    "link": "inverse",
+    "full_aic": 120.83153485960942,
+    "full_dev": 11.659827077028405,
+    "drop1_none_AIC": 120.83153485960942,
+    "full_disp": 0.20212180546791303,
+    "cands": [
+      {
+        "term": "x1",
+        "drop1_AIC": 139.41713817589505,
+        "drop1_dev": 15.820626385962314,
+        "fresh_aic": 137.83133915266166,
+        "fresh_dev": 15.820626385962314,
+        "fresh_rank": 5,
+        "working_aic": 633.76231721030331,
+        "working_dev": 48.76863774203963,
+        "disp_full_pearson": 0.20212074424226945,
+        "disp_cand_pearson": 0.26607526188013958
+      },
+      {
+        "term": "x2",
+        "drop1_AIC": 137.57102736839798,
+        "drop1_dev": 15.44748713645718,
+        "fresh_aic": 136.33746610183482,
+        "fresh_dev": 15.44748713645718,
+        "fresh_rank": 5,
+        "working_aic": 668.8771593578789,
+        "working_dev": 57.526410944820917,
+        "disp_full_pearson": 0.20212074424226945,
+        "disp_cand_pearson": 0.28514079508710727
+      },
+      {
+        "term": "x3",
+        "drop1_AIC": 120.76164993038402,
+        "drop1_dev": 12.049945419894199,
+        "fresh_aic": 120.87095207895413,
+        "fresh_dev": 12.049945419894199,
+        "fresh_rank": 5,
+        "working_aic": 571.11444559542531,
+        "working_dev": 36.232231667965429,
+        "disp_full_pearson": 0.20212074424226945,
+        "disp_cand_pearson": 0.2112999553997974
+      },
+      {
+        "term": "f",
+        "drop1_AIC": 118.53708182625148,
+        "drop1_dev": 12.004555309236419,
+        "fresh_aic": 118.63698028353268,
+        "fresh_dev": 12.004555309236419,
+        "fresh_rank": 4,
+        "working_aic": 577.89530656626653,
+        "working_dev": 37.779483944339731,
+        "disp_full_pearson": 0.20212074424226945,
+        "disp_cand_pearson": 0.20511677073577567
+      }
+    ]
+  },
+  "gamma_log": {
+    "family": "Gamma",
+    "link": "log",
+    "full_aic": 116.35164866333734,
+    "full_dev": 11.569824062103713,
+    "drop1_none_AIC": 116.35164866333734,
+    "full_disp": 0.1854985686137888,
+    "cands": [
+      {
+        "term": "x1",
+        "drop1_AIC": 139.95755515576849,
+        "drop1_dev": 16.319683064508215,
+        "fresh_aic": 135.77737995885218,
+        "fresh_dev": 16.319683064508215,
+        "fresh_rank": 3,
+        "working_aic": 135.77737995885218,
+        "working_dev": 16.319683064508215,
+        "disp_full_pearson": 0.1854985686137888,
+        "disp_cand_pearson": 0.26862992012658238
+      },
+      {
+        "term": "x2",
+        "drop1_AIC": 133.19808668065991,
+        "drop1_dev": 15.065811337785538,
+        "fresh_aic": 130.77315379999507,
+        "fresh_dev": 15.065811337785538,
+        "fresh_rank": 3,
+        "working_aic": 130.77315379999507,
+        "working_dev": 15.065811337785538,
+        "disp_full_pearson": 0.1854985686137888,
+        "disp_cand_pearson": 0.27386635466360265
+      },
+      {
+        "term": "x3",
+        "drop1_AIC": 117.53232356378236,
+        "drop1_dev": 12.159834703362069,
+        "fresh_aic": 117.43388295138257,
+        "fresh_dev": 12.159834703362069,
+        "fresh_rank": 3,
+        "working_aic": 117.43388295138257,
+        "working_dev": 12.159834703362069,
+        "disp_full_pearson": 0.1854985686137888,
+        "disp_cand_pearson": 0.19037667201497541
+      }
+    ]
+  },
+  "invgauss": {
+    "family": "inverse.gaussian",
+    "link": "log",
+    "full_aic": 115.73697131920753,
+    "full_dev": 8.9890472147130094,
+    "drop1_none_AIC": 115.73697131920753,
+    "full_disp": 0.12286381386240075,
+    "cands": [
+      {
+        "term": "x1",
+        "drop1_AIC": 139.87867266931707,
+        "drop1_dev": 12.200916343439339,
+        "fresh_aic": 132.06722325681676,
+        "fresh_dev": 12.200916343439339,
+        "fresh_rank": 3,
+        "working_aic": 80.608189956209287,
+        "working_dev": 9.4228112519130907,
+        "disp_full_pearson": 0.12286290176057704,
+        "disp_cand_pearson": 0.16589320192758877
+      },
+      {
+        "term": "x2",
+        "drop1_AIC": 128.92741227023947,
+        "drop1_dev": 10.855402724208391,
+        "fresh_aic": 125.05633389364385,
+        "fresh_dev": 10.855402724208391,
+        "fresh_rank": 3,
+        "working_aic": 73.630972714846592,
+        "working_dev": 8.0793007350968633,
+        "disp_full_pearson": 0.12286290176057704,
+        "disp_cand_pearson": 0.17968076656390586
+      },
+      {
+        "term": "x3",
+        "drop1_AIC": 116.66824897305656,
+        "drop1_dev": 9.3491951667545337,
+        "fresh_aic": 116.09397538504244,
+        "fresh_dev": 9.3491951667545337,
+        "fresh_rank": 3,
+        "working_aic": 66.659717304826387,
+        "working_dev": 6.9282594184254185,
+        "disp_full_pearson": 0.12286290176057704,
+        "disp_cand_pearson": 0.11967014564955006
+      }
+    ]
+  },
+  "gaussian": {
+    "family": "gaussian",
+    "link": "identity",
+    "full_aic": 184.95110183741923,
+    "full_dev": 64.86571391331438,
+    "drop1_none_AIC": 184.95110183741923,
+    "full_disp": 1.1583163198806139,
+    "cands": [
+      {
+        "term": "x1",
+        "drop1_AIC": 225.74776379047279,
+        "drop1_dev": 132.36945206808838,
+        "fresh_aic": 225.74776379047282,
+        "fresh_dev": 132.36945206808838,
+        "fresh_rank": 3,
+        "working_aic": 225.74776379047282,
+        "working_dev": 132.36945206808838,
+        "disp_full_pearson": 1.1583163198806139,
+        "disp_cand_pearson": 2.3222710889138312
+      },
+      {
+        "term": "x2",
+        "drop1_AIC": 194.63945617045849,
+        "drop1_dev": 78.816715393663657,
+        "fresh_aic": 194.63945617045852,
+        "fresh_dev": 78.816715393663657,
+        "fresh_rank": 3,
+        "working_aic": 194.63945617045852,
+        "working_dev": 78.816715393663657,
+        "disp_full_pearson": 1.1583163198806139,
+        "disp_cand_pearson": 1.3827493928712922
+      },
+      {
+        "term": "x3",
+        "drop1_AIC": 188.7317255682309,
+        "drop1_dev": 71.426069514036527,
+        "fresh_aic": 188.7317255682309,
+        "fresh_dev": 71.426069514036527,
+        "fresh_rank": 3,
+        "working_aic": 188.7317255682309,
+        "working_dev": 71.426069514036527,
+        "disp_full_pearson": 1.1583163198806139,
+        "disp_cand_pearson": 1.2530889388427462
+      }
+    ]
+  },
+  "poisson": {
+    "family": "poisson",
+    "link": "log",
+    "full_aic": 196.82442538223515,
+    "full_dev": 63.597856857910614,
+    "drop1_none_AIC": 196.82442538223515,
+    "full_disp": 1,
+    "cands": [
+      {
+        "term": "x1",
+        "drop1_AIC": 233.42312504333179,
+        "drop1_dev": 102.19655651900726,
+        "fresh_aic": 233.42312504333179,
+        "fresh_dev": 102.19655651900726,
+        "fresh_rank": 3,
+        "working_aic": 566.20107869665708,
+        "working_dev": 262.09854770994929,
+        "disp_full_pearson": 0.96239512883947265,
+        "disp_cand_pearson": 1.8487433948002678
+      },
+      {
+        "term": "x2",
+        "drop1_AIC": 197.13271593590014,
+        "drop1_dev": 65.906147411575617,
+        "fresh_aic": 197.13271593590014,
+        "fresh_dev": 65.906147411575617,
+        "fresh_rank": 3,
+        "working_aic": 433.40581868782982,
+        "working_dev": 129.30328770112203,
+        "disp_full_pearson": 0.96239512883947265,
+        "disp_cand_pearson": 1.0038748518672329
+      },
+      {
+        "term": "x3",
+        "drop1_AIC": 211.0971449449589,
+        "drop1_dev": 79.870576420634364,
+        "fresh_aic": 211.0971449449589,
+        "fresh_dev": 79.870576420634364,
+        "fresh_rank": 3,
+        "working_aic": 473.15469512615539,
+        "working_dev": 169.05216413944757,
+        "disp_full_pearson": 0.96239512883947265,
+        "disp_cand_pearson": 1.2544758503799835
+      }
+    ]
+  }
+}

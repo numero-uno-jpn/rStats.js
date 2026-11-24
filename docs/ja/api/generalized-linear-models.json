@@ -89,6 +89,76 @@
     "en": "Variance function of `quasi`. Default `\"constant\"`.",
     "ja": "`quasi` の分散関数です。既定は `\"constant\"`。"
   },
+  "GlmFormulaOptions#summary": {
+    "hash": "cf6d5f75cdcd",
+    "en": "Options for {@link glm} with a formula: those of the matrix form (the intercept is the formula's), the weights and\nthe offset as arrays parallel to the rows of `data` or as column names, and the coding of factors.",
+    "ja": "式で当てはめる {@link glm} のオプションです: 行列の形のもの (切片は式で決まります)、`data` の行に対応する配列または列名で与える重みとオフセット、因子の符号化です。"
+  },
+  "GlmFormulaOptions.contrasts#summary": {
+    "hash": "ef9a3fef1791",
+    "en": "Contrast per factor, as in {@link modelMatrix}.",
+    "ja": "因子ごとの対比です。{@link modelMatrix} と同じです。"
+  },
+  "GlmFormulaOptions.levels#summary": {
+    "hash": "566dbed7abfe",
+    "en": "Levels per factor, as in {@link modelMatrix}.",
+    "ja": "因子ごとの水準です。{@link modelMatrix} と同じです。"
+  },
+  "GlmFormulaOptions.offset#summary": {
+    "hash": "6f205ac998e7",
+    "en": "Offset added to the linear predictor: an array parallel to the rows of `data`, or the name of a numeric column.",
+    "ja": "線形予測子に加えるオフセットです: `data` の行に対応する配列、または数値の列の名前です。"
+  },
+  "GlmFormulaOptions.weights#summary": {
+    "hash": "d2dab9fe7dcc",
+    "en": "Prior weights: an array parallel to the rows of `data` (null for missing), or the name of a numeric column.",
+    "ja": "事前重みです: `data` の行に対応する配列 (欠測は null)、または数値の列の名前です。"
+  },
+  "GlmFormulaResult#summary": {
+    "hash": "6720802b29f6",
+    "en": "Result of {@link glm} with a formula: the fit of the model matrix, with the formula's terms.",
+    "ja": "式で当てはめた {@link glm} の結果です: モデル行列の当てはめと、式の項です。"
+  },
+  "GlmFormulaResult.assign#summary": {
+    "hash": "8bcec38ca79d",
+    "en": "The term of each coefficient (0 for the intercept).",
+    "ja": "各係数の項です (切片は 0)。"
+  },
+  "GlmFormulaResult.coefNames#summary": {
+    "hash": "24496f7a0635",
+    "en": "Names of the coefficients (the model matrix's column names).",
+    "ja": "係数の名前です (モデル行列の列名)。"
+  },
+  "GlmFormulaResult.factors#summary": {
+    "hash": "5a390caae5aa",
+    "en": "R's factors attribute of the terms (one array per variable, one code per term).",
+    "ja": "項の R の factors 属性です: 変数ごとに 1 つの配列、項ごとに 1 つのコードです。"
+  },
+  "GlmFormulaResult.formula#summary": {
+    "hash": "b0def051d655",
+    "en": "The formula.",
+    "ja": "式です。"
+  },
+  "GlmFormulaResult.order#summary": {
+    "hash": "77afef1fc733",
+    "en": "Degree of each term.",
+    "ja": "各項の次数です。"
+  },
+  "GlmFormulaResult.response#summary": {
+    "hash": "a9f931afed13",
+    "en": "The response's name (the first column of `cbind(a, b)`).",
+    "ja": "応答変数の名前です (`cbind(a, b)` では最初の列)。"
+  },
+  "GlmFormulaResult.termLabels#summary": {
+    "hash": "075cfbbe1a8a",
+    "en": "Labels of the terms.",
+    "ja": "項のラベルです。"
+  },
+  "GlmFormulaResult.variables#summary": {
+    "hash": "591fd2533d05",
+    "en": "The variables of the formula, the response first (both columns of `cbind(a, b)`).",
+    "ja": "式の変数です。先頭は応答変数です (`cbind(a, b)` では両方の列)。"
+  },
   "GlmLink#summary": {
     "hash": "fec2bfecc7cc",
     "en": "A link: one of R's named links or a power link `mu^power` (R's `power(lambda)`; `power <= 0` is the log link).",
@@ -559,25 +629,45 @@
     "en": "R's warnings, each once.",
     "ja": "R の警告です。それぞれ 1 回ずつです。"
   },
-  "glm#@example": {
+  "glm(0)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
     "ja": "⟦code1⟧"
   },
-  "glm#@param x": {
+  "glm(0)#@param data": {
+    "hash": "804617eb5ffd",
+    "en": "The data frame: an object of columns.",
+    "ja": "データフレームです (列のオブジェクト)。"
+  },
+  "glm(0)#@param formula": {
+    "hash": "63bfca1ca5cf",
+    "en": "A formula such as `\"y ~ x1 * f\"` or `\"cbind(s, f) ~ dose\"`.",
+    "ja": "`\"y ~ x1 * f\"` や `\"cbind(s, f) ~ dose\"` のような式です。"
+  },
+  "glm(0)#summary": {
+    "hash": "8179fa053649",
+    "en": "Fit a generalized linear model by iteratively reweighted least squares, from a formula and a data frame. Equivalent\nto R's `glm(formula, family, data, weights, offset)`.\nThe model matrix is that of {@link lm} with a formula (factors, interactions, contrasts, levels). The response\nis numeric; for the binomial families also `cbind(successes, failures)` with two column names, proportions with\nthe numbers of trials as `weights`, a boolean column (FALSE 0, TRUE 1) or strings (the first level is failure,\nthe others success). The weights and the offset are arrays or column names. Rows with a missing value in a\nvariable of the formula, the weights or the offset are dropped (`model.rows` lists those used). The result is the\nmatrix form's with the formula's terms, and the methods of {@link glm} apply to it.",
+    "ja": "反復重み付き最小二乗法により、式とデータフレームから一般化線形モデルを当てはめます。R の `glm(formula, family, data, weights, offset)` と同等です。\nモデル行列は式で当てはめる {@link lm} のものと同じです (因子、交互作用、対比、水準)。応答変数は数値です。二項分布族では、2 つの列名の `cbind(successes, failures)`、試行数を `weights` とする割合、論理値の列 (FALSE が 0、TRUE が 1)、文字列 (最初の水準が失敗、ほかが成功) も使えます。重みとオフセットは配列か列名です。式の変数、重み、オフセットに欠測値のある行は除かれます (使った行は `model.rows` にあります)。結果は行列の形の結果に式の項を加えたもので、{@link glm} のメソッドがそのまま使えます。"
+  },
+  "glm(1)#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": "⟦code1⟧"
+  },
+  "glm(1)#@param x": {
     "hash": "a3f10d9c922f",
     "en": "Predictors: a matrix (array of rows, one column per predictor; rows of length 0 for a model with the\n  intercept only) or a vector (one predictor).",
     "ja": "説明変数です: 行列 (行の配列で、説明変数ごとに 1 列。長さ 0 の行は、切片だけの\n  モデルの場合) またはベクトル (説明変数 1 つ)。"
   },
-  "glm#@param y": {
+  "glm(1)#@param y": {
     "hash": "48cfd547aa1d",
     "en": "Response: a vector, or for the binomial families rows of (successes, failures).",
     "ja": "応答変数です: ベクトル、または二項分布族の場合は (成功数, 失敗数) の行です。"
   },
-  "glm#summary": {
-    "hash": "b874206cf349",
-    "en": "Fit a generalized linear model by iteratively reweighted least squares. Equivalent to R's\n`glm(y ~ x, family = ...)`. Or `y ~ x - 1` without intercept; the predictors are given as a matrix instead of a\nformula. Rows with a missing value (NaN) in `x`, `y`, the weights or the offset are dropped. Every family and link\nof R's `stats` is available; R's warnings are returned in `warnings`. See {@link glmSummary}, {@link glmResiduals},\n{@link glmPredict}, {@link glmConfint} and {@link glmAnova} for the methods.",
-    "ja": "反復重み付き最小二乗法により一般化線形モデルを当てはめます。R の\n`glm(y ~ x, family = ...)` と同等です。切片なしの場合は `y ~ x - 1` と同じで、説明変数は式ではなく行列で与えます。`x`、`y`、重み、またはオフセットに欠測値 (NaN) を含む行は除かれます。R の `stats` のすべての分布族とリンクが使えます。R の警告は `warnings` で返されます。メソッドについては {@link glmSummary}、{@link glmResiduals}、\n{@link glmPredict}、{@link glmConfint}、{@link glmAnova} を参照してください。"
+  "glm(1)#summary": {
+    "hash": "3d93c8cc64b7",
+    "en": "Fit a generalized linear model by iteratively reweighted least squares, the predictors given as a matrix: R's\n`glm(y ~ x, family = ...)`, or `y ~ x - 1` without intercept. Rows with a missing value (NaN) in `x`, `y`, the weights or the offset are dropped. Every family and link\nof R's `stats` is available; R's warnings are returned in `warnings`. See {@link glmSummary}, {@link glmResiduals},\n{@link glmPredict}, {@link glmConfint} and {@link glmAnova} for the methods.",
+    "ja": "反復重み付き最小二乗法により、説明変数を行列で与えて一般化線形モデルを当てはめます: R の\n`glm(y ~ x, family = ...)`、切片なしでは `y ~ x - 1` に当たります。`x`、`y`、重み、またはオフセットに欠測値 (NaN) を含む行は除かれます。R の `stats` のすべての分布族とリンクが使えます。R の警告は `warnings` で返されます。メソッドについては {@link glmSummary}、{@link glmResiduals}、\n{@link glmPredict}、{@link glmConfint}、{@link glmAnova} を参照してください。"
   },
   "glmAnova#@example": {
     "hash": "f2167be5edf2",

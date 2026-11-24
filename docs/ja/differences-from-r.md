@@ -1799,3 +1799,14 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
 - 分離したデータ (最大値が存在しない) では、R は最適化が止まったところで止まります。rStats.js は `converged: false` と警告 `fitted probabilities numerically 0 or 1 occurred: ...` を返します。係数は異なります。
 - `multinomSummary` には ReactiveStat が計算するものを加えています: Wald の p 値 2(1 − Φ(|z|))、オッズ比、擬似 R²。擬似 R² の null モデルは、モデルが使った行での切片だけの当てはめで、n はその行数です (ReactiveStat は応答のあるすべての行に当てはめ、`nrow(data)` で割るので、説明変数に欠測値があると異なります)。
 - `multinomPredict(type: "class")` は R と同じく同点を決めます (`max.col`: 相対 1e-5 以内、最初の後の同点ごとに一様乱数 1 つ)。そのため同じ `setSeed` の後では R と同じクラスになります。
+
+## 変数選択 (1.15.0)
+
+### `step`・`stepAIC`・`drop1`・`add1`・`extractAIC`
+
+- 当てはめと、当てはめに使ったデータフレームを受け取ります (`step(fit, data, options)`)。rStats.js の当てはめはデータを持たないためです。当てはめの options (weights・offset・family・contrasts・levels) は結果の外に覚えておくので、glm の結果の写し、重みのある lm の結果の写しは受け付けません。
+- trace は表示せずに返します (`visits`: 各モデルと並べ替えた表)。`keep` はありません。`scope` は式を文字列で受け取り、`.` は受け付けません (項を並べてください)。
+- lm の規準は RSS の対数から計算するので、応答が 1e±300 でも元のデータと同じ経路になります (R は 1e300 では RSS が溢れて動かず、1e-300 では "AIC is -infinity" で止まります)。応答に大きな共通の値 (1e15) があるとき、rStats.js の規準は丸めたデータの値です (R はそこで 0.4 ずれます)。
+- 重み 0 の行のある gaussian の glm: R の AIC は (その行の log 0 のため) Inf で、R の `step` は動きません。rStats.js の glm はその行を尤度から外すので、探索はその行を除いたデータと同じになります。
+- R と同じにしている点: 動くかどうかは `drop1` と `add1` の表で決めます。Gamma と inverse.gaussian の glm では、表の AIC は作り直したモデルの AIC ではなく近似 (今の AIC + 逸脱度の差 ÷ 今の分散) です。使う行が変わる動きは "number of rows in use has changed: remove missing values?" で止まります。候補に欠損値があると `add1` は全候補のそろった行で表を計算します (警告 "using the m/n rows from a combined fit")。重み 0 の行があると経路の規準は edf にその行を数えます。lm は RSS < 1e-10 Σ w y² のとき "attempting model selection on an essentially perfect fit is nonsense" と警告します。
+- このために `glm` に式の入口を足しました (`glm(formula, data, options)`)。式の文法は `lm`・`glmer` と同じです (関数呼び出しは使えず、binomial の応答は 2 つの列名の `cbind(successes, failures)`、weights と offset は配列か列名)。binomial の応答の文字列は factor として読みます (最初の水準が失敗)。R の `glm` は文字列の応答を受け付けません。

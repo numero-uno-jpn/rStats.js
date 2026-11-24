@@ -144,6 +144,30 @@ front: `glmSummary`, `glmPredict`, `lmerSummary`, `lmerAnova`, `glmerSummary`, `
 After `setSeed(42)`, `rnorm`, `runif`, `sample` and the others give R's numbers after `set.seed(42)`.
 
 
+## Stepwise model selection
+
+`step`, `stepAIC`, `drop1`, `add1` and `extractAIC` take a formula fit of `lm` or `glm` (`glm` has a formula
+interface since 1.15.0) and the data frame it was fitted on:
+
+```ts
+import { lm, glm, step, stepAIC, drop1, add1, extractAIC } from "@numero-uno-jpn/rstats";
+
+const full = lm("y ~ x1 + x2 + x3 + f", data);
+const s = step(lm("y ~ 1", data), data, { scope: { lower: "~ 1", upper: "~ x1 + x2 + x3 + f" } }); // "both"
+s.fit;      // the selected lm fit
+s.anova;    // the path, R's $anova: step, df, deviance, residDf, residDeviance, aic
+s.visits;   // every model visited with the table examined from it (R's trace)
+step(full, data, { direction: "backward", k: Math.log(full.nObs) }); // BIC
+step(glm("y01 ~ x1 + x2 + f", data, { family: "binomial" }), data); // glm
+drop1(full, data, { test: "F" }); // and add1(fit, data, { scope, test })
+extractAIC(full); // [edf, AIC]
+```
+
+The search follows R: whole terms move respecting marginality, a move is taken when it lowers the criterion
+strictly, aliased terms are removed first, and as in R a move that changes the rows used (missing values) stops the
+search with an error. `stepAIC` is the same search; only its path's `df` differs (positive). For glm the tables'
+AIC is R's (for Gamma and inverse.gaussian an approximation through the dispersion, which also guides the search).
+
 ## Multinomial logistic regression
 
 `multinom` and its methods are in `/regression`, with a formula and a data frame like `polr`:
