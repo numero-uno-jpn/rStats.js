@@ -1,46 +1,36 @@
 # 引継ぎ: rStats.js (外部レビュー対応 2026-10-30〜11-04、1.0.0 への準備 11-04〜)
 
-最終更新: 2026-11-24 (セッション 32 の終わり、Mac mini: **1.14.0 を公開** (`/regression` の multinom とその関数)。次は 1.15.0 = 変数選択 (`step`・`stepAIC`、ROADMAP の 4)、範囲を決めるところから (下の節))。以前: 2026-11-24 (セッション 32、Mac mini: 1.14.0 を版 1.14.0 まで済み)。以前: 2026-11-24 (セッション 31 の終わり、Mac mini: **1.13.0 を公開** (`/causal` の weightit・trimWeights・weightSummary、`/tests` の svyglm・survfitCoxph、整数でない重みの survfit)。次の作業は未定 (ROADMAP の 3 = 多項ロジスティック回帰 `multinom` から))。以前: 2026-11-24 (セッション 31 の続き、Mac mini: 1.13.0 の fixture・実装・端のケース・文書 (英・日)・訳・デモまで済み)。以前: 2026-11-24 (セッション 31、Mac mini: 1.13.0 (IPTW) の準備。作業ブランチ `dev/iptw-1.13` (手元だけ)、Issue #563、イメージとチェッカーに WeightIt・CBPS・survey・sandwich、最初の R の実験 `experiments/iptw113` と仕様書 `oracle/weightit-behaviour.md`、Choices をユーザーが決めた。次は fixture と実装)。以前: 2026-11-24 (セッション 30 の終わり、Mac mini: **1.12.0 を公開** (`/causal` の match・matchWeights・balTab・tableOneSmd、`/tests` の clogit)。次は 1.13.0 = IPTW、範囲はユーザーが決めた (下の節))。以前: 2026-11-24 (セッション 30、Mac mini: 1.12.0 (マッチング) の準備。作業ブランチ `dev/psm-1.12` (手元だけ)、Issue #562、イメージとチェッカーに Matching・cobalt・tableone、最初の R の実験 3 本と仕様書の下書き `oracle/match-behaviour.md`。Match・バランス・clogit を実装して R と一致、端のケースも点検、訳・文書・デモ・版 1.12.0 まで済み。次は main への push とタグ)。以前: 2026-11-24 (セッション 29 の終わり、Mac mini: **1.11.0 を公開** (acf・pacf・ccf の `/timeseries`、ca・caSummary・caCoord・mjca・sammon・isoMDS)。次は 1.12.0 = 傾向スコア (ROADMAP の新しい 1 番)、範囲を決めるところから)。以前: 2026-11-24 (セッション 29: 1.11.0 の作業ブランチは完成、GitHub Actions が支払いのロックで止まっていて取り込み待ち)。以前: 2026-11-23 (セッション 29 の始め、Mac mini: 1.11.0 の範囲をユーザーが決めた (mjca も入れる、ほかは推奨どおり)。準備が全部済んだ (Issue #560・draft PR #561・作業ブランチ `work/ca-acf-mds-1.11`)。段階 1 も済み、Decisions を決めて choices・fixture・段階 2 の指示を置いた (ブランチ `40aa5d94`)。次は ChatGPT の段階 2 (実装))。以前: 2026-11-23 (セッション 28 の終わり、Mac mini: **1.10.0 を公開** (dist・hclust・cutree・kmeans・cmdscale)。次は 1.11.0 = ca・acf・pacf・isoMDS・sammon、1.12.0 = arima (ユーザーの決定)。範囲を決めるところから)。以前: 2026-11-22 夜 (セッション 28、Mac mini: 1.10.0 の範囲をユーザーが決め (全部推奨どおり)、準備 (チェッカー・R の実験・指示書) を main に置き、Issue #556・draft PR #557 を作った。段階 1 を終え、次は ChatGPT の段階 2)。以前: 2026-11-22 夜 (セッション 27 の終わり、Mac mini: **1.9.0 を公開** (T2・Page・Grubbs、manova・lda・cancor)。次は 1.10.0 = クラスタ分析と多次元尺度法 (ユーザーの決定)、範囲を決めるところから)。以前: 2026-11-22 (セッション 27 の始め、Mac mini: 1.9.0 の範囲を決め、準備中)。以前: 2026-11-22 (セッション 26 の終わり、Mac mini: **1.8.0 を公開** (rq・geeglm・glmnet)。次は 1.9.0 = 小さな検定 3 つ + 多変量 3 つ (ユーザーの決定)、範囲を決めるところから)。以前: 2026-11-20 夜 (セッション 26 の始め: 1.8.0 の範囲を決め、準備)。以前: 2026-11-20 夕 (セッション 25 の終わり、Mac mini: **1.7.0 を公開** (回帰 polr・rlm・nls、`/regression`)。次の作業は未定 (ROADMAP の 2 = 1.8.0)。以前: 2026-11-20 昼 (セッション 25、Mac mini: 段階 3 の端の入力の直しも済み (最後は私が引き継いだ)。次は「nls の後」の配線と文書)。以前: 2026-11-19 深夜 (セッション 24、polr・rlm は完了、nls を ChatGPT に依頼)。以前: 2026-11-19 (セッション 23、1.6.0 を公開 (混合モデルの confint と simulate))。以前: 2026-11-17 (セッション 22、1.5.0 を公開)。その前: 2026-11-16 (セッション 21、Mac mini: 1.4.0 を公開、同時刻の Gray の検定を ChatGPT がクリーンルームで修正 (1.4.1 に入る、未公開)、外注用の R の実験の仕組みを作った。次は ROADMAP の 1 番)
+最終更新: 2026-11-25 (セッション 33、Mac mini: 1.15.0 (step・stepAIC) の範囲を決め、glm の式の入口と step 本体を実装、fixture 85 件一致。次は端のケースの点検と配線・文書 (下の節))。以前: 2026-11-24 (セッション 32 の終わり、Mac mini: **1.14.0 を公開** (`/regression` の multinom とその関数)。次は 1.15.0 = 変数選択 (`step`・`stepAIC`、ROADMAP の 4)、範囲を決めるところから (下の節))。以前: 2026-11-24 (セッション 32、Mac mini: 1.14.0 を版 1.14.0 まで済み)。以前: 2026-11-24 (セッション 31 の終わり、Mac mini: **1.13.0 を公開** (`/causal` の weightit・trimWeights・weightSummary、`/tests` の svyglm・survfitCoxph、整数でない重みの survfit)。次の作業は未定 (ROADMAP の 3 = 多項ロジスティック回帰 `multinom` から))。以前: 2026-11-24 (セッション 31 の続き、Mac mini: 1.13.0 の fixture・実装・端のケース・文書 (英・日)・訳・デモまで済み)。以前: 2026-11-24 (セッション 31、Mac mini: 1.13.0 (IPTW) の準備。作業ブランチ `dev/iptw-1.13` (手元だけ)、Issue #563、イメージとチェッカーに WeightIt・CBPS・survey・sandwich、最初の R の実験 `experiments/iptw113` と仕様書 `oracle/weightit-behaviour.md`、Choices をユーザーが決めた。次は fixture と実装)。以前: 2026-11-24 (セッション 30 の終わり、Mac mini: **1.12.0 を公開** (`/causal` の match・matchWeights・balTab・tableOneSmd、`/tests` の clogit)。次は 1.13.0 = IPTW、範囲はユーザーが決めた (下の節))。以前: 2026-11-24 (セッション 30、Mac mini: 1.12.0 (マッチング) の準備。作業ブランチ `dev/psm-1.12` (手元だけ)、Issue #562、イメージとチェッカーに Matching・cobalt・tableone、最初の R の実験 3 本と仕様書の下書き `oracle/match-behaviour.md`。Match・バランス・clogit を実装して R と一致、端のケースも点検、訳・文書・デモ・版 1.12.0 まで済み。次は main への push とタグ)。以前: 2026-11-24 (セッション 29 の終わり、Mac mini: **1.11.0 を公開** (acf・pacf・ccf の `/timeseries`、ca・caSummary・caCoord・mjca・sammon・isoMDS)。次は 1.12.0 = 傾向スコア (ROADMAP の新しい 1 番)、範囲を決めるところから)。以前: 2026-11-24 (セッション 29: 1.11.0 の作業ブランチは完成、GitHub Actions が支払いのロックで止まっていて取り込み待ち)。以前: 2026-11-23 (セッション 29 の始め、Mac mini: 1.11.0 の範囲をユーザーが決めた (mjca も入れる、ほかは推奨どおり)。準備が全部済んだ (Issue #560・draft PR #561・作業ブランチ `work/ca-acf-mds-1.11`)。段階 1 も済み、Decisions を決めて choices・fixture・段階 2 の指示を置いた (ブランチ `40aa5d94`)。次は ChatGPT の段階 2 (実装))。以前: 2026-11-23 (セッション 28 の終わり、Mac mini: **1.10.0 を公開** (dist・hclust・cutree・kmeans・cmdscale)。次は 1.11.0 = ca・acf・pacf・isoMDS・sammon、1.12.0 = arima (ユーザーの決定)。範囲を決めるところから)。以前: 2026-11-22 夜 (セッション 28、Mac mini: 1.10.0 の範囲をユーザーが決め (全部推奨どおり)、準備 (チェッカー・R の実験・指示書) を main に置き、Issue #556・draft PR #557 を作った。段階 1 を終え、次は ChatGPT の段階 2)。以前: 2026-11-22 夜 (セッション 27 の終わり、Mac mini: **1.9.0 を公開** (T2・Page・Grubbs、manova・lda・cancor)。次は 1.10.0 = クラスタ分析と多次元尺度法 (ユーザーの決定)、範囲を決めるところから)。以前: 2026-11-22 (セッション 27 の始め、Mac mini: 1.9.0 の範囲を決め、準備中)。以前: 2026-11-22 (セッション 26 の終わり、Mac mini: **1.8.0 を公開** (rq・geeglm・glmnet)。次は 1.9.0 = 小さな検定 3 つ + 多変量 3 つ (ユーザーの決定)、範囲を決めるところから)。以前: 2026-11-20 夜 (セッション 26 の始め: 1.8.0 の範囲を決め、準備)。以前: 2026-11-20 夕 (セッション 25 の終わり、Mac mini: **1.7.0 を公開** (回帰 polr・rlm・nls、`/regression`)。次の作業は未定 (ROADMAP の 2 = 1.8.0)。以前: 2026-11-20 昼 (セッション 25、Mac mini: 段階 3 の端の入力の直しも済み (最後は私が引き継いだ)。次は「nls の後」の配線と文書)。以前: 2026-11-19 深夜 (セッション 24、polr・rlm は完了、nls を ChatGPT に依頼)。以前: 2026-11-19 (セッション 23、1.6.0 を公開 (混合モデルの confint と simulate))。以前: 2026-11-17 (セッション 22、1.5.0 を公開)。その前: 2026-11-16 (セッション 21、Mac mini: 1.4.0 を公開、同時刻の Gray の検定を ChatGPT がクリーンルームで修正 (1.4.1 に入る、未公開)、外注用の R の実験の仕組みを作った。次は ROADMAP の 1 番)
 
 ## まず読むこと (セッション 16 から)
 
-## 次のセッションで最初にやること: 1.15.0 = 変数選択 (step・stepAIC) の範囲を決める (セッション 32 の終わり、2026-11-24 に作成)
+## 次のセッションで最初にやること: 1.15.0 の端のケースの点検、配線・文書 (セッション 33、2026-11-25 に作成)
 
 ### 状態
-- 1.14.0 は公開済み (main `0fe71c9e`、タグ `v1.14.0`、npm latest 1.14.0、Issue #564 は閉じた)。証拠はタグ `archive/multinom-1.14`
-  (`6f3982a1`)。作業ブランチ `dev/multinom-1.14` はユーザーの指示で削除 (2026-11-25、手元だけにあった)
-- main は origin より HANDOFF のコミットだけ先 (push しない。次の作業ブランチの最初に含める)
-- イメージ・チェッカーは 1.14.0 のまま (nnet まで)。MASS の `stepAIC`・`addterm`・`dropterm` はチェッカーにある。stats の `step`・
-  `add1`・`drop1`・`extractAIC` はまだ無い (R の GPL のコードなので、nls のときと同じく「呼ぶだけ」の一覧に足す)
+- **範囲 (ユーザーの決定 2026-11-25):** lm と glm、step と stepAIC の両方、k は数で (BIC は `Math.log(n)`)、結果は選ばれた fit・経路
+  (`anova`)・途中の表 (`visits`)、置き場所は lm・glm の隣 (`/tests`)。**glm に式の入口を足す**、欠損値で行が変わるとき
+  と重み 0 の edf は **R と同じ** (いずれもユーザーの決定)。drop1・add1・extractAIC も公開する (私が仕様書で足した。ユーザーに未確認)
+- 作業ブランチ **`dev/step-1.15`** (手元だけ、push していない。main の HANDOFF のコミット 3 つを含む)、**Issue #565** (実験の記録 4 件)
+- チェッカーに stats の step・add1・drop1・extractAIC・add.scope・drop.scope・factor.scope を「呼ぶだけ」で足した。**`trace` の名前は
+  チェッカーが断る** ので、実験では既定の 1 のまま (表示は capture.output) か位置で渡す
+- R の実験 `experiments/step115{,-detail,-threshold,-perfect,-perfect2,-gamma}.{R,json}`、仕様書 `oracle/step-behaviour.md`
+- **glm の式の入口:** `glm(formula, data, options)` (`src/models/glm.ts`。行列の glm を `glmMatrix` に分け、式は glmer と同じ文法:
+  `cbind(a, b)`、offset と weights は配列か列名)。`oracle/glmformula.R` → `test/fixtures/glmformula.json`、`test/glmformula.test.ts`
+  (15 件、1e-13 で一致、反復回数と警告も)。fit の options は `src/models/fitOptions.ts` の WeakMap に記録 (lm と glm。結果の形は不変)
+- **step 本体:** `src/models/step.ts` (step・stepAIC・drop1・add1・extractAIC)。`oracle/step.R` → `test/fixtures/step.json`、
+  `test/step.test.ts` は **85 件すべて一致** (探索 63・表 22・extractAIC)。分かったことは仕様書の Settled に全部ある。要点: 動くかは表の
+  中の `<none>` と比べる (厳密に小さいとき)、drop1 はモデル行列から列を抜く、glm の表の AIC は「現在の AIC + 尺度化した逸脱度の差 +
+  k × 階数の差」(Gamma では近似で、選択もそれに従う)、別名の項は後ろから外す、完全な当てはめの警告は RSS < 1e-10 Σwy²
+- 手元のテスト: 型は通る、glm 系 97 ファイルは既知の issue179 以外通る。**全テスト・ブラウザ・ビルドはまだ**
 
-### ReactiveStat の呼び方 (`scripts/多変量/multivar/multipleRegression.js`、変数選択は重回帰だけ)
-```r
-model_null <- lm(y ~ 1, data = data)
-step_start <- if (direction == "forward") model_null else model        # model は全変数の lm
-step_model <- step(step_start, scope = list(lower = formula(model_null), upper = formula(model)),
-                   direction = direction, trace = trace)                 # "both" / "forward" / "backward"、trace 0 か 1
-summary(step_model); R2 と f2 = R2 / (1 - R2); 残差・標準化残差・Cook の距離の診断
-```
-
-### 始めに AskUserQuestion で決めること (推奨つき)
-1. **対象のモデル:** lm だけ (ReactiveStat の範囲) か、glm (binomial・poisson)・polr・multinom・coxph まで (R の step は
-   `extractAIC`・`add1`・`drop1` のあるモデルなら何でも動く)。推奨: lm と glm (ロジスティック・Poisson の変数選択は医療で多い)、
-   ほかは後で
-2. **step と MASS の stepAIC:** 両方か step だけか (中身はほぼ同じで、表示と `keep`・`steps` の扱いが違う。実験で確かめる)
-3. **k:** AIC (k = 2) と BIC (k = log n) の両方を入れるか。推奨: 両方 (`k` を数で受ける)
-4. **結果の形:** 選ばれたモデルの当てはめ (lm・glm の結果そのもの) と、R の `$anova` (Step・Df・Deviance・Resid. Df・Resid. Dev・
-   AIC の経路の表)、`trace` の途中の表 (各段の候補ごとの AIC) を返すか
-5. **置き場所:** `lm`・`glm` と同じ主な入口 (`/tests`) か `/regression`。推奨: lm・glm の隣
-6. 細部 (実験で決める): AIC の同点の扱い、因子の項 (項単位で出し入れ、`drop1` の周辺性)、欠損値で行が変わるとき (R はエラー
-   "number of rows in use has changed")、`scope` の形 (式・下限と上限)
-
-### 手順 (1.14.0 と同じ)
-Issue → 作業ブランチ `dev/step-1.15` (main の HANDOFF のコミット込み) → チェッカー → R の実験 (x86_64、`experiments/step115*`、
-Issue に記録) → 仕様書 `oracle/step-behaviour.md` → fixture (`oracle/` の既存の名前と重ならないか先に確かめる: 1.14.0 で
-`oracle/multinom.R` を上書きしかけた) → 実装 → **端のケースと極端な尺度を 2 回** (ユーザーは毎回「包括的チェックは済んだか」と
-確かめる: 尺度・共通の値・重みの尺度・共線・欠損・大きな n・多数の変数・同点を最初から点検の一覧に入れる) → 配線・文書・訳 (私)・
-デモ → 版 1.15.0 → ユーザーの確認の後に main に squash の 1 コミット + タグ → `npm stage approve <id>` (id は Release の後に
-知らせる) → `archive/step-1.15`
+### 残り
+1. **端のケースと極端な尺度を 2 回** (ユーザーは毎回「包括的チェックは済んだか」と確かめる): 応答・説明変数の尺度 1e±150、共通の値
+   1e8・1e15、重みの尺度 1e±200、共線 (別名の項)、欠損、大きな n (2 万)、多数の項 (30〜60)、AIC の同点、因子の水準が多い、
+   glm の分離、オフセットの尺度。R の結果と比べる実験は `experiments/step115-edge*.R`
+2. 配線: `src/entries/tests.ts` に step・stepAIC・drop1・add1・extractAIC と型、`node scripts/option-keys.mjs --write`、索引 (英・日)・
+   例・デモの例・文書 (英・日)・訳 (`docs/ja/api/*.json`、extract → stale)・TypeDoc の警告 0・版 1.15.0
+3. 手元で型・`npx vitest run`・`npm run build`・`npm run test:browser`・デモ → ユーザーの確認 → main に squash の 1 コミット + タグ →
+   `npm stage approve <id>` → `archive/step-1.15`
 
 ## セッション 32 (2026-11-24): 1.14.0 = 多項ロジスティック回帰 (multinom)
 
