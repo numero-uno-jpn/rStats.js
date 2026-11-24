@@ -23,7 +23,10 @@
   調べさせた → k = 2 の規則は確認、M = 2 は「M 番目に近い距離以内の対照を全部」候補にすると分かったが、k ≥ 3 は解けず。私の
   base R の乱数 8 種の消費数の比較 (`experiments/psm112-rng.{R,txt}`) も合わず。**k ≥ 3 の同点は setSeed で再現できる独自の規則
   にして、R との既知の違いとして文書に書く** (同点が無ければ R と同じ組)。独自の規則の中身は実装のときに決める
-- 次: Decisions の残り (ATE の出力の順、distance.tolerance の扱い、M = 2 の候補の作り方を R どおりにするか) を決め、fixture
+- **Decisions (ユーザー 2026-11-24、全部推奨どおり):** 同点の独自の規則は floor(k(1−u)) で 1 個ずつ (k = 2 は R と同じ)、M ≥ 2 の
+  候補は R と同じ (M 番目の距離以内を全部)、同点は距離が完全に等しいときだけ、clogit は exact と approximate (efron は外す)。
+  ATE の順は実験から決まった (`oracle/match-behaviour.md` の Choices)
+- 次: fixture
   (`oracle/match.R` など、x86_64) → 実装 (Match・バランス・clogit の exact) → 点検 → 文書・デモ → 訳は ChatGPT
 
 ## 次のセッションで最初にやること: 1.12.0 (傾向スコアのマッチング) の準備 (セッション 29 → 30、2026-11-24 に作成)

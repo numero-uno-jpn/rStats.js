@@ -50,3 +50,17 @@ The call followed is ReactiveStat's: `ps <- fitted(glm(tr ~ ..., family = binomi
 3. The order of the ATE output.
 4. clogit `method = "efron"` gives the same coefficients as `"breslow"` but a different log-likelihood (not needed for
    ReactiveStat's call).
+
+## Choices (the user, 2026-11-24)
+
+1. **ATE output order** (settled from `psm112`, not a choice): the ATT pairs and the ATC pairs together, ordered by the
+   row of the unit being matched (treated or control); with `replace = FALSE` the two halves draw from separate pools.
+2. **Ties among k candidates** (rStats.js's own rule): the candidates in data order; for each pick one uniform u, the
+   index floor(k (1 - u)) among the remaining k candidates (0-based), the picked one removed. With k = 2 this is R's rule
+   (the second when u < 0.5) and the same draw; `two_k3`'s second pick (2 left) agrees with it in all 12 seeds. For
+   k >= 3 the pairs, and the random numbers after them, differ from R's: a known difference.
+3. **M >= 2:** R's candidate set: every available control within the M-th smallest distance; M of them are picked by
+   rule 2 when the set is larger than M (so a uniquely nearest control may be left out, as in R).
+4. **Ties are exact equality** of the distances (no tolerance); a known difference for distances that differ by less
+   than R's `distance.tolerance`.
+5. **clogit:** `method = "exact"` (default) and `"approximate"` (= `"breslow"`); `"efron"` is left out.
