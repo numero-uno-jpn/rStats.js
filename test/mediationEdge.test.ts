@@ -6,6 +6,7 @@ import { mediate, type MediateResult } from "../src/causal/mediate.js";
 import { simSlopes } from "../src/causal/moderation.js";
 import { mvrnorm, symmetricSqrt } from "../src/random/mvrnorm.js";
 import { lm } from "../src/models/lm.js";
+import { glm } from "../src/models/glm.js";
 import { setSeed } from "../src/random/rng.js";
 import type { DataFrame } from "../src/models/modelFrame.js";
 
@@ -120,5 +121,75 @@ describe("simSlopes and mvrnorm on extreme scales against R", () => {
       const x = mvrnorm(3, [0, 0], S);
       (want as number[][]).forEach((r, i) => r.forEach((v, j) => expect(rel(x[i]![j]!, v)).toBeLessThan(1e-14)));
     }
+  });
+});
+
+// The second pass (experiments/mediation116-edge2.R)
+const E2 = JSON.parse(readFileSync(new URL("../experiments/mediation116-edge2.json", import.meta.url), "utf8")) as any;
+const D2 = E2.data as DataFrame;
+const run2 = (fm: string, fy: string, med: string, opts: Record<string, unknown> = {}, glmM = false, glmY = false): MediateResult => {
+  setSeed(1234);
+  const m = glmM ? glm(fm, D2, { family: "binomial" }) : lm(fm, D2);
+  const y = glmY ? glm(fy, D2, { family: "binomial" }) : lm(fy, D2);
+  return mediate(m, y, D2, { treat: "X", mediator: med, sims: 100, ...opts });
+};
+
+describe("mediate: the second pass against R", () => {
+  it("a binary mediator separated by a covariate (glm stops at 25 iterations as R, coefficients to 1e-5)", () => {
+    const r = run2("Ms ~ X + C", "Y ~ X + Ms + C", "Ms", {}, true);
+    const w = E2.separation.result;
+    // the draws depend on the unconverged coefficients (334 for C) only through probabilities within 1e-5 of 0 or 1
+    for (const [rk, tk] of KEYS.slice(0, 5)) w[rk].sims.forEach((v: number, j: number) => expect(Math.abs(r[tk].sims[j]! - v)).toBeLessThan(1e-3));
+  });
+  it("sims = 2 with the bootstrap as R; sims = 1 refused (R fails without the bootstrap)", () => {
+    againstR(run2("M ~ X", "Y ~ X + M", "M", { boot: true, sims: 2 }), E2.boot_sims2, 1e-10);
+    expect(E2.quasi_sims1.error).toBe("dim(X) must have a positive length");
+    expect(() => run2("M ~ X", "Y ~ X + M", "M", { sims: 1 })).toThrow("sims must be at least 2");
+  });
+  it("robustSE with the bootstrap: ignored with R's warning", () => {
+    const r = run2("M ~ X", "Y ~ X + M", "M", { boot: true, sims: 30, robustSE: true });
+    againstR(r, E2.boot_robust, 1e-10);
+    expect(r.warnings).toEqual([E2.boot_robust.warnings].flat());
+  });
+  it("a logit outcome on scales x 1e+-150: the bootstrap as R (and equivariant)", () => {
+    for (const w of E2.logit_scales) {
+      const d: DataFrame = { ...D2, M: (D2.M as number[]).map((v) => v * w.s), C: (D2.C as number[]).map((v) => v * w.s) };
+      setSeed(1234);
+      const r = mediate(lm("M ~ X + C", d), glm("Ybin ~ X + M + C", d, { family: "binomial" }), d, { treat: "X", mediator: "M", sims: 30, boot: true });
+      againstR(r, w.boot, 1e-9);
+    }
+  });
+  it("a total effect near 0, and confidence levels near 0 and 1", () => {
+    againstR(run2("M ~ X", "Yt ~ X + M", "M", { sims: 200 }), E2.tau_near_zero, 1e-10);
+    for (const [level, w] of [[0.001, E2.conf_tiny], [0.999, E2.conf_huge]] as const) {
+      const r = run2("M ~ X", "Y ~ X + M", "M", { confLevel: level });
+      for (const [rk, tk] of KEYS) w.result[rk].ci.forEach((v: number, i: number) => expect(Math.abs(r[tk].ci[i]! - v)).toBeLessThan(1e-10 * Math.max(1, Math.abs(v))));
+    }
+  });
+  it("refused where R errors or warns: a covariate not in the models, a factor treatment, a resample losing a level", () => {
+    expect(E2.covariate_absent.error).toBe("undefined columns selected");
+    expect(() => run2("M ~ X", "Y ~ X + M", "M", { covariates: { C: 1 } })).toThrow("covariates must be variables of the models");
+    // R accepts a factor treatment with a warning and takes its levels; rStats.js asks for a numeric one
+    expect([E2.factor_treat.warnings].flat()[0]).toMatch("treatment and control values do not match factor levels");
+    expect(() => { setSeed(1); mediate(lm("M ~ Xf", D2), lm("Y ~ Xf + M", D2), D2, { treat: "Xf", mediator: "M", sims: 10 }); }).toThrow("'Xf' must be numeric");
+    expect(E2.rare_level_boot.error).toBe("contrasts can be applied only to factors with 2 or more levels");
+    expect(() => run2("M ~ X + R3", "Y ~ X + M", "M", { boot: true, sims: 30 })).toThrow();
+  });
+});
+
+describe("mvrnorm: the second pass against R", () => {
+  it("n = 0 is R's error; a nonsymmetric 2 x 2 Sigma reads the lower triangle; a slightly negative eigenvalue within tol", () => {
+    expect(E2.mvrnorm_n0.error).toBe("non-conformable arguments");
+    expect(() => mvrnorm(0, [0, 0], [[1, 0], [0, 1]])).toThrow("non-conformable arguments");
+    setSeed(42);
+    mvrnorm(3, [0, 0], [[2, 0.9], [0.5, 1]]).forEach((r, i) => r.forEach((v, j) => expect(rel(v, E2.mvrnorm_nonsym.value[i][j])).toBeLessThan(1e-14)));
+    setSeed(42);
+    mvrnorm(2, [0, 0], [[1, 1 + 1e-9], [1 + 1e-9, 1]]).forEach((r, i) => r.forEach((v, j) => expect(rel(v, E2.mvrnorm_neg_tol.value[i][j])).toBeLessThan(1e-12)));
+  });
+  it("a rank-1 Sigma in 3 dimensions: R's draws up to the eigenvector's sign", () => {
+    // the two eigenvalues that are 0 in theory come out as rounding (about 1e-15) of either sign, and their square
+    // roots (about 3e-8) enter the draws, in R as here
+    setSeed(42);
+    mvrnorm(3, [0, 0, 0], [[1, 2, 3], [2, 4, 6], [3, 6, 9]]).forEach((r, i) => r.forEach((v, j) => expect(rel(Math.abs(v), Math.abs(E2.mvrnorm_semidef.value[i][j]))).toBeLessThan(1e-6)));
   });
 });

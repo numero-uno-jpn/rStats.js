@@ -192,7 +192,8 @@ export function mvrnorm(n: number, mu: readonly number[], Sigma: MatrixInput, op
   const p = mu.length;
   checkCovariance(S, p);
   const count = Math.trunc(n);
-  if (!(count >= 0)) throw new RangeError("invalid arguments");
+  // R's mvrnorm errors for n = 0 ("non-conformable arguments")
+  if (!(count >= 1)) throw new RangeError(count === 0 ? "non-conformable arguments" : "invalid arguments");
   const { values, vectors } = symmetricEigen(S);
   if (!values.every((v) => v >= -tol * Math.abs(values[0]!))) throw new RangeError("'Sigma' is not positive definite");
   const r = values.map((v) => Math.sqrt(Math.max(v, 0)));

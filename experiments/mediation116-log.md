@@ -192,3 +192,20 @@ script keeps the search that succeeded.
     points to the bootstrap; the treatment required in the outcome model, as R. The first range guard (2^-1000) refused
     1e-150 data (variances of 1e-302); the normal range (2^-1022) is used.
 45. Times in rStats.js (n = 2000): 1.4 s (quasi, 1000 sims), 1.9 s (bootstrap, 200), logit / logit 1.8 s and 2.3 s.
+
+## Edge cases, second pass (2026-11-25)
+
+46. `mediation116-edge2.R`. R: a binary mediator separated by a covariate: glm stops unconverged after 25 iterations
+    (C's coefficient 334) and mediate runs; sims = 1 errors without the bootstrap ("dim(X) must have a positive
+    length") but runs with it here (in mediation116-boot-count.R it errored with the bootstrap too); robustSE with the
+    bootstrap is ignored with the warning "'robustSE' is ignored for nonparametric bootstrap"; a covariate value for a
+    variable not in the models errors ("undefined columns selected"); a factor treatment is taken with a warning; a
+    resample that loses a factor level errors ("contrasts can be applied only to factors with 2 or more levels");
+    mvrnorm: n = 0 errors ("non-conformable arguments"), a nonsymmetric 2 x 2 Sigma reads the lower triangle, an
+    eigenvalue of -1e-9 passes tol.
+47. rStats.js: the separated glm stops after 25 iterations with R's two warnings, coefficients to 1e-5 relative (the
+    separation magnifies rounding), draws within 1e-3; sims below 2 refused for both methods (R's sims = 1 is not
+    reliable); robustSE with the bootstrap ignored with R's warning (a `warnings` field added); mvrnorm with n = 0 gives
+    R's error; the rest as R or refused with a message of rStats.js (a numeric treatment is required). A rank-1 Sigma in
+    3 dimensions: R's draws up to sign, to 3e-8 only, because the zero eigenvalues come out as rounding of either sign
+    and their square roots enter the draws (in R too).
