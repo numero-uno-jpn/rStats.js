@@ -148,3 +148,15 @@ script keeps the search that succeeded.
     n.avg draws).
 36. Candidate corrected: **38 of 38 settings match to <= 1e-11** (HC0 the control that should differ). **mediate
     settled.**
+
+## Decisions
+
+37. The user (2026-11-25): mvrnorm in 3 or more dimensions agrees with R statistically only (no port of dstemr); 2 dimensions and mediate match exactly.
+
+## mediate's covariates argument (2026-11-25)
+
+38. `mediation116-covariates.R` (the first run stopped at the checker: the helper's name `fix` is a forbidden name,
+    renamed): the reimplementation of 34-36 with the candidate "the given covariates are set to their values in every
+    observation's prediction of the mediator and the outcome", for a moderator W in both models with X:W and M:W
+    interactions (lm / lm, lm / logit, logit / lm), quasi-Bayes and bootstrap, W at mean +- SD. **12 of 12 match
+    (<= 3e-11); without the fixing they are far off (0.3-580). Settled.**
