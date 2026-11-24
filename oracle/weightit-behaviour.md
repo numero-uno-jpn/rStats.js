@@ -77,3 +77,15 @@ and ipt fail to converge and ebal degenerate in R; that kind of data is kept for
    of `rmean`/`se(rmean)`; to be matched against R in the fixture, from the literature (Kalbfleisch & Prentice).
 2. `svyglm`'s printed `dispersion` (gaussian 1.0355 in `iptw113`): which weighted residual sum it is.
 3. cbps with probit and every estimand, ipt and ebal: R's iterative answers vs an exact solve — the tolerance (Choices).
+
+## Choices (the user, 2026-11-24, all as recommended)
+
+1. **Placement.** `weightit`, the trimming and the weight summary in `/causal` (beside `balTab`); `svyglm` and the
+   adjusted survival curves of a Cox fit in `/tests`, beside `glm` and `coxph`.
+2. **cbps, ipt, ebal: solve exactly.** Newton on the balance conditions to machine precision; the fixtures compare with
+   R at a tolerance of about 1e-6 relative and also check that the balance holds exactly. The difference from R's
+   early-stopping optimisers is documented.
+3. **Covariates.** A record of named columns, numbers or strings; a string column is a factor with R's level order (the
+   first level the reference in the model matrix), and `balTab` shows every level as R does (`x3_a`, `x3_b`, `x3_c`).
+4. **No convergence.** Return the result as R does, with `converged: false` and warnings worded like R's; propensity
+   scores at 0 or 1 likewise warn and return.
