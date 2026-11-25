@@ -121,6 +121,8 @@ export interface BetaregModel {
   weights: number[];
   /** 0-based rows of the data used. */
   rows: number[];
+  /** The mean model's matrix as fitted: columns centred and divided by a power of 2 (the hat values use it). */
+  xScaled: number[][];
 }
 
 /**
@@ -260,6 +262,33 @@ function adjustment(th: number[], m: BetaregModel, l1: Link, l2: Link, Finv: num
   }
   return A;
 }
+/** Columns other than an intercept (all 1) centred (when there is one) and divided by a power of 2; `map` takes the
+ * coefficients of the scaled columns to those of the original ones. */
+function scaleColumns(m: number[][]): { scaled: number[][]; map: number[][] } {
+  const k = m[0]?.length ?? 0, n = m.length;
+  const icpt = Array.from({ length: k }, (_, j) => m.every((r) => r[j] === 1)).indexOf(true);
+  const centre = Array.from({ length: k }, (_, j) => (j === icpt || icpt < 0 ? 0 : m.reduce((s, r) => s + r[j]!, 0) / n));
+  const exps = Array.from({ length: k }, (_, j) => {
+    if (j === icpt) return 0;
+    let top = 0;
+    for (const r of m) top = Math.max(top, Math.abs(r[j]! - centre[j]!));
+    return top > 0 && Number.isFinite(top) ? Math.floor(Math.log2(top)) : 0;
+  });
+  const scaled = m.map((r) => r.map((v, j) => (j === icpt ? v : (v - centre[j]!) * 2 ** -exps[j]!)));
+  // the 2^-e factor as two halves, so that e near +-1074 does not under- or overflow
+  const pw = (e: number) => 2 ** Math.trunc(-e / 2) * 2 ** (-e - Math.trunc(-e / 2));
+  const map = Array.from({ length: k }, (_, a) => Array.from({ length: k }, (_, b) => {
+    if (a === b) return a === icpt ? 1 : pw(exps[a]!);
+    if (a === icpt && b !== icpt) return -centre[b]! * pw(exps[b]!);
+    return 0;
+  }));
+  return { scaled, map };
+}
+function blockDiagonal(a: number[][], b: number[][]): number[][] {
+  const p = a.length, q = b.length;
+  return Array.from({ length: p + q }, (_, i) => Array.from({ length: p + q }, (_, j) =>
+    i < p && j < p ? a[i]![j]! : i >= p && j >= p ? b[i - p]![j - p]! : 0));
+}
 const dot = (a: number[], b: number[]) => a.reduce((s, v, j) => s + v * b[j]!, 0);
 
 /** Splits "y ~ x | z" at its top-level bar. */
@@ -330,24 +359,37 @@ export function betareg(formula: string, data: DataFrame, options: BetaregOption
   if (weights.some((v) => !(v >= 0) || !Number.isFinite(v))) throw new RangeError("weights must be finite and non-negative");
   const x = d.x, p = x[0]?.length ?? 0, q = z[0]!.length, k = p + q;
   if (p === 0) throw new RangeError("the mean model has no coefficients");
+  // the fit is done on columns centred (with an intercept) and divided by a power of 2, so that it does not depend on
+  // the scale of a covariate (1e+-300) or on a large common value (1e15 + small differences); the coefficients, their
+  // covariance and the bias follow exactly (R fails from 1e150 and from a common value of 1e8: log 28)
+  if (weights.filter((w) => w > 0).length < k) throw new RangeError("fewer observations than coefficients");
+  const sx = scaleColumns(x), sz = scaleColumns(z);
   const model: BetaregModel = {
     meanRhs: parsed.rhs, precisionRhs: parsedZ?.rhs, factorLevels, contrasts,
-    variables: [...new Set([...d.terms.variables.slice(1), ...zVars])], x, z, y, weights, rows,
+    variables: [...new Set([...d.terms.variables.slice(1), ...zVars])], x, z, y, weights, rows, xScaled: sx.scaled,
   };
+  const fitModel: BetaregModel = { ...model, x: sx.scaled, z: sz.scaled };
+  const back = blockDiagonal(sx.map, sz.map);
   // R's starting values: weighted least squares of g(y) on X; phi from the delta method (Ferrari and Cribari-Neto 2004)
   const gy = y.map((v) => l1.fun(v));
-  const XtX = Array.from({ length: p }, (_, a) => Array.from({ length: p }, (_, b) => x.reduce((s, r, i) => s + weights[i]! * r[a]! * r[b]!, 0)));
+  const XtX = Array.from({ length: p }, (_, a) => Array.from({ length: p }, (_, b) => sx.scaled.reduce((s, r, i) => s + weights[i]! * r[a]! * r[b]!, 0)));
   const XtXi = spdInverse(XtX);
   if (XtXi === null) throw new RangeError("the mean model's matrix is rank-deficient");
-  const beta0 = matVec(XtXi, Array.from({ length: p }, (_, a) => x.reduce((s, r, i) => s + weights[i]! * r[a]! * gy[i]!, 0)));
-  const eta0 = x.map((r) => dot(r, beta0));
+  const beta0 = matVec(XtXi, Array.from({ length: p }, (_, a) => sx.scaled.reduce((s, r, i) => s + weights[i]! * r[a]! * gy[i]!, 0)));
+  const eta0 = sx.scaled.map((r) => dot(r, beta0));
   const sw = weights.reduce((s, v) => s + v, 0);
   const sse = eta0.reduce((s, e, i) => s + weights[i]! * (gy[i]! - e) ** 2, 0) / (sw - p);
   let phiSum = 0;
   eta0.forEach((e, i) => { const m = l1.inv(e), s2 = sse * l1.d1(e) ** 2; phiSum += weights[i]! * (m * (1 - m) / s2 - 1); });
-  const phi0 = phiSum / sw;
+  // R's phi0 can be negative (weights summing to less than p, responses near 0 or 1, where R still fits): then the
+  // method of moments on y
+  let phi0 = phiSum / sw;
+  if (!(phi0 > 0) || !Number.isFinite(phi0)) {
+    const my = y.reduce((s, v, i) => s + weights[i]! * v, 0) / sw, vy = y.reduce((s, v, i) => s + weights[i]! * (v - my) ** 2, 0) / sw;
+    phi0 = vy > 0 && my * (1 - my) / vy - 1 > 0 ? my * (1 - my) / vy - 1 : 1;
+  }
   let th = [...beta0, l2.fun(phi0), ...new Array<number>(q - 1).fill(0)];
-  let cur = evaluate(th, model, l1, l2);
+  let cur = evaluate(th, fitModel, l1, l2);
   if (!Number.isFinite(cur.ll)) throw new RangeError("initial value in 'vmmin' is not finite");
   // Fisher scoring with step halving
   let iterations = 0, converged = false;
@@ -359,7 +401,7 @@ export function betareg(formula: string, data: DataFrame, options: BetaregOption
       let t = 1, next: Eval | undefined, cand: number[] = th;
       for (let h = 0; h < 60; h++) {
         cand = th.map((v, j) => v + t * step[j]!);
-        const e = evaluate(cand, model, l1, l2);
+        const e = evaluate(cand, fitModel, l1, l2);
         if (Number.isFinite(e.ll) && e.phi.every((f) => f > 0) && accept(e, cur)) { next = e; break; }
         t /= 2;
       }
@@ -377,18 +419,21 @@ export function betareg(formula: string, data: DataFrame, options: BetaregOption
     const Fi = spdInverse(cur.info);
     if (Fi === null) throw new RangeError("the expected information is singular");
     if (type === "BC") {
-      const A = adjustment(th, model, l1, l2, Fi);
-      bias = matVec(Fi, A).map((v) => -v);
-      th = th.map((v, j) => v - bias![j]!);
-      cur = evaluate(th, model, l1, l2);
+      const A = adjustment(th, fitModel, l1, l2, Fi);
+      const b = matVec(Fi, A).map((v) => -v);
+      th = th.map((v, j) => v - b[j]!);
+      bias = matVec(back, b);
+      cur = evaluate(th, fitModel, l1, l2);
     } else {
       converged = false;
-      fisher((e, t) => { const Fn = spdInverse(e.info)!; const A = adjustment(t, model, l1, l2, Fn); return e.score.map((s, j) => s + A[j]!); }, () => true);
+      fisher((e, t) => { const Fn = spdInverse(e.info)!; const A = adjustment(t, fitModel, l1, l2, Fn); return e.score.map((s, j) => s + A[j]!); }, () => true);
     }
   }
   if (!converged && type !== "BC") warnings.push("the Fisher scoring did not converge");
-  const vcov = spdInverse(cur.info);
-  if (vcov === null) throw new RangeError("the expected information is singular");
+  const vcovScaled = spdInverse(cur.info);
+  if (vcovScaled === null) throw new RangeError("the expected information is singular");
+  const vcov = back.map((r) => back.map((c) => r.reduce((acc, v, a) => acc + v * c.reduce((t, u, b2) => t + vcovScaled[a]![b2]! * u, 0), 0)));
+  th = matVec(back, th);
   // pseudo R^2: squared weighted correlation of eta and g(y)
   const mE = cur.e1.reduce((s, v, i) => s + weights[i]! * v, 0) / sw, mY = gy.reduce((s, v, i) => s + weights[i]! * v, 0) / sw;
   let sxy = 0, sxx = 0, syy = 0;
@@ -610,7 +655,7 @@ export function betaregResiduals(fit: BetaregResult, options: BetaregResidualsOp
 
 /** Diagonal of the hat matrix W^1/2 X (X'WX)^-1 X' W^1/2, W = w phi (psi'(a) + psi'(b)) (dmu/deta)^2 */
 function betaregHatvalues(fit: BetaregResult): number[] {
-  const { x, weights } = fit.model, l1 = meanLink(fit.link), p = x[0]!.length;
+  const { xScaled: x, weights } = fit.model, l1 = meanLink(fit.link), p = x[0]!.length;
   const W = fit.fitted.map((m, i) => {
     const f = fit.precision[i]!;
     return weights[i]! * f * (trigamma(m * f) + trigamma((1 - m) * f)) * l1.d1(fit.linearPredictor[i]!) ** 2;

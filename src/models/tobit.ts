@@ -95,7 +95,16 @@ export function tobit(formula: string, data: DataFrame, options: TobitOptions = 
   if (options.df !== undefined) sOptions.df = options.df;
   if (d.frame.weights !== undefined) sOptions.weights = d.frame.weights;
   if (options.control !== undefined) sOptions.control = options.control;
-  const fit = survreg(lo, undefined, x, sOptions);
+  // a location-scale distribution is fitted to the response divided by a power of 2 near its size, and the result
+  // scaled back exactly: survreg's iterations fail for responses near 1e-150 (R's do not; log 29). Not for responses
+  // of ordinary size, so that the iterations stay R's
+  const dist = sOptions.dist!;
+  let top = 0;
+  for (const v of [...lo, ...hi]) if (Number.isFinite(v)) top = Math.max(top, Math.abs(v));
+  const e = ["gaussian", "logistic", "t", "extreme"].includes(dist) && top > 0 ? Math.floor(Math.log2(top)) : 0;
+  const scaled = Math.abs(e) > 30;
+  const sc = scaled ? 2 ** e : 1;
+  const fit = scaled ? unscale(survreg(lo.map((v) => v / sc), undefined, x, { ...sOptions, time2: hi.map((v) => v / sc) }), sc, lo, hi) : survreg(lo, undefined, x, sOptions);
   const names = d.colNames.slice();
   const rowNames = [...names, ...fit.tableRowNames.slice(names.length)];
   return {
@@ -175,4 +184,23 @@ function solveSymmetric(V: number[][], b: number[]): number[] {
   const s = new Array<number>(n);
   for (let i = n - 1; i >= 0; i--) { let t = z[i]!; for (let k = i + 1; k < n; k++) t -= L[k]![i]! * s[k]!; s[i] = t / L[i]![i]!; }
   return s;
+}
+
+// The fit of y / s taken back to y: coefficients, scales and standard errors times s, log scale plus log s, the
+// log-likelihoods minus log s per exact observation (weighted), z and p unchanged.
+function unscale(f: SurvregResult, s: number, lo: number[], hi: number[]): SurvregResult {
+  const p = f.coefficients.length, ls = Math.log(s);
+  let exact = 0;
+  f.rows.forEach((r, i) => { if (lo[r] === hi[r]) exact += f.weights[i]!; });
+  const isCoef = (j: number) => j < p;
+  const value = f.value.map((v, j) => (isCoef(j) ? v * s : v + ls)), se = f.se.map((v, j) => (isCoef(j) ? v * s : v));
+  const icoef = f.icoef.map((v, j) => (j === 0 ? v * s : v + ls));
+  return {
+    ...f, coefficients: f.coefficients.map((v) => v * s), scale: f.scale.map((v) => v * s),
+    var: f.var.map((row, a) => row.map((v, b) => v * (isCoef(a) ? s : 1) * (isCoef(b) ? s : 1))),
+    loglik: [f.loglik[0] - exact * ls, f.loglik[1] - exact * ls], icoef, value, se,
+    table: { value, se, z: f.z.slice(), p: f.p.slice() }, linearPredictors: f.linearPredictors.map((v) => v * s),
+    score: f.score.map((v, j) => (isCoef(j) ? v / s : v)), y: f.y.map((v) => v * s),
+    lower: f.lower.map((v) => v * s), upper: f.upper.map((v) => v * s),
+  };
 }

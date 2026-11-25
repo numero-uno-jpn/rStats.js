@@ -218,3 +218,26 @@ The implementation (closed forms of the Kosmidis-Firth adjustment, in the behavi
     2.8967876430918693e-7, the upper tail 2.896787643364249e-7 (9e-11 relative apart); `1 - pchisq(39.9, 6)` gives
     R's value to the last digit, and the fixture's p for a change of 146 on 9 df is exactly 0. **Settled:** anova.loglm
     computes `1 - pchisq()`; kept as R.
+
+## Edge cases, first pass (2026-11-25)
+
+27. `regression117-edge.R` (added): R on the edge cases, compared with rStats.js (`test/regression117Edge.test.ts`).
+    loglin with the counts times 1e-300: R prints "1 iterations: deviation 1.03e-298" where rStats.js (start of 1s)
+    took 2. **Found:** R scales the start to the table's total before the cycles (with that, every fixture case keeps
+    R's iteration count and the 1e-300 table converges in one cycle). Counts times 1e300: R's lrt, pearson and fit are
+    NaN (overflow); rStats.js computes them (Pearson as (o - f) ((o - f) / f), lrt with log o - log f). A sampling zero
+    whose margin is 0 (fit 0): R's pearson is NaN, its lrt finite; with a structural zero (start 0) R leaves the cell
+    out of both (fixture: lrt 4.135, pearson 21.05 with the zero cell's count 8). **Settled:** the statistics are summed
+    over the cells with a positive start.
+28. betareg: R fails with a covariate times 1e150 or 1e300 ("missing value where TRUE/FALSE needed"), times 1e-300
+    (chol: "the leading minor of order 2 is not positive"), and plus 1e8 or 1e15 ("non-finite value supplied by
+    optim"); rStats.js now fits on columns centred and divided by a power of 2 and takes the coefficients, covariance
+    and bias back exactly (equivariant to 1e-12; with 1e15 + x the data themselves are rounded). R fits weights times
+    1e-200 and 5 responses at 1e-12, where R's own starting phi (attempt 7) is negative; rStats.js then starts phi from
+    the moments of y and reaches R's values (1e-6). n = 2 with 3 coefficients: R "missing value where TRUE/FALSE
+    needed", rStats.js "fewer observations than coefficients". Collinear columns and a constant response: errors in
+    both. Timing: n = 100000, R 58 s, rStats.js 1.1 s; BR with n = 20000, R 10.5 s, rStats.js 0.8 s.
+29. tobit: a response times 1e-150: R's fit is the unscaled fit times 1e-150 (to 2e-7), rStats.js's survreg did not
+    converge to it (coefficients 8.1e-153 and 1.9e-151 instead of 6.5e-152 and 1.5e-151). rStats.js now fits a
+    location-scale distribution to the response divided by a power of 2 when its size is beyond 2^+-30, and scales back
+    exactly (log-likelihood minus log s per exact observation). Times 1e150: both fail (NaN coefficients).

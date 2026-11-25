@@ -82,11 +82,10 @@ function marginIndex(dim: readonly number[], keep: readonly number[]): number[] 
 interface IpfResult { fit: number[]; iterations: number; deviation: number; converged: boolean }
 
 function ipf(counts: number[], dim: number[], margins: number[][], start: number[], eps: number, iter: number): IpfResult {
-  let fit = start.slice();
-  if (margins.length === 0) {
-    const total = counts.reduce((a, b) => a + b, 0), s = fit.reduce((a, b) => a + b, 0);
-    return { fit: fit.map((v) => (v * total) / s), iterations: 0, deviation: NaN, converged: true };
-  }
+  // the start is first scaled to the table's total (R: counts of 1e-300 converge in one cycle, log 27)
+  const total = counts.reduce((a, b) => a + b, 0), s0 = start.reduce((a, b) => a + b, 0);
+  let fit = start.map((v) => (v / s0) * total);
+  if (margins.length === 0) return { fit, iterations: 0, deviation: NaN, converged: true };
   const obs = margins.map((m) => marginSums(counts, dim, m)), index = margins.map((m) => marginIndex(dim, m));
   let it = 0, deviation = 0;
   // a cycle adjusts each margin in turn; its deviation is the largest |observed - fitted| margin difference seen just
@@ -148,11 +147,16 @@ function parameters(fit: number[], dim: number[], terms: number[][], dimNames: s
   return out;
 }
 
-function statistics(counts: number[], fit: number[]): { lrt: number; pearson: number } {
+// The cells of the statistics are those with a positive start (a structural zero is left out even when its count is
+// not 0; a sampling zero fitted as 0 makes Pearson's statistic NaN, as R). (o - f) ((o - f) / f) keeps counts near
+// 1e300 from overflowing (R's statistics are NaN there)
+function statistics(counts: number[], fit: number[], start: number[]): { lrt: number; pearson: number } {
   let lrt = 0, pearson = 0;
   counts.forEach((o, c) => {
+    if (!(start[c]! > 0)) return;
     const f = fit[c]!;
-    if (f > 0) { pearson += ((o - f) * (o - f)) / f; if (o > 0) lrt += o * Math.log(o / f); }
+    pearson += (o - f) * ((o - f) / f);
+    if (o > 0) lrt += o * (Math.log(o) - Math.log(f));
   });
   return { lrt: 2 * lrt, pearson };
 }
@@ -213,7 +217,7 @@ function fitLoglin(t: Table, margins: number[][], start: number[], eps: number, 
   const terms = modelTerms(margins);
   const cells = t.counts.length;
   const df = cells - 1 - terms.reduce((a, term) => a + term.reduce((p, k) => p * (t.dim[k]! - 1), 1), 0);
-  const { lrt, pearson } = statistics(t.counts, r.fit);
+  const { lrt, pearson } = statistics(t.counts, r.fit, start);
   return {
     lrt, pearson, df, margin: margins.map((m) => m.map((k) => t.names?.[k] ?? k + 1)), fit: r.fit,
     param: parameters(r.fit, t.dim, terms, dimNames), paramNames: ["(Intercept)", ...terms.map((term) => term.map((k) => dimNames[k]).join("."))], iterations: r.iterations, deviation: r.deviation,

@@ -114,8 +114,9 @@ IPF: fit = start; a cycle adjusts the margins in the given order, each by fit <-
 (0 where the fitted margin is 0). The deviation of a cycle = the largest |observed - fitted| margin difference seen
 **just before** each adjustment. Stop when the deviation < eps (default 0.1) or after `iter` cycles (default 20;
 "algorithm did not converge" then). A model that fits in one cycle reports 2 iterations (the second cycle sees ~0).
-No margins: 0 iterations, fit = start * sum(table) / sum(start).
-- lrt = 2 sum obs log(obs / fit) over cells with obs > 0 and fit > 0; pearson = sum (obs - fit)^2 / fit over fit > 0.
+The start is first scaled to the table's total (log 27). No margins: 0 iterations, fit = the scaled start.
+- lrt = 2 sum obs log(obs / fit) and pearson = sum (obs - fit)^2 / fit over the cells with a positive start (log 27;
+  a sampling zero fitted as 0 makes pearson NaN, as R).
 - df: cells - 1 - sum over the terms of the hierarchical model of prod(levels - 1); no adjustment for zeros.
 - param (zero-sum constraints): the ANOVA decomposition of log(fit), names "(Intercept)", factor names, "A.B"; terms
   by size, then in colex order (P.Q, Q.R, P.S, R.S); every parameter NA when a fitted value is 0 (log 25).
@@ -136,3 +137,11 @@ sign(o - f) sqrt(2 |o log(o / f) - (o - f)|), pearson (o - f) / sqrt(f), respons
   nested arrays (first index outermost); loglm also takes a DataFrame with a frequency column.
 - betareg's results keep R's names in camelCase (`pseudoRSquared`, `dfNull`, `dfResidual`, `linkPhi`).
 - tobit's t takes `df` (rStats.js's survreg), not `parms`.
+
+## Edge cases (log 27-29)
+
+- betareg: fitted on centred columns divided by a power of 2 (R fails for covariates times 1e150 or 1e+-300 and
+  for a common value of 1e8); R's starting phi can be negative (weights summing to less than p, responses near 0 or
+  1): the moments of y then. Fewer observations than coefficients: an error.
+- tobit: responses beyond 2^+-30 in size fitted divided by a power of 2 (location-scale distributions), scaled back.
+- loglin: statistics computed without overflow for counts near 1e300 (R's are NaN).
