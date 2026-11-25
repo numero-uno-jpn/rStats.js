@@ -163,3 +163,24 @@ Source: the help pages of `loglm` and `loglm1` (eps 1/10, iter 40, param TRUE; o
     pearson (o - f) / sqrt(f), response o - f (all 0). anova: "LR tests for hierarchical log-linear models", rows
     Model 1..k and "Saturated" with Deviance, df, Delta(Dev), Delta(df), P(> Delta(Dev)). Data frame with frequencies:
     lrt equals glm(poisson)'s deviance to 7e-6 (IPF's eps), df equal; two missing cells: df 7 = 9 - 2, as glm.
+
+## tobit with the positive distributions (2026-11-25)
+
+ReactiveStat (`Tobit回帰.php`) also passes weibull, lognormal and exponential to tobit (and stopped printing McFadden's
+R^2: AIC and the likelihood-ratio test against `y ~ 1` only).
+
+20. `regression117-tobit-logdist.R` (added): weibull, lognormal, exponential, loglogistic, rayleigh x limits (1, Inf),
+    (-Inf, 4), (1, 4), (0, Inf): tobit = `survreg(Surv(lo, hi, type = "interval2"))` with lo = NA, hi = left where
+    y <= left and lo = right, hi = NA where y >= right (difference 0 in all 20). AIC = -2 loglik + 2 df with df =
+    coefficients + 1 (2 for exponential and rayleigh, whose scale is fixed at 1 and 0.5). Errors: zeros in y with
+    weibull and the default left = 0: "Invalid survival times for this distribution" (the limit 0 is log 0);
+    left >= right: "all(left < right) is not TRUE"; every y censored: "initial iteration failed (use starting
+    estimates?)". Gaussian with zeros at the default left = 0 fits.
+
+## Gamma regression (2026-11-25)
+
+21. No experiment: ReactiveStat (`ガンマ・ベータ回帰.php`) calls `glm(family = Gamma(link) | inverse.gaussian(link))`,
+    `summary`, `confint(level)` (profile likelihood), `AIC`, `summary$dispersion`, and the null model's `logLik` for
+    the likelihood-ratio test. The existing fixtures cover these: `oracle/glm.R` (Gamma with inverse, identity, log,
+    sqrt, 1/mu^2 links and inverse.gaussian, aic), `oracle/glmconfint.R` (Gamma and inverse.gaussian),
+    `oracle/glmformula.R` (Gamma with the formula entry). Nothing new to implement.
