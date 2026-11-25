@@ -115,3 +115,12 @@ RUN install2.r --error --skipinstalled mediation interactions jtools lmtest \
                    got <- sapply(names(want), function(p) as.character(packageVersion(p))); \
                    cat(sprintf("%s %s\n", names(got), got), sep = ""); \
                    if (!identical(unname(got), unname(want))) quit(status = 1)'
+
+# Tobit and beta regression (1.17.0): AER (tobit) and betareg (with flexmix), in a layer of their own, at the
+# versions of the fixtures. loglin is base R's stats; MASS (loglm) came before.
+RUN install2.r --error --skipinstalled AER betareg \
+    && Rscript -e 'want <- c(AER = "1.2.17", betareg = "3.2.6", Formula = "1.2.6", survival = "3.8.12", MASS = "7.3.66"); \
+                   for (p in names(want)) suppressPackageStartupMessages(library(p, character.only = TRUE)); \
+                   got <- sapply(names(want), function(p) as.character(packageVersion(p))); \
+                   cat(sprintf("%s %s\n", names(got), got), sep = ""); \
+                   if (!identical(unname(got), unname(want))) quit(status = 1)'

@@ -21,7 +21,7 @@ const ALLOWED_PACKAGES = new Set([
   "cmprsk", "survival", "epiR", "exact2x2", "clinfun", "powerSurvEpi", "metafor", "metadat", "lme4", "Matrix",
   "MASS", "quantreg", "SparseM", "MatrixModels", "geepack", "glmnet", "PMCMRplus", "outliers", "ca", "Matching", "cobalt",
   "tableone", "WeightIt", "CBPS", "survey", "sandwich", "nnet", "mediation", "interactions", "jtools", "lmtest",
-  "jsonlite", "stats", "utils", "base",
+  "AER", "betareg", "Formula", "jsonlite", "stats", "utils", "base",
 ]);
 
 /** Functions of the reference packages: they may only be called. */
@@ -447,6 +447,37 @@ const REFERENCE_FUNCTIONS = [
   "test.modmed.mediate", "test.modmed.mediate.order", "theme_apa", "theme_nice", "tidy.sim_margins",
   "tidy.sim_slopes", "tidy.summ", "tidy.summ.merMod", "vcov.bgtest", "waldtest", "waldtest.default",
   "waldtest.formula", "waldtest.lm", "warn_wrap", "weights_tests", "wgttest", "wrap_str", "wtd.sd",
+  // Tobit and beta regression (1.17.0): the exported functions and S3 methods of AER, betareg (with what it
+  // re-exports from flexmix and modeltools) and Formula whose names are not also base R's.
+  // betareg's clusters (from modeltools) is left out: an earlier experiment uses it as a variable name
+  "all.equal.Formula", "anova.ivreg", "as.Formula", "as.Formula.default", "as.Formula.formula", "as.Formula.Formula",
+  "Beta01", "Beta4", "betamix", "BetaR", "betar_family", "betareg", "betareg.control", "betareg.fit", "betatree",
+  "bread.betareg", "bread.ivreg", "bread.tobit", "cdf.Beta01", "cdf.Beta4", "cdf.BetaR", "cdf.XBeta", "cdf.XBetaX",
+  "coef.betamix", "coef.betareg", "coeftest.betareg", "coeftest.multinom", "coeftest.polr",
+  "cooks.distance.betareg", "dbeta01", "dbeta4", "dbetar", "deviance.survreg", "dispersiontest", "dxbeta", "dxbetax",
+  "estfun.betareg", "estfun.ivreg", "extraComponent", "fitted.tobit", "Formula", "formula.Formula", "formula.tobit",
+  "gleverage", "gleverage.betareg", "hatvalues.betareg", "hatvalues.ivreg", "hessian.BetaR", "is.Formula",
+  "is_continuous.Beta01", "is_continuous.Beta4", "is_continuous.BetaR", "is_continuous.XBeta", "is_continuous.XBetaX",
+  "is_discrete.Beta01", "is_discrete.Beta4", "is_discrete.BetaR", "is_discrete.XBeta", "is_discrete.XBetaX", "ivreg",
+  "ivreg.fit", "kurtosis.Beta01", "kurtosis.Beta4", "kurtosis.BetaR", "kurtosis.XBeta", "kurtosis.XBetaX",
+  "length.Formula", "linearHypothesis.tobit", "log_pdf.Beta01", "log_pdf.Beta4", "log_pdf.BetaR", "log_pdf.XBeta",
+  "log_pdf.XBetaX", "logLik.betamix", "logLik.betareg", "lrtest.fitdistr", "lrtest.tobit", "mean.Beta01",
+  "mean.Beta4", "mean.BetaR", "mean.XBeta", "mean.XBetaX", "model.frame.betareg", "model.frame.Formula",
+  "model.frame.tobit", "model.matrix.betareg", "model.matrix.Formula", "model.matrix.ivreg", "model.part",
+  "model.part.Formula", "model.part.formula", "nobs.tobit", "pbeta01", "pbeta4", "pbetar", "pdf.Beta01", "pdf.Beta4",
+  "pdf.BetaR", "pdf.XBeta", "pdf.XBetaX", "plot.betareg", "plot.betatree", "posterior", "predict.betareg",
+  "predict.betatree", "predict.ivreg", "print.betamix", "print.betareg", "print.betatree", "print.Formula",
+  "print.ivreg", "print.summary.betareg", "print.summary.ivreg", "print.summary.tobit", "print.tobit",
+  "prodist.betareg", "pxbeta", "pxbetax", "qbeta01", "qbeta4", "qbetar", "quantile.Beta01", "quantile.Beta4",
+  "quantile.BetaR", "quantile.XBeta", "quantile.XBetaX", "qxbeta", "qxbetax", "random.Beta01", "random.Beta4",
+  "random.BetaR", "random.XBeta", "random.XBetaX", "rbeta01", "rbeta4", "rbetar", "residuals.betareg", "rxbeta",
+  "rxbetax", "score.BetaR", "sctest.betatree", "simulate.betareg", "skewness.Beta01", "skewness.Beta4",
+  "skewness.BetaR", "skewness.XBeta", "skewness.XBetaX", "str.Formula", "summary.betamix", "summary.betareg",
+  "summary.ivreg", "summary.tobit", "support.Beta01", "support.Beta4", "support.BetaR", "support.XBeta",
+  "support.XBetaX", "terms.betareg", "terms.Formula", "terms.ivreg", "tobit", "update.betareg", "update.Formula",
+  "update.ivreg", "update.tobit", "variance.Beta01", "variance.Beta4", "variance.BetaR", "variance.XBeta",
+  "variance.XBetaX", "vcov.betareg", "vcov.ivreg", "vcov.tobit", "waldtest.tobit", "weights.tobit", "XBeta", "XBetaX",
+  "xbetax_family",
 ];
 
 /** Names that reach code, namespaces, compiled routines, other programs or files: not allowed at all. */

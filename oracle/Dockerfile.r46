@@ -152,3 +152,10 @@ RUN install2.r --error --skipinstalled mediation interactions jtools lmtest \
     && Rscript -e 'pk <- c("mediation", "interactions", "jtools", "lmtest", "sandwich", "MASS"); \
                    for (p in pk) suppressPackageStartupMessages(library(p, character.only = TRUE)); \
                    cat(sprintf("%s %s\n", pk, sapply(pk, function(p) as.character(packageVersion(p)))), sep = "")'
+
+# Tobit and beta regression (1.17.0), in a layer of its own: AER (tobit, on survival's survreg) and betareg.
+# loglin is base R's stats; MASS (loglm) came before.
+RUN install2.r --error --skipinstalled AER betareg \
+    && Rscript -e 'pk <- c("AER", "betareg", "Formula", "survival", "MASS"); \
+                   for (p in pk) suppressPackageStartupMessages(library(p, character.only = TRUE)); \
+                   cat(sprintf("%s %s\n", pk, sapply(pk, function(p) as.character(packageVersion(p)))), sep = "")'
