@@ -15,6 +15,12 @@
   **対象の共変量つきのモデルも** (ユーザーの選択。`~ x[..] + (1|..)` は PQL の混合モデルが要る)。ReactiveStat は `一対比較.php`
 - **置き場所:** 管理図は `/descriptive`、Bradley-Terry は `/regression`
 - 時間依存 ROC は 1.19.0、ネットワークメタアナリシスと時系列はその後 (推奨の順。ユーザーは 1.18.0 だけ決めた)
+- **準備済み (2026-11-25):** Issue #568、作業ブランチ `dev/qcc-bt-1.18` (main の HANDOFF のコミット込み、手元だけ)、イメージ (x86_64・arm64)
+  に qcc 2.7・BradleyTerry2 1.1.4・qvcalc 1.0.4、実験用 Dockerfile (未ビルド)、チェッカーに 3 パッケージの関数 101 個 (既存の実験と衝突なし)。
+  「広く」の中身は Issue #568 に書いた (qcc・mqcc・cusum・ewma・ewmaSmooth・oc.curves・process.capability・pareto.chart の表・
+  qcc.overdispersion.test・qcc.groups・shewhart.rules。図だけの cause.and.effect・ellipseChart と、gnm が要る GenDavidson は除く)
+- 次は R の実験 (`experiments/qccbt118*`、試行錯誤は `experiments/qccbt118-log.md` に時系列で)。まず qcc の各種類の統計量・σ・限界、
+  違反の規則、BTm の共変量と PQL
 
 ## (以前) 次の版の範囲を決める前の記録
 
