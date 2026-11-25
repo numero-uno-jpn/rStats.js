@@ -241,3 +241,13 @@ The implementation (closed forms of the Kosmidis-Firth adjustment, in the behavi
     converge to it (coefficients 8.1e-153 and 1.9e-151 instead of 6.5e-152 and 1.5e-151). rStats.js now fits a
     location-scale distribution to the response divided by a power of 2 when its size is beyond 2^+-30, and scales back
     exactly (log-likelihood minus log s per exact observation). Times 1e150: both fail (NaN coefficients).
+
+## Edge cases, second pass (2026-11-25)
+
+30. `regression117-edge2.R` (added): betareg with a missing value in a precision-model variable only drops the row
+    (nobs 68; rStats.js the same coefficients to 1e-6); zero weights in a modelled-precision fit (nobs 68, same);
+    predictions for a new factor level: R "factor g has new level zz", rStats.js an error too. tobit with a zero
+    weight: "Invalid weights, must be >0" (survreg's, both); a factor level whose responses are all censored: R
+    iterates 18 times to a large coefficient (7.38), rStats.js agrees to 1e-5. loglin with iter = 0: R "incorrect
+    specification of 'table' or 'start'" (rStats.js: "'iter' must be a positive integer"). loglm with numbers for an
+    unnamed table (`~ 1 * 2 + 3`): lrt and df as R.

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
-import { betareg, tobit, loglin } from "../src/entries/regression.js";
+import { betareg, betaregPredict, tobit, loglin, loglm } from "../src/entries/regression.js";
 
 // The first pass over the edge cases (experiments/regression117-edge.R, x86_64 R): R's values where R fits, and
 // exact scale equivariance where R fails (log 27-29)
@@ -59,5 +59,37 @@ describe("tobit and loglin on edge cases", () => {
     expect(zero.lrt).toBeCloseTo(R.loglin_zero.value.lrt, 12);
     expect(zero.pearson).toBeNaN(); // a sampling zero fitted as 0, as R
     expect(base.iterations).toBe(4);
+  });
+});
+
+// The second pass (experiments/regression117-edge2.R)
+describe("the second pass over the edge cases", () => {
+  const R2 = JSON.parse(readFileSync(new URL("../experiments/regression117-edge2.json", import.meta.url), "utf8")) as Record<string, any>;
+  const fx = JSON.parse(readFileSync(new URL("./fixtures/betareg.json", import.meta.url), "utf8")).data.d as Record<string, (number | string | null)[]>;
+  it("betareg drops rows missing in the precision model only, and leaves zero weights out of a modelled-precision fit", () => {
+    const z1na = (fx.z1 as number[]).map((v, i) => (i === 2 || i === 6 ? null : v));
+    const f = betareg("yv ~ x1 + x2 | z1na", { ...fx, z1na } as never);
+    near(coef(f), R2.beta_z_na.coef, 1e-6);
+    expect(f.nobs).toBe(R2.beta_z_na.nobs);
+    const w0 = (fx.w as number[]).map((v, i) => (i === 1 || i === 4 ? 0 : v));
+    const g = betareg("yv ~ x1 + x2 | z1", { ...fx, w0 } as never, { weights: "w0" });
+    near(coef(g), R2.beta_var_w0.coef, 1e-6);
+    expect(g.loglik).toBeCloseTo(R2.beta_var_w0.loglik, 8);
+  });
+  it("betareg's predictions refuse a new factor level", () => {
+    const f = betareg("yv ~ x1 + g", fx as never);
+    expect(() => betaregPredict(f, { newdata: { x1: [0], g: ["zz"] } })).toThrow();
+  });
+  it("tobit refuses a zero weight and fits a level whose responses are all censored as R", () => {
+    const td = R2.data_td;
+    expect(() => tobit("y ~ x1", td, { weights: "w0" })).toThrow(R2.tobit_w0.error);
+    const f = tobit("y ~ x1 + g", td);
+    near(f.coefficients, R2.tobit_level_all_censored.coef, 1e-5);
+    near(f.loglik, R2.tobit_level_all_censored.loglik, 1e-8);
+  });
+  it("loglm takes numbers for the dimensions of an unnamed table", () => {
+    const r = loglm("~ 1 * 2 + 3", { counts: [32, 11, 10, 3, 53, 50, 25, 15, 10, 10, 7, 7, 3, 30, 5, 8], dim: [2, 2, 4] });
+    expect(r.lrt).toBeCloseTo(R2.loglm_numbers.lrt, 10);
+    expect(r.df).toBe(R2.loglm_numbers.df);
   });
 });

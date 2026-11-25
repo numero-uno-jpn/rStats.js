@@ -211,7 +211,8 @@ function resolveMargin(m: readonly (string | number)[] | string | number, t: Tab
 
 function fitLoglin(t: Table, margins: number[][], start: number[], eps: number, iter: number): LoglinResult {
   if (!(eps > 0)) throw new RangeError("'eps' must be positive");
-  if (!Number.isInteger(iter) || iter < 0) throw new RangeError("'iter' must be a non-negative integer");
+  // (R errors for iter = 0: "incorrect specification of 'table' or 'start'")
+  if (!Number.isInteger(iter) || iter < 1) throw new RangeError("'iter' must be a positive integer");
   const r = ipf(t.counts, t.dim, margins, start, eps, iter);
   const dimNames = t.dim.map((_, k) => t.names?.[k] ?? String(k + 1));
   const terms = modelTerms(margins);
