@@ -94,3 +94,35 @@ model matrices.
     accuracy), constant and modelled phi, logit and probit, with case weights (each observation's F, P and Q times
     its weight). At R's BR estimates the adjusted score U + A is 1e-7 to 1e-11 while the score alone is 0.1-2.2.
     **Settled:** BR solves U(theta) + A(theta) = 0; BC = ML - b(ML).
+
+## betareg: residuals, predictions, confint, input errors (2026-11-25)
+
+With y* = logit(y), mu* = digamma(mu phi) - digamma((1 - mu) phi), v = trigamma(mu phi) + trigamma((1 - mu) phi).
+
+12. `regression117-betareg-resid.R` (first version, replaced): a variable `se` (rejected by the checker: survival's
+    `se`?); renamed `sev`. (BSD sed has no `\b`; the rename used `[[:<:]]`.)
+13. (final version): candidates for the seven types, constant and modelled phi, with and without weights.
+    - quantile = `qnorm(pbeta(y, mu phi, (1 - mu) phi))`, response = y - mu, pearson = (y - mu) / sqrt(mu (1 - mu) /
+      (1 + phi)): difference 0 without weights. The default type is quantile.
+    - weighted: of the candidates (y* - mu*) / sqrt(v), / sqrt(phi v), sqrt(phi) (y* - mu*) / sqrt(v), **the second**
+      (0). sweighted: **(y* - mu*) / sqrt(v)** (the values equal the first candidate; not divided by sqrt(1 - h)).
+      sweighted2: **(y* - mu*) / sqrt(v (1 - h))** (4e-16) with h the diagonal of W^1/2 X (X'WX)^-1 X' W^1/2,
+      W = w phi v (dmu/deta)^2 (= `hatvalues`, 6e-17; with weights only when W includes w). The names do not follow
+      the order of the paper's equations as one might guess; recorded as found.
+    - deviance with the saturated mean y and `max(., 0)`: **0.10 off** (wrong).
+    - predict: response, link, precision, variance = mu (1 - mu) / (1 + phi), density, quantile = qbeta, probability;
+      `at` of the same length as the rows is taken elementwise by default (3 rows, at = 3 values gave a vector),
+      `elementwise = FALSE` gives a rows x at matrix, a single `at` a vector; `parameters` has columns mu, phi.
+    - confint = Wald with qnorm (0 and 2e-16), rows `(Intercept)`, `x1`, `(phi)_(Intercept)`, `(phi)_z1`, columns
+      "2.5 %" "97.5 %". summary z and p = Wald with 2 pnorm(-|z|) (0).
+    - errors: y < 0 or > 1: "invalid dependent variable, all observations must be in [0, 1]"; y = 0 or 1 switches to
+      xbetax (here it failed for want of the package statmod; rStats.js will reject it, the user's decision); bad link:
+      "'arg' should be one of ..." with the six (mean), three (phi), ML/BC/BR (type). A missing y drops the row
+      (nobs 49); a zero weight gives the same coefficients as dropping the row.
+14. `regression117-betareg-resid2.R` (added): weights: **every type except response is multiplied by sqrt(w)**
+    (quantile, pearson, weighted, sweighted, sweighted2 to 4e-16). Deviance candidates with the mean maximised at the
+    fitted phi (`optimize`), with the sign of y* - mu*: 0.15-1.9 off (wrong; the maximised log-likelihood is above
+    the one at mean y by up to 2.7, so it is not the saturated term R uses).
+15. `regression117-betareg-dev.R` (added): the values side by side: R's deviance^2 / 2 equals `l(y | mean y) -
+    l(y | mean mu)` in absolute value; 4 of 50 observations have a negative difference (mean y is not the maximum).
+    **Settled:** deviance = sign(y - mu) sqrt(2 |l(y | y, phi) - l(y | mu, phi)|) (2e-13), times sqrt(w).
