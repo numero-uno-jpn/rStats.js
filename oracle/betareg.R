@@ -99,7 +99,13 @@ cases <- list(
   list(formula = "yc ~ x1 + x2", type = "BR", link = "cloglog", link_phi = "sqrt"),
   list(formula = "yv ~ x1 + x2 | z1", type = "BC", weights = "w"),
   list(formula = "yv ~ x1 + x2 | z1", type = "BR", weights = "w"),
-  list(formula = "yc ~ x1 + g", type = "BR")
+  list(formula = "yc ~ x1 + g", type = "BR"),
+  # cloglog and loglog: R floors the second derivative of the inverse link at eps in the bias terms
+  list(formula = "yc ~ x1 + x2", type = "BC", link = "cloglog"),
+  list(formula = "yc ~ x1 + x2", type = "BC", link = "loglog"),
+  list(formula = "yv ~ x1 + x2 | z1", type = "BR", link = "loglog"),
+  list(formula = "ysm ~ x1 + x2", type = "BR", link = "log"),
+  list(formula = "yc ~ x1 + x2", type = "BC", link = "cauchit")
 )
 out$fits <- lapply(cases, function(cs) {
   args <- list(formula = as.formula(cs$formula), data = d)

@@ -184,3 +184,22 @@ R^2: AIC and the likelihood-ratio test against `y ~ 1` only).
     the likelihood-ratio test. The existing fixtures cover these: `oracle/glm.R` (Gamma with inverse, identity, log,
     sqrt, 1/mu^2 links and inverse.gaussian, aic), `oracle/glmconfint.R` (Gamma and inverse.gaussian),
     `oracle/glmformula.R` (Gamma with the formula entry). Nothing new to implement.
+
+## betareg: the bias terms of cloglog and loglog (2026-11-25)
+
+The implementation (closed forms of the Kosmidis-Firth adjustment, in the behaviour file) agreed with
+`oracle/betareg.R` everywhere except BR with link cloglog (and link.phi sqrt), 3e-4 off.
+
+22. `regression117-betareg-sqrt.R` (added): R's ML, BC and BR for {logit, cloglog} x {log, sqrt}, compared outside R
+    with rStats.js: logit agrees to 1e-10 with both precision links; cloglog's ML agrees, its BC and BR are 1e-5 to
+    8e-4 off with both. So the mean link, not the precision link.
+23. `regression117-betareg-d2.R` (added): R's BC bias for all six mean links: logit, probit, cauchit, log agree to
+    3e-11; cloglog and loglog do not (3e-4, 7e-4). Candidates for cloglog's second derivative of the inverse link
+    in the bias terms (the exact one, its negative, 0, the first derivative, -d1 e^eta, loglog's, d1 e^eta (1 - e^eta)):
+    **none fits** (all 1e-4 to 3e-3 off).
+24. `regression117-betareg-d2b.R` (added): intercept-only models with constant phi (all observations share eta, so the
+    bias is linear in the one value d2(eta0)); five data sets with means 0.1 to 0.9; the value R uses solved from the
+    intercept's bias. **Found:** where the exact d2 is positive (cloglog with eta < 0, loglog with eta < 0) R's value
+    equals it (8 digits); where it is negative R's value is 0 (1e-15 to 5e-13, i.e. floored at about eps). logit's
+    negative values are used unfloored (attempts 9-11). **Settled:** for cloglog and loglog, d2 = max(exact, eps).
+    With that floor rStats.js agrees with R's BC and BR for every link.
