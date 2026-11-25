@@ -44,7 +44,7 @@ penalized regression (`glmnet`). For example, `rq("y ~ x", data, { tau: 0.5 })` 
 `glmnet(x, y, { family: "gaussian", alpha: 1 })` fits a lasso path. Use `rqSummary` / `rqPredictInterval`,
 `geeSummary` / `geeVcov` / `geeQIC`, and `glmnetCoef` / `glmnetPredict` / `cvGlmnet` for their methods.
 
-Without a bundler, `https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@1.16.0/dist/rstats.js` is one ES module with
+Without a bundler, `https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@1.17.0/dist/rstats.js` is one ES module with
 every function except mixed models, regression, multivariate analysis, time series and causal inference, which are in
 `dist/mixed.js`, `dist/regression.js`, `dist/multivariate.js`, `dist/timeseries.js` and `dist/causal.js`. Keep a version in the URL (an exact one, or a
 major version such as `@1` from 1.0.0 on): a URL without one follows every new release, breaking changes included.
@@ -187,6 +187,33 @@ first level of the response as the reference. The coefficients are the exact max
 about 1e-5 from it by default. The standard errors come from the Hessian of −log L. `weights` are case weights,
 `decay` adds decay times the sum of squares of all coefficients (as nnet; deviance and AIC include it, the standard
 errors do not). The pseudo R² (McFadden, Cox-Snell, Nagelkerke) use the intercept-only model on the same rows.
+
+## Tobit, beta regression and log-linear models
+
+`tobit`, `betareg`, `loglin` and `loglm` are in `/regression`:
+
+```ts
+import { tobit, tobitSummary, betareg, betaregSummary, betaregConfint, betaregPredict, betaregResiduals, loglin, loglm, loglmAnova } from "@numero-uno-jpn/rstats/regression";
+
+const t = tobit("hours ~ age + kids", data, { left: 0 }); // AER::tobit: survreg on the response clipped to [left, right]
+tobitSummary(t); // Wald table, scale, Wald test; t.loglik holds the null and the model log-likelihoods
+const b = betareg("rate ~ x1 + x2 | z", data, { link: "logit", type: "BR" }); // precision modelled by z
+betaregSummary(b); betaregConfint(b, { level: 0.95 });
+betaregPredict(b, { newdata, type: "quantile", at: [0.1, 0.9] });
+betaregResiduals(b, { type: "sweighted2" });
+const table = { counts, dim: [4, 4, 2], names: ["Hair", "Eye", "Sex"] }; // counts in R's order (first index fastest)
+loglin(table, [["Hair", "Eye"], ["Hair", "Sex"], ["Eye", "Sex"]]);
+loglmAnova(loglm("~ Hair + Eye + Sex", table), loglm("~ (Hair + Eye + Sex)^2", table));
+```
+
+`tobit` follows `AER::tobit(formula, left, right, dist)`: a response at or below `left` is left censored there, at or
+above `right` right censored there, and the model is `survreg`'s with any of its distributions. `betareg` follows
+`betareg::betareg`: mean links logit, probit, cloglog, cauchit, log and loglog, precision links identity, log and sqrt,
+and the estimators of Kosmidis and Firth (2010) (`type: "BC"` and `"BR"`); the likelihood is maximised to convergence,
+so estimates agree with R's to about 1e-7. Responses of 0 or 1 are refused (R switches to its extended-support
+distribution). `loglin` repeats R's iterative proportional fitting (with R's loose default `eps = 0.1`); `loglm` takes
+a table or a data frame with the frequencies on the left of the formula. Gamma regression is `glm` with the Gamma
+family.
 
 ## Multivariate analysis
 

@@ -35,7 +35,7 @@ import { glmnet, glmnetCoef, glmnetPredict, cvGlmnet } from "@numero-uno-jpn/rst
 メソッドはそれぞれ `rqSummary` / `rqPredictInterval`、`geeSummary` / `geeVcov` / `geeQIC`、
 `glmnetCoef` / `glmnetPredict` / `cvGlmnet` です。
 
-バンドラーを使わないときは、`https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@1.16.0/dist/rstats.js` が、混合モデル・回帰・多変量解析・時系列・因果推論以外のすべての関数を含む 1 つの ES モジュールです。混合モデルは `dist/mixed.js`、回帰は `dist/regression.js`、多変量解析は `dist/multivariate.js`、時系列は `dist/timeseries.js`、因果推論は `dist/causal.js` にあります。URL にはバージョンを含めてください (正確なバージョン、または 1.0.0 以降の `@1` のようなメジャーバージョン)。バージョンのない URL は、破壊的変更を含むすべての新しいリリースに追従してしまいます。1 つのページでは、`dist/rstats.js` か分野ごとのバンドル (`dist/tests.js`、`dist/mixed.js`、`dist/regression.js`、`dist/multivariate.js` など) のどちらか一方だけを使ってください。両方を混ぜると、共通のコードが 2 度読み込まれ、乱数の状態も 2 つになります。
+バンドラーを使わないときは、`https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@1.17.0/dist/rstats.js` が、混合モデル・回帰・多変量解析・時系列・因果推論以外のすべての関数を含む 1 つの ES モジュールです。混合モデルは `dist/mixed.js`、回帰は `dist/regression.js`、多変量解析は `dist/multivariate.js`、時系列は `dist/timeseries.js`、因果推論は `dist/causal.js` にあります。URL にはバージョンを含めてください (正確なバージョン、または 1.0.0 以降の `@1` のようなメジャーバージョン)。バージョンのない URL は、破壊的変更を含むすべての新しいリリースに追従してしまいます。1 つのページでは、`dist/rstats.js` か分野ごとのバンドル (`dist/tests.js`、`dist/mixed.js`、`dist/regression.js`、`dist/multivariate.js` など) のどちらか一方だけを使ってください。両方を混ぜると、共通のコードが 2 度読み込まれ、乱数の状態も 2 つになります。
 
 ## 規約
 
@@ -129,6 +129,32 @@ extractAIC(full); // [edf, AIC]
 探索は R と同じです。項は周辺性を保って丸ごと出し入れし、規準が厳密に小さくなるときだけ動き、別名の項は最初に外します。
 R と同じく、使う行が変わる動き (欠損値) はエラーで止まります。`stepAIC` は同じ探索で、経路の `df` だけが違います (正の値)。
 glm の表の AIC は R の値です (Gamma と inverse.gaussian では分散を通した近似で、探索もそれに従います)。
+
+## Tobit 回帰・ベータ回帰・対数線形モデル
+
+`tobit`・`betareg`・`loglin`・`loglm` は `/regression` にあります:
+
+```ts
+import { tobit, tobitSummary, betareg, betaregSummary, betaregConfint, betaregPredict, betaregResiduals, loglin, loglm, loglmAnova } from "@numero-uno-jpn/rstats/regression";
+
+const t = tobit("hours ~ age + kids", data, { left: 0 }); // AER::tobit: [left, right] に切り詰めた応答の survreg
+tobitSummary(t); // Wald の表・尺度・Wald 検定。t.loglik は null モデルとこのモデルの対数尤度
+const b = betareg("rate ~ x1 + x2 | z", data, { link: "logit", type: "BR" }); // 精度を z で回帰
+betaregSummary(b); betaregConfint(b, { level: 0.95 });
+betaregPredict(b, { newdata, type: "quantile", at: [0.1, 0.9] });
+betaregResiduals(b, { type: "sweighted2" });
+const table = { counts, dim: [4, 4, 2], names: ["Hair", "Eye", "Sex"] }; // counts は R の順 (第 1 添字が最も速く動く)
+loglin(table, [["Hair", "Eye"], ["Hair", "Sex"], ["Eye", "Sex"]]);
+loglmAnova(loglm("~ Hair + Eye + Sex", table), loglm("~ (Hair + Eye + Sex)^2", table));
+```
+
+`tobit` は `AER::tobit(formula, left, right, dist)` に合わせています: `left` 以下の応答はそこで左打ち切り、`right` 以上は
+そこで右打ち切りとし、モデルは `survreg` のもの (どの分布でも) です。`betareg` は `betareg::betareg` に合わせています: 平均の
+リンクは logit・probit・cloglog・cauchit・log・loglog、精度のリンクは identity・log・sqrt、推定は最尤と Kosmidis と Firth
+(2010) のバイアス補正・バイアス減少 (`type: "BC"`・`"BR"`) です。尤度は収束するまで最大化するので、推定値は R と 1e-7 程度で
+一致します。0 や 1 の応答はエラーです (R は台を拡張した分布に切り替えます)。`loglin` は R の反復比例当てはめ (R の緩い既定値
+`eps = 0.1` も) をそのまま繰り返します。`loglm` は表か、式の左辺に度数を置いたデータフレームを受けます。ガンマ回帰は Gamma 族の
+`glm` です。
 
 ## 多項ロジスティック回帰
 
