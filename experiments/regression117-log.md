@@ -203,3 +203,11 @@ The implementation (closed forms of the Kosmidis-Firth adjustment, in the behavi
     equals it (8 digits); where it is negative R's value is 0 (1e-15 to 5e-13, i.e. floored at about eps). logit's
     negative values are used unfloored (attempts 9-11). **Settled:** for cloglog and loglog, d2 = max(exact, eps).
     With that floor rStats.js agrees with R's BC and BR for every link.
+
+## loglin: details seen in the fixture (2026-11-25)
+
+25. `oracle/loglin.R` against the implementation (no new experiment): the parameters' terms of one size are in
+    **colex order** (by the last dimension, then the one before: P.Q, Q.R, P.S, R.S for margins (1,2), (2,3), (3,4),
+    (1,4)), not lexicographic; a fit with a zero cell (structural zero) gives **NA for every parameter**; the printed
+    deviation has 7 significant digits (a deviation near 0 is rounding: 5.7e-14 printed where rStats.js has 1.1e-13).
+    A table without dimnames names its parameters "1", "2" (dimension numbers).

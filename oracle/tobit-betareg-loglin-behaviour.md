@@ -117,7 +117,8 @@ IPF: fit = start; a cycle adjusts the margins in the given order, each by fit <-
 No margins: 0 iterations, fit = start * sum(table) / sum(start).
 - lrt = 2 sum obs log(obs / fit) over cells with obs > 0 and fit > 0; pearson = sum (obs - fit)^2 / fit over fit > 0.
 - df: cells - 1 - sum over the terms of the hierarchical model of prod(levels - 1); no adjustment for zeros.
-- param (zero-sum constraints): the ANOVA decomposition of log(fit), names "(Intercept)", factor names, "A.B".
+- param (zero-sum constraints): the ANOVA decomposition of log(fit), names "(Intercept)", factor names, "A.B"; terms
+  by size, then in colex order (P.Q, Q.R, P.S, R.S); every parameter NA when a fitted value is 0 (log 25).
 - margin: numbers replaced by names where there are names.
 
 ## loglm (log 18-19)
