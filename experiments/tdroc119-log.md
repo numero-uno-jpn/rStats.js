@@ -142,3 +142,29 @@ script keeps the search that succeeded.
     (no term from F's influence).
 29. `tdroc119-sespppv-iid4.R`: **IF(Sp2)_k = -(IF_k(W(c2 P)) - FP_2 IF_k(W(c2))) / (1 - W(a))**: equal to 7e-16, single
     cause and competing risks, and every vect_se_ = sd(iid) / sqrt(n) to 1e-11 (the numerical gradient).
+
+## survivalROC (2026-11-26)
+
+30. `tdroc119-survivalroc.R` (first version, replaced): **broke the JSON**: survivalROC without span or lambda prints
+    "method = NNE requires either lambda or span! " to stdout. (second version, replaced): capturing it failed: it
+    then stops with an error whose message is "0". (final version, captured): the result has cut.values (**-Inf
+    first, then the sorted distinct markers**), TP, FP, predict.time, Survival (the KM at predict.time, also for NNE),
+    AUC. **KM: TP(c) = (P(M > c) - S(c, t)) / (1 - S(t)), FP(c) = S(c, t) / S(t), S(c, t) = KM_{M > c}(t) P(M > c)**,
+    equal to 2e-16 (FP is not monotone and can exceed 1: 1.0043). **AUC = the trapezoid over the points in the order of
+    cut.values with signed FP differences** (equal to the last digit; the sorted trapezoid 0.69508 against 0.69607).
+    NNE with the neighbourhood |F_n(M_i) - F_n(M_j)| < span and S_i the neighbours' KM: NaN (0 / 0 where no
+    neighbour is at risk); with those times skipped: 0.077 off.
+31. `tdroc119-survivalroc2.R`: a grid (S(t) the mean of S_i or the KM; half-width span / 2, span, 2 span; < or <=;
+    F_n by max or mean rank): none (0.057 at best).
+32. `tdroc119-survivalroc3.R`: a continuous marker, also windows of +-k ranks: none (0.055 at best).
+33. Recovering R's S(t) and S_i(t) from the single-subject TP / FP steps (dTP = (1 - S_i) / (n (1 - S)), dFP = S_i /
+    (n S)): S(t) = 0.508503 at every step (neither the KM 0.450 nor the candidates' means), S_i simple fractions.
+34. `tdroc119-survivalroc4.R`: neighbourhoods by the marker's value (|M_i - M_j| < span, <=, < span / 2): none (0.8).
+35. `tdroc119-survivalroc5.R`: the smallest marker's neighbours: R's S_i = 3/4 where the neighbours' KM is 2/3; one
+    neighbour is censored at T = 0 (my data rounded the times) and R seems to count it at risk.
+36. `tdroc119-survivalroc6.R`: times without 0 (rounded, plus 0.1): the grid of 31 unchanged (0.055).
+37. `tdroc119-survivalroc7.R`: continuous marker; for each subject, every window (a below, b above in the marker's
+    order) whose KM equals R's S_i: many windows fit each subject, no rule could be read (b = 4 for many, a varying).
+38. `tdroc119-survivalroc8.R`: the risk set not reduced by censoring (S_i = 1 - D / N): none (0.55).
+    **The NNE estimator is not found after 9 attempts.** It is left as a Choice for the user (implement the published
+    definition of Heagerty et al. 2000 and document the difference, leave NNE out, or keep looking).
