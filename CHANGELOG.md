@@ -7,6 +7,19 @@ While the version is 0.x, a minor release (0.y.0) may contain breaking changes;
 they are listed under **Breaking** for each release. From 1.0.0 the project follows
 [Semantic Versioning](https://semver.org/).
 
+## 1.16.0 - 2026-11-25
+
+### Added
+
+- **Causal mediation analysis**: `mediate` (after `mediation::mediate`) for `lm` and binomial (logit, probit) `glm` mediator and outcome models: the average causal mediation effects, direct effects, total effect and proportions mediated with their averages, by the quasi-Bayesian approximation or the nonparametric bootstrap (percentile and BCa intervals), with `treatValue` / `controlValue`, `covariates` and HC3 covariances. The same draws, estimates, intervals and p-values as R under the same seed ([the differences](docs/differences-from-r.md#mediation-and-moderation-1160)).
+- **Moderation**: `simSlopes` and `johnsonNeyman` (after `interactions::sim_slopes` and `johnson_neyman`): simple slopes at the moderator's mean ± SD or given values, with HC3, and the Johnson-Neyman interval.
+- **ReactiveStat's procedures**: `sobelTest`, `mediationMonteCarlo` (the Monte Carlo method on the coefficients) and `moderatedMediation` (effects at a low and a high moderator value and the index of moderated mediation).
+- **`mvrnorm`** (after `MASS::mvrnorm`) in the random numbers: R's values in 1 and 2 dimensions, R's distribution in more.
+
+### Changed
+
+- The options a formula fit of `lm` or `glm` remembers (for `step`, `drop1`, `add1` and `mediate`) are kept on the result under a registered symbol, so a fit made with one CDN bundle (`dist/rstats.js`) is accepted by another (`dist/causal.js`).
+
 ## 1.15.0 - 2026-11-25
 
 ### Added

@@ -20,7 +20,8 @@ import { readFileSync } from "node:fs";
 const ALLOWED_PACKAGES = new Set([
   "cmprsk", "survival", "epiR", "exact2x2", "clinfun", "powerSurvEpi", "metafor", "metadat", "lme4", "Matrix",
   "MASS", "quantreg", "SparseM", "MatrixModels", "geepack", "glmnet", "PMCMRplus", "outliers", "ca", "Matching", "cobalt",
-  "tableone", "WeightIt", "CBPS", "survey", "sandwich", "nnet", "jsonlite", "stats", "utils", "base",
+  "tableone", "WeightIt", "CBPS", "survey", "sandwich", "nnet", "mediation", "interactions", "jtools", "lmtest",
+  "jsonlite", "stats", "utils", "base",
 ]);
 
 /** Functions of the reference packages: they may only be called. */
@@ -408,6 +409,44 @@ const REFERENCE_FUNCTIONS = [
   "extractAIC.multinom", "logLik.multinom", "model.frame.multinom", "multinom", "nnet", "nnet.default", "nnet.formula",
   "nnetHess", "predict.multinom", "predict.nnet", "print.multinom", "print.nnet", "print.summary.multinom",
   "print.summary.nnet", "summary.multinom", "summary.nnet", "vcov.multinom", "which.is.max",
+  // Mediation, moderation and moderated mediation (1.16.0): the exported functions and S3 methods of mediation,
+  // interactions, jtools and lmtest whose names are not also base R's.
+  // jtools' summ and center and lmtest's reset are left out: earlier experiments use them as variable names
+  "add_gridlines", "add_x_gridlines", "add_y_gridlines", "amelidiate", "as_huxtable.sim_margins",
+  "as_huxtable.sim_slopes", "as_tibble", "bgtest", "bptest", "cat_plot", "cat_wrap", "center_mod", "coef.coeftest",
+  "coefci", "coefci.default", "coefci.glm", "coefci.mlm", "coefci.survreg", "coeftest", "coeftest.breakpointsfull",
+  "coeftest.default", "coeftest.glm", "coeftest.mlm", "coeftest.survreg", "confint.coeftest", "coxtest",
+  "df.residual.bgtest", "df.residual.coeftest", "drop_gridlines", "drop_x_gridlines", "drop_y_gridlines", "dwtest",
+  "effect_plot", "encomptest", "export_summs", "family.rq", "getCall.summ", "get_colors", "get_data", "get_formula",
+  "get_formula.brmsfit", "get_formula.default", "get_formula.panelmodel", "get_offset_name", "get_response_name",
+  "get_robust_se", "get_weights", "glance", "glance.sim_margins", "glance.sim_slopes", "glance.summ.glm",
+  "glance.summ.lm", "glance.summ.merMod", "glance.summ.rq", "glance.summ.svyglm", "gqtest", "grangertest",
+  "grangertest.default", "grangertest.formula", "gscale", "harvtest", "hmctest", "interact_plot", "ivmediate",
+  "j_summ", "johnson_neyman", "jtest", "knit_print.summ.glm", "knit_print.summ.lm", "knit_print.summ.merMod",
+  "knit_print.summ.rq", "knit_print.summ.svyglm", "logLik.coeftest", "lrtest", "lrtest.default", "lrtest.formula",
+  "make_new_data", "make_predictions", "make_predictions.brmsfit", "make_predictions.default",
+  "make_predictions.merMod", "make_predictions.rq", "make_predictions.stanreg", "make_predictions.svyglm", "md_table",
+  "mediate", "mediate.ced", "mediate.pd", "mediate.ped", "mediate.sed", "mediate_tsls", "mediations", "medsens",
+  "msg_wrap", "multimed", "nobs.coeftest", "nobs.sim_margins", "nobs.sim_slopes", "nobs.summ", "nobs.summ.rq",
+  "num_print", "partialize", "partialize.brmsfit", "partialize.default", "partialize.rq", "partialize.stanreg",
+  "petest", "pf_sv_test", "plot.ivmediate", "plot.mediate", "plot.mediate.mer", "plot.mediate.order",
+  "plot.mediations", "plot.mediations.order", "plot.medsens", "plot.multimed", "plot.sim_margins", "plot.sim_slopes",
+  "plot_coefs", "plot_summs", "predict_merMod", "print.coeftest", "print.htest.order", "print.johnson_neyman",
+  "print.md_table", "print.pf_sv_test", "print.probe_interaction", "print.robust_info", "print.sim_margins",
+  "print.sim_slopes", "print.summ.glm", "print.summ.lm", "print.summ.merMod", "print.summ.rq", "print.summ.svyglm",
+  "print.summary.ivmediate", "print.summary.mediate", "print.summary.mediate.design", "print.summary.mediate.mer",
+  "print.summary.mediate.mer.2", "print.summary.mediate.mer.3", "print.summary.mediate.order",
+  "print.summary.mediations", "print.summary.mediations.order", "print.summary.medsens", "print.summary.multimed",
+  "print.svycor", "print.svysd", "print.test.modmed.mediate", "print.test.modmed.mediate.order",
+  "print.weights_tests", "print.wgttest", "probe_interaction", "raintest", "resettest", "scale_lm", "scale_mod",
+  "scale_mod.default", "scale_mod.svyglm", "set_summ_defaults", "sim_margins", "sim_slopes", "standardize",
+  "stop_wrap", "summ.glm", "summ.lm", "summ.merMod", "summ.rq", "summ.svyglm", "summary.ivmediate", "summary.mediate",
+  "summary.mediate.design", "summary.mediate.mer", "summary.mediate.order", "summary.mediations",
+  "summary.mediations.order", "summary.medsens", "summary.multimed", "svycor", "svysd", "test.TMint",
+  "test.TMint.default", "test.TMint.mediate", "test.TMint.mediate.order", "test.modmed", "test.modmed.default",
+  "test.modmed.mediate", "test.modmed.mediate.order", "theme_apa", "theme_nice", "tidy.sim_margins",
+  "tidy.sim_slopes", "tidy.summ", "tidy.summ.merMod", "vcov.bgtest", "waldtest", "waldtest.default",
+  "waldtest.formula", "waldtest.lm", "warn_wrap", "weights_tests", "wgttest", "wrap_str", "wtd.sd",
 ];
 
 /** Names that reach code, namespaces, compiled routines, other programs or files: not allowed at all. */

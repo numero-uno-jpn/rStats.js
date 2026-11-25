@@ -44,7 +44,7 @@ penalized regression (`glmnet`). For example, `rq("y ~ x", data, { tau: 0.5 })` 
 `glmnet(x, y, { family: "gaussian", alpha: 1 })` fits a lasso path. Use `rqSummary` / `rqPredictInterval`,
 `geeSummary` / `geeVcov` / `geeQIC`, and `glmnetCoef` / `glmnetPredict` / `cvGlmnet` for their methods.
 
-Without a bundler, `https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@1.14.0/dist/rstats.js` is one ES module with
+Without a bundler, `https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@1.16.0/dist/rstats.js` is one ES module with
 every function except mixed models, regression, multivariate analysis, time series and causal inference, which are in
 `dist/mixed.js`, `dist/regression.js`, `dist/multivariate.js`, `dist/timeseries.js` and `dist/causal.js`. Keep a version in the URL (an exact one, or a
 major version such as `@1` from 1.0.0 on): a URL without one follows every new release, breaking changes included.
@@ -277,3 +277,36 @@ earlier). `trimWeights` caps at R's type-3 quantile of the weights that the esti
 `weightit` adds the `prop.score` row and splits a string covariate into its levels; for ATO the denominator is the SD of
 the overlap-weighted sample. `svyglm` is `survey::svyglm` for `svydesign(ids = ~1, weights)`: the weighted glm with the
 sandwich variance times n/(n − 1) and t tests on n − p degrees of freedom.
+
+Mediation, moderation and moderated mediation are in `/causal` as well; `mvrnorm` is with the random numbers:
+
+```ts
+import { lm, glm, setSeed } from "@numero-uno-jpn/rstats";
+import { mediate, simSlopes, sobelTest, mediationMonteCarlo, moderatedMediation } from "@numero-uno-jpn/rstats/causal";
+
+const m = lm("M ~ X + C", data), y = lm("Y ~ X + M + C", data);
+setSeed(1234);
+const r = mediate(m, y, data, { treat: "X", mediator: "M", sims: 1000 }); // r.d0, r.z0, r.tau, r.n0 ...
+setSeed(1234);
+mediate(m, y, data, { treat: "X", mediator: "M", boot: true, bootCiType: "bca" }); // nonparametric bootstrap
+simSlopes(lm("Y ~ X * W + C", data), data, { pred: "X", modx: "W", robust: "HC3" }); // slopes at mean ± SD and the Johnson-Neyman interval
+sobelTest(m, y, { treat: "X", mediator: "M" });
+setSeed(1234);
+mediationMonteCarlo(m, y, { treat: "X", mediator: "M" }); // a ~ rnorm, (b, c') ~ mvrnorm, 20000 draws
+moderatedMediation(lm("M ~ X * W", data), lm("Y ~ X * W + M * W", data), data, { treat: "X", mediator: "M", moderator: "W" });
+```
+
+`mediate` follows `mediation::mediate(model.m, model.y, treat, mediator, treat.value, control.value, covariates,
+sims, boot, boot.ci.type, conf.level, robustSE)` for `lm` and binomial (logit, probit) `glm` formula fits, and takes the
+data they were fitted on. With the same `setSeed` its draws, estimates, intervals and p-values are R's: the parameters
+are drawn with the symmetric square root of their covariance, the mediator for every simulation and observation, and
+the bootstrap resamples as one `sample(n, n * sims, replace = TRUE)`. `simSlopes` and `johnsonNeyman` follow
+`interactions::sim_slopes` and `johnson_neyman` (t on the residual degrees of freedom for lm, z for glm slopes, t for
+the Johnson-Neyman bounds of both, as interactions does). `sobelTest`, `mediationMonteCarlo` and `moderatedMediation`
+are ReactiveStat's procedures around them. `mvrnorm` is `MASS::mvrnorm`: R's values in 1 and 2 dimensions, R's
+distribution in 3 or more (where LAPACK's eigenvector signs are not reproduced).
+
+From npm all the entry points share one random number generator. From the CDN, `dist/causal.js` shares the generator of
+the per-area bundles: seed it with `setSeed` from `dist/distributions.js` (`dist/rstats.js` has a generator of its
+own). Fits from `lm` and `glm` of any bundle are accepted.
+

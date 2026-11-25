@@ -11,10 +11,16 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `cobalt::bal.tab()` | `balTab` | Covariate balance of two groups before and after matching or weighting: standardised mean differences and variance ratios. |
 | `tableone::ExtractSmd()` | `tableOneSmd` | Standardised mean difference of one variable between two groups. |
 | `cobalt::get.w()` | `matchWeights` | The weight of each unit after matching: every pair adds its weight `1 / M` to both of its units; unmatched units weigh 0. |
+| `interactions::johnson_neyman()` | `johnsonNeyman` | The Johnson-Neyman interval: the moderator values at which the predictor's slope stops being significant. |
 | `Matching::Match()` | `match` | Nearest-neighbour matching on a scalar score, without replacement and with random tie-breaking. |
+| `mediation::mediate()` | `mediate` | Causal mediation analysis for linear and binomial mediator and outcome models. |
+| `interactions::sim_slopes()` | `simSlopes` | Simple slopes of a predictor at values of a moderator, with the Johnson-Neyman interval. |
 | `WeightIt::summary.weightit()` | `weightSummary` | Summary of balancing weights by group: range, largest weights, coefficient of variation, scaled MAD, negative entropy, zeros and Kish's effective sample size. |
 | `WeightIt::trim()` | `trimWeights` | Trims extreme weights: those above a quantile, and with `lower` those below the opposite one, are set to it. |
 | `WeightIt::weightit()` | `weightit` | Balancing weights for a binary treatment. |
+| (not in R) | `mediationMonteCarlo` | The Monte Carlo method on the coefficients for a mediation with continuous mediator and outcome, as ReactiveStat computes it: a is drawn by `rnorm(nmc, a, sa)`, then (b, c') of the outcome model by `mvrnorm` with their 2 x 2 covariance; the intervals are type-7 quantiles. |
+| (not in R) | `moderatedMediation` | Moderated mediation with the index of moderated mediation, as ReactiveStat computes it: the indirect, direct and total effects at a low and a high value of a moderator W that enters both models. |
+| (not in R) | `sobelTest` | The Sobel test of the indirect effect a b, as ReactiveStat computes it. |
 
 ## Multivariate analysis (`rStats.js/multivariate`)
 
@@ -149,6 +155,7 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `dunif()` | `dunif` | Density of the uniform distribution. |
 | `dweibull()` | `dweibull` | Density of the Weibull distribution. |
 | `dwilcox()` | `dwilcox` | Probability mass function of the distribution of the Wilcoxon rank sum statistic. |
+| `MASS::mvrnorm()` | `mvrnorm` | Random vectors from the multivariate normal distribution. |
 | `parallel::nextRNGStream()` | `nextRNGStream` | The start of the next stream of L'Ecuyer-CMRG: the state advanced by 2^127 steps. |
 | `parallel::nextRNGSubStream()` | `nextRNGSubStream` | The start of the next substream of L'Ecuyer-CMRG: the state advanced by 2^76 steps. |
 | `pbeta()` | `pbeta` | Distribution function of the beta distribution. |

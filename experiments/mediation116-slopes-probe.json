@@ -1,0 +1,49 @@
+{
+  "ss": {
+    "class": "sim_slopes",
+    "names": ["mods", "jn", "slopes", "ints"],
+    "attr_names": ["names", "digits", "resp", "modx", "pred", "cond.int", "def", "modx.values", "robust", "johnson_neyman", "jnplot", "jns", "confint", "ci.width", "pred_names", "class"]
+  },
+  "parts": {
+    "mods": {
+      "class": "list",
+      "names": {},
+      "attr_names": {}
+    },
+    "jn": {
+      "class": "list",
+      "names": {},
+      "attr_names": {}
+    },
+    "slopes": {
+      "class": "data.frame",
+      "names": ["Value of W", "Est.", "S.E.", "2.5%", "97.5%", "t val.", "p"],
+      "attr_names": ["names", "row.names", "class"]
+    },
+    "ints": {
+      "class": "data.frame",
+      "names": ["Value of W", "Est.", "S.E.", "2.5%", "97.5%", "t val.", "p"],
+      "attr_names": ["names", "row.names", "class"]
+    }
+  },
+  "attrs": {
+    "digits": 2,
+    "resp": "Y",
+    "modx": "W",
+    "pred": "X",
+    "cond.int": false,
+    "def": true,
+    "modx.values": [7.3472497004542898, 10.107143935282304, 12.867038170110318],
+    "robust": false,
+    "johnson_neyman": true,
+    "jnplot": false,
+    "jns": {
+      "class": "list",
+      "names": {},
+      "attr_names": {}
+    },
+    "confint": true,
+    "ci.width": 0.94999999999999996,
+    "pred_names": "X"
+  }
+}

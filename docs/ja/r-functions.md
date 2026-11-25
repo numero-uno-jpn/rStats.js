@@ -11,10 +11,16 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `cobalt::bal.tab()` | `balTab` | マッチング・重み付けの前後の共変量のバランス (標準化差と分散比) |
 | `tableone::ExtractSmd()` | `tableOneSmd` | 2 群の標準化差 (tableone の SMD) |
 | `cobalt::get.w()` | `matchWeights` | マッチング後の各単位の重み |
+| `interactions::johnson_neyman()` | `johnsonNeyman` | 傾きが有意になる調整変数の範囲 (Johnson-Neyman 区間) |
 | `Matching::Match()` | `match` | 傾向スコアなど 1 つの値での最近傍マッチング (非復元、同点は乱数) |
+| `mediation::mediate()` | `mediate` | 因果媒介分析 (準ベイズ近似またはブートストラップによる ACME・ADE・総効果・媒介割合) |
+| `interactions::sim_slopes()` | `simSlopes` | 調整変数の値ごとの単純傾斜 (Johnson-Neyman 区間つき) |
 | `WeightIt::summary.weightit()` | `weightSummary` | 重みの群ごとの要約 (範囲・変動係数・有効サンプルサイズ) |
 | `WeightIt::trim()` | `trimWeights` | 極端な重みの切り詰め (分位点で上下を抑える) |
 | `WeightIt::weightit()` | `weightit` | 二値の処置の釣り合いの重み (逆確率重み付け: glm・CBPS・逆確率傾斜・エントロピーバランシング) |
+| (R にない) | `mediationMonteCarlo` | 係数の Monte Carlo 法による間接効果・直接効果・総効果・媒介割合の信頼区間 |
+| (R にない) | `moderatedMediation` | 調整媒介分析 (調整変数の低・高での効果と index of moderated mediation) |
+| (R にない) | `sobelTest` | 間接効果 a b の Sobel 検定 |
 
 ## Multivariate analysis (`rStats.js/multivariate`)
 
@@ -149,6 +155,7 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `dunif()` | `dunif` | 一様分布の密度関数 |
 | `dweibull()` | `dweibull` | ワイブル分布の密度関数 |
 | `dwilcox()` | `dwilcox` | Wilcoxon の順位和統計量の分布の確率関数 |
+| `MASS::mvrnorm()` | `mvrnorm` | 多変量正規分布の乱数 |
 | `parallel::nextRNGStream()` | `nextRNGStream` | L'Ecuyer-CMRG の次のストリームの開始状態: 状態を 2^127 ステップ進めたもの |
 | `parallel::nextRNGSubStream()` | `nextRNGSubStream` | L'Ecuyer-CMRG の次のサブストリームの開始状態: 状態を 2^76 ステップ進めたもの |
 | `pbeta()` | `pbeta` | ベータ分布の分布関数 |

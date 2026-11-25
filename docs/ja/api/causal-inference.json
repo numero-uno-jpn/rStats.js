@@ -94,6 +94,66 @@
     "en": "A covariate: numbers, or strings (a factor with its levels in code-point order).",
     "ja": "共変量です: 数値、または文字列 (水準をコードポイント順に並べた因子) です。"
   },
+  "JohnsonNeymanOptions#summary": {
+    "hash": "c9630b257bed",
+    "en": "Options for {@link johnsonNeyman}.",
+    "ja": "{@link johnsonNeyman} のオプションです。"
+  },
+  "JohnsonNeymanOptions.alpha#summary": {
+    "hash": "0708bfda1979",
+    "en": "Significance level (default 0.05).",
+    "ja": "有意水準です (既定は 0.05)。"
+  },
+  "JohnsonNeymanOptions.modx#summary": {
+    "hash": "27d657de351e",
+    "en": "The moderator.",
+    "ja": "調整変数です。"
+  },
+  "JohnsonNeymanOptions.pred#summary": {
+    "hash": "e2726f116e5e",
+    "en": "The predictor whose slope is examined.",
+    "ja": "傾きを調べる予測変数です。"
+  },
+  "JohnsonNeymanOptions.robust#summary": {
+    "hash": "ed55faea492e",
+    "en": "`\"HC3\"` for heteroskedasticity-consistent standard errors, `false` (the default) for the model's.",
+    "ja": "`\"HC3\"` は不均一分散に頑健な標準誤差、`false` (既定) はモデルの標準誤差を使います。"
+  },
+  "JohnsonNeymanResult#summary": {
+    "hash": "003a6124991e",
+    "en": "Result of {@link johnsonNeyman}.",
+    "ja": "{@link johnsonNeyman} の結果です。"
+  },
+  "JohnsonNeymanResult.allSig#summary": {
+    "hash": "83e64a69b408",
+    "en": "Whether no bound lies within the observed range of the moderator (interactions' `all_sig`; also when failed).",
+    "ja": "調整変数の観測範囲内に境界が 1 つも無いかどうかです (interactions の `all_sig`。失敗したときも同じ)。"
+  },
+  "JohnsonNeymanResult.alpha#summary": {
+    "hash": "98c5a4421521",
+    "en": "The significance level.",
+    "ja": "有意水準です。"
+  },
+  "JohnsonNeymanResult.bounds#summary": {
+    "hash": "4044af0f15da",
+    "en": "The two bounds (sorted); `[-Infinity, Infinity]` when the interval could not be found.",
+    "ja": "2 つの境界です (昇順)。区間が見つからなかったときは `[-Infinity, Infinity]` です。"
+  },
+  "JohnsonNeymanResult.failed#summary": {
+    "hash": "19f63b7f640b",
+    "en": "Whether no real bound exists (interactions' \"could not be found\").",
+    "ja": "実数の境界が存在しないかどうかです (interactions の \"could not be found\")。"
+  },
+  "JohnsonNeymanResult.inside#summary": {
+    "hash": "f7f2e587d7ec",
+    "en": "Whether the slope is significant inside the bounds (else outside them).",
+    "ja": "傾きが境界の内側で有意かどうかです (そうでなければ外側で有意)。"
+  },
+  "JohnsonNeymanResult.modrange#summary": {
+    "hash": "38f31f2c7d04",
+    "en": "The observed range of the moderator.",
+    "ja": "調整変数の観測範囲です。"
+  },
   "MatchEstimand#summary": {
     "hash": "5b0b04c34709",
     "en": "The population the matching estimates for: the treated (ATT), everyone (ATE) or the controls (ATC).",
@@ -188,6 +248,541 @@
     "hash": "14e31228cfe3",
     "en": "Number of matched units (R's `wnobs`: units that found their matches).",
     "ja": "マッチした単位の数です (R の `wnobs`: 相手が付いた単位)。"
+  },
+  "MediateEffect#summary": {
+    "hash": "a7c3bfee9e40",
+    "en": "One effect of {@link mediate}: its estimate, interval, p-value and draws.",
+    "ja": "{@link mediate} の 1 つの効果です: 推定値、区間、p 値、抽出値を持ちます。"
+  },
+  "MediateEffect.ci#summary": {
+    "hash": "b7f313287484",
+    "en": "The confidence interval (R's `d0.ci`, ...).",
+    "ja": "信頼区間です (R の `d0.ci` など)。"
+  },
+  "MediateEffect.estimate#summary": {
+    "hash": "158c496dde92",
+    "en": "The estimate (R's `d0`, `z0`, `tau.coef`, ...).",
+    "ja": "推定値です (R の `d0`、`z0`、`tau.coef` など)。"
+  },
+  "MediateEffect.p#summary": {
+    "hash": "2e7ca224b464",
+    "en": "The two-sided p-value, `2 min(mean(draws > 0), mean(draws < 0))` (R's `d0.p`, ...).",
+    "ja": "両側 p 値 `2 min(mean(draws > 0), mean(draws < 0))` です (R の `d0.p` など)。"
+  },
+  "MediateEffect.sims#summary": {
+    "hash": "92e4b58e60eb",
+    "en": "The simulation or bootstrap draws (R's `d0.sims`, ...).",
+    "ja": "シミュレーションまたはブートストラップの抽出値です (R の `d0.sims` など)。"
+  },
+  "MediateOptions#summary": {
+    "hash": "c5063ba33fc7",
+    "en": "Options for {@link mediate}.",
+    "ja": "{@link mediate} のオプションです。"
+  },
+  "MediateOptions.boot#summary": {
+    "hash": "205cdc479752",
+    "en": "Nonparametric bootstrap instead of the quasi-Bayesian approximation (default `false`).",
+    "ja": "準ベイズ近似の代わりにノンパラメトリックブートストラップを使います (既定は `false`)。"
+  },
+  "MediateOptions.bootCiType#summary": {
+    "hash": "592772b94e24",
+    "en": "The bootstrap intervals: `\"perc\"` (percentile, the default) or `\"bca\"` (bias-corrected and accelerated).",
+    "ja": "ブートストラップ区間の種類です: `\"perc\"` (パーセンタイル、既定) または `\"bca\"` (バイアス補正・加速)。"
+  },
+  "MediateOptions.confLevel#summary": {
+    "hash": "212f28b358a9",
+    "en": "Confidence level of the intervals (default 0.95).",
+    "ja": "区間の信頼水準です (既定は 0.95)。"
+  },
+  "MediateOptions.controlValue#summary": {
+    "hash": "f26b4272fb51",
+    "en": "The treatment's value for the control condition (default 0).",
+    "ja": "対照条件での処置の値です (既定は 0)。"
+  },
+  "MediateOptions.covariates#summary": {
+    "hash": "d46b1029be88",
+    "en": "Covariates held at the given values in every observation's prediction (R's `covariates`); numeric variables.",
+    "ja": "すべての観測値の予測で、指定した値に固定する共変量です (R の `covariates`)。数値変数です。"
+  },
+  "MediateOptions.mediator#summary": {
+    "hash": "c552d7f116d3",
+    "en": "The mediator: the mediator model's response and a numeric variable of the outcome model.",
+    "ja": "媒介変数です: 媒介変数モデルの応答であり、結果モデルの数値変数です。"
+  },
+  "MediateOptions.robustSE#summary": {
+    "hash": "18f2c33114bf",
+    "en": "Heteroskedasticity-consistent (HC3) covariances for the quasi-Bayesian draws (default `false`).",
+    "ja": "準ベイズの抽出に、不均一分散に頑健な (HC3) 共分散を使います (既定は `false`)。"
+  },
+  "MediateOptions.sims#summary": {
+    "hash": "e65549334a2d",
+    "en": "Number of simulations or bootstrap replicates (default 1000).",
+    "ja": "シミュレーションまたはブートストラップ反復の回数です (既定は 1000)。"
+  },
+  "MediateOptions.treat#summary": {
+    "hash": "a61fc65ca5d4",
+    "en": "The treatment: a numeric variable of both models.",
+    "ja": "処置です: 両方のモデルの数値変数です。"
+  },
+  "MediateOptions.treatValue#summary": {
+    "hash": "727f97a13574",
+    "en": "The treatment's value for the treated condition (default 1).",
+    "ja": "処置条件での処置の値です (既定は 1)。"
+  },
+  "MediateResult#summary": {
+    "hash": "201d1abca114",
+    "en": "Result of {@link mediate}. `d` are the average causal mediation effects (ACME), `z` the average direct effects (ADE),\n`n` the proportions mediated, `0` under control and `1` under treatment.",
+    "ja": "{@link mediate} の結果です。`d` は平均因果媒介効果 (ACME)、`z` は平均直接効果 (ADE)、`n` は媒介割合で、`0` は対照条件、`1` は処置条件です。"
+  },
+  "MediateResult.INT#summary": {
+    "hash": "dcc219e2efb0",
+    "en": "Whether the outcome model has an interaction of the treatment and the mediator (R's `INT`).",
+    "ja": "結果モデルに処置と媒介変数の交互作用があるかどうかです (R の `INT`)。"
+  },
+  "MediateResult.boot#summary": {
+    "hash": "a6057740b5eb",
+    "en": "Whether the bootstrap was used.",
+    "ja": "ブートストラップを使ったかどうかです。"
+  },
+  "MediateResult.bootCiType#summary": {
+    "hash": "a70e9be8721d",
+    "en": "The bootstrap interval type.",
+    "ja": "ブートストラップ区間の種類です。"
+  },
+  "MediateResult.confLevel#summary": {
+    "hash": "b01d237f1ff5",
+    "en": "The confidence level.",
+    "ja": "信頼水準です。"
+  },
+  "MediateResult.controlValue#summary": {
+    "hash": "a31627b81db8",
+    "en": "The control value used.",
+    "ja": "使った対照条件の値です。"
+  },
+  "MediateResult.d0#summary": {
+    "hash": "6307588c4c9e",
+    "en": "ACME under control: the mean of Y(t0, M(t1)) − Y(t0, M(t0)).",
+    "ja": "対照条件での ACME: Y(t0, M(t1)) − Y(t0, M(t0)) の平均です。"
+  },
+  "MediateResult.d1#summary": {
+    "hash": "87950a9f7a6a",
+    "en": "ACME under treatment: the mean of Y(t1, M(t1)) − Y(t1, M(t0)).",
+    "ja": "処置条件での ACME: Y(t1, M(t1)) − Y(t1, M(t0)) の平均です。"
+  },
+  "MediateResult.dAvg#summary": {
+    "hash": "35df7690abbf",
+    "en": "The average ACME, (d0 + d1) / 2.",
+    "ja": "平均の ACME、(d0 + d1) / 2 です。"
+  },
+  "MediateResult.n0#summary": {
+    "hash": "d357f5990f8f",
+    "en": "Proportion mediated under control, d0 / tau.",
+    "ja": "対照条件での媒介割合、d0 / tau です。"
+  },
+  "MediateResult.n1#summary": {
+    "hash": "528e64c61fde",
+    "en": "Proportion mediated under treatment, d1 / tau.",
+    "ja": "処置条件での媒介割合、d1 / tau です。"
+  },
+  "MediateResult.nAvg#summary": {
+    "hash": "a90b6d3c33ea",
+    "en": "The average proportion mediated, (n0 + n1) / 2.",
+    "ja": "平均の媒介割合、(n0 + n1) / 2 です。"
+  },
+  "MediateResult.nobs#summary": {
+    "hash": "7bec08620fae",
+    "en": "Number of observations.",
+    "ja": "観測数です。"
+  },
+  "MediateResult.robustSE#summary": {
+    "hash": "3deb62741b92",
+    "en": "Whether HC3 covariances were used (false with the bootstrap, which ignores them).",
+    "ja": "HC3 の共分散を使ったかどうかです (ブートストラップはそれを無視するので false)。"
+  },
+  "MediateResult.sims#summary": {
+    "hash": "c7f242620af1",
+    "en": "Number of simulations or replicates.",
+    "ja": "シミュレーションまたは反復の回数です。"
+  },
+  "MediateResult.tau#summary": {
+    "hash": "98a787fb81c8",
+    "en": "The total effect: the mean of Y(t1, M(t1)) − Y(t0, M(t0)).",
+    "ja": "総効果: Y(t1, M(t1)) − Y(t0, M(t0)) の平均です。"
+  },
+  "MediateResult.treatValue#summary": {
+    "hash": "d099daaa425f",
+    "en": "The treated value used.",
+    "ja": "使った処置条件の値です。"
+  },
+  "MediateResult.warnings#summary": {
+    "hash": "3db2080f70ed",
+    "en": "R's warnings.",
+    "ja": "R の警告です。"
+  },
+  "MediateResult.z0#summary": {
+    "hash": "6aad430d3bff",
+    "en": "ADE under control: the mean of Y(t1, M(t0)) − Y(t0, M(t0)).",
+    "ja": "対照条件での ADE: Y(t1, M(t0)) − Y(t0, M(t0)) の平均です。"
+  },
+  "MediateResult.z1#summary": {
+    "hash": "4a985d51a4b6",
+    "en": "ADE under treatment: the mean of Y(t1, M(t1)) − Y(t0, M(t1)).",
+    "ja": "処置条件での ADE: Y(t1, M(t1)) − Y(t0, M(t1)) の平均です。"
+  },
+  "MediateResult.zAvg#summary": {
+    "hash": "58ac88bda826",
+    "en": "The average ADE, (z0 + z1) / 2.",
+    "ja": "平均の ADE、(z0 + z1) / 2 です。"
+  },
+  "MediationModel#summary": {
+    "hash": "45b49c8ffd02",
+    "en": "A model for {@link mediate}: a formula fit of {@link lm}, or of {@link glm} with the binomial family and the logit or\nprobit link.",
+    "ja": "{@link mediate} のモデルです: {@link lm} の式による当てはめ、または二項分布族でリンクが logit か probit の {@link glm} の当てはめです。"
+  },
+  "MediationMonteCarloOptions#summary": {
+    "hash": "90ff1746602c",
+    "en": "Options for {@link mediationMonteCarlo}.",
+    "ja": "{@link mediationMonteCarlo} のオプションです。"
+  },
+  "MediationMonteCarloOptions.confLevel#summary": {
+    "hash": "1892e8308150",
+    "en": "Confidence level (default 0.95).",
+    "ja": "信頼水準です (既定は 0.95)。"
+  },
+  "MediationMonteCarloOptions.nmc#summary": {
+    "hash": "6b6d613d3ae3",
+    "en": "Number of draws (default 20000, as ReactiveStat).",
+    "ja": "抽出の回数です (既定は 20000、ReactiveStat と同じ)。"
+  },
+  "MediationMonteCarloResult#summary": {
+    "hash": "8c7fbf967a68",
+    "en": "Result of {@link mediationMonteCarlo}: effects per unit of the treatment.",
+    "ja": "{@link mediationMonteCarlo} の結果です: 処置の 1 単位あたりの効果です。"
+  },
+  "MediationMonteCarloResult.direct#summary": {
+    "hash": "462d378de95b",
+    "en": "The direct effect c'.",
+    "ja": "直接効果 c' です。"
+  },
+  "MediationMonteCarloResult.indirect#summary": {
+    "hash": "cc99d5dacfdc",
+    "en": "The indirect effect a b.",
+    "ja": "間接効果 a b です。"
+  },
+  "MediationMonteCarloResult.proportion#summary": {
+    "hash": "3fdfa8b320f3",
+    "en": "The proportion mediated a b / (a b + c').",
+    "ja": "媒介割合 a b / (a b + c') です。"
+  },
+  "MediationMonteCarloResult.total#summary": {
+    "hash": "d8155399668e",
+    "en": "The total effect a b + c'.",
+    "ja": "総効果 a b + c' です。"
+  },
+  "ModeratedMediationOptions#summary": {
+    "hash": "a207cee73f06",
+    "en": "Options for {@link moderatedMediation}.",
+    "ja": "{@link moderatedMediation} のオプションです。"
+  },
+  "ModeratedMediationOptions.confLevel#summary": {
+    "hash": "1892e8308150",
+    "en": "Confidence level (default 0.95).",
+    "ja": "信頼水準です (既定は 0.95)。"
+  },
+  "ModeratedMediationOptions.controlValue#summary": {
+    "hash": "78607506d561",
+    "en": "The control value (default: the smaller value of a binary treatment, else its mean − SD).",
+    "ja": "対照条件の値です (既定: 2 値の処置なら小さいほうの値、そうでなければ平均 − SD)。"
+  },
+  "ModeratedMediationOptions.method#summary": {
+    "hash": "f20f74d7d379",
+    "en": "`\"monteCarlo\"` (draws of all the coefficients of both models) or `\"mediate\"` ({@link mediate} at the two moderator\nvalues on the same random stream). Default: `\"monteCarlo\"` when both models are linear, else `\"mediate\"`, as\nReactiveStat.",
+    "ja": "`\"monteCarlo\"` (両方のモデルのすべての係数を抽出) または `\"mediate\"` (同じ乱数ストリーム上で、調整変数の 2 つの値それぞれに {@link mediate} を実行)。既定: ReactiveStat と同じく、両方のモデルが線形なら `\"monteCarlo\"`、そうでなければ `\"mediate\"`。"
+  },
+  "ModeratedMediationOptions.moderator#summary": {
+    "hash": "c0c3db57661e",
+    "en": "The moderator W (a numeric variable of both models).",
+    "ja": "調整変数 W です (両方のモデルの数値変数)。"
+  },
+  "ModeratedMediationOptions.nmc#summary": {
+    "hash": "2d48ce023f3e",
+    "en": "Number of Monte Carlo draws (default 20000).",
+    "ja": "モンテカルロ抽出の回数です (既定は 20000)。"
+  },
+  "ModeratedMediationOptions.robustSE#summary": {
+    "hash": "5a8ae1da1580",
+    "en": "HC3 covariances in {@link mediate} (default `false`).",
+    "ja": "{@link mediate} で HC3 共分散を使います (既定は `false`)。"
+  },
+  "ModeratedMediationOptions.sims#summary": {
+    "hash": "603e353c97da",
+    "en": "Number of simulations of {@link mediate} (default 1000).",
+    "ja": "{@link mediate} のシミュレーション回数です (既定は 1000)。"
+  },
+  "ModeratedMediationOptions.treatValue#summary": {
+    "hash": "45b6e05c8f75",
+    "en": "The treated value (default: the larger value of a binary treatment, else its mean + SD).",
+    "ja": "処置条件の値です (既定: 2 値の処置なら大きいほうの値、そうでなければ平均 + SD)。"
+  },
+  "ModeratedMediationOptions.wHigh#summary": {
+    "hash": "038aa25c793d",
+    "en": "The moderator's high value (default: the larger value of a binary moderator, else its mean + SD).",
+    "ja": "調整変数の高い値です (既定: 2 値の調整変数なら大きいほうの値、そうでなければ平均 + SD)。"
+  },
+  "ModeratedMediationOptions.wLow#summary": {
+    "hash": "aff16fe9eb79",
+    "en": "The moderator's low value (default: the smaller value of a binary moderator, else its mean − SD).",
+    "ja": "調整変数の低い値です (既定: 2 値の調整変数なら小さいほうの値、そうでなければ平均 − SD)。"
+  },
+  "ModeratedMediationResult#summary": {
+    "hash": "1559ce74350c",
+    "en": "Result of {@link moderatedMediation}.",
+    "ja": "{@link moderatedMediation} の結果です。"
+  },
+  "ModeratedMediationResult.controlValue#summary": {
+    "hash": "52afa39148c3",
+    "en": "The control value.",
+    "ja": "対照条件の値です。"
+  },
+  "ModeratedMediationResult.directHigh#summary": {
+    "hash": "7faa36d53180",
+    "en": "The direct effect at the high moderator value.",
+    "ja": "調整変数の高い値での直接効果です。"
+  },
+  "ModeratedMediationResult.directLow#summary": {
+    "hash": "528f6848f59f",
+    "en": "The direct effect (ADE) at the low moderator value.",
+    "ja": "調整変数の低い値での直接効果 (ADE) です。"
+  },
+  "ModeratedMediationResult.high#summary": {
+    "hash": "791ba7a7d207",
+    "en": "With `method: \"mediate\"`, the {@link mediate} result at the high moderator value.",
+    "ja": "`method: \"mediate\"` のときの、調整変数の高い値での {@link mediate} の結果です。"
+  },
+  "ModeratedMediationResult.index#summary": {
+    "hash": "9d162ea104db",
+    "en": "The index of moderated mediation: the indirect effect at the high value minus that at the low value.",
+    "ja": "調整媒介指標です: 高い値での間接効果から低い値での間接効果を引いたものです。"
+  },
+  "ModeratedMediationResult.indirectHigh#summary": {
+    "hash": "916cbb10a95f",
+    "en": "The indirect effect at the high moderator value.",
+    "ja": "調整変数の高い値での間接効果です。"
+  },
+  "ModeratedMediationResult.indirectLow#summary": {
+    "hash": "573e8127d58e",
+    "en": "The indirect effect (ACME; with `mediate`, the average of d0 and d1) at the low moderator value.",
+    "ja": "調整変数の低い値での間接効果 (ACME。`mediate` では d0 と d1 の平均) です。"
+  },
+  "ModeratedMediationResult.low#summary": {
+    "hash": "b12bd6e77c01",
+    "en": "With `method: \"mediate\"`, the {@link mediate} result at the low moderator value.",
+    "ja": "`method: \"mediate\"` のときの、調整変数の低い値での {@link mediate} の結果です。"
+  },
+  "ModeratedMediationResult.method#summary": {
+    "hash": "425030ed47cf",
+    "en": "The method used.",
+    "ja": "使った方法です。"
+  },
+  "ModeratedMediationResult.totalHigh#summary": {
+    "hash": "d40e6e7f36ae",
+    "en": "The total effect at the high moderator value.",
+    "ja": "調整変数の高い値での総効果です。"
+  },
+  "ModeratedMediationResult.totalLow#summary": {
+    "hash": "ab2e2d82df5c",
+    "en": "The total effect at the low moderator value.",
+    "ja": "調整変数の低い値での総効果です。"
+  },
+  "ModeratedMediationResult.treatValue#summary": {
+    "hash": "9304412c85bb",
+    "en": "The treated value.",
+    "ja": "処置条件の値です。"
+  },
+  "ModeratedMediationResult.wHigh#summary": {
+    "hash": "c27e4818df94",
+    "en": "The moderator's high value.",
+    "ja": "調整変数の高い値です。"
+  },
+  "ModeratedMediationResult.wLow#summary": {
+    "hash": "a2ffe7d54591",
+    "en": "The moderator's low value.",
+    "ja": "調整変数の低い値です。"
+  },
+  "ModerationModel#summary": {
+    "hash": "255a02995934",
+    "en": "A model for {@link simSlopes} and {@link johnsonNeyman}: a formula fit of {@link lm} or {@link glm}.",
+    "ja": "{@link simSlopes} と {@link johnsonNeyman} のモデルです: {@link lm} または {@link glm} の式による当てはめです。"
+  },
+  "MonteCarloEffect#summary": {
+    "hash": "d56eb556894d",
+    "en": "One Monte Carlo quantity: the estimate from the fitted coefficients, the interval and the draws.",
+    "ja": "モンテカルロの 1 つの量です: 当てはめた係数からの推定値、区間、抽出値を持ちます。"
+  },
+  "MonteCarloEffect.ci#summary": {
+    "hash": "da3e8cc2b9c9",
+    "en": "The confidence interval (type-7 quantiles of the draws).",
+    "ja": "信頼区間です (抽出値の type 7 の分位点)。"
+  },
+  "MonteCarloEffect.estimate#summary": {
+    "hash": "bf24e6f5a57c",
+    "en": "The estimate (from the fitted coefficients, or as mediate's).",
+    "ja": "推定値です (当てはめた係数から、または mediate の推定値)。"
+  },
+  "MonteCarloEffect.sims#summary": {
+    "hash": "9a4c46af9b14",
+    "en": "The draws.",
+    "ja": "抽出値です。"
+  },
+  "SimSlopesOptions#summary": {
+    "hash": "91f382519181",
+    "en": "Options for {@link simSlopes}.",
+    "ja": "{@link simSlopes} のオプションです。"
+  },
+  "SimSlopesOptions.ciWidth#summary": {
+    "hash": "398c1654eb7b",
+    "en": "Width of the confidence intervals (default 0.95).",
+    "ja": "信頼区間の幅です (既定は 0.95)。"
+  },
+  "SimSlopesOptions.jnAlpha#summary": {
+    "hash": "1b31cc0667e2",
+    "en": "The Johnson-Neyman significance level (default 0.05).",
+    "ja": "Johnson-Neyman の有意水準です (既定は 0.05)。"
+  },
+  "SimSlopesOptions.johnsonNeyman#summary": {
+    "hash": "561e17b8ef04",
+    "en": "Also compute the Johnson-Neyman interval (default `true`).",
+    "ja": "Johnson-Neyman 区間も計算します (既定は `true`)。"
+  },
+  "SimSlopesOptions.modx#summary": {
+    "hash": "27d657de351e",
+    "en": "The moderator.",
+    "ja": "調整変数です。"
+  },
+  "SimSlopesOptions.modxValues#summary": {
+    "hash": "e5ee9dd6fb38",
+    "en": "The moderator's values: `\"mean-plus-minus\"` (the default: mean − SD, mean, mean + SD) or numbers.",
+    "ja": "調整変数の値です: `\"mean-plus-minus\"` (既定: 平均 − SD、平均、平均 + SD) または数値です。"
+  },
+  "SimSlopesOptions.pred#summary": {
+    "hash": "e2726f116e5e",
+    "en": "The predictor whose slope is examined.",
+    "ja": "傾きを調べる予測変数です。"
+  },
+  "SimSlopesOptions.robust#summary": {
+    "hash": "ed55faea492e",
+    "en": "`\"HC3\"` for heteroskedasticity-consistent standard errors, `false` (the default) for the model's.",
+    "ja": "`\"HC3\"` は不均一分散に頑健な標準誤差、`false` (既定) はモデルの標準誤差を使います。"
+  },
+  "SimSlopesResult#summary": {
+    "hash": "e39f7bd6d161",
+    "en": "Result of {@link simSlopes}: one row per moderator value.",
+    "ja": "{@link simSlopes} の結果です: 調整変数の値ごとに 1 行です。"
+  },
+  "SimSlopesResult.estimate#summary": {
+    "hash": "008db05baddd",
+    "en": "The slopes of the predictor.",
+    "ja": "予測変数の傾きです。"
+  },
+  "SimSlopesResult.jn#summary": {
+    "hash": "f3e9f91d2cc5",
+    "en": "The Johnson-Neyman interval, when asked for.",
+    "ja": "Johnson-Neyman 区間です。求めたときだけです。"
+  },
+  "SimSlopesResult.lower#summary": {
+    "hash": "085ea5acdc2f",
+    "en": "Lower confidence limits.",
+    "ja": "信頼限界の下限です。"
+  },
+  "SimSlopesResult.p#summary": {
+    "hash": "1a1a1d37b906",
+    "en": "Two-sided p-values.",
+    "ja": "両側 p 値です。"
+  },
+  "SimSlopesResult.se#summary": {
+    "hash": "82ea709fd1e8",
+    "en": "Their standard errors.",
+    "ja": "その標準誤差です。"
+  },
+  "SimSlopesResult.statistic#summary": {
+    "hash": "facfa4023eb9",
+    "en": "The t (lm) or z (glm) statistics.",
+    "ja": "t (lm) または z (glm) の統計量です。"
+  },
+  "SimSlopesResult.statisticName#summary": {
+    "hash": "406624861a21",
+    "en": "`\"t\"` or `\"z\"`.",
+    "ja": "`\"t\"` または `\"z\"` です。"
+  },
+  "SimSlopesResult.upper#summary": {
+    "hash": "6f853a290f9a",
+    "en": "Upper confidence limits.",
+    "ja": "信頼限界の上限です。"
+  },
+  "SimSlopesResult.values#summary": {
+    "hash": "ee9dc1b0a58e",
+    "en": "The moderator's values.",
+    "ja": "調整変数の値です。"
+  },
+  "SobelTestOptions#summary": {
+    "hash": "27245a52e1c3",
+    "en": "Options for {@link sobelTest} and {@link mediationMonteCarlo}.",
+    "ja": "{@link sobelTest} と {@link mediationMonteCarlo} のオプションです。"
+  },
+  "SobelTestOptions.mediator#summary": {
+    "hash": "84aa3f5d8a15",
+    "en": "The mediator (the mediator model's response, a coefficient of the outcome model).",
+    "ja": "媒介変数です (媒介変数モデルの応答であり、結果モデルの係数)。"
+  },
+  "SobelTestOptions.treat#summary": {
+    "hash": "3a3c48e08f4c",
+    "en": "The treatment (a coefficient of both models).",
+    "ja": "処置です (両方のモデルの係数)。"
+  },
+  "SobelTestResult#summary": {
+    "hash": "875a3e1d3778",
+    "en": "Result of {@link sobelTest}.",
+    "ja": "{@link sobelTest} の結果です。"
+  },
+  "SobelTestResult.a#summary": {
+    "hash": "b970a21eb954",
+    "en": "The treatment's coefficient in the mediator model.",
+    "ja": "媒介変数モデルでの処置の係数です。"
+  },
+  "SobelTestResult.ab#summary": {
+    "hash": "cc99d5dacfdc",
+    "en": "The indirect effect a b.",
+    "ja": "間接効果 a b です。"
+  },
+  "SobelTestResult.b#summary": {
+    "hash": "7248adb7c785",
+    "en": "The mediator's coefficient in the outcome model.",
+    "ja": "結果モデルでの媒介変数の係数です。"
+  },
+  "SobelTestResult.p#summary": {
+    "hash": "a838844353b6",
+    "en": "The two-sided p-value.",
+    "ja": "両側 p 値です。"
+  },
+  "SobelTestResult.sa#summary": {
+    "hash": "6ede18f07959",
+    "en": "Its standard error.",
+    "ja": "その標準誤差です。"
+  },
+  "SobelTestResult.sb#summary": {
+    "hash": "6ede18f07959",
+    "en": "Its standard error.",
+    "ja": "その標準誤差です。"
+  },
+  "SobelTestResult.se#summary": {
+    "hash": "57902b08075a",
+    "en": "Its standard error sqrt(b² sa² + a² sb²).",
+    "ja": "その標準誤差 sqrt(b² sa² + a² sb²) です。"
+  },
+  "SobelTestResult.z#summary": {
+    "hash": "5c0965c2506f",
+    "en": "The z statistic a b / se.",
+    "ja": "z 統計量 a b / se です。"
   },
   "TableOneSmdOptions#summary": {
     "hash": "f51fd1745a95",
@@ -404,6 +999,41 @@
     "en": "Covariate balance of two groups before and after matching or weighting: standardised mean differences and variance\nratios. Equivalent to `cobalt::bal.tab()` in R. The calls followed are\n`bal.tab(m, formula = tr ~ ..., data, un = TRUE, disp.v.ratio = TRUE, binary)` for a `Match` object `m` and\n`bal.tab(w, stats = c(\"mean.diffs\", \"variance.ratios\"), un = TRUE, binary)` for a `weightit` object `w`.\n\nThe difference is `(mean treated − mean control) / s`, with means weighted after adjustment. The SD `s` is the same\nbefore and after: of the unadjusted treated for ATT, of the unadjusted controls for ATC, `sqrt((s1² + s0²) / 2)` for\nATE; for ATO that of the whole sample weighted by the (overlap) weights (weighted variance with divisor\n`sum w − sum w² / sum w`). For a binary covariate (with `binary: \"std\"`) `p(1 − p)` takes the place of the variance.\nAs cobalt, an SD below sqrt(eps) ≈ 1.5e-8 (in the covariate's units) is replaced by that of the whole sample.\nVariance ratios are treated / control. A string covariate is a factor: one binary row per level.",
     "ja": "2 群の共変量のバランスを、マッチングまたは重み付けの前後で求めます: 標準化平均差と分散比です。R の `cobalt::bal.tab()` と同等です。`Match` オブジェクト `m` に対する `bal.tab(m, formula = tr ~ ..., data, un = TRUE, disp.v.ratio = TRUE, binary)` と、`weightit` オブジェクト `w` に対する `bal.tab(w, stats = c(\"mean.diffs\", \"variance.ratios\"), un = TRUE, binary)` の呼び方に従います。\n\n差は `(mean treated − mean control) / s` で、調整後は重み付きの平均を使います。SD `s` は前後で同じです: ATT では調整前の処置群、ATC では調整前の対照群、ATE では `sqrt((s1² + s0²) / 2)`、ATO では (重複) 重みで重み付けた標本全体のもの (除数 `sum w − sum w² / sum w` の重み付き分散) です。2 値の共変量 (`binary: \"std\"` のとき) では分散の代わりに `p(1 − p)` を使います。cobalt と同じく、SD が sqrt(eps) ≈ 1.5e-8 (共変量の単位で) 未満なら標本全体の SD に置き換えます。分散比は処置群 / 対照群です。文字列の共変量は因子で、水準ごとに 2 値の行を 1 つずつ作ります。"
   },
+  "johnsonNeyman#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": "⟦code1⟧"
+  },
+  "johnsonNeyman#@param data": {
+    "hash": "0be6243ce4bd",
+    "en": "The data it was fitted on (for the moderator's observed range).",
+    "ja": "当てはめに使ったデータです (調整変数の観測範囲を得るため)。"
+  },
+  "johnsonNeyman#@param fit": {
+    "hash": "15afbc05fd6b",
+    "en": "A formula fit of {@link lm} or {@link glm} with the interaction `pred:modx`.",
+    "ja": "交互作用 `pred:modx` を含む、{@link lm} または {@link glm} の式による当てはめです。"
+  },
+  "johnsonNeyman#@param options": {
+    "hash": "e53c38354682",
+    "en": "See {@link JohnsonNeymanOptions}.",
+    "ja": "{@link JohnsonNeymanOptions} を参照してください。"
+  },
+  "johnsonNeyman#@returns": {
+    "hash": "d4b74301eedc",
+    "en": "See {@link JohnsonNeymanResult}.",
+    "ja": "{@link JohnsonNeymanResult} を参照してください。"
+  },
+  "johnsonNeyman#@throws": {
+    "hash": "08f0fb75d7c8",
+    "en": "RangeError if the model lacks the coefficients or the moderator is not numeric.",
+    "ja": "モデルに必要な係数が無いとき、または調整変数が数値でないときは RangeError を投げます。"
+  },
+  "johnsonNeyman#summary": {
+    "hash": "cba1bf37c38f",
+    "en": "The Johnson-Neyman interval: the moderator values at which the predictor's slope stops being significant.\nEquivalent to `interactions::johnson_neyman()` in R. Its bounds, `inside`, `failed` and `all_sig` are returned; there\nis no plot.\n\nThe bounds solve (b_X + b_XW w)² = t² Var(b_X + b_XW w), with the t quantile on the model's residual degrees of\nfreedom (for a glm too, as interactions does). The slope is significant inside the bounds when the quadratic's\nleading coefficient is negative, else outside them.",
+    "ja": "Johnson-Neyman 区間です: 予測変数の傾きが有意でなくなる調整変数の値を求めます。R の `interactions::johnson_neyman()` と同等です。境界、`inside`、`failed`、`all_sig` を返します。プロットはありません。\n\n境界は (b_X + b_XW w)² = t² Var(b_X + b_XW w) を解いて得ます。t 分位点にはモデルの残差の自由度を使います (interactions と同じく、glm でも同様です)。2 次式の最高次の係数が負のときは境界の内側で傾きが有意になり、そうでなければ外側で有意になります。"
+  },
   "match#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -423,6 +1053,191 @@
     "hash": "d0a3eb63c7f4",
     "en": "The weight of each unit after matching: every pair adds its weight `1 / M` to both of its units; unmatched units\nweigh 0. Equivalent to `cobalt::get.w()` in R. The call followed is `get.w(m)` for a `Match` object `m`.",
     "ja": "マッチング後の各単位の重みです: 各組はその重み `1 / M` を両方の単位に加え、マッチしなかった単位の重みは 0 です。R の `cobalt::get.w()` と同等です。`Match` オブジェクト `m` に対する `get.w(m)` の呼び方に従います。"
+  },
+  "mediate#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": "⟦code1⟧"
+  },
+  "mediate#@param data": {
+    "hash": "8d501b450730",
+    "en": "The data both models were fitted on.",
+    "ja": "両方のモデルの当てはめに使ったデータです。"
+  },
+  "mediate#@param modelM": {
+    "hash": "025c321c5ba5",
+    "en": "The mediator model (its response is the mediator).",
+    "ja": "媒介変数モデルです (その応答が媒介変数です)。"
+  },
+  "mediate#@param modelY": {
+    "hash": "0abe1646458b",
+    "en": "The outcome model (it includes the treatment and the mediator).",
+    "ja": "結果モデルです (処置と媒介変数を含みます)。"
+  },
+  "mediate#@param options": {
+    "hash": "f776d9db63f2",
+    "en": "See {@link MediateOptions}; `treat` and `mediator` are required.",
+    "ja": "{@link MediateOptions} を参照してください。`treat` と `mediator` は必須です。"
+  },
+  "mediate#@returns": {
+    "hash": "83c7a034a635",
+    "en": "See {@link MediateResult}.",
+    "ja": "{@link MediateResult} を参照してください。"
+  },
+  "mediate#@throws": {
+    "hash": "0748a281eb86",
+    "en": "TypeError or RangeError for unsupported models, data that do not reproduce the fits, a treatment or mediator\n  that is not a numeric variable of the models, models on different rows, `sims` below 2, or\n  `confLevel` outside (0, 1).",
+    "ja": "対応していないモデル、当てはめを再現しないデータ、モデルの数値変数でない処置または媒介変数、異なる行に対するモデル、2 未満の `sims`、(0, 1) の範囲外の `confLevel` の場合は、TypeError または RangeError を投げます。"
+  },
+  "mediate#summary": {
+    "hash": "5b3c9a98e9d4",
+    "en": "Causal mediation analysis for linear and binomial (logit or probit) mediator and outcome models. Equivalent to\n`mediation::mediate()` in R.\n\nThe average causal mediation effects (ACME, `d0` and `d1`), the average direct effects (ADE, `z0` and `z1`), the total\neffect (`tau`) and the proportions mediated (`n0`, `n1`) with their averages, by the quasi-Bayesian Monte Carlo\napproximation (the default) or the nonparametric bootstrap (`boot: true`), as in Imai, Keele and Tingley (2010).\nWith the same {@link setSeed} the draws, estimates, intervals and p-values equal R's: the parameters are drawn with\nthe symmetric square root of their covariance, then the mediator for every simulation and observation (normal errors\nwith the residual standard error for a linear mediator, binomial draws for a binary one).\n\nQuasi-Bayesian estimates are the means of the draws (the proportions mediated: their medians; `nAvg` the average of\nthe two medians); bootstrap estimates come from a final draw on the original data, after the replicates, as in R.\nIntervals are quantiles of type 7 of the draws (with `bootCiType: \"bca\"`: the bias-corrected and accelerated levels,\nthe bias measured against the draws' mean and the acceleration from their skewness, as R).\n\nThe models must be formula fits of {@link lm} or {@link glm} (binomial with logit or probit, or gaussian) on `data`,\non the same rows, without weights or offsets; the treatment and the mediator are numeric variables.",
+    "ja": "線形および二項 (logit または probit) の媒介変数モデルと結果モデルに対する、因果媒介分析です。R の `mediation::mediate()` と同等です。\n\nImai, Keele and Tingley (2010) と同じく、準ベイズのモンテカルロ近似 (既定) またはノンパラメトリックブートストラップ (`boot: true`) によって、平均因果媒介効果 (ACME、`d0` と `d1`)、平均直接効果 (ADE、`z0` と `z1`)、総効果 (`tau`)、媒介割合 (`n0`、`n1`) とそれらの平均を求めます。同じ {@link setSeed} のもとでは、抽出値、推定値、区間、p 値は R と一致します。パラメータは共分散の対称な平方根を使って抽出し、続いてシミュレーションと観測値ごとに媒介変数を抽出します (線形の媒介変数は残差標準誤差を持つ正規誤差、2 値の媒介変数は二項分布の抽出)。\n\n準ベイズの推定値は抽出値の平均です (媒介割合は中央値で、`nAvg` は 2 つの中央値の平均)。ブートストラップの推定値は、R と同じく、反復の後で元のデータに対して行う最後の抽出から得ます。区間は抽出値の type 7 の分位点です (`bootCiType: \"bca\"` のときは、バイアス補正・加速した水準で、バイアスは抽出値の平均に対して測り、加速は抽出値の歪度から求めます。R と同じです)。\n\nモデルは `data` に対する {@link lm} または {@link glm} (二項分布で logit か probit、またはガウス分布) の式による当てはめで、同じ行を使い、重みやオフセットは無いものとします。処置と媒介変数は数値変数です。"
+  },
+  "mediationMonteCarlo#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": "⟦code1⟧"
+  },
+  "mediationMonteCarlo#@param modelM": {
+    "hash": "b6ceba870031",
+    "en": "The mediator model.",
+    "ja": "媒介変数モデルです。"
+  },
+  "mediationMonteCarlo#@param modelY": {
+    "hash": "a432d58d4931",
+    "en": "The outcome model.",
+    "ja": "結果モデルです。"
+  },
+  "mediationMonteCarlo#@param options": {
+    "hash": "af2c3799f20f",
+    "en": "See {@link MediationMonteCarloOptions}.",
+    "ja": "{@link MediationMonteCarloOptions} を参照してください。"
+  },
+  "mediationMonteCarlo#@returns": {
+    "hash": "161f07a3ec36",
+    "en": "See {@link MediationMonteCarloResult}.",
+    "ja": "{@link MediationMonteCarloResult} を参照してください。"
+  },
+  "mediationMonteCarlo#@throws": {
+    "hash": "8c1c2258dac7",
+    "en": "RangeError if a model lacks the coefficients or `confLevel` is outside (0, 1).",
+    "ja": "モデルに必要な係数が無いとき、または `confLevel` が (0, 1) の範囲外のときは RangeError を投げます。"
+  },
+  "mediationMonteCarlo#summary": {
+    "hash": "575237252380",
+    "en": "The Monte Carlo method on the coefficients for a mediation with continuous mediator and outcome, as ReactiveStat\ncomputes it: a is drawn by `rnorm(nmc, a, sa)`, then (b, c') of the outcome model by `mvrnorm` with their 2 x 2\ncovariance; the intervals are type-7 quantiles. With the same {@link setSeed} the draws equal R's\n(`set.seed(...); rnorm(...); MASS::mvrnorm(...)`). Not an R function. ReactiveStat composes it from `rnorm` and\n`mvrnorm`.",
+    "ja": "媒介変数と結果が連続である媒介分析に対する、係数のモンテカルロ法です。ReactiveStat の計算と同じで、a は `rnorm(nmc, a, sa)` で抽出し、続いて結果モデルの (b, c') を 2 x 2 の共分散を使った `mvrnorm` で抽出します。区間は type 7 の分位点です。同じ {@link setSeed} のもとでは、抽出値は R と一致します (`set.seed(...); rnorm(...); MASS::mvrnorm(...)`)。R の関数ではありません。ReactiveStat が `rnorm` と `mvrnorm` から組み立てています。"
+  },
+  "moderatedMediation#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": "⟦code1⟧"
+  },
+  "moderatedMediation#@param data": {
+    "hash": "8d501b450730",
+    "en": "The data both models were fitted on.",
+    "ja": "両方のモデルの当てはめに使ったデータです。"
+  },
+  "moderatedMediation#@param modelM": {
+    "hash": "4bb106599ab9",
+    "en": "The mediator model (with W, and the treatment × W interaction if any).",
+    "ja": "媒介変数モデルです (W と、あれば処置 × W の交互作用を含みます)。"
+  },
+  "moderatedMediation#@param modelY": {
+    "hash": "83caab486bbe",
+    "en": "The outcome model (with W, and the mediator × W and treatment × W interactions if any).",
+    "ja": "結果モデルです (W と、あれば媒介変数 × W と処置 × W の交互作用を含みます)。"
+  },
+  "moderatedMediation#@param options": {
+    "hash": "1eabb8fd1f5c",
+    "en": "See {@link ModeratedMediationOptions}.",
+    "ja": "{@link ModeratedMediationOptions} を参照してください。"
+  },
+  "moderatedMediation#@returns": {
+    "hash": "cb0e5429f078",
+    "en": "See {@link ModeratedMediationResult}.",
+    "ja": "{@link ModeratedMediationResult} を参照してください。"
+  },
+  "moderatedMediation#@throws": {
+    "hash": "8d2a72f9cfd4",
+    "en": "RangeError if a model lacks the coefficients, or for the errors of {@link mediate}.",
+    "ja": "モデルに必要な係数が無いときは RangeError を投げます。また、{@link mediate} のエラーも投げます。"
+  },
+  "moderatedMediation#summary": {
+    "hash": "fcbbfd5187de",
+    "en": "Moderated mediation with the index of moderated mediation, as ReactiveStat computes it: the indirect (ACME), direct\n(ADE) and total effects at a low and a high value of a moderator W that enters both models.\n\nWith `method: \"monteCarlo\"` (linear models) all coefficients of both models are drawn by {@link mvrnorm}, the mediator\nmodel's first, and ACME(w) = (t1 − t0)(a1 + a3 w)(b1 + b3 w), ADE(w) = (t1 − t0)(c1 + c3 w), where a3, b3 and c3 are\nthe interactions of the treatment and the mediator with W (0 when absent); the estimates come from the fitted\ncoefficients. These draws are in 4 or more dimensions, where rStats.js's eigenvector signs may differ from R's, so the\nintervals agree with R's statistically, not digit for digit. With `method: \"mediate\"`, {@link mediate} is run at\nW = wLow and W = wHigh (R's `covariates`) from the same generator state, and the index's draws are the differences\nof the average ACME draws; these equal R's under the same {@link setSeed}. Not an R function. ReactiveStat composes\nit from `mvrnorm` or `mediate`.",
+    "ja": "調整媒介指標を伴う調整媒介分析です。ReactiveStat の計算と同じで、両方のモデルに入る調整変数 W の低い値と高い値での、間接効果 (ACME)、直接効果 (ADE)、総効果を求めます。\n\n`method: \"monteCarlo\"` (線形モデル) では、両方のモデルのすべての係数を {@link mvrnorm} で抽出します (媒介変数モデルが先)。ACME(w) = (t1 − t0)(a1 + a3 w)(b1 + b3 w)、ADE(w) = (t1 − t0)(c1 + c3 w) で、a3、b3、c3 は処置と媒介変数の W との交互作用です (無いときは 0)。推定値は当てはめた係数から求めます。この抽出は 4 次元以上で行うため、rStats.js の固有ベクトルの符号が R と異なることがあります。そのため、区間は R と統計的には一致しますが、桁まで一致するわけではありません。`method: \"mediate\"` では、同じ生成器の状態から、W = wLow と W = wHigh (R の `covariates`) のそれぞれで {@link mediate} を実行し、指標の抽出値は平均 ACME の抽出値の差です。これらは同じ {@link setSeed} のもとで R と一致します。R の関数ではありません。ReactiveStat が `mvrnorm` または `mediate` から組み立てています。"
+  },
+  "simSlopes#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": "⟦code1⟧"
+  },
+  "simSlopes#@param data": {
+    "hash": "ecf398ae2a0d",
+    "en": "The data it was fitted on.",
+    "ja": "当てはめに使ったデータです。"
+  },
+  "simSlopes#@param fit": {
+    "hash": "6b7963dec7e9",
+    "en": "A formula fit of {@link lm} or {@link glm} (binomial or gaussian) with the interaction `pred:modx`.",
+    "ja": "交互作用 `pred:modx` を含む、{@link lm} または {@link glm} (二項分布またはガウス分布) の式による当てはめです。"
+  },
+  "simSlopes#@param options": {
+    "hash": "45a30f2fbf42",
+    "en": "See {@link SimSlopesOptions}.",
+    "ja": "{@link SimSlopesOptions} を参照してください。"
+  },
+  "simSlopes#@returns": {
+    "hash": "cbd4953c32e6",
+    "en": "See {@link SimSlopesResult}.",
+    "ja": "{@link SimSlopesResult} を参照してください。"
+  },
+  "simSlopes#@throws": {
+    "hash": "459085e2a3cb",
+    "en": "RangeError if the model lacks the coefficients, the moderator is not numeric or the levels are outside (0, 1).",
+    "ja": "モデルに必要な係数が無いとき、調整変数が数値でないとき、または水準が (0, 1) の範囲外のときは RangeError を投げます。"
+  },
+  "simSlopes#summary": {
+    "hash": "d1b54cefd0a8",
+    "en": "Simple slopes of a predictor at values of a moderator, with the Johnson-Neyman interval. Equivalent to\n`interactions::sim_slopes()` in R. The slopes table (as with `confint = TRUE`) and the Johnson-Neyman results are\nreturned.\n\nThe slope at w is b_X + b_XW w with standard error sqrt(V_XX + 2 w V_XW + w² V_WW), from the model's covariance or\nits HC3 sandwich; intervals and p-values use t on the residual degrees of freedom for lm and the normal distribution\nfor glm. `\"mean-plus-minus\"` takes the moderator's mean and mean ± SD on the model's rows.",
+    "ja": "調整変数の値ごとの予測変数の単純傾斜と、Johnson-Neyman 区間です。R の `interactions::sim_slopes()` と同等です。傾きの表 (`confint = TRUE` のときと同じ) と Johnson-Neyman の結果を返します。\n\nw での傾きは b_X + b_XW w で、標準誤差は sqrt(V_XX + 2 w V_XW + w² V_WW) です。モデルの共分散またはその HC3 サンドイッチ推定量から求めます。区間と p 値は、lm では残差の自由度の t 分布、glm では正規分布を使います。`\"mean-plus-minus\"` は、モデルの行での調整変数の平均と、平均 ± SD を取ります。"
+  },
+  "sobelTest#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": "⟦code1⟧"
+  },
+  "sobelTest#@param modelM": {
+    "hash": "2ae44d5bd18d",
+    "en": "The mediator model (a formula fit of {@link lm} or {@link glm}).",
+    "ja": "媒介変数モデルです ({@link lm} または {@link glm} の式による当てはめ)。"
+  },
+  "sobelTest#@param modelY": {
+    "hash": "a432d58d4931",
+    "en": "The outcome model.",
+    "ja": "結果モデルです。"
+  },
+  "sobelTest#@param options": {
+    "hash": "88614ef3b677",
+    "en": "See {@link SobelTestOptions}.",
+    "ja": "{@link SobelTestOptions} を参照してください。"
+  },
+  "sobelTest#@returns": {
+    "hash": "d45de68cf2fd",
+    "en": "See {@link SobelTestResult}.",
+    "ja": "{@link SobelTestResult} を参照してください。"
+  },
+  "sobelTest#@throws": {
+    "hash": "268e139f88b1",
+    "en": "RangeError if a model lacks the coefficient.",
+    "ja": "モデルに必要な係数が無いときは RangeError を投げます。"
+  },
+  "sobelTest#summary": {
+    "hash": "8a80566c3a26",
+    "en": "The Sobel test of the indirect effect a b (the product of the treatment's coefficient in the mediator model and the\nmediator's in the outcome model), as ReactiveStat computes it: SE = sqrt(b² sa² + a² sb²), z = a b / SE, p from the\nnormal distribution. Not an R function. ReactiveStat computes it from the two models' coefficients.",
+    "ja": "間接効果 a b (媒介変数モデルでの処置の係数と、結果モデルでの媒介変数の係数の積) の Sobel 検定です。ReactiveStat の計算と同じで、SE = sqrt(b² sa² + a² sb²)、z = a b / SE、p は正規分布から求めます。R の関数ではありません。ReactiveStat が 2 つのモデルの係数から計算しています。"
   },
   "tableOneSmd#@example": {
     "hash": "f2167be5edf2",

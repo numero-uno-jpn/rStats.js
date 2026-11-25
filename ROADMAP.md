@@ -82,7 +82,8 @@ widely used in Japanese medical and psychological research) and ReactiveStat wit
 2. **Conditional logistic regression** [survival `clogit`] (with item 1): done for 1.12.0
 3. **Multinomial logistic regression** [nnet `multinom`]: done for 1.14.0
 4. **Stepwise selection** [`step`, MASS `stepAIC`]: done for 1.15.0 (lm and glm; `glm` got a formula interface)
-5. **Mediation and moderation analysis** [mediation `mediate`], including moderated mediation
+5. **Mediation and moderation analysis** [mediation `mediate`], including moderated mediation: done for 1.16.0 (`mediate`,
+   interactions' `sim_slopes` and Johnson-Neyman, `mvrnorm`, Sobel, the coefficients' Monte Carlo, moderated mediation)
 6. Smaller models: tobit regression (on `survreg`), log-linear models [`loglin`, MASS `loglm`], gamma and beta
    regression [betareg]
 7. To be considered afterwards: time-dependent ROC [timeROC, survivalROC], network meta-analysis [netmeta],

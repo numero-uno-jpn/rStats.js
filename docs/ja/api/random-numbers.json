@@ -1,4 +1,14 @@
 {
+  "MvrnormOptions#summary": {
+    "hash": "e8b8126bb9b3",
+    "en": "Options for {@link mvrnorm}.",
+    "ja": "{@link mvrnorm} のオプション。"
+  },
+  "MvrnormOptions.tol#summary": {
+    "hash": "31d5020b8eeb",
+    "en": "Tolerance, relative to the largest eigenvalue, for a lack of positive definiteness of `Sigma` (default `1e-6`).",
+    "ja": "`Sigma` が正定値でないことに対する許容値。最大の固有値に対する相対値です (既定は `1e-6`)。"
+  },
   "RNGKindName#summary": {
     "hash": "d3e898eac1c3",
     "en": "A uniform random number generator, R's `RNGkind(kind)`.",
@@ -103,6 +113,46 @@
     "hash": "025e16afdc36",
     "en": "Returns a copy of the current generator state, as reading R's `.Random.seed` does.\nEquivalent to R's `.Random.seed`.",
     "ja": "R で `.Random.seed` を読むのと同じように、現在の生成器の状態のコピーを返します。\nR の `.Random.seed` と同等です。"
+  },
+  "mvrnorm#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": "⟦code1⟧"
+  },
+  "mvrnorm#@param Sigma": {
+    "hash": "713b510fae13",
+    "en": "The covariance matrix (p x p, symmetric; only the lower triangle is read for 2 x 2, as R).",
+    "ja": "共分散行列 (p x p、対称。2 x 2 のときは R と同じく下三角だけを読みます)。"
+  },
+  "mvrnorm#@param mu": {
+    "hash": "4bf6674cd804",
+    "en": "The mean vector (length p).",
+    "ja": "平均ベクトル (長さ p)。"
+  },
+  "mvrnorm#@param n": {
+    "hash": "d95d8df944c8",
+    "en": "Number of draws (fractions are truncated, as in R).",
+    "ja": "抽出する数 (R と同じく、小数は切り捨てられます)。"
+  },
+  "mvrnorm#@param options": {
+    "hash": "7306ffc2378e",
+    "en": "See {@link MvrnormOptions}.",
+    "ja": "{@link MvrnormOptions} を参照してください。"
+  },
+  "mvrnorm#@returns": {
+    "hash": "4117b56b8231",
+    "en": "An array of `n` rows of length p.",
+    "ja": "長さ p の行を `n` 行持つ配列。"
+  },
+  "mvrnorm#@throws": {
+    "hash": "e96b5b492b27",
+    "en": "RangeError if the dimensions do not match (\"incompatible arguments\") or `Sigma` is not positive\n  semi-definite within `tol` (\"'Sigma' is not positive definite\").",
+    "ja": "次元が合わないとき (\"incompatible arguments\")、または `Sigma` が `tol` の範囲で半正定値でないとき (\"'Sigma' is not positive definite\") は RangeError を投げます。"
+  },
+  "mvrnorm#summary": {
+    "hash": "f77d9ffaeae2",
+    "en": "Random vectors from the multivariate normal distribution. Equivalent to R's `MASS::mvrnorm()`.\n\n`Sigma` is decomposed as `V diag(lambda) V'` and each draw is `mu + V diag(sqrt(lambda)) z` with `z` taken from\n`rnorm(n * p)` column by column (all `n` draws of the first component, then the second, ...), as in R. The values\ndepend on the signs of the eigenvectors: for 1 or 2 dimensions they are R's (LAPACK's closed form for 2 x 2), so the\ndraws equal R's under the same {@link setSeed}; for 3 or more dimensions rStats.js's eigenvectors may differ from\nLAPACK's in sign, and the draws then have R's distribution but not R's values.\n\nUnlike R, which returns a vector when `n` is 1, the result always has one row per draw. MASS's `empirical`\nargument is not offered.",
+    "ja": "多変量正規分布に従うランダムベクトル。R の `MASS::mvrnorm()` と同等です。\n\n`Sigma` を `V diag(lambda) V'` に分解し、各抽出値は `mu + V diag(sqrt(lambda)) z` です。`z` は、R と同じく、`rnorm(n * p)` から列ごとに取ります (最初の成分の `n` 個の抽出値すべて、次に 2 番目の成分、...)。値は固有ベクトルの符号に依存します。1 次元または 2 次元では R と同じ値になり (2 x 2 には LAPACK の閉じた形を使います)、同じ {@link setSeed} のもとで抽出値が R と一致します。3 次元以上では、rStats.js の固有ベクトルの符号が LAPACK と異なることがあり、そのときの抽出値は R と同じ分布に従いますが、R と同じ値にはなりません。\n\n`n` が 1 のときにベクトルを返す R と異なり、結果は常に抽出値ごとに 1 行です。MASS の `empirical` 引数は用意していません。"
   },
   "nextRNGStream#@example": {
     "hash": "f2167be5edf2",
