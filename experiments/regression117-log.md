@@ -42,3 +42,30 @@ script keeps the search that succeeded.
    equals survreg with the same weights (difference 0). The `y` field with both limits is `type = "interval"` with
    status 0 / 1 / 2 (right / exact / left); with the left limit only it is `type = "left"`. `logLik` df = coefficients
    + 1 (scale).
+
+## betareg: the fit (2026-11-25)
+
+Sources read: the help pages of `betareg`, `betareg.control`, `predict.betareg`, `residuals.betareg`,
+`summary.betareg` (as text from the installed Rd files), and the formulas of the papers they cite.
+
+6. `regression117-betareg.R` (first version, replaced): the Newton step was stored in a variable `step`; the checker
+   rejects the name (base's `step`). Renamed `nstep`.
+7. (final version): 6 mean links x {constant phi (identity link), `y ~ x | z` (log link)}, plus phi links log
+   (constant) and sqrt, and weights. Candidates and results:
+   - log-likelihood `sum(w * dbeta(y, mu phi, (1 - mu) phi, log = TRUE))`: difference 0 to 6e-14. **Settled.**
+   - vcov = inverse of the expected information of Simas et al. (2010) (blocks X'WX, X'CZ, Z'DZ with trigamma terms
+     and the derivatives of both inverse links, times the case weights): difference 1e-17 to 2e-14. The inverse of
+     the observed information (numerical Hessian): 5e-4 to 2e-2 (wrong). **Settled.**
+   - starting values: mean coefficients = `lm.wfit(X, g(y), w)` (difference 0); phi0 =
+     `sum(w (mu (1 - mu) / s2 - 1)) / sum(w)` with `s2 = sum(w e^2) / (sum(w) - p) * (dmu/deta)^2` at the lm's fit
+     (the weighted candidate; the unweighted one differs when there are weights), given on the scale of link.phi
+     (identity: phi0; log: log phi0; sqrt: sqrt phi0), and 0 for the other precision coefficients. **Settled.**
+   - pseudo R^2 = squared weighted correlation of eta and g(y) (the case weights; difference 1e-16). The unweighted
+     correlation differs with weights. **Settled.**
+   - R's point is not the exact maximum: a Newton step on the candidate log-likelihood from R's estimates is up to
+     3e-7 (constant phi with the identity link, phi about 26) and 1e-9 to 2e-9 for the log link. Iteration counts
+     (BFGS function / gradient evaluations, then Fisher scoring) are printed as "Number of iterations: 12 (BFGS) + 2
+     (Fisher scoring)" and kept in `summary$iterations`. An implementation that maximises more exactly agrees with R
+     to about 1e-8 relative, not to the last digit.
+   - names: mean coefficients by their terms, the precision ones `(phi)` (constant) or `(phi)_<term>`; logLik df =
+     all coefficients. Fields of the fit and of summary recorded in the JSON.
