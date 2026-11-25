@@ -238,3 +238,21 @@ script keeps the search that succeeded.
     for 25 UWAVE-R), silently; UWAVE-R and MVLUE-R give NA and the R chart's limits are NA; S works. The u chart OC
     grid is **0:ceiling(n u + 10 sqrt(u))** (sizes 1, 2, 3, 5, 0.5: all equal; with sqrt(n u) or u alone not), the
     probabilities those of the c chart with limits times n.
+
+## Corrections found by the fixtures (2026-11-25)
+
+18. `test/fixtures/qcc.json` (oracle/qcc.R) against the first implementation: **entry 7 misread the rows**: the
+    one-sided z = qnorm(1 - a) is used by **both Cp_l and Cp_u** (the candidate rows of experiment 7 that matched with
+    qnorm(1 - a/2) were Cp_k's; Cp_u's limits 0.6573, 0.8421 for 0.7497 are 0.7497 -+ 1.645 * 0.05617). The limits are
+    in the multiplicative form `e (1 -+ z sqrt(1 / (9 n e^2) + 1 / (2 (n - 1))))`: for reversed specification limits
+    (negative indices) R's "lower" limit is the larger number (-0.910 against -1.460 for Cp_l = -1.18), which the
+    additive form does not give. Both checked against all eight capability cases of the fixture.
+19. `qccbt118-rows.R` (first and second versions, replaced): **failed to run** at `qcc(type = "p", sizes = 50,
+    confidence.level = 0.9)` and again with `sizes = rep(50, 10)`: R's own error `dims [product 2] do not match the
+    length of object [10]`, i.e. **probability limits of a p chart with equal sizes fail in qcc** (the fixture's p case
+    has unequal sizes and works). (final version, each call in tryCatch): the number of limit rows with equal sizes:
+    **p 10 (one per group, also with equal sizes)**, np, c, u, g, xbar, R, S, xbar.one 1; u and np with
+    confidence.level 1 row. R's ptukey(q, 5, Inf) for q = 2, 3.5, 5 against `integrate` of the range density
+    (rel.tol 1e-13): R differs by 1e-12 to 1.4e-11, rStats.js's ptukey agrees with the integral to 1e-16, so the
+    1e-8 differences of the R chart's probability limits and OC curves (qtukey / ptukey with df = Inf) come from R's
+    approximation (documented accuracy of ptukey / qtukey); the fixtures are compared at 1e-7 there.

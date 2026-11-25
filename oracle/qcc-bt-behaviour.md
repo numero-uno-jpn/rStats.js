@@ -66,7 +66,7 @@ k = nsigmas (default 3); with confidence.level `conf` the probability limits bel
 | type | nsigmas limits | probability limits (quantiles at (1 - conf) / 2 and (1 + conf) / 2) |
 | --- | --- | --- |
 | xbar | center +- k sd / sqrt(n_i) | qnorm in place of k |
-| R | center +- k d3(n_i) sd, LCL >= 0 | **qtukey(., n_i, Inf) sd** (not around the center) |
+| R | center +- k d3(n_i) sd, LCL >= 0 | **qtukey(., n_i, Inf) sd** (not around the center; R's qtukey is accurate to ~1e-8) |
 | S | center +- k sd sqrt(1 - c4(n_i)^2), LCL >= 0 | sd sqrt(qchisq(., n_i - 1) / (n_i - 1)) |
 | xbar.one | center +- k sd | qnorm |
 | p | p +- k sd / sqrt(n_i), clipped to [0, 1] | qbinom(., n_i, p) / n_i |
@@ -77,7 +77,9 @@ k = nsigmas (default 3); with confidence.level `conf` the probability limits bel
 
 - The R chart's center does not depend on n_i: one weighted center, limits per size.
 - `limits.R` with nsigmas and a size above 50: error "group size must be less than 51 when giving nsigmas".
-- Limits: one row when all sizes are equal, else one row per group; columns LCL, UCL. A given `limits` pair is used
+- Limits: one row when all sizes are equal, else one row per group; **the p chart always has one row per group**;
+  columns LCL, UCL. qcc fails (`dims [product 2] do not match ...`) for probability limits of a p chart with equal sizes;
+  rStats.js gives them (log 19). A given `limits` pair is used
   as is (center and std.dev still estimated).
 
 ## Violations (shewhart.rules; log 2, 3, 16)
@@ -129,9 +131,10 @@ For an xbar or xbar.one chart (others: error `Process Capability Analysis only a
 target default mean(spec limits, NA removed), conf default 0.95, a = 1 - conf.
 
 - Cp = (USL - LSL) / (2 k sd); CI Cp sqrt(qchisq(c(a/2, 1 - a/2), n - 1) / (n - 1)) (Chou).
-- Cp_u = (USL - center) / (k sd), Cp_k = min(Cp_l, Cp_u); CI est +- z sqrt(1 / (9 n) + est^2 / (2 (n - 1))),
-  z = qnorm(1 - a/2) (Bissell).
-- Cp_l = (center - LSL) / (k sd); **CI with z = qnorm(1 - a)** (R's; Choice 3).
+- Cp_l = (center - LSL) / (k sd), Cp_u = (USL - center) / (k sd), Cp_k = min(Cp_l, Cp_u); CI (Bissell)
+  `est (1 -+ z sqrt(1 / (9 n est^2) + 1 / (2 (n - 1))))` (= est -+ z sqrt(1 / (9 n) + est^2 / (2 (n - 1))) for est > 0; for
+  a negative index, reversed specification limits, the lower limit is the larger number), **z = qnorm(1 - a) for the
+  one-sided Cp_l and Cp_u**, qnorm(1 - a/2) for Cp_k (found by the fixture: log 18).
 - Cpm = (USL - LSL) / (2 k sqrt(sd^2 + (center - target)^2)); CI Cpm sqrt(qchisq(c(a/2, 1 - a/2), nu) / nu),
   **nu = n (1 + d^2) / (1 + 2 d^2)**, d = (center - target) / sd.
 - exp = (pnorm(LSL, center, sd), 1 - pnorm(USL, center, sd)), **values below 1e-4 reported as 0** (Choice 3); obs = the
@@ -226,7 +229,7 @@ eta_k = (x_i - x_j)' beta + (contest covariates) + e_i - e_j, e ~ N(0, sigma^2).
 1. API shape: one `qcc(data, { type })`, as R and ReactiveStat.
 2. qcc's quirks: NA statistics are **left out** of the violation indices (R puts NA in them); groups above 25 switch
    the xbar default to RMSDF silently and give NA limits for the R chart, **as R** (with comments in the code).
-3. processCapability / overdispersion: Cp_l's one-sided z, NA Cp_k and Cpm with one spec limit, exp below 1e-4 as 0
+3. processCapability / overdispersion: the one-sided z of Cp_l and Cp_u, NA Cp_k and Cpm with one spec limit, exp below 1e-4 as 0
    **as R** (with comments); the overdispersion p-value **not rounded** (R rounds to 5 significant digits).
 4. medianChart with unequal group sizes: **an error** (ReactiveStat uses the first group's n).
 5. btm `br = TRUE` (Firth): out (not in the scope of Issue #568).
