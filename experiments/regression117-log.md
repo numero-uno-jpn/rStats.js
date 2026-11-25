@@ -99,8 +99,8 @@ model matrices.
 
 With y* = logit(y), mu* = digamma(mu phi) - digamma((1 - mu) phi), v = trigamma(mu phi) + trigamma((1 - mu) phi).
 
-12. `regression117-betareg-resid.R` (first version, replaced): a variable `se` (rejected by the checker: survival's
-    `se`?); renamed `sev`. (BSD sed has no `\b`; the rename used `[[:<:]]`.)
+12. `regression117-betareg-resid.R` (first version, replaced): a variable `se` (a name the checker rejects, as in
+    earlier versions); renamed `sev`. (BSD sed has no `\b`; the rename used `[[:<:]]`.)
 13. (final version): candidates for the seven types, constant and modelled phi, with and without weights.
     - quantile = `qnorm(pbeta(y, mu phi, (1 - mu) phi))`, response = y - mu, pearson = (y - mu) / sqrt(mu (1 - mu) /
       (1 + phi)): difference 0 without weights. The default type is quantile.
@@ -126,3 +126,40 @@ With y* = logit(y), mu* = digamma(mu phi) - digamma((1 - mu) phi), v = trigamma(
 15. `regression117-betareg-dev.R` (added): the values side by side: R's deviance^2 / 2 equals `l(y | mean y) -
     l(y | mean mu)` in absolute value; 4 of 50 observations have a negative difference (mean y is not the maximum).
     **Settled:** deviance = sign(y - mu) sqrt(2 |l(y | y, phi) - l(y | mu, phi)|) (2e-13), times sqrt(w).
+
+## loglin (2026-11-25)
+
+Sources: the help page of `loglin` (IPF as in Haberman 1972, AS 51; margins in the given order; convergence when the
+largest absolute margin difference is below `eps`; df without adjustment for structural zeros; parameters with
+zero-sum constraints).
+
+16. `regression117-loglin.R` (first version, replaced): candidate variables `ca` and `cb` (rejected by the checker:
+    ca's function); renamed `cand_a`, `cand_b`.
+17. (final version): IPF candidates (scale the fit by observed / fitted margin, 0 where the fitted margin is 0) with
+    the deviation (a) the largest |observed - fitted| margin difference seen **before** each adjustment during a cycle,
+    (b) measured after the cycle. **(a) settled**: iteration count and printed deviation equal R's in all 13 cases
+    (2-way, 3-way with 4 margin sets, names, sampling zeros, a start with a structural zero, eps 1e-8, iter 2, 4-way,
+    saturated, empty margin list), fit to 3e-14; (b) gives one iteration fewer and fits 0.01-0.05 off. Consequences:
+    a model that fits in one cycle prints "2 iterations: deviation 3.6e-15" (the second cycle sees the deviation);
+    `iter` reached prints the last deviation and warns "algorithm did not converge"; the empty margin list does 0
+    iterations, fit = start * sum(table) / sum(start), param only "(Intercept)".
+    lrt = 2 sum obs log(obs / fit) over cells with obs > 0 **and fit > 0** (the structural zero's observed 8 is left
+    out: lrt 4.135 while the plain formula gives NA); pearson = sum over fit > 0. param: names "(Intercept)", factor
+    names, "A.B" for interactions; candidate = the zero-sum decomposition of log(fit) (grand mean, main effects,
+    two-way terms) to 7e-16.
+
+## loglm (2026-11-25)
+
+Source: the help pages of `loglm` and `loglm1` (eps 1/10, iter 40, param TRUE; one df off per structural zero).
+
+18. `regression117-loglm.R` (first version, replaced): a list element `m` (the checker's nls `m` rule) and `unclass`;
+    renamed `mg`, plain matrices. (second version, replaced): `as.matrix(anova)` keeps the class; written as a plain
+    numeric matrix.
+19. (final version): loglm = loglin with the margins = the formula's maximal terms in the order of the terms object
+    (`~ Hair + Eye:Sex + Hair:Eye` -> Eye.Sex, Hair.Eye; `^2` expanded; numbers as dimension names give margin names
+    `.v1` ...), eps 0.1, iter 40: fit and lrt difference 0 in 7 forms. Fields: lrt, pearson, df, margin, fitted,
+    param, call, formula, frequencies, deviance, nobs, terms. Printed "Statistics:" table with Likelihood Ratio and
+    Pearson, X^2, df, P(> X^2). residuals: default deviance = sign(o - f) sqrt(2 |o log(o / f) - (o - f)|) (0 log 0 = 0),
+    pearson (o - f) / sqrt(f), response o - f (all 0). anova: "LR tests for hierarchical log-linear models", rows
+    Model 1..k and "Saturated" with Deviance, df, Delta(Dev), Delta(df), P(> Delta(Dev)). Data frame with frequencies:
+    lrt equals glm(poisson)'s deviance to 7e-6 (IPF's eps), df equal; two missing cells: df 7 = 9 - 2, as glm.
