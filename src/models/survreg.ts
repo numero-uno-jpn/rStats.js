@@ -153,6 +153,8 @@ export interface SurvregPredictionResult { fit: number[] | number[][]; seFit?: n
 export interface SurvregResidualsOptions { type?: "response" | "deviance" | "working" | "dfbeta" | "dfbetas" | "ldcase" | "ldresp" | "ldshape" | "matrix"; weighted?: boolean; }
 
 const survregNumericState = new WeakMap<SurvregResult,{V:number[][];xExponent:number[]}>();
+/** The covariance in the fit's scaled coordinates (coefficient j times 2^xExponent[j]), for statistics of covariates far from 1 in size */
+export function survregScaledState(fit: SurvregResult): {V:number[][];xExponent:number[]}|undefined { return survregNumericState.get(fit); }
 
 type Deriv = { g:number; e:number; ee:number; t:number; tt:number; et:number; };
 const LOG2PI = Math.log(2 * Math.PI);
@@ -455,9 +457,27 @@ export function survreg(time: readonly number[], event?: readonly (number | bool
     const rhs=Array.from({length:p},(_,a)=>scaled.values.reduce((s,row,i)=>s+z[i]!.w*row[a]!*z[i]!.r,0));
     try{const factor=A.map(r=>r.slice()),rank=cholFactor(factor,control.tolerChol??1e-10);const theta=rank>=0?cholSolve(factor,rhs):matVec(solve(A),rhs);start.splice(0,p,...theta.map((v,j)=>ldexpWide(v,-scaled.exponent[j]!)));}catch{}
   }
-  const model=isNull?nullFit:fitCore(X,yy,lo,hi,st,ww,oo,sid,k,d,nu,fixed,start,maxiter,tol,control.tolerChol??1e-10);
+  let model=isNull?nullFit:fitCore(X,yy,lo,hi,st,ww,oo,sid,k,d,nu,fixed,start,maxiter,tol,control.tolerChol??1e-10);
+  // A covariate with a large common value (x + 1e8) is collinear with the intercept to the Cholesky tolerance, though
+  // R's survreg fits it (experiments/qccbt118-old-extreme.R): when a coefficient comes out aliased, fit again with the
+  // covariates centred and take the intercept and the covariance back exactly (b0 = b0c - sum c_j b_j, V = T Vc T').
+  // Ordinary fits are not refitted, so their iterations stay R's.
+  if(!isNull&&intercept&&p>1&&model.z.slice(1,p).some(Number.isNaN)){
+    const c=Array.from({length:p},(_,j)=>j===0?0:X.reduce((s,r)=>s+r[j]!,0)/X.length);
+    const Xc=X.map(r=>r.map((v,j)=>v-c[j]!)),startC=start.slice();startC[0]=start[0]!+c.reduce((s,cj,j)=>s+cj*start[j]!,0);
+    const refit=fitCore(Xc,yy,lo,hi,st,ww,oo,sid,k,d,nu,fixed,startC,maxiter,tol,control.tolerChol??1e-10);
+    if(!refit.z.slice(0,p).some(Number.isNaN)){
+      const q2=refit.b.length,T=Array.from({length:q2},(_,i)=>Array.from({length:q2},(_,j)=>i===j?1:i===0&&j>0&&j<p?-c[j]!:0));
+      const b=matVec(T,refit.b),V=T.map(r=>T.map(t=>dot(r,matVec(refit.V,t))));
+      model={...refit,b,V,VScaled:V.map(r=>r.slice()),xExponent:Array(p).fill(0),z:V.map((r,j)=>r[j]!>0?b[j]!/Math.sqrt(r[j]!):NaN)};
+    }
+  }
   const jac=logTime?rows.reduce((s,orig,j)=>s+(st[j]===1?ww[j]!*Math.log(time[orig]!):0),0)*-1:0;
-  const varmat=model.V.map(r=>r.slice());const coefs=model.b.slice(0,p).map((v,j)=>Number.isNaN(model.z[j]!)?NaN:v);const ses=coefs.map((_,j)=>(varmat[j]?.[j]??0)===0?0:Math.sqrt(Math.max(0,varmat[j]?.[j]??0)));
+  const varmat=model.V.map(r=>r.slice());const coefs=model.b.slice(0,p).map((v,j)=>Number.isNaN(model.z[j]!)?NaN:v);
+  // standard errors from the scaled covariance: for a covariate near 1e+-300 its variance (1e-+600) is not a double, the
+  // standard error is
+  const seOf=(j:number)=>{const v=model.VScaled[j]?.[j]??0;return v===0?0:ldexpWide(Math.sqrt(Math.max(0,v)),j<p?-model.xExponent[j]!:0);};
+  const ses=coefs.map((_,j)=>seOf(j));
   const zstat=coefs.map((_,j)=>model.z[j]!);const pv=zstat.map(v=>2*pnorm(-Math.abs(v)));
   const scales=fixed!==undefined?[fixed]:Array.from({length:k},(_,s)=>Math.exp(model.b[p+s]!));
   const means=Array.from({length:p},(_,j)=>X.reduce((s,r)=>s+r[j]!,0)/X.length);
@@ -465,7 +485,7 @@ export function survreg(time: readonly number[], event?: readonly (number | bool
   const lp=X.map((r,i)=>dot(r,model.b.slice(0,p))+oo[i]!);
   const chi=2*((model.ll+jac)-(nullFit.ll+jac)),chiDf=p+(fixed===undefined?k:0)-(1+(fixed===undefined?k:0));
   const tableNames=[...coefs.map((_,j)=>j===0&&intercept?"(Intercept)":`x${j+(intercept?0:1)}`),...(fixed===undefined?(k===1?["Log(scale)"]:lev):[])];
-  const values=[...coefs,...(fixed===undefined?model.b.slice(p):[])],seAll=values.map((_,j)=>(varmat[j]?.[j]??0)===0?0:Math.sqrt(Math.max(0,varmat[j]?.[j]??0))),zAll=values.map((_,j)=>model.z[j]!),pAll=zAll.map(v=>2*pnorm(-Math.abs(v)));
+  const values=[...coefs,...(fixed===undefined?model.b.slice(p):[])],seAll=values.map((_,j)=>seOf(j)),zAll=values.map((_,j)=>model.z[j]!),pAll=zAll.map(v=>2*pnorm(-Math.abs(v)));
   const result:SurvregResult={coefficients:coefs,coefNames:tableNames.slice(0,p),scale:scales,table:{value:values,se:seAll,z:zAll,p:pAll},strataLevels:lev.map(s=>strataIn.find(v=>String(v)===s)!),hasOffset:options.offset!==undefined,icoef:fixed===undefined||rows.length===1?nullFit.b.slice():[nullFit.b[0]!,Math.log(fixed)], var:varmat,loglik:[nullFit.ll+jac,model.ll+jac],iter:model.iter,df:p+(fixed===undefined?k:0),idf:1+(fixed===undefined?k:0),dfResidual:rows.length-(p+(fixed===undefined?k:0)),n:rows.length,linearPredictors:lp,means,score:model.score.slice(),tableRowNames:tableNames,value:values,se:seAll,z:zAll,p:pAll,chi,chiDf,chiP:pchisq(chi,chiDf,{lowerTail:false}),dist:d,distributionDf:nu,parms:nu,intercept,x:X,offset:oo,rows,weights:ww,strata:sid,y:yy,lower:lo,upper:hi,status:st,type,warnings:[...dataWarnings,...(model.warn||nullFit.warn?["Ran out of iterations and did not converge"]:[]),...(d==="exponential"&&options.scale!==undefined&&options.scale>0?["Exponential has a fixed scale, user specified value ignored"]:[])]};
   survregNumericState.set(result,{V:model.VScaled,xExponent:model.xExponent});
   return reported("survreg",result);

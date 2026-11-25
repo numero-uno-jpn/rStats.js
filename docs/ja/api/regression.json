@@ -414,6 +414,236 @@
     "en": "Estimators of {@link betareg}: maximum likelihood, bias-corrected, bias-reduced.",
     "ja": "{@link betareg} の推定量です: 最尤、バイアス補正、バイアス減少です。"
   },
+  "BtAbilitiesResult#summary": {
+    "hash": "d5348ca0cb4d",
+    "en": "Result of {@link btAbilities}.",
+    "ja": "{@link btAbilities} の結果です。"
+  },
+  "BtAbilitiesResult.ability#summary": {
+    "hash": "e91536c6fae7",
+    "en": "The ability of each player.",
+    "ja": "各対象の能力です。"
+  },
+  "BtAbilitiesResult.levels#summary": {
+    "hash": "5de90a205e55",
+    "en": "The players.",
+    "ja": "対象です。"
+  },
+  "BtAbilitiesResult.se#summary": {
+    "hash": "8fa379dcd7b0",
+    "en": "Standard errors (0 for the reference player).",
+    "ja": "標準誤差です (基準の対象は 0)。"
+  },
+  "BtAbilitiesResult.separate#summary": {
+    "hash": "acbb2ca293e5",
+    "en": "Players whose ability was estimated separately (a missing covariate).",
+    "ja": "能力を別に推定した対象です (共変量が欠測の対象)。"
+  },
+  "BtAbilitiesResult.vcov#summary": {
+    "hash": "b141d1e00c86",
+    "en": "The covariance matrix of the abilities (a zero row for the reference).",
+    "ja": "能力の共分散行列です (基準の行は 0)。"
+  },
+  "BtmOptions#summary": {
+    "hash": "7e91bd092764",
+    "en": "Options for {@link btm}.",
+    "ja": "{@link btm} のオプションです。"
+  },
+  "BtmOptions.contestCovariates#summary": {
+    "hash": "49fb07a24669",
+    "en": "Contest-level variables specific to each player: name -> [column for player1, column for player2].",
+    "ja": "各対象に固有の対戦レベルの変数です: 名前 -> [player1 の列, player2 の列]。"
+  },
+  "BtmOptions.formula#summary": {
+    "hash": "29a971091b2d",
+    "en": "The model of the abilities, without a response: `\"~ ..\"` (default, one ability per player), `\"~ .. + home\"` (with\na contest-level variable from `contestCovariates`), or player covariates indexed by the player with random player\neffects, `\"~ x[..] + z[..] + (1 | ..)\"` (fitted by PQL; the covariates in `predictors`).",
+    "ja": "能力のモデルです (応答は含めません)。`\"~ ..\"` (既定、対象ごとに 1 つの能力)、`\"~ .. + home\"` (`contestCovariates` の対戦レベルの変数を含む)、または対象で添字づけた対象の共変量と対象の変量効果を持つ `\"~ x[..] + z[..] + (1 | ..)\"` (PQL で当てはめ、共変量は `predictors` に与えます) のいずれかです。"
+  },
+  "BtmOptions.levels#summary": {
+    "hash": "0828a88c0bd6",
+    "en": "The players in order (default: the sorted distinct players of both columns).",
+    "ja": "対象を順に並べたものです (既定は、2 つの列に現れる異なる対象を整列したもの)。"
+  },
+  "BtmOptions.link#summary": {
+    "hash": "71c9fcdb7918",
+    "en": "The link (default `\"logit\"`).",
+    "ja": "リンクです (既定は `\"logit\"`)。"
+  },
+  "BtmOptions.outcome#summary": {
+    "hash": "488bfd21321a",
+    "en": "The outcome: two columns of wins (`[win1, win2]`, as `cbind(win1, win2)`) or one column, 1 when player1 won.",
+    "ja": "結果です: 勝ちの 2 つの列 (`[win1, win2]`、`cbind(win1, win2)` と同じ) または、player1 が勝ったとき 1 とする 1 つの列です。"
+  },
+  "BtmOptions.player1#summary": {
+    "hash": "05229e32171b",
+    "en": "The column of the first player of each contest.",
+    "ja": "各対戦の最初の対象の列です。"
+  },
+  "BtmOptions.player2#summary": {
+    "hash": "a44677007cc7",
+    "en": "The column of the second player.",
+    "ja": "2 番目の対象の列です。"
+  },
+  "BtmOptions.predictors#summary": {
+    "hash": "f856848ac3f6",
+    "en": "Player covariates: one row per player, in the order of `levels`.",
+    "ja": "対象の共変量です: 対象ごとに 1 行で、`levels` の順に並べます。"
+  },
+  "BtmOptions.refcat#summary": {
+    "hash": "9208ba8ef624",
+    "en": "The reference player, whose ability is 0 (default the first level).",
+    "ja": "能力が 0 の基準の対象です (既定は最初の水準)。"
+  },
+  "BtmResult#summary": {
+    "hash": "81005fd9675b",
+    "en": "Result of {@link btm}.",
+    "ja": "{@link btm} の結果です。"
+  },
+  "BtmResult.abilityDesign#summary": {
+    "hash": "2f2af2c16094",
+    "en": "How each player's ability is formed from the coefficients (for {@link btAbilities}).",
+    "ja": "各対象の能力を係数からどのように組み立てるかです ({@link btAbilities} 用)。"
+  },
+  "BtmResult.aic#summary": {
+    "hash": "de2d7bf92725",
+    "en": "Akaike's information criterion (NaN with random effects).",
+    "ja": "赤池情報量規準です (変量効果があるときは NaN)。"
+  },
+  "BtmResult.coefNames#summary": {
+    "hash": "b9a815523470",
+    "en": "Their names (`..B` for a player's ability, `x[..]` for a covariate, `..p03` for a separate ability).",
+    "ja": "係数の名前です (対象の能力は `..B`、共変量は `x[..]`、別に推定した能力は `..p03`)。"
+  },
+  "BtmResult.coefficients#summary": {
+    "hash": "bee66fee1c19",
+    "en": "The fixed coefficients.",
+    "ja": "固定係数です。"
+  },
+  "BtmResult.converged#summary": {
+    "hash": "9ac2260ad924",
+    "en": "Whether the fit converged.",
+    "ja": "当てはめが収束したかどうかです。"
+  },
+  "BtmResult.deviance#summary": {
+    "hash": "246af6b5a59b",
+    "en": "Deviance, null deviance and AIC of a model without random effects (NaN with random effects, as BTm).",
+    "ja": "変量効果のないモデルの逸脱度、ヌル逸脱度、AIC です (変量効果があるときは BTm と同じく NaN)。"
+  },
+  "BtmResult.dfNull#summary": {
+    "hash": "a6f8517ac8d3",
+    "en": "The degrees of freedom of the null model: the number of contests.",
+    "ja": "帰無モデルの自由度で、対戦の数です。"
+  },
+  "BtmResult.dfResidual#summary": {
+    "hash": "3d70c29b19d1",
+    "en": "The residual degrees of freedom: contests minus fixed coefficients.",
+    "ja": "残差の自由度で、対戦の数から固定効果の係数の数を引いたものです。"
+  },
+  "BtmResult.fittedValues#summary": {
+    "hash": "3bf9ebabc97f",
+    "en": "The fitted probability that player1 wins, and the linear predictor (with the random effects).",
+    "ja": "player1 が勝つ当てはめ確率と、線形予測子 (変量効果を含む) です。"
+  },
+  "BtmResult.iter#summary": {
+    "hash": "dfdb60e2ec2a",
+    "en": "Iterations: of the glm, or of the outer PQL search.",
+    "ja": "反復回数です: glm のもの、または PQL の外側の探索のものです。"
+  },
+  "BtmResult.levels#summary": {
+    "hash": "5de90a205e55",
+    "en": "The players.",
+    "ja": "対象です。"
+  },
+  "BtmResult.linearPredictors#summary": {
+    "hash": "4bc17fc6fad5",
+    "en": "The linear predictor of each contest.",
+    "ja": "各対戦の線形予測子です。"
+  },
+  "BtmResult.link#summary": {
+    "hash": "90e1f5862da3",
+    "en": "The link.",
+    "ja": "リンク関数です。"
+  },
+  "BtmResult.nullDeviance#summary": {
+    "hash": "1cb03e2db344",
+    "en": "The deviance of the model with all abilities 0 (NaN with random effects).",
+    "ja": "すべての能力が 0 のモデルの逸脱度です (変量効果があるときは NaN)。"
+  },
+  "BtmResult.pValue#summary": {
+    "hash": "d1ad2a20edf0",
+    "en": "The two-sided p-values of the z statistics.",
+    "ja": "z 統計量の両側 p 値です。"
+  },
+  "BtmResult.random#summary": {
+    "hash": "902bd96220dc",
+    "en": "The predicted random effects, one per player (null without them).",
+    "ja": "予測した変量効果で、対象ごとに 1 つです (変量効果がなければ null)。"
+  },
+  "BtmResult.refcat#summary": {
+    "hash": "00fd5d7253ec",
+    "en": "The reference player.",
+    "ja": "基準の対象です。"
+  },
+  "BtmResult.separate#summary": {
+    "hash": "b97c5edf882c",
+    "en": "Players with a missing covariate, given an ability of their own.",
+    "ja": "共変量が欠測で、固有の能力を与えられた対象です。"
+  },
+  "BtmResult.sigma#summary": {
+    "hash": "28fd444ad333",
+    "en": "The standard deviation of the random player effects (null without them; 0 at the boundary).",
+    "ja": "対象の変量効果の標準偏差です (変量効果がなければ null、境界では 0)。"
+  },
+  "BtmResult.statistic#summary": {
+    "hash": "e2b22f76a694",
+    "en": "z = coefficient / standard error.",
+    "ja": "z = 係数 / 標準誤差 です。"
+  },
+  "BtmResult.stdError#summary": {
+    "hash": "82ea709fd1e8",
+    "en": "Their standard errors.",
+    "ja": "係数の標準誤差です。"
+  },
+  "BtmResult.varSigma#summary": {
+    "hash": "295bc89e0c94",
+    "en": "The variance of sigma (null without random effects or at sigma = 0).",
+    "ja": "sigma の分散です (変量効果がないとき、または sigma = 0 のときは null)。"
+  },
+  "BtmResult.vcov#summary": {
+    "hash": "d6652c6ae229",
+    "en": "The covariance matrix of the fixed coefficients (varFix for PQL).",
+    "ja": "固定係数の共分散行列です (PQL では varFix)。"
+  },
+  "BtmResult.warnings#summary": {
+    "hash": "3db2080f70ed",
+    "en": "R's warnings.",
+    "ja": "R の警告です。"
+  },
+  "CountsToBinomialResult#summary": {
+    "hash": "5415c262ba3b",
+    "en": "Result of {@link countsToBinomial}.",
+    "ja": "{@link countsToBinomial} の結果です。"
+  },
+  "CountsToBinomialResult.player1#summary": {
+    "hash": "2d54c2899d05",
+    "en": "The first player of each pair.",
+    "ja": "各組の 1 番目の対象です。"
+  },
+  "CountsToBinomialResult.player2#summary": {
+    "hash": "dba345a0cb80",
+    "en": "The second player of each pair.",
+    "ja": "各組の 2 番目の対象です。"
+  },
+  "CountsToBinomialResult.win1#summary": {
+    "hash": "d85441f168b4",
+    "en": "The wins of player1 over player2.",
+    "ja": "player1 が player2 に勝った数です。"
+  },
+  "CountsToBinomialResult.win2#summary": {
+    "hash": "2d8a77aeb84b",
+    "en": "The wins of player2 over player1.",
+    "ja": "player2 が player1 に勝った数です。"
+  },
   "CvGlmnetOptions#summary": {
     "hash": "de9acedfe20c",
     "en": "Options for {@link cvGlmnet}; fold assignments are required.",
@@ -2664,6 +2894,51 @@
     "en": "Scalar or vector output returned by the robust score functions.",
     "ja": "ロバストスコア関数が返すスカラーまたはベクトルの出力です。"
   },
+  "QvcalcResult#summary": {
+    "hash": "07069e009362",
+    "en": "Result of {@link qvcalc}.",
+    "ja": "{@link qvcalc} の結果です。"
+  },
+  "QvcalcResult.covmat#summary": {
+    "hash": "f017168c7e63",
+    "en": "The covariance matrix used.",
+    "ja": "用いた共分散行列です。"
+  },
+  "QvcalcResult.estimate#summary": {
+    "hash": "25b22d0dc0c9",
+    "en": "The estimates.",
+    "ja": "推定値です。"
+  },
+  "QvcalcResult.names#summary": {
+    "hash": "ebeb71a1d284",
+    "en": "The levels.",
+    "ja": "水準です。"
+  },
+  "QvcalcResult.quasiSE#summary": {
+    "hash": "be03ff4291ad",
+    "en": "The quasi standard errors.",
+    "ja": "準標準誤差です。"
+  },
+  "QvcalcResult.quasiVar#summary": {
+    "hash": "6d5bdfe94a79",
+    "en": "The quasi variances.",
+    "ja": "準分散です。"
+  },
+  "QvcalcResult.relerrs#summary": {
+    "hash": "e235efe2224b",
+    "en": "Relative errors of the quasi standard errors of the simple contrasts (pairs \"A,B\", ...).",
+    "ja": "単純な対比 (対 \"A,B\"、...) の準標準誤差の相対誤差です。"
+  },
+  "QvcalcResult.relerrsNames#summary": {
+    "hash": "5578b3be3edd",
+    "en": "The pairs of the relative errors, \"A,B\", ...",
+    "ja": "相対誤差の組 (\"A,B\" など) です。"
+  },
+  "QvcalcResult.se#summary": {
+    "hash": "82ea709fd1e8",
+    "en": "Their standard errors.",
+    "ja": "その標準誤差です。"
+  },
   "RlmModel#summary": {
     "hash": "17e1a6df096a",
     "en": "Data and settings retained by an M fit.",
@@ -3569,6 +3844,26 @@
     "en": "Summary of a {@link betareg} fit: Wald tests of the mean and precision coefficients. Equivalent to\n`betareg::summary.betareg()` in R.",
     "ja": "{@link betareg} の当てはめの要約です: 平均と精度の係数の Wald 検定です。R の `betareg::summary.betareg()` と同等です。"
   },
+  "btAbilities#summary": {
+    "hash": "fc10f10f257d",
+    "en": "The abilities of the players of a Bradley-Terry model. They are the estimated abilities with the reference at 0,\nor, for abilities modelled by player covariates, `x_j' beta` (without the random effects) with\nstandard errors from the covariance of beta; contest-level variables are taken as 0.\n\nEquivalent to `BradleyTerry2::BTabilities()` in R.",
+    "ja": "Bradley-Terry モデルの対象の能力です。基準を 0 とした推定能力です。対象の共変量でモデル化した能力では、`x_j' beta` (変量効果を除く) で、標準誤差は beta の共分散から求めます。対戦レベルの変数は 0 として扱います。\n\nR の `BradleyTerry2::BTabilities()` と同等です。"
+  },
+  "btm#@param contests": {
+    "hash": "e9e27a8e2afe",
+    "en": "one row per contest, or per pair with the numbers of wins",
+    "ja": "1 対戦につき 1 行、または勝ち数を持つ対ごとに 1 行"
+  },
+  "btm#summary": {
+    "hash": "0f72d540dd73",
+    "en": "A Bradley-Terry model for paired comparisons: the probability that player1 beats player2 is\n`link^-1(lambda_1 - lambda_2)`. With `\"~ ..\"` each player has an ability (the reference's is 0) and the model is the\nbinomial glm without intercept on the +1 / -1 design of the two players; contest-level variables add their\ndifference. With player covariates and random player effects (`\"~ x[..] + (1 | ..)\"`) the abilities are\n`x_j' beta + e_j`, `e ~ N(0, sigma^2)`, fitted by PQL to the fixed point where sigma maximizes the REML likelihood of\nthe working linear mixed model (BTm stops at its tolerance, about 1e-7 from it); sigma at the boundary 0 gives the\nglm. A player with a missing covariate gets an ability of its own (as BTm).\n\nEquivalent to `BradleyTerry2::BTm()` in R.",
+    "ja": "一対比較のための Bradley-Terry モデルです: player1 が player2 に勝つ確率は `link^-1(lambda_1 - lambda_2)` です。`\"~ ..\"` では各対象が能力 (基準の能力は 0) を持ち、モデルは 2 つの対象の +1 / -1 のデザインに対する切片なしの二項 glm です。対戦レベルの変数はその差を加えます。対象の共変量と対象の変量効果 (`\"~ x[..] + (1 | ..)\"`) では、能力は `x_j' beta + e_j`、`e ~ N(0, sigma^2)` で、作業用の線形混合モデルの REML 尤度を sigma が最大にする固定点まで PQL で当てはめます (BTm は許容誤差で止まり、固定点から 1e-7 程度離れます)。sigma が境界 0 のときは glm になります。共変量が欠測の対象には、BTm と同じく固有の能力を与えます。\n\nR の `BradleyTerry2::BTm()` と同等です。"
+  },
+  "countsToBinomial#summary": {
+    "hash": "e75618ba03d1",
+    "en": "The wins of each pair of players from a table of wins. The rows of the table are the winners, the columns the\nlosers. One row per pair i < j (in the order of the levels) that met at least once.\n\nEquivalent to `BradleyTerry2::countsToBinomial()` in R.",
+    "ja": "勝ちの表から、各対象の対ごとの勝ち数を求めます。表の行が勝者、列が敗者です。少なくとも 1 回対戦した対 i < j (水準の順) ごとに 1 行です。\n\nR の `BradleyTerry2::countsToBinomial()` と同等です。"
+  },
   "cvGlmnet(0)#summary": {
     "hash": "557e4be1ca2a",
     "en": "Cross-validate a penalized generalized linear model. Equivalent to R's `cv.glmnet()`.",
@@ -4069,6 +4364,11 @@
     "en": "Huber's psi function. Equivalent to R's `MASS::psi.huber()`.",
     "ja": "Huber の ψ 関数です。R の `MASS::psi.huber()` と同等です。"
   },
+  "qvcalc#summary": {
+    "hash": "2bd935e755f1",
+    "en": "Quasi variances (Firth 2003). They are the q_j minimizing `sum_{i<j} (log(q_i + q_j) - log var(b_i - b_j))^2`,\nso that `q_i + q_j` approximates the variance of every simple contrast. Accepts the abilities of a Bradley-Terry\nmodel or estimates with their covariance matrix.\n\nEquivalent to `qvcalc::qvcalc()` in R.",
+    "ja": "準分散 (Firth 2003) です。`sum_{i<j} (log(q_i + q_j) - log var(b_i - b_j))^2` を最小にする q_j で、`q_i + q_j` がすべての単純な対比の分散を近似します。Bradley-Terry モデルの能力、または推定値とその共分散行列を受け取ります。\n\nR の `qvcalc::qvcalc()` と同等です。"
+  },
   "rlm#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -4223,5 +4523,10 @@
     "hash": "ee29ea21709b",
     "en": "Summary of a {@link tobit} fit: the Wald table with the scale and the Wald test of the regression. Equivalent to\n`AER::summary.tobit()` in R.",
     "ja": "{@link tobit} の当てはめの要約です: 尺度を含む Wald 表と、回帰の Wald 検定です。R の `AER::summary.tobit()` と同等です。"
+  },
+  "worstErrors#summary": {
+    "hash": "6b6c4aabf39e",
+    "en": "The worst relative errors of the quasi standard errors over all contrasts. They are the square roots\nof the extreme eigenvalues of `(C'VC)^-1 C'QC` minus 1, over a basis C of the contrasts, Q = diag(quasiVar).\n\nEquivalent to `qvcalc::worstErrors()` in R.",
+    "ja": "すべての対比にわたる準標準誤差の最悪の相対誤差です。対比の基底 C について、`(C'VC)^-1 C'QC` (Q = diag(quasiVar)) の最小・最大固有値の平方根から 1 を引いたものです。\n\nR の `qvcalc::worstErrors()` と同等です。"
   }
 }

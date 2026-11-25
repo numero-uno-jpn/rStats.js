@@ -55,11 +55,14 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `anova.rq()` | `rqAnova` | 分位点回帰の Wald 検定 (入れ子の当てはめどうし、複数の τ での傾きの等しさ) |
 | `anova()` | `geeAnova` | 一般化推定方程式の Wald 検定 (項を順に足す表と、入れ子の当てはめどうし) |
 | `betareg::betareg()` | `betareg` | ベータ回帰 (0 と 1 の間の割合の回帰、精度 φ も回帰できる、最尤・バイアス補正・バイアス減少) |
+| `BradleyTerry2::BTabilities()` | `btAbilities` | Bradley-Terry モデルの対象の能力と標準誤差 |
+| `BradleyTerry2::BTm()` | `btm` | Bradley-Terry モデルによる一対比較 (対象の能力、対戦の共変量、対象の共変量と変量効果の PQL) |
 | `coef.glmnet()` | `glmnetCoef` | 罰則つき回帰の係数 (経路の外の λ は線形補間) |
 | `nnet::confint.multinom()` | `multinomConfint` | 多項ロジスティック回帰の係数の Wald 信頼区間 |
 | `confint.nls()` | `nlsConfint` | 非線形回帰のパラメータのプロファイルまたは Wald の信頼区間 |
 | `confint.polr()` | `polrConfint` | 順序回帰の傾きのプロファイル尤度または Wald の信頼区間 |
 | `confint()` | `betaregConfint` | ベータ回帰の係数の Wald 信頼区間 |
+| `BradleyTerry2::countsToBinomial()` | `countsToBinomial` | 勝敗の表から対象の組ごとの勝ち数を作る |
 | `cv.glmnet()` | `cvGlmnet` | 罰則つき回帰の交差検証 (分割を与える foldid、lambda.min と lambda.1se) |
 | `geepack::geeglm()` | `geeglm` | 一般化推定方程式 (作業相関 independence・exchangeable・ar1・unstructured・userdefined・fixed、サンドイッチ分散) |
 | `glmnet::glmnet()` | `glmnet` | 罰則つき一般化線形モデル (lasso・elastic net・ridge) の λ の経路 (gaussian・binomial・poisson・multinomial) |
@@ -80,6 +83,7 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `MASS::psi.hampel()` | `psiHampel` | Hampel の 3 段の psi 関数 (重み・値・微分) |
 | `MASS::psi.huber()` | `psiHuber` | Huber の psi 関数 (重み・値・微分) |
 | `geepack::QIC()` | `geeQIC` | 一般化推定方程式の QIC・QICu・準尤度・CIC |
+| `qvcalc::qvcalc()` | `qvcalc` | 準分散 (基準に依らない比較のための準標準誤差) |
 | `betareg::residuals.betareg()` | `betaregResiduals` | ベータ回帰の残差 (quantile・deviance・pearson・response・weighted・sweighted・sweighted2) |
 | `MASS::residuals.loglm()` | `loglmResiduals` | 対数線形モデルの残差 (deviance・pearson・response) |
 | `MASS::rlm()` | `rlm` | M 推定と MM 推定によるロバストな線形回帰 (反復重み付き最小二乗法) |
@@ -98,6 +102,7 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `vcov.polr()` | `polrVcov` | 順序回帰の傾きとカットポイントの共分散行列 (観測情報量から) |
 | `vcov.rlm()` | `rlmVcov` | ロバスト回帰の係数の共分散行列 (Huber の有限標本の補正つき) |
 | `vcov()` | `geeVcov` | 一般化推定方程式の係数のサンドイッチ共分散行列 |
+| `qvcalc::worstErrors()` | `worstErrors` | 準標準誤差の、すべての対比での最悪の相対誤差 |
 
 ## Time series analysis (`rStats.js/timeseries`)
 
@@ -490,9 +495,12 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `cummin()` | `cummin` | 累積最小値 |
 | `cumprod()` | `cumprod` | 累積積 |
 | `cumsum()` | `cumsum` | 累積和 |
+| `qcc::cusum()` | `cusum` | CUSUM 管理図 (標準化した群平均の累積和、決定区間) |
 | `cut()` | `cut` | 値が属する区間の番号 (区切りの外では NaN) |
 | `diff()` | `diff` | ラグ付きの差分と反復した差分 |
 | `ecdf()` | `ecdf` | `x` の経験分布関数: 引数以下の値の割合を返す関数 |
+| `qcc::ewma()` | `ewma` | EWMA 管理図 (指数重み付き移動平均と、点ごとの管理限界) |
+| `qcc::ewmaSmooth()` | `ewmaSmooth` | 指数重み付き移動平均による平滑化 |
 | `findInterval()` | `findInterval` | 各値について、それ以下の区切り点の数 |
 | `fivenum()` | `fivenum` | Tukey の五数要約 |
 | `DescTools::Gmean()` | `geometricMean` | 幾何平均 exp(mean(log x)) |
@@ -505,16 +513,24 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `median()` | `median` | 中央値 |
 | `merge()` | `merge` | キー列による 2 つのデータフレームの結合 |
 | `DescTools::Mode()` | `modes` | 最も頻度の高い値とその度数 |
+| `qcc::mqcc()` | `mqcc` | 多変量管理図 (Hotelling の T2、群のあるデータと個別のデータ) |
 | `na.omit()` | `naOmit` | 欠測でない値 |
+| `qcc::oc.curves()` | `ocCurves` | 管理図の OC 曲線 (工程が変化したときに検出しない確率) |
+| `qcc::pareto.chart()` | `paretoChart` | パレート図の表 (度数の降順と累積の割合) |
 | `tidyr::pivot_longer()` | `pivotLonger` | データフレームの wide から long への変形: 選んだ列が行になる |
 | `tidyr::pivot_wider()` | `pivotWider` | データフレームの long から wide への変形: `namesFrom` の値が列になり、`valuesFrom` の値で埋まる |
 | `pretty()` | `pretty` | `x` の範囲を覆う、約 n + 1 個の等間隔の「きりのよい」値 |
+| `qcc::process.capability()` | `processCapability` | 工程能力指数 (Cp・Cp_l・Cp_u・Cp_k・Cpm と信頼区間、規格外の割合) |
 | `prod()` | `prod` | 値の積 |
+| `qcc::qcc.groups()` | `qccGroups` | 群の番号でデータを群 × 観測の行列にまとめる |
+| `qcc::qcc.overdispersion.test()` | `qccOverdispersionTest` | 二項・ポアソンの計数の過分散の検定 |
+| `qcc::qcc()` | `qcc` | シューハート管理図 (xbar・R・S・個別値・p・np・c・u・g、σ の推定法、確率限界、管理外れの点) |
 | `quantile()` | `quantile` | 標本分位点 |
 | `range()` | `range` | 値の `[min, max]` |
 | `rank()` | `rank` | 標本の順位 |
 | `scale()` | `scale` | 行列の列の中心化と尺度化 |
 | `sd()` | `sd` | 標本標準偏差 |
+| `qcc::shewhart.rules()` | `shewhartRules` | 管理図の管理外れの点 (管理限界の外と、中心線の片側に続く連) |
 | `e1071::skewness()` | `skewness` | 標本歪度 |
 | `split()` | `split` | 群に分けた `x` の値 |
 | `subset()` | `subset` | 条件を満たすデータフレームの行 (必要に応じて一部の列だけ) |
@@ -526,6 +542,7 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `var()` | `variance` | 標本分散 |
 | `weighted.mean()` | `weightedMean` | 加重平均 `sum(x w) / sum(w)` |
 | (R にない) | `fromRows` | 行オブジェクトの配列 (JSON や解析した CSV の通常の形) からのデータフレーム |
+| (R にない) | `medianChart` | メディアン管理図 (Me-R 管理図、JIS の係数 A4・D3・D4、群の大きさ 2〜10) |
 | (R にない) | `toRows` | データフレームの行のオブジェクトの配列 (`fromRows` の逆) |
 
 ## 数値計算 (`rStats.js/numerics`)

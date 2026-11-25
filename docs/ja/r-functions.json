@@ -511,5 +511,22 @@
   "loglin": "反復比例当てはめによる対数線形モデル (分割表の周辺を指定)",
   "loglm": "式で指定する対数線形モデル (loglin の前処理、データフレームの度数も受ける)",
   "loglmResiduals": "対数線形モデルの残差 (deviance・pearson・response)",
-  "loglmAnova": "入れ子の対数線形モデルの尤度比検定 (飽和モデルとの比較つき)"
+  "loglmAnova": "入れ子の対数線形モデルの尤度比検定 (飽和モデルとの比較つき)",
+  "qcc": "シューハート管理図 (xbar・R・S・個別値・p・np・c・u・g、σ の推定法、確率限界、管理外れの点)",
+  "shewhartRules": "管理図の管理外れの点 (管理限界の外と、中心線の片側に続く連)",
+  "cusum": "CUSUM 管理図 (標準化した群平均の累積和、決定区間)",
+  "ewma": "EWMA 管理図 (指数重み付き移動平均と、点ごとの管理限界)",
+  "ewmaSmooth": "指数重み付き移動平均による平滑化",
+  "ocCurves": "管理図の OC 曲線 (工程が変化したときに検出しない確率)",
+  "processCapability": "工程能力指数 (Cp・Cp_l・Cp_u・Cp_k・Cpm と信頼区間、規格外の割合)",
+  "mqcc": "多変量管理図 (Hotelling の T2、群のあるデータと個別のデータ)",
+  "qccOverdispersionTest": "二項・ポアソンの計数の過分散の検定",
+  "paretoChart": "パレート図の表 (度数の降順と累積の割合)",
+  "qccGroups": "群の番号でデータを群 × 観測の行列にまとめる",
+  "medianChart": "メディアン管理図 (Me-R 管理図、JIS の係数 A4・D3・D4、群の大きさ 2〜10)",
+  "btm": "Bradley-Terry モデルによる一対比較 (対象の能力、対戦の共変量、対象の共変量と変量効果の PQL)",
+  "btAbilities": "Bradley-Terry モデルの対象の能力と標準誤差",
+  "countsToBinomial": "勝敗の表から対象の組ごとの勝ち数を作る",
+  "qvcalc": "準分散 (基準に依らない比較のための準標準誤差)",
+  "worstErrors": "準標準誤差の、すべての対比での最悪の相対誤差"
 }

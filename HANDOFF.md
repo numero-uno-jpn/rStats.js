@@ -1,6 +1,6 @@
 # 引継ぎ: rStats.js (外部レビュー対応 2026-10-30〜11-04、1.0.0 への準備 11-04〜)
 
-最終更新: 2026-11-25 (セッション 35 の終わり、Mac mini: **1.17.0 を公開** (tobit・betareg・loglin・loglm、survreg の parms)。次は ROADMAP の 7 (範囲を決めるところから)。以前: 2026-11-25 (セッション 35、1.17.0 が作業ブランチで完成。以前: 2026-11-25 (セッション 34 の終わり、Mac mini: **1.16.0 を公開** (mediate・simSlopes・johnsonNeyman・sobelTest・mediationMonteCarlo・moderatedMediation・mvrnorm)。次は 1.17.0 = Tobit 回帰・ベータ回帰・対数線形モデル、範囲はユーザーが決めた (下の節)、準備から)。以前: 2026-11-25 (セッション 34、1.16.0 が作業ブランチで完成)。以前: 2026-11-25 (セッション 33 の終わり、Mac mini: **1.15.0 を公開** (step・stepAIC・drop1・add1・extractAIC、glm の式の入口)。次は 1.16.0 = 媒介・調整・調整媒介分析、範囲はユーザーが決めた (下の節))。以前: 2026-11-25 (セッション 33、1.15.0 の範囲を決め、glm の式の入口と step 本体を実装)。以前: 2026-11-24 (セッション 32 の終わり、Mac mini: **1.14.0 を公開** (`/regression` の multinom とその関数)。次は 1.15.0 = 変数選択 (`step`・`stepAIC`、ROADMAP の 4)、範囲を決めるところから (下の節))。以前: 2026-11-24 (セッション 32、Mac mini: 1.14.0 を版 1.14.0 まで済み)。以前: 2026-11-24 (セッション 31 の終わり、Mac mini: **1.13.0 を公開** (`/causal` の weightit・trimWeights・weightSummary、`/tests` の svyglm・survfitCoxph、整数でない重みの survfit)。次の作業は未定 (ROADMAP の 3 = 多項ロジスティック回帰 `multinom` から))。以前: 2026-11-24 (セッション 31 の続き、Mac mini: 1.13.0 の fixture・実装・端のケース・文書 (英・日)・訳・デモまで済み)。以前: 2026-11-24 (セッション 31、Mac mini: 1.13.0 (IPTW) の準備。作業ブランチ `dev/iptw-1.13` (手元だけ)、Issue #563、イメージとチェッカーに WeightIt・CBPS・survey・sandwich、最初の R の実験 `experiments/iptw113` と仕様書 `oracle/weightit-behaviour.md`、Choices をユーザーが決めた。次は fixture と実装)。以前: 2026-11-24 (セッション 30 の終わり、Mac mini: **1.12.0 を公開** (`/causal` の match・matchWeights・balTab・tableOneSmd、`/tests` の clogit)。次は 1.13.0 = IPTW、範囲はユーザーが決めた (下の節))。以前: 2026-11-24 (セッション 30、Mac mini: 1.12.0 (マッチング) の準備。作業ブランチ `dev/psm-1.12` (手元だけ)、Issue #562、イメージとチェッカーに Matching・cobalt・tableone、最初の R の実験 3 本と仕様書の下書き `oracle/match-behaviour.md`。Match・バランス・clogit を実装して R と一致、端のケースも点検、訳・文書・デモ・版 1.12.0 まで済み。次は main への push とタグ)。以前: 2026-11-24 (セッション 29 の終わり、Mac mini: **1.11.0 を公開** (acf・pacf・ccf の `/timeseries`、ca・caSummary・caCoord・mjca・sammon・isoMDS)。次は 1.12.0 = 傾向スコア (ROADMAP の新しい 1 番)、範囲を決めるところから)。以前: 2026-11-24 (セッション 29: 1.11.0 の作業ブランチは完成、GitHub Actions が支払いのロックで止まっていて取り込み待ち)。以前: 2026-11-23 (セッション 29 の始め、Mac mini: 1.11.0 の範囲をユーザーが決めた (mjca も入れる、ほかは推奨どおり)。準備が全部済んだ (Issue #560・draft PR #561・作業ブランチ `work/ca-acf-mds-1.11`)。段階 1 も済み、Decisions を決めて choices・fixture・段階 2 の指示を置いた (ブランチ `40aa5d94`)。次は ChatGPT の段階 2 (実装))。以前: 2026-11-23 (セッション 28 の終わり、Mac mini: **1.10.0 を公開** (dist・hclust・cutree・kmeans・cmdscale)。次は 1.11.0 = ca・acf・pacf・isoMDS・sammon、1.12.0 = arima (ユーザーの決定)。範囲を決めるところから)。以前: 2026-11-22 夜 (セッション 28、Mac mini: 1.10.0 の範囲をユーザーが決め (全部推奨どおり)、準備 (チェッカー・R の実験・指示書) を main に置き、Issue #556・draft PR #557 を作った。段階 1 を終え、次は ChatGPT の段階 2)。以前: 2026-11-22 夜 (セッション 27 の終わり、Mac mini: **1.9.0 を公開** (T2・Page・Grubbs、manova・lda・cancor)。次は 1.10.0 = クラスタ分析と多次元尺度法 (ユーザーの決定)、範囲を決めるところから)。以前: 2026-11-22 (セッション 27 の始め、Mac mini: 1.9.0 の範囲を決め、準備中)。以前: 2026-11-22 (セッション 26 の終わり、Mac mini: **1.8.0 を公開** (rq・geeglm・glmnet)。次は 1.9.0 = 小さな検定 3 つ + 多変量 3 つ (ユーザーの決定)、範囲を決めるところから)。以前: 2026-11-20 夜 (セッション 26 の始め: 1.8.0 の範囲を決め、準備)。以前: 2026-11-20 夕 (セッション 25 の終わり、Mac mini: **1.7.0 を公開** (回帰 polr・rlm・nls、`/regression`)。次の作業は未定 (ROADMAP の 2 = 1.8.0)。以前: 2026-11-20 昼 (セッション 25、Mac mini: 段階 3 の端の入力の直しも済み (最後は私が引き継いだ)。次は「nls の後」の配線と文書)。以前: 2026-11-19 深夜 (セッション 24、polr・rlm は完了、nls を ChatGPT に依頼)。以前: 2026-11-19 (セッション 23、1.6.0 を公開 (混合モデルの confint と simulate))。以前: 2026-11-17 (セッション 22、1.5.0 を公開)。その前: 2026-11-16 (セッション 21、Mac mini: 1.4.0 を公開、同時刻の Gray の検定を ChatGPT がクリーンルームで修正 (1.4.1 に入る、未公開)、外注用の R の実験の仕組みを作った。次は ROADMAP の 1 番)
+最終更新: 2026-11-25 (セッション 36 の続き、Mac mini: **1.18.0 が作業ブランチ `dev/qcc-bt-1.18` でほぼ完成** (実装・fixture・端のケース 2 回・配線・デモ・文書・版 1.18.0)。残りはユーザーの確認と公開 (下の節)。以前: 2026-11-25 (セッション 36、1.18.0 の R の実験が済んだ)。以前: 2026-11-25 (セッション 35 の終わり、Mac mini: **1.17.0 を公開** (tobit・betareg・loglin・loglm、survreg の parms)。1.18.0 = 管理図と一対比較の範囲をユーザーが決め、準備済み (Issue #568、作業ブランチ `dev/qcc-bt-1.18`)。次は R の実験から (下の節)。以前: 2026-11-25 (セッション 35、1.17.0 が作業ブランチで完成。以前: 2026-11-25 (セッション 34 の終わり、Mac mini: **1.16.0 を公開** (mediate・simSlopes・johnsonNeyman・sobelTest・mediationMonteCarlo・moderatedMediation・mvrnorm)。次は 1.17.0 = Tobit 回帰・ベータ回帰・対数線形モデル、範囲はユーザーが決めた (下の節)、準備から)。以前: 2026-11-25 (セッション 34、1.16.0 が作業ブランチで完成)。以前: 2026-11-25 (セッション 33 の終わり、Mac mini: **1.15.0 を公開** (step・stepAIC・drop1・add1・extractAIC、glm の式の入口)。次は 1.16.0 = 媒介・調整・調整媒介分析、範囲はユーザーが決めた (下の節))。以前: 2026-11-25 (セッション 33、1.15.0 の範囲を決め、glm の式の入口と step 本体を実装)。以前: 2026-11-24 (セッション 32 の終わり、Mac mini: **1.14.0 を公開** (`/regression` の multinom とその関数)。次は 1.15.0 = 変数選択 (`step`・`stepAIC`、ROADMAP の 4)、範囲を決めるところから (下の節))。以前: 2026-11-24 (セッション 32、Mac mini: 1.14.0 を版 1.14.0 まで済み)。以前: 2026-11-24 (セッション 31 の終わり、Mac mini: **1.13.0 を公開** (`/causal` の weightit・trimWeights・weightSummary、`/tests` の svyglm・survfitCoxph、整数でない重みの survfit)。次の作業は未定 (ROADMAP の 3 = 多項ロジスティック回帰 `multinom` から))。以前: 2026-11-24 (セッション 31 の続き、Mac mini: 1.13.0 の fixture・実装・端のケース・文書 (英・日)・訳・デモまで済み)。以前: 2026-11-24 (セッション 31、Mac mini: 1.13.0 (IPTW) の準備。作業ブランチ `dev/iptw-1.13` (手元だけ)、Issue #563、イメージとチェッカーに WeightIt・CBPS・survey・sandwich、最初の R の実験 `experiments/iptw113` と仕様書 `oracle/weightit-behaviour.md`、Choices をユーザーが決めた。次は fixture と実装)。以前: 2026-11-24 (セッション 30 の終わり、Mac mini: **1.12.0 を公開** (`/causal` の match・matchWeights・balTab・tableOneSmd、`/tests` の clogit)。次は 1.13.0 = IPTW、範囲はユーザーが決めた (下の節))。以前: 2026-11-24 (セッション 30、Mac mini: 1.12.0 (マッチング) の準備。作業ブランチ `dev/psm-1.12` (手元だけ)、Issue #562、イメージとチェッカーに Matching・cobalt・tableone、最初の R の実験 3 本と仕様書の下書き `oracle/match-behaviour.md`。Match・バランス・clogit を実装して R と一致、端のケースも点検、訳・文書・デモ・版 1.12.0 まで済み。次は main への push とタグ)。以前: 2026-11-24 (セッション 29 の終わり、Mac mini: **1.11.0 を公開** (acf・pacf・ccf の `/timeseries`、ca・caSummary・caCoord・mjca・sammon・isoMDS)。次は 1.12.0 = 傾向スコア (ROADMAP の新しい 1 番)、範囲を決めるところから)。以前: 2026-11-24 (セッション 29: 1.11.0 の作業ブランチは完成、GitHub Actions が支払いのロックで止まっていて取り込み待ち)。以前: 2026-11-23 (セッション 29 の始め、Mac mini: 1.11.0 の範囲をユーザーが決めた (mjca も入れる、ほかは推奨どおり)。準備が全部済んだ (Issue #560・draft PR #561・作業ブランチ `work/ca-acf-mds-1.11`)。段階 1 も済み、Decisions を決めて choices・fixture・段階 2 の指示を置いた (ブランチ `40aa5d94`)。次は ChatGPT の段階 2 (実装))。以前: 2026-11-23 (セッション 28 の終わり、Mac mini: **1.10.0 を公開** (dist・hclust・cutree・kmeans・cmdscale)。次は 1.11.0 = ca・acf・pacf・isoMDS・sammon、1.12.0 = arima (ユーザーの決定)。範囲を決めるところから)。以前: 2026-11-22 夜 (セッション 28、Mac mini: 1.10.0 の範囲をユーザーが決め (全部推奨どおり)、準備 (チェッカー・R の実験・指示書) を main に置き、Issue #556・draft PR #557 を作った。段階 1 を終え、次は ChatGPT の段階 2)。以前: 2026-11-22 夜 (セッション 27 の終わり、Mac mini: **1.9.0 を公開** (T2・Page・Grubbs、manova・lda・cancor)。次は 1.10.0 = クラスタ分析と多次元尺度法 (ユーザーの決定)、範囲を決めるところから)。以前: 2026-11-22 (セッション 27 の始め、Mac mini: 1.9.0 の範囲を決め、準備中)。以前: 2026-11-22 (セッション 26 の終わり、Mac mini: **1.8.0 を公開** (rq・geeglm・glmnet)。次は 1.9.0 = 小さな検定 3 つ + 多変量 3 つ (ユーザーの決定)、範囲を決めるところから)。以前: 2026-11-20 夜 (セッション 26 の始め: 1.8.0 の範囲を決め、準備)。以前: 2026-11-20 夕 (セッション 25 の終わり、Mac mini: **1.7.0 を公開** (回帰 polr・rlm・nls、`/regression`)。次の作業は未定 (ROADMAP の 2 = 1.8.0)。以前: 2026-11-20 昼 (セッション 25、Mac mini: 段階 3 の端の入力の直しも済み (最後は私が引き継いだ)。次は「nls の後」の配線と文書)。以前: 2026-11-19 深夜 (セッション 24、polr・rlm は完了、nls を ChatGPT に依頼)。以前: 2026-11-19 (セッション 23、1.6.0 を公開 (混合モデルの confint と simulate))。以前: 2026-11-17 (セッション 22、1.5.0 を公開)。その前: 2026-11-16 (セッション 21、Mac mini: 1.4.0 を公開、同時刻の Gray の検定を ChatGPT がクリーンルームで修正 (1.4.1 に入る、未公開)、外注用の R の実験の仕組みを作った。次は ROADMAP の 1 番)
 
 ## まず読むこと (セッション 16 から)
 
@@ -15,6 +15,65 @@
   **対象の共変量つきのモデルも** (ユーザーの選択。`~ x[..] + (1|..)` は PQL の混合モデルが要る)。ReactiveStat は `一対比較.php`
 - **置き場所:** 管理図は `/descriptive`、Bradley-Terry は `/regression`
 - 時間依存 ROC は 1.19.0、ネットワークメタアナリシスと時系列はその後 (推奨の順。ユーザーは 1.18.0 だけ決めた)
+- **準備済み (2026-11-25):** Issue #568、作業ブランチ `dev/qcc-bt-1.18` (main の HANDOFF のコミット込み、手元だけ)、イメージ (x86_64・arm64)
+  に qcc 2.7・BradleyTerry2 1.1.4・qvcalc 1.0.4、実験用 Dockerfile (未ビルド)、チェッカーに 3 パッケージの関数 101 個 (既存の実験と衝突なし)。
+  「広く」の中身は Issue #568 に書いた (qcc・mqcc・cusum・ewma・ewmaSmooth・oc.curves・process.capability・pareto.chart の表・
+  qcc.overdispersion.test・qcc.groups・shewhart.rules。図だけの cause.and.effect・ellipseChart と、gnm が要る GenDavidson は除く)
+- (済み) R の実験 (`experiments/qccbt118*`、試行錯誤は `experiments/qccbt118-log.md` に時系列で)。まず qcc の各種類の統計量・σ・限界、
+  違反の規則、BTm の共変量と PQL
+
+### セッション 36 の続き (2026-11-25): 1.18.0 を作業ブランチで完成
+- **中身:** `/descriptive` に `qcc`・`shewhartRules`・`cusum`・`ewma`・`ewmaSmooth`・`ocCurves`・`processCapability`・`mqcc`・
+  `qccOverdispersionTest`・`paretoChart`・`qccGroups`・`medianChart` (`src/descriptive/qcc.ts`・`qccTools.ts`)、`/regression` に
+  `btm`・`btAbilities`・`countsToBinomial`・`qvcalc`・`worstErrors` (`src/models/bradleyterry.ts`)
+- fixture `oracle/qcc.R`・`oracle/bradleyterry.R`、テスト `test/qcc.test.ts`・`bradleyterry.test.ts`・`qccbt118Edge.test.ts`。
+  R と一致: qcc は 1e-11〜1e-12 (R の qtukey・ptukey は 2.5e-7 まで不正確なのでそこだけ 1e-6)、PQL は R の tol 1e-10 の当てはめと
+  1e-12 (rStats.js は REML の固定点を Woodbury で解く 1 次元の根)、qvcalc は 1e-8 (R の最適化が手前で止まる)
+- **fixture で見つけて直したこと (ログ 18・19):** Cp_l だけでなく **Cp_u も片側の z** (実験 7 の読み違い)、Bissell の区間は乗法の形 (規格が
+  逆のとき符号が反転)、**p 管理図は大きさが揃っても群ごとの管理限界**、qcc は揃った p 管理図の確率限界で失敗する (rStats.js は求める)
+- 端のケース (2 回): 尺度 1e±150・1e±300 で相対 1e-13、特異な共分散はエラー、つながらない対象と対戦のない対象は NaN (標準誤差も揃える)、
+  対戦で変わらない共変量はエラー、g 管理図の平均 < 1 は "NaNs produced"
+- 配線: 入口、`option-keys.mjs --write`、R の名前の文、`docs/r-functions.md` と日本語版 (`r-functions.json` に 17 件)、デモ 7 例
+  (`npm run demo:r`、`test:browser` 1190/1190・284 例)、CHANGELOG・README (英日)・ROADMAP (英日、7 を済みに、8 を新設)・API の説明と
+  R との違い (英日)、結果のすべての項目に説明 (TypeDoc の新しいファイルの警告 0)、版 1.18.0 (package・lock・demo/app.js)。サイズ:
+  全部入り 334.0 → 340.7 KB
+- 全テスト: 既知の issue179・513 以外は通る (5373 件)、ブラウザ 1190/1190
+- **3 回目の点検 (2026-11-26、ユーザーの指摘「桁落ち・overflow・underflow の包括的チェックは?」で):** ログ 20・21。直したこと:
+  Cpm を hypot に、mqcc は変数ごとに 2 のべき乗で割る (特異の判定も各対角に対して)、過分散検定は計数を割る、g 管理図の σ を
+  g sqrt(1 - 1/g)、c・u の OC 曲線は 1e6 点を超えたら断る、PQL は疎な Z と M の逆行列 1 回 (200 対象・4000 対戦で 22 秒 → 0.3 秒)、
+  μ と dμ/dη の下限 (R の二項族と同じ)、分離はわかるエラー、σ = 0 に落ちたら glm の警告を残す。R は mqcc (1e±300・混ざった尺度)、
+  過分散検定 (1e±200)、ewma の管理限界 (1e-300) で崩れる。テストは `qccbt118Edge.test.ts` に追加 (計 42 件)
+- **1.16.0・1.17.0 の 3 回目の点検 (2026-11-26、ユーザーの決定で 1.18.0 の公開の前に。ログ 22・23、`test/edge116117Third.test.ts`
+  14 件):** 直したこと: **tobit・survreg で共変量に 1e6 以上の共通の値があると係数が NaN** (R は当てはめる。別名が出たら中心化して
+  当てはめ直す、普通の当てはめは変えない)、survreg の標準誤差と tobitSummary の Wald を尺度の座標で (1e±300)、betareg の
+  標準誤差 (summary・confint) を尺度の座標で、johnsonNeyman を尺度を合わせた 2 次式で (結果変数 1e±150 で Infinity・31% ずれ
+  だった)、sobelTest を hypot に、Sobel・MC・調整媒介・JN は分散が倍精度の範囲外ならエラー (mediate と同じ)。R はこれらの多くで
+  崩れる。CHANGELOG の 1.18.0 に「Fixed」、R との違い (英日) の 1.16.0・1.17.0 の節に追記
+- **日本語の API の訳 (済み):** 187 件は sonnet のサブエージェント (1 回)、結果の項目の説明を足した 79 件は私。全体で未訳 0
+  (6024 件)。サブエージェントの訳の "signal を出す" 4 か所を「管理外れを知らせる」に直した
+- **私が決めたこと (ユーザーに未確認):** 関数の名前 (qcc の名前に寄せた camelCase、`medianChart`・`btm`)、`btm` の入口 (列名と
+  `contestCovariates`・`predictors`)、qcc の結果の `limits` を `{ lcl, ucl }`、`mqcc` の violatingRuns は返さない (中心がない)、
+  NA を含む移動範囲は飛ばす、qcc.groups の名前は文字列
+- 次: ユーザーの確認 → main に squash + タグ `v1.18.0` → CI・Pages → `npm stage approve` → `archive/qcc-bt-1.18`
+
+### セッション 36 (2026-11-25): R の実験が済んだ
+- `experiments/qccbt118-*.R` と `.json` (11 本、作業ブランチに未コミット)、試行錯誤は `experiments/qccbt118-log.md` (17 項目、チェッカーに
+  断られた 3 回と構文の誤り 1 回も)。まとめは Issue #568 のコメント。R のソースは誰も読んでいない
+- **決まったこと (詳しくはログ):** qcc の σ の 5 方法・中心 (大きさで重みづけ)・限界 (R は d3、S は √(1−c4²)、確率限界は R が qtukey・S が
+  χ²)・違反の規則・cusum・ewma (σ は各点の n の閉じた式)・OC 曲線 (各 n の限界、c は 0:ceiling(c+10√c)、u は 0:ceiling(nu+10√u))・
+  工程能力 (Cp_l の区間だけ片側の z、Cpm の ν = n(1+d²)/(1+2d²)、1e-4 未満の exp は 0)・mqcc・過分散 (p 値は有効 5 桁)・pareto・
+  qcc.groups。BTm は ±1 の計画行列の glm、PQL は作業用 LMM の **REML の固定点** (R の tol 1e-10 と 1e-10 で一致)、varFix・varSigma、
+  σ = 0 は glm、欠けた共変量は別の能力。qvcalc は log の最小二乗、worstErrors は対比の一般化固有値
+- **R の癖 (実装で合わせるか決める):** NA の統計量で beyond.limits に NA が入る、群の大きさ 26 以上で xbar の既定が黙って RMSDF・UWAVE-R は
+  NA、Cp_l の区間の z、片方の規格が NA で Cpk・Cpm も NA、R の既定の tol 1e-6 は真の固定点から 1.5e-7 ずれる (1.17.0 の betareg と同じく
+  正確な方を出す案)
+- **ユーザーに聞くこと (仕様書の Choices):** 上の癖をどこまで R に合わせるか、関数名と入口の形 (qcc の type ごとか 1 つの関数か)、
+  `br = TRUE` (Firth) を入れるか (Issue の範囲外)、Me-R の群の大きさが揃わないときの扱い (ReactiveStat は最初の群の n)
+- **仕様書 `oracle/qcc-bt-behaviour.md` を書いた。Choices はユーザーが決めた (2026-11-25、全部推奨どおり):** qcc は 1 つの関数、
+  違反の番号から NA を除く (26 以上の RMSDF と R 管理図の NA は R と同じ)、工程能力の癖は R と同じ (過分散検定の p 値だけ丸めない)、
+  Me-R の群の大きさが揃わないときはエラー、br = TRUE は入れない
+- 次: fixture (`oracle/qcc.R`・`bradleyterry.R` など、名前の重なりを確認) →
+  実装 → 端のケースと極端な尺度を 2 回 → 配線・文書・訳・デモ → 版 1.18.0
 
 ## (以前) 次の版の範囲を決める前の記録
 

@@ -215,6 +215,52 @@ distribution). `loglin` repeats R's iterative proportional fitting (with R's loo
 a table or a data frame with the frequencies on the left of the formula. Gamma regression is `glm` with the Gamma
 family.
 
+## Control charts
+
+The control charts of the qcc package are in `/descriptive` (values only; no plots):
+
+```ts
+import { qcc, cusum, ewma, ocCurves, processCapability, mqcc, qccGroups, medianChart } from "@numero-uno-jpn/rstats/descriptive";
+
+const g = qccGroups(diameter, sample).groups;           // one row per subgroup, NaN to fill
+const xbar = qcc(g, { type: "xbar" });                   // center, stdDev (UWAVE-R), limits, violations
+qcc(g, { type: "R" });                                   // or "S"; stdDev: "UWAVE-SD", "MVLUE-R", "MVLUE-SD", "RMSDF"
+qcc(g.slice(0, 25), { type: "xbar", newdata: g.slice(25), nsigmas: 2 });
+qcc(defects, { type: "p", sizes, confidenceLevel: 0.99 }); // probability limits
+qcc(x, { type: "xbar.one" });                            // individual values, sigma from moving ranges
+cusum(g, { decisionInterval: 4, seShift: 1 }); ewma(x, { lambda: 0.2 });
+ocCurves(xbar);                                          // beta over shifts c and sizes n
+processCapability(xbar, [73.95, 74.05], { target: 74 }); // Cp, Cp_l, Cp_u, Cp_k, Cpm with limits
+mqcc([X1, X2], { type: "T2", predLimits: true });        // Hotelling's T2 of subgroup means
+medianChart(values, groups);                             // Me-R chart, JIS factors, sizes 2 to 10
+```
+
+`qcc` follows `qcc::qcc`: the centers are weighted by the group sizes, the R chart's limits are `center +- k d3(n)
+sigma` and the S chart's `center +- k sigma sqrt(1 - c4(n)^2)`, probability limits come from the range distribution, chi-square,
+binomial, Poisson and geometric models, and `violations` lists the points beyond the limits (above, then below) and
+those of runs of 7 (`runLength`) on one side of the center. As qcc, groups larger than 25 switch the xbar default to
+RMSDF; NA statistics are left out of the violations.
+
+## Paired comparisons
+
+Bradley-Terry models and quasi variances are in `/regression`:
+
+```ts
+import { btm, btAbilities, countsToBinomial, qvcalc, worstErrors } from "@numero-uno-jpn/rstats/regression";
+
+const f = btm(contests, { outcome: ["win1", "win2"], player1: "player1", player2: "player2", refcat: "A" });
+btAbilities(f);                       // ability and s.e. of each player (0 for the reference)
+qvcalc(btAbilities(f));               // quasi standard errors, free of the reference
+btm(contests, { outcome: ["win1", "win2"], player1: "home", player2: "away", formula: "~ .. + at.home",
+  contestCovariates: { "at.home": ["home1", "home2"] } });
+btm(contests, { outcome: "won", player1: "p1", player2: "p2", formula: "~ x[..] + (1 | ..)", predictors });
+```
+
+`btm` follows `BradleyTerry2::BTm`: without player covariates it is the binomial glm on the +1 / -1 design of the two
+players; with player covariates and `(1 | ..)` the abilities are `x_j' beta + e_j` with random player effects, fitted
+by PQL to the fixed point where sigma maximizes the REML likelihood of the working model (BTm stops at its tolerance,
+about 1e-7 from it). `countsToBinomial` turns a table of wins (rows winners) into pairs.
+
 ## Multivariate analysis
 
 The functions in this area are imported from the separate `/multivariate` entry point, not the package root:

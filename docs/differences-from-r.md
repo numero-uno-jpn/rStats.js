@@ -1978,12 +1978,22 @@ The references are R's `stats` functions. The implementation decisions are recor
 - So `moderatedMediation` with linear models (the Monte Carlo on all coefficients) agrees with ReactiveStat's R statistically; with a binary mediator or outcome (`mediate` twice) it gives R's values.
 
 
+- (1.18.0) `johnsonNeyman` solves its quadratic in rescaled units, so its bounds stay exact for an outcome or a
+  moderator near 1e±150 (R stops there, or gives NA bounds). `sobelTest` uses `hypot` for its standard error.
+  `sobelTest`, `mediationMonteCarlo`, `moderatedMediation` and `johnsonNeyman` stop with "the ... coefficient covariance
+  is out of the double range (rescale the variables)" where the coefficient variances leave the double range (about
+  1e±150 and beyond; R's `lm` reports them as NA or 0 there). Monte Carlo draws from a covariance on very different
+  scales differ from those at scale 1, with the same distribution (as R's `mvrnorm`).
+
 ## Tobit, beta regression and log-linear models (1.17.0)
 
 ### `tobit`
 
 - It takes a formula and a data frame (`tobit(formula, data, { left, right, dist, df, weights })`); the t distribution's degrees of freedom are `parms`, as R, or `df` (one of the two; so also in `survreg`; `df =` is an error in R). The result is `survreg`'s with the formula's coefficient names and the censoring counts.
 - As R (kept on purpose): the Wald test of `tobitSummary` uses p − 1 degrees of freedom, so without an intercept it tests all p coefficients on one degree of freedom too few.
+- (1.18.0) A covariate with a large common value (x + 1e8) is fitted as R fits it (rStats.js refits with centred
+  covariates when the Cholesky tolerance finds it collinear with the intercept; it gave NaN before). Standard errors
+  and the Wald test stay exact for covariates near 1e±300, where R reports aliased coefficients or stops iterating.
 - A response far from 1 in size (beyond 2^±30) with a location-scale distribution is fitted divided by a power of 2 and scaled back exactly: for a response near 1e-150 R's fit is right and `survreg`'s iterations were not (R's own result there is 2e-7 from its scaled unscaled fit). Near 1e150 both fail.
 
 ### `betareg` and its methods
@@ -1993,6 +2003,9 @@ The references are R's `stats` functions. The implementation decisions are recor
 - The columns are centred and divided by a power of 2 for the fit, and the coefficients, covariance and bias taken back exactly: a covariate times 1e±150 or 1e±300, or with a common value of 1e8, gives the unscaled fit (R stops: "missing value where TRUE/FALSE needed", "non-finite value supplied by optim"). Where R's starting precision is not positive (weights summing to less than the number of coefficients, responses near 0 or 1) rStats.js starts from the moments of the response and reaches R's fit. Fewer observations than coefficients is an error (R: "missing value where TRUE/FALSE needed").
 - As R (kept on purpose): for the cloglog and loglog links the bias terms of BC and BR use the second derivative of the inverse link floored at about 2.2e-16 where it is negative (the exact derivative would move the estimates by about 1e-4); the deviance residuals take the absolute value of the log-likelihood difference (the saturated term at mean y is not always the larger); the residuals other than `"response"` are multiplied by the square root of the case weight.
 - `betaregSummary` returns the tables, the AIC and the five-number summary of the quantile residuals, not R's printout.
+- (1.18.0) The standard errors (summary, confint) come from the scaled covariance, so they stay exact for a covariate
+  near 1e±300, where R stops ("missing value where TRUE/FALSE needed"). A response of 1e-300 is an error ("the
+  expected information is singular"; R gives NaN with "NaNs produced").
 
 ### `loglin`, `loglm`, `loglmResiduals`, `loglmAnova`
 
@@ -2000,3 +2013,37 @@ The references are R's `stats` functions. The implementation decisions are recor
 - The iterations are R's (the start scaled to the total, the deviation of a cycle taken before each adjustment, R's loose default `eps = 0.1`), so the fits agree with R's to rounding. For counts near 1e300 the statistics are computed without overflow (R's are NaN).
 - `loglm` with a data frame sorts the levels of each factor unless `levels` gives their order (R uses the factors' levels).
 - As R (kept on purpose): `loglmAnova`'s p-values are `1 - pchisq()`, so a p-value below about 1e-16 is 0 and small ones lose digits; a sampling zero fitted as 0 makes Pearson's statistic NaN.
+
+## Control charts and paired comparisons (1.18.0)
+
+### `qcc` and the other control charts
+
+- Values only: no plots, and no `qcc.options` (d2 and d3 are qcc's tables; the run length is `runLength`). Matrices are
+  arrays of rows with `null` or `NaN` for missing values; the limits are `{ lcl, ucl }` with one entry, or one per group.
+- NA statistics are left out of `beyondLimits` and `violatingRuns` (qcc puts NA into both lists).
+- As qcc (kept on purpose): groups larger than 25 switch the xbar chart's default to RMSDF without a message, and give
+  NA limits for the R chart (d2 and d3 stop there); the p chart has one pair of limits per group also with equal
+  sizes; `processCapability` uses the one-sided quantile qnorm(conf) for the limits of Cp_l and Cp_u, gives NaN Cp,
+  Cp_k and Cpm with one specification limit missing, and reports expected fractions below 1e-4 as 0.
+- qcc fails for probability limits of a p chart with equal sizes ("dims [product 2] do not match ..."); rStats.js gives
+  them. `qccOverdispersionTest` returns the full p-value (qcc rounds it to 5 significant digits).
+- The R chart's probability limits and OC curves use `qtukey` / `ptukey` with df = Inf, which are more accurate than
+  R's (R's differ by up to about 2.5e-7 there).
+- `mqcc` with a singular covariance matrix is an error ("the covariance matrix is singular").
+- Far from 1 in size (about 1e+-150 and beyond) rStats.js stays exact where R does not: `mqcc` scales each variable by
+  a power of 2 (R's statistics are NaN at 1e300 and its `solve` reports a singular system at 1e-300 or with variables
+  1e400 apart), `qccOverdispersionTest` scales the counts (R gives Inf at 1e200 and 0 at 1e-200), and `ewma`'s limits
+  stay exact at 1e-300 (R's are 33% off).
+- `ocCurves` refuses a c or u chart whose grid would exceed 1e6 points (R tries to allocate it: 1e9 points for a center
+  of 1e9).
+- `medianChart` is not in R: the median chart of ReactiveStat with the JIS factors; unequal group sizes are an error.
+
+### `btm`, `btAbilities`, `qvcalc`
+
+- `btm(contests, options)` takes column names (`outcome`, `player1`, `player2`), a formula without a response
+  (`"~ .."`, `"~ .. + home"`, `"~ x[..] + (1 | ..)"`), player covariates in `predictors` (one row per level) and
+  contest-level variables in `contestCovariates` (a pair of columns); `br = TRUE` (Firth) is not offered.
+- PQL is solved to the fixed point where sigma maximizes the REML likelihood of the working model; BTm stops at its
+  tolerance (1e-6 by default, about 1e-7 from the fixed point in sigma). Deviance and AIC are NaN with random effects,
+  as BTm's NA.
+- `qvcalc` minimizes the least squares of the log variances to convergence; R's optimizer stops about 1e-8 short.

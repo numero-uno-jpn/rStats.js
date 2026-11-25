@@ -36,6 +36,17 @@ export {
   pivotLonger, pivotWider,
   type PivotLongerOptions, type PivotWiderOptions, type PivotSummary,
 } from "../descriptive/pivot.js";
+export {
+  qcc, shewhartRules, cusum, ewma, ewmaSmooth,
+  type QccType, type QccStdDevMethod, type QccData, type QccOptions, type QccResult, type QccViolations,
+  type CusumOptions, type CusumResult, type EwmaOptions, type EwmaResult, type EwmaSmoothOptions, type EwmaSmoothResult,
+} from "../descriptive/qcc.js";
+export {
+  ocCurves, processCapability, mqcc, qccOverdispersionTest, paretoChart, qccGroups, medianChart,
+  type OcCurvesOptions, type OcCurvesResult, type ProcessCapabilityOptions, type ProcessCapabilityResult,
+  type MqccOptions, type MqccResult, type QccOverdispersionTestOptions, type QccOverdispersionTestResult,
+  type ParetoChartResult, type QccGroupsResult, type MedianChartResult,
+} from "../descriptive/qccTools.js";
 // Types used by the functions above, also exported from the root and the other subpaths
 export type { Sample } from "../htest/types.js";
 export type { DataFrame } from "../models/modelFrame.js";
