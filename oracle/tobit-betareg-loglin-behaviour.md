@@ -64,7 +64,10 @@ Notation: mu_i = g1^-1(x_i' beta), phi_i = g2^-1(z_i' gamma), a = mu phi, b = (1
   fixtures are compared at a relative tolerance of about 1e-6 for the estimates and quantities built on them.**
   Iteration counts are not R's.
 - pseudo R^2 = the squared (weighted, case weights) correlation of eta1 and g1(y).
-- names: mean coefficients by their terms; precision `(phi)` (constant) or `(phi)_<term>` (modelled).
+- names: mean coefficients by their terms; precision `(phi)` (constant phi with the identity link) or `(phi)_<term>`
+  (modelled phi, and constant phi with the log or sqrt link: `(phi)_(Intercept)`).
+- The log link: R fails with "initial value in 'vmmin' is not finite" when its start gives a mean of 1 or more (the
+  log-likelihood at the start is not finite); rStats.js gives the same error from the same start.
 - df.null = n - 2, df.residual = n - p - q; nobs = observations with non-zero weight; rows with a missing value are
   dropped; a zero weight gives the same coefficients as dropping the row.
 - link.phi default: identity for `y ~ x`, log for `y ~ x | z`.
