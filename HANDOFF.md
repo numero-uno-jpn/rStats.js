@@ -4,7 +4,25 @@
 
 ## まず読むこと (セッション 16 から)
 
-## 次のセッションで最初にやること: 次の版の範囲を決める (ROADMAP の 6 = tobit・対数線形・ガンマ/ベータ回帰など)
+## 次のセッションで最初にやること: 1.17.0 = Tobit 回帰・ベータ回帰・対数線形モデルの準備 (範囲はユーザーが決めた、2026-11-25)
+
+### 範囲 (ユーザーの決定 2026-11-25、ROADMAP の 6)
+- **Tobit 回帰:** `AER::tobit(formula, left, right, dist, data)` に合わせた式とデータの入口 (既存の `survreg` の上に作る)、
+  summary・McFadden の R²・尤度比検定。ReactiveStat (`scripts/多変量/Tobit回帰.php`) は `AER::tobit(y ~ x, left, right, dist)` と
+  null モデル (`y ~ 1`) の logLik から McFadden、`exp(icoef["Log(scale)"])`
+- **ベータ回帰:** `betareg::betareg`。平均の link (logit・probit・cloglog・cauchit・loglog) と、精度 phi は **定数と `y ~ x | z` の
+  モデルの両方** (ユーザーの選択)。summary・擬似 R²・confint・predict。ReactiveStat (`scripts/多変量/ガンマ・ベータ回帰.php`) は
+  `betareg(y ~ x, link)`、null モデル、`confint(level)`、`exp(coef(model, model = "mean"))`
+- **対数線形モデル:** R の `loglin` (反復比例当てはめ) と `MASS::loglm` (ReactiveStat は `glm(poisson)` + `anova` で、これは既存で足りる)
+- **ガンマ回帰:** 既存の `glm` の Gamma 族で済み (新しく作らない。ReactiveStat の `glm(family = Gamma(link))` と合うかは確かめる)
+- **置き場所:** `/regression` (polr・rlm・nls・multinom と同じ)
+
+### 手順 (1.16.0 と同じ)
+Issue → 作業ブランチ `dev/tobit-beta-1.17` (main の HANDOFF のコミット込み) → イメージ (`oracle/Dockerfile.r46` と experiments) に
+AER・betareg (と依存) を足して作り直す → チェッカーの許すパッケージと関数 → R の実験 (x86_64、`experiments/regression117*`、
+**外れも含めた試行錯誤を `experiments/regression117-log.md` に時系列で記録**) → 仕様書 → fixture (名前の重なりを確かめる) → 実装 →
+端のケースと極端な尺度を 2 回 → 配線・文書・訳・デモ → 版 1.17.0 → ユーザーの確認 → main に squash + タグ → `npm stage approve`
+
 
 - **1.16.0 を公開した (2026-11-25):** main `65931158` (作業ブランチを squash、中身は同じ)、CI・Pages 緑 → タグ `v1.16.0` → stage
   (id `aaeeb51b-...`) をユーザーが承認。npm latest = 1.16.0、jsDelivr の `dist/causal.js`、`/api/`・`/ja/api/` の mediate・mvrnorm の
