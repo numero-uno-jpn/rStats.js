@@ -119,3 +119,26 @@ script keeps the search that succeeded.
     taken as N / (F (1 - F)) instead of R's value N / (F S) (they differ when events fall at t): **equal to 1.7e-15
     at every time, and vect_sd_2 to the last digit.** So definition (ii)'s iid is centred on N / (F (1 - F)), not on
     the reported AUC_2 (kept as R).
+
+## SeSpPPVNPV (2026-11-26)
+
+23. `tdroc119-sespppv.R`: classes `ipcwsurvivalSeSpPPVNPV` (TP, FP, PPV, NPV, Stats, inference, computation_time, iid,
+    n, times, weights, cutpoint) and `ipcwcompetingrisksSeSpPPVNPV` (TP, FP_1, FP_2, PPV, NPV_1, NPV_2, ...).
+    inference: mat_iid_rep_Se, _Sp1, _Sp2, _PPV, _NPV1, _NPV2 and vect_se_ of each (also without competing risks).
+    TP, FP equal to the weighted proportions above the cutpoint; **PPV and NPV equal to the Bayes forms**
+    TP F / (TP F + FP S) and (1 - FP) S / ((1 - FP) S + (1 - TP) F) (the direct forms, sums over #(M > c), 0.13 off);
+    with competing risks PPV and NPV_2 with definition (ii)'s FP_2 and S_2; NPV_1 neither form (0.03 to 0.12 off). No
+    cutpoint was a marker value, so > and >= gave the same.
+24. `tdroc119-sespppv2.R`: a cutpoint at a marker value: **positive is M > c** (>= 0.08 off), Stats' columns "Positive
+    (X>c)", "Negative (X<=c)" (after Cases, survivor at t, [Other events at t,] Censored at t). **NPV_1 = (1 - FP_1) S_1
+    / ((1 - FP_2) S_2 + (1 - TP) F)** (the denominator P(M <= c) estimated with definition (ii)), equal.
+25. `tdroc119-sespppv-iid.R`: each quantity as a function of weighted totals W(f) = sum w f / n, the totals' influence
+    with R's censoring term (tdroc119-iid5.R), the delta method by a numerical gradient: **Se, Sp1, PPV, NPV1, NPV2
+    equal to 1e-10** (the gradient's error), single cause and competing risks; Sp2 as 1 - W(c2 P) / (1 - W(a)) or
+    1 - W(c2 P) / W(c2): equal only where no event falls at t (0.2 to 0.5 off elsewhere).
+26. `tdroc119-sespppv-iid2.R`: Sp2 as W(c2 neg) / (1 - W(a)) or W(c2 neg) / W(c2): none.
+27. `tdroc119-sespppv-iid3.R`: Sp2 with the denominator 1 - W(a'), a' the cases of T <= t: none (0.22 off).
+28. Looking at R's rows (single cause, t = 5): Sp2's rows are Sp1's times S_1 / (1 - F) on the controls and 0 elsewhere
+    (no term from F's influence).
+29. `tdroc119-sespppv-iid4.R`: **IF(Sp2)_k = -(IF_k(W(c2 P)) - FP_2 IF_k(W(c2))) / (1 - W(a))**: equal to 7e-16, single
+    cause and competing risks, and every vect_se_ = sd(iid) / sqrt(n) to 1e-11 (the numerical gradient).
