@@ -22,6 +22,16 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   player effects fitted by PQL to the REML fixed point), `btAbilities`, `countsToBinomial`, and quasi variances
   `qvcalc` and `worstErrors` (after the qvcalc package).
 
+### Fixed
+
+- `tobit` and `survreg` with a covariate that has a large common value (x + 1e6 and beyond) gave NaN coefficients; they
+  now give R's fit. Their standard errors, and `tobitSummary`'s Wald test, stay exact for covariates near 1e±300.
+- `betaregConfint` and `betaregSummary`: standard errors exact for covariates near 1e±300 (they were off or Infinity).
+- `johnsonNeyman`: bounds exact for an outcome near 1e±150 (they were Infinity or 31% off).
+- `sobelTest`: the standard error by `hypot`; `sobelTest`, `mediationMonteCarlo` and `moderatedMediation` stop with an
+  error, as `mediate` does, where the coefficient variances leave the double range (about 1e±150 and beyond), instead
+  of giving Infinity, 0 or a wrong interval.
+
 ## 1.17.0 - 2026-11-25
 
 ### Added

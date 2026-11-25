@@ -34,6 +34,9 @@ export type BetaregPhiLink = "identity" | "log" | "sqrt";
  */
 export type BetaregType = "ML" | "BC" | "BR";
 
+/** The standard errors of a fit, from the scaled covariance (exact where the variances leave the doubles) */
+const standardErrors = new WeakMap<object, number[]>();
+
 /**
  * Options for {@link betareg}.
  * @category Regression
@@ -481,6 +484,14 @@ export function betareg(formula: string, data: DataFrame, options: BetaregOption
   const vcovScaled = spdInverse(cur.info);
   if (vcovScaled === null) throw new RangeError("the expected information is singular");
   const vcov = back.map((r) => back.map((c) => r.reduce((acc, v, a) => acc + v * c.reduce((t, u, b2) => t + vcovScaled[a]![b2]! * u, 0), 0)));
+  // the standard errors from the scaled covariance, each row of `back` divided by its largest entry: for a covariate near
+  // 1e+-300 the variance (1e-+600) is not a double, the standard error is
+  const ses = back.map((r) => {
+    const m = Math.max(...r.map(Math.abs));
+    if (m === 0) return 0;
+    const u = r.map((v) => v / m);
+    return m * Math.sqrt(Math.max(0, u.reduce((acc, v, a) => acc + v * u.reduce((t, w, b2) => t + vcovScaled[a]![b2]! * w, 0), 0)));
+  });
   th = matVec(back, th);
   // pseudo R^2: squared weighted correlation of eta and g(y)
   const mE = cur.e1.reduce((s, v, i) => s + weights[i]! * v, 0) / sw, mY = gy.reduce((s, v, i) => s + weights[i]! * v, 0) / sw;
@@ -495,6 +506,7 @@ export function betareg(formula: string, data: DataFrame, options: BetaregOption
     n: y.length, nobs, dfNull: nobs - 2, dfResidual: nobs - k, iterations, converged, model, warnings,
   };
   if (bias !== undefined) result.bias = bias;
+  standardErrors.set(result, ses);
   return result;
 }
 
@@ -537,7 +549,7 @@ export interface BetaregSummaryResult {
  */
 export function betaregSummary(fit: BetaregResult): BetaregSummaryResult {
   const all = [...fit.coefficients.mean, ...fit.coefficients.precision];
-  const se = fit.vcov.map((r, j) => Math.sqrt(r[j]!));
+  const se = standardErrors.get(fit) ?? fit.vcov.map((r, j) => Math.sqrt(r[j]!));
   const table = (from: number, to: number, names: string[]) => {
     const estimate = all.slice(from, to), s = se.slice(from, to), z = estimate.map((v, j) => v / s[j]!);
     return { names: names.slice(), estimate, se: s, z, p: z.map((v) => 2 * pnorm(-Math.abs(v))) };
@@ -591,7 +603,7 @@ export function betaregConfint(fit: BetaregResult, options: BetaregConfintOption
   if (!(level > 0 && level < 1)) throw new RangeError("'level' must be between 0 and 1");
   const zq = qnorm((1 + level) / 2);
   const all = [...fit.coefficients.mean, ...fit.coefficients.precision];
-  const se = fit.vcov.map((r, j) => Math.sqrt(r[j]!));
+  const se = standardErrors.get(fit) ?? fit.vcov.map((r, j) => Math.sqrt(r[j]!));
   return { names: fit.names.slice(), lower: all.map((v, j) => v - zq * se[j]!), upper: all.map((v, j) => v + zq * se[j]!) };
 }
 

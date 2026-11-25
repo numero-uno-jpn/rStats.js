@@ -67,6 +67,17 @@ export interface SobelTestResult {
 }
 
 /** A coefficient and its variance, by name */
+/**
+ * Variances outside the normal doubles (variables on scales beyond about 1e+-150 give coefficient variances of 1e+-300
+ * and more, which overflow or underflow): an error, as mediate's, where the formulas would give Infinity, 0 or NaN
+ * silently. R's lm reports such variances as NA or 0 (experiments/qccbt118-old-extreme.R).
+ */
+function checkRange(V: readonly (readonly number[])[], role: string): void {
+  const MIN = 2 ** -1022, MAX = Number.MAX_VALUE;
+  if (V.some((r, i) => r.some((v) => !Number.isFinite(v)) || !(r[i]! >= MIN && r[i]! <= MAX)))
+    throw new RangeError(`the ${role} model's coefficient covariance is out of the double range (rescale the variables)`);
+}
+
 function coefficient(fit: MediationModel, name: string, role: string): { value: number; v: number; names: string[]; vcov: number[][] } {
   const cov = modelCovariance(fit);
   const k = cov.names.indexOf(name);
@@ -104,8 +115,10 @@ function coefficient(fit: MediationModel, name: string, role: string): { value: 
 export function sobelTest(modelM: MediationModel, modelY: MediationModel, options: SobelTestOptions): SobelTestResult {
   checkOptions(options, SOBEL_TEST_KEYS, "sobelTest"); // generated: option-keys.mjs
   const ca = coefficient(modelM, options.treat, "mediator"), cb = coefficient(modelY, options.mediator, "outcome");
+  checkRange([[ca.v]], "mediator"); checkRange([[cb.v]], "outcome");
   const a = ca.value, b = cb.value, sa = Math.sqrt(ca.v), sb = Math.sqrt(cb.v);
-  const ab = a * b, se = Math.sqrt(b * b * sa * sa + a * a * sb * sb), z = ab / se;
+  // hypot: b^2 sa^2 + a^2 sb^2 overflows or underflows for variables far from 1 in size
+  const ab = a * b, se = Math.hypot(b * sa, a * sb), z = ab / se;
   return { a, sa, b, sb, ab, se, z, p: 2 * (pnorm(Math.abs(z), { lowerTail: false }) as number) };
 }
 
@@ -195,6 +208,8 @@ export function mediationMonteCarlo(modelM: MediationModel, modelY: MediationMod
   const ca = coefficient(modelM, options.treat, "mediator");
   const cb = coefficient(modelY, options.mediator, "outcome"), cc = coefficient(modelY, options.treat, "outcome");
   const iM = cb.names.indexOf(options.mediator), iX = cb.names.indexOf(options.treat);
+  checkRange([[ca.v]], "mediator");
+  checkRange([[cb.vcov[iM]![iM]!, cb.vcov[iM]![iX]!], [cb.vcov[iX]![iM]!, cb.vcov[iX]![iX]!]], "outcome");
   const aDraws = rnorm(nmc, { mean: ca.value, sd: Math.sqrt(ca.v) });
   const bc = mvrnorm(nmc, [cb.value, cc.value], [[cb.vcov[iM]![iM]!, cb.vcov[iM]![iX]!], [cb.vcov[iX]![iM]!, cb.vcov[iX]![iX]!]]);
   const ind = aDraws.map((a, j) => a * bc[j]![0]!), dir = bc.map((r) => r[1]!), tot = ind.map((v, j) => v + dir[j]!);
@@ -363,6 +378,7 @@ export function moderatedMediation(modelM: MediationModel, modelY: MediationMode
     const all = "family" in fit ? (fit as GlmFormulaResult).model.columnNames : (fit as LmFormulaResult).coefNames;
     return fit.coefficients[all.indexOf(nm)]!;
   });
+  checkRange(covM.vcov, "mediator"); checkRange(covY.vcov, "outcome");
   const bm = mvrnorm(nmc, coefOf(modelM, covM.names), covM.vcov), bo = mvrnorm(nmc, coefOf(modelY, covY.names), covY.vcov);
   const cm = coefOf(modelM, covM.names), co = coefOf(modelY, covY.names);
   const find = (names: string[], a: string, b?: string): number => {

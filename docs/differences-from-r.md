@@ -1978,12 +1978,22 @@ The references are R's `stats` functions. The implementation decisions are recor
 - So `moderatedMediation` with linear models (the Monte Carlo on all coefficients) agrees with ReactiveStat's R statistically; with a binary mediator or outcome (`mediate` twice) it gives R's values.
 
 
+- (1.18.0) `johnsonNeyman` solves its quadratic in rescaled units, so its bounds stay exact for an outcome or a
+  moderator near 1e±150 (R stops there, or gives NA bounds). `sobelTest` uses `hypot` for its standard error.
+  `sobelTest`, `mediationMonteCarlo`, `moderatedMediation` and `johnsonNeyman` stop with "the ... coefficient covariance
+  is out of the double range (rescale the variables)" where the coefficient variances leave the double range (about
+  1e±150 and beyond; R's `lm` reports them as NA or 0 there). Monte Carlo draws from a covariance on very different
+  scales differ from those at scale 1, with the same distribution (as R's `mvrnorm`).
+
 ## Tobit, beta regression and log-linear models (1.17.0)
 
 ### `tobit`
 
 - It takes a formula and a data frame (`tobit(formula, data, { left, right, dist, df, weights })`); the t distribution's degrees of freedom are `parms`, as R, or `df` (one of the two; so also in `survreg`; `df =` is an error in R). The result is `survreg`'s with the formula's coefficient names and the censoring counts.
 - As R (kept on purpose): the Wald test of `tobitSummary` uses p − 1 degrees of freedom, so without an intercept it tests all p coefficients on one degree of freedom too few.
+- (1.18.0) A covariate with a large common value (x + 1e8) is fitted as R fits it (rStats.js refits with centred
+  covariates when the Cholesky tolerance finds it collinear with the intercept; it gave NaN before). Standard errors
+  and the Wald test stay exact for covariates near 1e±300, where R reports aliased coefficients or stops iterating.
 - A response far from 1 in size (beyond 2^±30) with a location-scale distribution is fitted divided by a power of 2 and scaled back exactly: for a response near 1e-150 R's fit is right and `survreg`'s iterations were not (R's own result there is 2e-7 from its scaled unscaled fit). Near 1e150 both fail.
 
 ### `betareg` and its methods
@@ -1993,6 +2003,9 @@ The references are R's `stats` functions. The implementation decisions are recor
 - The columns are centred and divided by a power of 2 for the fit, and the coefficients, covariance and bias taken back exactly: a covariate times 1e±150 or 1e±300, or with a common value of 1e8, gives the unscaled fit (R stops: "missing value where TRUE/FALSE needed", "non-finite value supplied by optim"). Where R's starting precision is not positive (weights summing to less than the number of coefficients, responses near 0 or 1) rStats.js starts from the moments of the response and reaches R's fit. Fewer observations than coefficients is an error (R: "missing value where TRUE/FALSE needed").
 - As R (kept on purpose): for the cloglog and loglog links the bias terms of BC and BR use the second derivative of the inverse link floored at about 2.2e-16 where it is negative (the exact derivative would move the estimates by about 1e-4); the deviance residuals take the absolute value of the log-likelihood difference (the saturated term at mean y is not always the larger); the residuals other than `"response"` are multiplied by the square root of the case weight.
 - `betaregSummary` returns the tables, the AIC and the five-number summary of the quantile residuals, not R's printout.
+- (1.18.0) The standard errors (summary, confint) come from the scaled covariance, so they stay exact for a covariate
+  near 1e±300, where R stops ("missing value where TRUE/FALSE needed"). A response of 1e-300 is an error ("the
+  expected information is singular"; R gives NaN with "NaNs produced").
 
 ### `loglin`, `loglm`, `loglmResiduals`, `loglmAnova`
 

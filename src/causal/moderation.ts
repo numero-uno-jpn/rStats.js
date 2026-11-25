@@ -153,7 +153,16 @@ function jn(q: Parts, alpha: number): JohnsonNeymanResult {
   if (!(alpha > 0 && alpha < 1)) throw new RangeError("alpha must be in (0, 1)");
   const crit = qt(1 - alpha / 2, q.df) as number;
   const c2 = crit * crit;
-  const A = q.b3 * q.b3 - c2 * q.v33, B = 2 * (q.b1 * q.b3 - c2 * q.v13), C = q.b1 * q.b1 - c2 * q.v11;
+  // The quadratic on rescaled coefficients: the outcome's unit k (a power of 2 near sqrt(v11)) and the moderator's unit m
+  // (a power of 2 near sqrt(v11 / v33)), so that its coefficients are near 1; the bounds are scaled back by m exactly.
+  // Without this, an outcome near 1e+-150 or a moderator near 1e+-300 overflows or underflows in B^2 - 4 A C.
+  const MIN = 2 ** -1022, MAX = Number.MAX_VALUE;
+  if (![q.v11, q.v33].every((v) => v >= MIN && v <= MAX) || !Number.isFinite(q.v13)) {
+    throw new RangeError("the model's coefficient covariance is out of the double range (rescale the variables)");
+  }
+  const k = 2 ** Math.round(Math.log2(q.v11) / 2), m = 2 ** Math.round((Math.log2(q.v11) - Math.log2(q.v33)) / 2);
+  const b1 = q.b1 / k, b3 = q.b3 / k * m, v11 = q.v11 / k / k, v13 = q.v13 / k / k * m, v33 = q.v33 / k / k * m * m;
+  const A = b3 * b3 - c2 * v33, B = 2 * (b1 * b3 - c2 * v13), C = b1 * b1 - c2 * v11;
   const disc = B * B - 4 * A * C;
   const lo = Math.min(...q.w), hi = Math.max(...q.w);
   const modrange: [number, number] = [lo, hi];
@@ -164,7 +173,7 @@ function jn(q: Parts, alpha: number): JohnsonNeymanResult {
     // the root without cancellation, then the other from the product of the roots
     const r1 = (-B - Math.sign(B || 1) * s) / (2 * A);
     const r2 = r1 === 0 ? (-B + Math.sign(B || 1) * s) / (2 * A) : C / (A * r1);
-    bounds = r1 <= r2 ? [r1, r2] : [r2, r1];
+    bounds = r1 <= r2 ? [r1 * m, r2 * m] : [r2 * m, r1 * m];
   }
   // interactions reports inside = FALSE when the interval could not be found
   const inside = !failed && A < 0;

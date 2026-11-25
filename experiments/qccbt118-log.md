@@ -278,3 +278,33 @@ script keeps the search that succeeded.
     same in rStats.js). cusum: unchanged; **ewma's limits 33% off at 1e-300** (y exact). BTm with counts times 1e6:
     2e-10 from the unscaled coefficients (glm's stopping). So rStats.js is right where R breaks (mqcc, the
     overdispersion test, ewma's limits at 1e-300).
+
+## Third edge-case pass over 1.16.0 and 1.17.0 (2026-11-26, the user's decision: before publishing 1.18.0)
+
+22. A probe of rStats.js (not an R experiment), scales 1e+-150 to 1e+-300, common values of 1e8, large n:
+    sobelTest's SE Infinity / 0 at 1e+-200 (b^2 sa^2); mediationMonteCarlo "'Sigma' must be finite" at 1e300 and a
+    silently wrong interval at 1e-300 (variances underflow); johnsonNeyman's bounds Infinity at an outcome times 1e150
+    and 31% off at 1e-150 (B^2 - 4 A C), NaN / Infinity at a moderator times 1e+-300; tobit **NaN coefficients for a
+    covariate shifted by 1e6 or more** (survreg's pivot test: collinear with the intercept); tobit's Wald statistic and
+    betaregConfint wrong at a covariate times 1e+-300 (variances 1e-+600); betareg with a response of 1e-300: "the
+    expected information is singular". Monte Carlo procedures at 1e+-150 give different draws (mvrnorm's eigenvectors of
+    a graded covariance, as R's), the same distribution: moderatedMediation's index with W times 1e150, 5 seeds of 2000
+    simulations, mean -0.2921 against -0.2929, sd 0.010 / 0.013 (200 simulations: sd 0.04). Fine: simSlopes, mediate,
+    tobit with the response at 1e+-300 or covariates 1e400 apart, betareg's coefficients, predictions and residuals at
+    every scale (ML, BC, BR), loglm's deviance, tobit with 1e5 rows (0.9 s), johnsonNeyman with 1e5 rows (0.3 s).
+    loglm's Pearson statistic and residuals at counts times 1e-150 are a few % off: R's absolute eps = 0.1 stops IPF
+    after one cycle there (kept as R in 1.17.0).
+23. `qccbt118-old-extreme.R`: R at those cases. tobit with x + 1e8: **R fits it** (intercept -91228254.85, slope
+    0.91228254118504, Wald 555.268); x times 1e300: `there are aliased coefficients in the model`, 1e-300: `Ran out of
+    iterations and did not converge`. betareg with x times 1e300: `missing value where TRUE/FALSE needed`, 1e-300:
+    `failed to invert the information matrix`; with a response of 1e-300: `NaNs produced`. johnson_neyman with the
+    outcome times 1e150: `missing value where TRUE/FALSE needed`, 1e-150: NA bounds; moderator times 1e300: `'from'
+    must be a finite number`; moderator + 1e8: lm's coefficients of W and X:W are NA (aliased). lm's variances with M and
+    Y times 1e200: NA, 1e-200: 0 and NA. Fixed in rStats.js: survreg refits with centred covariates when a coefficient
+    comes out aliased and there is an intercept (ordinary fits unchanged, so R's iterations stay), and takes the
+    standard errors from its scaled covariance; tobitSummary's Wald test in the inner fit's scaled coordinates;
+    betareg's standard errors (summary, confint) from the scaled covariance; sobelTest with hypot; sobelTest,
+    mediationMonteCarlo and moderatedMediation (linear path) refuse variances outside the normal doubles (as mediate);
+    johnsonNeyman solves the quadratic in rescaled units (outcome k, moderator m, powers of 2) and refuses variances
+    outside the doubles. tobit x + 1e8 now equals R's to 8e-13; JN at an outcome times 1e+-150 equals the unscaled
+    bounds to 5e-16.
