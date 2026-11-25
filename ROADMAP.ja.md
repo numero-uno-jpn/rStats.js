@@ -82,7 +82,8 @@ rStats.js に既にあるものと照らし合わせて決めました (2026-11-
 4. **ステップワイズの変数選択** [`step`、MASS `stepAIC`]: 1.15.0 で済み (lm と glm。`glm` に式の入口を足した)
 5. **媒介分析・調整分析** [mediation `mediate`] (調整媒介分析を含む): 1.16.0 で済み (`mediate`、interactions の `sim_slopes` と
    Johnson-Neyman、`mvrnorm`、Sobel、係数の Monte Carlo、調整媒介分析)
-6. 小さなモデル: tobit 回帰 (`survreg` の上に)、対数線形モデル [`loglin`、MASS `loglm`]、ガンマ回帰とベータ回帰 [betareg]
+6. **小さなモデル**: 1.17.0 で済み (`survreg` の上の `tobit`、最尤・バイアス補正・バイアス減少の `betareg`、`loglin` と `loglm`。ガンマ回帰は既存の
+   `glm` の Gamma 族)
 7. その後に検討: 時間依存 ROC [timeROC、survivalROC]、ネットワークメタアナリシス [netmeta]、Bradley-Terry の一対比較
    [BradleyTerry2]、管理図 [qcc]、時系列 [`arima`、forecast `auto.arima`]
 

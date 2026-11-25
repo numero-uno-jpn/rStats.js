@@ -7,6 +7,14 @@ While the version is 0.x, a minor release (0.y.0) may contain breaking changes;
 they are listed under **Breaking** for each release. From 1.0.0 the project follows
 [Semantic Versioning](https://semver.org/).
 
+## 1.17.0 - 2026-11-25
+
+### Added
+
+- **Tobit regression**: `tobit` and `tobitSummary` (after `AER::tobit`): a formula entry point to `survreg` for a response censored at a left and/or right limit, with any survreg distribution; the Wald test of the regression and the null model's log-likelihood (McFadden's R², the likelihood-ratio test).
+- **Beta regression**: `betareg`, `betaregSummary`, `betaregConfint`, `betaregPredict` and `betaregResiduals` (after `betareg::betareg`): constant precision (`y ~ x`) or a precision model (`y ~ x | z`), mean links logit, probit, cloglog, cauchit, log and loglog, precision links identity, log and sqrt, maximum likelihood, bias-corrected and bias-reduced estimates (Kosmidis and Firth 2010), predictions of the means, precisions, variances, densities, distribution functions and quantiles, and the seven types of residuals ([the differences](docs/differences-from-r.md#tobit-beta-regression-and-log-linear-models-1170)).
+- **Log-linear models**: `loglin` (after `stats::loglin`: iterative proportional fitting with R's iterations), `loglm` (after `MASS::loglm`: a formula on a table or on a data frame of frequencies), `loglmResiduals` and `loglmAnova`.
+
 ## 1.16.0 - 2026-11-25
 
 ### Added

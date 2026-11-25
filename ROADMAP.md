@@ -84,8 +84,8 @@ widely used in Japanese medical and psychological research) and ReactiveStat wit
 4. **Stepwise selection** [`step`, MASS `stepAIC`]: done for 1.15.0 (lm and glm; `glm` got a formula interface)
 5. **Mediation and moderation analysis** [mediation `mediate`], including moderated mediation: done for 1.16.0 (`mediate`,
    interactions' `sim_slopes` and Johnson-Neyman, `mvrnorm`, Sobel, the coefficients' Monte Carlo, moderated mediation)
-6. Smaller models: tobit regression (on `survreg`), log-linear models [`loglin`, MASS `loglm`], gamma and beta
-   regression [betareg]
+6. **Smaller models**: done for 1.17.0 (`tobit` on `survreg`, `betareg` with ML, BC and BR, `loglin` and `loglm`; gamma
+   regression is the existing `glm` with the Gamma family)
 7. To be considered afterwards: time-dependent ROC [timeROC, survivalROC], network meta-analysis [netmeta],
    Bradley-Terry paired comparisons [BradleyTerry2], control charts [qcc], time series [`arima`, forecast `auto.arima`]
 
