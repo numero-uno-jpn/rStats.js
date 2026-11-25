@@ -1119,6 +1119,16 @@
     "en": "Options for {@link survreg}.",
     "ja": "{@link survreg} のオプションです。"
   },
+  "SurvregOptions.df#summary": {
+    "hash": "01b207af08e3",
+    "en": "Degrees of freedom of the t distribution (default 4, at least 3); `parms` is the same, as R names it (give one).",
+    "ja": "t 分布の自由度です (既定は 4、3 以上)。R の名前の `parms` も同じです (どちらか一方を渡します)。"
+  },
+  "SurvregOptions.parms#summary": {
+    "hash": "600fd8f98fe2",
+    "en": "R's name for `df`: the degrees of freedom of the t distribution (give one of the two).",
+    "ja": "`df` の R での名前で、t 分布の自由度です (2 つのうちどちらか一方を渡します)。"
+  },
   "SurvregPredictOptions#summary": {
     "hash": "d7082a052308",
     "en": "Prediction options for {@link survregPredict}.",

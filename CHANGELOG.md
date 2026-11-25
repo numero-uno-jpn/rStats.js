@@ -13,6 +13,7 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
 
 - **Tobit regression**: `tobit` and `tobitSummary` (after `AER::tobit`): a formula entry point to `survreg` for a response censored at a left and/or right limit, with any survreg distribution; the Wald test of the regression and the null model's log-likelihood (McFadden's R², the likelihood-ratio test).
 - **Beta regression**: `betareg`, `betaregSummary`, `betaregConfint`, `betaregPredict` and `betaregResiduals` (after `betareg::betareg`): constant precision (`y ~ x`) or a precision model (`y ~ x | z`), mean links logit, probit, cloglog, cauchit, log and loglog, precision links identity, log and sqrt, maximum likelihood, bias-corrected and bias-reduced estimates (Kosmidis and Firth 2010), predictions of the means, precisions, variances, densities, distribution functions and quantiles, and the seven types of residuals ([the differences](docs/differences-from-r.md#tobit-beta-regression-and-log-linear-models-1170)).
+- `survreg` takes the t distribution's degrees of freedom also as `parms` (R's name), besides `df`; so does `tobit`.
 - **Log-linear models**: `loglin` (after `stats::loglin`: iterative proportional fitting with R's iterations), `loglm` (after `MASS::loglm`: a formula on a table or on a data frame of frequencies), `loglmResiduals` and `loglmAnova`.
 
 ## 1.16.0 - 2026-11-25

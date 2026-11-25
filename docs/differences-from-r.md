@@ -1982,7 +1982,7 @@ The references are R's `stats` functions. The implementation decisions are recor
 
 ### `tobit`
 
-- It takes a formula and a data frame (`tobit(formula, data, { left, right, dist, df, weights })`); the t distribution's degrees of freedom are `df` (R's tobit takes them as `parms`; `df =` is an error there). The result is `survreg`'s with the formula's coefficient names and the censoring counts.
+- It takes a formula and a data frame (`tobit(formula, data, { left, right, dist, df, weights })`); the t distribution's degrees of freedom are `parms`, as R, or `df` (one of the two; so also in `survreg`; `df =` is an error in R). The result is `survreg`'s with the formula's coefficient names and the censoring counts.
 - As R (kept on purpose): the Wald test of `tobitSummary` uses p − 1 degrees of freedom, so without an intercept it tests all p coefficients on one degree of freedom too few.
 - A response far from 1 in size (beyond 2^±30) with a location-scale distribution is fitted divided by a power of 2 and scaled back exactly: for a response near 1e-150 R's fit is right and `survreg`'s iterations were not (R's own result there is 2e-7 from its scaled unscaled fit). Near 1e150 both fail.
 

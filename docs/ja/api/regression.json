@@ -3380,9 +3380,9 @@
     "ja": "反復の制御で、{@link survreg} のものと同じです。"
   },
   "TobitOptions.df#summary": {
-    "hash": "9959509344f9",
-    "en": "Degrees of freedom of the t distribution (default 4, at least 3). R's tobit takes it as `parms`.",
-    "ja": "t 分布の自由度です (既定は 4、3 以上)。R の tobit では `parms` で渡します。"
+    "hash": "0eca82f0e927",
+    "en": "Degrees of freedom of the t distribution (default 4, at least 3); `parms` is the same (give one).",
+    "ja": "t 分布の自由度です (既定は 4、3 以上)。`parms` も同じです (どちらか一方を渡します)。"
   },
   "TobitOptions.dist#summary": {
     "hash": "a5ea87bf19df",
@@ -3393,6 +3393,11 @@
     "hash": "0565dea2f68f",
     "en": "Left limit: responses at or below it are left censored at it (default 0; `-Infinity` for none).",
     "ja": "左の限界です: これ以下の応答はそこで左打ち切りになります (既定は 0、なしは `-Infinity`)。"
+  },
+  "TobitOptions.parms#summary": {
+    "hash": "6ac051981a3f",
+    "en": "R's name for `df` (tobit and survreg take the degrees of freedom of the t distribution as `parms`).",
+    "ja": "`df` の R での名前です (tobit と survreg は t 分布の自由度を `parms` で受けます)。"
   },
   "TobitOptions.right#summary": {
     "hash": "f0b6854f0017",

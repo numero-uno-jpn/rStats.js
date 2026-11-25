@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { tobit, tobitSummary } from "../src/models/tobit.js";
+import { survreg } from "../src/models/survreg.js";
 
 // R fixture from oracle/tobit.R (npm run oracle -- tobit): AER's tobit on survival's survreg
 const fixture = JSON.parse(readFileSync(new URL("./fixtures/tobit.json", import.meta.url), "utf8")) as Record<string, any>;
@@ -57,5 +58,23 @@ describe("tobit against AER::tobit", () => {
       if (e.dist !== undefined) opts.dist = e.dist;
       expect(() => tobit(e.formula, data, opts)).toThrow(e.error);
     }
+  });
+});
+
+describe("the t distribution's degrees of freedom as df or parms (R's name)", () => {
+  it("gives R's tobit fit with parms as with df, in tobit and in survreg", () => {
+    const c = (fixture.fits as Record<string, any>[]).find((f) => f.tdf === 3)!;
+    const a = tobit(c.formula, fixture.data.d, { dist: "t", df: 3 }), b = tobit(c.formula, fixture.data.d, { dist: "t", parms: 3 });
+    expect(b.coefficients).toEqual(a.coefficients);
+    expect(b.loglik).toEqual(a.loglik);
+    arr(c.coefficients).forEach((v, j) => expect(Math.abs(b.coefficients[j]! - v)).toBeLessThan(1e-9 * Math.max(1, Math.abs(v))));
+    const x = [[0], [1], [0], [1], [0], [1], [1], [0]], t = [1.2, 2.5, 0.7, 3.1, 1.9, 2.2, 4.0, 0.4];
+    expect(survreg(t, undefined, x, { dist: "t", parms: 5 }).coefficients).toEqual(survreg(t, undefined, x, { dist: "t", df: 5 }).coefficients);
+  });
+  it("refuses both names, and either with a distribution other than t", () => {
+    expect(() => tobit("ys ~ x1", fixture.data.d, { dist: "t", df: 3, parms: 3 })).toThrow(/not both/);
+    expect(() => survreg([1, 2, 3], undefined, [], { dist: "t", df: 3, parms: 5 })).toThrow(/not both/);
+    expect(() => tobit("ys ~ x1", fixture.data.d, { parms: 3 })).toThrow("Extreme value distribution has no optional parameters");
+    expect(() => tobit("ys ~ x1", fixture.data.d, { dist: "t", parms: 2 })).toThrow("Degrees of freedom must be >=3");
   });
 });
