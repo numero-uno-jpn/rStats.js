@@ -14,8 +14,19 @@
   GitHub 上のタグを消して push し直した (1 回 500、1 分後に成功)。Release の後の Pages の配備が 500 で失敗 → `gh run rerun --failed` で成功
 - ユーザーの決定 (2026-11-26): 1 つ前の報告の「私が決めたこと」(関数名、btm の入口、`{ lcl, ucl }`、mqcc は連を返さない) は了承。
   1.16.0・1.17.0 の 3 回目の点検は 1.18.0 の公開の前に (直したことは CHANGELOG の 1.18.0 の Fixed)
-- **次:** 1.19.0 = 時間依存 ROC (timeROC・survivalROC、ROADMAP の 8 の推奨の順)。範囲をユーザーと決めるところから。
-  **最初から 3 回目の点検の内容 (尺度 1e±150・1e±300、共通の値 1e8、混ざった尺度、退化、大きな n、R と比較) を計画に入れる**
+- **次: 1.19.0 = 時間依存 ROC。範囲はユーザーが決めた (2026-11-26、すべて推奨どおり):**
+  - **timeROC の公開関数を広く:** `timeROC` (周辺・Cox・Aalen の打ち切りの重み、単一の事象と競合リスク (cause、AUC_1・AUC_2)、
+    iid の標準誤差)、`confint`、`compare`、`SeSpPPVNPV` (カットオフでの感度・特異度・PPV・NPV)、時点ごとの AUC の推移と差
+    (`plotAUCcurve`・`plotAUCcurveDiff` の値)。ReactiveStat (`scripts/検査の正確度/時間依存性ROC.php`) は
+    `timeROC(T, delta, marker, cause = 1, times, ROC = TRUE, iid = TRUE)`・`confint()$CI_AUC` (パーセント単位)・`compare()`、
+    カットオフは TP − FP の Youden (TP・FP の行はマーカーの降順、最後の行は全員陽性)、AUC < 0.5 ならマーカーの符号を反転
+  - **survivalROC も:** KM 法と NNE 法 (span・lambda)。ReactiveStat は使っていない
+  - I/D (incident/dynamic) 型 (risksetROC) は入れない
+  - **置き場所:** `/tests` (既存の roc・auc・ciAuc・rocTest・coords、生存解析と同じ)
+  - 準備: Issue → 作業ブランチ `dev/tdroc-1.19` → イメージ (`oracle/Dockerfile.r46` と experiments) に timeROC・survivalROC と依存
+    (timereg など) → チェッカー → R の実験 (`experiments/tdroc119*`、ログ `experiments/tdroc119-log.md`)
+  - **最初から 3 回目の点検の内容 (尺度 1e±150・1e±300、共通の値 1e8、混ざった尺度、同点・打ち切りだけの時点・事象のない時点などの退化、
+    大きな n、R と比較) を計画に入れ、公開した関数を 1 つずつすべての軸で確かめる**
 
 ## (以前) 1.18.0 = 管理図と一対比較 (範囲はユーザーが決めた、2026-11-25)
 
