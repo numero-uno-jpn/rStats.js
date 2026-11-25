@@ -23,8 +23,12 @@
   - **survivalROC も:** KM 法と NNE 法 (span・lambda)。ReactiveStat は使っていない
   - I/D (incident/dynamic) 型 (risksetROC) は入れない
   - **置き場所:** `/tests` (既存の roc・auc・ciAuc・rocTest・coords、生存解析と同じ)
-  - 準備: Issue → 作業ブランチ `dev/tdroc-1.19` → イメージ (`oracle/Dockerfile.r46` と experiments) に timeROC・survivalROC と依存
-    (timereg など) → チェッカー → R の実験 (`experiments/tdroc119*`、ログ `experiments/tdroc119-log.md`)
+  - **準備済み (2026-11-26):** Issue #569、作業ブランチ `dev/tdroc-1.19` (main の HANDOFF の 3 コミット込み、手元だけ)、イメージ
+    (x86_64・arm64 とも作り直し済み) に timeROC 0.4.1・survivalROC 1.0.3.1・timereg 2.0.7 (pec 2025.6.24・mvtnorm 1.4.2 も入る)、
+    実験用 Dockerfile にも同じ層 (未ビルド)。チェッカーに 2 パッケージの公開関数と S3 メソッド 15 個 (**`compare` は除いた**:
+    1.16.0 の実験の変数名とぶつかる。実験では `compare()` を呼ぶだけにする)。既存の実験に新しい違反なし
+  - 次は R の実験 (`experiments/tdroc119*`、試行錯誤はログ `experiments/tdroc119-log.md` に時系列で)。まず help を読み、timeROC の
+    周辺の重みの AUC・TP・FP と iid の標準誤差、confint・compare、競合リスクの AUC_1・AUC_2、Cox・Aalen の重み、survivalROC の KM と NNE
   - **最初から 3 回目の点検の内容 (尺度 1e±150・1e±300、共通の値 1e8、混ざった尺度、同点・打ち切りだけの時点・事象のない時点などの退化、
     大きな n、R と比較) を計画に入れ、公開した関数を 1 つずつすべての軸で確かめる**
 
