@@ -57,26 +57,35 @@ export interface BtmResult {
   coefNames: string[];
   /** Their standard errors. */
   stdError: number[];
-  /** z = coefficient / standard error and the two-sided p-value. */
+  /** z = coefficient / standard error. */
   statistic: number[];
+  /** The two-sided p-values of the z statistics. */
   pValue: number[];
   /** The covariance matrix of the fixed coefficients (varFix for PQL). */
   vcov: number[][];
   /** Deviance, null deviance and AIC of a model without random effects (NaN with random effects, as BTm). */
   deviance: number;
+  /** The deviance of the model with all abilities 0 (NaN with random effects). */
   nullDeviance: number;
+  /** Akaike's information criterion (NaN with random effects). */
   aic: number;
+  /** The residual degrees of freedom: contests minus fixed coefficients. */
   dfResidual: number;
+  /** The degrees of freedom of the null model: the number of contests. */
   dfNull: number;
   /** Iterations: of the glm, or of the outer PQL search. */
   iter: number;
+  /** Whether the fit converged. */
   converged: boolean;
   /** The fitted probability that player1 wins, and the linear predictor (with the random effects). */
   fittedValues: number[];
+  /** The linear predictor of each contest. */
   linearPredictors: number[];
   /** The players. */
   levels: string[];
+  /** The reference player. */
   refcat: string;
+  /** The link. */
   link: "logit" | "probit" | "cauchit";
   /** The standard deviation of the random player effects (null without them; 0 at the boundary). */
   sigma: number | null;
@@ -86,6 +95,7 @@ export interface BtmResult {
   random: number[] | null;
   /** Players with a missing covariate, given an ability of their own. */
   separate: string[];
+  /** R's warnings. */
   warnings: string[];
   /** How each player's ability is formed from the coefficients (for {@link btAbilities}). */
   abilityDesign: number[][];
@@ -377,7 +387,9 @@ function fitPql(X: M, Z: M, y: number[], n: number[], link: Link, beta0: number[
  * @category Regression
  */
 export interface BtAbilitiesResult {
+  /** The players. */
   levels: string[];
+  /** The ability of each player. */
   ability: number[];
   /** Standard errors (0 for the reference player). */
   se: number[];
@@ -410,9 +422,13 @@ export function btAbilities(fit: BtmResult): BtAbilitiesResult {
  * @category Regression
  */
 export interface CountsToBinomialResult {
+  /** The first player of each pair. */
   player1: string[];
+  /** The second player of each pair. */
   player2: string[];
+  /** The wins of player1 over player2. */
   win1: number[];
+  /** The wins of player2 over player1. */
   win2: number[];
 }
 
@@ -440,14 +456,19 @@ export function countsToBinomial(table: readonly (readonly number[])[], levels: 
  * @category Regression
  */
 export interface QvcalcResult {
+  /** The levels. */
   names: string[];
+  /** The estimates. */
   estimate: number[];
+  /** Their standard errors. */
   se: number[];
-  /** The quasi standard errors and quasi variances. */
+  /** The quasi standard errors. */
   quasiSE: number[];
+  /** The quasi variances. */
   quasiVar: number[];
   /** Relative errors of the quasi standard errors of the simple contrasts (pairs "A,B", ...). */
   relerrs: number[];
+  /** The pairs of the relative errors, "A,B", ... */
   relerrsNames: string[];
   /** The covariance matrix used. */
   covmat: number[][];

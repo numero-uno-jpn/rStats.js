@@ -2000,3 +2000,31 @@ The references are R's `stats` functions. The implementation decisions are recor
 - The iterations are R's (the start scaled to the total, the deviation of a cycle taken before each adjustment, R's loose default `eps = 0.1`), so the fits agree with R's to rounding. For counts near 1e300 the statistics are computed without overflow (R's are NaN).
 - `loglm` with a data frame sorts the levels of each factor unless `levels` gives their order (R uses the factors' levels).
 - As R (kept on purpose): `loglmAnova`'s p-values are `1 - pchisq()`, so a p-value below about 1e-16 is 0 and small ones lose digits; a sampling zero fitted as 0 makes Pearson's statistic NaN.
+
+## Control charts and paired comparisons (1.18.0)
+
+### `qcc` and the other control charts
+
+- Values only: no plots, and no `qcc.options` (d2 and d3 are qcc's tables; the run length is `runLength`). Matrices are
+  arrays of rows with `null` or `NaN` for missing values; the limits are `{ lcl, ucl }` with one entry, or one per group.
+- NA statistics are left out of `beyondLimits` and `violatingRuns` (qcc puts NA into both lists).
+- As qcc (kept on purpose): groups larger than 25 switch the xbar chart's default to RMSDF without a message, and give
+  NA limits for the R chart (d2 and d3 stop there); the p chart has one pair of limits per group also with equal
+  sizes; `processCapability` uses the one-sided quantile qnorm(conf) for the limits of Cp_l and Cp_u, gives NaN Cp,
+  Cp_k and Cpm with one specification limit missing, and reports expected fractions below 1e-4 as 0.
+- qcc fails for probability limits of a p chart with equal sizes ("dims [product 2] do not match ..."); rStats.js gives
+  them. `qccOverdispersionTest` returns the full p-value (qcc rounds it to 5 significant digits).
+- The R chart's probability limits and OC curves use `qtukey` / `ptukey` with df = Inf, which are more accurate than
+  R's (R's differ by up to about 2.5e-7 there).
+- `mqcc` with a singular covariance matrix is an error ("the covariance matrix is singular").
+- `medianChart` is not in R: the median chart of ReactiveStat with the JIS factors; unequal group sizes are an error.
+
+### `btm`, `btAbilities`, `qvcalc`
+
+- `btm(contests, options)` takes column names (`outcome`, `player1`, `player2`), a formula without a response
+  (`"~ .."`, `"~ .. + home"`, `"~ x[..] + (1 | ..)"`), player covariates in `predictors` (one row per level) and
+  contest-level variables in `contestCovariates` (a pair of columns); `br = TRUE` (Firth) is not offered.
+- PQL is solved to the fixed point where sigma maximizes the REML likelihood of the working model; BTm stops at its
+  tolerance (1e-6 by default, about 1e-7 from the fixed point in sigma). Deviance and AIC are NaN with random effects,
+  as BTm's NA.
+- `qvcalc` minimizes the least squares of the log variances to convergence; R's optimizer stops about 1e-8 short.

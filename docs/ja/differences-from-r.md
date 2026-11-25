@@ -1853,3 +1853,29 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
 - 反復は R と同じ (start を合計に合わせる、各周期の偏差は各調整の前にとる、R の緩い既定値 `eps = 0.1`) なので、当てはめは丸めの範囲で R と一致します。度数が 1e300 程度でも統計量を溢れずに計算します (R は NaN)。
 - データフレームを渡した `loglm` は、`levels` で順序を指定しない限り各因子の水準を並べ替えます (R は因子の水準の順)。
 - R と同じにしたところ: `loglmAnova` の p 値は `1 - pchisq()` なので、1e-16 程度より小さい p は 0 になり、小さい p は桁を失います。標本ゼロが 0 と当てはめられると Pearson の統計量は NaN になります。
+
+## 管理図と一対比較 (1.18.0)
+
+### `qcc` とその他の管理図
+
+- 値だけを返し、図は描きません。`qcc.options` はありません (d2・d3 は qcc の表、連の長さは `runLength`)。行列は行の配列で、
+  欠測は `null` か `NaN`。管理限界は `{ lcl, ucl }` で、要素が 1 つか、群ごとに 1 つです。
+- NA の統計量は `beyondLimits` と `violatingRuns` に入れません (qcc は両方に NA を入れます)。
+- qcc と同じにしたこと (意図的): 群の大きさが 25 を超えると xbar 管理図の既定は知らせなく RMSDF に変わり、R 管理図の限界は
+  NA (d2・d3 の表がそこで終わる)。p 管理図は群の大きさが揃っていても群ごとの管理限界。`processCapability` は Cp_l と Cp_u の
+  区間に片側の分位点 qnorm(conf) を使い、規格の片方が欠けると Cp・Cp_k・Cpm は NaN、1e-4 未満の期待割合は 0 と報告します。
+- qcc は群の大きさが揃った p 管理図の確率限界で失敗します ("dims [product 2] do not match ...")。rStats.js は求めます。
+  `qccOverdispersionTest` は p 値をそのまま返します (qcc は有効 5 桁に丸めます)。
+- R 管理図の確率限界と OC 曲線は自由度 Inf の `qtukey` / `ptukey` を使い、R のものより正確です (R はそこで最大 2.5e-7 ほど
+  ずれます)。
+- `mqcc` は共分散行列が特異ならエラー ("the covariance matrix is singular") です。
+- `medianChart` は R にはありません。ReactiveStat のメディアン管理図で、JIS の係数を使います。群の大きさが揃わなければエラーです。
+
+### `btm`・`btAbilities`・`qvcalc`
+
+- `btm(contests, options)` は列名 (`outcome`・`player1`・`player2`)、応答のない式 (`"~ .."`・`"~ .. + home"`・
+  `"~ x[..] + (1 | ..)"`)、`predictors` の対象の共変量 (水準ごとに 1 行)、`contestCovariates` の対戦の変数 (列の組) を
+  受け取ります。`br = TRUE` (Firth) はありません。
+- PQL は、作業用モデルの REML 尤度を σ が最大にする固定点まで解きます。BTm は許容誤差 (既定 1e-6、σ で固定点から 1e-7 ほど)
+  で止まります。変量効果があるときの逸脱度と AIC は NaN です (BTm の NA)。
+- `qvcalc` は分散の対数の最小二乗を収束まで解きます。R の最適化は 1e-8 ほど手前で止まります。

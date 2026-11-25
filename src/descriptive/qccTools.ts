@@ -50,6 +50,7 @@ export interface OcCurvesResult {
   n: number[];
   /** p, np: the proportions 0, 0.01, ..., 1; c, u: the means 0, 1, ... of the counts; empty for xbar, R, S. */
   grid: number[];
+  /** R's warnings. */
   warnings: string[];
 }
 
@@ -142,17 +143,32 @@ export interface ProcessCapabilityOptions {
 export interface ProcessCapabilityResult {
   /** The number of observations. */
   nobs: number;
+  /** The center of the chart. */
   center: number;
+  /** The standard deviation used. */
   stdDev: number;
+  /** The target. */
   target: number;
   /** [LSL, USL] (NaN for a missing one). */
   specLimits: [number, number];
   /** Cp, Cp_l, Cp_u, Cp_k, Cpm with their confidence limits. */
-  indices: { names: string[]; value: number[]; lower: number[]; upper: number[]; level: number };
+  indices: {
+    /** "Cp", "Cp_l", "Cp_u", "Cp_k", "Cpm". */
+    names: string[];
+    /** The indices. */
+    value: number[];
+    /** The lower confidence limits. */
+    lower: number[];
+    /** The upper confidence limits. */
+    upper: number[];
+    /** The confidence level. */
+    level: number;
+  };
   /** The expected fractions below LSL and above USL under the normal model (values below 1e-4 as 0, as qcc). */
   exp: [number, number];
   /** The observed fractions below LSL and above USL. */
   obs: [number, number];
+  /** R's warnings. */
   warnings: string[];
 }
 
@@ -245,6 +261,7 @@ export interface MqccOptions {
  * @category Descriptive statistics
  */
 export interface MqccResult {
+  /** The chart. */
   type: "T2" | "T2.single";
   /** Hotelling's T2 of each group (row) of data. */
   statistics: number[];
@@ -252,15 +269,34 @@ export interface MqccResult {
   newstatistics: number[];
   /** The group means (T2) or the rows (T2.single). */
   means: number[][];
+  /** The center of the variables. */
   center: number[];
+  /** The covariance matrix of the variables. */
   cov: number[][];
   /** The phase I limits (LCL 0). */
-  limits: { lcl: number; ucl: number };
-  /** The prediction limits, or null. */
-  predLimits: { lcl: number; ucl: number } | null;
+  limits: {
+    /** The lower limit, 0. */
+    lcl: number;
+    /** The upper limit. */
+    ucl: number;
+  };
+  /** The prediction (phase II) limits, or null. */
+  predLimits: {
+    /** The lower limit, 0. */
+    lcl: number;
+    /** The upper limit. */
+    ucl: number;
+  } | null;
+  /** The confidence level of the limits. */
   confidenceLevel: number;
   /** 1-based indices over data and newdata. */
-  violations: { beyondLimits: number[]; beyondPredLimits: number[] };
+  violations: {
+    /** The points above the phase I limit. */
+    beyondLimits: number[];
+    /** The points above the prediction limit (empty without prediction limits). */
+    beyondPredLimits: number[];
+  };
+  /** R's warnings. */
   warnings: string[];
 }
 
@@ -365,11 +401,13 @@ export interface QccOverdispersionTestOptions {
  * @category Descriptive statistics
  */
 export interface QccOverdispersionTestResult {
+  /** The distribution tested. */
   type: "binomial" | "poisson";
   /** The observed variance over the theoretical variance. */
   ratio: number;
   /** ratio (k - 1). */
   statistic: number;
+  /** The degrees of freedom, k - 1. */
   df: number;
   /** 1 - pchisq(statistic, df) (qcc rounds it to 5 significant digits; this is the full value). */
   pValue: number;
@@ -406,9 +444,13 @@ export function qccOverdispersionTest(x: readonly number[], options: QccOverdisp
 export interface ParetoChartResult {
   /** The categories in decreasing order of frequency (ties in the given order). */
   names: string[];
+  /** The frequencies. */
   frequency: number[];
+  /** The cumulative frequencies. */
   cumFrequency: number[];
+  /** The percentages of the total. */
   percentage: number[];
+  /** The cumulative percentages. */
   cumPercentage: number[];
 }
 
@@ -473,12 +515,32 @@ export interface MedianChartResult {
   groups: string[];
   /** The group size. */
   n: number;
+  /** The group medians. */
   medians: number[];
+  /** The group ranges. */
   ranges: number[];
   /** The median chart: center (mean of the medians) and limits center +- A4 Rbar. */
-  median: { center: number; lcl: number; ucl: number; outOfControl: number[] };
+  median: {
+    /** The mean of the medians. */
+    center: number;
+    /** center - A4 Rbar. */
+    lcl: number;
+    /** center + A4 Rbar. */
+    ucl: number;
+    /** 1-based indices of the groups whose median is outside the limits. */
+    outOfControl: number[];
+  };
   /** The range chart: center Rbar and limits D3 Rbar, D4 Rbar. */
-  range: { center: number; lcl: number; ucl: number; outOfControl: number[] };
+  range: {
+    /** The mean range Rbar. */
+    center: number;
+    /** D3 Rbar. */
+    lcl: number;
+    /** D4 Rbar. */
+    ucl: number;
+    /** 1-based indices of the groups whose range is outside the limits. */
+    outOfControl: number[];
+  };
 }
 
 // The 3-sigma factors of the median (A4) and range (D3, D4) charts for group sizes 2..10 (JIS)

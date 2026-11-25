@@ -86,8 +86,11 @@ widely used in Japanese medical and psychological research) and ReactiveStat wit
    interactions' `sim_slopes` and Johnson-Neyman, `mvrnorm`, Sobel, the coefficients' Monte Carlo, moderated mediation)
 6. **Smaller models**: done for 1.17.0 (`tobit` on `survreg`, `betareg` with ML, BC and BR, `loglin` and `loglm`; gamma
    regression is the existing `glm` with the Gamma family)
-7. To be considered afterwards: time-dependent ROC [timeROC, survivalROC], network meta-analysis [netmeta],
-   Bradley-Terry paired comparisons [BradleyTerry2], control charts [qcc], time series [`arima`, forecast `auto.arima`]
+7. **Control charts and paired comparisons**: done for 1.18.0 (qcc's charts, cusum, ewma, OC curves, process
+   capability and T2 charts, the median chart; BradleyTerry2's `BTm` with player covariates and random effects by PQL,
+   qvcalc's quasi variances)
+8. To be considered afterwards: time-dependent ROC [timeROC, survivalROC], network meta-analysis [netmeta], time
+   series [`arima`, forecast `auto.arima`]
 
 Mixed models continued (the former item 1) were done for 1.6.0: `confintLmer`, `confintGlmer`, `simulateLmer` and
 `simulateGlmer` after lme4's `confint` (profile likelihood and Wald) and `simulate`. Left out, as decided in the

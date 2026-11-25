@@ -84,8 +84,10 @@ rStats.js に既にあるものと照らし合わせて決めました (2026-11-
    Johnson-Neyman、`mvrnorm`、Sobel、係数の Monte Carlo、調整媒介分析)
 6. **小さなモデル**: 1.17.0 で済み (`survreg` の上の `tobit`、最尤・バイアス補正・バイアス減少の `betareg`、`loglin` と `loglm`。ガンマ回帰は既存の
    `glm` の Gamma 族)
-7. その後に検討: 時間依存 ROC [timeROC、survivalROC]、ネットワークメタアナリシス [netmeta]、Bradley-Terry の一対比較
-   [BradleyTerry2]、管理図 [qcc]、時系列 [`arima`、forecast `auto.arima`]
+7. **管理図と一対比較**: 1.18.0 で済み (qcc の管理図・CUSUM・EWMA・OC 曲線・工程能力・T2 管理図、メディアン管理図、
+   BradleyTerry2 の `BTm` (対象の共変量と変量効果の PQL も)、qvcalc の準分散)
+8. その後に検討: 時間依存 ROC [timeROC、survivalROC]、ネットワークメタアナリシス [netmeta]、時系列 [`arima`、
+   forecast `auto.arima`]
 
 混合モデルの続き (以前の項目 1) は 1.6.0 に向けて済ませました: lme4 の `confint` (プロファイル尤度と Wald) と
 `simulate` に合わせた `confintLmer`、`confintGlmer`、`simulateLmer`、`simulateGlmer`。

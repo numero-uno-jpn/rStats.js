@@ -172,6 +172,51 @@ multinomAnova(multinom("smoke ~ sex", data), fit); // 尤度比検定
 
 `multinom` は `nnet::multinom(y ~ ..., data, weights, decay, Hess = TRUE)` に従います。応答の最初の水準を基準カテゴリとする基準カテゴリロジットです。係数は厳密な最尤推定値です (Newton 法)。R の BFGS は既定ではそこから 1e-5 程度手前で止まります。標準誤差は −log L の Hessian から求めます。`weights` はケース重みで、`decay` は全係数の 2 乗和の decay 倍を加えます (nnet と同じく、逸脱度と AIC には含み、標準誤差には含みません)。擬似 R² (McFadden・Cox-Snell・Nagelkerke) には、同じ行での切片だけのモデルを使います。
 
+## 管理図
+
+qcc パッケージの管理図は `/descriptive` にあります (値だけで、図は描きません):
+
+```ts
+import { qcc, cusum, ewma, ocCurves, processCapability, mqcc, qccGroups, medianChart } from "@numero-uno-jpn/rstats/descriptive";
+
+const g = qccGroups(diameter, sample).groups;           // 群ごとに 1 行、足りない所は NaN
+const xbar = qcc(g, { type: "xbar" });                   // 中心線・stdDev (UWAVE-R)・管理限界・管理外れ
+qcc(g, { type: "R" });                                   // "S" も。stdDev: "UWAVE-SD"・"MVLUE-R"・"MVLUE-SD"・"RMSDF"
+qcc(g.slice(0, 25), { type: "xbar", newdata: g.slice(25), nsigmas: 2 });
+qcc(defects, { type: "p", sizes, confidenceLevel: 0.99 }); // 確率限界
+qcc(x, { type: "xbar.one" });                            // 個別値、σ は移動範囲から
+cusum(g, { decisionInterval: 4, seShift: 1 }); ewma(x, { lambda: 0.2 });
+ocCurves(xbar);                                          // ずれ c と群の大きさ n ごとの β
+processCapability(xbar, [73.95, 74.05], { target: 74 }); // Cp・Cp_l・Cp_u・Cp_k・Cpm と信頼区間
+mqcc([X1, X2], { type: "T2", predLimits: true });        // 群平均の Hotelling の T2
+medianChart(values, groups);                             // Me-R 管理図、JIS の係数、群の大きさ 2〜10
+```
+
+`qcc` は `qcc::qcc` に合わせています。中心線は群の大きさで重みづけ、R 管理図の限界は `center +- k d3(n) sigma`、S 管理図は
+`center +- k sigma sqrt(1 - c4(n)^2)`、確率限界は範囲の分布・カイ二乗・二項・ポアソン・幾何の各モデルから求めます。
+`violations` は管理限界の外の点 (上側、次に下側) と、中心線の片側に 7 点 (`runLength`) 続く連の点です。qcc と同じく、群の
+大きさが 25 を超えると xbar の既定は RMSDF になります。NA の統計量は管理外れの一覧に入れません。
+
+## 一対比較
+
+Bradley-Terry モデルと準分散は `/regression` にあります:
+
+```ts
+import { btm, btAbilities, countsToBinomial, qvcalc, worstErrors } from "@numero-uno-jpn/rstats/regression";
+
+const f = btm(contests, { outcome: ["win1", "win2"], player1: "player1", player2: "player2", refcat: "A" });
+btAbilities(f);                       // 対象ごとの能力と標準誤差 (基準は 0)
+qvcalc(btAbilities(f));               // 基準に依らない準標準誤差
+btm(contests, { outcome: ["win1", "win2"], player1: "home", player2: "away", formula: "~ .. + at.home",
+  contestCovariates: { "at.home": ["home1", "home2"] } });
+btm(contests, { outcome: "won", player1: "p1", player2: "p2", formula: "~ x[..] + (1 | ..)", predictors });
+```
+
+`btm` は `BradleyTerry2::BTm` に合わせています。対象の共変量がなければ、2 つの対象の +1 / -1 の計画行列への二項 glm です。
+対象の共変量と `(1 | ..)` があれば、能力は `x_j' beta + e_j` (対象の変量効果つき) で、作業用モデルの REML 尤度を σ が最大に
+する固定点まで PQL で当てはめます (BTm は許容誤差で止まり、そこから 1e-7 ほど手前です)。`countsToBinomial` は勝敗の表
+(行が勝者) を対象の組に直します。
+
 ## 多変量解析
 
 この分野は独立した `/multivariate` から import します。パッケージのルートには含まれません。

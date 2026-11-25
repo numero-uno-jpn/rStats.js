@@ -120,7 +120,12 @@ export interface QccResult {
    * The control limits: one pair when all groups (of `data` and `newdata`) have the same size, else one pair per group
    * of `data` followed by those of `newdata`.
    */
-  limits: { lcl: number[]; ucl: number[] };
+  limits: {
+    /** The lower control limits. */
+    lcl: number[];
+    /** The upper control limits. */
+    ucl: number[];
+  };
   /** `nsigmas`, or `null` for probability limits. */
   nsigmas: number | null;
   /** The level of probability limits, or `null`. */
@@ -548,17 +553,28 @@ export interface CusumResult {
   newstatistics: number[];
   /** The sizes of data and newdata. */
   sizes: number[];
+  /** The target. */
   center: number;
+  /** The process standard deviation. */
   stdDev: number;
   /** The upper cumulative sums C+. */
   pos: number[];
   /** The lower cumulative sums as non-positive values (-C-, as qcc). */
   neg: number[];
+  /** The initial cumulative sums, in standard errors. */
   headStart: number;
+  /** The decision interval, in standard errors. */
   decisionInterval: number;
+  /** The shift to detect, in standard errors. */
   seShift: number;
   /** Indices (1-based) where -neg or pos exceeds the decision interval. */
-  violations: { lower: number[]; upper: number[] };
+  violations: {
+    /** Where -neg exceeds it (a decrease). */
+    lower: number[];
+    /** Where pos exceeds it (an increase). */
+    upper: number[];
+  };
+  /** R's warnings. */
   warnings: string[];
 }
 
@@ -642,19 +658,30 @@ export interface EwmaResult {
   statistics: number[];
   /** The group means (or values) of newdata. */
   newstatistics: number[];
+  /** The sizes of data and newdata. */
   sizes: number[];
+  /** The target and starting value. */
   center: number;
+  /** The process standard deviation. */
   stdDev: number;
   /** The smoothed values. */
   y: number[];
   /** The standard deviation of each smoothed value (qcc's closed form with each point's own size). */
   sigma: number[];
+  /** The smoothing parameter. */
   lambda: number;
+  /** The number of standard deviations of the limits. */
   nsigmas: number;
   /** The limits of each point. */
-  limits: { lcl: number[]; ucl: number[] };
+  limits: {
+    /** The lower control limits of each point. */
+    lcl: number[];
+    /** The upper control limits of each point. */
+    ucl: number[];
+  };
   /** Indices (1-based) of the points outside their limits. */
   violations: number[];
+  /** R's warnings. */
   warnings: string[];
 }
 
@@ -712,7 +739,9 @@ export interface EwmaSmoothResult {
   x: number[];
   /** The smoothed y in the order of x. */
   y: number[];
+  /** The smoothing parameter. */
   lambda: number;
+  /** The starting value. */
   start: number;
 }
 

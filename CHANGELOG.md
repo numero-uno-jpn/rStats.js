@@ -7,6 +7,21 @@ While the version is 0.x, a minor release (0.y.0) may contain breaking changes;
 they are listed under **Breaking** for each release. From 1.0.0 the project follows
 [Semantic Versioning](https://semver.org/).
 
+## 1.18.0 - 2026-11-25
+
+### Added
+
+- **Control charts** in `/descriptive` (after the qcc package, values only, no plots): `qcc` (xbar, R, S, xbar.one, p, np,
+  c, u and g charts; sigma by UWAVE-R, MVLUE-R, UWAVE-SD, MVLUE-SD, RMSDF, moving ranges or SD; nsigmas or probability
+  limits; newdata; violations of the limits and of runs), `shewhartRules`, `cusum`, `ewma`, `ewmaSmooth`, `ocCurves`,
+  `processCapability` (Cp, Cp_l, Cp_u, Cp_k, Cpm with confidence limits), `mqcc` (Hotelling's T2 for subgroups and for
+  individual observations, phase I and prediction limits), `qccOverdispersionTest`, `paretoChart` (the table) and
+  `qccGroups`; and `medianChart`, the median (Me-R) chart with the JIS factors (not in R).
+- **Paired comparisons** in `/regression`: `btm` (after `BradleyTerry2::BTm`: abilities with a reference player,
+  contest-level variables such as home advantage, logit, probit and cauchit links, and player covariates with random
+  player effects fitted by PQL to the REML fixed point), `btAbilities`, `countsToBinomial`, and quasi variances
+  `qvcalc` and `worstErrors` (after the qvcalc package).
+
 ## 1.17.0 - 2026-11-25
 
 ### Added
