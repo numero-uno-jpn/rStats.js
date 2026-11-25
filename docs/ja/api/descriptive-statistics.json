@@ -24,6 +24,126 @@
     "en": "Default `\"everything\"`. Unambiguous abbreviations are accepted.",
     "ja": "既定は `\"everything\"`。一意に決まる略語も受け付けます。"
   },
+  "CusumOptions#summary": {
+    "hash": "6436eea657b8",
+    "en": "Options for {@link cusum}.",
+    "ja": "{@link cusum} のオプションです。"
+  },
+  "CusumOptions.center#summary": {
+    "hash": "84fefea3a669",
+    "en": "The target (default: the center of the xbar or xbar.one chart of the data).",
+    "ja": "目標値です (既定は、データの xbar または xbar.one 管理図の中心線)。"
+  },
+  "CusumOptions.decisionInterval#summary": {
+    "hash": "26eb5e78ae04",
+    "en": "The number of standard errors at which a cumulative sum signals (default 5).",
+    "ja": "累積和が管理外れを知らせる標準誤差の数です (既定は 5)。"
+  },
+  "CusumOptions.headStart#summary": {
+    "hash": "2947cef0e067",
+    "en": "The initial cumulative sums, in standard errors (default 0; must be in [0, decisionInterval)).",
+    "ja": "標準誤差で表した累積和の初期値です (既定は 0。[0, decisionInterval) の範囲)。"
+  },
+  "CusumOptions.newdata#summary": {
+    "hash": "898f69337c89",
+    "en": "Further groups whose sums continue those of `data`.",
+    "ja": "`data` の累積和を引き継ぐ、追加の群です。"
+  },
+  "CusumOptions.newsizes#summary": {
+    "hash": "e95f2f77a3b4",
+    "en": "The sizes of the groups of `newdata`.",
+    "ja": "`newdata` の群の大きさです。"
+  },
+  "CusumOptions.seShift#summary": {
+    "hash": "518ac4735a40",
+    "en": "The shift to detect, in standard errors (default 1); the reference value is half of it.",
+    "ja": "検出したいシフトで、標準誤差で表します (既定は 1)。参照値はその半分です。"
+  },
+  "CusumOptions.sizes#summary": {
+    "hash": "8f8380174428",
+    "en": "The group sizes (individual values: 1).",
+    "ja": "群の大きさです (個別値は 1)。"
+  },
+  "CusumOptions.stdDev#summary": {
+    "hash": "f5169e85a783",
+    "en": "The process standard deviation or the method that estimates it (as {@link qcc}).",
+    "ja": "工程の標準偏差、またはそれを推定する方法です ({@link qcc} と同じ)。"
+  },
+  "CusumResult#summary": {
+    "hash": "4b12839c21a0",
+    "en": "Result of {@link cusum}.",
+    "ja": "{@link cusum} の結果です。"
+  },
+  "CusumResult.center#summary": {
+    "hash": "e7e698ff28fe",
+    "en": "The target.",
+    "ja": "目標値です。"
+  },
+  "CusumResult.decisionInterval#summary": {
+    "hash": "5e4bc746737c",
+    "en": "The decision interval, in standard errors.",
+    "ja": "決定区間です (標準誤差の単位)。"
+  },
+  "CusumResult.headStart#summary": {
+    "hash": "f720c230b23b",
+    "en": "The initial cumulative sums, in standard errors.",
+    "ja": "累積和の初期値です (標準誤差の単位)。"
+  },
+  "CusumResult.neg#summary": {
+    "hash": "63cd5a8523a9",
+    "en": "The lower cumulative sums as non-positive values (-C-, as qcc).",
+    "ja": "下側の累積和で、非正の値です (-C-、qcc と同じ)。"
+  },
+  "CusumResult.newstatistics#summary": {
+    "hash": "719a6b0daef3",
+    "en": "The group means (or values) of newdata.",
+    "ja": "newdata の群の平均 (または値) です。"
+  },
+  "CusumResult.pos#summary": {
+    "hash": "1944b847ce19",
+    "en": "The upper cumulative sums C+.",
+    "ja": "上側の累積和 C+ です。"
+  },
+  "CusumResult.seShift#summary": {
+    "hash": "2d839f5d95a1",
+    "en": "The shift to detect, in standard errors.",
+    "ja": "検出するシフトです (標準誤差の単位)。"
+  },
+  "CusumResult.sizes#summary": {
+    "hash": "5763673598df",
+    "en": "The sizes of data and newdata.",
+    "ja": "data と newdata の群の大きさです。"
+  },
+  "CusumResult.statistics#summary": {
+    "hash": "d0748459f130",
+    "en": "The group means (or values) of data.",
+    "ja": "data の群の平均 (または値) です。"
+  },
+  "CusumResult.stdDev#summary": {
+    "hash": "4b7628bb0baa",
+    "en": "The process standard deviation.",
+    "ja": "工程の標準偏差です。"
+  },
+  "CusumResult.violations#summary": {
+    "hash": "f1927c9fd61c",
+    "en": "Indices (1-based) where -neg or pos exceeds the decision interval.",
+    "ja": "-neg または pos が決定区間を超える位置の添字です (1 始まり)。"
+  },
+  "CusumResult.violations.lower#summary": {
+    "hash": "97398d8c052d",
+    "en": "Where -neg exceeds it (a decrease).",
+    "ja": "-neg が決定区間を超えた点です (減少)。"
+  },
+  "CusumResult.violations.upper#summary": {
+    "hash": "82c344f275ca",
+    "en": "Where pos exceeds it (an increase).",
+    "ja": "pos が決定区間を超えた点です (増加)。"
+  },
+  "CusumResult.warnings#summary": {
+    "hash": "3db2080f70ed",
+    "en": "R's warnings.",
+    "ja": "R の警告です。"
+  },
   "CutOptions#summary": {
     "hash": "825fd13722b1",
     "en": "Options for {@link cut}.",
@@ -63,6 +183,161 @@
     "hash": "4e21f71f48b9",
     "en": "Distance between the values subtracted. Default `1`.",
     "ja": "差し引く値どうしの間隔。既定は `1`。"
+  },
+  "EwmaOptions#summary": {
+    "hash": "4dc6dc8c346f",
+    "en": "Options for {@link ewma}.",
+    "ja": "{@link ewma} のオプションです。"
+  },
+  "EwmaOptions.center#summary": {
+    "hash": "5fc230a48008",
+    "en": "The target and starting value (default: the center of the xbar or xbar.one chart of the data).",
+    "ja": "目標値と開始値です (既定は、データの xbar または xbar.one 管理図の中心線)。"
+  },
+  "EwmaOptions.lambda#summary": {
+    "hash": "22be79e3f1fa",
+    "en": "The smoothing parameter in [0, 1] (default 0.2).",
+    "ja": "[0, 1] の平滑化パラメータです (既定は 0.2)。"
+  },
+  "EwmaOptions.newdata#summary": {
+    "hash": "cc1c42f31b61",
+    "en": "Further groups smoothed on from `data`.",
+    "ja": "`data` から続けて平滑化する追加の群です。"
+  },
+  "EwmaOptions.newsizes#summary": {
+    "hash": "e95f2f77a3b4",
+    "en": "The sizes of the groups of `newdata`.",
+    "ja": "`newdata` の群の大きさです。"
+  },
+  "EwmaOptions.nsigmas#summary": {
+    "hash": "a208559917a3",
+    "en": "The number of standard deviations of the limits (default 3).",
+    "ja": "管理限界の標準偏差の数です (既定は 3)。"
+  },
+  "EwmaOptions.sizes#summary": {
+    "hash": "8f8380174428",
+    "en": "The group sizes (individual values: 1).",
+    "ja": "群の大きさです (個別値は 1)。"
+  },
+  "EwmaOptions.stdDev#summary": {
+    "hash": "f5169e85a783",
+    "en": "The process standard deviation or the method that estimates it (as {@link qcc}).",
+    "ja": "工程の標準偏差、またはそれを推定する方法です ({@link qcc} と同じ)。"
+  },
+  "EwmaResult#summary": {
+    "hash": "1eb257d53017",
+    "en": "Result of {@link ewma}.",
+    "ja": "{@link ewma} の結果です。"
+  },
+  "EwmaResult.center#summary": {
+    "hash": "2fa54821b53d",
+    "en": "The target and starting value.",
+    "ja": "目標値で、平滑化の初期値です。"
+  },
+  "EwmaResult.lambda#summary": {
+    "hash": "c5c11588e16f",
+    "en": "The smoothing parameter.",
+    "ja": "平滑化パラメータです。"
+  },
+  "EwmaResult.limits#summary": {
+    "hash": "fc1f1aa572dc",
+    "en": "The limits of each point.",
+    "ja": "各点の管理限界です。"
+  },
+  "EwmaResult.limits.lcl#summary": {
+    "hash": "2410fc6474f7",
+    "en": "The lower control limits of each point.",
+    "ja": "各点の下側管理限界です。"
+  },
+  "EwmaResult.limits.ucl#summary": {
+    "hash": "575728b932f8",
+    "en": "The upper control limits of each point.",
+    "ja": "各点の上側管理限界です。"
+  },
+  "EwmaResult.newstatistics#summary": {
+    "hash": "719a6b0daef3",
+    "en": "The group means (or values) of newdata.",
+    "ja": "newdata の群の平均 (または値) です。"
+  },
+  "EwmaResult.nsigmas#summary": {
+    "hash": "7dba1f1e0b61",
+    "en": "The number of standard deviations of the limits.",
+    "ja": "管理限界の標準偏差の数です。"
+  },
+  "EwmaResult.sigma#summary": {
+    "hash": "2fcf17f75639",
+    "en": "The standard deviation of each smoothed value (qcc's closed form with each point's own size).",
+    "ja": "平滑化した各値の標準偏差です (各点自身の群の大きさを用いる qcc の閉じた形)。"
+  },
+  "EwmaResult.sizes#summary": {
+    "hash": "5763673598df",
+    "en": "The sizes of data and newdata.",
+    "ja": "data と newdata の群の大きさです。"
+  },
+  "EwmaResult.statistics#summary": {
+    "hash": "d0748459f130",
+    "en": "The group means (or values) of data.",
+    "ja": "data の群の平均 (または値) です。"
+  },
+  "EwmaResult.stdDev#summary": {
+    "hash": "4b7628bb0baa",
+    "en": "The process standard deviation.",
+    "ja": "工程の標準偏差です。"
+  },
+  "EwmaResult.violations#summary": {
+    "hash": "ffc8c9f12716",
+    "en": "Indices (1-based) of the points outside their limits.",
+    "ja": "管理限界の外にある点の添字です (1 始まり)。"
+  },
+  "EwmaResult.warnings#summary": {
+    "hash": "3db2080f70ed",
+    "en": "R's warnings.",
+    "ja": "R の警告です。"
+  },
+  "EwmaResult.y#summary": {
+    "hash": "9eb4725c7d4c",
+    "en": "The smoothed values.",
+    "ja": "平滑化した値です。"
+  },
+  "EwmaSmoothOptions#summary": {
+    "hash": "3ecea1bc0973",
+    "en": "Options for {@link ewmaSmooth}.",
+    "ja": "{@link ewmaSmooth} のオプションです。"
+  },
+  "EwmaSmoothOptions.lambda#summary": {
+    "hash": "4d4ccf6ccb15",
+    "en": "The smoothing parameter (default 0.2).",
+    "ja": "平滑化パラメータです (既定は 0.2)。"
+  },
+  "EwmaSmoothOptions.start#summary": {
+    "hash": "b6a26c5a022f",
+    "en": "The starting value (default: the first y in the order of x).",
+    "ja": "開始値です (既定は、x の順で最初の y)。"
+  },
+  "EwmaSmoothResult#summary": {
+    "hash": "558ef5a51e10",
+    "en": "Result of {@link ewmaSmooth}.",
+    "ja": "{@link ewmaSmooth} の結果です。"
+  },
+  "EwmaSmoothResult.lambda#summary": {
+    "hash": "c5c11588e16f",
+    "en": "The smoothing parameter.",
+    "ja": "平滑化パラメータです。"
+  },
+  "EwmaSmoothResult.start#summary": {
+    "hash": "636087beaa73",
+    "en": "The starting value.",
+    "ja": "初期値です。"
+  },
+  "EwmaSmoothResult.x#summary": {
+    "hash": "2f5d603ee362",
+    "en": "x sorted.",
+    "ja": "整列した x です。"
+  },
+  "EwmaSmoothResult.y#summary": {
+    "hash": "bbe6e57cf6ea",
+    "en": "The smoothed y in the order of x.",
+    "ja": "x の順に並べた、平滑化した y です。"
   },
   "FindIntervalOptions#summary": {
     "hash": "8670b34ed697",
@@ -184,6 +459,81 @@
     "en": "Fraction (0 to 0.5) of values trimmed from each end before the mean. Default `0`.",
     "ja": "平均の前に両端から取り除く値の割合 (0 から 0.5 まで)。既定は `0`。"
   },
+  "MedianChartResult#summary": {
+    "hash": "f258546e2316",
+    "en": "Result of {@link medianChart}.",
+    "ja": "{@link medianChart} の結果です。"
+  },
+  "MedianChartResult.groups#summary": {
+    "hash": "b79431d3700b",
+    "en": "The groups in order of first appearance.",
+    "ja": "現れた順に並べた群です。"
+  },
+  "MedianChartResult.median#summary": {
+    "hash": "9122baa02cdb",
+    "en": "The median chart: center (mean of the medians) and limits center +- A4 Rbar.",
+    "ja": "メディアン管理図です: 中心線 (メディアンの平均) と、管理限界 center +- A4 Rbar です。"
+  },
+  "MedianChartResult.median.center#summary": {
+    "hash": "8cce73a61315",
+    "en": "The mean of the medians.",
+    "ja": "メディアンの平均です。"
+  },
+  "MedianChartResult.median.lcl#summary": {
+    "hash": "5a4d5aeadf76",
+    "en": "center - A4 Rbar.",
+    "ja": "center - A4 Rbar です。"
+  },
+  "MedianChartResult.median.outOfControl#summary": {
+    "hash": "34d730a2be21",
+    "en": "1-based indices of the groups whose median is outside the limits.",
+    "ja": "メディアンが管理限界の外にある群の番号 (1 始まり) です。"
+  },
+  "MedianChartResult.median.ucl#summary": {
+    "hash": "c0de64912a67",
+    "en": "center + A4 Rbar.",
+    "ja": "center + A4 Rbar です。"
+  },
+  "MedianChartResult.medians#summary": {
+    "hash": "f61a14fbc3e7",
+    "en": "The group medians.",
+    "ja": "群のメディアンです。"
+  },
+  "MedianChartResult.n#summary": {
+    "hash": "c9f884313e9d",
+    "en": "The group size.",
+    "ja": "群の大きさです。"
+  },
+  "MedianChartResult.range#summary": {
+    "hash": "d4e118b8d768",
+    "en": "The range chart: center Rbar and limits D3 Rbar, D4 Rbar.",
+    "ja": "範囲の管理図です: 中心線 Rbar と、管理限界 D3 Rbar、D4 Rbar です。"
+  },
+  "MedianChartResult.range.center#summary": {
+    "hash": "206e0178e0f9",
+    "en": "The mean range Rbar.",
+    "ja": "範囲の平均 Rbar です。"
+  },
+  "MedianChartResult.range.lcl#summary": {
+    "hash": "b7cae867606b",
+    "en": "D3 Rbar.",
+    "ja": "D3 Rbar です。"
+  },
+  "MedianChartResult.range.outOfControl#summary": {
+    "hash": "97947d9e5121",
+    "en": "1-based indices of the groups whose range is outside the limits.",
+    "ja": "範囲が管理限界の外にある群の番号 (1 始まり) です。"
+  },
+  "MedianChartResult.range.ucl#summary": {
+    "hash": "efe1bdfa40a0",
+    "en": "D4 Rbar.",
+    "ja": "D4 Rbar です。"
+  },
+  "MedianChartResult.ranges#summary": {
+    "hash": "6d07a4e72a7b",
+    "en": "The group ranges.",
+    "ja": "群の範囲です。"
+  },
   "MomentOptions#summary": {
     "hash": "255c005b65ce",
     "en": "Options for {@link skewness} and {@link kurtosis}.",
@@ -194,6 +544,121 @@
     "en": "e1071's type: 1, 2 or 3. Default `3`.",
     "ja": "e1071 の type: 1、2、3 のいずれか。既定は `3`。"
   },
+  "MqccOptions#summary": {
+    "hash": "cfd51ff629e6",
+    "en": "Options for {@link mqcc}.",
+    "ja": "{@link mqcc} のオプションです。"
+  },
+  "MqccOptions.center#summary": {
+    "hash": "7a216d15c89f",
+    "en": "The center of the variables (default estimated).",
+    "ja": "変数の中心です (既定は推定)。"
+  },
+  "MqccOptions.confidenceLevel#summary": {
+    "hash": "cf040f678491",
+    "en": "The confidence level of the limits (default (1 - 0.0027)^p).",
+    "ja": "管理限界の信頼水準です (既定は (1 - 0.0027)^p)。"
+  },
+  "MqccOptions.cov#summary": {
+    "hash": "265d65ee9d68",
+    "en": "The covariance matrix of the variables (default estimated).",
+    "ja": "変数の共分散行列です (既定は推定)。"
+  },
+  "MqccOptions.newdata#summary": {
+    "hash": "a003a9c72038",
+    "en": "Further groups (rows) charted with the phase I center and covariance.",
+    "ja": "第 I 相の中心と共分散で描く追加の群 (行) です。"
+  },
+  "MqccOptions.predLimits#summary": {
+    "hash": "6ec8dc907cc8",
+    "en": "Compute the prediction (phase II) limits too (default false).",
+    "ja": "予測限界 (第 II 相) も計算します (既定は false)。"
+  },
+  "MqccOptions.type#summary": {
+    "hash": "6fe63377b0ff",
+    "en": "`\"T2\"` (subgrouped data, default when data is a list of matrices) or `\"T2.single\"` (one row per observation).",
+    "ja": "`\"T2\"` (群のあるデータ。data が行列のリストのときの既定) または `\"T2.single\"` (観測値ごとに 1 行) です。"
+  },
+  "MqccResult#summary": {
+    "hash": "a6bbcd03283d",
+    "en": "Result of {@link mqcc}.",
+    "ja": "{@link mqcc} の結果です。"
+  },
+  "MqccResult.center#summary": {
+    "hash": "7d9a3c645cfc",
+    "en": "The center of the variables.",
+    "ja": "変数の中心です。"
+  },
+  "MqccResult.confidenceLevel#summary": {
+    "hash": "e7a3cde42a33",
+    "en": "The confidence level of the limits.",
+    "ja": "管理限界の信頼水準です。"
+  },
+  "MqccResult.cov#summary": {
+    "hash": "bbdfc5be503e",
+    "en": "The covariance matrix of the variables.",
+    "ja": "変数の共分散行列です。"
+  },
+  "MqccResult.limits#summary": {
+    "hash": "1fe4a217643f",
+    "en": "The phase I limits (LCL 0).",
+    "ja": "第 I 相の管理限界です (LCL は 0)。"
+  },
+  "MqccResult.limits.lcl#summary": {
+    "hash": "395c7ed3182c",
+    "en": "The lower limit, 0.",
+    "ja": "下側管理限界で、0 です。"
+  },
+  "MqccResult.limits.ucl#summary": {
+    "hash": "040687daa2d8",
+    "en": "The upper limit.",
+    "ja": "上側管理限界です。"
+  },
+  "MqccResult.means#summary": {
+    "hash": "a52fd82aa07b",
+    "en": "The group means (T2) or the rows (T2.single).",
+    "ja": "群の平均 (T2) または行 (T2.single) です。"
+  },
+  "MqccResult.newstatistics#summary": {
+    "hash": "86913e0e9b48",
+    "en": "T2 of each group of newdata.",
+    "ja": "newdata の各群の T2 です。"
+  },
+  "MqccResult.predLimits#summary": {
+    "hash": "28c089128f63",
+    "en": "The prediction (phase II) limits, or null.",
+    "ja": "予測限界 (第 II 相) で、ないときは null です。"
+  },
+  "MqccResult.statistics#summary": {
+    "hash": "7172a539dd40",
+    "en": "Hotelling's T2 of each group (row) of data.",
+    "ja": "data の各群 (行) の Hotelling の T2 です。"
+  },
+  "MqccResult.type#summary": {
+    "hash": "602475000bb2",
+    "en": "The chart.",
+    "ja": "管理図の種類です。"
+  },
+  "MqccResult.violations#summary": {
+    "hash": "b0c85adb2f0b",
+    "en": "1-based indices over data and newdata.",
+    "ja": "data と newdata にわたる 1 始まりの添字です。"
+  },
+  "MqccResult.violations.beyondLimits#summary": {
+    "hash": "11fd92b74c51",
+    "en": "The points above the phase I limit.",
+    "ja": "第 I 相の管理限界を上回った点です。"
+  },
+  "MqccResult.violations.beyondPredLimits#summary": {
+    "hash": "3148b20916f4",
+    "en": "The points above the prediction limit (empty without prediction limits).",
+    "ja": "予測限界を上回った点です (予測限界がないときは空)。"
+  },
+  "MqccResult.warnings#summary": {
+    "hash": "3db2080f70ed",
+    "en": "R's warnings.",
+    "ja": "R の警告です。"
+  },
   "NaRmOptions#summary": {
     "hash": "56d8b399ccd4",
     "en": "Options of the summaries that can drop missing values.",
@@ -203,6 +668,91 @@
     "hash": "862c80bfa573",
     "en": "Drop `NaN` (R's `NA`) before computing. Default `false`: a `NaN` gives `NaN`.",
     "ja": "計算の前に `NaN` (R の `NA`) を除外します。既定は `false` です (`NaN` があると結果は `NaN` になります)。"
+  },
+  "OcCurvesOptions#summary": {
+    "hash": "328ded3eddde",
+    "en": "Options for {@link ocCurves}.",
+    "ja": "{@link ocCurves} のオプションです。"
+  },
+  "OcCurvesOptions.c#summary": {
+    "hash": "061ec3482057",
+    "en": "Shifts of the mean in sigma units (xbar) or ratios of the new sigma (R, S).",
+    "ja": "平均のシフト (xbar、標準偏差の単位) または、新しい標準偏差の比 (R、S) です。"
+  },
+  "OcCurvesOptions.n#summary": {
+    "hash": "7fe1b29e15e0",
+    "en": "Group sizes of the curves (xbar, R, S; default the chart's size and 1 or 2, 5, 10, 15, 20).",
+    "ja": "曲線の群の大きさです (xbar、R、S。既定は管理図の大きさと、1 または 2、5、10、15、20)。"
+  },
+  "OcCurvesOptions.nsigmas#summary": {
+    "hash": "c49b95b6006f",
+    "en": "The number of sigmas of the limits (default the chart's; probability limits when the chart has them).",
+    "ja": "管理限界の標準偏差の数です (既定は管理図のもの。管理図が確率限界を持つときは確率限界)。"
+  },
+  "OcCurvesResult#summary": {
+    "hash": "59dbeba91fde",
+    "en": "Result of {@link ocCurves}: the probability of not signalling (type II error) for a shift of the process.",
+    "ja": "{@link ocCurves} の結果です: 工程のシフトに対して 管理外れを知らせない確率 (第 2 種の誤り) です。"
+  },
+  "OcCurvesResult.beta#summary": {
+    "hash": "b9ad5302af70",
+    "en": "xbar, R, S: one row per shift (`c`), one column per size (`n`). p, np, c, u: one value per point of `grid`.",
+    "ja": "xbar、R、S: シフト (`c`) ごとに 1 行、大きさ (`n`) ごとに 1 列です。p、np、c、u: `grid` の点ごとに 1 つの値です。"
+  },
+  "OcCurvesResult.c#summary": {
+    "hash": "525fdea5cbf6",
+    "en": "The shifts (xbar: of the mean in sigma units, R and S: ratios of sigma); empty for p, np, c, u.",
+    "ja": "シフトです (xbar: 標準偏差の単位で表した平均のシフト、R と S: 標準偏差の比)。p、np、c、u では空です。"
+  },
+  "OcCurvesResult.grid#summary": {
+    "hash": "0e8ffe2705e6",
+    "en": "p, np: the proportions 0, 0.01, ..., 1; c, u: the means 0, 1, ... of the counts; empty for xbar, R, S.",
+    "ja": "p、np: 割合 0、0.01、...、1。c、u: 度数の平均 0、1、...。xbar、R、S では空です。"
+  },
+  "OcCurvesResult.n#summary": {
+    "hash": "894be6606a99",
+    "en": "The group sizes of the columns; empty for p, np, c, u.",
+    "ja": "各列の群の大きさです。p、np、c、u では空です。"
+  },
+  "OcCurvesResult.type#summary": {
+    "hash": "72ed541145b7",
+    "en": "The chart type.",
+    "ja": "管理図の種類です。"
+  },
+  "OcCurvesResult.warnings#summary": {
+    "hash": "3db2080f70ed",
+    "en": "R's warnings.",
+    "ja": "R の警告です。"
+  },
+  "ParetoChartResult#summary": {
+    "hash": "4b64e9ea0430",
+    "en": "Result of {@link paretoChart}.",
+    "ja": "{@link paretoChart} の結果です。"
+  },
+  "ParetoChartResult.cumFrequency#summary": {
+    "hash": "538d7663827a",
+    "en": "The cumulative frequencies.",
+    "ja": "累積度数です。"
+  },
+  "ParetoChartResult.cumPercentage#summary": {
+    "hash": "5302a85ce598",
+    "en": "The cumulative percentages.",
+    "ja": "累積の割合 (%) です。"
+  },
+  "ParetoChartResult.frequency#summary": {
+    "hash": "0b686d81159f",
+    "en": "The frequencies.",
+    "ja": "度数です。"
+  },
+  "ParetoChartResult.names#summary": {
+    "hash": "2bbb8579e77a",
+    "en": "The categories in decreasing order of frequency (ties in the given order).",
+    "ja": "度数の降順に並べたカテゴリです (同じ度数は与えられた順)。"
+  },
+  "ParetoChartResult.percentage#summary": {
+    "hash": "0c9cdc95b85b",
+    "en": "The percentages of the total.",
+    "ja": "合計に対する割合 (%) です。"
   },
   "PrettyOptions#summary": {
     "hash": "f2a043b0d9db",
@@ -233,6 +783,361 @@
     "hash": "1500a83e68d1",
     "en": "Bias towards 5 over 2 times a power of 10. Default `0.5 + 1.5 * highUBias`. Must be finite and non-negative (as\nin R).",
     "ja": "10 のべき乗の 2 倍より 5 を優先する偏り。既定は `0.5 + 1.5 * highUBias`。有限かつ\n非負でなければなりません (R と同じく)。"
+  },
+  "ProcessCapabilityOptions#summary": {
+    "hash": "7b89169fca91",
+    "en": "Options for {@link processCapability}.",
+    "ja": "{@link processCapability} のオプションです。"
+  },
+  "ProcessCapabilityOptions.confidenceLevel#summary": {
+    "hash": "d19ad1600fec",
+    "en": "The level of the confidence intervals (default 0.95).",
+    "ja": "信頼区間の水準です (既定は 0.95)。"
+  },
+  "ProcessCapabilityOptions.nsigmas#summary": {
+    "hash": "e951f327f3e4",
+    "en": "The number of sigmas (default the chart's).",
+    "ja": "標準偏差の数です (既定は管理図のもの)。"
+  },
+  "ProcessCapabilityOptions.stdDev#summary": {
+    "hash": "bbd242cc24c9",
+    "en": "The within-group standard deviation (default the chart's).",
+    "ja": "群内の標準偏差です (既定は管理図のもの)。"
+  },
+  "ProcessCapabilityOptions.target#summary": {
+    "hash": "cea66589c0ca",
+    "en": "The target (default the middle of the specification limits).",
+    "ja": "目標値です (既定は規格限界の中央)。"
+  },
+  "ProcessCapabilityResult#summary": {
+    "hash": "0a450ecbbf4e",
+    "en": "Result of {@link processCapability}.",
+    "ja": "{@link processCapability} の結果です。"
+  },
+  "ProcessCapabilityResult.center#summary": {
+    "hash": "adf7e9fbabee",
+    "en": "The center of the chart.",
+    "ja": "管理図の中心線です。"
+  },
+  "ProcessCapabilityResult.exp#summary": {
+    "hash": "ab8bb7ec7ff3",
+    "en": "The expected fractions below LSL and above USL under the normal model (values below 1e-4 as 0, as qcc).",
+    "ja": "正規モデルのもとでの、LSL を下回る割合と USL を上回る割合の期待値です (1e-4 未満の値は qcc と同じく 0)。"
+  },
+  "ProcessCapabilityResult.indices#summary": {
+    "hash": "5ed638878154",
+    "en": "Cp, Cp_l, Cp_u, Cp_k, Cpm with their confidence limits.",
+    "ja": "Cp、Cp_l、Cp_u、Cp_k、Cpm とそれぞれの信頼限界です。"
+  },
+  "ProcessCapabilityResult.indices.level#summary": {
+    "hash": "b01d237f1ff5",
+    "en": "The confidence level.",
+    "ja": "信頼水準です。"
+  },
+  "ProcessCapabilityResult.indices.lower#summary": {
+    "hash": "14d27ee8ae06",
+    "en": "The lower confidence limits.",
+    "ja": "信頼区間の下限です。"
+  },
+  "ProcessCapabilityResult.indices.names#summary": {
+    "hash": "a670fce8decd",
+    "en": "\"Cp\", \"Cp_l\", \"Cp_u\", \"Cp_k\", \"Cpm\".",
+    "ja": "\"Cp\"・\"Cp_l\"・\"Cp_u\"・\"Cp_k\"・\"Cpm\" です。"
+  },
+  "ProcessCapabilityResult.indices.upper#summary": {
+    "hash": "30e013e4c6b3",
+    "en": "The upper confidence limits.",
+    "ja": "信頼区間の上限です。"
+  },
+  "ProcessCapabilityResult.indices.value#summary": {
+    "hash": "2ddecaa10d02",
+    "en": "The indices.",
+    "ja": "工程能力指数です。"
+  },
+  "ProcessCapabilityResult.nobs#summary": {
+    "hash": "e6f4fb96e4d0",
+    "en": "The number of observations.",
+    "ja": "観測値の数です。"
+  },
+  "ProcessCapabilityResult.obs#summary": {
+    "hash": "f89368bd0ab7",
+    "en": "The observed fractions below LSL and above USL.",
+    "ja": "LSL を下回る割合と USL を上回る割合の観測値です。"
+  },
+  "ProcessCapabilityResult.specLimits#summary": {
+    "hash": "fc4cdd6fd568",
+    "en": "[LSL, USL] (NaN for a missing one).",
+    "ja": "[LSL, USL] です (欠けているものは NaN)。"
+  },
+  "ProcessCapabilityResult.stdDev#summary": {
+    "hash": "ef79348435f9",
+    "en": "The standard deviation used.",
+    "ja": "使った標準偏差です。"
+  },
+  "ProcessCapabilityResult.target#summary": {
+    "hash": "e7e698ff28fe",
+    "en": "The target.",
+    "ja": "目標値です。"
+  },
+  "ProcessCapabilityResult.warnings#summary": {
+    "hash": "3db2080f70ed",
+    "en": "R's warnings.",
+    "ja": "R の警告です。"
+  },
+  "QccData#summary": {
+    "hash": "962781ef6dc3",
+    "en": "Data of a control chart: one value per group (a vector), or one row per group (a matrix as an array of rows; `null`\nor `NaN` for a missing value, so that the groups may differ in size).",
+    "ja": "管理図のデータです: 群ごとに 1 つの値 (ベクトル)、または群ごとに 1 行 (行の配列としての行列。欠測値は `null` または `NaN` で表すので、群の大きさが異なってもかまいません)。"
+  },
+  "QccGroupsResult#summary": {
+    "hash": "8dff3ec73593",
+    "en": "Result of {@link qccGroups}.",
+    "ja": "{@link qccGroups} の結果です。"
+  },
+  "QccGroupsResult.groups#summary": {
+    "hash": "56d178979704",
+    "en": "One row per sample, the values in order of appearance, NaN to fill.",
+    "ja": "標本ごとに 1 行で、値は現れた順に並べ、不足分は NaN で埋めます。"
+  },
+  "QccGroupsResult.names#summary": {
+    "hash": "29efe54f9800",
+    "en": "The sample values, sorted: the names of the rows.",
+    "ja": "整列した標本の値で、行の名前です。"
+  },
+  "QccOptions#summary": {
+    "hash": "8b2b91c69742",
+    "en": "Options for {@link qcc}.",
+    "ja": "{@link qcc} のオプションです。"
+  },
+  "QccOptions.center#summary": {
+    "hash": "8d0446998034",
+    "en": "The center (target) of the statistic; estimated from the data when not given.",
+    "ja": "統計量の中心線 (目標値) です。与えられないときはデータから推定します。"
+  },
+  "QccOptions.confidenceLevel#summary": {
+    "hash": "959128e973ae",
+    "en": "A probability in (0, 1): probability limits at this level instead of `nsigmas`.",
+    "ja": "(0, 1) の確率です: `nsigmas` の代わりに、この水準の確率限界を用います。"
+  },
+  "QccOptions.k#summary": {
+    "hash": "d2d387ff912e",
+    "en": "The number of points of the moving ranges for xbar.one with `\"MR\"` (default 2, qcc's `k`).",
+    "ja": "`\"MR\"` を用いる xbar.one の移動範囲の点の数です (既定は 2、qcc の `k`)。"
+  },
+  "QccOptions.labels#summary": {
+    "hash": "2439dad11b07",
+    "en": "Labels of the groups (and of the groups of `newdata`, `newlabels`).",
+    "ja": "群のラベルです (`newdata` の群のラベルは `newlabels`)。"
+  },
+  "QccOptions.limits#summary": {
+    "hash": "afa64ed7f82d",
+    "en": "Control limits `[LCL, UCL]` to use instead of computing them.",
+    "ja": "計算する代わりに用いる管理限界 `[LCL, UCL]` です。"
+  },
+  "QccOptions.newdata#summary": {
+    "hash": "69ca85f9f4df",
+    "en": "Further groups charted with the center, standard deviation and limits of `data` (qcc's `newdata`).",
+    "ja": "`data` の中心線、標準偏差、管理限界で描く追加の群です (qcc の `newdata`)。"
+  },
+  "QccOptions.newlabels#summary": {
+    "hash": "af9d2c6b308e",
+    "en": "Labels of the groups of `newdata`.",
+    "ja": "`newdata` の群のラベルです。"
+  },
+  "QccOptions.newsizes#summary": {
+    "hash": "2a3d98ce2d8e",
+    "en": "The sizes of the groups of `newdata` (default: as `sizes` when that is one number).",
+    "ja": "`newdata` の群の大きさです (既定は、`sizes` が 1 つの数のときそれと同じ)。"
+  },
+  "QccOptions.nsigmas#summary": {
+    "hash": "9c5703dbb6df",
+    "en": "The number of standard deviations of the limits (default 3); ignored when `confidenceLevel` is given.",
+    "ja": "管理限界の標準偏差の数です (既定は 3)。`confidenceLevel` が与えられたときは無視されます。"
+  },
+  "QccOptions.runLength#summary": {
+    "hash": "f80626d29c8b",
+    "en": "The length of a run on one side of the center that signals (default 7, qcc's `run.length` option).",
+    "ja": "中心線の片側の連が管理外れを知らせる長さです (既定は 7、qcc の `run.length` オプション)。"
+  },
+  "QccOptions.sizes#summary": {
+    "hash": "8b4277dc7acf",
+    "en": "The group sizes: one number for all groups or one per group. Required for `\"p\"`, `\"np\"` and `\"u\"`; for a matrix\nthe sizes are the numbers of non-missing values of the rows.",
+    "ja": "群の大きさです: すべての群で 1 つの数、または群ごとに 1 つです。`\"p\"`、`\"np\"`、`\"u\"` では必須です。行列では、行の欠測でない値の数が大きさになります。"
+  },
+  "QccOptions.stdDev#summary": {
+    "hash": "479a48ea61b6",
+    "en": "The process standard deviation, or the method that estimates it. Defaults: `\"UWAVE-R\"` for xbar (`\"RMSDF\"` when a\ngroup is larger than 25, as qcc) and R, `\"UWAVE-SD\"` for S, `\"MR\"` for xbar.one.",
+    "ja": "工程の標準偏差、またはそれを推定する方法です。既定は、xbar と R では `\"UWAVE-R\"` (xbar で群が 25 より大きいときは qcc と同じく `\"RMSDF\"`)、S では `\"UWAVE-SD\"`、xbar.one では `\"MR\"` です。"
+  },
+  "QccOptions.type#summary": {
+    "hash": "60acaede243a",
+    "en": "The chart (required).",
+    "ja": "管理図の種類です (必須)。"
+  },
+  "QccOverdispersionTestOptions#summary": {
+    "hash": "064b96623343",
+    "en": "Options for {@link qccOverdispersionTest}.",
+    "ja": "{@link qccOverdispersionTest} のオプションです。"
+  },
+  "QccOverdispersionTestOptions.size#summary": {
+    "hash": "f73fbdc5cd86",
+    "en": "The sample sizes (binomial data).",
+    "ja": "標本の大きさです (二項データ)。"
+  },
+  "QccOverdispersionTestOptions.type#summary": {
+    "hash": "926ebc57b0f8",
+    "en": "`\"binomial\"` (default when sizes are given) or `\"poisson\"`.",
+    "ja": "`\"binomial\"` (大きさが与えられたときの既定) または `\"poisson\"` です。"
+  },
+  "QccOverdispersionTestResult#summary": {
+    "hash": "e0280da04076",
+    "en": "Result of {@link qccOverdispersionTest}.",
+    "ja": "{@link qccOverdispersionTest} の結果です。"
+  },
+  "QccOverdispersionTestResult.df#summary": {
+    "hash": "b3b219eb76b8",
+    "en": "The degrees of freedom, k - 1.",
+    "ja": "自由度 k - 1 です。"
+  },
+  "QccOverdispersionTestResult.pValue#summary": {
+    "hash": "f099a14e7f5c",
+    "en": "1 - pchisq(statistic, df) (qcc rounds it to 5 significant digits; this is the full value).",
+    "ja": "1 - pchisq(statistic, df) です (qcc は有効数字 5 桁に丸めますが、これは丸めない値です)。"
+  },
+  "QccOverdispersionTestResult.ratio#summary": {
+    "hash": "9c541a56e2d4",
+    "en": "The observed variance over the theoretical variance.",
+    "ja": "観測された分散を理論分散で割った値です。"
+  },
+  "QccOverdispersionTestResult.statistic#summary": {
+    "hash": "3f57b7089f09",
+    "en": "ratio (k - 1).",
+    "ja": "ratio (k - 1) です。"
+  },
+  "QccOverdispersionTestResult.type#summary": {
+    "hash": "8b1a054f3b90",
+    "en": "The distribution tested.",
+    "ja": "検定した分布です。"
+  },
+  "QccResult#summary": {
+    "hash": "65c932084b16",
+    "en": "Result of {@link qcc}.",
+    "ja": "{@link qcc} の結果です。"
+  },
+  "QccResult.center#summary": {
+    "hash": "89871a84e10c",
+    "en": "The center: one number, or one per group for an np chart with unequal sizes.",
+    "ja": "中心線です: 1 つの数、または群の大きさが等しくない np 管理図では群ごとに 1 つです。"
+  },
+  "QccResult.confidenceLevel#summary": {
+    "hash": "d9df3275ce1e",
+    "en": "The level of probability limits, or `null`.",
+    "ja": "確率限界の水準、または `null` です。"
+  },
+  "QccResult.data#summary": {
+    "hash": "eed045385fb7",
+    "en": "The data of the chart, as groups (one value per group for vector data); used by {@link processCapability}.",
+    "ja": "管理図のデータで、群の形です (ベクトルのデータでは群ごとに 1 つの値)。{@link processCapability} が用います。"
+  },
+  "QccResult.labels#summary": {
+    "hash": "3384fe2acbd7",
+    "en": "Labels of the groups (and of newdata), or `null`.",
+    "ja": "群のラベルです (newdata を含む)。なければ `null` です。"
+  },
+  "QccResult.limits#summary": {
+    "hash": "61085d8e9dac",
+    "en": "The control limits: one pair when all groups (of `data` and `newdata`) have the same size, else one pair per group\nof `data` followed by those of `newdata`.",
+    "ja": "管理限界です: (`data` と `newdata` の) すべての群の大きさが等しいときは 1 組、そうでなければ `data` の群ごとの組に `newdata` の群ごとの組を続けたものです。"
+  },
+  "QccResult.limits.lcl#summary": {
+    "hash": "ad810498a95c",
+    "en": "The lower control limits.",
+    "ja": "下側管理限界です。"
+  },
+  "QccResult.limits.ucl#summary": {
+    "hash": "86c3dbe1d555",
+    "en": "The upper control limits.",
+    "ja": "上側管理限界です。"
+  },
+  "QccResult.newsizes#summary": {
+    "hash": "e95f2f77a3b4",
+    "en": "The sizes of the groups of `newdata`.",
+    "ja": "`newdata` の群の大きさです。"
+  },
+  "QccResult.newstatistics#summary": {
+    "hash": "623114e0a90b",
+    "en": "The statistic of each group of `newdata` (empty without newdata).",
+    "ja": "`newdata` の各群の統計量です (newdata がなければ空)。"
+  },
+  "QccResult.nsigmas#summary": {
+    "hash": "1c0416a9ae66",
+    "en": "`nsigmas`, or `null` for probability limits.",
+    "ja": "`nsigmas` です。確率限界のときは `null` です。"
+  },
+  "QccResult.runLength#summary": {
+    "hash": "a4021e31f398",
+    "en": "The run length used for `violations`.",
+    "ja": "`violations` に用いた連の長さです。"
+  },
+  "QccResult.sizes#summary": {
+    "hash": "e43a558dfc31",
+    "en": "The group sizes.",
+    "ja": "群の大きさです。"
+  },
+  "QccResult.statistics#summary": {
+    "hash": "28eb916b7908",
+    "en": "The charted statistic of each group of `data`.",
+    "ja": "`data` の各群の、描く統計量です。"
+  },
+  "QccResult.stdDev#summary": {
+    "hash": "57d118c34139",
+    "en": "The process standard deviation (one per group for an np chart with unequal sizes).",
+    "ja": "工程の標準偏差です (群の大きさが等しくない np 管理図では群ごとに 1 つ)。"
+  },
+  "QccResult.stdDevMethod#summary": {
+    "hash": "5de93a196962",
+    "en": "The method that estimated `stdDev`, or `null` when it was given or follows from the center.",
+    "ja": "`stdDev` を推定した方法です。与えられたとき、または中心線から決まるときは `null` です。"
+  },
+  "QccResult.type#summary": {
+    "hash": "602475000bb2",
+    "en": "The chart.",
+    "ja": "管理図の種類です。"
+  },
+  "QccResult.violations#summary": {
+    "hash": "6e1ad509ab97",
+    "en": "The points out of control.",
+    "ja": "管理外れの点です。"
+  },
+  "QccResult.warnings#summary": {
+    "hash": "3db2080f70ed",
+    "en": "R's warnings.",
+    "ja": "R の警告です。"
+  },
+  "QccStdDevMethod#summary": {
+    "hash": "032af1cda18f",
+    "en": "A method of estimating the process standard deviation (qcc's `std.dev`): from the group ranges `\"UWAVE-R\"`,\n`\"MVLUE-R\"`, from the group standard deviations `\"UWAVE-SD\"`, `\"MVLUE-SD\"`, `\"RMSDF\"` (grouped data), from the moving\nranges `\"MR\"` or the standard deviation `\"SD\"` (individual values).",
+    "ja": "工程の標準偏差を推定する方法です (qcc の `std.dev`): 群の範囲から `\"UWAVE-R\"`、`\"MVLUE-R\"`、群の標準偏差から `\"UWAVE-SD\"`、`\"MVLUE-SD\"`、`\"RMSDF\"` (群のあるデータ)、移動範囲から `\"MR\"`、または標準偏差 `\"SD\"` (個別値) です。"
+  },
+  "QccType#summary": {
+    "hash": "2f71fee5a8a2",
+    "en": "The type of a Shewhart chart (qcc's `type`): group means `\"xbar\"`, ranges `\"R\"`, standard deviations `\"S\"`,\nindividual values `\"xbar.one\"`, proportion `\"p\"` and number `\"np\"` of nonconforming units, nonconformities `\"c\"` and\nnonconformities per unit `\"u\"`, and the number of non-events between events `\"g\"`.",
+    "ja": "シューハート管理図の種類です (qcc の `type`): 群の平均 `\"xbar\"`、範囲 `\"R\"`、標準偏差 `\"S\"`、個別値 `\"xbar.one\"`、不適合品の割合 `\"p\"` と個数 `\"np\"`、不適合数 `\"c\"`、単位あたりの不適合数 `\"u\"`、事象と事象の間の非事象の数 `\"g\"` です。"
+  },
+  "QccViolations#summary": {
+    "hash": "5689d33f3f70",
+    "en": "The points out of control (qcc's `violations`): 1-based indices over the groups of `data` followed by those of\n`newdata`.",
+    "ja": "管理外れの点です (qcc の `violations`): `data` の群に `newdata` の群を続けた、1 始まりの添字です。"
+  },
+  "QccViolations.beyondLimits#summary": {
+    "hash": "334edaccaf48",
+    "en": "The points above the upper limit, in order, then those below the lower limit (as qcc).",
+    "ja": "上側の管理限界を超える点を順に、続いて下側の管理限界を下回る点を並べたものです (qcc と同じ)。"
+  },
+  "QccViolations.violatingRuns#summary": {
+    "hash": "f9da5dfb10be",
+    "en": "The points that are the `runLength`-th or a later point of a run strictly on one side of the center.",
+    "ja": "中心線の片側に厳密に続く連の、`runLength` 番目またはそれ以降の点です。"
   },
   "QuantileOptions#summary": {
     "hash": "a41c5c230657",
@@ -379,6 +1284,16 @@
     "en": "Running sums. Equivalent to R's `cumsum()`. Each partial sum is rounded from an exact accumulator; `NaN` from the\nfirst `NaN` on.",
     "ja": "累積和。R の `cumsum()` と同等です。各部分和は正確な累積器から丸められます。\n最初の `NaN` 以降は `NaN` になります。"
   },
+  "cusum#@param data": {
+    "hash": "02ac77651584",
+    "en": "one row per group, or individual values",
+    "ja": "群ごとに 1 行、または個別値"
+  },
+  "cusum#summary": {
+    "hash": "59b578232677",
+    "en": "A cusum chart: the tabular cumulative sums of the standardized group means or individual values above and below the\ntarget. The reference value is `seShift / 2`; a sum beyond the decision interval signals.\n\nEquivalent to `qcc::cusum()` in R.",
+    "ja": "累積和 (cusum) 管理図です: 標準化した群の平均または個別値の、目標値より上側と下側の表形式の累積和です。参照値は `seShift / 2` で、決定区間を超える和が管理外れを知らせます。\n\nR の `qcc::cusum()` と同等です。"
+  },
   "cut#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -423,6 +1338,21 @@
     "hash": "1d07bd1221c1",
     "en": "Empirical distribution function of `x`: a function returning the fraction of values at or below its argument.\nEquivalent to R's `ecdf()`. `NaN` values are dropped.",
     "ja": "`x` の経験分布関数: 引数以下の値の割合を返す関数です。\nR の `ecdf()` と同等です。`NaN` の値は除外されます。"
+  },
+  "ewma#@param data": {
+    "hash": "02ac77651584",
+    "en": "one row per group, or individual values",
+    "ja": "群ごとに 1 行、または個別値"
+  },
+  "ewma#summary": {
+    "hash": "dd9f93982179",
+    "en": "An EWMA chart: the exponentially weighted moving average of the group means or individual values, started at the\ncenter. The limits are `center +- nsigmas sigma_i` with `sigma_i = sd / sqrt(n_i) sqrt(lambda / (2 - lambda)\n(1 - (1 - lambda)^(2 i)))`, qcc's form, with each point's own size also when the sizes differ.\n\nEquivalent to `qcc::ewma()` in R.",
+    "ja": "EWMA 管理図です: 群の平均または個別値の指数重み付き移動平均で、中心線から始めます。管理限界は `center +- nsigmas sigma_i` で、`sigma_i = sd / sqrt(n_i) sqrt(lambda / (2 - lambda) (1 - (1 - lambda)^(2 i)))` という qcc の形です。群の大きさが異なるときも、各点自身の大きさを用います。\n\nR の `qcc::ewma()` と同等です。"
+  },
+  "ewmaSmooth#summary": {
+    "hash": "98db2d1ca228",
+    "en": "EWMA smoothing of y in the order of x. It computes `z_t = lambda y_t + (1 - lambda) z_{t-1}` from `z_0 = start`.\n\nEquivalent to `qcc::ewmaSmooth()` in R.",
+    "ja": "x の順に並べた y の EWMA 平滑化です。`z_0 = start` から `z_t = lambda y_t + (1 - lambda) z_{t-1}` を計算します。\n\nR の `qcc::ewmaSmooth()` と同等です。"
   },
   "findInterval#@example": {
     "hash": "f2167be5edf2",
@@ -514,6 +1444,21 @@
     "en": "Median of the values (the mean of the two middle ones for an even count). Equivalent to R's `median()`.",
     "ja": "値の中央値 (偶数個の場合は中央の 2 つの平均)。R の `median()` と同等です。"
   },
+  "medianChart#@param groups": {
+    "hash": "5cf8385fd124",
+    "en": "the subgroup of each observation (groups in order of first appearance)",
+    "ja": "各観測値の群 (現れた順の群)"
+  },
+  "medianChart#@param values": {
+    "hash": "723a214e2d1d",
+    "en": "the observations",
+    "ja": "観測値"
+  },
+  "medianChart#summary": {
+    "hash": "f1aef5f56c4b",
+    "en": "The median chart (Me-R chart) of subgroups of equal size 2 to 10, with the JIS factors A4, D3, D4: medians charted\naround the mean median with limits `+- A4 Rbar`, ranges around Rbar with limits `D3 Rbar`, `D4 Rbar` (the procedure of\nReactiveStat; not in qcc). Unequal group sizes are an error.\n\nNot an R function. qcc has no median chart; this is the procedure of ReactiveStat with the JIS factors.",
+    "ja": "大きさが等しい 2 から 10 の群のメディアン管理図 (Me-R 管理図) で、JIS の係数 A4、D3、D4 を用います: メディアンを、メディアンの平均のまわりに管理限界 `+- A4 Rbar` で描き、範囲を Rbar のまわりに管理限界 `D3 Rbar`、`D4 Rbar` で描きます (ReactiveStat の手順で、qcc にはありません)。群の大きさが等しくないときはエラーです。\n\nR の関数ではありません。qcc にメディアン管理図はなく、これは JIS の係数を用いる ReactiveStat の手順です。"
+  },
   "modes#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -534,6 +1479,26 @@
     "en": "The most frequent values, in increasing order (`[NaN]` when every value occurs once).",
     "ja": "最も頻度の高い値 (昇順。すべての値が 1 回ずつの場合は `[NaN]`)。"
   },
+  "mqcc#summary": {
+    "hash": "dc97df7ecc17",
+    "en": "A multivariate control chart of Hotelling's T2. It charts T2 of subgroup means (`\"T2\"`: data a list with one matrix\nper variable, rows = groups) or of individual observations (`\"T2.single\"`: one row per observation, one column per\nvariable), with the phase I limits (F for T2, Beta for T2.single) and optionally the prediction limits.\n\nEquivalent to `qcc::mqcc()` in R.",
+    "ja": "Hotelling の T2 の多変量管理図です。群の平均 (`\"T2\"`: data は変数ごとに 1 つの行列を持つリストで、行が群) または個別の観測値 (`\"T2.single\"`: 観測値ごとに 1 行、変数ごとに 1 列) の T2 を、第 I 相の管理限界 (T2 では F、T2.single では Beta) と、任意で予測限界とともに描きます。\n\nR の `qcc::mqcc()` と同等です。"
+  },
+  "ocCurves#@param chart": {
+    "hash": "cbb284c489ac",
+    "en": "a result of {@link qcc}",
+    "ja": "{@link qcc} の結果"
+  },
+  "ocCurves#summary": {
+    "hash": "29d0058e83dc",
+    "en": "Operating characteristic curves of a chart: the probability that a group's statistic stays within the limits after\na shift of the process. For xbar: the normal model with limits `+- L` (L = nsigmas or the quantile of the\nchart's confidence level); R and S: for each size its own limits (with sigma 1) under a scale change, from the\nrange distribution (ptukey) and chi-square; p and np: the binomial over p = 0, 0.01, ..., 1 with the chart's\nlimits; c: the Poisson over 0, 1, ..., ceiling(c + 10 sqrt(c)); u: the c curve of the counts (limits times n) over\n0, ..., ceiling(n u + 10 sqrt(u)). Equal group sizes only.\n\nEquivalent to `qcc::oc.curves()` in R.",
+    "ja": "管理図の OC 曲線です: 工程のシフトの後に、群の統計量が管理限界の内側に留まる確率です。xbar: 管理限界 `+- L` (L は nsigmas、または管理図の信頼水準の分位点) の正規モデルです。R と S: 大きさごとに固有の管理限界 (標準偏差 1) で、尺度の変化のもとでの、範囲の分布 (ptukey) とカイ二乗分布によるものです。p と np: 管理図の管理限界のもとでの、p = 0, 0.01, ..., 1 にわたる二項分布です。c: 0, 1, ..., ceiling(c + 10 sqrt(c)) にわたるポアソン分布です。u: 度数 (管理限界に n を掛けたもの) の c の曲線で、0, ..., ceiling(n u + 10 sqrt(u)) にわたります。群の大きさが等しい場合のみです。\n\nR の `qcc::oc.curves()` と同等です。"
+  },
+  "paretoChart#summary": {
+    "hash": "03891a5f98dc",
+    "en": "The table of a Pareto chart without the plot: frequencies in decreasing order with the\ncumulative frequencies and percentages. Unnamed data are named A, B, C, ...\n\nEquivalent to `qcc::pareto.chart()` in R.",
+    "ja": "図を描かない、パレート図の表です: 度数の降順の度数と、累積度数、累積百分率です。名前のないデータには A、B、C、... と名前を付けます。\n\nR の `qcc::pareto.chart()` と同等です。"
+  },
   "pretty#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -544,6 +1509,21 @@
     "en": "About n + 1 equally spaced \"round\" values (1, 2 or 5 times a power of 10) covering the range of `x`. Equivalent to\nR's `pretty()`.",
     "ja": "`x` の範囲を覆う、おおよそ n + 1 個の等間隔な「きりのよい」値 (10 のべき乗の 1 倍、2 倍、5 倍のいずれか)。R の\n`pretty()` と同等です。"
   },
+  "processCapability#@param chart": {
+    "hash": "5ca8426630fe",
+    "en": "an xbar or xbar.one chart ({@link qcc})",
+    "ja": "xbar または xbar.one 管理図 ({@link qcc})"
+  },
+  "processCapability#@param specLimits": {
+    "hash": "2356c6ebf6d2",
+    "en": "[LSL, USL]; NaN for a one-sided specification",
+    "ja": "[LSL, USL]。片側規格では NaN"
+  },
+  "processCapability#summary": {
+    "hash": "7a21c9ae1b90",
+    "en": "Process capability indices of an xbar or xbar.one chart. They are Cp with Chou's limits, Cp_u and\nCp_k with Bissell's (the one-sided Cp_l and Cp_u with the one-sided quantile qnorm(conf)), Cpm with Boyles's\n(nu = n (1 + d^2) / (1 + 2 d^2)). As qcc: with one specification limit missing, Cp, Cp_k and Cpm are NaN; expected fractions below 1e-4\nare reported as 0.\n\nEquivalent to `qcc::process.capability()` in R.",
+    "ja": "xbar または xbar.one 管理図の工程能力指数です。Cp は Chou の限界、Cp_u と Cp_k は Bissell の限界 (片側の Cp_l と Cp_u は片側の分位点 qnorm(conf))、Cpm は Boyles の限界 (nu = n (1 + d^2) / (1 + 2 d^2)) を用います。qcc と同じく、規格限界の一方が欠けているときは Cp、Cp_k、Cpm は NaN で、1e-4 未満の期待割合は 0 として報告します。\n\nR の `qcc::process.capability()` と同等です。"
+  },
   "prod#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -553,6 +1533,31 @@
     "hash": "0bcdbd340bce",
     "en": "Product of the values. Equivalent to R's `prod()`. 1 for an empty vector.",
     "ja": "値の積。R の `prod()` と同等です。空のベクトルの場合は 1 です。"
+  },
+  "qcc#@param data": {
+    "hash": "3456f84969bf",
+    "en": "one value per group, or one row per group",
+    "ja": "群ごとに 1 つの値、または群ごとに 1 行"
+  },
+  "qcc#@param options": {
+    "hash": "e0ad9707fab4",
+    "en": "the chart `type` and the options of qcc",
+    "ja": "管理図の `type` と qcc のオプション"
+  },
+  "qcc#summary": {
+    "hash": "288c55ae6b0c",
+    "en": "A Shewhart control chart without the plot: the charted statistics, the center, the process standard deviation, the\ncontrol limits and the points out of control. The charts:\n\n- xbar, R, S: data one row per group; sigma by UWAVE-R (default), MVLUE-R, UWAVE-SD, MVLUE-SD or RMSDF, the\n  centers weighted by the group sizes; R limits `center +- k d3(n) sigma`, S limits `center +- k sigma\n  sqrt(1 - c4(n)^2)`; probability limits from the range distribution (qtukey) and from chi-square.\n- xbar.one: individual values, sigma from moving ranges (MR) or the standard deviation (SD).\n- p, np, c, u, g: counts; limits from the binomial, Poisson and geometric models.\n\nAs qcc: a group of size 1 is an error when sigma is estimated; groups larger than 25 switch the default of the xbar\nchart to RMSDF and give NA limits for the R chart (no d2 / d3 there); unequal sizes are an error for the c chart.\nUnlike qcc, NA statistics are left out of the violation indices.\n\nEquivalent to `qcc::qcc()` in R.",
+    "ja": "図を描かないシューハート管理図です: 描く統計量、中心線、工程の標準偏差、管理限界、管理外れの点を返します。管理図の種類は次のとおりです。\n\n- xbar、R、S: データは群ごとに 1 行。標準偏差は UWAVE-R (既定)、MVLUE-R、UWAVE-SD、MVLUE-SD、RMSDF のいずれかで、中心線は群の大きさで重み付けします。R の管理限界は `center +- k d3(n) sigma`、S の管理限界は `center +- k sigma sqrt(1 - c4(n)^2)` です。確率限界は、範囲の分布 (qtukey) とカイ二乗分布から求めます。\n- xbar.one: 個別値。標準偏差は移動範囲 (MR) または標準偏差 (SD) から求めます。\n- p、np、c、u、g: 計数データ。管理限界は二項、ポアソン、幾何のモデルから求めます。\n\nqcc と同じく、標準偏差を推定するときに大きさ 1 の群があるとエラーです。群が 25 より大きいと xbar 管理図の既定は RMSDF に切り替わり、R 管理図の管理限界は NA になります (そこでは d2 / d3 がありません)。c 管理図で群の大きさが等しくないときはエラーです。qcc と異なり、NA の統計量は管理外れの添字から除きます。\n\nR の `qcc::qcc()` と同等です。"
+  },
+  "qccGroups#summary": {
+    "hash": "89ec282dac58",
+    "en": "Groups data by a sample indicator into one row per sample, for {@link qcc}.\n\nEquivalent to `qcc::qcc.groups()` in R.",
+    "ja": "標本の指標でデータを、標本ごとに 1 行にまとめます。{@link qcc} 用です。\n\nR の `qcc::qcc.groups()` と同等です。"
+  },
+  "qccOverdispersionTest#summary": {
+    "hash": "889b1fb71380",
+    "en": "The overdispersion test for binomial or Poisson counts. It refers D = var(x) / theoretical\nvariance * (k - 1) against chi-square on k - 1 degrees of freedom; the theoretical variance is mean(size) p (1 - p)\nwith p = sum(x) / sum(size), or mean(x).\n\nEquivalent to `qcc::qcc.overdispersion.test()` in R.",
+    "ja": "二項または Poisson の計数データの過分散の検定です。D = var(x) / 理論分散 * (k - 1) を、自由度 k - 1 のカイ二乗分布と比べます。理論分散は、p = sum(x) / sum(size) として mean(size) p (1 - p)、または mean(x) です。\n\nR の `qcc::qcc.overdispersion.test()` と同等です。"
   },
   "quantile(0)#@example": {
     "hash": "f2167be5edf2",
@@ -658,6 +1663,11 @@
     "hash": "0e13f88e8a1d",
     "en": "Sample standard deviation (denominator n - 1). Equivalent to R's `sd()`.",
     "ja": "標本標準偏差 (分母は n - 1)。R の `sd()` と同等です。"
+  },
+  "shewhartRules#summary": {
+    "hash": "138679455340",
+    "en": "The points out of control of charted statistics: those beyond the limits and those in long runs on one side of the\ncenter. The limits are one pair for all points or one per point. An NA statistic is left out of both lists (qcc puts\nNA into them) and ends a run.\n\nEquivalent to `qcc::shewhart.rules()` in R.",
+    "ja": "描いた統計量の管理外れの点です: 管理限界を超える点と、中心線の片側の長い連にある点です。管理限界は、すべての点で 1 組、または点ごとに 1 組です。NA の統計量は両方の一覧から除かれ (qcc は NA を入れます)、連を終わらせます。\n\nR の `qcc::shewhart.rules()` と同等です。"
   },
   "skewness#@example": {
     "hash": "f2167be5edf2",
