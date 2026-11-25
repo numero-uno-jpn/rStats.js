@@ -202,3 +202,18 @@ export {
   type LoglmResidualsOptions,
   type LoglmAnovaResult,
 } from "../models/loglin.js";
+
+// Paired comparisons: Bradley-Terry models and quasi variances (rStats.js/regression)
+
+export {
+  btm,
+  btAbilities,
+  countsToBinomial,
+  qvcalc,
+  worstErrors,
+  type BtmOptions,
+  type BtmResult,
+  type BtAbilitiesResult,
+  type CountsToBinomialResult,
+  type QvcalcResult,
+} from "../models/bradleyterry.js";

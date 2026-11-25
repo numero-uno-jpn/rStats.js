@@ -55,11 +55,14 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `anova.rq()` | `rqAnova` | Wald comparisons for nested models or slopes across multiple quantiles. |
 | `anova()` | `geeAnova` | Compare GEE terms or nested models using Wald tests. |
 | `betareg::betareg()` | `betareg` | Beta regression for rates and proportions in (0, 1): the mean linked to a linear predictor, the precision phi constant (`y ~ x`) or linked to its own regressors (`y ~ x \| z`), fitted by maximum likelihood, or bias-corrected or bias-reduced. |
+| `BradleyTerry2::BTabilities()` | `btAbilities` | The abilities of the players of a Bradley-Terry model. |
+| `BradleyTerry2::BTm()` | `btm` | A Bradley-Terry model for paired comparisons: the probability that player1 beats player2 is `link^-1(lambda_1 - lambda_2)`. |
 | `coef.glmnet()` | `glmnetCoef` | Extract coefficients at selected penalty values. |
 | `nnet::confint.multinom()` | `multinomConfint` | Wald confidence intervals of the coefficients of a multinomial logistic regression. |
 | `confint.nls()` | `nlsConfint` | Wald or profile confidence intervals for nonlinear parameters. |
 | `confint.polr()` | `polrConfint` | Equivalent to R's `confint.polr()`. |
 | `confint()` | `betaregConfint` | Wald confidence intervals of all coefficients of a `betareg` fit. |
+| `BradleyTerry2::countsToBinomial()` | `countsToBinomial` | The wins of each pair of players from a table of wins. |
 | `cv.glmnet()` | `cvGlmnet` | Cross-validate a penalized generalized linear model. |
 | `geepack::geeglm()` | `geeglm` | Fit a marginal generalized estimating equation model. |
 | `glmnet::glmnet()` | `glmnet` | Fit a penalized generalized linear model path. |
@@ -80,6 +83,7 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `MASS::psi.hampel()` | `psiHampel` | Hampel's three-part psi function. |
 | `MASS::psi.huber()` | `psiHuber` | Huber's psi function. |
 | `geepack::QIC()` | `geeQIC` | Calculate quasi-likelihood information criteria for a GEE fit. |
+| `qvcalc::qvcalc()` | `qvcalc` | Quasi variances. |
 | `betareg::residuals.betareg()` | `betaregResiduals` | Residuals of a `betareg` fit. |
 | `MASS::residuals.loglm()` | `loglmResiduals` | Residuals of a `loglm` fit, one per cell. |
 | `MASS::rlm()` | `rlm` | Robust M regression. |
@@ -98,6 +102,7 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `vcov.polr()` | `polrVcov` | Covariance matrix of the slopes and cut-points. |
 | `vcov.rlm()` | `rlmVcov` | Covariance matrix of robust-regression coefficients. |
 | `vcov()` | `geeVcov` | Return robust or model-based coefficient covariance. |
+| `qvcalc::worstErrors()` | `worstErrors` | The worst relative errors of the quasi standard errors over all contrasts. |
 
 ## Time series analysis (`rStats.js/timeseries`)
 
@@ -490,9 +495,12 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `cummin()` | `cummin` | Running minima. |
 | `cumprod()` | `cumprod` | Running products. |
 | `cumsum()` | `cumsum` | Running sums. |
+| `qcc::cusum()` | `cusum` | A cusum chart: the tabular cumulative sums of the standardized group means or individual values above and below the target. |
 | `cut()` | `cut` | Interval numbers of the values, or NaN outside the breaks. |
 | `diff()` | `diff` | Lagged and iterated differences. |
 | `ecdf()` | `ecdf` | Empirical distribution function of `x`: a function returning the fraction of values at or below its argument. |
+| `qcc::ewma()` | `ewma` | An EWMA chart: the exponentially weighted moving average of the group means or individual values, started at the center. |
+| `qcc::ewmaSmooth()` | `ewmaSmooth` | EWMA smoothing of y in the order of x. |
 | `findInterval()` | `findInterval` | For each value, the number of break points at or below it. |
 | `fivenum()` | `fivenum` | Tukey's five-number summary. |
 | `DescTools::Gmean()` | `geometricMean` | Geometric mean exp(mean(log x)). |
@@ -505,16 +513,24 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `median()` | `median` | Median of the values. |
 | `merge()` | `merge` | Join two data frames on key columns. |
 | `DescTools::Mode()` | `modes` | The most frequent values and their frequency. |
+| `qcc::mqcc()` | `mqcc` | A multivariate control chart of Hotelling's T2. |
 | `na.omit()` | `naOmit` | The values that are not missing. |
+| `qcc::oc.curves()` | `ocCurves` | Operating characteristic curves of a chart: the probability that a group's statistic stays within the limits after a shift of the process. |
+| `qcc::pareto.chart()` | `paretoChart` | The table of a Pareto chart without the plot: frequencies in decreasing order with the cumulative frequencies and percentages. |
 | `tidyr::pivot_longer()` | `pivotLonger` | Reshapes a data frame from wide to long: the selected columns become rows. |
 | `tidyr::pivot_wider()` | `pivotWider` | Reshapes a data frame from long to wide: the values of `namesFrom` become columns, filled from `valuesFrom`. |
 | `pretty()` | `pretty` | About n + 1 equally spaced "round" values covering the range of `x`. |
+| `qcc::process.capability()` | `processCapability` | Process capability indices of an xbar or xbar.one chart. |
 | `prod()` | `prod` | Product of the values. |
+| `qcc::qcc.groups()` | `qccGroups` | Groups data by a sample indicator into one row per sample, for `qcc`. |
+| `qcc::qcc.overdispersion.test()` | `qccOverdispersionTest` | The overdispersion test for binomial or Poisson counts. |
+| `qcc::qcc()` | `qcc` | A Shewhart control chart without the plot: the charted statistics, the center, the process standard deviation, the control limits and the points out of control. |
 | `quantile()` | `quantile` | Sample quantiles. |
 | `range()` | `range` | `[min, max]` of the values. |
 | `rank()` | `rank` | Sample ranks. |
 | `scale()` | `scale` | Centre and scale the columns of a matrix. |
 | `sd()` | `sd` | Sample standard deviation. |
+| `qcc::shewhart.rules()` | `shewhartRules` | The points out of control of charted statistics: those beyond the limits and those in long runs on one side of the center. |
 | `e1071::skewness()` | `skewness` | Sample skewness. |
 | `split()` | `split` | The values of `x` divided into groups. |
 | `subset()` | `subset` | The rows of a data frame that meet a condition, and optionally some of its columns. |
@@ -526,6 +542,7 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `var()` | `variance` | Sample variance. |
 | `weighted.mean()` | `weightedMean` | Weighted mean `sum(x w) / sum(w)`. |
 | (not in R) | `fromRows` | A data frame from an array of row objects, the usual shape of JSON and of parsed CSV. |
+| (not in R) | `medianChart` | The median chart of subgroups of equal size 2 to 10, with the JIS factors A4, D3, D4: medians charted around the mean median with limits `+- A4 Rbar`, ranges around Rbar with limits `D3 Rbar`, `D4 Rbar`. |
 | (not in R) | `toRows` | The rows of a data frame as an array of objects, the inverse of `fromRows`. |
 
 ## Numerical methods (`rStats.js/numerics`)
