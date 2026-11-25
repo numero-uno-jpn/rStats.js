@@ -35,7 +35,10 @@
   正確な方を出す案)
 - **ユーザーに聞くこと (仕様書の Choices):** 上の癖をどこまで R に合わせるか、関数名と入口の形 (qcc の type ごとか 1 つの関数か)、
   `br = TRUE` (Firth) を入れるか (Issue の範囲外)、Me-R の群の大きさが揃わないときの扱い (ReactiveStat は最初の群の n)
-- 次: 仕様書 `oracle/qcc-bt-behaviour.md` → Choices を AskUserQuestion → fixture (`oracle/qcc.R`・`bradleyterry.R` など、名前の重なりを確認) →
+- **仕様書 `oracle/qcc-bt-behaviour.md` を書いた。Choices はユーザーが決めた (2026-11-25、全部推奨どおり):** qcc は 1 つの関数、
+  違反の番号から NA を除く (26 以上の RMSDF と R 管理図の NA は R と同じ)、工程能力の癖は R と同じ (過分散検定の p 値だけ丸めない)、
+  Me-R の群の大きさが揃わないときはエラー、br = TRUE は入れない
+- 次: fixture (`oracle/qcc.R`・`bradleyterry.R` など、名前の重なりを確認) →
   実装 → 端のケースと極端な尺度を 2 回 → 配線・文書・訳・デモ → 版 1.18.0
 
 ## (以前) 次の版の範囲を決める前の記録
