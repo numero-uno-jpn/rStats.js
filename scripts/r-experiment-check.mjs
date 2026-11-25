@@ -21,7 +21,8 @@ const ALLOWED_PACKAGES = new Set([
   "cmprsk", "survival", "epiR", "exact2x2", "clinfun", "powerSurvEpi", "metafor", "metadat", "lme4", "Matrix",
   "MASS", "quantreg", "SparseM", "MatrixModels", "geepack", "glmnet", "PMCMRplus", "outliers", "ca", "Matching", "cobalt",
   "tableone", "WeightIt", "CBPS", "survey", "sandwich", "nnet", "mediation", "interactions", "jtools", "lmtest",
-  "AER", "betareg", "Formula", "qcc", "BradleyTerry2", "qvcalc", "jsonlite", "stats", "utils", "base",
+  "AER", "betareg", "Formula", "qcc", "BradleyTerry2", "qvcalc", "timeROC", "survivalROC", "jsonlite", "stats", "utils",
+  "base",
 ]);
 
 /** Functions of the reference packages: they may only be called. */
@@ -494,6 +495,12 @@ const REFERENCE_FUNCTIONS = [
   "stats.np", "stats.p", "stats.R", "stats.S", "stats.T2", "stats.T2.single", "stats.u", "stats.xbar",
   "stats.xbar.one", "summary.BTglmmPQL", "summary.cusum.qcc", "summary.ewma.qcc", "summary.mqcc", "summary.qcc",
   "summary.qv", "vcov.BTabilities", "vcov.BTglmmPQL", "violating.runs", "worstErrors",
+  // Time-dependent ROC curves (1.19.0): the exported functions and S3 methods of timeROC 0.4.1 and survivalROC 1.0.3.1
+  // (not timeROC's `compare`: earlier experiments use it as a variable name, as jtools' summ and center above)
+  "confint.ipcwcompetingrisksROC", "confint.ipcwsurvivalROC", "plot.ipcwcompetingrisksROC",
+  "plot.ipcwsurvivalROC", "plotAUCcurve", "plotAUCcurveDiff", "print.ipcwcompetingrisksROC",
+  "print.ipcwcompetingrisksSeSpPPVNPV", "print.ipcwsurvivalROC", "print.ipcwsurvivalSeSpPPVNPV", "SeSpPPVNPV", "timeROC",
+  "survivalROC", "survivalROC.C",
 ];
 
 /** Names that reach code, namespaces, compiled routines, other programs or files: not allowed at all. */
