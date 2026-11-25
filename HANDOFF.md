@@ -9,7 +9,7 @@
 - **1.18.0 を公開した (2026-11-26):** main `e2947e18` (作業ブランチを squash、違いは CHANGELOG の日付だけ)、CI・Pages 緑 → タグ `v1.18.0` →
   stage (id `80983efc-...`) をユーザーが承認。npm latest = 1.18.0、jsDelivr の `dist/regression.js`・`dist/descriptive.js`、`/api/`・
   `/ja/api/` の qcc・btm・medianChart・qvcalc のページ、R の関数の索引、デモ v1.18.0 を確かめた。Issue #568 を閉じた。証拠はタグ
-  `archive/qcc-bt-1.18` (push 済み)。作業ブランチ `dev/qcc-bt-1.18` は手元に残してある (消す前にユーザーに聞く)
+  `archive/qcc-bt-1.18` (push 済み)。作業ブランチ `dev/qcc-bt-1.18` はユーザーの指示で削除 (2026-11-26、手元だけにあった。タグと同じ `a0299cca` を確かめてから)。クリーンルームの証拠は、タグの 17 コミットの履歴と、main の `experiments/qccbt118-*` (35 ファイル、ログ 23 項目)・`oracle/qcc-bt-behaviour.md`・fixture の oracle、Issue #568 のコメント
 - **GitHub の障害 (2026-11-25 15:45〜 UTC、Actions・Webhooks・Pages が degraded):** 最初のタグの push で Release が起動しなかった →
   GitHub 上のタグを消して push し直した (1 回 500、1 分後に成功)。Release の後の Pages の配備が 500 で失敗 → `gh run rerun --failed` で成功
 - ユーザーの決定 (2026-11-26): 1 つ前の報告の「私が決めたこと」(関数名、btm の入口、`{ lcl, ucl }`、mqcc は連を返さない) は了承。
