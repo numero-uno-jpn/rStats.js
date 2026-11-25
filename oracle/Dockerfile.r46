@@ -159,3 +159,10 @@ RUN install2.r --error --skipinstalled AER betareg \
     && Rscript -e 'pk <- c("AER", "betareg", "Formula", "survival", "MASS"); \
                    for (p in pk) suppressPackageStartupMessages(library(p, character.only = TRUE)); \
                    cat(sprintf("%s %s\n", pk, sapply(pk, function(p) as.character(packageVersion(p)))), sep = "")'
+
+# Control charts and paired comparisons (1.18.0), in a layer of its own: qcc (control charts, capability, CUSUM, EWMA,
+# OC curves), BradleyTerry2 (BTm, BTabilities) and qvcalc (quasi-variances).
+RUN install2.r --error --skipinstalled qcc BradleyTerry2 qvcalc \
+    && Rscript -e 'pk <- c("qcc", "BradleyTerry2", "qvcalc", "lme4"); \
+                   for (p in pk) suppressPackageStartupMessages(library(p, character.only = TRUE)); \
+                   cat(sprintf("%s %s\n", pk, sapply(pk, function(p) as.character(packageVersion(p)))), sep = "")'

@@ -124,3 +124,12 @@ RUN install2.r --error --skipinstalled AER betareg \
                    got <- sapply(names(want), function(p) as.character(packageVersion(p))); \
                    cat(sprintf("%s %s\n", names(got), got), sep = ""); \
                    if (!identical(unname(got), unname(want))) quit(status = 1)'
+
+# Control charts and paired comparisons (1.18.0): qcc, BradleyTerry2 (with lme4 for its random effects' data) and
+# qvcalc, in a layer of their own, at the versions of the fixtures.
+RUN install2.r --error --skipinstalled qcc BradleyTerry2 qvcalc \
+    && Rscript -e 'want <- c(qcc = "2.7", BradleyTerry2 = "1.1.4", qvcalc = "1.0.4"); \
+                   for (p in names(want)) suppressPackageStartupMessages(library(p, character.only = TRUE)); \
+                   got <- sapply(names(want), function(p) as.character(packageVersion(p))); \
+                   cat(sprintf("%s %s\n", names(got), got), sep = ""); \
+                   if (!identical(unname(got), unname(want))) quit(status = 1)'

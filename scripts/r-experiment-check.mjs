@@ -21,7 +21,7 @@ const ALLOWED_PACKAGES = new Set([
   "cmprsk", "survival", "epiR", "exact2x2", "clinfun", "powerSurvEpi", "metafor", "metadat", "lme4", "Matrix",
   "MASS", "quantreg", "SparseM", "MatrixModels", "geepack", "glmnet", "PMCMRplus", "outliers", "ca", "Matching", "cobalt",
   "tableone", "WeightIt", "CBPS", "survey", "sandwich", "nnet", "mediation", "interactions", "jtools", "lmtest",
-  "AER", "betareg", "Formula", "jsonlite", "stats", "utils", "base",
+  "AER", "betareg", "Formula", "qcc", "BradleyTerry2", "qvcalc", "jsonlite", "stats", "utils", "base",
 ]);
 
 /** Functions of the reference packages: they may only be called. */
@@ -478,6 +478,22 @@ const REFERENCE_FUNCTIONS = [
   "update.ivreg", "update.tobit", "variance.Beta01", "variance.Beta4", "variance.BetaR", "variance.XBeta",
   "variance.XBetaX", "vcov.betareg", "vcov.ivreg", "vcov.tobit", "waldtest.tobit", "weights.tobit", "XBeta", "XBetaX",
   "xbetax_family",
+  // Control charts and paired comparisons (1.18.0): the exported functions and S3 methods of qcc, BradleyTerry2 and
+  // qvcalc whose names are not also base R's
+  "add1.BTm", "anova.BTm", "beyond.limits", "blues.colors", "BTabilities", "BTm", "cause.and.effect",
+  "coef.BTabilities", "countsToBinomial", "cusum", "drop1.BTm", "ellipseChart", "ewma", "ewmaSmooth", "formula.BTm",
+  "GenDavidson", "glmmPQL.control", "indentPrint", "limits.c", "limits.g", "limits.np", "limits.p", "limits.R",
+  "limits.S", "limits.T2", "limits.T2.single", "limits.u", "limits.xbar", "limits.xbar.one", "model.matrix.BTm",
+  "mqcc", "oc.curves", "oc.curves.c", "oc.curves.p", "oc.curves.R", "oc.curves.S", "oc.curves.xbar", "pareto.chart",
+  "plot.cusum.qcc", "plot.ewma.qcc", "plot.mqcc", "plot.pareto.chart", "plot.qcc", "plot.qv", "plotProportions",
+  "predict.BTglmmPQL", "predict.BTm", "print.BTabilities", "print.BTglmmPQL", "print.BTm", "print.cusum.qcc",
+  "print.ewma.qcc", "print.mqcc", "print.pareto.chart", "print.qcc", "print.qv", "print.summary.BTglmmPQL",
+  "process.capability", "qcc", "qcc.groups", "qcc.options", "qcc.overdispersion.test", "qvcalc", "qvcalc.BTabilities",
+  "qvcalc.coxph", "qvcalc.default", "qvcalc.itempar", "qvcalc.lm", "qvcalc.survreg", "residuals.BTm", "sd.c", "sd.g",
+  "sd.np", "sd.p", "sd.R", "sd.S", "sd.u", "sd.xbar", "sd.xbar.one", "shewhart.rules", "stats.c", "stats.g",
+  "stats.np", "stats.p", "stats.R", "stats.S", "stats.T2", "stats.T2.single", "stats.u", "stats.xbar",
+  "stats.xbar.one", "summary.BTglmmPQL", "summary.cusum.qcc", "summary.ewma.qcc", "summary.mqcc", "summary.qcc",
+  "summary.qv", "vcov.BTabilities", "vcov.BTglmmPQL", "violating.runs", "worstErrors",
 ];
 
 /** Names that reach code, namespaces, compiled routines, other programs or files: not allowed at all. */
