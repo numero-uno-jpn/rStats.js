@@ -4,7 +4,19 @@
 
 ## まず読むこと (セッション 16 から)
 
-## 次のセッションで最初にやること: 次の版の範囲を決める (ROADMAP の 7)
+## 次のセッションで最初にやること: 1.18.0 = 管理図と一対比較 (範囲はユーザーが決めた、2026-11-25)
+
+### 範囲 (ユーザーの決定 2026-11-25、ROADMAP の 7 から)
+- **管理図:** qcc の公開関数を広く (ReactiveStat `scripts/品質管理/管理図.php`・`計数値管理図.php` の xbar・R・S・xbar.one と移動範囲・
+  p・np・c・u、std.dev の UWAVE-R・UWAVE-SD・RMSDF・MR・SD、newdata、nsigmas、violations、process.capability に加えて、CUSUM・EWMA・
+  OC 曲線など。具体的な一覧はイメージに入れて公開関数を見て決める)。図は対象外 (値だけ)
+- **メディアン管理図 (Me-R):** ReactiveStat (`メディアン管理図.php`) の手順の関数 (JIS の A4・D3・D4、群の大きさ 2〜10)
+- **一対比較:** BradleyTerry2 の `BTm` (`cbind(win1, win2) ~ player1, player2`、基準の対象)、`BTabilities`、qvcalc の準分散、
+  **対象の共変量つきのモデルも** (ユーザーの選択。`~ x[..] + (1|..)` は PQL の混合モデルが要る)。ReactiveStat は `一対比較.php`
+- **置き場所:** 管理図は `/descriptive`、Bradley-Terry は `/regression`
+- 時間依存 ROC は 1.19.0、ネットワークメタアナリシスと時系列はその後 (推奨の順。ユーザーは 1.18.0 だけ決めた)
+
+## (以前) 次の版の範囲を決める前の記録
 
 - **1.17.0 を公開した (2026-11-25):** main `f0aeb613` (作業ブランチを squash、中身は同じ)、CI・Pages 緑 → タグ `v1.17.0` → stage
   (id `188f232e-...`) をユーザーが承認。npm latest = 1.17.0、jsDelivr の `dist/regression.js`、`/api/`・`/ja/api/` の betareg・tobit・
