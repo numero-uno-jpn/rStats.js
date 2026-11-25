@@ -69,3 +69,28 @@ Sources read: the help pages of `betareg`, `betareg.control`, `predict.betareg`,
      to about 1e-8 relative, not to the last digit.
    - names: mean coefficients by their terms, the precision ones `(phi)` (constant) or `(phi)_<term>`; logLik df =
      all coefficients. Fields of the fit and of summary recorded in the JSON.
+
+## betareg: BC and BR (2026-11-25)
+
+The user decided to implement all three estimators (ML, BC, BR). Source of the candidate: the general method of
+Kosmidis and Firth (2010), cited by the help page. Expectations computed here by numerical integration over the beta
+density per observation (not from closed forms), in the two linear predictors and carried to the coefficients by the
+model matrices.
+
+8. `regression117-betareg-bias.R` (first version, replaced): `integrate` with `rel.tol = 1e-12` stopped with
+   "roundoff error was detected". Relaxed to `1e-10` with `stop.on.error = FALSE`.
+9. (final version): candidate A_t = 1/2 tr(F^-1 (P_t + Q_t)), P_t = E(U U' U_t), **Q_t = E(-H U_t)**, b = -F^-1 A.
+   **Failed**: the precision component near R's `bias` (1.4045 against 1.4018) but the mean components wrong (sign
+   and size). What it did settle: R's `bias` field is set for BC only (NULL for ML and BR); BC = ML - `bias` exactly
+   (14.18575 - 1.40181 = 12.78394); vcov of BC and BR = inverse expected information **at the BC / BR estimates**
+   (1e-11; at the ML estimates 0.3-1.8 off); BC's iteration counts are ML's; BR prints
+   "Number of iterations: 16 (BFGS) + 18 (quasi Fisher scoring)" and "Type of estimator: BR (bias-reduced)".
+10. `regression117-betareg-bias2.R` (added): the bias split as `-F^-1` times the P part, the Q part (E(-H U_t)), and
+    Q without the links' second derivatives; least squares for R's `bias` = a bP + b bQ (+ c bQ0). **Found:**
+    a = 1, b = -1 (residual 1e-11 to 1e-13; the Q without link second derivatives gets weight 1e-8). So the sign of Q
+    in attempt 9 was wrong: **Q_t = E(H U_t)** (H the Hessian of the log-likelihood, not its negative), the
+    Kosmidis-Firth adjustment as published.
+11. `regression117-betareg-bias3.R` (added): with Q_t = E(H U_t): R's `bias` and BC to 1e-10 (the integration's
+    accuracy), constant and modelled phi, logit and probit, with case weights (each observation's F, P and Q times
+    its weight). At R's BR estimates the adjusted score U + A is 1e-7 to 1e-11 while the score alone is 0.1-2.2.
+    **Settled:** BR solves U(theta) + A(theta) = 0; BC = ML - b(ML).
