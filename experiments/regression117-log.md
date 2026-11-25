@@ -211,3 +211,10 @@ The implementation (closed forms of the Kosmidis-Firth adjustment, in the behavi
     (1,4)), not lexicographic; a fit with a zero cell (structural zero) gives **NA for every parameter**; the printed
     deviation has 7 significant digits (a deviation near 0 is rounding: 5.7e-14 printed where rStats.js has 1.1e-13).
     A table without dimnames names its parameters "1", "2" (dimension numbers).
+
+## loglm's anova p-values (2026-11-25)
+
+26. Demo example `loglm-anova` (no new experiment): R's p-value for a deviance change of 39.9 on 6 df is
+    2.8967876430918693e-7, the upper tail 2.896787643364249e-7 (9e-11 relative apart); `1 - pchisq(39.9, 6)` gives
+    R's value to the last digit, and the fixture's p for a change of 146 on 9 df is exactly 0. **Settled:** anova.loglm
+    computes `1 - pchisq()`; kept as R.

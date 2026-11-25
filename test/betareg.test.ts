@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { betareg, betaregSummary, betaregConfint, betaregPredict, betaregResiduals, type BetaregOptions } from "../src/models/betareg.js";
+import type { DataFrame } from "../src/models/modelFrame.js";
 
 // R fixture from oracle/betareg.R (npm run oracle -- betareg). R stops its optimiser short of the exact maximum (a
 // Newton step from R's estimates is up to about 1e-7 relative), so estimates and what is built on them are compared at
@@ -22,7 +23,7 @@ const optionsOf = (c: Record<string, any>): BetaregOptions => {
 };
 const TOL = 1e-6;
 
-function compare(key: string, fit: ReturnType<typeof betareg>, c: Record<string, any>, bad: string[], newdata: Record<string, unknown>): void {
+function compare(key: string, fit: ReturnType<typeof betareg>, c: Record<string, any>, bad: string[], newdata: DataFrame): void {
   const all = [...fit.coefficients.mean, ...fit.coefficients.precision];
   if (JSON.stringify(fit.names) !== JSON.stringify(arr(c.names))) bad.push(`${key} names ${fit.names} | ${c.names}`);
   all.forEach((v, j) => { if (!near(v, arr(c.coefficients)[j]!, TOL)) bad.push(`${key} coef[${j}] ${v} ${arr(c.coefficients)[j]}`); });

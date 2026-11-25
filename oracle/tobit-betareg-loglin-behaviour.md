@@ -127,7 +127,8 @@ loglin with the margins = the formula's maximal terms in the order of the terms 
 `a:b`, `a*b`, `a/b` give the same margin. A data frame with frequencies on the left builds the full array; cells not
 present are structural zeros (start 0) and each takes one df off. deviance = lrt. residuals: deviance (default)
 sign(o - f) sqrt(2 |o log(o / f) - (o - f)|), pearson (o - f) / sqrt(f), response o - f. anova: models in order and a
-"Saturated" row: Deviance, df, Delta(Dev), Delta(df), P(> Delta(Dev)).
+"Saturated" row: Deviance, df, Delta(Dev), Delta(df), P(> Delta(Dev)); the p-values are `1 - pchisq()` (0 below about
+1e-16, digits lost for small ones; log 26), kept as R.
 
 ## API decisions (mine, to be confirmed by the user before release)
 

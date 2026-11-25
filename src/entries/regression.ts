@@ -149,3 +149,50 @@ export {
   type CvGlmnetOptions,
   type CvGlmnetResult,
 } from "../models/glmnet.js";
+
+// Tobit regression (rStats.js/regression)
+
+export {
+  tobit,
+  tobitSummary,
+  type TobitOptions,
+  type TobitResult,
+  type TobitSummaryResult,
+} from "../models/tobit.js";
+
+// Beta regression (rStats.js/regression)
+
+export {
+  betareg,
+  betaregSummary,
+  betaregConfint,
+  betaregPredict,
+  betaregResiduals,
+  type BetaregLink,
+  type BetaregPhiLink,
+  type BetaregType,
+  type BetaregOptions,
+  type BetaregModel,
+  type BetaregResult,
+  type BetaregSummaryResult,
+  type BetaregConfintOptions,
+  type BetaregPredictOptions,
+  type BetaregResidualsOptions,
+} from "../models/betareg.js";
+
+// Log-linear models (rStats.js/regression)
+
+export {
+  loglin,
+  loglm,
+  loglmResiduals,
+  loglmAnova,
+  type ArrayTable,
+  type NestedTable,
+  type LoglinOptions,
+  type LoglinResult,
+  type LoglmOptions,
+  type LoglmResult,
+  type LoglmResidualsOptions,
+  type LoglmAnovaResult,
+} from "../models/loglin.js";
