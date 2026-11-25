@@ -9,7 +9,7 @@
 - **1.17.0 を公開した (2026-11-25):** main `f0aeb613` (作業ブランチを squash、中身は同じ)、CI・Pages 緑 → タグ `v1.17.0` → stage
   (id `188f232e-...`) をユーザーが承認。npm latest = 1.17.0、jsDelivr の `dist/regression.js`、`/api/`・`/ja/api/` の betareg・tobit・
   loglm のページ、デモ v1.17.0 を確かめた。Issue #567 を閉じた。証拠はタグ `archive/tobit-beta-1.17` (`fbfbb53f`)。作業ブランチ
-  `dev/tobit-beta-1.17` は手元に残っている (消すかはユーザーに聞く)
+  `dev/tobit-beta-1.17` はユーザーの指示で削除 (2026-11-25、手元だけにあった。タグと同じ `fbfbb53f` を確かめてから)
 - 公開の前にユーザーの決定: t 分布の自由度は tobit・survreg とも `parms` と `df` のどちらでも (両方はエラー)。ほかの「私が決めたこと」は
   「公開して」で了承
 - main は origin と同じ (このあとの HANDOFF のコミットだけ先)
