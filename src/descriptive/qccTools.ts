@@ -252,7 +252,11 @@ export interface MqccResult {
 }
 
 function inverse(S: readonly (readonly number[])[]): number[][] {
-  return chol2inv(chol(S.map((r) => [...r])));
+  // a singular covariance matrix (fewer observations than variables, or collinear variables) is an error, as R's solve
+  const L = (() => { try { return chol(S.map((r) => [...r])); } catch { return null; } })();
+  const scale = Math.max(...S.map((r, i) => Math.abs(r[i]!)));
+  if (L === null || L.some((r, i) => !(r[i]! ** 2 > 1e-12 * scale))) throw new RangeError("the covariance matrix is singular");
+  return chol2inv(L);
 }
 const quad = (v: readonly number[], A: readonly (readonly number[])[]): number => {
   let s = 0;
@@ -274,6 +278,7 @@ function covOf(rows: readonly (readonly number[])[]): number[][] {
  */
 export function mqcc(data: readonly (readonly number[])[] | readonly (readonly (readonly number[])[])[],
   options: MqccOptions = {}): MqccResult {
+  if (data.length === 0 || (data as readonly unknown[][])[0]!.length === 0) throw new RangeError("no data");
   const nested = Array.isArray((data as any)[0]?.[0]);
   const type = options.type ?? (nested ? "T2" : "T2.single");
   let means: number[][], center: number[], cov: number[][], m: number, n: number, p: number;

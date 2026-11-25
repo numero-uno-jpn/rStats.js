@@ -289,6 +289,8 @@ function centerAndSd(type: QccType, stats: readonly number[], groups: readonly n
     }
     case "g": {
       const g = meanOf(stats);
+      // gbar below 1: R's sqrt of a negative number, NaN with its warning
+      if (typeof given !== "number" && g < 1) warn("NaNs produced");
       return { center: options.center ?? g, sd: typeof given === "number" ? given : Math.sqrt(g * (g - 1)), method: null };
     }
   }

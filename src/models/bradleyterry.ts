@@ -225,6 +225,9 @@ export function btm(contests: DataFrame, options: BtmOptions): BtmResult {
     Xcols.push(a.map((v, k) => v - b[k]!));
     levels.forEach((_, j) => abilityRows[j]!.push(0));
   }
+  Xcols.forEach((c, j) => {
+    if (terms.random && c.every((v) => v === 0)) throw new RangeError(`btm: "${names[j]}" does not vary between the players of any contest (not identifiable)`);
+  });
   const X = Array.from({ length: K }, (_, k) => Xcols.map((c) => c[k]!));
   const n = win1.map((w, k) => w + win2[k]!);
   const y = win1.map((w, k) => w / n[k]!);
@@ -265,8 +268,13 @@ export function btm(contests: DataFrame, options: BtmOptions): BtmResult {
 function glmFit(X: M, win1: number[], win2: number[], link: string) {
   const fit = glm(X, win1.map((w, k) => [w, win2[k]!]), { family: "binomial", link: link as "logit", intercept: false });
   const s = glmSummary(fit);
+  // aliased coefficients (players not connected to the reference) are NaN, as R's NA; the summary leaves them out
+  const ok = fit.coefficients.map((b) => !Number.isNaN(b));
+  const pos = ok.map((o, i) => (o ? ok.slice(0, i).filter(Boolean).length : -1));
+  const se = pos.map((k) => (k < 0 ? NaN : s.stdError[k]!));
+  const vcov = pos.map((a) => pos.map((b) => (a < 0 || b < 0 ? NaN : s.covScaled[a]![b]!)));
   return {
-    coef: fit.coefficients, se: s.stdError, vcov: s.covScaled, deviance: fit.deviance, nullDeviance: fit.nullDeviance,
+    coef: fit.coefficients, se, vcov, deviance: fit.deviance, nullDeviance: fit.nullDeviance,
     aic: fit.aic, dfResidual: fit.dfResidual, dfNull: fit.dfNull, iter: fit.iter, converged: fit.converged,
     fitted: fit.fittedValues, eta: fit.linearPredictors, warnings: fit.warnings,
   };
@@ -378,8 +386,11 @@ export interface BtAbilitiesResult {
  */
 export function btAbilities(fit: BtmResult): BtAbilitiesResult {
   const A = fit.abilityDesign;
-  const ability = A.map((r) => dot(r, fit.coefficients));
-  const vcov = A.map((r) => A.map((s) => dot(r, mv(fit.vcov, s))));
+  // only the coefficients a player's ability uses: an aliased coefficient (a player without contests, NaN) makes
+  // that player's ability NaN, not everyone's
+  const used = (r: readonly number[], v: readonly number[]) => r.reduce((acc, a, k) => (a === 0 ? acc : acc + a * v[k]!), 0);
+  const ability = A.map((r) => used(r, fit.coefficients));
+  const vcov = A.map((r) => A.map((s) => used(r, fit.vcov.map((row) => used(s, row)))));
   return { levels: [...fit.levels], ability, se: vcov.map((r, i) => Math.sqrt(Math.max(0, r[i]!))), vcov, separate: [...fit.separate] };
 }
 
@@ -441,6 +452,7 @@ export function qvcalc(object: BtAbilitiesResult | { estimate: readonly number[]
   const names = "levels" in object ? object.levels : object.names ? [...object.names] : est.map((_, i) => String(i + 1));
   const k = est.length;
   if (k < 3) throw new RangeError("qvcalc needs at least 3 levels");
+  if (V.some((r) => r.some((v) => !Number.isFinite(v)))) throw new RangeError("qvcalc: the covariance matrix has missing values");
   const pairs: [number, number][] = [];
   for (let i = 0; i < k; i++) for (let j = i + 1; j < k; j++) pairs.push([i, j]);
   const v = pairs.map(([i, j]) => V[i]![i]! + V[j]![j]! - 2 * V[i]![j]!);

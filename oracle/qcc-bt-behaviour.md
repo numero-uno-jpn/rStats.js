@@ -234,10 +234,18 @@ eta_k = (x_i - x_j)' beta + (contest covariates) + e_i - e_j, e ~ N(0, sigma^2).
 4. medianChart with unequal group sizes: **an error** (ReactiveStat uses the first group's n).
 5. btm `br = TRUE` (Firth): out (not in the scope of Issue #568).
 
-## Edge cases (to check after the implementation)
+## Edge cases (checked twice after the implementation; test/qccbt118Edge.test.ts)
 
-Constant data (sd 0), all groups of size 2, sizes above 25 and 50, huge / tiny scales (1e150, 1e-150) and a common
-value of 1e8 (ranges and sd must not lose digits), p = 0 or 1, c = 0, g with gbar <= 1, one group, NA everywhere in a
-group, newdata only, lambda 0 / 1, h at the boundary, spec limits outside the data, mqcc with p >= m n - m (no
-F quantile), singular cov; btm with complete separation, a player who never wins, two disconnected sets of players,
-one pair only, refcat not a level, sigma at 0, a covariate constant across players, large win counts.
+- Scales 1e+-150 and 1e+-300 give the same statistics, sigma and limits relative to the scale (1e-13) for every
+  std.dev method (RMSDF scales the group standard deviations by their largest first); a common value of 1e8 keeps
+  sigma (a shift of 1e12 loses only what the input itself loses).
+- Constant data: sigma 0 and LCL = UCL; p = 0 or 1 and c = 0 give zero-width limits; a g chart with mean below 1: NaN
+  sigma with R's "NaNs produced".
+- NA statistics: left out of the violations (Choice 2); xbar.one with a missing value: the moving ranges that contain
+  it are skipped.
+- mqcc with a singular covariance matrix (fewer groups than variables, collinear variables): an error ("the covariance
+  matrix is singular"), where the Cholesky factor would give meaningless T2 of 1e14.
+- btm: separation keeps glm's warning; players not connected to the reference and players without contests: NaN
+  coefficients (R's NA) with aligned NaN standard errors, NaN ability for those players only; a covariate that does not
+  vary between the players of any contest: an error ("not identifiable"); counts times 1e6 and covariates times
+  1e+-6 give the same fit (1e-12); qvcalc with missing variances: an error.
