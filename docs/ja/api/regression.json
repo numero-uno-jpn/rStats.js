@@ -1,4 +1,194 @@
 {
+  "ArrayTable#summary": {
+    "hash": "7b2bb8fcf59f",
+    "en": "A contingency table of any number of dimensions: `counts` in R's order (the first index varies fastest), `dim`\nthe number of levels of each dimension, and optionally the names of the dimensions and of their levels.",
+    "ja": "任意の次元数の分割表です: R の順序 (最初の添字が最も速く動く) の `counts`、各次元の水準数 `dim`、および任意で次元とその水準の名前を持ちます。"
+  },
+  "BetaregConfintOptions#summary": {
+    "hash": "6988253352e8",
+    "en": "Options for {@link betaregConfint}.",
+    "ja": "{@link betaregConfint} のオプションです。"
+  },
+  "BetaregConfintOptions.level#summary": {
+    "hash": "1892e8308150",
+    "en": "Confidence level (default 0.95).",
+    "ja": "信頼水準です (既定は 0.95)。"
+  },
+  "BetaregLink#summary": {
+    "hash": "b4df9c9f8e1d",
+    "en": "Links of the mean in {@link betareg}.",
+    "ja": "{@link betareg} における平均のリンクです。"
+  },
+  "BetaregModel#summary": {
+    "hash": "18f9545384c4",
+    "en": "What predictions on new data need.",
+    "ja": "新しいデータでの予測に必要なものです。"
+  },
+  "BetaregModel.rows#summary": {
+    "hash": "a4601f570295",
+    "en": "0-based rows of the data used.",
+    "ja": "使われたデータの 0 始まりの行です。"
+  },
+  "BetaregModel.variables#summary": {
+    "hash": "bab6d050d13d",
+    "en": "The variables of both parts (without the response).",
+    "ja": "両方の部分の変数です (応答を除く)。"
+  },
+  "BetaregModel.x#summary": {
+    "hash": "f0f5acc43510",
+    "en": "The model matrices, the response and the weights of the rows used.",
+    "ja": "使われた行のモデル行列、応答、重みです。"
+  },
+  "BetaregOptions#summary": {
+    "hash": "1cbadf559fad",
+    "en": "Options for {@link betareg}.",
+    "ja": "{@link betareg} のオプションです。"
+  },
+  "BetaregOptions.contrasts#summary": {
+    "hash": "e7f24ed175fb",
+    "en": "A contrast per factor of the formula (default treatment contrasts).",
+    "ja": "式の各因子に対するコントラストです (既定は処理コントラスト)。"
+  },
+  "BetaregOptions.link#summary": {
+    "hash": "e4c9ad12f412",
+    "en": "Link of the mean (default `\"logit\"`).",
+    "ja": "平均のリンクです (既定は `\"logit\"`)。"
+  },
+  "BetaregOptions.linkPhi#summary": {
+    "hash": "d5ad03dc1172",
+    "en": "Link of the precision phi (default `\"identity\"` for `y ~ x`, `\"log\"` for `y ~ x | z`).",
+    "ja": "精度 phi のリンクです (既定は `y ~ x` では `\"identity\"`、`y ~ x | z` では `\"log\"`)。"
+  },
+  "BetaregOptions.maxit#summary": {
+    "hash": "de1bb2998f9a",
+    "en": "Iterations: at most `maxit` (default 5000) Fisher scoring steps for ML and BR.",
+    "ja": "反復回数です: ML と BR では Fisher スコアリングの最大 `maxit` ステップ (既定は 5000) です。"
+  },
+  "BetaregOptions.type#summary": {
+    "hash": "2888779babfa",
+    "en": "Estimator: `\"ML\"` (default), `\"BC\"` (bias-corrected) or `\"BR\"` (bias-reduced), as Kosmidis and Firth (2010).",
+    "ja": "推定量です: `\"ML\"` (既定)、`\"BC\"` (バイアス補正)、または `\"BR\"` (バイアス減少) で、Kosmidis and Firth (2010) に従います。"
+  },
+  "BetaregOptions.weights#summary": {
+    "hash": "344275a16297",
+    "en": "Case weights, one per row of `data` (non-negative), or the name of a column of `data`.",
+    "ja": "ケースの重みで、`data` の行ごとに 1 つ (非負)、または `data` の列名です。"
+  },
+  "BetaregPhiLink#summary": {
+    "hash": "886ab988d9b6",
+    "en": "Links of the precision in {@link betareg}.",
+    "ja": "{@link betareg} における精度のリンクです。"
+  },
+  "BetaregPredictOptions#summary": {
+    "hash": "6d55e6ef9809",
+    "en": "Options for {@link betaregPredict}.",
+    "ja": "{@link betaregPredict} のオプションです。"
+  },
+  "BetaregPredictOptions.at#summary": {
+    "hash": "04975dd6dfcb",
+    "en": "Where `\"density\"`, `\"probability\"` and `\"quantile\"` are evaluated (default 0.5).",
+    "ja": "`\"density\"`、`\"probability\"`、`\"quantile\"` を評価する位置です (既定は 0.5)。"
+  },
+  "BetaregPredictOptions.elementwise#summary": {
+    "hash": "f50980fdd9eb",
+    "en": "One value of `at` per row (a vector) or every value at every row (a matrix of rows x at). Default: per row when\n`at` has as many values as there are rows, else the matrix (as R).",
+    "ja": "行ごとに `at` の値を 1 つ (ベクトル) 使うか、すべての行ですべての値を使う (行 x at の行列) かです。既定: `at` の値の数が行数と同じなら行ごと、そうでなければ行列です (R と同じ)。"
+  },
+  "BetaregPredictOptions.newdata#summary": {
+    "hash": "b798e7a42069",
+    "en": "New data (default: the rows of the fit).",
+    "ja": "新しいデータです (既定: 当てはめに使った行)。"
+  },
+  "BetaregPredictOptions.type#summary": {
+    "hash": "5dae3ab7a76a",
+    "en": "`\"response\"` (the mean, default), `\"link\"`, `\"precision\"`, `\"variance\"`, `\"parameters\"` (rows of [mu, phi]),\n`\"density\"`, `\"probability\"` or `\"quantile\"` (at `at`).",
+    "ja": "`\"response\"` (平均、既定)、`\"link\"`、`\"precision\"`、`\"variance\"`、`\"parameters\"` ([mu, phi] の行)、`\"density\"`、`\"probability\"`、または `\"quantile\"` (`at` で) です。"
+  },
+  "BetaregResidualsOptions#summary": {
+    "hash": "d3072d1bdf9a",
+    "en": "Options for {@link betaregResiduals}.",
+    "ja": "{@link betaregResiduals} のオプションです。"
+  },
+  "BetaregResidualsOptions.type#summary": {
+    "hash": "591b36370035",
+    "en": "`\"quantile\"` (default), `\"deviance\"`, `\"pearson\"`, `\"response\"`, `\"weighted\"`, `\"sweighted\"` or `\"sweighted2\"`.",
+    "ja": "`\"quantile\"` (既定)、`\"deviance\"`、`\"pearson\"`、`\"response\"`、`\"weighted\"`、`\"sweighted\"`、または `\"sweighted2\"` です。"
+  },
+  "BetaregResult#summary": {
+    "hash": "089d638e4efc",
+    "en": "Result of {@link betareg}.",
+    "ja": "{@link betareg} の結果です。"
+  },
+  "BetaregResult.bias#summary": {
+    "hash": "d95a8b1ba417",
+    "en": "The first-order bias at the maximum likelihood estimates (`type: \"BC\"` only), as R's `bias`.",
+    "ja": "最尤推定値での 1 次のバイアスです (`type: \"BC\"` のみ)。R の `bias` と同じです。"
+  },
+  "BetaregResult.coefficients#summary": {
+    "hash": "e60097210917",
+    "en": "Coefficients of the mean model and of the precision model.",
+    "ja": "平均モデルと精度モデルの係数です。"
+  },
+  "BetaregResult.fitted#summary": {
+    "hash": "ab1f3064acf0",
+    "en": "Fitted means, linear predictors of the mean, fitted precisions.",
+    "ja": "当てはめた平均、平均の線形予測子、当てはめた精度です。"
+  },
+  "BetaregResult.iterations#summary": {
+    "hash": "5b987a5e2311",
+    "en": "Fisher scoring iterations (rStats.js's, not R's BFGS and scoring counts).",
+    "ja": "Fisher スコアリングの反復回数です (rStats.js のもので、R の BFGS やスコアリングの回数ではありません)。"
+  },
+  "BetaregResult.n#summary": {
+    "hash": "f389e692f7e1",
+    "en": "Rows used, rows with a positive weight, and the residual degrees of freedom of the null and of this model.",
+    "ja": "使われた行数、重みが正の行数、帰無モデルとこのモデルの残差自由度です。"
+  },
+  "BetaregResult.names#summary": {
+    "hash": "e802549a14d9",
+    "en": "All names (mean, then precision), the rows and columns of `vcov`.",
+    "ja": "すべての名前です (平均、次に精度)。`vcov` の行と列にあたります。"
+  },
+  "BetaregResult.precisionNames#summary": {
+    "hash": "b59bb8e103e4",
+    "en": "`(phi)` for a constant precision with the identity link, else `(phi)_` and the term.",
+    "ja": "リンクが identity で精度が一定なら `(phi)`、そうでなければ `(phi)_` と項です。"
+  },
+  "BetaregResult.pseudoRSquared#summary": {
+    "hash": "ed0d07c34541",
+    "en": "Squared (weighted) correlation of the linear predictor and the link-transformed response.",
+    "ja": "線形予測子とリンク変換した応答の (重み付き) 相関の 2 乗です。"
+  },
+  "BetaregResult.vcov#summary": {
+    "hash": "672cf9c5e064",
+    "en": "Covariance of all coefficients: the inverse of the expected information at the estimates.",
+    "ja": "すべての係数の共分散です: 推定値での期待情報量の逆行列です。"
+  },
+  "BetaregSummaryResult#summary": {
+    "hash": "28e75ae63858",
+    "en": "Result of {@link betaregSummary}.",
+    "ja": "{@link betaregSummary} の結果です。"
+  },
+  "BetaregSummaryResult.df#summary": {
+    "hash": "e4a343204581",
+    "en": "Number of coefficients (the degrees of freedom of the log-likelihood).",
+    "ja": "係数の数です (対数尤度の自由度)。"
+  },
+  "BetaregSummaryResult.mean#summary": {
+    "hash": "dd94a883dd9c",
+    "en": "Wald tables of the mean and the precision coefficients.",
+    "ja": "平均と精度の係数の Wald 表です。"
+  },
+  "BetaregSummaryResult.residuals#summary": {
+    "hash": "bc800c0e5770",
+    "en": "Minimum, quartiles and maximum of the quantile residuals.",
+    "ja": "分位残差の最小値、四分位数、最大値です。"
+  },
+  "BetaregType#summary": {
+    "hash": "fae24cca30a0",
+    "en": "Estimators of {@link betareg}: maximum likelihood, bias-corrected, bias-reduced.",
+    "ja": "{@link betareg} の推定量です: 最尤、バイアス補正、バイアス減少です。"
+  },
   "CvGlmnetOptions#summary": {
     "hash": "de9acedfe20c",
     "en": "Options for {@link cvGlmnet}; fold assignments are required.",
@@ -934,6 +1124,126 @@
     "en": "Null-model deviance for the fitted family.",
     "ja": "当てはめた分布族に対する帰無モデルの逸脱度です。"
   },
+  "LoglinOptions#summary": {
+    "hash": "f5798ff0eb82",
+    "en": "Options for {@link loglin}.",
+    "ja": "{@link loglin} のオプションです。"
+  },
+  "LoglinOptions.eps#summary": {
+    "hash": "ed90d7b56fba",
+    "en": "Convergence bound on the largest absolute difference between observed and fitted margins (default 0.1).",
+    "ja": "観測された周辺と当てはめた周辺の差の絶対値の最大に対する収束の境界です (既定は 0.1)。"
+  },
+  "LoglinOptions.iter#summary": {
+    "hash": "fa80ffacfb25",
+    "en": "Maximum number of iterations (default 20).",
+    "ja": "最大反復回数です (既定は 20)。"
+  },
+  "LoglinOptions.start#summary": {
+    "hash": "c5e5d0ebec3d",
+    "en": "Starting table (R's order, default all 1); zeros mark structural zeros, kept zero in the fit.",
+    "ja": "開始時の表です (R の順序、既定はすべて 1)。0 は構造的ゼロを表し、当てはめでも 0 のままです。"
+  },
+  "LoglinResult#summary": {
+    "hash": "42dbcf95b7c6",
+    "en": "Result of {@link loglin}.",
+    "ja": "{@link loglin} の結果です。"
+  },
+  "LoglinResult.fit#summary": {
+    "hash": "10ad67fc07a2",
+    "en": "The fitted table (R's order).",
+    "ja": "当てはめた表です (R の順序)。"
+  },
+  "LoglinResult.iterations#summary": {
+    "hash": "a4853c4170e6",
+    "en": "Iterations and the deviation of the last (as R prints them; NaN without margins).",
+    "ja": "反復回数と最後の偏差です (R が表示するとおり。周辺がなければ NaN)。"
+  },
+  "LoglinResult.lrt#summary": {
+    "hash": "a451c71ef13d",
+    "en": "Likelihood-ratio and Pearson statistics, and their degrees of freedom (no adjustment for structural zeros).",
+    "ja": "尤度比統計量と Pearson 統計量、およびそれらの自由度です (構造的ゼロの調整はありません)。"
+  },
+  "LoglinResult.margin#summary": {
+    "hash": "5165317ed65c",
+    "en": "The margins fitted, with names where the table has them.",
+    "ja": "当てはめた周辺です。表に名前があれば名前付きです。"
+  },
+  "LoglinResult.param#summary": {
+    "hash": "2dd77c058ee4",
+    "en": "Zero-sum parameters of log(fit): \"(Intercept)\", one entry per term (\"A\", \"A.B\"), each in R's order; all NaN when\na fitted value is 0 (as R's NA).",
+    "ja": "log(fit) の和がゼロのパラメータです: \"(Intercept)\" と項ごとに 1 つ (\"A\"、\"A.B\") で、それぞれ R の順序です。当てはめた値に 0 があるときはすべて NaN です (R の NA にあたります)。"
+  },
+  "LoglinResult.paramNames#summary": {
+    "hash": "d0121c7a663e",
+    "en": "The names of `param` in R's order (an object puts names that are numbers first).",
+    "ja": "`param` の名前です (R の順序。オブジェクトでは数値の名前が先に来ます)。"
+  },
+  "LoglmAnovaResult#summary": {
+    "hash": "b74c527eb151",
+    "en": "Result of {@link loglmAnova}: the models in the order given, then the saturated model.",
+    "ja": "{@link loglmAnova} の結果です: 与えた順のモデル、続いて飽和モデルです。"
+  },
+  "LoglmAnovaResult.deltaDeviance#summary": {
+    "hash": "a71648af4b54",
+    "en": "Changes from the previous row (NaN for the first), and the chi-squared p-values of the changes, computed as R's\n`1 - pchisq()` (a p-value below about 1e-16 is 0).",
+    "ja": "直前の行からの変化 (最初は NaN) と、その変化のカイ 2 乗 p 値です。R の `1 - pchisq()` と同じ計算です (約 1e-16 未満の p 値は 0 になります)。"
+  },
+  "LoglmAnovaResult.rows#summary": {
+    "hash": "0a28d318ced3",
+    "en": "\"Model 1\", ..., \"Saturated\".",
+    "ja": "\"Model 1\"、...、\"Saturated\" です。"
+  },
+  "LoglmOptions#summary": {
+    "hash": "fe0d3469893c",
+    "en": "Options for {@link loglm}.",
+    "ja": "{@link loglm} のオプションです。"
+  },
+  "LoglmOptions.eps#summary": {
+    "hash": "866b15d00107",
+    "en": "Convergence bound (default 0.1) and maximum iterations (default 40), passed to {@link loglin}.",
+    "ja": "収束の境界 (既定は 0.1) と最大反復回数 (既定は 40) で、{@link loglin} に渡されます。"
+  },
+  "LoglmOptions.levels#summary": {
+    "hash": "2e1d7e9b79ab",
+    "en": "The order of the levels of factors of a data frame (default: sorted).",
+    "ja": "データフレームの因子の水準の順序です (既定: 並べ替えた順)。"
+  },
+  "LoglmOptions.start#summary": {
+    "hash": "3987670dda39",
+    "en": "Starting table (R's order of the table), zeros for structural zeros; with a table `data` only.",
+    "ja": "開始時の表です (表の R の順序)。構造的ゼロには 0 を置きます。`data` が表のときだけ使えます。"
+  },
+  "LoglmResidualsOptions#summary": {
+    "hash": "ea1326f6e771",
+    "en": "Options for {@link loglmResiduals}.",
+    "ja": "{@link loglmResiduals} のオプションです。"
+  },
+  "LoglmResidualsOptions.type#summary": {
+    "hash": "844b6aa14c4d",
+    "en": "`\"deviance\"` (default), `\"pearson\"` or `\"response\"`.",
+    "ja": "`\"deviance\"` (既定)、`\"pearson\"`、または `\"response\"` です。"
+  },
+  "LoglmResult#summary": {
+    "hash": "4362c8d02b05",
+    "en": "Result of {@link loglm}.",
+    "ja": "{@link loglm} の結果です。"
+  },
+  "LoglmResult.deviance#summary": {
+    "hash": "f3aeddd71b8d",
+    "en": "The likelihood-ratio statistic (the deviance against the saturated model).",
+    "ja": "尤度比統計量です (飽和モデルに対する逸脱度)。"
+  },
+  "LoglmResult.frequencies#summary": {
+    "hash": "0dd7ed5aacc2",
+    "en": "The table fitted: counts (R's order), dims, names and levels.",
+    "ja": "当てはめた表です: 度数 (R の順序)、dims、names、levels です。"
+  },
+  "LoglmResult.nobs#summary": {
+    "hash": "945f9ba279df",
+    "en": "Cells of the table.",
+    "ja": "表のセルの数です。"
+  },
   "MultinomAnovaResult#summary": {
     "hash": "3af162e2d68b",
     "en": "Result of {@link multinomAnova}: one row per model, in increasing order of the number of coefficients.",
@@ -1268,6 +1578,11 @@
     "hash": "0c54e5d90eba",
     "en": "The variance matrix (array of rows).",
     "ja": "分散行列です (行の配列)。"
+  },
+  "NestedTable#summary": {
+    "hash": "e11501090a3f",
+    "en": "A table as nested arrays, the first index outermost (`t[i][j][k]`).",
+    "ja": "入れ子の配列としての表です。最初の添字が最も外側です (`t[i][j][k]`)。"
   },
   "NlsAlgorithm#summary": {
     "hash": "5186605eace4",
@@ -2719,6 +3034,146 @@
     "en": "Joint Wald statistic for the tested slope restrictions across quantiles.",
     "ja": "複数の分位点にわたる検定対象の傾きの制約に対する同時 Wald 統計量です。"
   },
+  "TobitOptions#summary": {
+    "hash": "026debe102d7",
+    "en": "Options for {@link tobit}.",
+    "ja": "{@link tobit} のオプションです。"
+  },
+  "TobitOptions.contrasts#summary": {
+    "hash": "e7f24ed175fb",
+    "en": "A contrast per factor of the formula (default treatment contrasts).",
+    "ja": "式の各因子に対するコントラストです (既定は処理コントラスト)。"
+  },
+  "TobitOptions.control#summary": {
+    "hash": "481477522f99",
+    "en": "Iteration control, as {@link survreg}'s.",
+    "ja": "反復の制御で、{@link survreg} のものと同じです。"
+  },
+  "TobitOptions.df#summary": {
+    "hash": "9959509344f9",
+    "en": "Degrees of freedom of the t distribution (default 4, at least 3). R's tobit takes it as `parms`.",
+    "ja": "t 分布の自由度です (既定は 4、3 以上)。R の tobit では `parms` で渡します。"
+  },
+  "TobitOptions.dist#summary": {
+    "hash": "a5ea87bf19df",
+    "en": "The error distribution (survreg's): `\"gaussian\"` (default, the classical tobit model), `\"logistic\"`, `\"t\"`,\n`\"extreme\"`, or one for positive responses (`\"weibull\"`, `\"exponential\"`, `\"rayleigh\"`, `\"lognormal\"` /\n`\"loggaussian\"`, `\"loglogistic\"`), where the limits are on the scale of the response.",
+    "ja": "誤差分布です (survreg のもの): `\"gaussian\"` (既定、古典的な tobit モデル)、`\"logistic\"`、`\"t\"`、`\"extreme\"`、または正の応答用のもの (`\"weibull\"`、`\"exponential\"`、`\"rayleigh\"`、`\"lognormal\"` / `\"loggaussian\"`、`\"loglogistic\"`) で、後者では限界は応答の尺度で指定します。"
+  },
+  "TobitOptions.left#summary": {
+    "hash": "0565dea2f68f",
+    "en": "Left limit: responses at or below it are left censored at it (default 0; `-Infinity` for none).",
+    "ja": "左の限界です: これ以下の応答はそこで左打ち切りになります (既定は 0、なしは `-Infinity`)。"
+  },
+  "TobitOptions.right#summary": {
+    "hash": "f0b6854f0017",
+    "en": "Right limit: responses at or above it are right censored at it (default `Infinity`, none).",
+    "ja": "右の限界です: これ以上の応答はそこで右打ち切りになります (既定は `Infinity`、なし)。"
+  },
+  "TobitOptions.weights#summary": {
+    "hash": "d06558b8f7ba",
+    "en": "Case weights, one per row of `data` (positive), or the name of a column of `data`.",
+    "ja": "ケースの重みで、`data` の行ごとに 1 つ (正)、または `data` の列名です。"
+  },
+  "TobitResult#summary": {
+    "hash": "5cdcc3ec2783",
+    "en": "Result of {@link tobit}: {@link survreg}'s result with the coefficients named after the formula's terms, and the\ncensoring.",
+    "ja": "{@link tobit} の結果です: 係数に式の項の名前を付けた {@link survreg} の結果と、打ち切りの情報です。"
+  },
+  "TobitResult.counts#summary": {
+    "hash": "e24584803e87",
+    "en": "Observations: total, left censored, uncensored, right censored.",
+    "ja": "観測数です: 全体、左打ち切り、打ち切りなし、右打ち切りです。"
+  },
+  "TobitResult.formula#summary": {
+    "hash": "b0def051d655",
+    "en": "The formula.",
+    "ja": "式です。"
+  },
+  "TobitResult.left#summary": {
+    "hash": "25650da8384b",
+    "en": "The limits used.",
+    "ja": "使われた限界です。"
+  },
+  "TobitSummaryResult#summary": {
+    "hash": "1326ab267c53",
+    "en": "Result of {@link tobitSummary}.",
+    "ja": "{@link tobitSummary} の結果です。"
+  },
+  "TobitSummaryResult.counts#summary": {
+    "hash": "e24584803e87",
+    "en": "Observations: total, left censored, uncensored, right censored.",
+    "ja": "観測数です: 全体、左打ち切り、打ち切りなし、右打ち切りです。"
+  },
+  "TobitSummaryResult.loglik#summary": {
+    "hash": "bcfbf5e6a5c2",
+    "en": "Log-likelihood of the model and its degrees of freedom (coefficients and scale).",
+    "ja": "モデルの対数尤度とその自由度 (係数と尺度) です。"
+  },
+  "TobitSummaryResult.names#summary": {
+    "hash": "ca815611c837",
+    "en": "Row names of the table: the coefficients, then `Log(scale)` (when the scale is estimated).",
+    "ja": "表の行名です: 係数、続いて (尺度を推定するとき) `Log(scale)` です。"
+  },
+  "TobitSummaryResult.scale#summary": {
+    "hash": "5f09843af16e",
+    "en": "The scale.",
+    "ja": "尺度です。"
+  },
+  "TobitSummaryResult.wald#summary": {
+    "hash": "e04c52de19ac",
+    "en": "Wald test of the coefficients other than the intercept: `b' V⁻¹ b`, on the number of coefficients minus 1 degrees\nof freedom (as R; without an intercept R tests all coefficients on one degree of freedom too few). `null` for the\nintercept-only model.",
+    "ja": "切片以外の係数の Wald 検定です: `b' V⁻¹ b` で、自由度は係数の数 − 1 です (R と同じ。切片がないとき R は自由度を 1 つ少なく検定します)。切片のみのモデルでは `null` です。"
+  },
+  "betareg#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": "⟦code1⟧"
+  },
+  "betareg#summary": {
+    "hash": "924598dda351",
+    "en": "Beta regression for rates and proportions in (0, 1): the mean linked to a linear predictor, the precision phi\nconstant (`y ~ x`) or linked to its own regressors (`y ~ x | z`), fitted by maximum likelihood, or bias-corrected or\nbias-reduced (Kosmidis and Firth 2010). Equivalent to R's `betareg::betareg()`.\n\nThe response must lie strictly between 0 and 1 (R fits an extended-support distribution to 0 and 1; rStats.js does\nnot). rStats.js maximises the likelihood to convergence by Fisher scoring; R stops its optimiser slightly earlier,\nso estimates agree with R's to about 1e-7 relative.",
+    "ja": "(0, 1) の比率や割合に対するベータ回帰です: 平均は線形予測子にリンクされ、精度 phi は一定 (`y ~ x`) か、独自の回帰変数にリンクされ (`y ~ x | z`)、最尤、バイアス補正、またはバイアス減少 (Kosmidis and Firth 2010) で当てはめます。R の `betareg::betareg()` と同等です。\n\n応答は 0 と 1 の間の厳密な内側になければなりません (R は 0 と 1 に拡張した台の分布を当てはめますが、rStats.js はしません)。rStats.js は Fisher スコアリングで尤度を収束するまで最大化しますが、R は最適化をやや早く止めるため、推定値は R と相対で約 1e-7 まで一致します。"
+  },
+  "betaregConfint#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": "⟦code1⟧"
+  },
+  "betaregConfint#summary": {
+    "hash": "61efdbda81c8",
+    "en": "Wald confidence intervals of all coefficients of a {@link betareg} fit. Equivalent to R's\n`confint()`.",
+    "ja": "{@link betareg} の当てはめのすべての係数の Wald 信頼区間です。R の `confint()` と同等です。"
+  },
+  "betaregPredict#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": "⟦code1⟧"
+  },
+  "betaregPredict#summary": {
+    "hash": "4dd0726c5faa",
+    "en": "Predictions of a {@link betareg} fit: means, linear predictors, precisions, variances, or the density,\ndistribution function or quantiles of the fitted beta distributions. Equivalent to\n`betareg::predict.betareg()` in R.",
+    "ja": "{@link betareg} の当てはめの予測です: 平均、線形予測子、精度、分散、または当てはめたベータ分布の密度、分布関数、分位点です。R の `betareg::predict.betareg()` と同等です。"
+  },
+  "betaregResiduals#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": "⟦code1⟧"
+  },
+  "betaregResiduals#summary": {
+    "hash": "80643074000d",
+    "en": "Residuals of a {@link betareg} fit (Espinheira, Ferrari and Cribari-Neto 2008; quantile residuals of Dunn and Smyth\n1996). Every type but `\"response\"` is multiplied by the square root of the case weight, as R. Equivalent to\n`betareg::residuals.betareg()` in R.",
+    "ja": "{@link betareg} の当てはめの残差です (Espinheira, Ferrari and Cribari-Neto 2008。Dunn and Smyth 1996 の分位残差)。R と同じく、`\"response\"` 以外のすべての種類にケースの重みの平方根を掛けます。R の `betareg::residuals.betareg()` と同等です。"
+  },
+  "betaregSummary#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": "⟦code1⟧"
+  },
+  "betaregSummary#summary": {
+    "hash": "c548b26673d4",
+    "en": "Summary of a {@link betareg} fit: Wald tests of the mean and precision coefficients. Equivalent to\n`betareg::summary.betareg()` in R.",
+    "ja": "{@link betareg} の当てはめの要約です: 平均と精度の係数の Wald 検定です。R の `betareg::summary.betareg()` と同等です。"
+  },
   "cvGlmnet(0)#summary": {
     "hash": "557e4be1ca2a",
     "en": "Cross-validate a penalized generalized linear model. Equivalent to R's `cv.glmnet()`.",
@@ -2798,6 +3253,46 @@
     "hash": "f95fa91f356b",
     "en": "Predict from a penalized generalized linear model. Equivalent to R's `predict.glmnet()`.",
     "ja": "ペナルティ付き一般化線形モデルから予測します。R の `predict.glmnet()` と同等です。"
+  },
+  "loglin#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": "⟦code1⟧"
+  },
+  "loglin#summary": {
+    "hash": "7a05bf8ba4c1",
+    "en": "Fits a hierarchical log-linear model to a contingency table by iterative proportional fitting (Haberman 1972),\ngiven the margins to fit (the maximal terms, e.g. `[[\"A\", \"B\"], [\"A\", \"C\"]]` for [AB][AC]). Margins are names of\ndimensions or 1-based numbers, as in R. Equivalent to R's `loglin()`. It returns the fit and\nthe parameters (R's `fit = TRUE, param = TRUE`).\n\nThe iterations stop when the largest absolute difference between observed and fitted margins falls below `eps`\n(0.1 by default, a loose bound, as R) or after `iter` cycles.",
+    "ja": "分割表に階層的な対数線形モデルを反復比例当てはめ (Haberman 1972) で当てはめます。当てはめる周辺 (極大の項。たとえば [AB][AC] なら `[[\"A\", \"B\"], [\"A\", \"C\"]]`) を与えます。周辺は R と同じく次元の名前か 1 始まりの番号です。R の `loglin()` と同等です。当てはめとパラメータ (R の `fit = TRUE, param = TRUE`) を返します。\n\n反復は、観測された周辺と当てはめた周辺の差の絶対値の最大が `eps` (既定は 0.1 で、R と同じくゆるい境界) を下回るか、`iter` 回で止まります。"
+  },
+  "loglm#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": "⟦code1⟧"
+  },
+  "loglm#summary": {
+    "hash": "ba6cee3695eb",
+    "en": "Log-linear model given by a formula: a front end to {@link loglin}. The right-hand side gives the margins (its\nmaximal terms; `a:b`, `a*b` and `a/b` are the same margin). `data` is a table with named dimensions (numbers in\nthe formula stand for dimensions), or a data frame with the frequencies on the left of the formula, where cells\nabsent from the data are structural zeros and each takes one degree of freedom off. Equivalent to R's\n`MASS::loglm()`.",
+    "ja": "式で与える対数線形モデルです: {@link loglin} のフロントエンドです。右辺が周辺 (その極大の項) を与えます (`a:b`、`a*b`、`a/b` は同じ周辺です)。`data` は次元に名前のある表 (式の数値は次元を表します)、または式の左辺に度数を持つデータフレームで、後者ではデータにないセルは構造的ゼロとなり、それぞれ自由度を 1 減らします。R の `MASS::loglm()` と同等です。"
+  },
+  "loglmAnova#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": "⟦code1⟧"
+  },
+  "loglmAnova#summary": {
+    "hash": "4fc92603a701",
+    "en": "Likelihood-ratio tests between nested {@link loglm} fits and of the last against the saturated model. Equivalent\nto `MASS::anova.loglm()` in R.",
+    "ja": "入れ子の {@link loglm} の当てはめどうしと、最後のものの飽和モデルに対する尤度比検定です。R の `MASS::anova.loglm()` と同等です。"
+  },
+  "loglmResiduals#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": "⟦code1⟧"
+  },
+  "loglmResiduals#summary": {
+    "hash": "4c23ec7c5177",
+    "en": "Residuals of a {@link loglm} fit, one per cell (R's order). Equivalent to `MASS::residuals.loglm()` in R.",
+    "ja": "{@link loglm} の当てはめの残差で、セルごとに 1 つです (R の順序)。R の `MASS::residuals.loglm()` と同等です。"
   },
   "multinom#@example": {
     "hash": "f2167be5edf2",
@@ -3313,5 +3808,25 @@
     "hash": "72ee9977deaf",
     "en": "Coefficient summary with Hall–Sheather bandwidth and the nid sandwich covariance. Equivalent to R's `summary.rq()`.",
     "ja": "Hall–Sheather の帯域幅と nid のサンドイッチ共分散を使用した係数の要約です。R の `summary.rq()` と同等です。"
+  },
+  "tobit#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": "⟦code1⟧"
+  },
+  "tobit#summary": {
+    "hash": "e6b5d2807e9b",
+    "en": "Tobit regression: a linear model for a response censored at a left and/or right limit, fitted by maximum likelihood\nwith {@link survreg} on the response clipped to [left, right]. Equivalent to R's `AER::tobit()`.\n\nA response at or below `left` is left censored at `left`, at or above `right` right censored at `right`. The\nclassical tobit model is the default (left censoring at 0, gaussian errors). `loglik` holds the log-likelihoods of\nthe intercept-only model and of the model (McFadden's R² is `1 - loglik[1] / loglik[0]`), and `chi`, `chiDf`, `chiP`\ntheir likelihood-ratio test.",
+    "ja": "Tobit 回帰です: 左と右のどちらか、または両方の限界で打ち切られた応答の線形モデルで、応答を [left, right] に切り詰めて {@link survreg} により最尤で当てはめます。R の `AER::tobit()` と同等です。\n\n`left` 以下の応答は `left` で左打ち切り、`right` 以上の応答は `right` で右打ち切りになります。既定は古典的な tobit モデル (0 での左打ち切り、正規誤差) です。`loglik` は切片のみのモデルとこのモデルの対数尤度を持ち (McFadden の R² は `1 - loglik[1] / loglik[0]`)、`chi`、`chiDf`、`chiP` はその尤度比検定です。"
+  },
+  "tobitSummary#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": "⟦code1⟧"
+  },
+  "tobitSummary#summary": {
+    "hash": "ee29ea21709b",
+    "en": "Summary of a {@link tobit} fit: the Wald table with the scale and the Wald test of the regression. Equivalent to\n`AER::summary.tobit()` in R.",
+    "ja": "{@link tobit} の当てはめの要約です: 尺度を含む Wald 表と、回帰の Wald 検定です。R の `AER::summary.tobit()` と同等です。"
   }
 }
