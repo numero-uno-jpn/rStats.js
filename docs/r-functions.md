@@ -48,21 +48,27 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 
 | R | rStats.js | Description |
 | --- | --- | --- |
+| `MASS::anova.loglm()` | `loglmAnova` | Likelihood-ratio tests between nested `loglm` fits and of the last against the saturated model. |
 | `nnet::anova.multinom()` | `multinomAnova` | Likelihood-ratio tests of nested multinomial logistic regressions. |
 | `anova.nls()` | `nlsAnova` | Analysis of variance for nested nonlinear least-squares fits. |
 | `anova.polr()` | `polrAnova` | Equivalent to R's `anova.polr()`. |
 | `anova.rq()` | `rqAnova` | Wald comparisons for nested models or slopes across multiple quantiles. |
 | `anova()` | `geeAnova` | Compare GEE terms or nested models using Wald tests. |
+| `betareg::betareg()` | `betareg` | Beta regression for rates and proportions in (0, 1): the mean linked to a linear predictor, the precision phi constant (`y ~ x`) or linked to its own regressors (`y ~ x \| z`), fitted by maximum likelihood, or bias-corrected or bias-reduced. |
 | `coef.glmnet()` | `glmnetCoef` | Extract coefficients at selected penalty values. |
 | `nnet::confint.multinom()` | `multinomConfint` | Wald confidence intervals of the coefficients of a multinomial logistic regression. |
 | `confint.nls()` | `nlsConfint` | Wald or profile confidence intervals for nonlinear parameters. |
 | `confint.polr()` | `polrConfint` | Equivalent to R's `confint.polr()`. |
+| `confint()` | `betaregConfint` | Wald confidence intervals of all coefficients of a `betareg` fit. |
 | `cv.glmnet()` | `cvGlmnet` | Cross-validate a penalized generalized linear model. |
 | `geepack::geeglm()` | `geeglm` | Fit a marginal generalized estimating equation model. |
 | `glmnet::glmnet()` | `glmnet` | Fit a penalized generalized linear model path. |
+| `loglin()` | `loglin` | Fits a hierarchical log-linear model to a contingency table by iterative proportional fitting, given the margins to fit (the maximal terms, e.g. |
+| `MASS::loglm()` | `loglm` | Log-linear model given by a formula: a front end to `loglin`. |
 | `nnet::multinom()` | `multinom` | Multinomial logistic regression: baseline-category logits for a response with two or more levels, the first level the reference. |
 | `nls()` | `nls` | Nonlinear least-squares regression. |
 | `MASS::polr()` | `polr` | Fit a cumulative-link ordinal regression. |
+| `betareg::predict.betareg()` | `betaregPredict` | Predictions of a `betareg` fit: means, linear predictors, precisions, variances, or the density, distribution function or quantiles of the fitted beta distributions. |
 | `predict.geeglm()` | `geePredict` | Predict marginal means on the link or response scale. |
 | `predict.glmnet()` | `glmnetPredict` | Predict from a penalized generalized linear model. |
 | `nnet::predict.multinom()` | `multinomPredict` | Predictions of a multinomial logistic regression: probabilities of the levels, or the most probable level. |
@@ -74,14 +80,19 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `MASS::psi.hampel()` | `psiHampel` | Hampel's three-part psi function. |
 | `MASS::psi.huber()` | `psiHuber` | Huber's psi function. |
 | `geepack::QIC()` | `geeQIC` | Calculate quasi-likelihood information criteria for a GEE fit. |
+| `betareg::residuals.betareg()` | `betaregResiduals` | Residuals of a `betareg` fit. |
+| `MASS::residuals.loglm()` | `loglmResiduals` | Residuals of a `loglm` fit, one per cell. |
 | `MASS::rlm()` | `rlm` | Robust M regression. |
 | `quantreg::rq()` | `rq` | Fit a linear conditional quantile model. |
+| `betareg::summary.betareg()` | `betaregSummary` | Summary of a `betareg` fit. |
 | `summary.geeglm()` | `geeSummary` | Summarize the coefficient estimates of a GEE fit. |
 | `nnet::summary.multinom()` | `multinomSummary` | Summary of a multinomial logistic regression. |
 | `summary.nls()` | `nlsSummary` | Summary of a nonlinear least-squares fit. |
 | `summary.polr()` | `polrSummary` | Summary table of the slope and cut-point estimates. |
 | `summary.rlm()` | `rlmSummary` | Coefficient table of a robust fit. |
 | `summary.rq()` | `rqSummary` | Coefficient summary with Hall–Sheather bandwidth and the nid sandwich covariance. |
+| `AER::summary.tobit()` | `tobitSummary` | Summary of a `tobit` fit: the Wald table with the scale and the Wald test of the regression. |
+| `AER::tobit()` | `tobit` | Tobit regression: a linear model for a response censored at a left and/or right limit, fitted by maximum likelihood with `survreg` on the response clipped to [left, right]. |
 | `nnet::vcov.multinom()` | `multinomVcov` | Variance matrix of the coefficients of a multinomial logistic regression. |
 | `vcov.nls()` | `nlsVcov` | Covariance matrix of a nonlinear least-squares fit. |
 | `vcov.polr()` | `polrVcov` | Covariance matrix of the slopes and cut-points. |

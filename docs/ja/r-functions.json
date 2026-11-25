@@ -500,5 +500,16 @@
   "sobelTest": "間接効果 a b の Sobel 検定",
   "mediationMonteCarlo": "係数の Monte Carlo 法による間接効果・直接効果・総効果・媒介割合の信頼区間",
   "moderatedMediation": "調整媒介分析 (調整変数の低・高での効果と index of moderated mediation)",
-  "mvrnorm": "多変量正規分布の乱数"
+  "mvrnorm": "多変量正規分布の乱数",
+  "tobit": "Tobit 回帰 (下限・上限で打ち切られた応答の回帰、survreg の上に作る)",
+  "tobitSummary": "Tobit 回帰の要約 (Wald の表・尺度・回帰の Wald 検定)",
+  "betareg": "ベータ回帰 (0 と 1 の間の割合の回帰、精度 φ も回帰できる、最尤・バイアス補正・バイアス減少)",
+  "betaregSummary": "ベータ回帰の要約 (平均と精度の係数の Wald 検定)",
+  "betaregConfint": "ベータ回帰の係数の Wald 信頼区間",
+  "betaregPredict": "ベータ回帰の予測 (平均・線形予測子・精度・分散・密度・分布関数・分位点)",
+  "betaregResiduals": "ベータ回帰の残差 (quantile・deviance・pearson・response・weighted・sweighted・sweighted2)",
+  "loglin": "反復比例当てはめによる対数線形モデル (分割表の周辺を指定)",
+  "loglm": "式で指定する対数線形モデル (loglin の前処理、データフレームの度数も受ける)",
+  "loglmResiduals": "対数線形モデルの残差 (deviance・pearson・response)",
+  "loglmAnova": "入れ子の対数線形モデルの尤度比検定 (飽和モデルとの比較つき)"
 }

@@ -48,21 +48,27 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 
 | R | rStats.js | 説明 |
 | --- | --- | --- |
+| `MASS::anova.loglm()` | `loglmAnova` | 入れ子の対数線形モデルの尤度比検定 (飽和モデルとの比較つき) |
 | `nnet::anova.multinom()` | `multinomAnova` | 入れ子の多項ロジスティック回帰の尤度比検定 |
 | `anova.nls()` | `nlsAnova` | 入れ子の非線形回帰の当てはめどうしの F 検定 |
 | `anova.polr()` | `polrAnova` | 入れ子の順序回帰の当てはめどうしの尤度比検定 |
 | `anova.rq()` | `rqAnova` | 分位点回帰の Wald 検定 (入れ子の当てはめどうし、複数の τ での傾きの等しさ) |
 | `anova()` | `geeAnova` | 一般化推定方程式の Wald 検定 (項を順に足す表と、入れ子の当てはめどうし) |
+| `betareg::betareg()` | `betareg` | ベータ回帰 (0 と 1 の間の割合の回帰、精度 φ も回帰できる、最尤・バイアス補正・バイアス減少) |
 | `coef.glmnet()` | `glmnetCoef` | 罰則つき回帰の係数 (経路の外の λ は線形補間) |
 | `nnet::confint.multinom()` | `multinomConfint` | 多項ロジスティック回帰の係数の Wald 信頼区間 |
 | `confint.nls()` | `nlsConfint` | 非線形回帰のパラメータのプロファイルまたは Wald の信頼区間 |
 | `confint.polr()` | `polrConfint` | 順序回帰の傾きのプロファイル尤度または Wald の信頼区間 |
+| `confint()` | `betaregConfint` | ベータ回帰の係数の Wald 信頼区間 |
 | `cv.glmnet()` | `cvGlmnet` | 罰則つき回帰の交差検証 (分割を与える foldid、lambda.min と lambda.1se) |
 | `geepack::geeglm()` | `geeglm` | 一般化推定方程式 (作業相関 independence・exchangeable・ar1・unstructured・userdefined・fixed、サンドイッチ分散) |
 | `glmnet::glmnet()` | `glmnet` | 罰則つき一般化線形モデル (lasso・elastic net・ridge) の λ の経路 (gaussian・binomial・poisson・multinomial) |
+| `loglin()` | `loglin` | 反復比例当てはめによる対数線形モデル (分割表の周辺を指定) |
+| `MASS::loglm()` | `loglm` | 式で指定する対数線形モデル (loglin の前処理、データフレームの度数も受ける) |
 | `nnet::multinom()` | `multinom` | 多項ロジスティック回帰 (基準カテゴリに対するロジット) |
 | `nls()` | `nls` | 非線形最小二乗法による回帰 (Gauss-Newton・部分線形の plinear・上下限つきの port、自己開始モデル) |
 | `MASS::polr()` | `polr` | 累積リンクの順序ロジスティック回帰 (と probit・cloglog・loglog・cauchit) の最尤推定 |
+| `betareg::predict.betareg()` | `betaregPredict` | ベータ回帰の予測 (平均・線形予測子・精度・分散・密度・分布関数・分位点) |
 | `predict.geeglm()` | `geePredict` | 一般化推定方程式の線形予測子と平均の予測 (新しいデータも) |
 | `predict.glmnet()` | `glmnetPredict` | 罰則つき回帰の予測 (線形予測子・応答・クラス・非ゼロの係数) |
 | `nnet::predict.multinom()` | `multinomPredict` | 多項ロジスティック回帰の予測 (確率とクラス) |
@@ -74,14 +80,19 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `MASS::psi.hampel()` | `psiHampel` | Hampel の 3 段の psi 関数 (重み・値・微分) |
 | `MASS::psi.huber()` | `psiHuber` | Huber の psi 関数 (重み・値・微分) |
 | `geepack::QIC()` | `geeQIC` | 一般化推定方程式の QIC・QICu・準尤度・CIC |
+| `betareg::residuals.betareg()` | `betaregResiduals` | ベータ回帰の残差 (quantile・deviance・pearson・response・weighted・sweighted・sweighted2) |
+| `MASS::residuals.loglm()` | `loglmResiduals` | 対数線形モデルの残差 (deviance・pearson・response) |
 | `MASS::rlm()` | `rlm` | M 推定と MM 推定によるロバストな線形回帰 (反復重み付き最小二乗法) |
 | `quantreg::rq()` | `rq` | 分位点回帰 (Barrodale-Roberts の単体法 br と内点法 fn、複数の τ、重み) |
+| `betareg::summary.betareg()` | `betaregSummary` | ベータ回帰の要約 (平均と精度の係数の Wald 検定) |
 | `summary.geeglm()` | `geeSummary` | 一般化推定方程式の係数・相関・尺度の要約 |
 | `nnet::summary.multinom()` | `multinomSummary` | 多項ロジスティック回帰の Wald 検定・オッズ比・擬似 R² |
 | `summary.nls()` | `nlsSummary` | 非線形回帰のパラメータの推定値・標準誤差・t 値の表と残差の標準偏差 |
 | `summary.polr()` | `polrSummary` | 順序回帰の傾きとカットポイントの推定値・標準誤差・t 値の表 |
 | `summary.rlm()` | `rlmSummary` | ロバスト回帰の係数の推定値・標準誤差・t 値の表と残差の尺度 |
 | `summary.rq()` | `rqSummary` | 分位点回帰の係数の要約 (順位検定の反転による区間 rank と、局所の疎さによるサンドイッチの nid) |
+| `AER::summary.tobit()` | `tobitSummary` | Tobit 回帰の要約 (Wald の表・尺度・回帰の Wald 検定) |
+| `AER::tobit()` | `tobit` | Tobit 回帰 (下限・上限で打ち切られた応答の回帰、survreg の上に作る) |
 | `nnet::vcov.multinom()` | `multinomVcov` | 多項ロジスティック回帰の係数の分散行列 |
 | `vcov.nls()` | `nlsVcov` | 非線形回帰のパラメータの共分散行列 |
 | `vcov.polr()` | `polrVcov` | 順序回帰の傾きとカットポイントの共分散行列 (観測情報量から) |
