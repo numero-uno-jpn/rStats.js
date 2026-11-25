@@ -83,6 +83,9 @@ A_t = 1/2 tr(F^-1 (P_t + Q_t)), P_t = E(U U' U_t), Q_t = E(H U_t) (each observat
   So E(s_a s_b s_c) = sum C_ai C_bj C_ck kappa_ijk with the third cumulants of L (kappa_111 = psi''(a) - psi''(phi),
   kappa_222 = psi''(b) - psi''(phi), mixed -psi''(phi)) and E(H_ab s_c) = (dC_a / deta_b) Sigma C_c' with Sigma the
   covariance of L (psi'(a) - psi'(phi), psi'(b) - psi'(phi), -psi'(phi)).
+- **R floors the second derivative of the inverse link at eps for cloglog and loglog** (log 22-24): where
+  d2mu/deta2 is negative R uses about 0 in the bias terms (logit's negative values are used as they are). Kept as R
+  (it moves BC and BR estimates by about 1e-4).
 
 ### summary, confint, predict
 - Wald z = estimate / se, p = 2 pnorm(-|z|); confint = estimate -/+ qnorm((1 + level) / 2) se, rows as the names.
