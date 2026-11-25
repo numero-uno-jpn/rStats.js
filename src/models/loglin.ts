@@ -17,9 +17,13 @@ const LOGLM_RESIDUALS_KEYS = ["type"] as const;
  * @category Regression
  */
 export interface ArrayTable {
+  /** The counts, the first index varying fastest. */
   counts: readonly number[];
+  /** The number of levels of each dimension. */
   dim: readonly number[];
+  /** Names of the dimensions. */
   names?: readonly string[];
+  /** Names of the levels of each dimension. */
   levels?: readonly (readonly string[])[];
 }
 
@@ -181,7 +185,9 @@ export interface LoglinOptions {
 export interface LoglinResult {
   /** Likelihood-ratio and Pearson statistics, and their degrees of freedom (no adjustment for structural zeros). */
   lrt: number;
+  /** Pearson's statistic. */
   pearson: number;
+  /** Degrees of freedom. */
   df: number;
   /** The margins fitted, with names where the table has them. */
   margin: (string | number)[][];
@@ -194,9 +200,11 @@ export interface LoglinResult {
   param: Record<string, number[]>;
   /** The names of `param` in R's order (an object puts names that are numbers first). */
   paramNames: string[];
-  /** Iterations and the deviation of the last (as R prints them; NaN without margins). */
+  /** Iterations (as R prints them). */
   iterations: number;
+  /** The deviation of the last iteration (NaN without margins). */
   deviation: number;
+  /** Warnings. */
   warnings: string[];
 }
 
@@ -258,8 +266,9 @@ export function loglin(table: ArrayTable | NestedTable, margin: readonly (readon
 export interface LoglmOptions {
   /** Starting table (R's order of the table), zeros for structural zeros; with a table `data` only. */
   start?: readonly number[];
-  /** Convergence bound (default 0.1) and maximum iterations (default 40), passed to {@link loglin}. */
+  /** Convergence bound (default 0.1), passed to {@link loglin}. */
   eps?: number;
+  /** Maximum number of iterations (default 40). */
   iter?: number;
   /** The order of the levels of factors of a data frame (default: sorted). */
   levels?: Record<string, readonly string[]>;
@@ -270,13 +279,29 @@ export interface LoglmOptions {
  * @category Regression
  */
 export interface LoglmResult extends LoglinResult {
+  /** The formula. */
   formula: string;
   /** The likelihood-ratio statistic (the deviance against the saturated model). */
   deviance: number;
   /** The table fitted: counts (R's order), dims, names and levels. */
-  frequencies: { counts: number[]; dim: number[]; names: string[]; levels: string[][] };
+  frequencies: LoglmFrequencies;
   /** Cells of the table. */
   nobs: number;
+}
+
+/**
+ * The table of a {@link loglm} fit.
+ * @category Regression
+ */
+export interface LoglmFrequencies {
+  /** The counts (R's order). */
+  counts: number[];
+  /** The number of levels of each dimension. */
+  dim: number[];
+  /** Names of the dimensions. */
+  names: string[];
+  /** Names of the levels. */
+  levels: string[][];
 }
 
 /**
@@ -391,15 +416,20 @@ export function loglmResiduals(fit: LoglmResult, options: LoglmResidualsOptions 
 export interface LoglmAnovaResult {
   /** "Model 1", ..., "Saturated". */
   rows: string[];
+  /** The formulas ("" for the saturated model). */
   formulas: string[];
+  /** Deviances. */
   deviance: number[];
+  /** Residual degrees of freedom. */
   df: number[];
   /**
    * Changes from the previous row (NaN for the first), and the chi-squared p-values of the changes, computed as R's
    * `1 - pchisq()` (a p-value below about 1e-16 is 0).
    */
   deltaDeviance: number[];
+  /** Changes of the degrees of freedom. */
   deltaDf: number[];
+  /** p-values. */
   p: number[];
 }
 

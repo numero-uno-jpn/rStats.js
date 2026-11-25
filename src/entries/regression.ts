@@ -158,6 +158,8 @@ export {
   type TobitOptions,
   type TobitResult,
   type TobitSummaryResult,
+  type TobitCounts,
+  type TobitWald,
 } from "../models/tobit.js";
 
 // Beta regression (rStats.js/regression)
@@ -174,7 +176,10 @@ export {
   type BetaregOptions,
   type BetaregModel,
   type BetaregResult,
+  type BetaregCoefficients,
   type BetaregSummaryResult,
+  type BetaregCoefficientTable,
+  type BetaregConfintResult,
   type BetaregConfintOptions,
   type BetaregPredictOptions,
   type BetaregResidualsOptions,
@@ -193,6 +198,7 @@ export {
   type LoglinResult,
   type LoglmOptions,
   type LoglmResult,
+  type LoglmFrequencies,
   type LoglmResidualsOptions,
   type LoglmAnovaResult,
 } from "../models/loglin.js";

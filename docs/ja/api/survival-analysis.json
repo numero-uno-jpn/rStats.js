@@ -1139,6 +1139,206 @@
     "en": "Result of {@link survreg}, including the fitted model data needed by diagnostics.",
     "ja": "診断に必要な当てはめ済みモデルのデータを含む、{@link survreg} の結果です。"
   },
+  "SurvregResult.chi#summary": {
+    "hash": "b36fdec0e438",
+    "en": "Likelihood-ratio statistic of the model against the intercept-only model.",
+    "ja": "モデルの切片だけのモデルに対する尤度比統計量です。"
+  },
+  "SurvregResult.chiDf#summary": {
+    "hash": "17ef4ef7e97f",
+    "en": "Its degrees of freedom.",
+    "ja": "その自由度です。"
+  },
+  "SurvregResult.chiP#summary": {
+    "hash": "72e6ddf531b6",
+    "en": "Its p-value.",
+    "ja": "その p 値です。"
+  },
+  "SurvregResult.coefNames#summary": {
+    "hash": "52a85f22c68a",
+    "en": "Their names.",
+    "ja": "それらの名前です。"
+  },
+  "SurvregResult.coefficients#summary": {
+    "hash": "fb5aec53322a",
+    "en": "The regression coefficients (intercept first when present).",
+    "ja": "回帰係数です (切片があれば先頭)。"
+  },
+  "SurvregResult.df#summary": {
+    "hash": "4489c11f7a0b",
+    "en": "Degrees of freedom of the model (coefficients and estimated scales).",
+    "ja": "モデルの自由度です (係数と推定した尺度)。"
+  },
+  "SurvregResult.dfResidual#summary": {
+    "hash": "82eecb8e1b30",
+    "en": "Residual degrees of freedom.",
+    "ja": "残差自由度です。"
+  },
+  "SurvregResult.dist#summary": {
+    "hash": "f2876547b4a3",
+    "en": "The distribution.",
+    "ja": "分布です。"
+  },
+  "SurvregResult.distributionDf#summary": {
+    "hash": "857678cb23dd",
+    "en": "Degrees of freedom of the t distribution.",
+    "ja": "t 分布の自由度です。"
+  },
+  "SurvregResult.hasOffset#summary": {
+    "hash": "d9b78ad81401",
+    "en": "Whether an offset was given.",
+    "ja": "オフセットが指定されたかどうかです。"
+  },
+  "SurvregResult.icoef#summary": {
+    "hash": "8da694e5b241",
+    "en": "The intercept-only model's intercept and log scale.",
+    "ja": "切片だけのモデルの切片と対数尺度です。"
+  },
+  "SurvregResult.idf#summary": {
+    "hash": "f2eb4d7db168",
+    "en": "Degrees of freedom of the intercept-only model.",
+    "ja": "切片だけのモデルの自由度です。"
+  },
+  "SurvregResult.intercept#summary": {
+    "hash": "175bfd0e95f8",
+    "en": "Whether the model has an intercept.",
+    "ja": "モデルに切片があるかどうかです。"
+  },
+  "SurvregResult.iter#summary": {
+    "hash": "04c81fc4b4d6",
+    "en": "Iterations.",
+    "ja": "反復回数です。"
+  },
+  "SurvregResult.linearPredictors#summary": {
+    "hash": "18351329a8b2",
+    "en": "Linear predictors of the observations used.",
+    "ja": "使われた観測の線形予測子です。"
+  },
+  "SurvregResult.loglik#summary": {
+    "hash": "7e81b3227045",
+    "en": "Log-likelihoods of the intercept-only model and of the model.",
+    "ja": "切片だけのモデルとこのモデルの対数尤度です。"
+  },
+  "SurvregResult.lower#summary": {
+    "hash": "8826431c12e3",
+    "en": "Lower ends of the observations on that scale.",
+    "ja": "その尺度での観測の下端です。"
+  },
+  "SurvregResult.means#summary": {
+    "hash": "415acff5b27e",
+    "en": "Means of the columns of the model matrix.",
+    "ja": "モデル行列の各列の平均です。"
+  },
+  "SurvregResult.n#summary": {
+    "hash": "17b5681397ab",
+    "en": "Observations used.",
+    "ja": "使われた観測数です。"
+  },
+  "SurvregResult.offset#summary": {
+    "hash": "245a142d861d",
+    "en": "Offsets of the observations used.",
+    "ja": "使われた観測のオフセットです。"
+  },
+  "SurvregResult.p#summary": {
+    "hash": "a138c402a3aa",
+    "en": "Their p-values.",
+    "ja": "それらの p 値です。"
+  },
+  "SurvregResult.parms#summary": {
+    "hash": "de688ce60fa3",
+    "en": "The distribution's parameter (R's `parms`).",
+    "ja": "分布のパラメータです (R の `parms`)。"
+  },
+  "SurvregResult.rows#summary": {
+    "hash": "d111eb9efcc1",
+    "en": "0-based indices of the observations used.",
+    "ja": "使われた観測の 0 始まりの添字です。"
+  },
+  "SurvregResult.scale#summary": {
+    "hash": "c18b8fe7d48b",
+    "en": "The scale of each stratum (fixed or estimated).",
+    "ja": "各層の尺度です (固定または推定)。"
+  },
+  "SurvregResult.score#summary": {
+    "hash": "c8b861142e77",
+    "en": "The score at the estimates.",
+    "ja": "推定値でのスコアです。"
+  },
+  "SurvregResult.se#summary": {
+    "hash": "82ea709fd1e8",
+    "en": "Their standard errors.",
+    "ja": "それらの標準誤差です。"
+  },
+  "SurvregResult.status#summary": {
+    "hash": "b9e716fcfdd5",
+    "en": "Censoring status (0 right, 1 exact, 2 left, 3 interval).",
+    "ja": "打ち切りの状態です (0 は右、1 は正確、2 は左、3 は区間)。"
+  },
+  "SurvregResult.strata#summary": {
+    "hash": "6e2fa4234951",
+    "en": "Stratum of each observation used (0-based).",
+    "ja": "使われた各観測の層です (0 始まり)。"
+  },
+  "SurvregResult.strataLevels#summary": {
+    "hash": "a249be47f548",
+    "en": "The levels of the strata.",
+    "ja": "層の水準です。"
+  },
+  "SurvregResult.table#summary": {
+    "hash": "0e0bb91a225f",
+    "en": "The summary table: coefficients and log scales with standard errors, z and p.",
+    "ja": "要約表です: 係数と対数尺度の標準誤差、z、p を含みます。"
+  },
+  "SurvregResult.tableRowNames#summary": {
+    "hash": "d6ef091c5e46",
+    "en": "Row names of the table: the coefficients, then Log(scale) or the strata.",
+    "ja": "表の行名です: 係数、続いて Log(scale) または層です。"
+  },
+  "SurvregResult.type#summary": {
+    "hash": "59dcfb990db9",
+    "en": "The type of the survival data.",
+    "ja": "生存データの型です。"
+  },
+  "SurvregResult.upper#summary": {
+    "hash": "75f27c79b169",
+    "en": "Upper ends.",
+    "ja": "上端です。"
+  },
+  "SurvregResult.value#summary": {
+    "hash": "277739e4aaab",
+    "en": "Estimates of the table's rows.",
+    "ja": "表の各行の推定値です。"
+  },
+  "SurvregResult.var#summary": {
+    "hash": "993b60f3f2de",
+    "en": "Covariance of the coefficients and log scales.",
+    "ja": "係数と対数尺度の共分散です。"
+  },
+  "SurvregResult.warnings#summary": {
+    "hash": "68a75becbd8c",
+    "en": "Warnings.",
+    "ja": "警告です。"
+  },
+  "SurvregResult.weights#summary": {
+    "hash": "7c472599c81c",
+    "en": "Weights of the observations used.",
+    "ja": "使われた観測の重みです。"
+  },
+  "SurvregResult.x#summary": {
+    "hash": "dd4c749f0bc2",
+    "en": "The model matrix of the observations used.",
+    "ja": "使われた観測のモデル行列です。"
+  },
+  "SurvregResult.y#summary": {
+    "hash": "2e139b15b565",
+    "en": "Response on the scale of the distribution (log time for the log distributions).",
+    "ja": "分布の尺度での応答です (対数分布では対数時間)。"
+  },
+  "SurvregResult.z#summary": {
+    "hash": "7376cbcc7da5",
+    "en": "Their z statistics.",
+    "ja": "それらの z 統計量です。"
+  },
   "SurvregType#summary": {
     "hash": "c788656777ad",
     "en": "Censoring representation accepted by {@link survreg}.",

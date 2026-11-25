@@ -108,16 +108,23 @@ function phiLink(name: string): Link {
  * @category Regression
  */
 export interface BetaregModel {
-  meanRhs: FormulaNode | undefined;
-  precisionRhs: FormulaNode | undefined;
+  /** The right-hand side of the mean model (parsed). */
+  meanRhs: unknown;
+  /** The right-hand side of the precision model (parsed; undefined for a constant precision). */
+  precisionRhs: unknown;
+  /** The levels of the factors. */
   factorLevels: Record<string, readonly string[]>;
+  /** The contrasts given. */
   contrasts: Record<string, DesignContrast>;
   /** The variables of both parts (without the response). */
   variables: string[];
-  /** The model matrices, the response and the weights of the rows used. */
+  /** The mean model's matrix of the rows used. */
   x: number[][];
+  /** The precision model's matrix. */
   z: number[][];
+  /** The response. */
   y: number[];
+  /** The case weights. */
   weights: number[];
   /** 0-based rows of the data used. */
   rows: number[];
@@ -131,7 +138,8 @@ export interface BetaregModel {
  */
 export interface BetaregResult {
   /** Coefficients of the mean model and of the precision model. */
-  coefficients: { mean: number[]; precision: number[] };
+  coefficients: BetaregCoefficients;
+  /** Names of the mean coefficients. */
   meanNames: string[];
   /** `(phi)` for a constant precision with the identity link, else `(phi)_` and the term. */
   precisionNames: string[];
@@ -139,28 +147,68 @@ export interface BetaregResult {
   names: string[];
   /** Covariance of all coefficients: the inverse of the expected information at the estimates. */
   vcov: number[][];
+  /** Log-likelihood at the estimates. */
   loglik: number;
   /** Squared (weighted) correlation of the linear predictor and the link-transformed response. */
   pseudoRSquared: number;
   /** The first-order bias at the maximum likelihood estimates (`type: "BC"` only), as R's `bias`. */
   bias?: number[];
-  /** Fitted means, linear predictors of the mean, fitted precisions. */
+  /** Fitted means. */
   fitted: number[];
+  /** Linear predictors of the mean. */
   linearPredictor: number[];
+  /** Fitted precisions. */
   precision: number[];
+  /** Link of the mean. */
   link: BetaregLink;
+  /** Link of the precision. */
   linkPhi: BetaregPhiLink;
+  /** The estimator. */
   type: BetaregType;
-  /** Rows used, rows with a positive weight, and the residual degrees of freedom of the null and of this model. */
+  /** Rows used. */
   n: number;
+  /** Rows with a positive weight. */
   nobs: number;
+  /** Residual degrees of freedom of the null model (constant mean and precision): nobs − 2. */
   dfNull: number;
+  /** Residual degrees of freedom of this model. */
   dfResidual: number;
   /** Fisher scoring iterations (rStats.js's, not R's BFGS and scoring counts). */
   iterations: number;
+  /** Whether the iterations converged. */
   converged: boolean;
+  /** What predictions and residuals need. */
   model: BetaregModel;
+  /** Warnings. */
   warnings: string[];
+}
+
+/**
+ * The coefficients of a {@link betareg} fit.
+ * @category Regression
+ */
+export interface BetaregCoefficients {
+  /** Of the mean model. */
+  mean: number[];
+  /** Of the precision model. */
+  precision: number[];
+}
+
+/**
+ * A Wald table of {@link betaregSummary}.
+ * @category Regression
+ */
+export interface BetaregCoefficientTable {
+  /** Coefficient names. */
+  names: string[];
+  /** Estimates. */
+  estimate: number[];
+  /** Standard errors. */
+  se: number[];
+  /** Wald z statistics. */
+  z: number[];
+  /** Two-sided p-values. */
+  p: number[];
 }
 
 interface Eval { ll: number; score: number[]; info: number[][]; mu: number[]; phi: number[]; e1: number[]; e2: number[] }
@@ -455,16 +503,23 @@ export function betareg(formula: string, data: DataFrame, options: BetaregOption
  * @category Regression
  */
 export interface BetaregSummaryResult {
-  /** Wald tables of the mean and the precision coefficients. */
-  mean: { names: string[]; estimate: number[]; se: number[]; z: number[]; p: number[] };
-  precision: { names: string[]; estimate: number[]; se: number[]; z: number[]; p: number[] };
+  /** Wald table of the mean coefficients. */
+  mean: BetaregCoefficientTable;
+  /** Wald table of the precision coefficients. */
+  precision: BetaregCoefficientTable;
+  /** Log-likelihood. */
   loglik: number;
   /** Number of coefficients (the degrees of freedom of the log-likelihood). */
   df: number;
+  /** Akaike's information criterion. */
   aic: number;
+  /** Pseudo R². */
   pseudoRSquared: number;
+  /** The estimator. */
   type: BetaregType;
+  /** Link of the mean. */
   link: BetaregLink;
+  /** Link of the precision. */
   linkPhi: BetaregPhiLink;
   /** Minimum, quartiles and maximum of the quantile residuals. */
   residuals: number[];
@@ -507,6 +562,19 @@ export interface BetaregConfintOptions {
 }
 
 /**
+ * Result of {@link betaregConfint}.
+ * @category Regression
+ */
+export interface BetaregConfintResult {
+  /** Coefficient names (mean, then precision). */
+  names: string[];
+  /** Lower limits. */
+  lower: number[];
+  /** Upper limits. */
+  upper: number[];
+}
+
+/**
  * Wald confidence intervals of all coefficients of a {@link betareg} fit. Equivalent to R's
  * `confint()`.
  * @example
@@ -517,7 +585,7 @@ export interface BetaregConfintOptions {
  * ```
  * @category Regression
  */
-export function betaregConfint(fit: BetaregResult, options: BetaregConfintOptions = {}): { names: string[]; lower: number[]; upper: number[] } {
+export function betaregConfint(fit: BetaregResult, options: BetaregConfintOptions = {}): BetaregConfintResult {
   checkOptions(options, BETAREG_CONFINT_KEYS, "betaregConfint"); // generated: option-keys.mjs
   const level = options.level ?? 0.95;
   if (!(level > 0 && level < 1)) throw new RangeError("'level' must be between 0 and 1");
@@ -580,8 +648,8 @@ export function betaregPredict(fit: BetaregResult, options: BetaregPredictOption
       if (cols.some((j) => j < 0)) throw new RangeError("newdata does not produce the fitted model matrix columns");
       return dd.x.map((r) => cols.map((j) => r[j]!));
     };
-    const X = build(m.meanRhs, fit.meanNames, false);
-    const Z = build(m.precisionRhs, fit.precisionNames.map((nm) => (nm === "(phi)" ? "(Intercept)" : nm.slice(6))), m.precisionRhs === undefined);
+    const X = build(m.meanRhs as FormulaNode | undefined, fit.meanNames, false);
+    const Z = build(m.precisionRhs as FormulaNode | undefined, fit.precisionNames.map((nm) => (nm === "(phi)" ? "(Intercept)" : nm.slice(6))), m.precisionRhs === undefined);
     e1 = X.map((r) => dot(r, fit.coefficients.mean));
     e2 = Z.map((r) => dot(r, fit.coefficients.precision));
   }

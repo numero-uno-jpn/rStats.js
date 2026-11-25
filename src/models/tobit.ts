@@ -46,11 +46,27 @@ export interface TobitOptions {
 export interface TobitResult extends SurvregResult {
   /** The formula. */
   formula: string;
-  /** The limits used. */
+  /** The left limit used. */
   left: number;
+  /** The right limit used. */
   right: number;
   /** Observations: total, left censored, uncensored, right censored. */
-  counts: { total: number; left: number; uncensored: number; right: number };
+  counts: TobitCounts;
+}
+
+/**
+ * The censoring counts of a {@link tobit} fit.
+ * @category Regression
+ */
+export interface TobitCounts {
+  /** Observations used. */
+  total: number;
+  /** Left censored (at or below the left limit). */
+  left: number;
+  /** Uncensored. */
+  uncensored: number;
+  /** Right censored (at or above the right limit). */
+  right: number;
 }
 
 /**
@@ -121,25 +137,45 @@ export function tobit(formula: string, data: DataFrame, options: TobitOptions = 
 export interface TobitSummaryResult {
   /** Row names of the table: the coefficients, then `Log(scale)` (when the scale is estimated). */
   names: string[];
+  /** Estimates. */
   estimate: number[];
+  /** Standard errors. */
   se: number[];
+  /** Wald z statistics. */
   z: number[];
+  /** Two-sided p-values. */
   p: number[];
   /** The scale. */
   scale: number;
-  /** Log-likelihood of the model and its degrees of freedom (coefficients and scale). */
+  /** Log-likelihood of the model. */
   loglik: number;
+  /** Its degrees of freedom (coefficients and scale). */
   df: number;
   /** Observations: total, left censored, uncensored, right censored. */
-  counts: { total: number; left: number; uncensored: number; right: number };
+  counts: TobitCounts;
   /**
    * Wald test of the coefficients other than the intercept: `b' V⁻¹ b`, on the number of coefficients minus 1 degrees
    * of freedom (as R; without an intercept R tests all coefficients on one degree of freedom too few). `null` for the
    * intercept-only model.
    */
-  wald: { statistic: number; df: number; p: number } | null;
+  wald: TobitWald | null;
+  /** Iterations. */
   iter: number;
+  /** The distribution. */
   dist: SurvregDistribution;
+}
+
+/**
+ * The Wald test of {@link tobitSummary}.
+ * @category Regression
+ */
+export interface TobitWald {
+  /** `b' V⁻¹ b` over the coefficients other than the intercept. */
+  statistic: number;
+  /** Degrees of freedom: the number of coefficients minus 1. */
+  df: number;
+  /** Upper chi-squared tail probability. */
+  p: number;
 }
 
 /**

@@ -48,13 +48,86 @@ export interface SurvregTable { value: number[]; se: number[]; z: number[]; p: n
  * @category Survival analysis
  */
 export interface SurvregResult {
-  coefficients: number[]; coefNames: string[]; scale: number[]; table: SurvregTable; strataLevels: (string | number | boolean)[]; hasOffset: boolean;
-  icoef: number[]; var: number[][]; loglik: [number, number]; iter: number; df: number; idf: number;
-  dfResidual: number; n: number; linearPredictors: number[]; means: number[]; score: number[];
-  tableRowNames: string[]; value: number[]; se: number[]; z: number[]; p: number[];
-  chi: number; chiDf: number; chiP: number; dist: SurvregDistribution; distributionDf: number; parms: number; intercept: boolean;
-  x: number[][]; offset: number[]; rows: number[]; weights: number[]; strata: number[];
-  y: number[]; lower: number[]; upper: number[]; status: number[]; type: SurvregType; warnings: string[];
+  /** The regression coefficients (intercept first when present). */
+  coefficients: number[];
+  /** Their names. */
+  coefNames: string[];
+  /** The scale of each stratum (fixed or estimated). */
+  scale: number[];
+  /** The summary table: coefficients and log scales with standard errors, z and p. */
+  table: SurvregTable;
+  /** The levels of the strata. */
+  strataLevels: (string | number | boolean)[];
+  /** Whether an offset was given. */
+  hasOffset: boolean;
+  /** The intercept-only model's intercept and log scale. */
+  icoef: number[];
+  /** Covariance of the coefficients and log scales. */
+  var: number[][];
+  /** Log-likelihoods of the intercept-only model and of the model. */
+  loglik: [number, number];
+  /** Iterations. */
+  iter: number;
+  /** Degrees of freedom of the model (coefficients and estimated scales). */
+  df: number;
+  /** Degrees of freedom of the intercept-only model. */
+  idf: number;
+  /** Residual degrees of freedom. */
+  dfResidual: number;
+  /** Observations used. */
+  n: number;
+  /** Linear predictors of the observations used. */
+  linearPredictors: number[];
+  /** Means of the columns of the model matrix. */
+  means: number[];
+  /** The score at the estimates. */
+  score: number[];
+  /** Row names of the table: the coefficients, then Log(scale) or the strata. */
+  tableRowNames: string[];
+  /** Estimates of the table's rows. */
+  value: number[];
+  /** Their standard errors. */
+  se: number[];
+  /** Their z statistics. */
+  z: number[];
+  /** Their p-values. */
+  p: number[];
+  /** Likelihood-ratio statistic of the model against the intercept-only model. */
+  chi: number;
+  /** Its degrees of freedom. */
+  chiDf: number;
+  /** Its p-value. */
+  chiP: number;
+  /** The distribution. */
+  dist: SurvregDistribution;
+  /** Degrees of freedom of the t distribution. */
+  distributionDf: number;
+  /** The distribution's parameter (R's `parms`). */
+  parms: number;
+  /** Whether the model has an intercept. */
+  intercept: boolean;
+  /** The model matrix of the observations used. */
+  x: number[][];
+  /** Offsets of the observations used. */
+  offset: number[];
+  /** 0-based indices of the observations used. */
+  rows: number[];
+  /** Weights of the observations used. */
+  weights: number[];
+  /** Stratum of each observation used (0-based). */
+  strata: number[];
+  /** Response on the scale of the distribution (log time for the log distributions). */
+  y: number[];
+  /** Lower ends of the observations on that scale. */
+  lower: number[];
+  /** Upper ends. */
+  upper: number[];
+  /** Censoring status (0 right, 1 exact, 2 left, 3 interval). */
+  status: number[];
+  /** The type of the survival data. */
+  type: SurvregType;
+  /** Warnings. */
+  warnings: string[];
 }
 /** Prediction options for {@link survregPredict}.
  * @category Survival analysis
