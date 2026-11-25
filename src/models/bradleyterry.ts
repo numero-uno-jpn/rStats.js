@@ -1,0 +1,508 @@
+// Bradley-Terry models for paired comparisons (BradleyTerry2's BTm, BTabilities and countsToBinomial) and quasi
+// variances (qvcalc's qvcalc and worstErrors). Abilities of the players, or abilities modelled by player covariates
+// with random player effects fitted by PQL (Breslow and Clayton): the fixed point where sigma maximizes the REML
+// likelihood of the working linear mixed model. Behaviour: oracle/qcc-bt-behaviour.md (clean room: from the packages'
+// documentation, the papers they cite and the output of R; no source of R or of a package was read). Written for
+// rStats.js.
+import { pnorm, dnorm } from "../distributions/normal.js";
+import { glm, glmSummary } from "./glm.js";
+import { unirootCore } from "../numerics/integrate.js";
+import { eigen } from "../linalg/eigen.js";
+import type { DataFrame } from "./modelFrame.js";
+import { reported, Warnings } from "../internal/warnings.js";
+
+/**
+ * Options for {@link btm}.
+ * @category Regression
+ */
+export interface BtmOptions {
+  /** The outcome: two columns of wins (`[win1, win2]`, as `cbind(win1, win2)`) or one column, 1 when player1 won. */
+  outcome: string | readonly [string, string];
+  /** The column of the first player of each contest. */
+  player1: string;
+  /** The column of the second player. */
+  player2: string;
+  /**
+   * The model of the abilities, without a response: `"~ .."` (default, one ability per player), `"~ .. + home"` (with
+   * a contest-level variable from `contestCovariates`), or player covariates indexed by the player with random player
+   * effects, `"~ x[..] + z[..] + (1 | ..)"` (fitted by PQL; the covariates in `predictors`).
+   */
+  formula?: string;
+  /** Player covariates: one row per player, in the order of `levels`. */
+  predictors?: DataFrame;
+  /** The players in order (default: the sorted distinct players of both columns). */
+  levels?: readonly string[];
+  /** Contest-level variables specific to each player: name -> [column for player1, column for player2]. */
+  contestCovariates?: Readonly<Record<string, readonly [string, string]>>;
+  /** The reference player, whose ability is 0 (default the first level). */
+  refcat?: string;
+  /** The link (default `"logit"`). */
+  link?: "logit" | "probit" | "cauchit";
+}
+
+/**
+ * Result of {@link btm}.
+ * @category Regression
+ */
+export interface BtmResult {
+  /** The fixed coefficients. */
+  coefficients: number[];
+  /** Their names (`..B` for a player's ability, `x[..]` for a covariate, `..p03` for a separate ability). */
+  coefNames: string[];
+  /** Their standard errors. */
+  stdError: number[];
+  /** z = coefficient / standard error and the two-sided p-value. */
+  statistic: number[];
+  pValue: number[];
+  /** The covariance matrix of the fixed coefficients (varFix for PQL). */
+  vcov: number[][];
+  /** Deviance, null deviance and AIC of a model without random effects (NaN with random effects, as BTm). */
+  deviance: number;
+  nullDeviance: number;
+  aic: number;
+  dfResidual: number;
+  dfNull: number;
+  /** Iterations: of the glm, or of the outer PQL search. */
+  iter: number;
+  converged: boolean;
+  /** The fitted probability that player1 wins, and the linear predictor (with the random effects). */
+  fittedValues: number[];
+  linearPredictors: number[];
+  /** The players. */
+  levels: string[];
+  refcat: string;
+  link: "logit" | "probit" | "cauchit";
+  /** The standard deviation of the random player effects (null without them; 0 at the boundary). */
+  sigma: number | null;
+  /** The variance of sigma (null without random effects or at sigma = 0). */
+  varSigma: number | null;
+  /** The predicted random effects, one per player (null without them). */
+  random: number[] | null;
+  /** Players with a missing covariate, given an ability of their own. */
+  separate: string[];
+  warnings: string[];
+  /** How each player's ability is formed from the coefficients (for {@link btAbilities}). */
+  abilityDesign: number[][];
+}
+
+type Link = { inv: (eta: number) => number; dmu: (eta: number) => number };
+const LINKS: Record<"logit" | "probit" | "cauchit", Link> = {
+  logit: {
+    inv: (e) => (e >= 0 ? 1 / (1 + Math.exp(-e)) : Math.exp(e) / (1 + Math.exp(e))),
+    dmu: (e) => { const a = Math.exp(-Math.abs(e)); return a / (1 + a) ** 2; },
+  },
+  probit: { inv: (e) => pnorm(e), dmu: (e) => dnorm(e) },
+  cauchit: { inv: (e) => 0.5 + Math.atan(e) / Math.PI, dmu: (e) => 1 / (Math.PI * (1 + e * e)) },
+};
+
+// small dense linear algebra (symmetric positive definite systems of the size of the players or coefficients)
+type M = number[][];
+const zeros = (r: number, c: number): M => Array.from({ length: r }, () => new Array<number>(c).fill(0));
+function cholesky(A: M): M {
+  const n = A.length, L = zeros(n, n);
+  for (let j = 0; j < n; j++) {
+    let s = A[j]![j]!;
+    for (let k = 0; k < j; k++) s -= L[j]![k]! ** 2;
+    if (!(s > 0)) throw new RangeError("the information matrix is not positive definite (a player or covariate is not identifiable)");
+    L[j]![j] = Math.sqrt(s);
+    for (let i = j + 1; i < n; i++) {
+      let t = A[i]![j]!;
+      for (let k = 0; k < j; k++) t -= L[i]![k]! * L[j]![k]!;
+      L[i]![j] = t / L[j]![j]!;
+    }
+  }
+  return L;
+}
+function cholSolve(L: M, b: readonly number[]): number[] {
+  const n = L.length, y = new Array<number>(n);
+  for (let i = 0; i < n; i++) { let s = b[i]!; for (let k = 0; k < i; k++) s -= L[i]![k]! * y[k]!; y[i] = s / L[i]![i]!; }
+  for (let i = n - 1; i >= 0; i--) { let s = y[i]!; for (let k = i + 1; k < n; k++) s -= L[k]![i]! * y[k]!; y[i] = s / L[i]![i]!; }
+  return y;
+}
+const cols = (B: M): number[][] => (B.length === 0 ? [] : B[0]!.map((_, j) => B.map((r) => r[j]!)));
+const solveM = (L: M, B: M): M => cols(cols(B).map((c) => cholSolve(L, c)));
+const mul = (A: M, B: M): M => A.map((r) => (B[0] ?? []).map((_, j) => r.reduce((s, v, k) => s + v * B[k]![j]!, 0)));
+const tr = (A: M): M => cols(A);
+const sub = (A: M, B: M): M => A.map((r, i) => r.map((v, j) => v - B[i]![j]!));
+const mv = (A: M, v: readonly number[]): number[] => A.map((r) => r.reduce((s, a, k) => s + a * v[k]!, 0));
+const dot = (a: readonly number[], b: readonly number[]): number => a.reduce((s, v, i) => s + v * b[i]!, 0);
+const inverseSpd = (A: M): M => solveM(cholesky(A), A.map((_, i) => A.map((__, j) => (i === j ? 1 : 0))));
+
+/** The model, parsed */
+interface Terms { player: boolean; covariates: string[]; contest: string[]; random: boolean }
+function parseBtFormula(formula: string): Terms {
+  const f = formula.trim().replace(/^~/, "").trim();
+  const t: Terms = { player: false, covariates: [], contest: [], random: false };
+  if (f === "") return { ...t, player: true };
+  for (const raw of f.split("+").map((s) => s.trim())) {
+    if (raw === "..") t.player = true;
+    else if (/^\(\s*1\s*\|\s*\.\.\s*\)$/.test(raw)) t.random = true;
+    else if (/^[A-Za-z._][A-Za-z0-9._]*\[\s*\.\.\s*\]$/.test(raw)) t.covariates.push(raw.replace(/\s/g, "").replace(/\[\.\.\]$/, ""));
+    else if (/^[A-Za-z._][A-Za-z0-9._]*$/.test(raw)) t.contest.push(raw);
+    else throw new RangeError(`unsupported term "${raw}" in the formula of btm`);
+  }
+  return t;
+}
+
+const column = (d: DataFrame, name: string): unknown[] => {
+  const c = (d as Record<string, unknown>)[name];
+  if (!Array.isArray(c)) throw new RangeError(`no column "${name}"`);
+  return c;
+};
+const numberOf = (v: unknown): number => (v === null || v === undefined ? NaN : typeof v === "boolean" ? Number(v) : Number(v));
+
+/**
+ * A Bradley-Terry model for paired comparisons (BradleyTerry2's `BTm`): the probability that player1 beats player2 is
+ * `link^-1(lambda_1 - lambda_2)`. With `"~ .."` each player has an ability (the reference's is 0) and the model is the
+ * binomial glm without intercept on the +1 / -1 design of the two players; contest-level variables add their
+ * difference. With player covariates and random player effects (`"~ x[..] + (1 | ..)"`) the abilities are
+ * `x_j' beta + e_j`, `e ~ N(0, sigma^2)`, fitted by PQL to the fixed point where sigma maximizes the REML likelihood of
+ * the working linear mixed model (BTm stops at its tolerance, about 1e-7 from it); sigma at the boundary 0 gives the
+ * glm. A player with a missing covariate gets an ability of its own (as BTm).
+ *
+ * @param contests one row per contest, or per pair with the numbers of wins
+ * @category Regression
+ */
+export function btm(contests: DataFrame, options: BtmOptions): BtmResult {
+  const warnings = new Warnings();
+  const terms = parseBtFormula(options.formula ?? "~ ..");
+  const linkName = options.link ?? "logit";
+  const link = LINKS[linkName];
+  if (link === undefined) throw new RangeError(`unknown link "${linkName}"`);
+  const p1 = column(contests, options.player1).map(String), p2 = column(contests, options.player2).map(String);
+  const levels = options.levels ? [...options.levels] : [...new Set([...p1, ...p2])].sort();
+  const index = new Map(levels.map((l, i) => [l, i]));
+  const i1 = p1.map((p) => index.get(p)), i2 = p2.map((p) => index.get(p));
+  if (i1.some((i) => i === undefined) || i2.some((i) => i === undefined)) throw new RangeError("a player is not among the levels");
+  const K = p1.length, q = levels.length;
+  let win1: number[], win2: number[];
+  if (typeof options.outcome === "string") {
+    const y = column(contests, options.outcome).map(numberOf);
+    win1 = y; win2 = y.map((v) => 1 - v);
+  } else {
+    win1 = column(contests, options.outcome[0]).map(numberOf);
+    win2 = column(contests, options.outcome[1]).map(numberOf);
+  }
+  const refcat = options.refcat ?? levels[0]!;
+  if (!index.has(refcat)) throw new RangeError(`refcat "${refcat}" is not a player`);
+  if (terms.random && terms.covariates.length === 0) {
+    throw new RangeError("Predictor variables are not of the correct length --they probably need indexing in 'formula'.");
+  }
+  if (terms.player && (terms.covariates.length > 0 || terms.random)) {
+    throw new RangeError("btm: abilities by player and by player covariates together are not supported");
+  }
+
+  // player covariates; players with a missing value get a separate ability
+  const covs = terms.covariates.map((name) => {
+    if (options.predictors === undefined) throw new RangeError(`btm: the covariate "${name}" needs 'predictors'`);
+    const c = column(options.predictors, name).map(numberOf);
+    if (c.length !== q) throw new RangeError("Predictor variables are not of the correct length --they probably need indexing in 'formula'.");
+    return c;
+  });
+  const separateIdx = levels.map((_, j) => j).filter((j) => covs.some((c) => Number.isNaN(c[j]!)));
+  if (covs.length > 0 && !terms.random) warnings.add("Ability modelled by predictors but no random effects");
+
+  // the fixed design (contests x coefficients) and how the abilities are formed (players x coefficients)
+  const names: string[] = [], Xcols: number[][] = [], abilityRows: number[][] = levels.map(() => []);
+  const addAbilityColumn = (name: string, perPlayer: (j: number) => number) => {
+    names.push(name);
+    Xcols.push(Array.from({ length: K }, (_, k) => perPlayer(i1[k]!) - perPlayer(i2[k]!)));
+    levels.forEach((_, j) => abilityRows[j]!.push(perPlayer(j)));
+  };
+  if (terms.player) {
+    levels.forEach((l, j) => { if (l !== refcat) addAbilityColumn(`..${l}`, (i) => (i === j ? 1 : 0)); });
+  }
+  for (const j of separateIdx) addAbilityColumn(`..${levels[j]}`, (i) => (i === j ? 1 : 0));
+  terms.covariates.forEach((name, t) => {
+    const c = covs[t]!.map((v, j) => (separateIdx.includes(j) ? 0 : v));
+    addAbilityColumn(`${name}[..]`, (i) => c[i]!);
+  });
+  for (const name of terms.contest) {
+    const pair = options.contestCovariates?.[name];
+    if (pair === undefined) throw new RangeError(`btm: the contest variable "${name}" needs contestCovariates`);
+    const a = column(contests, pair[0]).map(numberOf), b = column(contests, pair[1]).map(numberOf);
+    names.push(name);
+    Xcols.push(a.map((v, k) => v - b[k]!));
+    levels.forEach((_, j) => abilityRows[j]!.push(0));
+  }
+  const X = Array.from({ length: K }, (_, k) => Xcols.map((c) => c[k]!));
+  const n = win1.map((w, k) => w + win2[k]!);
+  const y = win1.map((w, k) => w / n[k]!);
+
+  const g = glmFit(X, win1, win2, linkName);
+  const base = {
+    coefNames: names, levels, refcat, link: linkName, abilityDesign: abilityRows,
+    separate: separateIdx.map((j) => levels[j]!),
+  };
+  if (!terms.random) {
+    for (const w of g.warnings) warnings.add(w);
+    return reported("btm", {
+      ...base, coefficients: g.coef, stdError: g.se, statistic: g.coef.map((b, i) => b / g.se[i]!),
+      pValue: g.coef.map((b, i) => 2 * pnorm(-Math.abs(b / g.se[i]!))), vcov: g.vcov, deviance: g.deviance,
+      nullDeviance: g.nullDeviance, aic: g.aic, dfResidual: g.dfResidual, dfNull: g.dfNull, iter: g.iter,
+      converged: g.converged, fittedValues: g.fitted, linearPredictors: g.eta, sigma: null, varSigma: null,
+      random: null, warnings: warnings.list,
+    });
+  }
+
+  // random effects: Z (contests x players) without the columns of the separate players
+  const keep = levels.map((_, j) => j).filter((j) => !separateIdx.includes(j));
+  const Z = Array.from({ length: K }, (_, k) => keep.map((j) => (i1[k] === j ? 1 : 0) - (i2[k] === j ? 1 : 0)));
+  const pql = fitPql(X, Z, y, n, link, g.coef);
+  const randomAll = levels.map(() => 0);
+  keep.forEach((j, t) => { randomAll[j] = pql.e[t]!; });
+  const se = pql.varFix.map((r, i) => Math.sqrt(r[i]!));
+  return reported("btm", {
+    ...base, coefficients: pql.beta, stdError: se, statistic: pql.beta.map((b, i) => b / se[i]!),
+    pValue: pql.beta.map((b, i) => 2 * pnorm(-Math.abs(b / se[i]!))), vcov: pql.varFix, deviance: NaN,
+    nullDeviance: NaN, aic: NaN, dfResidual: K - names.length, dfNull: K, iter: pql.iter, converged: pql.converged,
+    fittedValues: pql.eta.map(link.inv), linearPredictors: pql.eta, sigma: pql.sigma,
+    varSigma: pql.sigma === 0 ? null : pql.varSigma, random: randomAll, warnings: warnings.list,
+  });
+}
+
+/** The binomial glm without intercept */
+function glmFit(X: M, win1: number[], win2: number[], link: string) {
+  const fit = glm(X, win1.map((w, k) => [w, win2[k]!]), { family: "binomial", link: link as "logit", intercept: false });
+  const s = glmSummary(fit);
+  return {
+    coef: fit.coefficients, se: s.stdError, vcov: s.covScaled, deviance: fit.deviance, nullDeviance: fit.nullDeviance,
+    aic: fit.aic, dfResidual: fit.dfResidual, dfNull: fit.dfNull, iter: fit.iter, converged: fit.converged,
+    fitted: fit.fittedValues, eta: fit.linearPredictors, warnings: fit.warnings,
+  };
+}
+
+interface PqlState { beta: number[]; e: number[]; eta: number[]; w: number[]; z: number[] }
+
+/** Penalized IWLS given sigma (Henderson's equations), from a start */
+function pirls(X: M, Z: M, y: number[], n: number[], link: Link, sigma: number, start: { beta: number[]; e: number[] }): PqlState {
+  const p = X[0]!.length, q = Z[0]!.length, K = X.length;
+  let beta = [...start.beta], e = sigma === 0 ? new Array<number>(q).fill(0) : [...start.e];
+  const working = () => {
+    const eta = X.map((r, k) => dot(r, beta) + dot(Z[k]!, e));
+    const mu = eta.map(link.inv), d = eta.map(link.dmu);
+    const w = mu.map((m, k) => n[k]! * d[k]! ** 2 / (m * (1 - m)));
+    const z = eta.map((v, k) => v + (y[k]! - mu[k]!) / d[k]!);
+    return { eta, w, z };
+  };
+  for (let it = 0; it < 500; it++) {
+    const { w, z } = working();
+    const D = [...X.map((r, k) => [...r, ...(sigma === 0 ? [] : Z[k]!)])];
+    const dim = D[0]!.length;
+    const A = zeros(dim, dim), b = new Array<number>(dim).fill(0);
+    for (let k = 0; k < K; k++) for (let i = 0; i < dim; i++) {
+      b[i] = b[i]! + D[k]![i]! * w[k]! * z[k]!;
+      for (let j = 0; j <= i; j++) A[i]![j] = A[i]![j]! + D[k]![i]! * w[k]! * D[k]![j]!;
+    }
+    for (let i = 0; i < dim; i++) for (let j = 0; j < i; j++) A[j]![i] = A[i]![j]!;
+    if (sigma > 0) for (let i = p; i < dim; i++) A[i]![i] = A[i]![i]! + 1 / sigma ** 2;
+    const sol = cholSolve(cholesky(A), b);
+    const nb = sol.slice(0, p), ne = sigma === 0 ? e : sol.slice(p);
+    const change = Math.max(...nb.map((v, i) => Math.abs(v - beta[i]!) / (1 + Math.abs(v))),
+      ...ne.map((v, i) => Math.abs(v - e[i]!) / (1 + Math.abs(v))));
+    beta = nb; e = ne;
+    if (change < 1e-14) break;
+  }
+  return { beta, e, ...working() };
+}
+
+/** The quantities of the working linear mixed model at sigma (Woodbury in the dimension of the players) */
+function workingModel(X: M, Z: M, s: PqlState, sigma: number) {
+  const K = X.length;
+  const wt = (U: M, Vm: M) => {
+    const R = zeros(U[0]!.length, Vm[0]!.length);
+    for (let k = 0; k < K; k++) for (let i = 0; i < R.length; i++) for (let j = 0; j < R[0]!.length; j++) R[i]![j] = R[i]![j]! + U[k]![i]! * s.w[k]! * Vm[k]![j]!;
+    return R;
+  };
+  const wv = (U: M, v: number[]) => U[0]!.map((_, i) => U.reduce((acc, r, k) => acc + r[i]! * s.w[k]! * v[k]!, 0));
+  const A = wt(Z, Z), B = wt(Z, X), C = wt(X, X), a = wv(Z, s.z), bx = wv(X, s.z);
+  let ZVZ = A, ZVX = B, XVX = C, ZVz = a, XVz = bx;
+  if (sigma > 0) {
+    const Mm = A.map((r, i) => r.map((v, j) => v + (i === j ? 1 / sigma ** 2 : 0)));
+    const L = cholesky(Mm);
+    const MiA = solveM(L, A), MiB = solveM(L, B), Mia = cholSolve(L, a);
+    ZVZ = sub(A, mul(A, MiA)); ZVX = sub(B, mul(A, MiB)); XVX = sub(C, mul(tr(B), MiB));
+    ZVz = a.map((v, i) => v - dot(A[i]!, Mia)); XVz = bx.map((v, i) => v - dot(tr(B)[i]!, Mia));
+  }
+  const varFix = inverseSpd(XVX);
+  const ZPz = ZVz.map((v, i) => v - dot(ZVX[i]!, mv(varFix, XVz)));
+  const ZPZ = sub(ZVZ, mul(mul(ZVX, varFix), tr(ZVX)));
+  const score = 0.5 * (dot(ZPz, ZPz) - ZPZ.reduce((acc, r, i) => acc + r[i]!, 0));
+  const info = 0.5 * ZPZ.reduce((acc, r) => acc + r.reduce((t, v) => t + v * v, 0), 0);
+  return { varFix, score, info };
+}
+
+/**
+ * PQL: sigma solves the REML score equation of the working model at the PIRLS working response for that sigma (the
+ * fixed point of BTm's alternation of IWLS and Fisher scoring for sigma); 0 when the score at 0 is not positive.
+ */
+function fitPql(X: M, Z: M, y: number[], n: number[], link: Link, beta0: number[]) {
+  let cur: PqlState = pirls(X, Z, y, n, link, 0, { beta: beta0, e: new Array<number>(Z[0]!.length).fill(0) });
+  let iter = 0;
+  const F = (sigma: number) => {
+    iter++;
+    cur = pirls(X, Z, y, n, link, sigma, cur);
+    return workingModel(X, Z, cur, sigma).score;
+  };
+  let sigma = 0;
+  if (F(0) > 0) {
+    let lo = 0, hi = 0.5;
+    while (F(hi) > 0 && hi < 1e6) { lo = hi; hi *= 2; }
+    sigma = unirootCore(F, lo, hi, { tol: 1e-15, maxiter: 1000 }).root;
+  }
+  cur = pirls(X, Z, y, n, link, sigma, cur);
+  const wm = workingModel(X, Z, cur, sigma);
+  return { ...cur, sigma, varFix: wm.varFix, varSigma: sigma > 0 ? 1 / (4 * sigma ** 2 * wm.info) : NaN, iter, converged: true };
+}
+
+/**
+ * Result of {@link btAbilities}.
+ * @category Regression
+ */
+export interface BtAbilitiesResult {
+  levels: string[];
+  ability: number[];
+  /** Standard errors (0 for the reference player). */
+  se: number[];
+  /** The covariance matrix of the abilities (a zero row for the reference). */
+  vcov: number[][];
+  /** Players whose ability was estimated separately (a missing covariate). */
+  separate: string[];
+}
+
+/**
+ * The abilities of the players of a Bradley-Terry model (BradleyTerry2's `BTabilities`): the estimated abilities with
+ * the reference at 0, or, for abilities modelled by player covariates, `x_j' beta` (without the random effects) with
+ * standard errors from the covariance of beta; contest-level variables are taken as 0.
+ * @category Regression
+ */
+export function btAbilities(fit: BtmResult): BtAbilitiesResult {
+  const A = fit.abilityDesign;
+  const ability = A.map((r) => dot(r, fit.coefficients));
+  const vcov = A.map((r) => A.map((s) => dot(r, mv(fit.vcov, s))));
+  return { levels: [...fit.levels], ability, se: vcov.map((r, i) => Math.sqrt(Math.max(0, r[i]!))), vcov, separate: [...fit.separate] };
+}
+
+/**
+ * Result of {@link countsToBinomial}.
+ * @category Regression
+ */
+export interface CountsToBinomialResult {
+  player1: string[];
+  player2: string[];
+  win1: number[];
+  win2: number[];
+}
+
+/**
+ * The wins of each pair of players from a table of wins (BradleyTerry2's `countsToBinomial`): rows winners, columns
+ * losers. One row per pair i < j (in the order of the levels) that met at least once.
+ * @category Regression
+ */
+export function countsToBinomial(table: readonly (readonly number[])[], levels: readonly string[]): CountsToBinomialResult {
+  const k = levels.length;
+  if (table.length !== k || table.some((r) => r.length !== k)) throw new RangeError("the table must be square with one row per level");
+  const out: CountsToBinomialResult = { player1: [], player2: [], win1: [], win2: [] };
+  for (let i = 0; i < k; i++) for (let j = i + 1; j < k; j++) {
+    const a = table[i]![j]!, b = table[j]![i]!;
+    if (a + b === 0) continue;
+    out.player1.push(levels[i]!); out.player2.push(levels[j]!); out.win1.push(a); out.win2.push(b);
+  }
+  return out;
+}
+
+/**
+ * Result of {@link qvcalc}.
+ * @category Regression
+ */
+export interface QvcalcResult {
+  names: string[];
+  estimate: number[];
+  se: number[];
+  /** The quasi standard errors and quasi variances. */
+  quasiSE: number[];
+  quasiVar: number[];
+  /** Relative errors of the quasi standard errors of the simple contrasts (pairs "A,B", ...). */
+  relerrs: number[];
+  relerrsNames: string[];
+  /** The covariance matrix used. */
+  covmat: number[][];
+}
+
+/**
+ * Quasi variances (qvcalc's `qvcalc`, Firth 2003): the q_j minimizing `sum_{i<j} (log(q_i + q_j) - log var(b_i - b_j))^2`,
+ * so that `q_i + q_j` approximates the variance of every simple contrast. Accepts the abilities of a Bradley-Terry
+ * model or estimates with their covariance matrix.
+ * @category Regression
+ */
+export function qvcalc(object: BtAbilitiesResult | { estimate: readonly number[]; vcov: readonly (readonly number[])[]; names?: readonly string[] }): QvcalcResult {
+  const est = "ability" in object ? object.ability : [...object.estimate];
+  const V = object.vcov.map((r) => [...r]);
+  const names = "levels" in object ? object.levels : object.names ? [...object.names] : est.map((_, i) => String(i + 1));
+  const k = est.length;
+  if (k < 3) throw new RangeError("qvcalc needs at least 3 levels");
+  const pairs: [number, number][] = [];
+  for (let i = 0; i < k; i++) for (let j = i + 1; j < k; j++) pairs.push([i, j]);
+  const v = pairs.map(([i, j]) => V[i]![i]! + V[j]![j]! - 2 * V[i]![j]!);
+  // Gauss-Newton with damping on log q (the least squares problem is smooth and small)
+  let lq = names.map((_, i) => Math.log(Math.max(V[i]![i]!, 1e-12 * Math.max(...v)) || Math.max(...v) / 2));
+  const resid = (l: number[]) => pairs.map(([i, j], t) => Math.log(Math.exp(l[i]!) + Math.exp(l[j]!)) - Math.log(v[t]!));
+  let r = resid(lq), ss = dot(r, r), lambda = 1e-3;
+  for (let it = 0; it < 500; it++) {
+    const J = pairs.map(([i, j]) => {
+      const qi = Math.exp(lq[i]!), qj = Math.exp(lq[j]!), row = new Array<number>(k).fill(0);
+      row[i] = qi / (qi + qj); row[j] = qj / (qi + qj);
+      return row;
+    });
+    const JtJ = tr(J).map((c) => tr(J).map((d) => dot(c, d)));
+    const Jtr = tr(J).map((c) => dot(c, r));
+    let improved = false;
+    for (let tries = 0; tries < 60; tries++) {
+      const Aa = JtJ.map((row, i) => row.map((x, j) => x + (i === j ? lambda * (1 + JtJ[i]![i]!) : 0)));
+      const step = cholSolve(cholesky(Aa), Jtr);
+      const next = lq.map((x, i) => x - step[i]!);
+      const rn = resid(next), sn = dot(rn, rn);
+      if (sn <= ss) {
+        const done = Math.max(...step.map(Math.abs)) < 1e-14;
+        lq = next; r = rn; ss = sn; lambda = Math.max(lambda / 10, 1e-12); improved = true;
+        if (done) it = 1e9;
+        break;
+      }
+      lambda *= 10;
+    }
+    if (!improved) break;
+  }
+  const quasiVar = lq.map(Math.exp);
+  const relerrs = pairs.map(([i, j], t) => Math.sqrt((quasiVar[i]! + quasiVar[j]!) / v[t]!) - 1);
+  return {
+    names: [...names], estimate: [...est], se: names.map((_, i) => Math.sqrt(V[i]![i]!)), quasiSE: quasiVar.map(Math.sqrt),
+    quasiVar, relerrs, relerrsNames: pairs.map(([i, j]) => `${names[i]},${names[j]}`), covmat: V,
+  };
+}
+
+/**
+ * The worst relative errors of the quasi standard errors over all contrasts (qvcalc's `worstErrors`): the square roots
+ * of the extreme eigenvalues of `(C'VC)^-1 C'QC` minus 1, over a basis C of the contrasts, Q = diag(quasiVar).
+ * @category Regression
+ */
+export function worstErrors(qv: QvcalcResult): [number, number] {
+  const k = qv.quasiVar.length;
+  const C = Array.from({ length: k }, (_, i) => Array.from({ length: k - 1 }, (__, j) => (i === j ? 1 : i === k - 1 ? -1 : 0)));
+  const CVC = mul(mul(tr(C), qv.covmat), C);
+  const CQC = mul(mul(tr(C), qv.quasiVar.map((qq, i) => qv.quasiVar.map((_, j) => (i === j ? qq : 0)))), C);
+  // L^-1 CQC L^-T (symmetric) has the eigenvalues of (C'VC)^-1 C'QC
+  const Li = lowerInverse(cholesky(CVC));
+  const S = mul(mul(Li, CQC), tr(Li));
+  const values = eigen(S.map((r, i) => r.map((v, j) => (v + S[j]![i]!) / 2)), { symmetric: true, onlyValues: true }).values as number[];
+  return [Math.sqrt(Math.min(...values)) - 1, Math.sqrt(Math.max(...values)) - 1];
+}
+/** L^-1 of a lower triangular L, by forward substitution */
+function lowerInverse(L: M): M {
+  const n = L.length, R = zeros(n, n);
+  for (let c = 0; c < n; c++) for (let i = 0; i < n; i++) {
+    let s = i === c ? 1 : 0;
+    for (let k = 0; k < i; k++) s -= L[i]![k]! * R[k]![c]!;
+    R[i]![c] = s / L[i]![i]!;
+  }
+  return R;
+}
