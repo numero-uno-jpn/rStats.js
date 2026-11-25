@@ -9,7 +9,7 @@
 - **1.16.0 を公開した (2026-11-25):** main `65931158` (作業ブランチを squash、中身は同じ)、CI・Pages 緑 → タグ `v1.16.0` → stage
   (id `aaeeb51b-...`) をユーザーが承認。npm latest = 1.16.0、jsDelivr の `dist/causal.js`、`/api/`・`/ja/api/` の mediate・mvrnorm の
   ページ、デモ v1.16.0 を確かめた。Issue #566 を閉じた。証拠はタグ `archive/mediation-1.16`。作業ブランチ `dev/mediation-1.16` は
-  手元に残っている (消すかはユーザーに聞く)
+  ユーザーの指示で削除 (2026-11-25、手元だけにあった)
 - main は origin より HANDOFF のコミットだけ先 (push しない。次の作業ブランチの最初に含める)
 
 ## セッション 34 (2026-11-25): 1.16.0 = 媒介・調整・調整媒介分析
