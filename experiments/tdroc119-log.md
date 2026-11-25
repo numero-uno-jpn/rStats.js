@@ -168,3 +168,37 @@ script keeps the search that succeeded.
 38. `tdroc119-survivalroc8.R`: the risk set not reduced by censoring (S_i = 1 - D / N): none (0.55).
     **The NNE estimator is not found after 9 attempts.** It is left as a Choice for the user (implement the published
     definition of Heagerty et al. 2000 and document the difference, leave NNE out, or keep looking).
+
+## Cox and Aalen censoring weights (2026-11-26)
+
+39. `tdroc119-cox.R`: weighting = "cox": the fit is **rms's cph** (class cph, rms, coxph; through pec's ipcw);
+    weights fields times, IPCW.times (an n x times matrix), IPCW.subjectTimes, fit, call, method. Candidate G(s | Z)
+    from survival's coxph of the censoring (Surv(T, delta == 0) ~ marker + other_markers, ties efron) predicted by
+    survfit: **IPCW.subjectTimes = G(T_i- | Z_i) in the sorted order, 2.8e-7 off**; IPCW.times not matched in the data
+    order. Breslow ties, or the marker only as covariate: 0.015 to 0.05 off. **iid = TRUE with cox: error "Weighting must
+    be marginal for computing the iid representation"** (also for aalen, per the help). weighting = "aalen" runs (fit
+    class aalen) and some of its IPCW.times are exactly 1 at t = 10 while below 1 at t = 15.
+40. `tdroc119-cox2.R` (with coxph at eps 1e-14; coxph.control warned that its tolerance should be below eps): IPCW.times
+    **in the sorted order**: 6.0e-7 off; cph's coefficients (-0.0171346839, 0.0814351598) are 5e-7 from coxph's exact
+    maximum (-0.0171351877, 0.0814350771): **R's Cox weights are cph's (Efron ties) at its looser stopping**; with the
+    exact maximum they agree to 6e-7 (to be compared at that order: a Choice).
+41. `tdroc119-aalen.R`: candidate Aalen additive hazards of the censoring with the marker, least-squares increments
+    dB(u) = (X'X)^-1 X' dN(u) over the subjects at risk at each censoring time, G = exp(-[1, z] B), truncated to [0, 1]
+    or not; risk set T >= u or with events at u left out: the structure as R's (exactly 1 where exp of a negative
+    cumulative hazard), the values 0.05 to 0.2 off on the tied data.
+42. `tdroc119-aalen2.R`: continuous times: **equal to 1.1e-14 with the risk set T >= u (either variant) and the
+    truncation to [0, 1]**; R's weights did not depend on the seed there.
+43. `tdroc119-aalen3.R`: the tied data with each censoring taken on its own at its position (ties in the data order,
+    events first, censorings first): none (0.055 at best).
+44. timereg's help of aalen: "The program assumes that there are no ties, and if such are present random noise is added
+    to break the ties."
+45. `tdroc119-aalen4.R`: the tied data: the same seed gives the same weights; seeds 1 and 2 differ by 0.14 in
+    IPCW.times; the AUC over 20 seeds ranges 0.821 to 0.832 at t = 5. **With tied times R's Aalen weights are random**
+    and cannot be reproduced (a Choice: a deterministic treatment of ties).
+
+## plotAUCcurve, plotAUCcurveDiff (2026-11-26)
+
+46. `tdroc119-plotvalues.R`: both return NULL (drawn to a null device). The values behind plotAUCcurve are AUC and
+    confint's CI_AUC / CB_AUC; behind plotAUCcurveDiff the difference of two AUCs with a pointwise interval from the
+    difference's iid (as compare) and a simultaneous band whose simulation cannot be checked (nothing is returned): a
+    Choice (offer the band with confint's multiplier scheme, or only the pointwise interval).
