@@ -1869,6 +1869,10 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
 - R 管理図の確率限界と OC 曲線は自由度 Inf の `qtukey` / `ptukey` を使い、R のものより正確です (R はそこで最大 2.5e-7 ほど
   ずれます)。
 - `mqcc` は共分散行列が特異ならエラー ("the covariance matrix is singular") です。
+- 大きさが 1 から遠いデータ (1e±150 程度より先) でも、rStats.js は R が崩れる所で正確です。`mqcc` は変数ごとに 2 のべき乗で
+  割ります (R は 1e300 で統計量が NaN、1e-300 や 1e400 離れた変数では `solve` が特異と報告します)。`qccOverdispersionTest` は
+  計数を割ります (R は 1e200 で Inf、1e-200 で 0)。`ewma` の管理限界は 1e-300 でも正確です (R は 33% ずれます)。
+- `ocCurves` は、格子が 1e6 点を超える c・u 管理図を断ります (R は確保しようとします。中心線が 1e9 なら 1e9 点)。
 - `medianChart` は R にはありません。ReactiveStat のメディアン管理図で、JIS の係数を使います。群の大きさが揃わなければエラーです。
 
 ### `btm`・`btAbilities`・`qvcalc`

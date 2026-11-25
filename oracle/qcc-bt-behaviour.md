@@ -249,3 +249,9 @@ eta_k = (x_i - x_j)' beta + (contest covariates) + e_i - e_j, e ~ N(0, sigma^2).
   coefficients (R's NA) with aligned NaN standard errors, NaN ability for those players only; a covariate that does not
   vary between the players of any contest: an error ("not identifiable"); counts times 1e6 and covariates times
   1e+-6 give the same fit (1e-12); qvcalc with missing variances: an error.
+- Third pass (log 20, 21): processCapability, mqcc (each variable scaled by a power of 2), the overdispersion test, the
+  g chart, cusum and ewma give proportional results at 1e+-150 and 1e+-300 (1e-13); R's mqcc fails at 1e+-300 and with
+  variables 1e400 apart, its overdispersion test gives Inf / 0 at 1e+-200 and its ewma limits are 33% off at 1e-300.
+  The OC curve of a c or u chart is refused above 1e6 points. PQL uses a sparse Z (200 players, 4000 contests: 0.3 s),
+  keeps mu in [eps, 1 - eps] and dmu/deta >= eps, stops with a clear error on separated outcomes, and keeps the glm's
+  warnings when it falls back to sigma = 0. qvcalc is exact enough at variances 1e+-300 and correlations 1 - 1e-9.

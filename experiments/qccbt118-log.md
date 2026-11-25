@@ -256,3 +256,25 @@ script keeps the search that succeeded.
     (rel.tol 1e-13): R differs by 1e-12 to 1.4e-11, rStats.js's ptukey agrees with the integral to 1e-16, so the
     1e-8 differences of the R chart's probability limits and OC curves (qtukey / ptukey with df = Inf) come from R's
     approximation (documented accuracy of ptukey / qtukey); the fixtures are compared at 1e-7 there.
+
+## Third edge-case pass: overflow, underflow, cancellation, size (2026-11-26)
+
+20. A probe of rStats.js (not an R experiment): the OC curve of a c chart with center 1e6 took 4.2 s (1.01e6 points;
+    1e9 would need 1e9); processCapability wrong at scales 1e200 / 1e300 and Infinity at 1e-300 (sd^2 + (center -
+    target)^2); mqcc "singular" at 1e+-300 and with variables 1e400 apart (covariance products, and the pivot test
+    against the largest diagonal); the overdispersion test Infinity / 0 for counts of 1e+-200 (variance); the g chart's
+    UCL Infinity for counts times 1e300 (g^2); btm with PQL 22 s for 200 players and 4000 contests (dense Z). Fine:
+    qvcalc with variances of 1e+-300 and correlations 1 - 1e-9 (1e-13), the p, np, c, u charts, cusum and ewma at
+    1e+-300, 1e5 groups (0.1 s), 1e6 individual values (0.4 s). Fixed in rStats.js: hypot for Cpm, each mqcc variable
+    divided by a power of 2 (and the pivot test against its own variance), the overdispersion counts divided by a power
+    of 2, g sqrt(1 - 1 / g), the OC grid refused above 1e6 points, PQL with a sparse Z and one inverse of
+    M = Z'WZ + I / sigma^2 per evaluation (0.32 s, the same sigma), mu kept in [eps, 1 - eps] and dmu/deta >= eps (as R's
+    binomial family) so the working weights do not underflow; PQL on separated outcomes stops with a clear error, and
+    a PQL fit at sigma = 0 keeps the glm's warnings.
+21. `qccbt118-extreme.R`: the same scales in R (ratios to the unscaled results). process.capability: proportional at
+    1e+-150, 1e200, 1e+-300 (R does not overflow there). **mqcc: NaN statistics at 1e300, `Lapack routine dgesv:
+    system is exactly singular` at 1e-300 and with variables 1e400 apart.** **qcc.overdispersion.test: Inf at 1e200, 0
+    at 1e-200.** g chart: finite at 1e300 (std.dev / center not proportional to the scale, since g - 1 is not: the
+    same in rStats.js). cusum: unchanged; **ewma's limits 33% off at 1e-300** (y exact). BTm with counts times 1e6:
+    2e-10 from the unscaled coefficients (glm's stopping). So rStats.js is right where R breaks (mqcc, the
+    overdispersion test, ewma's limits at 1e-300).

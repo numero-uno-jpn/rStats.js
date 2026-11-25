@@ -2017,6 +2017,12 @@ The references are R's `stats` functions. The implementation decisions are recor
 - The R chart's probability limits and OC curves use `qtukey` / `ptukey` with df = Inf, which are more accurate than
   R's (R's differ by up to about 2.5e-7 there).
 - `mqcc` with a singular covariance matrix is an error ("the covariance matrix is singular").
+- Far from 1 in size (about 1e+-150 and beyond) rStats.js stays exact where R does not: `mqcc` scales each variable by
+  a power of 2 (R's statistics are NaN at 1e300 and its `solve` reports a singular system at 1e-300 or with variables
+  1e400 apart), `qccOverdispersionTest` scales the counts (R gives Inf at 1e200 and 0 at 1e-200), and `ewma`'s limits
+  stay exact at 1e-300 (R's are 33% off).
+- `ocCurves` refuses a c or u chart whose grid would exceed 1e6 points (R tries to allocate it: 1e9 points for a center
+  of 1e9).
 - `medianChart` is not in R: the median chart of ReactiveStat with the JIS factors; unequal group sizes are an error.
 
 ### `btm`, `btAbilities`, `qvcalc`

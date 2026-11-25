@@ -116,6 +116,9 @@ export function ocCurves(chart: QccResult, options: OcCurvesOptions = {}): OcCur
   const center = chart.center as number;
   const scale = type === "u" ? size : 1;
   const top = Math.ceil(scale * center + 10 * Math.sqrt(center));
+  // qcc evaluates every count from 0 to the top: for a center of 1e9 that is 1e9 points (R allocates them too); more
+  // than a million is refused rather than left to run out of memory
+  if (!(top <= 1e6)) throw new RangeError(`the OC curve of this ${type} chart would need ${top + 1} points (more than 1e6): its center is too large`);
   const grid = Array.from({ length: top + 1 }, (_, i) => i);
   const beta = grid.map((l) => ppois(Math.floor(scale * ucl), l) - ppois(Math.ceil(scale * lcl) - 1, l));
   return done({ beta, c: [], n: [], grid });
@@ -215,7 +218,8 @@ export function processCapability(chart: QccResult, specLimits: readonly [number
   const cpl = (center - lsl) / (k * sd), cpu = (usl - center) / (k * sd);
   const both = !Number.isNaN(lsl) && !Number.isNaN(usl);
   const cpk = both ? Math.min(cpl, cpu) : NaN;
-  const cpm = (usl - lsl) / (2 * k * Math.sqrt(sd * sd + (center - target) ** 2));
+  // hypot: sd^2 + (center - target)^2 would overflow or underflow for data far from 1 in size
+  const cpm = (usl - lsl) / (2 * k * Math.hypot(sd, center - target));
   const d = (center - target) / sd, nu = n * (1 + d * d) / (1 + 2 * d * d);
   const chi = (df: number) => [Math.sqrt(qchisq(a / 2, df) / df), Math.sqrt(qchisq(1 - a / 2, df) / df)];
   const cpCI = chi(n - 1).map((f) => cp * f), cpmCI = chi(nu).map((f) => cpm * f);
@@ -303,8 +307,8 @@ export interface MqccResult {
 function inverse(S: readonly (readonly number[])[]): number[][] {
   // a singular covariance matrix (fewer observations than variables, or collinear variables) is an error, as R's solve
   const L = (() => { try { return chol(S.map((r) => [...r])); } catch { return null; } })();
-  const scale = Math.max(...S.map((r, i) => Math.abs(r[i]!)));
-  if (L === null || L.some((r, i) => !(r[i]! ** 2 > 1e-12 * scale))) throw new RangeError("the covariance matrix is singular");
+  // each pivot against its own variance (the variables are on a common scale only after mqcc's scaling)
+  if (L === null || L.some((r, i) => !(r[i]! ** 2 > 1e-12 * Math.abs(S[i]![i]!)))) throw new RangeError("the covariance matrix is singular");
   return chol2inv(L);
 }
 const quad = (v: readonly number[], A: readonly (readonly number[])[]): number => {
@@ -333,6 +337,35 @@ export function mqcc(data: readonly (readonly number[])[] | readonly (readonly (
   if (data.length === 0 || (data as readonly unknown[][])[0]!.length === 0) throw new RangeError("no data");
   const nested = Array.isArray((data as any)[0]?.[0]);
   const type = options.type ?? (nested ? "T2" : "T2.single");
+  // Each variable divided by a power of 2 near its largest absolute value: T2 does not change, and the covariances of
+  // data near 1e+-300 (or of variables 1e400 apart in size) neither overflow nor underflow. Center, covariance and means
+  // are scaled back (a covariance beyond the largest double is then Infinity, as it is).
+  type V3 = readonly (readonly (readonly number[])[])[];
+  type V2 = readonly (readonly number[])[];
+  const varValues = (j: number): number[] => (nested ? (data as V3)[j]!.flat() : (data as V2).map((r) => r[j]!));
+  const p0 = nested ? (data as V3).length : (data as V2)[0]!.length;
+  const sc = Array.from({ length: p0 }, (_, j) => {
+    const big = Math.max(...varValues(j).map(Math.abs));
+    return big > 0 && Number.isFinite(big) ? 2 ** Math.round(Math.log2(big)) : 1;
+  });
+  const scaleRows = (rows: V2): number[][] => rows.map((r) => r.map((v, j) => v / sc[j]!));
+  const scaleVars = (vars: V3): number[][][] => vars.map((M, j) => M.map((r) => r.map((v) => v / sc[j]!)));
+  const sData = nested ? scaleVars(data as V3) : scaleRows(data as V2);
+  const sOptions: MqccOptions = { ...options };
+  if (options.center) sOptions.center = options.center.map((v, j) => v / sc[j]!);
+  if (options.cov) sOptions.cov = options.cov.map((r, a) => r.map((v, b) => v / sc[a]! / sc[b]!));
+  if (options.newdata) {
+    sOptions.newdata = type === "T2" ? scaleVars(options.newdata as V3) : scaleRows(options.newdata as V2);
+  }
+  const r = fitMqcc(sData, sOptions, type, nested);
+  return reported("mqcc", {
+    ...r, means: r.means.map((row) => row.map((v, j) => v * sc[j]!)), center: r.center.map((v, j) => v * sc[j]!),
+    cov: r.cov.map((row, a) => row.map((v, b) => v * sc[a]! * sc[b]!)),
+  });
+}
+
+function fitMqcc(data: readonly (readonly number[])[] | readonly (readonly (readonly number[])[])[], options: MqccOptions,
+  type: "T2" | "T2.single", nested: boolean): MqccResult {
   let means: number[][], center: number[], cov: number[][], m: number, n: number, p: number;
   const meansOfGroups = (vars: readonly (readonly (readonly number[])[])[]) =>
     vars[0]!.map((_, i) => vars.map((M) => meanOf(M[i]!)));
@@ -378,11 +411,11 @@ export function mqcc(data: readonly (readonly number[])[] | readonly (readonly (
   const all = [...statistics, ...newstatistics];
   const beyondLimits = all.flatMap((v, i) => (v > ucl ? [i + 1] : []));
   const beyondPredLimits = options.predLimits ? all.flatMap((v, i) => (v > pucl ? [i + 1] : [])) : [];
-  return reported("mqcc", {
+  return {
     type, statistics, newstatistics, means, center, cov, limits: { lcl: 0, ucl },
     predLimits: options.predLimits ? { lcl: 0, ucl: pucl } : null, confidenceLevel: conf,
     violations: { beyondLimits, beyondPredLimits }, warnings: [],
-  });
+  };
 }
 
 /**
@@ -424,16 +457,21 @@ export interface QccOverdispersionTestResult {
 export function qccOverdispersionTest(x: readonly number[], options: QccOverdispersionTestOptions = {}): QccOverdispersionTestResult {
   checkOptions(options, QCC_OVERDISPERSION_TEST_KEYS, "qccOverdispersionTest"); // generated: option-keys.mjs
   const type = options.type ?? (options.size === undefined ? "poisson" : "binomial");
-  const k = x.length, m = meanOf(x);
-  const v = x.reduce((s, u) => s + (u - m) ** 2, 0) / (k - 1);
+  const k = x.length;
+  // the counts (and sizes) divided by a power of 2 near their largest value: the variance of counts near 1e+-200 would
+  // overflow or underflow; both ratios are proportional to that scale
+  const big = Math.max(...x.map(Math.abs));
+  const s = big > 0 && Number.isFinite(big) ? 2 ** Math.round(Math.log2(big)) : 1;
+  const y = x.map((u) => u / s), m = meanOf(y);
+  const v = y.reduce((acc, u) => acc + (u - m) ** 2, 0) / (k - 1);
   let theory: number;
   if (type === "binomial") {
     if (options.size === undefined) throw new TypeError("size must be given for binomial data");
-    const size = typeof options.size === "number" ? new Array<number>(k).fill(options.size) : [...options.size];
-    const p = x.reduce((a, b) => a + b, 0) / size.reduce((a, b) => a + b, 0);
+    const size = (typeof options.size === "number" ? new Array<number>(k).fill(options.size) : [...options.size]).map((n) => n / s);
+    const p = y.reduce((a, b) => a + b, 0) / size.reduce((a, b) => a + b, 0);
     theory = meanOf(size) * p * (1 - p);
   } else theory = m;
-  const ratio = v / theory, statistic = ratio * (k - 1);
+  const ratio = v / theory * s, statistic = ratio * (k - 1);
   return { type, ratio, statistic, df: k - 1, pValue: pchisq(statistic, k - 1, { lowerTail: false }) };
 }
 

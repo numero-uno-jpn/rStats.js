@@ -269,8 +269,26 @@ export function btm(contests: DataFrame, options: BtmOptions): BtmResult {
 
   // random effects: Z (contests x players) without the columns of the separate players
   const keep = levels.map((_, j) => j).filter((j) => !separateIdx.includes(j));
-  const Z = Array.from({ length: K }, (_, k) => keep.map((j) => (i1[k] === j ? 1 : 0) - (i2[k] === j ? 1 : 0)));
-  const pql = fitPql(X, Z, y, n, link, g.coef);
+  const col = new Map(keep.map((j, t) => [j, t]));
+  const Z: SparseZ = { q: keep.length, cols: [], vals: [] };
+  for (let k = 0; k < K; k++) {
+    const c: number[] = [], v: number[] = [];
+    if (col.has(i1[k]!)) { c.push(col.get(i1[k]!)!); v.push(1); }
+    if (col.has(i2[k]!)) { c.push(col.get(i2[k]!)!); v.push(-1); }
+    Z.cols.push(c); Z.vals.push(v);
+  }
+  let pql: ReturnType<typeof fitPql>;
+  try {
+    pql = fitPql(X, Z, y, n, link, g.coef);
+  } catch (err) {
+    // the working weights vanish when the outcomes are separated (every contest won by one side): no finite estimates
+    if (err instanceof RangeError && /not positive definite/.test(err.message)) {
+      throw new RangeError("btm: PQL failed: the working weights vanish (separated outcomes, no finite estimates)");
+    }
+    throw err;
+  }
+  // at sigma = 0 the fit is the glm's, with its warnings (separation among them)
+  if (pql.sigma === 0) for (const w of g.warnings) warnings.add(w);
   const randomAll = levels.map(() => 0);
   keep.forEach((j, t) => { randomAll[j] = pql.e[t]!; });
   const se = pql.varFix.map((r, i) => Math.sqrt(r[i]!));
@@ -301,70 +319,110 @@ function glmFit(X: M, win1: number[], win2: number[], link: string) {
 
 interface PqlState { beta: number[]; e: number[]; eta: number[]; w: number[]; z: number[] }
 
-/** Penalized IWLS given sigma (Henderson's equations), from a start */
-function pirls(X: M, Z: M, y: number[], n: number[], link: Link, sigma: number, start: { beta: number[]; e: number[] }): PqlState {
-  const p = X[0]!.length, q = Z[0]!.length, K = X.length;
-  let beta = [...start.beta], e = sigma === 0 ? new Array<number>(q).fill(0) : [...start.e];
-  const working = () => {
-    const eta = X.map((r, k) => dot(r, beta) + dot(Z[k]!, e));
-    const mu = eta.map(link.inv), d = eta.map(link.dmu);
-    const w = mu.map((m, k) => n[k]! * d[k]! ** 2 / (m * (1 - m)));
-    const z = eta.map((v, k) => v + (y[k]! - mu[k]!) / d[k]!);
-    return { eta, w, z };
-  };
-  for (let it = 0; it < 500; it++) {
-    const { w, z } = working();
-    const D = [...X.map((r, k) => [...r, ...(sigma === 0 ? [] : Z[k]!)])];
-    const dim = D[0]!.length;
-    const A = zeros(dim, dim), b = new Array<number>(dim).fill(0);
-    for (let k = 0; k < K; k++) for (let i = 0; i < dim; i++) {
-      b[i] = b[i]! + D[k]![i]! * w[k]! * z[k]!;
-      for (let j = 0; j <= i; j++) A[i]![j] = A[i]![j]! + D[k]![i]! * w[k]! * D[k]![j]!;
+/** The random-effects design, sparse: each contest has player1's column with +1 and player2's with -1 (or none) */
+interface SparseZ { q: number; cols: number[][]; vals: number[][] }
+
+const EPS = 2.220446049250313e-16;
+
+/** The working weights and response; mu kept in [eps, 1 - eps] and dmu/deta at least eps (as R's binomial family) */
+function working(X: M, Z: SparseZ, y: number[], n: number[], link: Link, beta: number[], e: number[]) {
+  const K = X.length;
+  const eta = new Array<number>(K), w = new Array<number>(K), z = new Array<number>(K);
+  for (let k = 0; k < K; k++) {
+    let v = dot(X[k]!, beta);
+    const c = Z.cols[k]!, a = Z.vals[k]!;
+    for (let t = 0; t < c.length; t++) v += a[t]! * e[c[t]!]!;
+    const mu = Math.min(1 - EPS, Math.max(EPS, link.inv(v))), d = Math.max(EPS, link.dmu(v));
+    eta[k] = v; w[k] = n[k]! * d * d / (mu * (1 - mu)); z[k] = v + (y[k]! - mu) / d;
+  }
+  return { eta, w, z };
+}
+
+/** X'WX, Z'WX, Z'WZ, X'Wz and Z'Wz, using the sparsity of Z */
+function crossProducts(X: M, Z: SparseZ, w: number[], z: number[]) {
+  const K = X.length, p = X[0]!.length, q = Z.q;
+  const C = zeros(p, p), B = zeros(q, p), A = zeros(q, q), bx = new Array<number>(p).fill(0), a = new Array<number>(q).fill(0);
+  for (let k = 0; k < K; k++) {
+    const x = X[k]!, wk = w[k]!, c = Z.cols[k]!, v = Z.vals[k]!;
+    for (let i = 0; i < p; i++) {
+      const wx = wk * x[i]!;
+      bx[i] = bx[i]! + wx * z[k]!;
+      for (let j = 0; j <= i; j++) C[i]![j] = C[i]![j]! + wx * x[j]!;
     }
-    for (let i = 0; i < dim; i++) for (let j = 0; j < i; j++) A[j]![i] = A[i]![j]!;
-    if (sigma > 0) for (let i = p; i < dim; i++) A[i]![i] = A[i]![i]! + 1 / sigma ** 2;
-    const sol = cholSolve(cholesky(A), b);
-    const nb = sol.slice(0, p), ne = sigma === 0 ? e : sol.slice(p);
+    for (let t = 0; t < c.length; t++) {
+      const r = c[t]!, wv = wk * v[t]!;
+      a[r] = a[r]! + wv * z[k]!;
+      for (let j = 0; j < p; j++) B[r]![j] = B[r]![j]! + wv * x[j]!;
+      for (let u = 0; u < c.length; u++) A[r]![c[u]!] = A[r]![c[u]!]! + wv * v[u]!;
+    }
+  }
+  for (let i = 0; i < p; i++) for (let j = 0; j < i; j++) C[j]![i] = C[i]![j]!;
+  return { A, B, C, a, bx };
+}
+
+/** Penalized IWLS given sigma (Henderson's equations), from a start */
+function pirls(X: M, Z: SparseZ, y: number[], n: number[], link: Link, sigma: number, start: { beta: number[]; e: number[] }): PqlState {
+  const p = X[0]!.length, q = Z.q;
+  let beta = [...start.beta], e = sigma === 0 ? new Array<number>(q).fill(0) : [...start.e];
+  for (let it = 0; it < 500; it++) {
+    const { w, z } = working(X, Z, y, n, link, beta, e);
+    const { A, B, C, a, bx } = crossProducts(X, Z, w, z);
+    let nb: number[], ne: number[];
+    if (sigma === 0) { nb = cholSolve(cholesky(C), bx); ne = e; }
+    else {
+      const dim = p + q, H = zeros(dim, dim);
+      for (let i = 0; i < p; i++) for (let j = 0; j < p; j++) H[i]![j] = C[i]![j]!;
+      for (let r = 0; r < q; r++) for (let j = 0; j < p; j++) { H[p + r]![j] = B[r]![j]!; H[j]![p + r] = B[r]![j]!; }
+      for (let r = 0; r < q; r++) for (let u = 0; u < q; u++) H[p + r]![p + u] = A[r]![u]! + (r === u ? 1 / sigma ** 2 : 0);
+      const sol = cholSolve(cholesky(H), [...bx, ...a]);
+      nb = sol.slice(0, p); ne = sol.slice(p);
+    }
     const change = Math.max(...nb.map((v, i) => Math.abs(v - beta[i]!) / (1 + Math.abs(v))),
       ...ne.map((v, i) => Math.abs(v - e[i]!) / (1 + Math.abs(v))));
     beta = nb; e = ne;
     if (change < 1e-14) break;
   }
-  return { beta, e, ...working() };
+  return { beta, e, ...working(X, Z, y, n, link, beta, e) };
 }
 
-/** The quantities of the working linear mixed model at sigma (Woodbury in the dimension of the players) */
-function workingModel(X: M, Z: M, s: PqlState, sigma: number) {
-  const K = X.length;
-  const wt = (U: M, Vm: M) => {
-    const R = zeros(U[0]!.length, Vm[0]!.length);
-    for (let k = 0; k < K; k++) for (let i = 0; i < R.length; i++) for (let j = 0; j < R[0]!.length; j++) R[i]![j] = R[i]![j]! + U[k]![i]! * s.w[k]! * Vm[k]![j]!;
-    return R;
-  };
-  const wv = (U: M, v: number[]) => U[0]!.map((_, i) => U.reduce((acc, r, k) => acc + r[i]! * s.w[k]! * v[k]!, 0));
-  const A = wt(Z, Z), B = wt(Z, X), C = wt(X, X), a = wv(Z, s.z), bx = wv(X, s.z);
+/**
+ * The quantities of the working linear mixed model at sigma, by Woodbury in the dimension of the players: with
+ * M = Z'WZ + I / sigma^2, Z'V^-1 Z = (I - M^-1 / sigma^2) / sigma^2, Z'V^-1 X = M^-1 Z'WX / sigma^2,
+ * X'V^-1 X = X'WX - X'WZ M^-1 Z'WX (one inverse of M per evaluation).
+ */
+function workingModel(X: M, Z: SparseZ, s: PqlState, sigma: number) {
+  const { A, B, C, a, bx } = crossProducts(X, Z, s.w, s.z);
+  const q = Z.q;
   let ZVZ = A, ZVX = B, XVX = C, ZVz = a, XVz = bx;
   if (sigma > 0) {
-    const Mm = A.map((r, i) => r.map((v, j) => v + (i === j ? 1 / sigma ** 2 : 0)));
-    const L = cholesky(Mm);
-    const MiA = solveM(L, A), MiB = solveM(L, B), Mia = cholSolve(L, a);
-    ZVZ = sub(A, mul(A, MiA)); ZVX = sub(B, mul(A, MiB)); XVX = sub(C, mul(tr(B), MiB));
-    ZVz = a.map((v, i) => v - dot(A[i]!, Mia)); XVz = bx.map((v, i) => v - dot(tr(B)[i]!, Mia));
+    const s2 = sigma ** 2;
+    const Mi = inverseSpd(A.map((r, i) => r.map((v, j) => v + (i === j ? 1 / s2 : 0))));
+    const MiB = mul(Mi, B), Mia = mv(Mi, a);
+    ZVZ = Mi.map((r, i) => r.map((v, j) => ((i === j ? 1 : 0) - v / s2) / s2));
+    ZVX = MiB.map((r) => r.map((v) => v / s2));
+    XVX = sub(C, mul(tr(B), MiB));
+    ZVz = Mia.map((v) => v / s2);
+    XVz = bx.map((v, i) => v - B.reduce((acc, r, k) => acc + r[i]! * Mia[k]!, 0));
   }
   const varFix = inverseSpd(XVX);
-  const ZPz = ZVz.map((v, i) => v - dot(ZVX[i]!, mv(varFix, XVz)));
-  const ZPZ = sub(ZVZ, mul(mul(ZVX, varFix), tr(ZVX)));
-  const score = 0.5 * (dot(ZPz, ZPz) - ZPZ.reduce((acc, r, i) => acc + r[i]!, 0));
-  const info = 0.5 * ZPZ.reduce((acc, r) => acc + r.reduce((t, v) => t + v * v, 0), 0);
-  return { varFix, score, info };
+  const g = mv(varFix, XVz);
+  const ZPz = ZVz.map((v, i) => v - dot(ZVX[i]!, g));
+  const T = mul(ZVX, varFix);
+  let trace = 0, frob = 0;
+  for (let i = 0; i < q; i++) for (let j = 0; j < q; j++) {
+    const v = ZVZ[i]![j]! - dot(T[i]!, ZVX[j]!);
+    if (i === j) trace += v;
+    frob += v * v;
+  }
+  return { varFix, score: 0.5 * (dot(ZPz, ZPz) - trace), info: 0.5 * frob };
 }
 
 /**
  * PQL: sigma solves the REML score equation of the working model at the PIRLS working response for that sigma (the
  * fixed point of BTm's alternation of IWLS and Fisher scoring for sigma); 0 when the score at 0 is not positive.
  */
-function fitPql(X: M, Z: M, y: number[], n: number[], link: Link, beta0: number[]) {
-  let cur: PqlState = pirls(X, Z, y, n, link, 0, { beta: beta0, e: new Array<number>(Z[0]!.length).fill(0) });
+function fitPql(X: M, Z: SparseZ, y: number[], n: number[], link: Link, beta0: number[]) {
+  let cur: PqlState = pirls(X, Z, y, n, link, 0, { beta: beta0, e: new Array<number>(Z.q).fill(0) });
   let iter = 0;
   const F = (sigma: number) => {
     iter++;

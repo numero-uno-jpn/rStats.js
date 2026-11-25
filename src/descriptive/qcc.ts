@@ -310,7 +310,9 @@ function centerAndSd(type: QccType, stats: readonly number[], groups: readonly n
       const g = meanOf(stats);
       // gbar below 1: R's sqrt of a negative number, NaN with its warning
       if (typeof given !== "number" && g < 1) warn("NaNs produced");
-      return { center: options.center ?? g, sd: typeof given === "number" ? given : Math.sqrt(g * (g - 1)), method: null };
+      // sqrt(g (g - 1)) as g sqrt(1 - 1 / g): no overflow of g^2 for g near the largest double
+      const sd = g * Math.sqrt(1 - 1 / g);
+      return { center: options.center ?? g, sd: typeof given === "number" ? given : sd, method: null };
     }
   }
 }
