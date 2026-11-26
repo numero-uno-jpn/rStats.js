@@ -64,3 +64,22 @@ has the summaries.
      3.2 and 7.1 for d = 2 and the airline model (fewer observations reach the 1e4 gain that excludes them); with
      kappa = 1e8 and 1e12 R itself drifts (up to 2e-4 in loglik, 4e-2 in residuals): R's own Kalman filter loses
      accuracy with a large kappa. rStats.js: the kappa = 1e6 prior exactly, in the stable form.
+
+## forecast's Arima and forecast() for Arima fits (2026-11-26)
+
+5. `tsmeta120-farima.R` (edited in place between two runs; the second adds the rescaled sigma2 to the candidate):
+   eight fits (lh AR(1); LakeHuron (1,1,0) with include.drift, with include.constant, and (1,2,0) with
+   include.constant; AirPassengers airline with lambda = 0, with biasadj, and (1,1,0)x(0,1,1) with lambda = 0.3 and
+   biasadj; USAccDeaths (1,0,0)x(0,1,1) with a trend regressor), each compared with stats' arima on BoxCox(y) with
+   the drift column `drift = 1:n` added when asked (include.constant adds it for d + D = 1, and nothing for d = 2;
+   include.mean is FALSE when include.constant and differenced).
+   - First run: coef, loglik, residuals (on the transformed scale), aicc, bic and the point forecasts equal
+     exactly, the intervals did not (lh: 0.023 off). The interval half-widths over qnorm(0.5 + level / 200) give one
+     se per horizon, 1.0215 times stats' se for lh = sqrt(48 / 46).
+   - **forecast's sigma2 = sum of all squared residuals (the first d + sD included) / (nobs - number of
+     coefficients)**, nobs = n - d - sD (lh 0.206076, 2 coefficients; LakeHuron 97 - 2), and predict uses it.
+   - Second run with that sigma2: every quantity equal exactly (0 difference): coef, loglik, sigma2,
+     **aicc = aic + 2 npar (npar + 1) / (nobs - npar - 1)**, **bic = aic + npar (log(nobs) - 2)** with npar =
+     coefficients + 1, **fitted = InvBoxCox(BoxCox(y) - residuals)**, intervals = point +- qnorm(0.5 + level / 200)
+     se back-transformed, and with biasadj **mean = InvBoxCox(m) (1 + v (1 - lambda) / (2 (lambda m + 1)^2))** with
+     v = se^2 for forecasts and v = sigma2 (forecast's) for fitted values; the interval limits are not adjusted.
