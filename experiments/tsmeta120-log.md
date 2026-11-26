@@ -342,3 +342,28 @@ has the summaries.
    - **monthdays**: days in the month with leap Februaries (28, 29, 28 for 1999, 2000, 2001).
    - easter: 1 in the month (quarter) of Easter Sunday for 2000-2004 (2002 in March / Q1); years where Good Friday
      and Easter Sunday fall in different months are still to check.
+29. `tsmeta120-fsmall2.R` (first refused by the checker: tsCV(Nile, rwf, ...) passes rwf without calling it; a
+   wrapper function that calls rwf is used instead. The first run then stopped in my own candidate, rwf with a drift
+   on one observation; guarded with tryCatch, left NA):
+   - **easter**: Easter Sunday by the anonymous Gregorian algorithm (2008-2027) and the share of Good Friday ..
+     Easter Sunday (.. Monday) in each month or quarter: with easter.mon = TRUE exact (2018: 0.5 / 0.5); without the
+     Monday 3.3e-3 off where the share is 2/3 or 1/3 (e.g. 2018 March/April), i.e. **R rounds the shares to two
+     decimals** (0.67 / 0.33) — to confirm.
+   - bizdays: R's counts minus Monday-Friday counts are 0 to -3 per month and differ by FinCenter (New York:
+     January -2, February -1, ...; Zurich April -3): the holiday calendars of each financial centre. Not yet matched.
+   - findfrequency: round(1 / frequency at the maximum of spec.ar of the detrended series) gives R's 7, 12, 10, 11,
+     12, 12 for six series; for white noise (AR(0), flat spectrum) R returns 1 and the candidate Inf: the rule for
+     "no dominant frequency" is still to find.
+   - **BoxCox** (log for 0, (sign(x)|x|^l - 1)/l, also for negative x), **InvBoxCox** (the inverse, sign-preserving
+     where l z + 1 < 0: (-0.5)^2 -> -0.25), attr "lambda": exact.
+   - **BoxCox.lambda "guerrero"**: groups of length max(2, frequency) **taken from the end** (the incomplete first
+     part dropped: with 137 points the from-the-start candidate is 0.05 off), minimise sd(r)/mean(r), r = sd_i /
+     mean_i^(1 - lambda), over [-1, 2]: R agrees with a tight optimize to 1e-5 (R's optimize tolerance; to
+     confirm with the default tolerance). **"loglik"**: the profile log-likelihood of lm on a trend (+ seasonal
+     dummies) **maximised on the grid seq(-1, 2, by = 0.05)** (R 0.2, 0.65, ... exactly the grid's best; the tight
+     maximum is 0.198, -0.667 ...).
+   - **na.interp** for a non-seasonal series = approx(..., rule = 2) (constant at the ends): exact. The seasonal case
+     is recorded, not yet compared.
+   - tsCV: h = 3 exact when the errors of origin t are stored in row t (not at t + h as the help page's e[t+h]
+     suggests); h = 1 has NA at 1 and 100 and needs the same check.
+   - **arimaorder**: c(p, d, q) or c(p, d, q, P, D, Q, Frequency) named.
