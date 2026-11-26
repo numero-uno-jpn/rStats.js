@@ -496,3 +496,22 @@ has the summaries.
    - **PP: Z(t_alpha) with a constant (y_t on 1, y_{t-1}), lag trunc(4 (n/100)^0.25), the same tau_mu rows: 500 of
      500**; Z(alpha) with fixed critical values 485 at best.
    - Not distinguished yet: "n <= boundary" or "n < boundary" for the size class, and the 1% / 10% columns.
+41. `tsmeta120-ndiffs3.R`: 600 series of differenced lengths 25, 26, 50, 51, 100, 101, 250, 251, 500, 501 and several
+   alpha; 18 seasonal series for ocsb.test:
+   - **ADF size class: the row with n <= 25, 50, 100, 250, 500, else the last (n = the length of the series being
+     tested)**: 600 of 600 (the "<" reading 599).
+   - **ndiffs ADF / PP: the p-value is interpolated linearly between the 1%, 5% and 10% critical values of that row
+     (p = 0.01 below the 1% value, 0.10 above the 10% value), and the series is differenced while p > alpha**:
+     600 of 600 for alpha = 0.01, 0.025, 0.05 and 0.10 (so alpha = 0.10 never differences). **KPSS: differenced
+     while the p-value interpolated in the KPSS table (clamped to [0.01, 0.10]) is < alpha**: 600 of 600 for alpha =
+     0.025 and 0.07 (alpha = 0.01 never differences). Rows of the 1% / 10% columns: tau_mu -3.75, -3.58, -3.51,
+     -3.46, -3.44, -3.43 / -2.63, -2.60, -2.58, -2.57, -2.57, -2.57.
+   - **ocsb.test (lag 0, "fixed"): the t value of the coefficient on Delta_1 y_{t-m} in the regression of
+     Delta_m Delta_1 y_t on Delta_m y_{t-1} and Delta_1 y_{t-m} without a constant**: exact (0 difference) in 18 cases;
+     with a constant or seasonal dummies 0.5 to 12 off. The critical value depends only on m and decreases smoothly in
+     size (-1.952 for m = 2, -1.803 for 12, -1.711 for 60).
+42. `tsmeta120-ocsbcrit.R`: the smoothing function behind the critical values is not shown, so **the values are read
+   off as data for m = 2..400, 500, 730, 1000, 8766** (the same for two different series per m: 0 difference); the
+   table is in `experiments/tsmeta120-ocsbcrit.json` and goes into rStats.js as data (outside it: the nearest
+   tabulated m is not good enough; for m above 400 rStats.js interpolates linearly in log m between the recorded
+   points, a documented approximation).
