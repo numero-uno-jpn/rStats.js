@@ -653,3 +653,27 @@ has the summaries.
    seven.** iterate = 3 agrees for six series and not for UKgas (the third pass of the candidate differs: left open,
    the default is 2). tsclean with missing values in x: R's values recorded (log only; the order of interpolation and
    outlier detection is to be checked with the fixture).
+
+## meta's metagen (2026-11-27)
+
+61. `tsmeta120-metagen.R` (first refused: my variable `se`; renamed `seY`): the defaults (gs()): method.tau "REML",
+   method.random.ci "classic", method.common.ci "classic", method.predict "V", method.I2 "Q", levels 0.95, common and
+   random TRUE, prediction FALSE, method.tau.ci unset. metagen on the BCG log risk ratios against metafor (already
+   reproduced by rStats.js) for method.tau REML, DL, PM, ML, SJ, with method.random.ci classic and HK:
+   - **common effect (inverse variance), random effect and its se, the classic (z) and Hartung-Knapp (rma's
+     test = "knha") intervals, Q, tau2, I2 = (Q - df)/Q, H = sqrt(Q/df) and the random weights 1/(se^2 + tau2) equal
+     rma's to 1e-16** in all ten combinations; the tau2 interval equals confint.rma's Q-profile except with DL;
+   - the prediction interval is not TE +- t(k - 2) sqrt(tau2 + se^2) (1.3e-2 off); the I2 interval is not
+     metafor's (81.9-97.7%) but 1 - 1/H^2 of the H interval (88.3-94.7%).
+62. `tsmeta120-metagen2.R`: five data sets (k = 3, 5, 6, 13, 30, one with Q < k), REML / DL / PM:
+   - **prediction interval ("V") = TE.random +- t(k - 1) sqrt(tau2 + seTE.random^2)**, df.predict = k - 1,
+     seTE.predict = sqrt(tau2 + seTE.random^2): exact in all 15; z and t(k - 2) are off;
+   - **the default tau2 interval: "J" (Jackson) with method.tau = "DL", "QP" (Q-profile) otherwise** (identical to
+     metagen(..., method.tau.ci = ...) in all 15);
+   - the H / I2 interval: Higgins and Thompson (2002) exact when Q > k; when Q <= k the upper bound differs.
+63. `tsmeta120-metagen3.R`: **H interval = exp(log max(H, 1) +- z se) with se = 0.5 (log Q - log(k - 1)) / (sqrt(2Q)
+   - sqrt(2k - 3)) when Q > k and sqrt(1/(2(k - 2)) (1 - 1/(3 (k - 2)^2))) otherwise, both bounds at least 1; I2
+   interval = 1 - 1/H^2 of those (at least 0)**: exact for five data sets (k = 4 to 13). **"J" = the generalised Q
+   interval with weights 1/se (metafor: rma(method = "GENQ", weights = 1/se) + confint), "BJ" = with weights
+   1/se^2**: exact. rStats.js's rma has no GENQ yet: the interval needs the distribution of a weighted sum of
+   chi-squares (to implement from Jackson 2013 / Farebrother 1984).
