@@ -592,3 +592,17 @@ has the summaries.
    decomposition behind tsoutliers is not mstl(x, robust = TRUE). Not resolved after two experiments (and the
    replacements rest on na.interp's seasonal case, also open): left to the user. For USAccDeaths, co2 and nottem
    with two planted outliers every variant agrees with R.
+51. `tsmeta120-ets6.R` (first refused: deparse1 of the model's call, which reaches code; the call is not recorded):
+   - **ets(model = "ZZZ") = the smallest aicc among the allowed models** (errors A / M; trends N, A, Ad — no
+     multiplicative trend by default; seasons N / A / M when m > 1; multiplicative components only for positive data;
+     additive error with a multiplicative season excluded), each fitted as ets(y, model, damped) itself: the same
+     model and aicc for eight series (Nile MNN, USAccDeaths ANA, AirPassengers MAdM, uspop AAN, co2 MAdM, lynx MNN,
+     UKgas MAM, WWWusage AAdN).
+   - **amse = the mean over h = 1..nmse (3) of the in-sample h-step mean squared errors**, the h-step forecasts
+     from each time's states along the zero-error path (with s_{m - (k - 1) mod m}); mse = the 1-step value: exact
+     for ANN, AAA, MAM.
+   - hw(seasonal = "multiplicative") fits ETS(M,A,M) but stops at a lower log-likelihood (-685.83) than
+     ets(y, "MAM") (-682.40): another starting point of R's optimiser; rStats.js optimises to the best optimum it
+     finds, so its hw may differ from R's where R stops at a worse local optimum (to be documented).
+   - **ses(initial = "simple")**: l0 = y1 fixed, alpha minimising the SSE of the one-step errors from t = 2 (R
+     0.2465657, a tight optimize 0.2465643; SSE equal to 17 digits at R's alpha).
