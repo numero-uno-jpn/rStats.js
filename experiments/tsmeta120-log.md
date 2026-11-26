@@ -132,3 +132,28 @@ has the summaries.
      multiplier m or n): the best is 1e-3 to 0.2 off, and no variant is best for every series. Not resolved.
    - white.test: 64 variants (bias inside or separate, range 2 or 4, rows or columns, logistic or tanh, scaled or
      not): the best is 5e-4 to 1e-2 off, again a different variant per series. Not resolved: left to the user.
+
+## stats' filter, Box.test, diffinv, decompose and ar (2026-11-26)
+
+10. `tsmeta120-stats.R`:
+   - **filter:** convolution y[i] = sum_j f[j] x[i + o - (j - 1)] with o = 0 (sides = 1) or floor(p / 2) (sides =
+     2, so an even filter reaches further forward), NA when an index is outside (wrapped when circular); NA in x
+     gives NA wherever it enters; recursive y[i] = x[i] + sum_j f[j] y[i - j] with init in reverse time order:
+     within 4e-15 in 16 cases.
+   - **Box.test:** r_k from acf (mean removed, divided by n); Box-Pierce n sum r_k^2, Ljung-Box n (n + 2)
+     sum r_k^2 / (n - k), chi-squared on lag - fitdf: within 3e-16.
+   - **diffinv:** diffinv(c(1, 4, 2, 7)) = 0, 1, 5, 7, 14 (starts at xi = 0); with lag 2, differences 2 and xi of
+     length 4, diff(·, 2, 2) gives the input back.
+   - **decompose:** trend = the centred filter (0.5, 1, ..., 1, 0.5) / f (even f) or rep(1 / f, f) (odd f); the
+     per-position means of x - trend (x / trend) with NA removed, centred by subtracting (dividing by) their mean;
+     random = x - trend - seasonal (x / (trend seasonal)): trend, seasonal and random within 2e-12 for co2,
+     USAccDeaths, quarterly and frequency 5. For AirPassengers started in April, seasonal agrees but `figure` does
+     not in my calendar order: R's figure starts at the position of the first observation (to confirm).
+   - **ar.yw:** autocovariances over n, Levinson-Durbin to order.max = min(n - 1, floor(10 log10 n)), aic = n log v_k +
+     2k minus its minimum, the order at the minimum, partialacf = the reflection coefficients, **var.pred = v_p n /
+     (n - (p + 1))**, predict = the AR recursion about the mean with se = sqrt(var.pred cumsum(psi^2)): within 1e-13.
+   - **ar.ols:** the coefficients = least squares of (x - mean)_t on 1 and its p lags (x.intercept = that intercept),
+     **var.pred = RSS / (n - p)**: within 1e-14 at R's order. R's order differs from yule-walker's (lh 1 against 3):
+     its AIC is still to find.
+   - ar.burg (var.method 1 and 2) and ar.mle: recorded, not yet compared (ar.mle's order for the differenced
+     log(AirPassengers) is 12 = its cap).
