@@ -122,3 +122,13 @@ has the summaries.
      components of the covariance / correlation) matches (lh: 3.2950 against 3.09 to 3.43).
    - po.test: R's lag is trunc((n - 1) / 100) = 2 and trunc((n - 1) / 30) = 9 for n = 300 (my candidate used n); the
      statistics are 0.001% to 2% off; p-values 0.01 and 0.15 (the table's ends).
+9. `tsmeta120-tseries4.R`:
+   - **po.test: lag = trunc((n - 1) / 100) (lshort) or trunc((n - 1) / 30); u = residuals of x1 on the others (with
+     an intercept when demean); rho from u_t on u_{t-1} without a constant, e = the residuals of that; Z = nn (rho -
+     1) - (lambda2 - su2) / (2 sum(u_{t-1}^2) / nn^2) with su2 = sum(e^2) / nn and lambda2 the Newey-West sum over
+     nn**: within 2e-14 in 8 cases. The p-values (0.01 and 0.15, the ends of Phillips and Ouliaris' Table Ia / Ib)
+     are not checked yet.
+   - terasvirta.test: 8 variants (intercepts in the null and auxiliary regressions, u0 or y as the response,
+     multiplier m or n): the best is 1e-3 to 0.2 off, and no variant is best for every series. Not resolved.
+   - white.test: 64 variants (bias inside or separate, range 2 or 4, rows or columns, logistic or tanh, scaled or
+     not): the best is 5e-4 to 1e-2 off, again a different variant per series. Not resolved: left to the user.
