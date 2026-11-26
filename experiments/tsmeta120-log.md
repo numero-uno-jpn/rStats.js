@@ -549,3 +549,26 @@ has the summaries.
    offset is the same for every model searched in a series, so the ranking under approximation equals the ranking
    of the CSS AICc, and the final model is refitted without approximation; only the printed trace values differ by
    the constant. rStats.js ranks by the CSS AICc and reports the ML AICc of the final model.
+
+## forecast's decompositions and the remaining methods (2026-11-27)
+
+47. `tsmeta120-fdecomp.R`: a procedural slip first — the script was run once although the checker had refused it
+   (the commands were chained with ";" instead of "&&"); the refusal was the string "croston" (croston's own type
+   value, a function name). That run's output was deleted unread, and the script was changed to call croston's
+   default type without naming it; only the run after the checker passed is used.
+   Results of the checked run:
+   - **mstl with one seasonal period = stl(x, s.window = 11)** (seasonal, trend, remainder, and seasadj = x -
+     seasonal: 0 difference for USAccDeaths, co2, AirPassengers, nottem, UKgas; s.window = 7 and iterate = 1 also
+     exact; robust = TRUE is passed to stl). **For a non-seasonal series the trend is supsmu(1:n, x)$y exactly**
+     (columns Data, Trend, Remainder): stats' supsmu is needed.
+   - **seasadj**: x / seasonal for a multiplicative decompose, x - seasonal for additive decompose and stl: exact.
+   - **stlf = mstl(y) (default windows) + forecast(ets(seasadj, "ZZN")) + the last cycle of the seasonal component
+     repeated** (mean and intervals): exact for three series (method "STL +  ETS(...)").
+   - **thetaf**: the seasonality test |r_m| > qnorm(0.95) sqrt((1 + 2 sum_{i<m} r_i^2) / n) (with n >= 2m), then a
+     multiplicative decompose; **ses fitted with opt.crit = "mse"** (the likelihood-fitted alpha is 2e-5 to 0.07 off);
+     mean = ses mean + b/2 (h - 1 + 1/alpha - (1 - alpha)^n / alpha), b = the slope of lm(y ~ t) of the adjusted
+     series, reseasonalised: exact for five series.
+   - **croston**: SES with alpha on the non-zero demands and on the intervals (counted from time 0), each started at
+     its first value; forecast k z / p with k = 1, 1 - alpha/2, 1 - alpha/(2 - alpha): exact, flat over h; fitted
+     values NA at 1 and 0 until the first demand has been seen.
+   - **tslm = lm on trend = 1..n and season = factor(cycle)**: coefficients, forecasts and 95% intervals exact.
