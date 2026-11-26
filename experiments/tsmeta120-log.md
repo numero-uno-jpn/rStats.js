@@ -319,3 +319,26 @@ has the summaries.
    USAccDeaths configurations of items 19-23 (n = 72: ranks 25 and 37 instead of 36 and 37). Resolved as far as
    the cause; reproducing R's wrong element would need the exact partial-sort algorithm, which the output does not
    show. rStats.js: the true median (6 median |R|), as the paper and the help page describe.
+
+## forecast's simple methods and small functions (2026-11-27)
+
+28. `tsmeta120-fsimple.R` (first refused by the checker: my variable `se` and the strings "naive", "snaive" used as
+   case labels; renamed `seM`, "m_naive" ...; the first run's JSON was broken by checkresiduals printing its test,
+   now captured with capture.output and kept in the output):
+   - **meanf**: mean, fitted = mean, intervals mean +- qt(level, n - 1) sd(y) sqrt(1 + 1/n): exact.
+   - **naive / rwf / snaive**: fitted y_{t-1} (+ the drift (y_n - y_1)/(n - 1)) or y_{t-m}; point forecasts exact;
+     **sigma = sqrt(mean(res^2)) for naive and snaive, sd(res) for rwf with drift**; se_h = sigma sqrt(h), sigma
+     sqrt(h (1 + h/(n - 1))) (drift), sigma sqrt(floor((h - 1)/m) + 1) (snaive), normal quantiles: ratios 1 to
+     1e-6 for every h. (fc$model$sigma holds sigma^2.)
+   - **accuracy**: training ME, RMSE, MAE, MPE, MAPE, MASE (scale = mean |y_t - y_{t-12}| of the training data),
+     ACF1; test set the same plus Theil's U = sqrt(sum ((y_{t+1} - f_{t+1}) / y_t)^2 / sum ((y_{t+1} - y_t) / y_t)^2)
+     over the test set; Theil's U is NA for the training row: all exact to 17 digits.
+   - **ma** (odd, even centred, even not centred = the filters of the help page), **fourier** (S_k, C_k with t = 1..n,
+     t = n + 1..n + h for h; sin dropped at k = m/2; names "S1-12", "C1-12", ...), **dm.test** (HLN with the
+     autocovariance estimator over n, t(n - 1), 12 cases), **CV** (CV, AIC = n log(SSE/n) + 2(k + 2), AICc, BIC,
+     AdjR2), **checkresiduals** (Ljung-Box, lag = min(2m, n/5) here 24, at least df + 3; df = lag - number of
+     ARMA coefficients): exact.
+   - **seasonaldummy**: 11 columns Jan..Nov (December omitted), by the cycle position of each row.
+   - **monthdays**: days in the month with leap Februaries (28, 29, 28 for 1999, 2000, 2001).
+   - easter: 1 in the month (quarter) of Easter Sunday for 2000-2004 (2002 in March / Q1); years where Good Friday
+     and Easter Sunday fall in different months are still to check.
