@@ -698,3 +698,33 @@ has the summaries.
    - **MH.exact = TRUE: the MH OR without any increment** (exact); with method.tau = "DL" Q is computed about the MH
      estimate (OR: exact; RR, RD: my weights were the wrong cells, to recheck in the fixture);
    - RR.Cochrane = TRUE: study values recorded.
+
+## meta's other effect measures, bias, trim-and-fill, regression, influence (2026-11-27)
+
+66. `tsmeta120-metaother.R`: defaults smcont "MD", method.smd "Hedges", exact.smd TRUE, sminc "IRR", smcor "ZCOR",
+   smmean "MRAW", smrate "IRLN", smprop "PLOGIT"; metainc's default method is "MH", metaprop's is "GLMM" (out of
+   scope). Study TE / seTE against metafor's escalc and the pooled value against rma (REML): **MD, IRR (0.5 added to
+   the events of zero-event studies), ZCOR, COR, MRAW (= MN), MLN (= MNLN), IR, IRLN, IRS, IRFT, PLOGIT ((x + 0.5)/(n +
+   1) for 0 or n), PFT, PAS: exact (<= 2e-15)**. SMD: TE exact with the exact J, se 4.4e-4 off; ROM, IRD, PRAW, PLN
+   differ.
+67. `tsmeta120-metaother2.R` (first refused: my `se`; renamed):
+   - **ROM = log(m1/m2), variance s1^2/(n1 m1^2) + s2^2/(n2 m2^2)**: exact (the difference in item 66 came from my
+     comparison through escalc's pooled value, not the study values);
+   - **IRD: the raw difference of rates, the variance from the incremented events** (as RD for metabin): exact;
+   - **metainc's MH (Greenland and Robins 1985 for person-time): IRR = sum(x1 t2/T) / sum(x2 t1/T), var(log) =
+     sum(t1 t2 (x1 + x2)/T^2) / (sum(x1 t2/T) sum(x2 t1/T)); IRD = sum((x1 t2 - x2 t1)/T) / sum(t1 t2/T), var =
+     sum((t1 t2/T)^2 (x1/t1^2 + x2/t2^2)) / sum(t1 t2/T)^2, no increments**: exact;
+   - **PRAW: the raw x/n; PLN: log((x + 0.5)/(n + 0.5)) for a zero** (the increment added once to n): exact;
+   - SMD variance: 1/n1 + 1/n2 + g^2/(2(N - 3.94)) 2.6e-5 off, three other forms 2e-4 to 6e-3.
+68. `tsmeta120-metabias.R` (first refused: my `se`; renamed):
+   - SMD variance, three more forms: 2e-4 to 2e-2 off. Not resolved by candidates (two experiments): next with
+     designed inputs (g = 0, then varying g and n).
+   - **subgroups: Q.b (common and random) = Q of the subgroup estimates with weights 1/se^2, Q.w = the sum of the
+     within-subgroup Q: exact**, df = groups - 1.
+   - **metabias "Egger" = regtest(model = "lm", predictor = "sei"), t on k - 2 df: exact; "Begg": Kendall's score S
+     of (TE - TE.common)/sqrt(se^2 - se.common^2) against the variances, statistic S / sqrt(k(k - 1)(2k + 5)/18)
+     without continuity correction (0.1220 = 2 / 16.391), normal p: exact by hand**; Thompson, Harbord, Peters
+     recorded.
+   - **metareg = rma(yi, sei, mods, method = "REML"): exact**; **metainf = the leave-one-out common estimates**
+     (pooled "common" by default): exact; metacum recorded (common or random to check).
+   - trimfill: meta k0 = 4 (17 studies after filling) against metafor's trimfill(rma(DL / REML)) k0 = 1: to find.
