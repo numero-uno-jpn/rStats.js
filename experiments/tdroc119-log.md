@@ -222,3 +222,27 @@ script keeps the search that succeeded.
     over Z_1 of the conditional pbvnorm) agrees with an independent lattice computation to 1e-8; R's adjusted
     p-values are 3e-5 to 3e-6 from both, within mvtnorm's default GenzBretz absolute tolerance (1e-3). The tests
     compare with R at 1e-4.
+
+## The edge pass (2026-11-26)
+
+51. `tdroc119-edge.R` (rms's cph printed "X matrix deemed to be singular" to stdout before the JSON; the output is
+    read from its last line): equal markers AUC 0.5 with sd 1.7e-17; times before the first time, at or beyond the
+    last, all censored, an absent cause: NA (R adds the time 0 to a single time; with a single negative time it gives
+    times (-5, 0)); no censoring as the uncensored AUC; **n = 2 fails ("incorrect number of dimensions")**; **an NA marker:
+    the subject is dropped** (Stats over 39); cox with a constant or collinear other marker fails ("invalid formula
+    "NULL": not a call"), cox without censoring fails ("missing value where TRUE/FALSE needed", after "Ran out of
+    iterations"); **cox at times x 1e-300 gives another AUC** (0.8164 for 0.8082: rms's cph is not scale-free there);
+    times + 1e8 and markers x 1e300 as the plain data. SeSpPPVNPV with a cutpoint above all markers: TP 0, FP 0, PPV NA,
+    NPV 0.5282, se of Se 0 (warnings "no non-missing arguments to max"); below all: TP 1, FP 1, PPV 0.4718, NPV NA.
+    compare of a fit with itself, adjusted: an error about NA AUC estimates. confint with a time before the first: that
+    row left out, C.alpha over the other times. survivalROC: predict.time before the first time gives Survival 0.95 (see
+    52); after the last, the KM there; all censored: AUC NA, Survival 1; a single cut 0 computed normally (TP 0.784);
+    equal markers AUC 0.5; markers x 1e300 and times x 1e-300 as the plain data.
+52. `tdroc119-edge2.R`: survivalROC: **with two or more given cuts the last point is (0, 0)** (c(0, 1): 1 gives 0; c(1, 3):
+    3 gives 0 and 1 is computed, 0.273; even c(0, 0): the second 0 gives 0), **a single given cut is computed** (1.0: TP
+    0.273, FP 0.0494; 1.5: TP 0.0936, FP 0: its subset has no one at risk at 6.3, KM 0); log 48's rule holds from two
+    cuts on. Given cuts are sorted (c(0.5, 0) as c(0, 0.5)). predict.time 0.5 and 1 (before and at the first time 1,
+    with two events at 1): Survival 0.95 both: **before the first time R reads the KM at the first time** (S(0.5) is 1);
+    TP (1, 0, 0, 0) and FP above 1. timeROC's aalen weights on the data without ties: a collinear (2 x marker) or a
+    constant other marker gives **exactly the unweighted AUC** (0.75175, 0.71795): R's Aalen fit fails silently and the
+    weights are all 1; the marker alone 0.74990, 0.72063.

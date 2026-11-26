@@ -149,10 +149,24 @@ check its simulation against).
 - `timeROCConfint(fit, { level, nSim })`, `timeROCCompare(x, y, { adjusted })`, `seSpPPVNPV(cutpoint, time, delta,
   marker, options)`, `timeROCAucCurve`, `timeROCAucDiff`, `survivalROC(time, status, marker, { predictTime, cutValues })`.
 
-## Edge cases (to check after the implementation, the third pass's axes from the start)
+## Edge cases (the comprehensive pass, log 51, 52; `test/tdroc119Edge.test.ts`)
 
-Scales of the marker (1e±150, 1e±300) and of the times (1e±150, 1e±300), a common value of 1e8 in the marker or
-the times, ties (all markers equal, all times equal), no case or no control at t, every subject censored before t,
-an event at every evaluation time, a single subject at risk, times beyond the last observation, n = 2000+ (iid's cost),
-Cox / Aalen with collinear or constant other markers, survivalROC with predict.time before the first event or after
-the last time; against R where R computes.
+- Scales 1e±150 and 1e±300 of the marker and of the times, mixed scales and a common value 1e8: every function exactly
+  invariant where only orders matter (marginal weights, survivalROC, confint, compare, the curves); Cox and Aalen to
+  1e-12 (coefficients absorb the scale; Aalen's own scaling by powers of 2). The Cox fit runs with coxph's timefix off:
+  aeqSurv's tolerance merged all times at 1e-150 and nearly equal times at 1e8 (R's cph is not scale-free at 1e-300
+  either: 0.8164 for 0.8082). Cox weights come from one survfit curve raised to exp(β'(z − means)) (the relation of
+  survfit's curves for a Cox fit), so that n = 5000 takes 45 ms.
+- NA (NaN) in the time, delta, marker or other markers: the subject is dropped, as R; ±Infinity is an error.
+- No case or no control at t, all censored, an absent cause, n = 1: NaN (R's NA). n = 2 works (R fails).
+- Cox weights with a constant or collinear covariate, or without censoring: computed (R fails); all censored: NaN.
+- Aalen weights: covariates dependent on the intercept and the earlier ones are left out (Gram-Schmidt, relative
+  tolerance 1e-7); R's fit then fails silently and gives weights 1 (the unweighted AUC exactly, log 52).
+- SeSpPPVNPV with the cutpoint beyond the markers: TP, FP 0 (or 1), PPV (or NPV) NaN, as R.
+- confint: a NaN time's row is NaN and left out of the band's maximum (R leaves the row out).
+- compare of a marker with itself: NaN p-values (R stops with an error about NA AUCs).
+- survivalROC: from two given cuts on the last point is (0, 0), a single given cut is computed (log 52); predictTime
+  before the first time: S = 1 and TP = 0 / 0 = NaN (R reads the KM at the first time, 0.95: R's error, not followed);
+  all censored: S = 1, AUC NaN, as R.
+- Large n (5000): iid 25 ms, Cox 45 ms, Aalen 24 ms, survivalROC 0.7 s, confint (2000 draws) 0.6 s; compare with
+  adjusted p-values at four or more times takes seconds (Genz's lattice per time).

@@ -135,11 +135,23 @@ export interface Data {
   G: number[];
 }
 
-function checkVector(x: readonly number[], what: string): number[] {
+function checkVector(x: readonly number[], what: string, allowNaN = false): number[] {
   if (!Array.isArray(x) && !ArrayBuffer.isView(x)) throw new TypeError(`'${what}' must be an array of numbers`);
   const v = Array.from(x as ArrayLike<number>);
-  for (const e of v) if (typeof e !== "number" || !Number.isFinite(e)) throw new RangeError(`'${what}' must contain finite numbers only`);
+  for (const e of v) {
+    if (typeof e !== "number") throw new TypeError(`'${what}' must be an array of numbers`);
+    if (Number.isNaN(e) ? !allowNaN : !Number.isFinite(e)) throw new RangeError(`'${what}' must contain finite numbers${allowNaN ? " (or NaN for NA)" : ""}`);
+  }
   return v;
+}
+
+/** The subjects without NaN (R's NA) in time, delta, marker and the other markers, as R drops them. */
+function completeCases(time: readonly number[], delta: readonly number[], marker: readonly number[], other?: readonly (readonly number[])[]): number[] {
+  const t = checkVector(time, "time", true);
+  const d = checkVector(delta, "delta", true);
+  const m = checkVector(marker, "marker", true);
+  if (d.length !== t.length || m.length !== t.length) throw new RangeError("'time', 'delta' and 'marker' must have the same length");
+  return t.map((_, i) => i).filter((i) => !Number.isNaN(t[i]!) && !Number.isNaN(d[i]!) && !Number.isNaN(m[i]!) && !(other?.[i]?.some((v) => Number.isNaN(v)) ?? false));
 }
 
 function prepare(time: readonly number[], delta: readonly number[], marker: readonly number[]): Data {
@@ -373,7 +385,7 @@ function covariates(data: Data, other: readonly (readonly number[])[] | undefine
     for (const row of other) {
       if (!Array.isArray(row)) throw new TypeError("'otherMarkers' must be an array of rows");
       if (row.length !== p) throw new RangeError("the rows of 'otherMarkers' must have the same length");
-      for (const e of row as readonly unknown[]) if (typeof e !== "number" || !Number.isFinite(e)) throw new RangeError("'otherMarkers' must contain finite numbers only");
+      for (const e of row as readonly unknown[]) if (typeof e !== "number" || !Number.isFinite(e)) throw new RangeError("'otherMarkers' must contain finite numbers (or NaN for NA)");
     }
   }
   return marker.map((m, i) => [m, ...(other?.[i] ?? [])]);
@@ -382,10 +394,17 @@ function covariates(data: Data, other: readonly (readonly number[])[] | undefine
 function coxWeights(data: Data, Z: number[][], times: readonly number[]): Conditional {
   const { n, time, delta } = data;
   if (!delta.some((d) => d === 0)) return { left: new Array(n).fill(1), at: times.map(() => new Array(n).fill(1)) };
-  const sf = survfitCoxph(time, delta.map((d) => (d === 0 ? 1 : 0)), Z, { newdata: Z, ties: "efron", confType: "none" });
+  // One curve at the fit's means and S_i = S_0^exp(beta'(z_i - means)), the relation of survfit's curves for a Cox fit
+  // (exp(-H_0 exp(lp))), so that n curves cost one. timefix off: the weights depend on the order of the times only
+  // (aeqSurv's tolerance would merge tiny or nearly equal times).
+  const sf = survfitCoxph(time, delta.map((d) => (d === 0 ? 1 : 0)), Z, { ties: "efron", confType: "none", control: { timefix: false } });
+  const beta = sf.fit.coefficients.map((b) => (Number.isNaN(b) ? 0 : b)); // aliased columns: R's NA, no effect
+  const means = sf.fit.means;
+  const H0 = sf.surv[0]!.map((v) => -Math.log(v));
+  const risk = Z.map((z) => Math.exp(z.reduce((acc, v, j) => acc + beta[j]! * (v - means[j]!), 0)));
   const read = (i: number, s: number, strict: boolean) => {
     const k = lastIndex(sf.time, s, strict);
-    return k >= 0 ? sf.surv[i]![k]! : 1;
+    return k >= 0 ? Math.exp(-H0[k]! * risk[i]!) : 1;
   };
   return {
     left: Array.from({ length: n }, (_, i) => read(i, time[i]!, true)),
@@ -421,7 +440,8 @@ function solveSmall(A: number[][], b: number[]): number[] | null {
  * Aalen's additive hazards model of the censoring, least-squares increments at each censoring time over the risk set
  * of the marginal weights (T > u, or censored at u), the tied censorings of a time together (R's timereg breaks ties
  * with random noise; Choice 2). The covariates enter centred and scaled by powers of 2, which leaves the fitted G
- * unchanged (the same linear span) and keeps X'X in range. From the first singular X'X on, G is kept.
+ * unchanged (the same linear span) and keeps X'X in range; columns dependent on the earlier ones are left out. From the
+ * first singular X'X on (too few subjects at risk), G is kept.
  */
 function aalenWeights(data: Data, Z: number[][], times: readonly number[]): Conditional {
   const { n, delta, u, ti, C } = data;
@@ -434,7 +454,27 @@ function aalenWeights(data: Data, Z: number[][], times: readonly number[]): Cond
     const s = half > 0 ? 2 ** Math.round(Math.log2(half)) : 1;
     for (let i = 0; i < n; i++) X[i]!.push((col[i]! - mid) / s);
   }
-  const p = q + 1;
+  // columns dependent on the intercept and the earlier ones (a constant or collinear covariate: R's NA) are left out,
+  // by Gram-Schmidt on the centred and scaled columns
+  const basis: number[][] = [];
+  const keep: number[] = [];
+  for (let j = 1; j <= q; j++) {
+    const v = X.map((r) => r[j]!);
+    const m = v.reduce((a, b) => a + b, 0) / n;
+    const w = v.map((x) => x - m);
+    const norm0 = Math.hypot(...w);
+    for (const b of basis) {
+      const dot = w.reduce((a, x, i) => a + x * b[i]!, 0);
+      for (let i = 0; i < n; i++) w[i]! -= dot * b[i]!;
+    }
+    const norm = Math.hypot(...w);
+    if (norm0 > 0 && norm > 1e-7 * norm0) {
+      basis.push(w.map((x) => x / norm));
+      keep.push(j);
+    }
+  }
+  for (let i = 0; i < n; i++) X[i] = [1, ...keep.map((j) => X[i]![j]!)];
+  const p = keep.length + 1;
   // cumulative B after each distinct time (rows of u), increments only at censoring times
   const B: number[][] = [];
   let cur = new Array<number>(p).fill(0);
@@ -490,7 +530,11 @@ function prepareFit(time: readonly number[], delta: readonly number[], marker: r
   times: readonly number[]; cause?: number; weighting?: TimeROCWeighting; otherMarkers?: readonly (readonly number[])[];
 }, fn: string): Prepared {
   if (options === null || typeof options !== "object") throw new TypeError(`${fn}: 'options' with 'times' is required`);
-  const data = prepare(time, delta, marker);
+  if (options.otherMarkers !== undefined && (!Array.isArray(options.otherMarkers) || options.otherMarkers.length !== time.length))
+    throw new RangeError("'otherMarkers' must have one row per subject");
+  const keep = completeCases(time, delta, marker, options.otherMarkers);
+  const data = prepare(keep.map((i) => time[i]!), keep.map((i) => delta[i]!), keep.map((i) => marker[i]!));
+  const otherMarkers = options.otherMarkers === undefined ? undefined : keep.map((i) => options.otherMarkers![i]!);
   const times = checkVector(options.times ?? [], "times");
   if (times.length === 0) throw new RangeError("'times' must have at least one time");
   const cause = options.cause ?? 1;
@@ -501,7 +545,7 @@ function prepareFit(time: readonly number[], delta: readonly number[], marker: r
   const competing = data.delta.some((d) => d !== 0 && d !== cause);
   let cond: Conditional | null = null;
   if (weighting !== "marginal") {
-    const Z = covariates(data, options.otherMarkers);
+    const Z = covariates(data, otherMarkers);
     cond = weighting === "cox" ? coxWeights(data, Z, times) : aalenWeights(data, Z, times);
   }
   return { data, cause, competing, times, weighting, cond };
@@ -1147,8 +1191,8 @@ export function timeROCAucDiff(x: TimeROCResult, y: TimeROCResult, options: Omit
 export interface SurvivalROCOptions {
   /** The time of the prediction (required). */
   predictTime: number;
-  /** Thresholds of the marker, sorted (R prepends −Inf; the last threshold's point is (0, 0), as R). Default: the
-   * sorted distinct marker values. */
+  /** Thresholds of the marker, sorted (R prepends −Inf; from two thresholds on, the last one's point is (0, 0), as R).
+   * Default: the sorted distinct marker values. */
   cutValues?: readonly number[];
   /** The estimator: only `"KM"` (R's default, the nearest-neighbour estimator `"NNE"`, is not offered). Default "KM". */
   method?: "KM";
@@ -1171,22 +1215,24 @@ export interface SurvivalROCResult {
   auc: number;
 }
 
-/** Kaplan-Meier survival at t of the subjects in idx (events before censorings at a tie). */
-function kmOf(time: readonly number[], status: readonly number[], idx: readonly number[], t: number): number {
-  const s = [...idx].sort((a, b) => time[a]! - time[b]!);
-  let atRisk = s.length;
+/** Kaplan-Meier survival at t of the subjects selected by `sel`, over the subjects sorted by time (events before
+ * censorings at a tie). */
+function kmOf(time: readonly number[], status: readonly number[], byTime: readonly number[], sel: (i: number) => boolean, t: number): number {
+  let atRisk = 0;
+  for (const i of byTime) if (sel(i)) atRisk++;
   let surv = 1;
   let k = 0;
-  while (k < s.length && time[s[k]!]! <= t) {
-    const u = time[s[k]!]!;
+  while (k < byTime.length && time[byTime[k]!]! <= t) {
+    const u = time[byTime[k]!]!;
     let ev = 0;
     let all = 0;
-    while (k < s.length && time[s[k]!]! === u) {
-      if (status[s[k]!] === 1) ev++;
+    for (; k < byTime.length && time[byTime[k]!]! === u; k++) {
+      const i = byTime[k]!;
+      if (!sel(i)) continue;
+      if (status[i] === 1) ev++;
       all++;
-      k++;
     }
-    if (atRisk > 0) surv *= 1 - ev / atRisk;
+    if (atRisk > 0 && ev > 0) surv *= 1 - ev / atRisk;
     atRisk -= all;
   }
   return surv;
@@ -1211,31 +1257,33 @@ function kmOf(time: readonly number[], status: readonly number[], idx: readonly 
 export function survivalROC(time: readonly number[], status: readonly number[], marker: readonly number[], options: SurvivalROCOptions): SurvivalROCResult {
   if (options === null || typeof options !== "object") throw new TypeError("survivalROC: 'options' with 'predictTime' is required");
   if ((options.method ?? "KM") !== "KM") throw new RangeError(`only method "KM" is offered (the nearest-neighbour estimator "NNE" is not)`);
-  const t = checkVector(time, "time");
-  const st = checkVector(status, "status");
-  const m = checkVector(marker, "marker");
+  const keep = completeCases(time, status, marker);
+  const t = keep.map((i) => time[i]!);
+  const st = keep.map((i) => status[i]!);
+  const m = keep.map((i) => marker[i]!);
   const n = t.length;
-  if (n === 0) throw new RangeError("no subjects");
-  if (st.length !== n || m.length !== n) throw new RangeError("'time', 'status' and 'marker' must have the same length");
+  if (n === 0) throw new RangeError("no subjects (without NA)");
   for (const e of st) if (e !== 0 && e !== 1) throw new RangeError("'status' must be 0 or 1");
   const pt = options.predictTime;
   if (typeof pt !== "number" || !Number.isFinite(pt)) throw new RangeError("'predictTime' must be a finite number");
-  // R sorts given thresholds and sets the last point to (0, 0) even when markers lie above it (log 48)
+  // R sorts given thresholds and, from two given thresholds on, sets the last point to (0, 0) even when markers lie
+  // above it; a single given threshold is computed (log 48, 52)
   const cuts = options.cutValues === undefined ? [...new Set(m)].sort((a, b) => a - b) : checkVector(options.cutValues, "cutValues").sort((a, b) => a - b);
-  const all = Array.from({ length: n }, (_, i) => i);
-  const St = kmOf(t, st, all, pt);
+  const byTime = Array.from({ length: n }, (_, i) => i).sort((a, b) => t[a]! - t[b]!);
+  const St = kmOf(t, st, byTime, () => true, pt);
   const cutValues = [-Infinity, ...cuts];
   const tp: number[] = [];
   const fp: number[] = [];
   for (const [k, c] of cutValues.entries()) {
-    if (k === cutValues.length - 1 && k > 0) {
+    if (k === cutValues.length - 1 && cutValues.length > 2) {
       tp.push(0);
       fp.push(0);
       break;
     }
-    const sel = all.filter((i) => m[i]! > c);
-    const pc = sel.length / n;
-    const Sc = sel.length > 0 ? kmOf(t, st, sel, pt) * pc : 0;
+    const above = (i: number) => m[i]! > c;
+    const count = m.reduce((acc, v) => acc + (v > c ? 1 : 0), 0);
+    const pc = count / n;
+    const Sc = count > 0 ? kmOf(t, st, byTime, above, pt) * pc : 0;
     tp.push((pc - Sc) / (1 - St));
     fp.push(Sc / St);
   }
