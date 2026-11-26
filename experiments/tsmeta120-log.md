@@ -157,3 +157,16 @@ has the summaries.
      its AIC is still to find.
    - ar.burg (var.method 1 and 2) and ar.mle: recorded, not yet compared (ar.mle's order for the differenced
      log(AirPassengers) is 12 = its cap).
+11. `tsmeta120-stats2.R`:
+   - **ar.burg:** x demeaned, reflection a_k = 2 sum f_t b_{t-1} / sum (f_t^2 + b_{t-1}^2), Levinson's update of the
+     coefficients, forward and backward errors updated; **var.method 1: v_k = v_{k-1} (1 - a_k^2) from sum(x^2) / n;
+     var.method 2: (sum f^2 + sum b^2) / (2 (n - k))**; aic = n log v_k + 2k minus the minimum; **var.pred = v_p
+     without the n / (n - p - 1) factor** (unlike ar.yw): aic, partialacf, ar within 7e-13, var.pred to 1e-15.
+   - **ar.ols's aic = n log(RSS_k / (n - k)) + 2k with each order fitted on its own n - k rows** (candidate C),
+     minus the minimum: within 5e-13, and the orders agree (lh 1, LakeHuron 2, sunspot 9, 21). Candidates A, B, D
+     (n - k or n - pm in front, or the common rows of order.max) are off by 6 to 110.
+   - **decompose's figure starts at the position of the first observation** (AirPassengers from April, USAccDeaths
+     from July): equal exactly; in calendar order it is not.
+   - ar.mle against tight arima(x, c(k, 0, 0), method = "ML"): the same orders (3, 2, 9, 12) but aic off by 0.014 to
+     0.19 (n log sigma2 + 2k: 1.3 to 18), coefficients 1e-6 to 1e-4, the mean 1.3e-5 to 1.1 (sunspot), var.pred close
+     to sigma2 without a factor. Not the same fit; arima0 is the next candidate.
