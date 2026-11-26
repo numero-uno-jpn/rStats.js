@@ -51,7 +51,8 @@
     gamma = 0.4, seasonal = "multiplicative"); p <- predict(m, 24, prediction.interval = TRUE)` で h = 11 → 12 の幅が約 3 倍に跳ぶ
     (b = 0.1257 で割る)。`HoltWinters(AirPassengers, alpha = 0.4, beta = FALSE, gamma = 0.5, seasonal = "multiplicative")` では
     h = 12・24 の区間が NA。証拠は `experiments/tsmeta120-hw3.{R,json}` とログ 16
-  - **未解明:** po.test の p 値 (表の値が未確認)
+  - po.test の p 値もユーザーの指示で探索して解決 (ログ 17・18: 出力の折れ線の節から Phillips-Ouliaris の表 Ia・Ib を読み取り、新しいデータ 4000 件で差 0。
+    表はログ 18 にある)。**時系列の未解明は無い**
   - **次:** stl (loess)、forecast の残り (ndiffs・nsdiffs・ocsb・auto.arima・ets・ses/holt/hw・thetaf・croston・BoxCox.lambda・mstl・
     tsclean・tsoutliers・na.interp・accuracy・dm.test・tsCV など)、その後メタ分析
 

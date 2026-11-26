@@ -241,3 +241,27 @@ has the summaries.
      R's multiplicative intervals divide by the trend coefficient b where the seasonal index is 0, and read shifted
      seasonal factors when there is no trend — artefacts of the indexing, not a variance formula from the
      literature.
+17. `tsmeta120-po.R` (po.test's p-values, asked for by the user): the table of Phillips and Ouliaris (1990) is not at
+   hand, so it was read off R's output: 1500 data sets for each of 2..6 variables and demean TRUE / FALSE (n = 300,
+   x1 = the sum of random walks + an AR(1) u with phi in [0.80, 0.995]), plus 300 each with n = 120 and 600 and both
+   lags. Outside R (a script that sorts the pairs (statistic, p) inside (0.01, 0.15), groups consecutive pairs of
+   equal slope into lines and intersects neighbouring lines): six linear pieces per case, knots at p = 0.025, 0.05,
+   0.075, 0.10, 0.125 and ends at 0.01 and 0.15, and every critical value has exactly two decimals (k = 2, demean:
+   -28.32, -23.81, -20.49, -18.48, -17.04, -15.93, -14.91). The same knots for n = 120 and 600 and for both lags:
+   the table does not depend on n. (A first version of the script drew one matrix of random walks twice; removed
+   before the run.)
+18. `tsmeta120-po2.R` (the first run stopped: arima.sim refuses phi = 1 in the warning check; replaced by two
+   independent random walks): **p = approx(crit, c(0.01, 0.025, 0.05, 0.075, 0.10, 0.125, 0.15), stat, rule = 2)
+   with crit by number of variables (2..6) from Table Ib for demean = TRUE and Table Ia for demean = FALSE**:
+
+   | k | demean = TRUE (Ib)                                     | demean = FALSE (Ia)                                    |
+   |---|--------------------------------------------------------|--------------------------------------------------------|
+   | 2 | -28.32 -23.81 -20.49 -18.48 -17.04 -15.93 -14.91       | -22.83 -18.89 -15.64 -13.81 -12.54 -11.57 -10.74       |
+   | 3 | -34.17 -29.74 -26.09 -23.87 -22.19 -21.04 -19.95       | -29.27 -25.21 -21.48 -19.61 -18.18 -17.01 -16.02       |
+   | 4 | -41.13 -35.71 -32.06 -29.51 -27.58 -26.23 -25.05       | -36.16 -31.54 -27.85 -25.52 -23.92 -22.62 -21.53       |
+   | 5 | -47.51 -41.64 -37.15 -34.71 -32.74 -31.15 -29.88       | -42.87 -37.48 -33.48 -30.93 -28.85 -27.40 -26.17       |
+   | 6 | -52.17 -46.53 -41.94 -39.11 -37.01 -35.48 -34.20       | -48.52 -42.55 -38.09 -35.51 -33.80 -32.27 -30.90       |
+
+   On fresh data (another seed, n in {80, 150, 300, 1000}, random lags, 4000 tests, 976 strictly inside): **0
+   difference**. Below the table: p = 0.01 with the warning "p-value smaller than printed p-value"; above:
+   p = 0.15 with "p-value greater than printed p-value". Resolved.
