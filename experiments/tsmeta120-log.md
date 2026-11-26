@@ -677,3 +677,24 @@ has the summaries.
    interval with weights 1/se (metafor: rma(method = "GENQ", weights = 1/se) + confint), "BJ" = with weights
    1/se^2**: exact. rStats.js's rma has no GENQ yet: the interval needs the distribution of a weighted sum of
    chi-squares (to implement from Jackson 2013 / Farebrother 1984).
+
+## meta's metabin (2026-11-27)
+
+64. `tsmeta120-metabin.R`: defaults method "MH", sm "RR", incr 0.5, method.incr "only0", allstudies FALSE,
+   MH.exact FALSE, RR.Cochrane FALSE, Q.Cochrane TRUE (effective only with method.tau = "DL"), method.tau "REML".
+   Fleiss 1993 (no zero cells) and a set with zero cells:
+   - **Mantel-Haenszel OR (Robins-Breslow-Greenland variance), RR and RD (Greenland-Robins variances), Peto
+     (sum(O - E)/sum(V)) and inverse variance: the common estimates and se exact (0 to 7e-17)**, with 0.5 added to the
+     cells of zero-cell studies;
+   - **Q = Cochran's Q with inverse-variance weights about the IV estimate** (with the default REML); tau2 is REML.
+   - with zero cells the study-level RR and RD values differ from the all-cells increment (to find next).
+65. `tsmeta120-metabin2.R` (zero cells and switches):
+   - **study RR: log((a + 0.5)/(n1 + 0.5)) - log((c + 0.5)/(n2 + 0.5)), variance 1/(a+0.5) - 1/(n1+0.5) + 1/(c+0.5) -
+     1/(n2+0.5)** (the increment added once to the group size, not twice); **study RD: the raw difference a/n1 - c/n2
+     with the variance of the incremented cells**; study OR: all four cells + 0.5; Peto study values (O - E)/V and
+     1/sqrt(V): all exact;
+   - **double-zero studies are left out for OR and RR (k = 6 of 7) and kept for RD (k = 7)**; allstudies = TRUE keeps
+     them;
+   - **MH.exact = TRUE: the MH OR without any increment** (exact); with method.tau = "DL" Q is computed about the MH
+     estimate (OR: exact; RR, RD: my weights were the wrong cells, to recheck in the fixture);
+   - RR.Cochrane = TRUE: study values recorded.
