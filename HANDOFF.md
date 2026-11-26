@@ -94,7 +94,11 @@
     metamean・metarate・metaprop (Inverse)、サブグループ、metabias (Egger・Begg・Thompson・Harbord・Peters)、trimfill (FE で L0)、metareg、
     metainf・metacum (共通効果) が一致。**rStats.js に足すもの:** rma の GENQ (一般化 Q の区間、重みつきカイ二乗の和の分布)。
     **ユーザーに確認:** metaprop の既定は R では GLMM (範囲外)、rStats.js の既定をどうするか
-  - **次:** netmeta の実験 (ndiffs・nsdiffs・ocsb・auto.arima・ets・ses/holt/hw・thetaf・croston・BoxCox.lambda・mstl・
+  - **netmeta の実験 (ログ 71〜74、2026-11-27):** Rücker (2012) のグラフ理論的な当てはめ (L = B′WB の擬似逆行列、多群は有効抵抗が分散に
+    一致する重み)、τ² (DL) = (Q − df)/tr(W(I − H)S(I − H)′) (S は多群の対比の共分散 (1/2)CC′、Jackson ら 2012)、P スコア、netsplit
+    (直接 = その比較の行を補正なしの分散で逆分散統合、割合 = v_net/v_dir)、decomp.design、pairwise (多群のどこかにゼロなら全腕に 0.5)、
+    netconnection、netcomb (加法 CNMA) が一致。未確認: discomb、netcomb の変量効果、netleague・forest・funnel の値、netposet の順序関係
+  - **次:** 実験の残り (上の未確認) を済ませて、仕様書 (oracle/tsmeta-behaviour.md) → fixture → 実装へ (ndiffs・nsdiffs・ocsb・auto.arima・ets・ses/holt/hw・thetaf・croston・BoxCox.lambda・mstl・
     tsclean・tsoutliers・na.interp・accuracy・dm.test・tsCV など)、その後メタ分析
 
 ## 次のセッションで最初にやること: 次の版の範囲を決める (1.18.0 は公開済み、2026-11-26)

@@ -769,3 +769,18 @@ has the summaries.
      var(network) / var(direct)**: exact for all comparisons (a comparison without direct evidence gives NA and
      proportion 0). The network fit on the studies containing both treatments gives the same, as the effective
      resistance construction implies.
+74. `tsmeta120-netmeta4.R` (first refused: the netconnection object's `$m` read as nls's element, and my variable
+   `comps` (a netmeta function); the first run then stopped in netmeta: my second outcome had noise added per
+   contrast, which made its multi-arm studies inconsistent, and netmeta refuses that (its tol.multiarm check) — the
+   second outcome is now built from arm-level effects):
+   - **decomp.design: the Q of each design = the Q of the network fitted to that design's studies alone; Q within =
+     their sum, Q between = Q total - Q within**: exact (6.57205 + 48.10106 = 54.67311; per design to 1e-15, listed in
+     another order).
+   - **pairwise (binary, sm = "OR"): every pair of arms of a study (treat1 the earlier arm), the study's arms all
+     incremented by 0.5 when any of its arms has 0 or n events (P1)**: exact; incrementing only the affected pairs is
+     off.
+   - **netconnection**: two subnets for a graph with two components (5 comparisons, 7 treatments).
+   - **netcomb (additive component NMA): beta = (X' W X)^{-1} X' W y with X = B C (C the treatment-by-component
+     matrix from "+"-separated names, the inactive "P" left out), Q.additive = the weighted residual sum of squares,
+     df = comparisons - rank(X), the combination effects C beta**: exact (1e-15).
+   - netposet: the matrix of P-scores per outcome recorded (P.common, M0.common ...).
