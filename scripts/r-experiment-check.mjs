@@ -680,8 +680,10 @@ function check(file) {
       problems.push(`${at}: rlm's psi and nls's m elements are functions whose code prints; use coef, summary, predict`);
     }
     if (COMPILED.test(code)) problems.push(`${at}: calling compiled code directly is not allowed`);
+    // auto.arima's argument `trace = TRUE` (it prints the models tried) is an argument name, not base's trace()
+    const forbidCode = code.replace(/(?<![A-Za-z0-9._$@])trace\s*=(?!=)/g, "tracearg =");
     for (const name of FORBIDDEN_NAMES) {
-      if (word(name).test(code)) problems.push(`${at}: '${name}' is not allowed`);
+      if (word(name).test(forbidCode)) problems.push(`${at}: '${name}' is not allowed`);
     }
     const callCode = refCode.replace(PSI_ARGUMENT, "psi = ");
     for (const name of REFERENCE_FUNCTIONS) {

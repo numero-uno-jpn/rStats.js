@@ -515,3 +515,30 @@ has the summaries.
    table is in `experiments/tsmeta120-ocsbcrit.json` and goes into rStats.js as data (outside it: the nearest
    tabulated m is not good enough; for m above 400 rStats.js interpolates linearly in log m between the recorded
    points, a documented approximation).
+
+## forecast's auto.arima (2026-11-27)
+
+43. `tsmeta120-autoarima.R` (first refused: the checker forbade the word `trace` even as auto.arima's argument
+   `trace = TRUE`; the checker now lets `trace =` through as an argument name (as `psi =` for rlm) while `trace(...)`
+   and `x <- trace` stay refused; the verdicts on the existing experiments are unchanged except
+   mds110-isomds-tight.R:37, whose `trace = FALSE` is likewise an argument (that line stays refused for `args`)):
+   the printed traces of seven runs. **The stepwise search (Hyndman and Khandakar 2008, with its "minor
+   variations"): the initial models ARIMA(2,d,2)(1,D,1), (0,d,0)(0,D,0), (1,d,0)(1,D,0), (0,d,1)(0,D,1) (with a
+   constant when d + D <= 1), then (0,d,0) without the constant when d + D <= 1; from the current best the neighbours
+   in the order P-1, Q-1, P+1, Q+1, (P-1,Q-1), (P+1,Q-1), (P-1,Q+1), (P+1,Q+1), then p-1, q-1, p+1, q+1, (p-1,q-1),
+   (p+1,q-1), (p-1,q+1), (p+1,q+1), then the constant switched; models outside the bounds or already fitted are
+   skipped; the first improvement becomes the new best and the neighbour list starts again.** This order explains
+   the traces of lh, USAccDeaths and AirPassengers (with approximation) line by line.
+44. `tsmeta120-autoarima2.R` (first refused: my variables `ar`, `ma`; renamed): each traced model refitted with Arima.
+   - **The printed criterion = the AICc of Arima(..., method = "CSS-ML")** (agrees to the 7 printed digits; "ML" is
+     0.2 off for WWWusage (2,1,2)).
+   - **"Inf" = a root of the AR or MA polynomial (seasonal parts multiplied out) with modulus < 1.01**: the rejected
+     models have minimum roots 1.0000 to 1.0095, the accepted ones >= 1.0185 (this run).
+   - With approximation the printed values are 57 to 65 below the ML AICc.
+45. `tsmeta120-autoarima3.R`: with approximation, **printed = the AICc of the CSS fit (npar = coefficients + 1,
+   nobs = n - d - sD) + an offset that is constant within a series** (AirPassengers -65.2725 for every searched
+   model; the final "re-fitting without approximations" line is the ML AICc). The offset is 0 when D = 0 (a long
+   random walk, sunspots) and nonzero with D = 1 (USAccDeaths -155.18, log AirPassengers +80.24, co2 +24.32, nottem
+   -29.59, UKgas -39.07). The CSS and ML log-likelihoods of ARIMA(0,d,0)(0,D,0) are equal, so it is not that model.
+   **The rejections in approximation mode follow the CSS fits' roots** (rejected: minimum roots 0.80 to 1.0086;
+   accepted: >= 1.0110).

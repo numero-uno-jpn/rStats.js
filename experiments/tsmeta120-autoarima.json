@@ -1,0 +1,61 @@
+{
+  "R": "R version 4.6.2 (2026-10-29)",
+  "arch": "x86_64",
+  "forecast": "9.0.2",
+  "lh": {
+    "trace": ["", " ARIMA(2,0,2) with non-zero mean : 68.4752", " ARIMA(0,0,0) with non-zero mean : 82.35958", " ARIMA(1,0,0) with non-zero mean : 65.30378", " ARIMA(0,0,1) with non-zero mean : 68.64934", " ARIMA(0,0,0) with zero mean     : 224.7706", " ARIMA(2,0,0) with non-zero mean : 65.43399", " ARIMA(1,0,1) with non-zero mean : 66.4543", " ARIMA(2,0,1) with non-zero mean : 66.63179", " ARIMA(1,0,0) with zero mean     : 77.35475", "", " Best model: ARIMA(1,0,0) with non-zero mean ", ""],
+    "order": [1, 0, 0],
+    "coef": [0.57392960144245553, 2.4132879577126332],
+    "aicc": 65.303779320197009,
+    "aic": 64.758324774742462,
+    "loglik": -29.379162387371231
+  },
+  "wwwusage": {
+    "trace": ["", " ARIMA(2,1,2) with drift         : 519.4483", " ARIMA(0,1,0) with drift         : 627.7442", " ARIMA(1,1,0) with drift         : 531.1079", " ARIMA(0,1,1) with drift         : 548.4164", " ARIMA(0,1,0)                    : 631.0362", " ARIMA(1,1,2) with drift         : 518.2245", " ARIMA(0,1,2) with drift         : 520.4047", " ARIMA(1,1,1) with drift         : 516.0048", " ARIMA(2,1,1) with drift         : 518.2245", " ARIMA(2,1,0) with drift         : 523.7396", " ARIMA(1,1,1)                    : 514.5521", " ARIMA(0,1,1)                    : 549.9305", " ARIMA(1,1,0)                    : 529.3628", " ARIMA(2,1,1)                    : 516.717", " ARIMA(1,1,2)                    : 516.6774", " ARIMA(0,1,2)                    : 520.1275", " ARIMA(2,1,0)                    : 522.4308", " ARIMA(2,1,2)                    : 518.0056", "", " Best model: ARIMA(1,1,1)                    ", ""],
+    "order": [1, 1, 1],
+    "coef": [0.65037597623177645, 0.52559588895120146],
+    "aicc": 514.55210315327849,
+    "aic": 514.29947157433116,
+    "loglik": -254.14973578716558
+  },
+  "usacc": {
+    "trace": ["", " ARIMA(2,1,2)(1,1,1)[12]                    : Inf", " ARIMA(0,1,0)(0,1,0)[12]                    : 873.7587", " ARIMA(1,1,0)(1,1,0)[12]                    : 863.7031", " ARIMA(0,1,1)(0,1,1)[12]                    : 857.3164", " ARIMA(0,1,1)(0,1,0)[12]                    : 864.7278", " ARIMA(0,1,1)(1,1,1)[12]                    : Inf", " ARIMA(0,1,1)(0,1,2)[12]                    : 858.994", " ARIMA(0,1,1)(1,1,0)[12]                    : 860.3189", " ARIMA(0,1,1)(1,1,2)[12]                    : Inf", " ARIMA(0,1,0)(0,1,1)[12]                    : 864.3438", " ARIMA(1,1,1)(0,1,1)[12]                    : 859.5193", " ARIMA(0,1,2)(0,1,1)[12]                    : 859.4953", " ARIMA(1,1,0)(0,1,1)[12]                    : 859.7192", " ARIMA(1,1,2)(0,1,1)[12]                    : 860.3337", "", " Best model: ARIMA(0,1,1)(0,1,1)[12]                    ", ""],
+    "order": [0, 1, 1, 0, 1, 1, 12],
+    "coef": [-0.43026923621726409, -0.55279127018579566],
+    "aicc": 857.31635074263886,
+    "aic": 856.87998710627528,
+    "loglik": -425.43999355313764
+  },
+  "air": {
+    "trace": ["", " ARIMA(2,1,2)(1,1,1)[12]                    : Inf", " ARIMA(0,1,0)(0,1,0)[12]                    : 1031.539", " ARIMA(1,1,0)(1,1,0)[12]                    : 1020.582", " ARIMA(0,1,1)(0,1,1)[12]                    : 1021.192", " ARIMA(1,1,0)(0,1,0)[12]                    : 1020.488", " ARIMA(1,1,0)(0,1,1)[12]                    : 1021.103", " ARIMA(1,1,0)(1,1,1)[12]                    : Inf", " ARIMA(2,1,0)(0,1,0)[12]                    : 1022.583", " ARIMA(1,1,1)(0,1,0)[12]                    : 1022.583", " ARIMA(0,1,1)(0,1,0)[12]                    : 1020.733", " ARIMA(2,1,1)(0,1,0)[12]                    : 1018.165", " ARIMA(2,1,1)(1,1,0)[12]                    : 1018.395", " ARIMA(2,1,1)(0,1,1)[12]                    : 1018.84", " ARIMA(2,1,1)(1,1,1)[12]                    : Inf", " ARIMA(3,1,1)(0,1,0)[12]                    : 1019.565", " ARIMA(2,1,2)(0,1,0)[12]                    : 1019.771", " ARIMA(1,1,2)(0,1,0)[12]                    : 1024.478", " ARIMA(3,1,0)(0,1,0)[12]                    : 1023.984", " ARIMA(3,1,2)(0,1,0)[12]                    : Inf", "", " Best model: ARIMA(2,1,1)(0,1,0)[12]                    ", ""],
+    "order": [2, 1, 1, 0, 1, 0, 12],
+    "coef": [0.59598070658672087, 0.21427455357829503, -0.98187716966857697],
+    "aicc": 1018.1651654398245,
+    "aic": 1017.8477051223641,
+    "loglik": -504.92385256118206
+  },
+  "lh_full": {
+    "trace": ["", " ARIMA(0,0,0) with zero mean     : 224.7706", " ARIMA(0,0,0) with non-zero mean : 82.35958", " ARIMA(0,0,1) with zero mean     : 178.4084", " ARIMA(0,0,1) with non-zero mean : 68.64934", " ARIMA(0,0,2) with zero mean     : 143.8587", " ARIMA(0,0,2) with non-zero mean : 63.99079", " ARIMA(0,0,3) with zero mean     : 126.8565", " ARIMA(0,0,3) with non-zero mean : 66.47236", " ARIMA(0,0,4) with zero mean     : 114.8843", " ARIMA(0,0,4) with non-zero mean : 69.07474", " ARIMA(0,0,5) with zero mean     : 112.4553", " ARIMA(0,0,5) with non-zero mean : 70.1586", " ARIMA(1,0,0) with zero mean     : 77.35475", " ARIMA(1,0,0) with non-zero mean : 65.30378", " ARIMA(1,0,1) with zero mean     : 79.58015", " ARIMA(1,0,1) with non-zero mean : 66.4543", " ARIMA(1,0,2) with zero mean     : Inf", " ARIMA(1,0,2) with non-zero mean : 66.47476", " ARIMA(1,0,3) with zero mean     : Inf", " ARIMA(1,0,3) with non-zero mean : Inf", " ARIMA(1,0,4) with zero mean     : Inf", " ARIMA(1,0,4) with non-zero mean : Inf", " ARIMA(2,0,0) with zero mean     : 79.59079", " ARIMA(2,0,0) with non-zero mean : 65.43399", " ARIMA(2,0,1) with zero mean     : 80.85341", " ARIMA(2,0,1) with non-zero mean : 66.63179", " ARIMA(2,0,2) with zero mean     : 82.82768", " ARIMA(2,0,2) with non-zero mean : 68.4752", " ARIMA(2,0,3) with zero mean     : Inf", " ARIMA(2,0,3) with non-zero mean : Inf", " ARIMA(3,0,0) with zero mean     : 81.61768", " ARIMA(3,0,0) with non-zero mean : 65.61339", " ARIMA(3,0,1) with zero mean     : 83.09817", " ARIMA(3,0,1) with non-zero mean : 66.51925", " ARIMA(3,0,2) with zero mean     : 84.63067", " ARIMA(3,0,2) with non-zero mean : 69.19864", " ARIMA(4,0,0) with zero mean     : Inf", " ARIMA(4,0,0) with non-zero mean : 67.88969", " ARIMA(4,0,1) with zero mean     : 82.3489", " ARIMA(4,0,1) with non-zero mean : 69.21819", " ARIMA(5,0,0) with zero mean     : Inf", " ARIMA(5,0,0) with non-zero mean : 70.36268", "", "", "", " Best model: ARIMA(0,0,2) with non-zero mean ", ""],
+    "order": [0, 0, 2],
+    "coef": [0.67316368516894465, 0.37532600086509854, 2.4015503733197261],
+    "aicc": 63.990794172146792,
+    "aic": 63.060561614007256,
+    "loglik": -27.530280807003628
+  },
+  "air_approx": {
+    "trace": ["", " Fitting models using approximations to speed things up...", "", " ARIMA(2,1,2)(1,1,1)[12]                    : Inf", " ARIMA(0,1,0)(0,1,0)[12]                    : 966.2666", " ARIMA(1,1,0)(1,1,0)[12]                    : 964.038", " ARIMA(0,1,1)(0,1,1)[12]                    : 955.769", " ARIMA(0,1,1)(0,1,0)[12]                    : 955.3741", " ARIMA(0,1,1)(1,1,0)[12]                    : 963.3033", " ARIMA(0,1,1)(1,1,1)[12]                    : 962.1184", " ARIMA(1,1,1)(0,1,0)[12]                    : 958.0468", " ARIMA(0,1,2)(0,1,0)[12]                    : 957.4594", " ARIMA(1,1,0)(0,1,0)[12]                    : 955.9536", " ARIMA(1,1,2)(0,1,0)[12]                    : 959.9836", "", " Now re-fitting the best model(s) without approximations...", "", " ARIMA(0,1,1)(0,1,0)[12]                    : 1020.733", "", " Best model: ARIMA(0,1,1)(0,1,0)[12]                    ", ""],
+    "order": [0, 1, 1, 0, 1, 0, 12],
+    "coef": -0.31843906087377111,
+    "aicc": 1020.7329000998252,
+    "aic": 1020.6391500998252,
+    "loglik": -508.3195750499126
+  },
+  "lakehuron": {
+    "trace": ["", " ARIMA(2,1,2) with drift         : Inf", " ARIMA(0,1,0) with drift         : 222.3401", " ARIMA(1,1,0) with drift         : 222.7116", " ARIMA(0,1,1) with drift         : 221.7622", " ARIMA(0,1,0)                    : 220.2579", " ARIMA(1,1,1) with drift         : 223.2332", "", " Best model: ARIMA(0,1,0)                    ", ""],
+    "order": [0, 1, 0],
+    "coef": [],
+    "aicc": 220.2578646756383,
+    "aic": 220.21575941248039,
+    "loglik": -109.1078797062402
+  }
+}
