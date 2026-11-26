@@ -16,7 +16,7 @@ JavaScript とブラウザで使える、R と互換の統計関数のライブ�
 - **どこでも動きます。** ESM のみで、依存パッケージはなく、Node 専用の API も使っていません。
   tree-shaking が効きます (`pnorm` だけなら gzip で 1.6 KB)。
 
-状態: **1.18.0。** R の stats パッケージの数値計算の中心
+状態: **1.19.0。** R の stats パッケージの数値計算の中心
 (分布・記述統計・検定・線形モデル・特殊関数・数値計算・線形代数の基本) を、R と同じ結果でカバーすることを目指しています。残っている作業は
 [ROADMAP.ja.md](ROADMAP.ja.md)、変更履歴は [CHANGELOG.md](CHANGELOG.md) (英語) にあります。
 
@@ -235,7 +235,7 @@ eigen([[2, 1], [1, 3]]).values;     // ≈ [3.618033989, 1.381966011]
 | 分割表と比率 | `binomCI`、`binomDiffCI`、`binomRatioCI` (DescTools の `BinomCI`、`BinomDiffCI`、`BinomRatioCI`)、`oddsRatio` (epitools と epiR のスコア区間)、`fisherTest(x, { midp: true })` (exact2x2)、`boschlooTest` (Exact)、`gTest`、`stuartMaxwellTest`、`goodmanKruskalGamma` (DescTools)、`lblTest` (coin)、`chisqTest(x, { nMinus1: true })` (Campbell の N − 1 検定) と Freeman-Tukey 残差、`tost` (equivalence)、`binomDiffEquivalenceTest` (2 つの比率のスコア法の TOST) |
 | 多重比較 | `dscfAllPairsTest` (Steel-Dwass)、`kwAllPairsDunnTest`、`kwManyOneDunnTest`、`manyOneUTest` (Steel の多対一の順位検定)、`dunnettTest`、`gamesHowellTest`、`tukeyTest` (PMCMRplus)、`dunnTest` (dunn.test)、`glhtDunnett` (multcomp) |
 | 生存時間解析 | `survdiff` (log-rank と G-rho 族)、`survfit` (Kaplan-Meier と Nelson-Aalen・Fleming-Harrington の累積ハザード、重み (逆確率重みも)、ロバスト標準誤差、信頼区間、中央値、制限平均、計数過程データ)、`rmst2` (非調整・共変量調整の制限平均生存時間と制限平均損失時間)、`coxph` (Cox 回帰。Efron と Breslow のタイ、ケース重み、層、Wald・尤度比・スコア検定、計数過程データ、ロバスト分散と `cluster`)、`survfitCoxph` (Cox の当てはめの共変量の値ごとの調整生存曲線: `survfit(coxph, newdata)`)、`clogit` (マッチした組の条件付きロジスティック回帰: 正確な尤度と近似の尤度)、`coxZph` (比例ハザード性の検定)、`cuminc`・`timepoints` (累積発生率と Gray の検定)、`crr`・`predictCrr` (Fine-Gray 回帰と予測)、`survreg`・`survregPredict`・`survregResiduals` (パラメトリックな加速故障時間回帰) |
-| 診断の精度と測定法の比較 | `roc`、`auc`、`ciAuc` (`ci.auc`)、`rocTest` (`roc.test`)、`coords` (pROC: DeLong の区間と検定、ブートストラップ、部分 AUC)、`diagnosticTests` (epiR の `epi.tests`)、`blandAltman` (BlandAltmanLeh の `bland.altman.stats`)、`mcreg` (mcr: Deming 回帰、重み付き Deming 回帰、Passing-Bablok 回帰) |
+| 診断の精度と測定法の比較 | `roc`、`auc`、`ciAuc` (`ci.auc`)、`rocTest` (`roc.test`)、`coords` (pROC: DeLong の区間と検定、ブートストラップ、部分 AUC)、`diagnosticTests` (epiR の `epi.tests`)、`blandAltman` (BlandAltmanLeh の `bland.altman.stats`)、`mcreg` (mcr: Deming 回帰、重み付き Deming 回帰、Passing-Bablok 回帰)。時間依存 ROC: `timeROC` (timeROC: 累積/動的の AUC、打ち切りの重みは Kaplan-Meier・Cox・Aalen、競合リスク、iid 表現による標準誤差)、`timeROCConfint`、`timeROCCompare`、`timeROCAucCurve`、`timeROCAucDiff`、`seSpPPVNPV`、`survivalROC` (survivalROC の Kaplan-Meier 推定量) |
 | 一致度と信頼性 | `kappa2`、`kappamFleiss`、`icc` (irr)、`ICC` (psych: Shrout と Fleiss の 6 つの形式)、`cronbachAlpha`、`partialR` (psych)、`polychor`、`polyserial` (polycor)、`pbvnorm`、`factanal`、`omega` (McDonald の ω。psych) |
 | データの扱い | `completeCases` (`complete.cases`)、`naOmit` (`na.omit`)、`subset`、`merge`、データフレームの `rbind`・`cbind`、`tapply`、`split`、`aggregate`、`pivotLonger` と `pivotWider` (tidyr)、`fromRows` と `toRows` (行のオブジェクトの配列とデータフレームの相互の変換)。検定の formula 版 (`tTest("y ~ g", data)`、`kruskalTest`、`friedmanTest("y ~ w \| b", data)`、`corTest("~ x + y", data)` など) |
 | 線形代数 | `matMul` (`%*%`), `add`, `subtract`, `multiply`, `divide`, `outer`, `t`, `diag`, `cbind`, `rbind`, `matrix`, `kronecker`, `seq`, `crossprod`, `tcrossprod`, `norm`, `backsolve`, `forwardsolve`, `chol`, `chol2inv`, `qr` と `qrQ`, `qrR`, `qrX`, `qrCoef`, `qrQy`, `qrQty`, `qrResid`, `qrFitted`, `qrSolve` (`qr.Q` …), `solve`, `det`, `determinant`, `rcond`, `kappa`, `svd`, `eigen`, `lu`, `prcomp`, `ginv` (MASS)、`schur`、`expm` |
@@ -302,7 +302,7 @@ double-double 演算で計算しているためです。詳しくは [docs/ja/ac
 | `lmer` (`/mixed` から) / `lmerSummary`・`lmerContest`・`lmerAnova` も | 19.4 / 70.0 KB |
 | `glmer` (`/mixed` から) / `glmerSummary`・`glmerAnova`・`glmerPredict` も | 47.2 / 66.1 KB |
 | `polr` / `rlm` / `nls` (`/regression` から) | 25.0 / 14.6 / 8.0 KB |
-| すべて (`/mixed` と `/regression` を除く) | 340.7 KB |
+| すべて (`/mixed` と `/regression` を除く) | 348.2 KB |
 
 (`npm run size` で測れます。)
 
@@ -312,12 +312,12 @@ double-double 演算で計算しているためです。詳しくは [docs/ja/ac
 `/regression` の `polr`・`rlm`・`nls` とその関数は、この方法でしか import できません。メインの入口には含めていません)。
 
 バンドラを使わない場合は、1 ファイルにまとめたビルド `dist/rstats.js` (`/mixed` と `/regression` 以外のすべての関数を含む
-minify 済みの ES モジュール、gzip で 341 KB) を jsDelivr から読み込めます。jsDelivr は、npm のリリースを
+minify 済みの ES モジュール、gzip で 348 KB) を jsDelivr から読み込めます。jsDelivr は、npm のリリースを
 そのまま配信します。
 
 ```html
 <script type="module">
-  import { pnorm } from "https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@1.18.0/dist/rstats.js";
+  import { pnorm } from "https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@1.19.0/dist/rstats.js";
   console.log(pnorm(1.96)); // ≈ 0.9750021049
 </script>
 ```

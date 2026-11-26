@@ -40,7 +40,16 @@
     同点や t ちょうどの事象があるときだけ違う。正しさは無限小のジャックナイフ (重みを ε 動かした数値微分) で自分で確かめる)。
     **(3) の読み方 (丸めもやめる) はユーザーに確認中**。(4) compare(adjusted = TRUE) は多変量正規の確率を自分で正確に (1e-7) 計算し、
     R とは 1e-6 程度で比べる。私の決定: Cox の重みは厳密な最大値 (R の cph とは 6e-7)、差の同時信頼帯は値を返さないので点ごとの区間だけ
-  - 次: 仕様書
+  - **セッション 37 の続き (2026-11-26):** 仕様書 `oracle/tdroc-behaviour.md`、fixture `oracle/timeroc.R`、実装 `src/htest/timeROC.ts`
+    (timeROC・timeROCConfint・timeROCCompare・timeROCAucCurve・timeROCAucDiff・seSpPPVNPV・survivalROC)、テスト `test/timeROC.test.ts`
+    (R と比べる、同点を正しく扱う iid を無限小のジャックナイフで確かめる) と `test/tdroc119Edge.test.ts` (端のケースの全軸、R の値は
+    `experiments/tdroc119-edge*.json`)、配線・索引 (英日)・結果の全項目の説明 (TypeDoc の新しいファイルの警告 0、英日)・訳 (sonnet、
+    survival-analysis.json の 158 件)・デモ (time-roc・sespppv・survival-roc、1190/1190)・版 1.19.0・サイズ 348.2 KB。ログは 47〜52。
+    全テストは既知の issue179・513 以外通る
+  - 私が決めたこと (ユーザーに報告): Cox の重みは coxph の timefix を切って 1 本の曲線から (時刻の順序だけに依る)、Aalen の従属な共変量は
+    外す (R は黙って重み 1)、NA の対象は R と同じく除く、R が失敗するところ (生存者 1 人、n = 2、退化した Cox) も計算する、survivalROC の
+    予測時点が最初の時刻より前なら S = 1 で TP は NaN (R は最初の時刻の KM を読む)、閾値が 2 つ以上なら最後の点は (0, 0) (R と同じ)
+  - 次: ユーザーの確認 → 公開 (main へ squash、CI と Pages、タグ v1.19.0、npm stage approve、archive/tdroc-1.19)
     `oracle/tdroc-behaviour.md` → fixture → 実装 → 端のケース (3 回目の内容) → 配線・文書・訳・デモ → 版 1.19.0
   - **最初から 3 回目の点検の内容 (尺度 1e±150・1e±300、共通の値 1e8、混ざった尺度、同点・打ち切りだけの時点・事象のない時点などの退化、
     大きな n、R と比較) を計画に入れ、公開した関数を 1 つずつすべての軸で確かめる**

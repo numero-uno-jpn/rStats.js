@@ -86,8 +86,9 @@ rStats.js に既にあるものと照らし合わせて決めました (2026-11-
    `glm` の Gamma 族)
 7. **管理図と一対比較**: 1.18.0 で済み (qcc の管理図・CUSUM・EWMA・OC 曲線・工程能力・T2 管理図、メディアン管理図、
    BradleyTerry2 の `BTm` (対象の共変量と変量効果の PQL も)、qvcalc の準分散)
-8. その後に検討: 時間依存 ROC [timeROC、survivalROC]、ネットワークメタアナリシス [netmeta]、時系列 [`arima`、
-   forecast `auto.arima`]
+8. **時間依存 ROC**: 1.19.0 で済み (timeROC の累積/動的の AUC、打ち切りの重みは Kaplan-Meier・Cox・Aalen、競合リスク、iid 表現による
+   標準誤差、confint、compare、SeSpPPVNPV。survivalROC の Kaplan-Meier 推定量。最近傍推定量は入れない)
+9. その後に検討: ネットワークメタアナリシス [netmeta]、時系列 [`arima`、forecast `auto.arima`]
 
 混合モデルの続き (以前の項目 1) は 1.6.0 に向けて済ませました: lme4 の `confint` (プロファイル尤度と Wald) と
 `simulate` に合わせた `confintLmer`、`confintGlmer`、`simulateLmer`、`simulateGlmer`。

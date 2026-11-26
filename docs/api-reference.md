@@ -261,6 +261,29 @@ players; with player covariates and `(1 | ..)` the abilities are `x_j' beta + e_
 by PQL to the fixed point where sigma maximizes the REML likelihood of the working model (BTm stops at its tolerance,
 about 1e-7 from it). `countsToBinomial` turns a table of wins (rows winners) into pairs.
 
+## Time-dependent ROC
+
+Time-dependent ROC curves for censored event times are in `/tests`, after the timeROC and survivalROC packages:
+
+```ts
+import { timeROC, timeROCConfint, timeROCCompare, seSpPPVNPV, survivalROC } from "@numero-uno-jpn/rstats/tests";
+import { setSeed } from "@numero-uno-jpn/rstats/distributions";
+
+const f = timeROC(time, status, marker, { times: [365, 730, 1095], iid: true }); // AUC, TP, FP and their s.e.
+f.competingRisks ? f.auc1 : f.auc;              // with other events in status: definitions (i) and (ii)
+setSeed(1); timeROCConfint(f);                  // pointwise intervals and the simultaneous band (percent)
+timeROCCompare(f, timeROC(time, status, marker2, { times: [365, 730, 1095], iid: true }), { adjusted: true });
+timeROC(time, status, marker, { times: [365], weighting: "cox", otherMarkers: covariates }); // or "aalen"
+seSpPPVNPV(2.5, time, status, marker, { times: [365], iid: true }); // Se, Sp, PPV, NPV of marker > 2.5
+survivalROC(time, status, marker, { predictTime: 365 });              // Heagerty's Kaplan-Meier estimator
+```
+
+`timeROC` follows `timeROC::timeROC`: the cases are T < t with the cause, the controls T > t (and, for competing risks
+definition (ii), the subjects with another event before t); the weights are the inverse probability of censoring from
+the Kaplan-Meier of the censoring (or a Cox or Aalen model of it); ties in the marker count 1/2. The iid representation
+gives the standard errors, `confint`'s band (multiplier bootstrap, R's draws with the same seed) and `compare`'s tests.
+With tied times the iid is the tie-correct form, which differs slightly from R's (see the differences from R).
+
 ## Multivariate analysis
 
 The functions in this area are imported from the separate `/multivariate` entry point, not the package root:

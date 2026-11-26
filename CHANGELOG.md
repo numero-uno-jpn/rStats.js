@@ -7,6 +7,20 @@ While the version is 0.x, a minor release (0.y.0) may contain breaking changes;
 they are listed under **Breaking** for each release. From 1.0.0 the project follows
 [Semantic Versioning](https://semver.org/).
 
+## 1.19.0 - 2026-11-26
+
+### Added
+
+- **Time-dependent ROC** in `/tests` (after the timeROC and survivalROC packages, values only, no plots): `timeROC`
+  (cumulative/dynamic AUC, TP and FP at several times; inverse probability of censoring weights from the Kaplan-Meier
+  of the censoring, a Cox model or Aalen's additive model with other markers; competing risks with definitions (i) and
+  (ii); the iid representation and standard errors), `timeROCConfint` (pointwise intervals and the simultaneous band by
+  the multiplier bootstrap), `timeROCCompare` (two markers on the same subjects, with p-values adjusted for the several
+  times), `seSpPPVNPV` (time-dependent sensitivity, specificity and predictive values of a cutpoint, with standard
+  errors), `timeROCAucCurve` (the values of `plotAUCcurve`), `timeROCAucDiff` (the difference of two AUCs with its
+  interval; not in R) and `survivalROC` (Heagerty, Lumley and Pepe's Kaplan-Meier estimator; the nearest-neighbour
+  estimator is not offered).
+
 ## 1.18.0 - 2026-11-26
 
 ### Added
