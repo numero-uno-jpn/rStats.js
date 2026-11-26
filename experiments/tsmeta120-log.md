@@ -265,3 +265,36 @@ has the summaries.
    On fresh data (another seed, n in {80, 150, 300, 1000}, random lags, 4000 tests, 976 strictly inside): **0
    difference**. Below the table: p = 0.01 with the warning "p-value smaller than printed p-value"; above:
    p = 0.15 with "p-value greater than printed p-value". Resolved.
+
+## stats' stl (2026-11-27)
+
+19. `tsmeta120-stl.R` (first refused by the checker: my helper `ma`, the argument `robust` and the string
+   "seasonal" collide with forecast's functions; renamed `movAvg`, `isRobust`, column indices): a candidate STL
+   written from Cleveland, Cleveland, McRae and Terpenning (1990): loess on 1..n with the q nearest points, h = the
+   larger distance to the window's ends, tricube weights times the robustness weights, degree 1 by the lowess update
+   (when sqrt(c) > 0.001 (n - 1)), jumps with linear interpolation; inner loop: detrend, cycle-subseries loess
+   evaluated at 0..k+1, low-pass (moving averages np, np, 3, then loess), seasonal = C - L, deseasonalise, trend
+   loess; outer loop: bisquare weights on |R| / (6 median |R|). Variants for what the paper leaves open: q > n
+   widening (H1: h + (q - n) %/% 2; H2: h q / n), lowess thresholds 0.001 / 0.999 (T1) or none, the cycle means
+   after a periodic fit (P1) or none.
+   - **H1, T1, P1 agree in 6 of 7 cases** (co2 periodic, s.window 7 and 35; nottem 9 robust; USAccDeaths 13;
+     quarterly UKgas 7): seasonal within 2e-12, trend 3e-11, weights exact. H2 is off where q > n (USAccDeaths 13:
+     25), P0 by 9e-7 (the tricube weights over a window of 10 n + 1 are not quite equal). T0 makes no difference
+     here. Defaults read from R's win / jump: t.window = nextodd(ceiling(1.5 np / (1 - 1.5 / s.window))),
+     l.window = nextodd(np), jumps ceiling(window / 10), periodic s.window = 10 n + 1.
+   - Off: USAccDeaths periodic with robust = TRUE (seasonal 35, weights 0.3).
+20. `tsmeta120-stl2.R` (first refused: `do.call(stl, ...)` passes stl without calling it; rewritten with direct
+   calls): s.degree 1, t.degree 0, an even l.window (made odd), all jumps 1, t.window 31, a 30-point series and
+   USAccDeaths s.window 7 robust: all within 2e-11. Periodic + robust agrees for co2 and nottem (4e-12) but not for
+   USAccDeaths; leaving the robustness weights out of the periodic subseries (V1) or taking the cycle means in every
+   iteration (V2) makes it worse. Also off: USAccDeaths s.window 7 with inner 5, outer 3 (32).
+21. `tsmeta120-stl3.R`: a grid of inner / outer on USAccDeaths: every combination with outer <= 2, and inner 1 with
+   outer 3, agrees (6e-11); s.window 7 with inner 5 and outer 3 does not (R: 4 zero weights, candidate 2).
+22. `tsmeta120-stl4.R` (first refused: my variable `trace` is a base function; renamed `passLog`): the candidate's
+   u = |R| / h per outer pass against R's weights with outer = 1, 2, 3: passes 1 and 2 equal R's weights exactly; the
+   third (the fit with pass 2's weights and 5 inner iterations) differs everywhere (70 of 72 weights). No u of pass 2
+   is near a threshold (the largest 0.879), so it is not a 0.999 / 1 boundary.
+23. `tsmeta120-stl5.R`: on the two failing configurations, tricube or bisquare thresholds off, H2, and robustness
+   weights in the low-pass loess change nothing (or make it worse). Not resolved after five experiments: STL as in
+   the paper agrees with R in 16 of 18 configurations to 1e-11; two USAccDeaths configurations with several robust
+   passes and inner > 1 depart. Left to the user.

@@ -53,7 +53,10 @@
     h = 12・24 の区間が NA。証拠は `experiments/tsmeta120-hw3.{R,json}` とログ 16
   - po.test の p 値もユーザーの指示で探索して解決 (ログ 17・18: 出力の折れ線の節から Phillips-Ouliaris の表 Ia・Ib を読み取り、新しいデータ 4000 件で差 0。
     表はログ 18 にある)。**時系列の未解明は無い**
-  - **次:** stl (loess)、forecast の残り (ndiffs・nsdiffs・ocsb・auto.arima・ets・ses/holt/hw・thetaf・croston・BoxCox.lambda・mstl・
+  - **stl (ログ 19〜23、2026-11-27):** 論文 (Cleveland ら 1990) どおりの候補 (q > n なら h + (q − n) %/% 2、lowess の閾値、periodic は最後に
+    周期ごとの平均) が 18 構成中 16 で 1e-11。**未解明:** USAccDeaths の periodic + robust と s.window 7・inner 5・outer 3 だけ外れる
+    (外側 2 回目までは完全一致、3 回目で全点が分かれる。閾値・帯域幅・低域の重みの変種では直らない)。ユーザーに判断を仰ぐ
+  - **次:** forecast の残り (ndiffs・nsdiffs・ocsb・auto.arima・ets・ses/holt/hw・thetaf・croston・BoxCox.lambda・mstl・
     tsclean・tsoutliers・na.interp・accuracy・dm.test・tsCV など)、その後メタ分析
 
 ## 次のセッションで最初にやること: 次の版の範囲を決める (1.18.0 は公開済み、2026-11-26)
