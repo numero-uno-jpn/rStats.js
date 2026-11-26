@@ -47,7 +47,7 @@
     num = 係数[2 + ((h−1) mod f + 1)]、den = 係数[2 + ((h−j) mod f)] (係数は (a, b, s1..sf) を常に仮定)。添字 0 で b で割り、
     β なしでは季節係数が 1 つずれ h = 12・24 は NA になる R の添字の不具合 (ソースは読んでいない、出力からの推定)。
     **ユーザーの決定 (2026-11-27): A = 正しい添字 (季節係数を周期どおり s_h / s_{h−j}) で計算し、R との違いを文書に書く** (トレンドありで
-    h < f は R と同じ)。R への報告は別セッションでユーザーが検討する。再現: `m <- HoltWinters(co2, alpha = 0.5, beta = 0.01,
+    h < f は R と同じ)。R への報告はユーザーが済ませた (2026-11-27、R Bugzilla Bug 19369「Bug in stats::predict.HoltWinters: Incorrect coefficient indexing for prediction intervals in multiplicative seasonal models」。文書の R との違いにこの番号を書く)。再現: `m <- HoltWinters(co2, alpha = 0.5, beta = 0.01,
     gamma = 0.4, seasonal = "multiplicative"); p <- predict(m, 24, prediction.interval = TRUE)` で h = 11 → 12 の幅が約 3 倍に跳ぶ
     (b = 0.1257 で割る)。`HoltWinters(AirPassengers, alpha = 0.4, beta = FALSE, gamma = 0.5, seasonal = "multiplicative")` では
     h = 12・24 の区間が NA。証拠は `experiments/tsmeta120-hw3.{R,json}` とログ 16
