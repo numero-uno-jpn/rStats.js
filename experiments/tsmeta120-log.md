@@ -840,3 +840,30 @@ The level form (log 40-41) was never in question.
      feedback-rstats-designed-probes). The implementation keeps the closed form with the tau_tau rows (598 of 600 in
      the fixture); a next probe would fix n (one size class) and vary the statistic, so that the knots of R's p as a
      function of the statistic give the critical values independently of the form.
+
+## nsdiffs with test = "ocsb" (2026-11-27, during the implementation)
+
+The stl fixture (oracle/stl.R, 120 series) showed 5 nsdiffs(test = "ocsb") decisions different from "ocsb.test(y)'s
+statistic > its critical value", in both directions, although that statistic itself agreed exactly.
+
+80. `tsmeta120-nsdiffs-ocsb.R` (two runs; run 1's output kept as `-run1.json`): 300 designed series (m = 4 and 12,
+   lengths 2m + 1 to 12m, seasonal random walks, deterministic seasonals, seasonal AR):
+   - run 1: the statistic and lag order of ocsb.test for lag.method "fixed", "AIC", "BIC", "AICc" and maxlag 0..3,
+     with the decision rule applied outside R. **nsdiffs(test = "ocsb") = [ocsb.test(y, lag.method = "AIC", maxlag =
+     3) statistic > critical]: 295 of 295**; fixed lag 0: 275 of 300. The 5 others (m = 4, n = 9) are series where that
+     call fails ("invalid time series parameters specified"), and **nsdiffs returns 0 for them**; n = 10 works.
+     The chosen lag orders: 0 (177), 1 (50), 2 (68), never 3.
+   - run 2 (edited in place): the series and the fitted model's coefficient names, estimates and residual count.
+     For lag 0 the model has 47 residuals for n = 60, m = 12 (n - m - 1); for lag L, n - m - 1 - L. **The regression
+     with L lags: the AR(L) coefficients a of w = Delta_m Delta_1 y by least squares without a mean, then w_t on
+     w_{t-1..L}, (1 - a(B)) Delta_m y_{t-1} and (1 - a(B)) Delta_1 y_{t-m} without a constant; the statistic is the t
+     value of the last**: 118 of 118 for L = 1, 2 (to 5e-15), and lag 0 is the regression of item 41 (177 of 177).
+     Without the prefilter (lagged w only) it was 0 of 118.
+   - The lag choice by "AIC": 12 rules tried outside R, none fits. They were the lm AIC (with and without the
+     constants) of the full regression on its own rows or on a common sample, for L in 0..3 or 0..2, and the ar.ols-type
+     criteria n log(RSS / (n - L)) + 2L on the AR fit of w (own rows, common rows, n or N). The best was 141 of 295.
+     Those rules choose larger L than R, while R chooses 0 in 60%.
+   - **Not resolved after two experiments with a designed probe (run 2): left open for the user.** rStats.js implements
+     ocsb.test with a fixed lag (the prefiltered regression), and nsdiffs(test = "ocsb") with lag 0 and nsdiffs = 0 when
+     the series has at most m + 5 values (only m = 4 observed; 2m + 1 fits the same data). The default nsdiffs test
+     "seas" is not affected.
