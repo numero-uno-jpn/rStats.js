@@ -80,7 +80,9 @@
     ログ 47 に手順の誤り (チェッカーの判定前に 1 回実行、出力は読まずに削除) を記録
   - **ets の推定まわり (ログ 51):** ZZZ の選択 (許されるモデルの AICc 最小) と amse が一致。ses の simple は l0 = y1・SSE 最小。hw の乗法は R が
     悪い局所解で止まる (rStats.js は最適解へ、文書に)
-  - **時系列の実験はひととおり済んだ (ログ 1〜51)。未解明は 2 つ:** na.interp の季節版、tsoutliers (AirPassengers での分解)。stlm は stlf と同じ
+  - **na.interp の季節版はユーザーの指示で再探索して解決 (ログ 52〜57、設計した入力で):** lm(x ~ fourier(K = min(5, floor(m/2))) + poly(t,
+    min(6, floor(n/10)))) で補完 → mstl(robust) の季節 → x − 季節を線形補間 → 季節を戻す。28 構成で 1e-13
+  - **時系列の実験はひととおり済んだ (ログ 1〜57)。未解明は 1 つ:** tsoutliers (AirPassengers での分解)、次に探索する。stlm は stlf と同じ
     作りの見込み (fixture で確かめる)。ets と auto.arima の最適化の終点は fixture で厳しい当てはめと比べる
   - **次:** ユーザーの判断 (未解明の 2 つ) → メタ分析 (meta・netmeta) の実験 (ndiffs・nsdiffs・ocsb・auto.arima・ets・ses/holt/hw・thetaf・croston・BoxCox.lambda・mstl・
     tsclean・tsoutliers・na.interp・accuracy・dm.test・tsCV など)、その後メタ分析

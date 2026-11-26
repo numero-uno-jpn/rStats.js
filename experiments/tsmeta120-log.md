@@ -606,3 +606,33 @@ has the summaries.
      finds, so its hw may differ from R's where R stops at a worse local optimum (to be documented).
    - **ses(initial = "simple")**: l0 = y1 fixed, alpha minimising the SSE of the one-step errors from t = 2 (R
      0.2465657, a tight optimize 0.2465643; SSE equal to 17 digits at R's alpha).
+
+## na.interp's seasonal case, resumed (2026-11-27, asked for by the user), with designed inputs
+
+52. `tsmeta120-nainterp3.R`: the seasonal path is **scale- and shift-equivariant but not additive** (na.interp(y1 +
+   y2) differs from the sum by 0.59; the "weights" of unit perturbations differ between two bases by 0.65): a robust
+   fit. A pure seasonal spike pattern comes back exactly (6e-7); a quadratic trend's missing values come back near
+   the curve (7.21956 against 7.22, where linear interpolation of the neighbours would give 7.24).
+53. `tsmeta120-nainterp4.R`: candidate "fitted trend + seasonal of a robust decomposition of a first filling, at the
+   missing times" (5 decompositions x 13 fillings x 1-2 iterations): 0.16 to 29 off. Rejected.
+54. `tsmeta120-nainterp5.R`: back to "seasonal of a decomposition of a first filling, seasonally adjusted series
+   interpolated linearly, seasonal added back", robust and non-robust, on the designed inputs: **the quadratic probe
+   is reproduced exactly (1e-15) with a first filling by lm on Fourier terms and a polynomial trend of degree >= 2
+   and the seasonal of mstl(robust = TRUE)** (= stl(s.window = 11, robust = TRUE)); the other probes still differ.
+55. `tsmeta120-nainterp6.R`: fillings with seasonal dummies or Fourier K = 1..6 and degrees 0..5, robust mstl:
+   **Fourier K = 5 with degree 4 reproduces the spike + quadratic and the noisy probes (n = 48) exactly** (4e-15);
+   AirPassengers (n = 144) still 1.8 off.
+56. `tsmeta120-nainterp7.R`: AirPassengers on K 1..6 x degree 0..10: **K = 5, degree 6 exact** (4e-12 with all six
+   missing values, 1e-13 to 1e-11 with each alone), and the same for simulated n = 72, 96, 144: the degree depends
+   on n.
+57. `tsmeta120-nainterp8.R`: 28 series, m = 4, 7, 12, 24, two to nine years, three missing values; the best (K,
+   degree) of a grid (exact, 3e-15 to 5e-13, in every case with more than two years):
+   - **K = min(5, floor(m / 2))** (m = 4: 2; 7: 3; 12 and 24: 5);
+   - **degree = min(6, floor(n / 10))**, n the length including the missing values (m = 12: n = 36 -> 3, 48 -> 4,
+     >= 60 -> 6; m = 4: 12, 16 -> 1, 20-28 -> 2, 36 -> 3; m = 7: 21, 28 -> 2, 35 -> 3, 42, 49 -> 4, 63 -> 6;
+     floor((n - missing) / 10) fails at n = 60).
+   **na.interp for a seasonal series (frequency > 1 and more than 2m observed values): fill the missing values with
+   the fit of lm(x ~ fourier(K) + poly(t, degree)) on the observed ones, take the seasonal component of
+   mstl(filled, robust = TRUE), interpolate x - seasonal linearly (constant beyond the ends, approx rule = 2) and add
+   the seasonal back.** With two years or less (n = 24 for m = 12) R uses the linear interpolation (the default
+   `linear` argument). Resolved.
