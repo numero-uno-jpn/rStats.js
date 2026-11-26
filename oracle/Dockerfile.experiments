@@ -133,3 +133,12 @@ RUN install2.r --error --skipinstalled qcc BradleyTerry2 qvcalc \
                    got <- sapply(names(want), function(p) as.character(packageVersion(p))); \
                    cat(sprintf("%s %s\n", names(got), got), sep = ""); \
                    if (!identical(unname(got), unname(want))) quit(status = 1)'
+
+# Time-dependent ROC curves (1.19.0): timeROC (with pec and timereg) and survivalROC, in a layer of their own, at the
+# versions of the fixtures.
+RUN install2.r --error --skipinstalled timeROC survivalROC timereg \
+    && Rscript -e 'want <- c(timeROC = "0.4.1", survivalROC = "1.0.3.1"); \
+                   for (p in c(names(want), "timereg")) suppressPackageStartupMessages(library(p, character.only = TRUE)); \
+                   got <- sapply(names(want), function(p) as.character(packageVersion(p))); \
+                   cat(sprintf("%s %s\n", names(got), got), sep = ""); \
+                   if (!identical(unname(got), unname(want))) quit(status = 1)'

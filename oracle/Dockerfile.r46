@@ -166,3 +166,10 @@ RUN install2.r --error --skipinstalled qcc BradleyTerry2 qvcalc \
     && Rscript -e 'pk <- c("qcc", "BradleyTerry2", "qvcalc", "lme4"); \
                    for (p in pk) suppressPackageStartupMessages(library(p, character.only = TRUE)); \
                    cat(sprintf("%s %s\n", pk, sapply(pk, function(p) as.character(packageVersion(p)))), sep = "")'
+
+# Time-dependent ROC curves (1.19.0), in a layer of its own: timeROC (with pec, and timereg for the Aalen censoring
+# weights) and survivalROC.
+RUN install2.r --error --skipinstalled timeROC survivalROC timereg \
+    && Rscript -e 'pk <- c("timeROC", "survivalROC", "timereg", "pec", "mvtnorm", "survival"); \
+                   for (p in pk) suppressPackageStartupMessages(library(p, character.only = TRUE)); \
+                   cat(sprintf("%s %s\n", pk, sapply(pk, function(p) as.character(packageVersion(p)))), sep = "")'

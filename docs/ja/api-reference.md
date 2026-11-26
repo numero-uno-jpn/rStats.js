@@ -217,6 +217,29 @@ btm(contests, { outcome: "won", player1: "p1", player2: "p2", formula: "~ x[..] 
 する固定点まで PQL で当てはめます (BTm は許容誤差で止まり、そこから 1e-7 ほど手前です)。`countsToBinomial` は勝敗の表
 (行が勝者) を対象の組に直します。
 
+## 時間依存 ROC
+
+打ち切りのある事象時間の時間依存 ROC 曲線は `/tests` にあります (timeROC と survivalROC のパッケージに合わせています):
+
+```ts
+import { timeROC, timeROCConfint, timeROCCompare, seSpPPVNPV, survivalROC } from "@numero-uno-jpn/rstats/tests";
+import { setSeed } from "@numero-uno-jpn/rstats/distributions";
+
+const f = timeROC(time, status, marker, { times: [365, 730, 1095], iid: true }); // AUC・TP・FP と標準誤差
+f.competingRisks ? f.auc1 : f.auc;              // status に他の事象があれば定義 (i) と (ii)
+setSeed(1); timeROCConfint(f);                  // 点ごとの信頼区間と同時信頼帯 (パーセント)
+timeROCCompare(f, timeROC(time, status, marker2, { times: [365, 730, 1095], iid: true }), { adjusted: true });
+timeROC(time, status, marker, { times: [365], weighting: "cox", otherMarkers: covariates }); // または "aalen"
+seSpPPVNPV(2.5, time, status, marker, { times: [365], iid: true }); // marker > 2.5 の感度・特異度・的中率
+survivalROC(time, status, marker, { predictTime: 365 });              // Heagerty らの Kaplan-Meier 推定量
+```
+
+`timeROC` は `timeROC::timeROC` に合わせています。事例は原因の事象が T < t の人、対照は T > t の人 (競合リスクの定義 (ii)
+では t より前に他の事象があった人も) です。重みは打ち切りの Kaplan-Meier (または打ち切りの Cox・Aalen モデル) による
+打ち切りの逆確率で、マーカーの同点は 1/2 に数えます。iid 表現から標準誤差、`confint` の同時信頼帯 (乗数ブートストラップ。
+同じ種なら R と同じ乱数)、`compare` の検定を求めます。時刻に同点があるときの iid は同点を正しく扱う形で、R とは少し
+違います (R との違いを参照)。
+
 ## 多変量解析
 
 この分野は独立した `/multivariate` から import します。パッケージのルートには含まれません。

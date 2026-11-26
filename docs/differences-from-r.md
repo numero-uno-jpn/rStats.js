@@ -2047,3 +2047,36 @@ The references are R's `stats` functions. The implementation decisions are recor
   tolerance (1e-6 by default, about 1e-7 from the fixed point in sigma). Deviance and AIC are NaN with random effects,
   as BTm's NA.
 - `qvcalc` minimizes the least squares of the log variances to convergence; R's optimizer stops about 1e-8 short.
+
+## Time-dependent ROC (1.19.0)
+
+### `timeROC`, `timeROCConfint`, `timeROCCompare`, `seSpPPVNPV`
+
+- The times are used as given: R adds the time 0 to a single time (with NA there).
+- The iid representation (and so the standard errors, `confint` and `compare`) handles tied times correctly: equal to
+  R's without ties; with tied times R mixes a by-time jump with a positional compensator and depends on the data order
+  within ties (the standard errors differ by about 1e-5 to 1e-3 in the examples). The form was checked by an
+  infinitesimal jackknife. Definition (ii)'s iid is centred on the reported AUC_2 (R's on N / (F (1 − F)), which
+  differs when events fall exactly at t). `seSpPPVNPV`'s Sp2 divides by the weighted mass of its controls (R's 1 − F,
+  the same unless events fall at t).
+- `confint`'s limits are not rounded (R rounds the percentages to 2 decimals). With the same `setSeed`, the band is R's
+  (one set of draws for both definitions of competing risks, as R).
+- `compare(adjusted = TRUE)`: the multivariate normal probability is computed deterministically, exactly up to three
+  times and to about 1e-7 from four on; R integrates at random with mvtnorm's default absolute tolerance 1e-3 (R's
+  values were 3e-6 to 3e-5 off in the examples).
+- Cox weights use the maximum of the partial likelihood with Efron ties (R's rms `cph` stops about 5e-7 short: weights
+  within about 1e-6), and the order of the times only (R's `cph` changes at times near 1e-300).
+- Aalen weights take tied censoring times together (R's timereg breaks ties with random noise, so R's weights depend on
+  the seed there); covariates dependent on the others are left out (R's fit then fails silently and uses weights 1).
+- Where R fails, rStats.js computes: a time with a single survivor (R's competing-risks iid: "incorrect number of
+  dimensions"), n = 2, Cox weights with a constant or collinear covariate or without censoring.
+- NA (NaN) subjects are dropped, as R. `compare` of a marker with itself gives NaN p-values (R stops).
+- `timeROCAucCurve` gives the values that `plotAUCcurve` draws; `timeROCAucDiff` (not in R) the difference with its
+  pointwise interval (R's `plotAUCcurveDiff` also draws a band that returns nothing to check against). No plots.
+
+### `survivalROC`
+
+- Only the Kaplan-Meier estimator (`method = "KM"`); R's default, the nearest-neighbour estimator, is not offered.
+- As R: given thresholds are sorted, and from two given thresholds on the last point is (0, 0); TP and FP are not
+  bounded by 1 and the AUC is the trapezoid in the order of the thresholds.
+- A prediction time before the first time: S = 1 and TP is NaN (R reads the Kaplan-Meier at the first time instead).

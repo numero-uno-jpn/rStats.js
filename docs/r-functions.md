@@ -293,6 +293,8 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `lmtest::coeftest()` | `coeftest` | Tests of the coefficients of an `lm` or `glm` fit with a given covariance matrix. |
 | `pwr::cohen.ES()` | `cohenES` | Cohen's conventional effect sizes. |
 | `effectsize::cohens_d()` | `cohensD` | Cohen's d: the standardized difference of means of two samples, of paired samples, or of one sample against `mu`, with a confidence interval from the noncentral t distribution. |
+| `timeROC::compare()` | `timeROCCompare` | Compares the time-dependent AUCs of two markers measured on the same subjects at each time, by the z statistic of the difference with the standard error from the difference of the iid representations; with `adjusted`, also the p-values adjusted for the several times, P(max_t \|Z_t\| >= \|z_t\|) for Z normal with the correlation of the statistics. |
+| `timeROC::confint.ipcwsurvivalROC()` | `timeROCConfint` | Pointwise confidence intervals of the time-dependent AUC and a simultaneous confidence band over the times, from the iid representation: the band's multiplier is the `level` quantile of the maximum over the times of the standardized multiplier-bootstrap process. |
 | `metafor::confint.rma()` | `confintRma` | Computes heterogeneity confidence intervals. |
 | `confint()` | `confint` | Confidence intervals for the coefficients of a linear model, for an `lm` fit. |
 | `confint()` | `glmConfint` | Profile likelihood confidence intervals for the coefficients of a generalized linear model, for a `glm` fit. |
@@ -369,6 +371,7 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `nortest::pearson.test()` | `pearsonTest` | Pearson chi-square test for normality, with classes of equal probability under the fitted normal distribution. |
 | `outliers::pgrubbs()` | `pgrubbs` | Cumulative distribution of the type-10 Grubbs statistic. |
 | `clinfun::ph2simon()` | `ph2simon` | Enumerates Simon's two-stage Phase II designs. |
+| `timeROC::plotAUCcurve()` | `timeROCAucCurve` | The values that R's `plotAUCcurve` draws: the AUC over the times with the pointwise confidence interval and the simultaneous band of `timeROCConfint`. |
 | `poisson.test()` | `poissonTest` | Exact test of a Poisson rate, or comparison of two Poisson rates. |
 | `polycor::polychor()` | `polychor` | Polychoric correlation of two ordinal variables. |
 | `polycor::polyserial()` | `polyserial` | Polyserial correlation of a numeric variable and an ordinal one. |
@@ -405,6 +408,7 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `pROC::roc.test()` | `rocTest` | Tests the difference of the areas under two ROC curves, by DeLong's method or the bootstrap. |
 | `pROC::roc()` | `roc` | The ROC curve of a numeric predictor of a binary response. |
 | `rstandard()` | `glmRstandard` | Standardized Pearson or deviance residuals, for the rows of non-zero prior weight, for a `glm` fit. |
+| `timeROC::SeSpPPVNPV()` | `seSpPPVNPV` | Time-dependent sensitivity, specificity and predictive values of the rule "marker > cutpoint", with the weights of `timeROC`. |
 | `nortest::sf.test()` | `sfTest` | Shapiro-Francia test for normality. |
 | `shapiro.test()` | `shapiroTest` | Shapiro-Wilk test of normality. |
 | `powerSurvEpi::ssizeCT.default()` | `ssizeCT` | Freedman clinical-trial sample size. |
@@ -417,12 +421,14 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `survival::survdiff()` | `survdiff` | Test of the difference between survival curves: the G-rho family of Harrington and Fleming, the log-rank test for `rho = 0`. |
 | `survival::survfit.coxph()` | `survfitCoxph` | Predicted survival curves of a Cox model for covariate profiles. |
 | `survival::survfit()` | `survfit` | Kaplan-Meier or exponential cumulative-hazard estimate with pointwise confidence intervals, medians and restricted means. |
+| `survivalROC::survivalROC()` | `survivalROC` | Time-dependent ROC curve at a prediction time by Heagerty, Lumley and Pepe's Kaplan-Meier estimator. |
 | `survival::survreg()` | `survreg` | Fit a parametric survival regression model. |
 | `survey::svyglm()` | `svyglm` | A generalised linear model for weighted data with design-based standard errors. |
 | `TOSTER::t_TOST()` | `tTOST` | Two one-sided t tests of equivalence, or minimal-effect tests, for one sample, two samples or paired samples, with the standardised mean difference and its interval. |
 | `t.test()` | `tTest` | Student's t-test. |
 | `PMCMRplus::tamhaneT2Test()` | `tamhaneT2Test` | Tamhane's T2 or T2' all-pairs test of means. |
 | `cmprsk::timepoints()` | `timepoints` | Evaluate cumulative-incidence curves at requested times. |
+| `timeROC::timeROC()` | `timeROC` | Time-dependent ROC curves and AUC for censored event times, with a single event or competing risks: the cumulative/dynamic definition (cases T < t with the cause, controls T > t, and for competing risks definition (ii) also the subjects with another event before t), inverse probability of censoring weights from the Kaplan-Meier of the censoring, a Cox model or Aalen's additive model with the marker and `otherMarkers`; ties in the marker count 1/2. |
 | `equivalence::tost()` | `tost` | Two one-sided t tests of equivalence of two means. |
 | `TOSTER::tsum_TOST()` | `tsumTOST` | `tTOST` from summary statistics: means, standard deviations, sample sizes and, for paired samples, the correlation of the pairs. |
 | `TukeyHSD()` | `TukeyHSD` | Tukey's honest significant differences between the group means of a one-way ANOVA. |
@@ -434,6 +440,7 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `BSDA::z.test()` | `zTest` | z test for the mean of one sample, or the difference of the means of two, with known standard deviations. |
 | (not in R) | `binomDiffEquivalenceTest` | Test of equivalence of two independent proportions x1/n1 and x2/n2 within a margin. |
 | (not in R) | `setWarningHandler` | Sets the function that receives R's warnings, and returns the one it replaces. |
+| (not in R) | `timeROCAucDiff` | The values behind R's `plotAUCcurveDiff`: the difference of two time-dependent AUCs over the times with the pointwise confidence interval from the difference of the iid representations. |
 
 ## Linear algebra (`rStats.js/linalg`)
 

@@ -89,8 +89,10 @@ widely used in Japanese medical and psychological research) and ReactiveStat wit
 7. **Control charts and paired comparisons**: done for 1.18.0 (qcc's charts, cusum, ewma, OC curves, process
    capability and T2 charts, the median chart; BradleyTerry2's `BTm` with player covariates and random effects by PQL,
    qvcalc's quasi variances)
-8. To be considered afterwards: time-dependent ROC [timeROC, survivalROC], network meta-analysis [netmeta], time
-   series [`arima`, forecast `auto.arima`]
+8. **Time-dependent ROC**: done for 1.19.0 (timeROC's cumulative/dynamic AUC with Kaplan-Meier, Cox and Aalen censoring
+   weights, competing risks, iid standard errors, confint, compare and SeSpPPVNPV; survivalROC's Kaplan-Meier estimator;
+   the nearest-neighbour estimator left out)
+9. To be considered afterwards: network meta-analysis [netmeta], time series [`arima`, forecast `auto.arima`]
 
 Mixed models continued (the former item 1) were done for 1.6.0: `confintLmer`, `confintGlmer`, `simulateLmer` and
 `simulateGlmer` after lme4's `confint` (profile likelihood and Wald) and `simulate`. Left out, as decided in the

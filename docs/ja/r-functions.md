@@ -293,6 +293,8 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `lmtest::coeftest()` | `coeftest` | 与えた共分散行列による `lm` または `glm` の当てはめの係数の検定 |
 | `pwr::cohen.ES()` | `cohenES` | Cohen による効果量の慣用値 |
 | `effectsize::cohens_d()` | `cohensD` | Cohen の d: 2 標本、対応のある標本、または 1 標本と `mu` の平均の差を標準化した値と、非心 t 分布による信頼区間 |
+| `timeROC::compare()` | `timeROCCompare` | 同じ対象で測った 2 つのマーカーの時間依存 AUC の比較 (時点ごとの p 値と多重性を調整した p 値) |
+| `timeROC::confint.ipcwsurvivalROC()` | `timeROCConfint` | 時間依存 AUC の点ごとの信頼区間と時点にわたる同時信頼帯 (乗数ブートストラップ) |
 | `metafor::confint.rma()` | `confintRma` | 異質性の信頼区間 |
 | `confint()` | `confint` | `lm` で当てはめた線形モデルの係数の信頼区間 |
 | `confint()` | `glmConfint` | `glm` で当てはめた一般化線形モデルの係数のプロファイル尤度信頼区間 |
@@ -369,6 +371,7 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `nortest::pearson.test()` | `pearsonTest` | Pearson のカイ二乗正規性検定 (当てはめた正規分布のもとで等確率の階級による) |
 | `outliers::pgrubbs()` | `pgrubbs` | Grubbs の検定統計量の分布関数 (type 10) |
 | `clinfun::ph2simon()` | `ph2simon` | Simon の 2 段階第 II 相試験デザインの一覧 |
+| `timeROC::plotAUCcurve()` | `timeROCAucCurve` | R の plotAUCcurve が描く値: 時点ごとの AUC と信頼区間・同時信頼帯 |
 | `poisson.test()` | `poissonTest` | ポアソン率の正確検定、または 2 つのポアソン率の比較 |
 | `polycor::polychor()` | `polychor` | 2 つの順序変数のポリコリック相関 |
 | `polycor::polyserial()` | `polyserial` | 数値変数と順序変数のポリシリアル相関 |
@@ -405,6 +408,7 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `pROC::roc.test()` | `rocTest` | 2 つの ROC 曲線の下の面積の差の検定 (DeLong の方法またはブートストラップ) |
 | `pROC::roc()` | `roc` | 2 値の応答に対する数値の予測変数の ROC 曲線 |
 | `rstandard()` | `glmRstandard` | `glm` の当てはめの標準化 Pearson 残差 (既定) または標準化逸脱度残差 (事前重みが 0 でない行について) |
+| `timeROC::SeSpPPVNPV()` | `seSpPPVNPV` | 閾値「マーカー > c」の時間依存の感度・特異度・陽性的中率・陰性的中率 (timeROC の重み、iid 表現と標準誤差) |
 | `nortest::sf.test()` | `sfTest` | Shapiro-Francia の正規性検定 |
 | `shapiro.test()` | `shapiroTest` | Shapiro-Wilk の正規性検定 |
 | `powerSurvEpi::ssizeCT.default()` | `ssizeCT` | Freedman の方法による臨床試験の標本サイズ |
@@ -417,12 +421,14 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `survival::survdiff()` | `survdiff` | 生存曲線の差の検定: Harrington と Fleming の G-rho 族 (`rho = 0` でログランク検定) |
 | `survival::survfit.coxph()` | `survfitCoxph` | Cox モデルの共変量の値ごとの予測生存曲線 (調整生存曲線) |
 | `survival::survfit()` | `survfit` | 生存関数の Kaplan-Meier 推定、または累積ハザードの指数による推定 (各点での信頼区間、中央値、制限平均つき) |
+| `survivalROC::survivalROC()` | `survivalROC` | Heagerty・Lumley・Pepe の Kaplan-Meier 推定量による予測時点の時間依存 ROC 曲線と AUC |
 | `survival::survreg()` | `survreg` | パラメトリック生存時間回帰モデルを当てはめる |
 | `survey::svyglm()` | `svyglm` | 重み付きデータの一般化線形モデル (デザインに基づくサンドイッチ標準誤差) |
 | `TOSTER::t_TOST()` | `tTOST` | 1 標本・2 標本・対応のある標本の平均についての同等性検定 (TOST) と最小効果検定、標準化平均差とその区間つき |
 | `t.test()` | `tTest` | Student の t 検定 |
 | `PMCMRplus::tamhaneT2Test()` | `tamhaneT2Test` | 等分散を仮定しない、平均の Tamhane の T2 (と T2') の全対比較検定 |
 | `cmprsk::timepoints()` | `timepoints` | 累積発生関数の曲線を指定した時点で求める |
+| `timeROC::timeROC()` | `timeROC` | 打ち切りのある事象時間の時間依存 ROC 曲線と AUC (累積/動的の定義、競合リスクの定義 (i)・(ii)、打ち切りの逆確率の重みは KM・Cox・Aalen、iid 表現と標準誤差) |
 | `equivalence::tost()` | `tost` | 2 つの平均の同等性についての 2 つの片側 t 検定 (TOST) |
 | `TOSTER::tsum_TOST()` | `tsumTOST` | 要約統計量 (平均・標準偏差・標本の大きさ) からの `tTOST` |
 | `TukeyHSD()` | `TukeyHSD` | 一元配置分散分析の群平均の間の Tukey の HSD (honest significant differences) |
@@ -434,6 +440,7 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `BSDA::z.test()` | `zTest` | 標準偏差が既知の場合の、1 標本の平均または 2 標本の平均の差の z 検定 |
 | (R にない) | `binomDiffEquivalenceTest` | 独立な 2 つの比率 x1/n1 と x2/n2 の差が許容幅の内にあること (同等性) の検定 |
 | (R にない) | `setWarningHandler` | R の警告を受け取る関数の設定 (前の関数を返す) |
+| (R にない) | `timeROCAucDiff` | 2 つの時間依存 AUC の差と点ごとの信頼区間 (R の plotAUCcurveDiff の値) |
 
 ## 線形代数 (`rStats.js/linalg`)
 

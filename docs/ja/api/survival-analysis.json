@@ -734,6 +734,166 @@
     "en": "Greenwood or sandwich standard error.",
     "ja": "Greenwood 型またはサンドイッチ型の標準誤差です。"
   },
+  "SeSpPPVNPVInference#summary": {
+    "hash": "49113f4a5200",
+    "en": "Standard errors of {@link seSpPPVNPV} (with `iid`), per time.",
+    "ja": "{@link seSpPPVNPV} の標準誤差です (`iid` 付き)。時点ごとです。"
+  },
+  "SeSpPPVNPVInference.iid#summary": {
+    "hash": "33b4b8bdd405",
+    "en": "The iid representations, per time, subjects in the order of the sorted times.",
+    "ja": "iid 表現です。時点ごとで、対象者は整列した時間の順に並びます。"
+  },
+  "SeSpPPVNPVInference.iid.npv1#summary": {
+    "hash": "032f7d232312",
+    "en": "Of the negative predictive value (i).",
+    "ja": "陰性的中率 (i) の値です。"
+  },
+  "SeSpPPVNPVInference.iid.npv2#summary": {
+    "hash": "fdf68a71e44e",
+    "en": "Of the negative predictive value (ii).",
+    "ja": "陰性的中率 (ii) の値です。"
+  },
+  "SeSpPPVNPVInference.iid.ppv#summary": {
+    "hash": "ffaada432e44",
+    "en": "Of the positive predictive value.",
+    "ja": "陽性的中率の値です。"
+  },
+  "SeSpPPVNPVInference.iid.se#summary": {
+    "hash": "490ad3238337",
+    "en": "Of the sensitivity.",
+    "ja": "感度の値です。"
+  },
+  "SeSpPPVNPVInference.iid.sp1#summary": {
+    "hash": "928f5623ff16",
+    "en": "Of the specificity with definition (i).",
+    "ja": "定義 (i) での特異度の値です。"
+  },
+  "SeSpPPVNPVInference.iid.sp2#summary": {
+    "hash": "251aaf6a9ae5",
+    "en": "Of the specificity with definition (ii).",
+    "ja": "定義 (ii) での特異度の値です。"
+  },
+  "SeSpPPVNPVInference.se#summary": {
+    "hash": "d2f1d4b6cb82",
+    "en": "Standard errors, sd(iid) / √n, per time.",
+    "ja": "標準誤差 sd(iid) / √n です。時点ごとです。"
+  },
+  "SeSpPPVNPVInference.se.npv1#summary": {
+    "hash": "032f7d232312",
+    "en": "Of the negative predictive value (i).",
+    "ja": "陰性的中率 (i) の値です。"
+  },
+  "SeSpPPVNPVInference.se.npv2#summary": {
+    "hash": "fdf68a71e44e",
+    "en": "Of the negative predictive value (ii).",
+    "ja": "陰性的中率 (ii) の値です。"
+  },
+  "SeSpPPVNPVInference.se.ppv#summary": {
+    "hash": "ffaada432e44",
+    "en": "Of the positive predictive value.",
+    "ja": "陽性的中率の値です。"
+  },
+  "SeSpPPVNPVInference.se.se#summary": {
+    "hash": "490ad3238337",
+    "en": "Of the sensitivity.",
+    "ja": "感度の値です。"
+  },
+  "SeSpPPVNPVInference.se.sp1#summary": {
+    "hash": "928f5623ff16",
+    "en": "Of the specificity with definition (i).",
+    "ja": "定義 (i) での特異度の値です。"
+  },
+  "SeSpPPVNPVInference.se.sp2#summary": {
+    "hash": "251aaf6a9ae5",
+    "en": "Of the specificity with definition (ii).",
+    "ja": "定義 (ii) での特異度の値です。"
+  },
+  "SeSpPPVNPVOptions#summary": {
+    "hash": "2364006b8336",
+    "en": "Options for {@link seSpPPVNPV}.",
+    "ja": "{@link seSpPPVNPV} のオプションです。"
+  },
+  "SeSpPPVNPVResult#summary": {
+    "hash": "f366df424dcc",
+    "en": "Result of {@link seSpPPVNPV}: `fp` and `npv` without competing risks, `fp1`, `fp2`, `npv1` and `npv2` with them.",
+    "ja": "{@link seSpPPVNPV} の結果です。競合リスクが無い場合は `fp` と `npv`、ある場合は `fp1`、`fp2`、`npv1`、`npv2` を返します。"
+  },
+  "SeSpPPVNPVResult.competingRisks#summary": {
+    "hash": "af424760f5f2",
+    "en": "Whether other events than the cause occur.",
+    "ja": "対象の事象以外の事象が起きているかどうかです。"
+  },
+  "SeSpPPVNPVResult.cutpoint#summary": {
+    "hash": "e4f11aa8febe",
+    "en": "The threshold: positive means marker > cutpoint.",
+    "ja": "閾値です。マーカー > cutpoint を陽性とします。"
+  },
+  "SeSpPPVNPVResult.fp#summary": {
+    "hash": "20ac67f5e927",
+    "en": "Without competing risks: false positive rate per time.",
+    "ja": "競合リスクが無い場合: 時点ごとの偽陽性率です。"
+  },
+  "SeSpPPVNPVResult.fp1#summary": {
+    "hash": "aacb58e4978a",
+    "en": "With competing risks: false positive rate, definition (i).",
+    "ja": "競合リスクがある場合: 定義 (i) の偽陽性率です。"
+  },
+  "SeSpPPVNPVResult.fp2#summary": {
+    "hash": "624b6a476ca5",
+    "en": "With competing risks: false positive rate, definition (ii).",
+    "ja": "競合リスクがある場合: 定義 (ii) の偽陽性率です。"
+  },
+  "SeSpPPVNPVResult.inference#summary": {
+    "hash": "dfc43499a61c",
+    "en": "With `iid`: standard errors and iid representations.",
+    "ja": "`iid` を指定した場合: 標準誤差と iid 表現です。"
+  },
+  "SeSpPPVNPVResult.n#summary": {
+    "hash": "2a3ec644d7f1",
+    "en": "Number of subjects (without NA).",
+    "ja": "対象者の数です (NA を除く)。"
+  },
+  "SeSpPPVNPVResult.npv#summary": {
+    "hash": "ce44da85901c",
+    "en": "Without competing risks: negative predictive value per time.",
+    "ja": "競合リスクが無い場合: 時点ごとの陰性的中率です。"
+  },
+  "SeSpPPVNPVResult.npv1#summary": {
+    "hash": "d3553b659161",
+    "en": "With competing risks: negative predictive value (i).",
+    "ja": "競合リスクがある場合: 陰性的中率 (i) です。"
+  },
+  "SeSpPPVNPVResult.npv2#summary": {
+    "hash": "abd1f5efb298",
+    "en": "With competing risks: negative predictive value (ii).",
+    "ja": "競合リスクがある場合: 陰性的中率 (ii) です。"
+  },
+  "SeSpPPVNPVResult.ppv#summary": {
+    "hash": "587b58df4c03",
+    "en": "Positive predictive value per time.",
+    "ja": "時点ごとの陽性的中率です。"
+  },
+  "SeSpPPVNPVResult.stats#summary": {
+    "hash": "62678a1eb4ad",
+    "en": "Counts per time, with the positives (marker > cutpoint) and negatives.",
+    "ja": "時点ごとの人数です。陽性 (マーカー > cutpoint) と陰性の内訳を含みます。"
+  },
+  "SeSpPPVNPVResult.times#summary": {
+    "hash": "7df557ce0f55",
+    "en": "The evaluation times.",
+    "ja": "評価時点です。"
+  },
+  "SeSpPPVNPVResult.tp#summary": {
+    "hash": "8702213017b1",
+    "en": "Sensitivity (true positive rate) per time.",
+    "ja": "時点ごとの感度 (真陽性率) です。"
+  },
+  "SeSpPPVNPVResult.weights#summary": {
+    "hash": "76484e76a389",
+    "en": "The censoring weights.",
+    "ja": "打ち切りの重みです。"
+  },
   "SurvdiffOptions#summary": {
     "hash": "c7e02f5eeeb1",
     "en": "Options for {@link survdiff}.",
@@ -1104,6 +1264,61 @@
     "en": "Warnings produced by the fit.",
     "ja": "当てはめで発生した警告です。"
   },
+  "SurvivalROCOptions#summary": {
+    "hash": "a42b0476f479",
+    "en": "Options for {@link survivalROC}.",
+    "ja": "{@link survivalROC} のオプションです。"
+  },
+  "SurvivalROCOptions.cutValues#summary": {
+    "hash": "891962c25fc7",
+    "en": "Thresholds of the marker, sorted (R prepends −Inf; from two thresholds on, the last one's point is (0, 0), as R).\nDefault: the sorted distinct marker values.",
+    "ja": "マーカーの閾値です。昇順に並べます (R は −Inf を先頭に加えます。閾値が 2 つ以上のとき、最後の閾値の点は R と同じく (0, 0) になります)。\n既定値: マーカーの異なる値を昇順に並べたものです。"
+  },
+  "SurvivalROCOptions.method#summary": {
+    "hash": "820e0307e289",
+    "en": "The estimator: only `\"KM\"` (R's default, the nearest-neighbour estimator `\"NNE\"`, is not offered). Default \"KM\".",
+    "ja": "推定量です。`\"KM\"` のみ対応します (R の既定である最近傍推定量 `\"NNE\"` は提供しません)。既定値は \"KM\" です。"
+  },
+  "SurvivalROCOptions.predictTime#summary": {
+    "hash": "9ee7e281a010",
+    "en": "The time of the prediction (required).",
+    "ja": "予測の時点です (必須)。"
+  },
+  "SurvivalROCResult#summary": {
+    "hash": "3bb92688cb57",
+    "en": "Result of {@link survivalROC}.",
+    "ja": "{@link survivalROC} の結果です。"
+  },
+  "SurvivalROCResult.auc#summary": {
+    "hash": "5fc1bbfd9c7d",
+    "en": "Trapezoid over the points in the order of the thresholds (not bounded by 1, as R).",
+    "ja": "閾値の順に並べた点に対する台形則の値です (R と同じく 1 で抑えません)。"
+  },
+  "SurvivalROCResult.cutValues#summary": {
+    "hash": "68a8284bf38c",
+    "en": "−Inf, then the thresholds.",
+    "ja": "−Inf と、それに続く閾値です。"
+  },
+  "SurvivalROCResult.fp#summary": {
+    "hash": "a00a5ab1d704",
+    "en": "False positive rate at each threshold.",
+    "ja": "各閾値での偽陽性率です。"
+  },
+  "SurvivalROCResult.predictTime#summary": {
+    "hash": "b96388131de1",
+    "en": "The prediction time.",
+    "ja": "予測時点です。"
+  },
+  "SurvivalROCResult.survival#summary": {
+    "hash": "be77a205c8dd",
+    "en": "Kaplan-Meier survival at the prediction time.",
+    "ja": "予測時点での Kaplan-Meier 生存確率です。"
+  },
+  "SurvivalROCResult.tp#summary": {
+    "hash": "2cf217ef8fd7",
+    "en": "True positive rate at each threshold.",
+    "ja": "各閾値での真陽性率です。"
+  },
   "SurvregControl#summary": {
     "hash": "97d1278405d7",
     "en": "Iteration controls for {@link survreg}.",
@@ -1354,6 +1569,431 @@
     "en": "Censoring representation accepted by {@link survreg}.",
     "ja": "{@link survreg} が受け付ける打ち切りデータの表現形式です。"
   },
+  "TimeROCAucCurveOptions#summary": {
+    "hash": "9e6dcc43a8c4",
+    "en": "Options for {@link timeROCAucCurve} and {@link timeROCAucDiff}.",
+    "ja": "{@link timeROCAucCurve} と {@link timeROCAucDiff} のオプションです。"
+  },
+  "TimeROCAucCurveOptions.fp#summary": {
+    "hash": "add244a293a9",
+    "en": "With competing risks, the definition of the controls: 1 (default) or 2.",
+    "ja": "競合リスクがある場合の対照の定義です。1 (既定値) または 2 です。"
+  },
+  "TimeROCAucCurveResult#summary": {
+    "hash": "c90beace0ba1",
+    "en": "Result of {@link timeROCAucCurve}: the AUC per time with its pointwise interval and simultaneous band (as\nproportions).",
+    "ja": "{@link timeROCAucCurve} の結果です。時点ごとの AUC と、その点ごとの区間および同時信頼帯です (割合で表します)。"
+  },
+  "TimeROCAucCurveResult.auc#summary": {
+    "hash": "2a3f8d53b8b7",
+    "en": "AUC per time.",
+    "ja": "時点ごとの AUC です。"
+  },
+  "TimeROCAucCurveResult.bandLower#summary": {
+    "hash": "b8f37c37086f",
+    "en": "Lower limit of the simultaneous band per time.",
+    "ja": "時点ごとの同時信頼帯の下限です。"
+  },
+  "TimeROCAucCurveResult.bandUpper#summary": {
+    "hash": "98b0b4c28396",
+    "en": "Upper limit of the simultaneous band per time.",
+    "ja": "時点ごとの同時信頼帯の上限です。"
+  },
+  "TimeROCAucCurveResult.lower#summary": {
+    "hash": "a0ca15e59d7a",
+    "en": "Lower pointwise confidence limit per time.",
+    "ja": "時点ごとの点ごとの信頼限界の下限です。"
+  },
+  "TimeROCAucCurveResult.times#summary": {
+    "hash": "7df557ce0f55",
+    "en": "The evaluation times.",
+    "ja": "評価時点です。"
+  },
+  "TimeROCAucCurveResult.upper#summary": {
+    "hash": "610085dd662a",
+    "en": "Upper pointwise confidence limit per time.",
+    "ja": "時点ごとの点ごとの信頼限界の上限です。"
+  },
+  "TimeROCAucDiffResult#summary": {
+    "hash": "4e2eeb39c1d0",
+    "en": "Result of {@link timeROCAucDiff}.",
+    "ja": "{@link timeROCAucDiff} の結果です。"
+  },
+  "TimeROCAucDiffResult.diff#summary": {
+    "hash": "68818c542f95",
+    "en": "AUC of x minus AUC of y.",
+    "ja": "x の AUC から y の AUC を引いた差です。"
+  },
+  "TimeROCAucDiffResult.lower#summary": {
+    "hash": "0756073329b3",
+    "en": "Lower pointwise confidence limit of the difference.",
+    "ja": "差の点ごとの信頼限界の下限です。"
+  },
+  "TimeROCAucDiffResult.times#summary": {
+    "hash": "7df557ce0f55",
+    "en": "The evaluation times.",
+    "ja": "評価時点です。"
+  },
+  "TimeROCAucDiffResult.upper#summary": {
+    "hash": "f32951cbef0e",
+    "en": "Upper pointwise confidence limit of the difference.",
+    "ja": "差の点ごとの信頼限界の上限です。"
+  },
+  "TimeROCCompareOptions#summary": {
+    "hash": "e49a8accc067",
+    "en": "Options for {@link timeROCCompare}.",
+    "ja": "{@link timeROCCompare} のオプションです。"
+  },
+  "TimeROCCompareOptions.adjusted#summary": {
+    "hash": "1c97aae3a998",
+    "en": "Also the p-values adjusted for the several times (the maximum of the correlated statistics). Default false.",
+    "ja": "複数の時点について調整した p 値も返します (相関のある統計量の最大値によります)。既定値は false です。"
+  },
+  "TimeROCCompareResult#summary": {
+    "hash": "ae9db25b5e5b",
+    "en": "Result of {@link timeROCCompare}.",
+    "ja": "{@link timeROCCompare} の結果です。"
+  },
+  "TimeROCCompareResult.auc#summary": {
+    "hash": "6429a665ad79",
+    "en": "Without competing risks: the comparison of the AUCs.",
+    "ja": "競合リスクが無い場合: AUC の比較です。"
+  },
+  "TimeROCCompareResult.auc1#summary": {
+    "hash": "9fe50ae63645",
+    "en": "With competing risks: the comparison of AUC (i).",
+    "ja": "競合リスクがある場合: AUC (i) の比較です。"
+  },
+  "TimeROCCompareResult.auc2#summary": {
+    "hash": "07181da2e02f",
+    "en": "With competing risks: the comparison of AUC (ii).",
+    "ja": "競合リスクがある場合: AUC (ii) の比較です。"
+  },
+  "TimeROCCompareResult.times#summary": {
+    "hash": "7df557ce0f55",
+    "en": "The evaluation times.",
+    "ja": "評価時点です。"
+  },
+  "TimeROCComparison#summary": {
+    "hash": "1d60e1ff9998",
+    "en": "The comparison of one AUC definition.",
+    "ja": "AUC の 1 つの定義についての比較です。"
+  },
+  "TimeROCComparison.adjusted#summary": {
+    "hash": "8fa842a5945a",
+    "en": "With `adjusted`: the p-values adjusted for the several times.",
+    "ja": "`adjusted` を指定した場合: 複数の時点について調整した p 値です。"
+  },
+  "TimeROCComparison.cor#summary": {
+    "hash": "6e51b19f8d77",
+    "en": "With `adjusted`: the correlation of the statistics across the times.",
+    "ja": "`adjusted` を指定した場合: 時点をまたいだ統計量の相関です。"
+  },
+  "TimeROCComparison.pValues#summary": {
+    "hash": "1b6299e0c376",
+    "en": "p-values per time.",
+    "ja": "時点ごとの p 値です。"
+  },
+  "TimeROCCompetingResult#summary": {
+    "hash": "a1cb56e76b5c",
+    "en": "Result of {@link timeROC} with competing risks: definition (i) has the controls T > t, definition (ii) also the\nsubjects with another event before t.",
+    "ja": "競合リスクがある場合の {@link timeROC} の結果です。定義 (i) の対照は T > t、定義 (ii) の対照はそれに加えて t より前に別の事象があった対象者です。"
+  },
+  "TimeROCCompetingResult.auc1#summary": {
+    "hash": "edb176331dfe",
+    "en": "AUC with definition (i) of the controls at each time.",
+    "ja": "各時点での、対照の定義 (i) による AUC です。"
+  },
+  "TimeROCCompetingResult.auc2#summary": {
+    "hash": "1b9c4ac21ac8",
+    "en": "AUC with definition (ii) of the controls at each time.",
+    "ja": "各時点での、対照の定義 (ii) による AUC です。"
+  },
+  "TimeROCCompetingResult.competingRisks#summary": {
+    "hash": "c7259228f438",
+    "en": "Other events than the cause occur in `delta`.",
+    "ja": "`delta` に対象の事象以外の事象があります。"
+  },
+  "TimeROCCompetingResult.cumulativeIncidence#summary": {
+    "hash": "d6132ea5beea",
+    "en": "Cumulative incidence of the cause at each time (the cases' weights over n).",
+    "ja": "各時点での対象の事象の累積発生率です (事例の重みを n で割ったもの)。"
+  },
+  "TimeROCCompetingResult.fp1#summary": {
+    "hash": "39e3972860ec",
+    "en": "False positive rates per time, definition (i).",
+    "ja": "時点ごとの偽陽性率です (定義 (i))。"
+  },
+  "TimeROCCompetingResult.fp2#summary": {
+    "hash": "45accf0c8205",
+    "en": "False positive rates per time, definition (ii).",
+    "ja": "時点ごとの偽陽性率です (定義 (ii))。"
+  },
+  "TimeROCCompetingResult.inference#summary": {
+    "hash": "16a252391070",
+    "en": "With `iid`: the iid representations and standard errors of both AUCs, as in {@link TimeROCSingleResult}.",
+    "ja": "`iid` を指定した場合: 2 つの AUC の iid 表現と標準誤差です。{@link TimeROCSingleResult} と同じ形です。"
+  },
+  "TimeROCCompetingResult.inference.iid1#summary": {
+    "hash": "f1c1e6b912da",
+    "en": "iid representation of AUC (i) per time.",
+    "ja": "時点ごとの AUC (i) の iid 表現です。"
+  },
+  "TimeROCCompetingResult.inference.iid2#summary": {
+    "hash": "138608559b01",
+    "en": "iid representation of AUC (ii) per time.",
+    "ja": "時点ごとの AUC (ii) の iid 表現です。"
+  },
+  "TimeROCCompetingResult.inference.sd1#summary": {
+    "hash": "d49da1508e1e",
+    "en": "Standard error of AUC (i) per time.",
+    "ja": "時点ごとの AUC (i) の標準誤差です。"
+  },
+  "TimeROCCompetingResult.inference.sd2#summary": {
+    "hash": "dfd1cb356583",
+    "en": "Standard error of AUC (ii) per time.",
+    "ja": "時点ごとの AUC (ii) の標準誤差です。"
+  },
+  "TimeROCCompetingResult.n#summary": {
+    "hash": "91b2de3237f9",
+    "en": "Number of subjects.",
+    "ja": "対象者の数です。"
+  },
+  "TimeROCCompetingResult.stats#summary": {
+    "hash": "8ace19b99307",
+    "en": "Counts per time.",
+    "ja": "時点ごとの人数です。"
+  },
+  "TimeROCCompetingResult.survProb#summary": {
+    "hash": "41819458f891",
+    "en": "Probability of no event of any kind at each time: the survivors' weighted mass (with the marginal weights exactly\nthe Kaplan-Meier, as R).",
+    "ja": "各時点でどの種類の事象も起きていない確率です。生存者の重み付きの質量で、周辺の重みでは Kaplan-Meier に厳密に一致します (R と同じ)。"
+  },
+  "TimeROCCompetingResult.times#summary": {
+    "hash": "7df557ce0f55",
+    "en": "The evaluation times.",
+    "ja": "評価時点です。"
+  },
+  "TimeROCCompetingResult.tp#summary": {
+    "hash": "ee3b1c81008e",
+    "en": "True positive rates per time, one per distinct marker value from the largest (\"marker > value\") and a last 1.",
+    "ja": "時点ごとの真陽性率です。マーカーの異なる値ごとに 1 つ (最大の値から、「マーカー > 値」)、最後に 1 が加わります。"
+  },
+  "TimeROCCompetingResult.weights#summary": {
+    "hash": "76484e76a389",
+    "en": "The censoring weights.",
+    "ja": "打ち切りの重みです。"
+  },
+  "TimeROCConfintOptions#summary": {
+    "hash": "82d0ae5c4e5a",
+    "en": "Options for {@link timeROCConfint}.",
+    "ja": "{@link timeROCConfint} のオプションです。"
+  },
+  "TimeROCConfintOptions.level#summary": {
+    "hash": "f18f020efba3",
+    "en": "Confidence level. Default 0.95.",
+    "ja": "信頼水準です。既定値は 0.95 です。"
+  },
+  "TimeROCConfintOptions.nSim#summary": {
+    "hash": "4fd08fd2066b",
+    "en": "Number of simulations of the simultaneous band. Default 2000.",
+    "ja": "同時信頼帯のシミュレーション回数です。既定値は 2000 です。"
+  },
+  "TimeROCConfintResult#summary": {
+    "hash": "1c4ebd831f62",
+    "en": "Result of {@link timeROCConfint}: `auc` without competing risks, `auc1` and `auc2` with them.",
+    "ja": "{@link timeROCConfint} の結果です。競合リスクが無い場合は `auc`、ある場合は `auc1` と `auc2` を返します。"
+  },
+  "TimeROCConfintResult.auc#summary": {
+    "hash": "816ff2b88c36",
+    "en": "Without competing risks: the AUC's intervals.",
+    "ja": "競合リスクが無い場合: AUC の区間です。"
+  },
+  "TimeROCConfintResult.auc1#summary": {
+    "hash": "1f0375299c4e",
+    "en": "With competing risks: AUC (i)'s intervals.",
+    "ja": "競合リスクがある場合: AUC (i) の区間です。"
+  },
+  "TimeROCConfintResult.auc2#summary": {
+    "hash": "313f47fe6205",
+    "en": "With competing risks: AUC (ii)'s intervals (the same draws as AUC (i)'s band, as R).",
+    "ja": "競合リスクがある場合: AUC (ii) の区間です (同時信頼帯は AUC (i) と同じ乱数を使います。R と同じ)。"
+  },
+  "TimeROCConfintResult.level#summary": {
+    "hash": "b01d237f1ff5",
+    "en": "The confidence level.",
+    "ja": "信頼水準です。"
+  },
+  "TimeROCConfintResult.times#summary": {
+    "hash": "7df557ce0f55",
+    "en": "The evaluation times.",
+    "ja": "評価時点です。"
+  },
+  "TimeROCInterval#summary": {
+    "hash": "a26499ec3c9e",
+    "en": "Pointwise intervals and the simultaneous band of one AUC, in percent.",
+    "ja": "1 つの AUC の点ごとの区間と同時信頼帯です (パーセント)。"
+  },
+  "TimeROCInterval.band#summary": {
+    "hash": "28c76ea6c160",
+    "en": "Lower and upper limits of the simultaneous band per time (percent).",
+    "ja": "時点ごとの同時信頼帯の下限と上限です (パーセント)。"
+  },
+  "TimeROCInterval.cAlpha#summary": {
+    "hash": "079c184eb42d",
+    "en": "The band's multiplier (the `level` quantile of the maximum standardized deviation).",
+    "ja": "同時信頼帯の乗数です (標準化した偏差の最大値の `level` 分位点)。"
+  },
+  "TimeROCInterval.ci#summary": {
+    "hash": "0a57933669b8",
+    "en": "Lower and upper pointwise limits per time (percent, not rounded).",
+    "ja": "時点ごとの点ごとの下限と上限です (パーセント、丸めません)。"
+  },
+  "TimeROCOptions#summary": {
+    "hash": "c4bb5059dc0f",
+    "en": "Options for {@link timeROC}.",
+    "ja": "{@link timeROC} のオプションです。"
+  },
+  "TimeROCOptions.cause#summary": {
+    "hash": "5e28d5e1b5bf",
+    "en": "The event of interest among the values of `delta`. Default 1.",
+    "ja": "`delta` の値のうち、対象とする事象です。既定値は 1 です。"
+  },
+  "TimeROCOptions.iid#summary": {
+    "hash": "8d5817674ce6",
+    "en": "Compute the iid representation and the standard errors (marginal weights only). Default false.",
+    "ja": "iid 表現と標準誤差を計算します (周辺の重みのみ)。既定値は false です。"
+  },
+  "TimeROCOptions.otherMarkers#summary": {
+    "hash": "55a2ed997f5b",
+    "en": "Further covariates of the censoring model (one row per subject), for `\"cox\"` and `\"aalen\"`.",
+    "ja": "打ち切りモデルの追加の共変量です (対象者ごとに 1 行)。`\"cox\"` と `\"aalen\"` で使います。"
+  },
+  "TimeROCOptions.roc#summary": {
+    "hash": "72bb3ffdc5dd",
+    "en": "Return the TP and FP curves. Default true.",
+    "ja": "TP と FP の曲線を返します。既定値は true です。"
+  },
+  "TimeROCOptions.times#summary": {
+    "hash": "de70bffdf04c",
+    "en": "Evaluation times (required; used as given: R adds 0 to a single time).",
+    "ja": "評価時点です (必須。与えた値をそのまま使います。R は時点が 1 つのとき 0 を加えます)。"
+  },
+  "TimeROCOptions.weighting#summary": {
+    "hash": "958c33295667",
+    "en": "Censoring weights: `\"marginal\"` (default, Kaplan-Meier), `\"cox\"` or `\"aalen\"` (models of the censoring with the\nmarker and `otherMarkers` as covariates).",
+    "ja": "打ち切りの重みです。`\"marginal\"` (既定値、Kaplan-Meier)、`\"cox\"`、`\"aalen\"` (マーカーと `otherMarkers` を共変量とする打ち切りのモデル) から選びます。"
+  },
+  "TimeROCResult#summary": {
+    "hash": "0ab92347f69b",
+    "en": "Result of {@link timeROC}.",
+    "ja": "{@link timeROC} の結果です。"
+  },
+  "TimeROCSingleResult#summary": {
+    "hash": "64f518f3fb50",
+    "en": "Result of {@link timeROC} without competing risks.",
+    "ja": "競合リスクが無い場合の {@link timeROC} の結果です。"
+  },
+  "TimeROCSingleResult.auc#summary": {
+    "hash": "703ff22b775d",
+    "en": "The cumulative/dynamic AUC at each time.",
+    "ja": "各時点での累積/動的な AUC です。"
+  },
+  "TimeROCSingleResult.competingRisks#summary": {
+    "hash": "332a2f13df90",
+    "en": "No event other than the cause in `delta`.",
+    "ja": "`delta` に対象の事象以外の事象はありません。"
+  },
+  "TimeROCSingleResult.cumulativeIncidence#summary": {
+    "hash": "d6132ea5beea",
+    "en": "Cumulative incidence of the cause at each time (the cases' weights over n).",
+    "ja": "各時点での対象の事象の累積発生率です (事例の重みを n で割ったもの)。"
+  },
+  "TimeROCSingleResult.fp#summary": {
+    "hash": "addb3d3cf454",
+    "en": "False positive rates per time (controls: T > t).",
+    "ja": "時点ごとの偽陽性率です (対照: T > t)。"
+  },
+  "TimeROCSingleResult.inference#summary": {
+    "hash": "94332138f3c1",
+    "en": "With `iid`: the iid representation (per time, subjects in the order of the sorted times) and the standard errors.",
+    "ja": "`iid` を指定した場合: iid 表現 (時点ごと、対象者は整列した時間の順) と標準誤差です。"
+  },
+  "TimeROCSingleResult.inference.iid#summary": {
+    "hash": "9157ac85d7e1",
+    "en": "The AUC's iid representation per time (its influence function at each subject).",
+    "ja": "時点ごとの AUC の iid 表現です (各対象者での AUC の影響関数)。"
+  },
+  "TimeROCSingleResult.inference.sd#summary": {
+    "hash": "271c121be72c",
+    "en": "Standard error of the AUC per time: sd(iid) / √n.",
+    "ja": "時点ごとの AUC の標準誤差 sd(iid) / √n です。"
+  },
+  "TimeROCSingleResult.n#summary": {
+    "hash": "91b2de3237f9",
+    "en": "Number of subjects.",
+    "ja": "対象者の数です。"
+  },
+  "TimeROCSingleResult.stats#summary": {
+    "hash": "8ace19b99307",
+    "en": "Counts per time.",
+    "ja": "時点ごとの人数です。"
+  },
+  "TimeROCSingleResult.survProb#summary": {
+    "hash": "41819458f891",
+    "en": "Probability of no event of any kind at each time: the survivors' weighted mass (with the marginal weights exactly\nthe Kaplan-Meier, as R).",
+    "ja": "各時点でどの種類の事象も起きていない確率です。生存者の重み付きの質量で、周辺の重みでは Kaplan-Meier に厳密に一致します (R と同じ)。"
+  },
+  "TimeROCSingleResult.times#summary": {
+    "hash": "7df557ce0f55",
+    "en": "The evaluation times.",
+    "ja": "評価時点です。"
+  },
+  "TimeROCSingleResult.tp#summary": {
+    "hash": "ee3b1c81008e",
+    "en": "True positive rates per time, one per distinct marker value from the largest (\"marker > value\") and a last 1.",
+    "ja": "時点ごとの真陽性率です。マーカーの異なる値ごとに 1 つ (最大の値から、「マーカー > 値」)、最後に 1 が加わります。"
+  },
+  "TimeROCSingleResult.weights#summary": {
+    "hash": "76484e76a389",
+    "en": "The censoring weights.",
+    "ja": "打ち切りの重みです。"
+  },
+  "TimeROCStats#summary": {
+    "hash": "caefe902d285",
+    "en": "Counts per evaluation time: cases (T < t, the cause), survivors (T > t), other events before t (competing risks\nonly) and the rest (\"censored at t\": censored by t, or with an event at t).",
+    "ja": "評価時点ごとの人数です。事例 (T < t で対象の事象)、生存者 (T > t)、t より前の他の事象 (競合リスクの場合のみ)、残り (「t で打ち切り」: t までに打ち切られた、または t ちょうどに事象があった) です。"
+  },
+  "TimeROCStats.cases#summary": {
+    "hash": "06c7299ab508",
+    "en": "Subjects with the cause before t (T < t).",
+    "ja": "t より前に対象の事象があった対象者です (T < t)。"
+  },
+  "TimeROCStats.censored#summary": {
+    "hash": "f9ded39fabf3",
+    "en": "The rest: censored by t, or with an event at exactly t.",
+    "ja": "残りです。t までに打ち切られた対象者、または t ちょうどに事象があった対象者です。"
+  },
+  "TimeROCStats.otherEvents#summary": {
+    "hash": "ed6e84aafcab",
+    "en": "Subjects with another event before t (competing risks only).",
+    "ja": "t より前に別の事象があった対象者です (競合リスクの場合のみ)。"
+  },
+  "TimeROCStats.survivors#summary": {
+    "hash": "5f5d5681317d",
+    "en": "Subjects still without an event after t (T > t).",
+    "ja": "t より後もまだ事象が無い対象者です (T > t)。"
+  },
+  "TimeROCWeighting#summary": {
+    "hash": "a8563fc6e36c",
+    "en": "The censoring weights of {@link timeROC}: marginal (Kaplan-Meier), Cox or Aalen.",
+    "ja": "{@link timeROC} の打ち切りの重みです。周辺 (Kaplan-Meier)、Cox、Aalen から選びます。"
+  },
+  "TimeROCWeights#summary": {
+    "hash": "cfee4103c470",
+    "en": "The weights of a {@link timeROC} fit, subjects in the order of the sorted times.",
+    "ja": "{@link timeROC} の当てはめの重みです。対象者は整列した時間の順に並びます。"
+  },
   "TimepointsResult#summary": {
     "hash": "7fb95860db1f",
     "en": "Result of {@link timepoints}.",
@@ -1554,6 +2194,36 @@
     "en": "Restricted mean survival time (RMST), restricted mean time lost (RMTL), and their between-arm contrasts.\nImplements the unadjusted Kaplan-Meier estimators and Tian, Zhao & Wei's adjusted estimating equations.\nEquivalent to `survRM2::rmst2()` in R.",
     "ja": "制限平均生存時間 (RMST)、制限平均損失時間 (RMTL)、およびそれらの群間比較です。\n非調整の Kaplan-Meier 推定量と、Tian、Zhao、Wei の調整済み推定方程式を実装しています。\nR の `survRM2::rmst2()` と同等です。"
   },
+  "seSpPPVNPV#@param cutpoint": {
+    "hash": "31477863b60e",
+    "en": "the marker's threshold",
+    "ja": "マーカーの閾値"
+  },
+  "seSpPPVNPV#@param delta": {
+    "hash": "c5fd4a75de5d",
+    "en": "0 censored, otherwise the kind of event",
+    "ja": "0 は打ち切り、それ以外は事象の種類"
+  },
+  "seSpPPVNPV#@param marker": {
+    "hash": "5ba5cf7d4632",
+    "en": "the marker",
+    "ja": "マーカー"
+  },
+  "seSpPPVNPV#@param options": {
+    "hash": "4db4ced9819b",
+    "en": "`times` (required) and the options of timeROC",
+    "ja": "`times` (必須) と timeROC のオプション"
+  },
+  "seSpPPVNPV#@param time": {
+    "hash": "c444ec44b2d0",
+    "en": "observed times",
+    "ja": "観測時間"
+  },
+  "seSpPPVNPV#summary": {
+    "hash": "9700dc2c07ad",
+    "en": "Time-dependent sensitivity, specificity and predictive values of the rule \"marker > cutpoint\", with the weights of\n{@link timeROC}: PPV = TP F / (TP F + FP S) and NPV = (1 − FP) S / ((1 − FP) S + (1 − TP) F) (F the cumulative\nincidence, S its complement); with competing risks PPV and NPV_2 with definition (ii) and NPV_1 = (1 − FP_1) S_1 /\n((1 − FP_2) S_2 + (1 − TP) F). With `iid` (marginal weights), the iid representations and standard errors of Se,\nSp (both definitions), PPV and the NPVs.\n\nDifferences from R: as {@link timeROC}; Sp2's denominator is the weighted mass of the definition (ii) controls (R's\n1 − F, the same unless events fall at t).\n\nEquivalent to `timeROC::SeSpPPVNPV()` in R.",
+    "ja": "規則「マーカー > cutpoint」の時間依存の感度、特異度、的中率を、{@link timeROC} の重みで求めます。PPV = TP F / (TP F + FP S)、NPV = (1 − FP) S / ((1 − FP) S + (1 − TP) F) です (F は累積発生率、S はその補数)。競合リスクがある場合、PPV と NPV_2 は定義 (ii) によるもので、NPV_1 = (1 − FP_1) S_1 / ((1 − FP_2) S_2 + (1 − TP) F) です。`iid` を指定すると (周辺の重みのみ)、Se、Sp (両方の定義)、PPV、NPV の iid 表現と標準誤差を返します。\n\nR との違い: {@link timeROC} と同じです。また Sp2 の分母は定義 (ii) の対照の重み付きの質量です (R は 1 − F。t に事象がなければ同じです)。\n\nR の `timeROC::SeSpPPVNPV()` と同等です。"
+  },
   "survdiff#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -1623,6 +2293,31 @@
     "hash": "660cb9bfe971",
     "en": "Predicted survival curves of a Cox model for covariate profiles (adjusted survival curves). Equivalent to R's\n`survival::survfit.coxph()`. The call followed is\n`survfit(coxph(Surv(time, status) ~ ..., weights, robust = TRUE), newdata)`.\n\nThe baseline cumulative hazard is Breslow's (with `ties: \"breslow\"`) or its Efron form for tied events (the default\n`\"efron\"`), with case weights; the curve of a profile z is exp(−exp((z − means) b) Λ0(t)). The standard error is\nthat of the cumulative hazard (Tsiatis), with the fit's variance of the coefficients (the robust one when the fit\nuses it, as R; with non-integer weights coxph uses it by default). Strata and counting-process data are not supported.",
     "ja": "Cox モデルの共変量の値の組ごとの予測生存曲線 (調整生存曲線) です。R の `survival::survfit.coxph()` と同等です。`survfit(coxph(Surv(time, status) ~ ..., weights, robust = TRUE), newdata)` の呼び方に従います。\n\n基準の累積ハザードは、Breslow のもの (`ties: \"breslow\"` のとき) か、同時点のイベントに対するその Efron 形 (既定の `\"efron\"`) で、ケース重みを使います。値の組 z の曲線は exp(−exp((z − means) b) Λ0(t)) です。標準誤差は累積ハザードのもの (Tsiatis) で、係数の分散には当てはめのものを使います (R と同じく、当てはめが頑健な分散を使うときはそれを使います。整数でない重みでは coxph は既定でそれを使います)。層と計数過程のデータには対応していません。"
+  },
+  "survivalROC#@param marker": {
+    "hash": "5ba5cf7d4632",
+    "en": "the marker",
+    "ja": "マーカー"
+  },
+  "survivalROC#@param options": {
+    "hash": "0d533c48b63d",
+    "en": "`predictTime` (required), `cutValues` and `method`",
+    "ja": "`predictTime` (必須)、`cutValues`、`method`"
+  },
+  "survivalROC#@param status": {
+    "hash": "af8d2f5c25b4",
+    "en": "1 event, 0 censored",
+    "ja": "1 は事象、0 は打ち切り"
+  },
+  "survivalROC#@param time": {
+    "hash": "c444ec44b2d0",
+    "en": "observed times",
+    "ja": "観測時間"
+  },
+  "survivalROC#summary": {
+    "hash": "bca9038a294b",
+    "en": "Time-dependent ROC curve at a prediction time by Heagerty, Lumley and Pepe's Kaplan-Meier estimator: S(c, t) =\nKM_{marker > c}(t) P(marker > c), TP(c) = (P(marker > c) − S(c, t)) / (1 − S(t)), FP(c) = S(c, t) / S(t) (neither\nis forced to be monotone or below 1, as R), and the AUC by the trapezoid over the thresholds in order.\n\nDifferences from R: only the Kaplan-Meier estimator (`method = \"KM\"`); R's default, the nearest-neighbour estimator,\nis not offered.\n\nEquivalent to `survivalROC::survivalROC()` in R.",
+    "ja": "Heagerty、Lumley、Pepe の Kaplan-Meier 推定量による、予測時点での時間依存 ROC 曲線です。S(c, t) = KM_{marker > c}(t) P(marker > c)、TP(c) = (P(marker > c) − S(c, t)) / (1 − S(t))、FP(c) = S(c, t) / S(t) です (どちらも単調や 1 以下に強制しません。R と同じ)。AUC は、閾値の順に並べた点に対する台形則で求めます。\n\nR との違い: Kaplan-Meier 推定量 (`method = \"KM\"`) のみ対応します。R の既定である最近傍推定量は提供しません。\n\nR の `survivalROC::survivalROC()` と同等です。"
   },
   "survreg#@example": {
     "hash": "f2167be5edf2",
@@ -1708,6 +2403,101 @@
     "hash": "ae60f40a2ae4",
     "en": "Residuals from a parametric survival regression fit. Equivalent to R's `residuals.survreg()`.",
     "ja": "パラメトリック生存時間回帰の当てはめ結果から残差を計算します。R の `residuals.survreg()` と同等です。"
+  },
+  "timeROC#@param delta": {
+    "hash": "c5fd4a75de5d",
+    "en": "0 censored, otherwise the kind of event",
+    "ja": "0 は打ち切り、それ以外は事象の種類"
+  },
+  "timeROC#@param marker": {
+    "hash": "c9cbc6ea9efc",
+    "en": "the marker (larger values: the event sooner)",
+    "ja": "マーカー (値が大きいほど事象が早い)"
+  },
+  "timeROC#@param options": {
+    "hash": "4db4ced9819b",
+    "en": "`times` (required) and the options of timeROC",
+    "ja": "`times` (必須) と timeROC のオプション"
+  },
+  "timeROC#@param time": {
+    "hash": "c444ec44b2d0",
+    "en": "observed times",
+    "ja": "観測時間"
+  },
+  "timeROC#summary": {
+    "hash": "b06c59f8a034",
+    "en": "Time-dependent ROC curves and AUC for censored event times, with a single event or competing risks: the\ncumulative/dynamic definition (cases T < t with the cause, controls T > t, and for competing risks definition (ii)\nalso the subjects with another event before t), inverse probability of censoring weights from the Kaplan-Meier of\nthe censoring (`\"marginal\"`), a Cox model (`\"cox\"`, Efron ties) or Aalen's additive model (`\"aalen\"`) with the marker\nand `otherMarkers`; ties in the marker count 1/2. With `iid` (marginal weights), the iid representation of the AUC and\nits standard error.\n\nDifferences from R: the times are used as given (R adds 0 to a single time); the iid handles tied times correctly\n(independent of the data order; equal to R's without ties) and definition (ii)'s is centred on the reported AUC_2;\nthe Cox weights use the maximum of the partial likelihood (R's cph stops about 5e-7 short); Aalen's increments take\ntied censorings together (R breaks ties at random); a time with a single survivor works (R's competing-risks iid\nfails there).\n\nEquivalent to `timeROC::timeROC()` in R.",
+    "ja": "打ち切りのある事象時間に対する時間依存 ROC 曲線と AUC です。事象が 1 種類の場合と競合リスクの場合に対応します。累積/動的の定義 (事例は対象の事象で T < t、対照は T > t。競合リスクの定義 (ii) では、t より前に別の事象があった対象者も対照に含めます) に従い、打ち切りの逆確率の重みは、打ち切りの Kaplan-Meier (`\"marginal\"`)、Cox モデル (`\"cox\"`、Efron の同順位処理)、または Aalen の加法モデル (`\"aalen\"`) から求めます。後の 2 つはマーカーと `otherMarkers` を使います。マーカーの同順位は 1/2 として数えます。`iid` を指定すると (周辺の重みのみ)、AUC の iid 表現とその標準誤差を返します。\n\nR との違い: 時点は与えた値をそのまま使います (R は時点が 1 つのとき 0 を加えます)。iid は同順位の時間を正しく扱い (データの順序によらず、同順位が無ければ R と等しい)、定義 (ii) の iid は報告する AUC_2 を中心とします。Cox の重みは偏尤度の最大値を使います (R の cph は約 5e-7 手前で止まります)。Aalen の増分は、同順位の打ち切りをまとめて扱います (R は同順位をランダムに崩します)。生存者が 1 人だけの時点も扱えます (R の競合リスクの iid はそこで失敗します)。\n\nR の `timeROC::timeROC()` と同等です。"
+  },
+  "timeROCAucCurve#@param fit": {
+    "hash": "34bb05c3c36f",
+    "en": "a result of {@link timeROC} with `iid: true`",
+    "ja": "`iid: true` を指定した {@link timeROC} の結果"
+  },
+  "timeROCAucCurve#@param options": {
+    "hash": "cdfdfa2c14ed",
+    "en": "`level`, `nSim` and `fp`",
+    "ja": "`level`、`nSim`、`fp`"
+  },
+  "timeROCAucCurve#summary": {
+    "hash": "5e7d577ca11c",
+    "en": "The values that R's `plotAUCcurve` draws: the AUC over the times with the pointwise confidence interval and the\nsimultaneous band of {@link timeROCConfint} (as proportions). No plot.\n\nEquivalent to `timeROC::plotAUCcurve()` in R.",
+    "ja": "R の `plotAUCcurve` が描く値です。時点ごとの AUC と、点ごとの信頼区間、および {@link timeROCConfint} の同時信頼帯です (割合で表します)。図は描きません。\n\nR の `timeROC::plotAUCcurve()` と同等です。"
+  },
+  "timeROCAucDiff#@param options": {
+    "hash": "53c84b888ead",
+    "en": "`level` and `fp`",
+    "ja": "`level` と `fp`"
+  },
+  "timeROCAucDiff#@param x": {
+    "hash": "34bb05c3c36f",
+    "en": "a result of {@link timeROC} with `iid: true`",
+    "ja": "`iid: true` を指定した {@link timeROC} の結果"
+  },
+  "timeROCAucDiff#@param y": {
+    "hash": "310fc5664f3c",
+    "en": "another, on the same subjects and times",
+    "ja": "同じ対象者と時点についての、もう 1 つの結果"
+  },
+  "timeROCAucDiff#summary": {
+    "hash": "47bb884bb2bd",
+    "en": "The values behind R's `plotAUCcurveDiff`: the difference of two time-dependent AUCs over the times with the\npointwise confidence interval from the difference of the iid representations (as {@link timeROCCompare}). R also\ndraws a simultaneous band, whose simulation cannot be checked (R returns nothing); it is not offered. No plot.\n\nNot an R function.",
+    "ja": "R の `plotAUCcurveDiff` の元になる値です。2 つの時間依存 AUC の差を時点ごとに求め、点ごとの信頼区間は iid 表現の差から得ます ({@link timeROCCompare} と同じ)。R は同時信頼帯も描きますが、そのシミュレーションは確かめられないため (R は何も返しません)、提供しません。図は描きません。\n\nR の関数ではありません。"
+  },
+  "timeROCCompare#@param options": {
+    "hash": "de4becb11ffa",
+    "en": "`adjusted`",
+    "ja": "`adjusted`"
+  },
+  "timeROCCompare#@param x": {
+    "hash": "34bb05c3c36f",
+    "en": "a result of {@link timeROC} with `iid: true`",
+    "ja": "`iid: true` を指定した {@link timeROC} の結果"
+  },
+  "timeROCCompare#@param y": {
+    "hash": "310fc5664f3c",
+    "en": "another, on the same subjects and times",
+    "ja": "同じ対象者と時点についての、もう 1 つの結果"
+  },
+  "timeROCCompare#summary": {
+    "hash": "bc59b768909b",
+    "en": "Compares the time-dependent AUCs of two markers measured on the same subjects at each time, by the z statistic of\nthe difference with the standard error from the difference of the iid representations; with `adjusted`, also the\np-values adjusted for the several times, P(max_t |Z_t| >= |z_t|) for Z normal with the correlation of the\nstatistics (computed deterministically: exactly up to three times, to about 1e-7 from four on; R integrates at\nrandom with mvtnorm's default absolute tolerance of 1e-3, so the two differ by up to about 1e-4).\n\nEquivalent to `timeROC::compare()` in R.",
+    "ja": "同じ対象者で測定した 2 つのマーカーの時間依存 AUC を、時点ごとに比較します。差の z 統計量を用い、標準誤差は iid 表現の差から求めます。`adjusted` を指定すると、複数の時点について調整した p 値、すなわち統計量の相関をもつ正規分布に従う Z についての P(max_t |Z_t| >= |z_t|) も返します (決定論的に計算します。時点が 3 つまでは厳密、4 つ以上では約 1e-7 の精度です。R は mvtnorm の既定の絶対許容誤差 1e-3 で乱数により積分するため、両者は最大で約 1e-4 異なります)。\n\nR の `timeROC::compare()` と同等です。"
+  },
+  "timeROCConfint#@param fit": {
+    "hash": "34bb05c3c36f",
+    "en": "a result of {@link timeROC} with `iid: true`",
+    "ja": "`iid: true` を指定した {@link timeROC} の結果"
+  },
+  "timeROCConfint#@param options": {
+    "hash": "349200e16173",
+    "en": "`level` and `nSim`",
+    "ja": "`level` と `nSim`"
+  },
+  "timeROCConfint#summary": {
+    "hash": "899d74a77cbb",
+    "en": "Pointwise confidence intervals of the time-dependent AUC and a simultaneous confidence band over the times, from the\niid representation: the band's multiplier is the `level` quantile of the maximum over the times of the\nstandardized multiplier-bootstrap process (`nSim` draws of n standard normals, from rStats.js's generator: set it\nwith `setSeed`; the same seed as R's `set.seed` gives R's band). Percent, not rounded (R rounds to 2 decimals).\n\nEquivalent to `timeROC::confint.ipcwsurvivalROC()` in R.",
+    "ja": "時間依存 AUC の点ごとの信頼区間と、時点をまたぐ同時信頼帯です。iid 表現から求めます。同時信頼帯の乗数は、標準化した乗数ブートストラップ過程の時点にわたる最大値の `level` 分位点です (標準正規乱数 n 個の `nSim` 回の抽出で、rStats.js の乱数生成器を使います。`setSeed` で設定してください。R の `set.seed` と同じシードなら R の同時信頼帯が得られます)。パーセントで表し、丸めません (R は小数第 2 位に丸めます)。\n\nR の `timeROC::confint.ipcwsurvivalROC()` と同等です。"
   },
   "timepoints#@example": {
     "hash": "f2167be5edf2",

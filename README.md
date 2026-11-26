@@ -14,7 +14,7 @@ R-compatible statistical functions for JavaScript and the browser, written in Ty
 - **Runs anywhere.** ESM only, no dependencies, no Node-specific APIs, tree-shakable
   (`pnorm` alone is 1.6 KB gzipped).
 
-Status: **1.18.0.** The goal is to cover the numerical core of R's
+Status: **1.19.0.** The goal is to cover the numerical core of R's
 `stats` package (distributions, descriptive statistics, hypothesis tests, linear models, special
 functions, numerical methods and the basics of linear algebra) with R-compatible results; see [ROADMAP.md](ROADMAP.md) for what remains. See [CHANGELOG.md](CHANGELOG.md).
 
@@ -233,7 +233,7 @@ eigen([[2, 1], [1, 3]]).values;     // ≈ [3.618033989, 1.381966011]
 | Contingency tables and proportions | `binomCI`, `binomDiffCI`, `binomRatioCI` (DescTools' `BinomCI`, `BinomDiffCI`, `BinomRatioCI`), `oddsRatio` (epitools, and epiR's score interval), `fisherTest(x, { midp: true })` (exact2x2), `boschlooTest` (Exact), `gTest`, `stuartMaxwellTest`, `goodmanKruskalGamma` (DescTools), `lblTest` (coin), `chisqTest(x, { nMinus1: true })` (Campbell's 'N − 1' test) and Freeman-Tukey residuals, `tost` (equivalence), `binomDiffEquivalenceTest` (score TOST of two proportions) |
 | Multiple comparisons | `dscfAllPairsTest` (Steel-Dwass), `kwAllPairsDunnTest`, `kwManyOneDunnTest`, `manyOneUTest` (Steel's many-one rank test), `dunnettTest`, `gamesHowellTest`, `tukeyTest` (PMCMRplus), `dunnTest` (dunn.test), `glhtDunnett` (multcomp) |
 | Survival analysis | `survdiff` (log-rank and the G-rho family), `survfit` (Kaplan-Meier and Nelson-Aalen/Fleming-Harrington cumulative hazards, weights (also inverse probability weights), robust standard errors, confidence intervals, medians, restricted means and counting-process data), `rmst2` (unadjusted and covariate-adjusted restricted mean survival time and time lost), `coxph` (Cox regression: Efron and Breslow ties, case weights, strata, Wald, likelihood-ratio and score tests, counting-process data, robust variance and `cluster`), `survfitCoxph` (adjusted survival curves of a Cox fit for covariate profiles: `survfit(coxph, newdata)`), `clogit` (conditional logistic regression for matched sets: exact and approximate likelihoods), `coxZph` (proportional-hazards tests), `cuminc` and `timepoints` (cumulative incidence and Gray's tests), `crr` and `predictCrr` (Fine-Gray regression and predictions), `survreg`, `survregPredict` and `survregResiduals` (parametric accelerated-failure-time regression) |
-| Diagnostic accuracy and method comparison | `roc`, `auc`, `ciAuc` (`ci.auc`), `rocTest` (`roc.test`), `coords` (pROC: DeLong's interval and test, the bootstrap, partial AUC), `diagnosticTests` (epiR's `epi.tests`), `blandAltman` (BlandAltmanLeh's `bland.altman.stats`), `mcreg` (mcr: Deming, weighted Deming and Passing-Bablok regression) |
+| Diagnostic accuracy and method comparison | `roc`, `auc`, `ciAuc` (`ci.auc`), `rocTest` (`roc.test`), `coords` (pROC: DeLong's interval and test, the bootstrap, partial AUC), `diagnosticTests` (epiR's `epi.tests`), `blandAltman` (BlandAltmanLeh's `bland.altman.stats`), `mcreg` (mcr: Deming, weighted Deming and Passing-Bablok regression); time-dependent ROC: `timeROC` (timeROC: cumulative/dynamic AUC with Kaplan-Meier, Cox or Aalen censoring weights, competing risks, iid standard errors), `timeROCConfint`, `timeROCCompare`, `timeROCAucCurve`, `timeROCAucDiff`, `seSpPPVNPV`, `survivalROC` (survivalROC's Kaplan-Meier estimator) |
 | Agreement and reliability | `kappa2`, `kappamFleiss`, `icc` (irr), `ICC` (psych: the six forms of Shrout and Fleiss), `cronbachAlpha`, `partialR` (psych), `polychor`, `polyserial` (polycor), `pbvnorm`, `factanal`, `omega` (McDonald's ω, psych) |
 | Data handling | `completeCases` (`complete.cases`), `naOmit` (`na.omit`), `subset`, `merge`, `rbind` and `cbind` of data frames, `tapply`, `split`, `aggregate`, `pivotLonger` and `pivotWider` (tidyr), `fromRows` and `toRows` (a data frame from an array of row objects and back); formula forms of the tests (`tTest("y ~ g", data)`, `kruskalTest`, `friedmanTest("y ~ w \| b", data)`, `corTest("~ x + y", data)`, ...) |
 | Linear algebra | `matMul` (`%*%`), `add`, `subtract`, `multiply`, `divide`, `outer`, `t`, `diag`, `cbind`, `rbind`, `matrix`, `kronecker`, `seq`, `crossprod`, `tcrossprod`, `norm`, `backsolve`, `forwardsolve`, `chol`, `chol2inv`, `qr` with `qrQ`, `qrR`, `qrX`, `qrCoef`, `qrQy`, `qrQty`, `qrResid`, `qrFitted`, `qrSolve` (`qr.Q` …), `solve`, `det`, `determinant`, `rcond`, `kappa`, `svd`, `eigen`, `lu`, `prcomp`, `ginv` (MASS), `schur`, `expm` |
@@ -301,7 +301,7 @@ removed. Approximate sizes after minification and gzip:
 | `lmer` (from `/mixed`) / with `lmerSummary`, `lmerContest`, `lmerAnova` | 19.4 / 70.0 KB |
 | `glmer` (from `/mixed`) / with `glmerSummary`, `glmerAnova`, `glmerPredict` | 47.2 / 66.1 KB |
 | `polr` / `rlm` / `nls` (from `/regression`) | 25.0 / 14.6 / 8.0 KB |
-| everything (except `/mixed` and `/regression`) | 340.7 KB |
+| everything (except `/mixed` and `/regression`) | 348.2 KB |
 
 (`npm run size` measures these.)
 
@@ -312,11 +312,11 @@ Each area is also a subpath export, for importing one area without the rest:
 areas are only available this way, not from the main entry point.
 
 Without a bundler, load the single-file build `dist/rstats.js` (one minified ES module with every
-function except those of `/mixed` and `/regression`, 341 KB gzipped) from jsDelivr, which serves each npm release:
+function except those of `/mixed` and `/regression`, 348 KB gzipped) from jsDelivr, which serves each npm release:
 
 ```html
 <script type="module">
-  import { pnorm } from "https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@1.18.0/dist/rstats.js";
+  import { pnorm } from "https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@1.19.0/dist/rstats.js";
   console.log(pnorm(1.96)); // ≈ 0.9750021049
 </script>
 ```
