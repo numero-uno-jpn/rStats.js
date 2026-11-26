@@ -784,3 +784,13 @@ has the summaries.
      matrix from "+"-separated names, the inactive "P" left out), Q.additive = the weighted residual sum of squares,
      df = comparisons - rank(X), the combination effects C beta**: exact (1e-15).
    - netposet: the matrix of P-scores per outcome recorded (P.common, M0.common ...).
+
+## metaprop's GLMM (2026-11-27, asked for by the user: can rStats.js's glmer reproduce it?)
+
+75. `tsmeta120-metaprop-glmm.R`: metaprop(x, n) (default method "GLMM") on three sets (k = 6, 10, 20; a zero and an
+   all-events study): **TE.random, seTE.random and tau2 = glmer(cbind(x, n - x) ~ 1 + (1 | study), binomial,
+   nAGQ = 7) exactly (0 difference), = metafor's rma.glmm(measure = "PLO") exactly**; nAGQ = 1 is up to 4.5e-2 off,
+   nAGQ = 10, 20 up to 1e-3 (so the 7-point adaptive Gauss-Hermite rule is the one); **TE.common, seTE.common =
+   glm(cbind(x, n - x) ~ 1, binomial)** exactly; meta's Q has two values = rma.glmm's QE.Wld and QE.LRT (their
+   definitions to check); the random CI is "classic" (z). rStats.js's glmer already fits nAGQ > 1, so the GLMM can
+   be built on it (compared with tight refits, as the earlier glmer fixtures).

@@ -93,7 +93,8 @@
     metacont (SMD の分散は 1/n1 + 1/n2 + (1 − (N−4)/((N−2)J²)) g²、設計した入力で特定)、metainc (MH は Greenland-Robins)、metacor・
     metamean・metarate・metaprop (Inverse)、サブグループ、metabias (Egger・Begg・Thompson・Harbord・Peters)、trimfill (FE で L0)、metareg、
     metainf・metacum (共通効果) が一致。**rStats.js に足すもの:** rma の GENQ (一般化 Q の区間、重みつきカイ二乗の和の分布)。
-    **ユーザーに確認:** metaprop の既定は R では GLMM (範囲外)、rStats.js の既定をどうするか
+    **metaprop の GLMM (ログ 75):** glmer(cbind(x, n − x) ~ 1 + (1 | study), binomial, nAGQ = 7) と完全一致 (= metafor の rma.glmm)。
+    rStats.js の glmer で組める。**範囲に戻すかはユーザーに確認中**
   - **netmeta の実験 (ログ 71〜74、2026-11-27):** Rücker (2012) のグラフ理論的な当てはめ (L = B′WB の擬似逆行列、多群は有効抵抗が分散に
     一致する重み)、τ² (DL) = (Q − df)/tr(W(I − H)S(I − H)′) (S は多群の対比の共分散 (1/2)CC′、Jackson ら 2012)、P スコア、netsplit
     (直接 = その比較の行を補正なしの分散で逆分散統合、割合 = v_net/v_dir)、decomp.design、pairwise (多群のどこかにゼロなら全腕に 0.5)、
