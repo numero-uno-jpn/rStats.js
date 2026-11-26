@@ -88,7 +88,13 @@
   - **時系列の実験は済んだ (ログ 1〜60)。** 小さな未解明: auto.arima の近似モードの表示の offset (選択に効かない)、tsoutliers の iterate = 3、
     supsmu の同じ x の扱い (forecast では使わない)stlm は stlf と同じ
     作りの見込み (fixture で確かめる)。ets と auto.arima の最適化の終点は fixture で厳しい当てはめと比べる
-  - **次:** メタ分析 (meta・netmeta) の実験 (ndiffs・nsdiffs・ocsb・auto.arima・ets・ses/holt/hw・thetaf・croston・BoxCox.lambda・mstl・
+  - **meta の実験 (ログ 61〜70、2026-11-27):** metagen = metafor の rma (予測区間は t(k − 1)、τ² の区間は DL なら一般化 Q (重み 1/se) で
+    他は QP、H・I² の区間は Higgins-Thompson で Q ≤ k なら中心 log max(H, 1))。metabin (MH・Peto・IV、ゼロの扱いは効果量ごと)、
+    metacont (SMD の分散は 1/n1 + 1/n2 + (1 − (N−4)/((N−2)J²)) g²、設計した入力で特定)、metainc (MH は Greenland-Robins)、metacor・
+    metamean・metarate・metaprop (Inverse)、サブグループ、metabias (Egger・Begg・Thompson・Harbord・Peters)、trimfill (FE で L0)、metareg、
+    metainf・metacum (共通効果) が一致。**rStats.js に足すもの:** rma の GENQ (一般化 Q の区間、重みつきカイ二乗の和の分布)。
+    **ユーザーに確認:** metaprop の既定は R では GLMM (範囲外)、rStats.js の既定をどうするか
+  - **次:** netmeta の実験 (ndiffs・nsdiffs・ocsb・auto.arima・ets・ses/holt/hw・thetaf・croston・BoxCox.lambda・mstl・
     tsclean・tsoutliers・na.interp・accuracy・dm.test・tsCV など)、その後メタ分析
 
 ## 次のセッションで最初にやること: 次の版の範囲を決める (1.18.0 は公開済み、2026-11-26)

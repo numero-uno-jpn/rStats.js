@@ -737,3 +737,11 @@ has the summaries.
    - **trimfill = metafor's trimfill on the common-effect model (method = "FE", estimator "L0")**: k0 = 4, side
      right, the common estimate -0.29103 exact; TE.random is that of the augmented data (to confirm).
    - **metacum = the cumulative common estimates** (pooled "common"): exact.
+70. `tsmeta120-meta3.R` (first refused: the string "rma" as regtest's model, which is its default and is now left out;
+   the first run's Harbord candidate overflowed integer products into NA, so the counts are doubles in the second):
+   - **Thompson-Sharp = the REML meta-regression of TE on se (metafor regtest(rma(method = "REML"), predictor =
+     "sei")): statistic = its z value (-0.80333), p from t(k - 2) (0.43880)**: exact; DL or Knapp-Hartung are off.
+   - **Harbord = the t test of the intercept of lm(Z/sqrt(V) ~ sqrt(V)), Z = O - E, V hypergeometric**: exact.
+   - **Peters = the t test of the slope of lm(log OR ~ 1/N, weights 1/(1/(a + c) + 1/(b + d)))**: exact.
+   - **trimfill's TE.random and tau2 = rma(REML) on the observed plus filled studies; TE.common the IV estimate of
+     the same**: exact.
