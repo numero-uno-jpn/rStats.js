@@ -745,3 +745,27 @@ has the summaries.
    - **Peters = the t test of the slope of lm(log OR ~ 1/N, weights 1/(1/(a + c) + 1/(b + d)))**: exact.
    - **trimfill's TE.random and tau2 = rma(REML) on the observed plus filled studies; TE.common the IV estimate of
      the same**: exact.
+
+## netmeta (2026-11-27)
+
+71. `tsmeta120-netmeta.R`: a candidate from Ruecker (2012): incidence matrix B, weights W, L = B' W B, L+ its
+   pseudoinverse; multi-arm studies weighted so that the study's effective resistances equal its comparison
+   variances (L_s = pinv(-P V P / 2), edge weights -L_s[i, j]). On a two-arm network (4 treatments, 8 studies) and
+   with a three-arm study added: **TE.common, seTE.common, Q, df.Q (sum over studies of arms - 1, minus n - 1),
+   TE.random, seTE.random and the P-scores (mean over j of pnorm of the standardised difference; "desirable" small
+   values) exact (<= 2e-15)**. Both networks gave tau2 = 0, so tau2 was not tested.
+72. `tsmeta120-netmeta2.R` (first refused: my `se`; renamed): a heterogeneous network (5 treatments, 13 studies, two
+   three-arm studies): tau2 candidate T1 = (Q - df) / (sum w - tr(W B L+ B' W)) is 0.0746 against R's 0.0765;
+   netsplit's direct estimates with the adjusted weights agree only for comparisons without multi-arm studies;
+   decomp.design (Q total / within designs / between designs and per design) recorded; netmeasures' "proportion"
+   equals netsplit's direct-evidence proportion.
+73. `tsmeta120-netmeta3.R` (first run stopped in my candidate: diag() of a single weight is an identity matrix; then
+   a comment inserted by sed swallowed the rest of a line; both fixed):
+   - **tau2 (method "DL") = max(0, (Q - df) / tr(W (I - H) S (I - H)')), H = B L+ B' W, S block-diagonal per study
+     = (1/2) C C' (the true contrasts as differences of arm-level effects N(0, tau2/2); 1 for a two-arm comparison)**
+     (Jackson, White and Riley 2012): 0.0764702343106727 against 0.0764702343106725. Resolved.
+   - **netsplit's direct estimate = the inverse-variance pooling of the rows of that comparison with the unadjusted
+     variances seTE^2 + tau2** (multi-arm contrasts used as they are), its se, and **the direct-evidence proportion =
+     var(network) / var(direct)**: exact for all comparisons (a comparison without direct evidence gives NA and
+     proportion 0). The network fit on the studies containing both treatments gives the same, as the effective
+     resistance construction implies.
