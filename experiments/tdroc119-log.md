@@ -202,3 +202,12 @@ script keeps the search that succeeded.
     confint's CI_AUC / CB_AUC; behind plotAUCcurveDiff the difference of two AUCs with a pointwise interval from the
     difference's iid (as compare) and a simultaneous band whose simulation cannot be checked (nothing is returned): a
     Choice (offer the band with confint's multiplier scheme, or only the pointwise interval).
+
+## The fixture (2026-11-26)
+
+47. `oracle/timeroc.R` (fixture `test/fixtures/timeroc.json`): R's competing-risks iid **fails with "incorrect number
+    of dimensions"** (`Mat_data_cont1[, c("T", "marker")]`) at a time with exactly one subject surviving past t (crSmooth,
+    t = 12.7: Stats 14 cases, 1 survivor, 21 other events, 14 censored); the other times of the same data run. The
+    confint / compare data for competing risks moved to times 2.1, 4.3, 6.7. rStats.js computes at such a time (a
+    single control is a valid estimate; noted in the differences). Marginal IPCW.times is a vector, one per time.
+    survivalROC's KM AUC at predict.time 30 is 1.0144 (above 1, as the spec's FP above 1 allows).
