@@ -298,3 +298,24 @@ has the summaries.
    weights in the low-pass loess change nothing (or make it worse). Not resolved after five experiments: STL as in
    the paper agrees with R in 16 of 18 configurations to 1e-11; two USAccDeaths configurations with several robust
    passes and inner > 1 depart. Left to the user.
+24. `tsmeta120-stl6.R` (the user asked to continue): the difference does not grow gradually: for USAccDeaths it
+   stays at 1e-11 and jumps to 30 at one pass (s.window 7: outer 3 with inner >= 2; periodic with inner 1: outer 5;
+   inner 5: outer 3), and with outer 2 any inner up to 12 agrees. A discrete event, not amplified rounding.
+25. `tsmeta120-stl7.R`: point by point in s.window 7, inner 2, outer 3: every point differs (seasonal up to 31,
+   trend up to 22); the candidate's loess never has a weight sum <= 0 (smallest 1.57 of 1264 calls); and R's final
+   weights have zeros at 13, 14, 17, 38 against the candidate's 13, 17. Since outer = 2 (the fit those weights come
+   from) agrees, **the weights computed from an agreeing fit differ: the robustness scale, not the fit**.
+26. `tsmeta120-stl8.R`: R's remainder with outer = k - 1 and R's weights with outer = k give the implied scale
+   h_i = |R_i| / sqrt(1 - sqrt(w_i)), the same for every point. Where R agrees, h = 3 (s_36 + s_37) = 6 median (to
+   1e-12). In s.window 7, inner 2, outer 3, h = 478.9827, while 6 median = 569.4991; a search over all pairs gives
+   **h = 3 (s_25 + s_37)** to 5e-14: the upper middle order statistic is right, the lower one is the 25th. (The
+   periodic case could not be checked this way: its returned seasonal is the cycle means, not the internal one.)
+27. `tsmeta120-stl9.R`: 400 random series (n 30..121, frequency 4 or 12, t(2) noise), s.window 7, inner 2: R's
+   remainder with outer 0 and weights with outer 1. **Odd n: 182 of 182 use 6 median. Even n: 195 of 218; the other
+   23 (10.6%) use h = 3 (s_a + s_b) (to 1e-9) where one of a, b is a middle position (n/2 + 1 in 13 cases, n/2 in
+   10) and the other is an unrelated rank** (n = 34: ranks 4 and 18; n = 112: 56 and 97). R's robustness scale
+   takes, for even n in about one case in ten, a wrong order statistic for one of the two middle values — the
+   behaviour of a partial sort that places only one of two requested positions correctly. This explains the two
+   USAccDeaths configurations of items 19-23 (n = 72: ranks 25 and 37 instead of 36 and 37). Resolved as far as
+   the cause; reproducing R's wrong element would need the exact partial-sort algorithm, which the output does not
+   show. rStats.js: the true median (6 median |R|), as the paper and the help page describe.
