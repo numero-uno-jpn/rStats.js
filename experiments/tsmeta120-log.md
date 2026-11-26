@@ -467,3 +467,18 @@ has the summaries.
    quarterly half-width at h = 4 is 35% too wide). With a trend (AAA, AAdA, MAA, MAdA) R places the term correctly.
    Two departures of forecast.ets from the model (items 37, 38); rStats.js uses the model's formulas (the user's rule:
    R's errors are not imitated).
+
+## forecast's ndiffs, nsdiffs and ocsb.test (2026-11-27)
+
+39. `tsmeta120-ndiffs.R`: 500 series (AR(1) with phi 0.5-0.99, with or without a drift; integrated; doubly
+   integrated) for ndiffs, 300 seasonal series for nsdiffs (analysed outside R with a script that applies candidate
+   decision rules to the recorded statistics):
+   - **nsdiffs (test "seas"): D = 1 when F_s = max(0, 1 - var(remainder) / var(seasonal + remainder)) of mstl(x) exceeds
+     0.64: 300 of 300**; with stl(x, "periodic") 288 of 300.
+   - ndiffs (KPSS, level): "statistic > 0.463 at d = 0, 1" gives 466 of 500; in every miss R differences more, i.e.
+     R's statistic is larger than mine (with lag trunc(4 (n/100)^0.25)): the lag differs. With alpha = 0.01 R
+     returns 0 even for statistics far above 0.739 (158 of 500 agree): consistent with **rejecting when the p-value
+     interpolated in the KPSS table (clamped to [0.01, 0.10]) is below alpha**, which is never true for alpha =
+     0.01. ADF (drift, k = trunc((n - 1)^(1/3))): at best 410 of 500 with a fixed critical value.
+   - ocsb.test(AirPassengers): statistic 1.5188, critical -1.803 ("5% critical value"), lag order 0 by "fixed"; the
+     object has statistics, critical, method, lag.method, lag.order, fitted.model, data.name (no p-values).
