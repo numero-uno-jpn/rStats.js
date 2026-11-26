@@ -811,3 +811,32 @@ has the summaries.
      requested digits, numbers padded to a common width**: recorded.
    - **netposet's M0 = the covering relation (Hasse diagram) of "i at least as good as j in every outcome and better
      in one" on the P-scores**: the transitive edge (4 over 2 through 3) is left out; my plain relation had it.
+
+## ndiffs with test = "pp", type = "trend" (2026-11-27, during the implementation)
+
+The fixture (oracle/forecastArima.R, 150 series x 4 alphas) showed 2 of 600 PP-trend decisions different from my
+closed form (Phillips and Perron's Z(t_alpha) with det(X'X), X = (1, t, y_{t-1}), lag trunc(4 (n/100)^0.25), the
+tau_tau rows), and 4 of 600 with the general se / s form; the constant-only statistic with the tau_tau rows 598 -> 571.
+The level form (log 40-41) was never in question.
+
+78. `tsmeta120-ndiffs4.R`: a designed probe: R's p-value at d = 0 recovered by bisection on alpha, and the statistic by
+   inverting the interpolation in the tau_tau row; candidates A (closed form), B (lag trunc(12 (n/100)^0.25)), C (the
+   se / s form), D (A with t centred), 80 series. Four runs, the first three my own design errors (kept as
+   `-run1/2/3.json`):
+   - run 1 bisected on (0.0001, 0.2): all NA, **ndiffs warns and clamps alpha to [0.01, 0.1]**;
+   - run 2 started at alpha = 0.1, which never differences (log 41): all NA;
+   - run 3 returned NA whenever ndiffs(hi) = 0, i.e. for every p below hi (an inverted condition);
+   - run 4 (`-run4.json`): 13 interior p-values. **R's statistic is less negative than A in all 13, by 0.005 to 0.066**;
+     C equals A to 1e-4, B is far off (0.1 to 0.7). Not resolved.
+79. `tsmeta120-ndiffs5.R`: 240 series (white, AR(0.3), AR(0.8) errors around a near unit root, lengths 20-60, 80-120,
+   200-300) with my components (t value, su2, s2, Bartlett lambda2(l) for l = 0..15, det(X'X)) beside R's recovered
+   p-value; forms and lag rules fitted outside R on the 63 interior rows:
+   - with the tau_tau rows: lag trunc(4 (n/100)^0.25) is the closest rule (closed form 0.14 at worst, the s2 = SSR /
+     (nn - 3) variant 0.068); trunc(12 (n/100)^0.25) 0.88, trunc((n - 1)^(1/3)) 0.14, no lag 1.6; the best lag per row
+     scatters (2 to 9), so no single lag rule fits within 1e-2;
+   - with MacKinnon's (1991) response surfaces for the critical values in place of the rows: the closed form 0.030 at
+     worst (N = n or n - 1), better than the rows but not exact.
+   - **Not resolved after two experiments with a designed probe: left open for the user** (the rule of
+     feedback-rstats-designed-probes). The implementation keeps the closed form with the tau_tau rows (598 of 600 in
+     the fixture); a next probe would fix n (one size class) and vary the statistic, so that the knots of R's p as a
+     function of the statistic give the critical values independently of the form.

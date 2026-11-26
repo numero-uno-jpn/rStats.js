@@ -322,14 +322,18 @@ export function arima(xIn: readonly number[], options: ArimaOptions = {}): Arima
 
   // regression starting values: least squares of the differenced series on the differenced regressors
   const init = new Array<number>(ncoef).fill(0);
+  const regScales = new Array<number>(nreg).fill(1);
   if (nreg > 0) {
     const diffed = (v: number[]): number[] => { const out: number[] = []; for (let t = delta.length; t < n; t++) { let z = v[t]!; for (let k = 0; k < delta.length; k++) z -= delta[k]! * v[t - k - 1]!; out.push(z); } return out; };
     const yy = diffed(x); const XX = xreg.map(diffed);
     const ok = yy.map((v, i) => !Number.isNaN(v) && XX.every((c) => !Number.isNaN(c[i]!)));
     const k = XX.length; const A = Array.from({ length: k }, () => new Array<number>(k).fill(0)); const b = new Array<number>(k).fill(0);
     for (let i = 0; i < yy.length; i++) { if (!ok[i]) continue; for (let a1 = 0; a1 < k; a1++) { b[a1]! += XX[a1]![i]! * yy[i]!; for (let a2 = 0; a2 < k; a2++) A[a1]![a2]! += XX[a1]![i]! * XX[a2]![i]!; } }
-    const sol = solveSymmetric(A, b);
+    const sol = solveSymmetric(A.map((r) => r.slice()), b);
     for (let i = 0; i < k; i++) init[narma + i] = Number.isFinite(sol[i]!) ? sol[i]! : 0;
+    let ssr = 0, m = 0;
+    for (let i = 0; i < yy.length; i++) { if (!ok[i]) continue; let e = yy[i]!; for (let a1 = 0; a1 < k; a1++) e -= init[narma + a1]! * XX[a1]![i]!; ssr += e * e; m++; }
+    for (let a1 = 0; a1 < k; a1++) { const sc = Math.sqrt(A[a1]![a1]! / (ssr > 0 ? ssr : m || 1)); regScales[a1] = Number.isFinite(sc) && sc > 0 ? sc : 1; }
   }
   if (options.init) options.init.forEach((v, i) => { if (!Number.isNaN(Number(v))) init[i] = Number(v); });
   for (let i = 0; i < ncoef; i++) if (!mask[i]) init[i] = fixed[i]!;
@@ -352,10 +356,10 @@ export function arima(xIn: readonly number[], options: ArimaOptions = {}): Arima
     if (P > 0) { const r = arToPacf(c.slice(p + q, p + q + P)); for (let i = 0; i < P; i++) out[p + q + i] = Math.atanh(r[i]!); }
     return out;
   };
-  // the optimiser works on regression coefficients times the regressors' scales (R also rescales regressors), so that
-  // the numerical derivatives see comparable sensitivities
-  const regScale = xreg.map((col) => { const v = col.filter(Number.isFinite); const m = v.reduce((a, b) => a + b, 0) / v.length;
-    const sd = Math.sqrt(v.reduce((a, b) => a + (b - m) ** 2, 0) / Math.max(1, v.length - 1)); return sd > 0 ? sd : Math.max(1e-300, Math.abs(m)) || 1; });
+  // the optimiser works on regression coefficients times sqrt(sum Xd^2 / SSR) (Xd the differenced regressor, SSR of the
+  // starting regression), so that the objective's curvature is of order 1 in every coordinate as for the ARMA terms (the
+  // regressors' sd instead left USAccDeaths with a trend and seasonal differencing ill-conditioned: BFGS ran to maxit)
+  const regScale = regScales;
   const full = (free: readonly number[]): number[] => { const out = fixed.slice(); let j = 0; for (let i = 0; i < ncoef; i++) if (mask[i]) out[i] = i >= narma ? free[j++]! / regScale[i - narma]! : free[j++]!; return out; };
   const freeOf = (all: readonly number[]): number[] => all.map((v, i) => (i >= narma ? v * regScale[i - narma]! : v)).filter((_, i) => mask[i]);
 
@@ -374,8 +378,9 @@ export function arima(xIn: readonly number[], options: ArimaOptions = {}): Arima
   const tightBfgs = (fn: (par: number[]) => number, start: number[]): { par: number[]; code: number } => {
     if (start.length === 0) return { par: [], code: 0 };
     let cur = start.slice(); let code = 0; let last = fn(cur);
-    for (let round = 0; round < 6; round++) {
-      const r = optim(cur, (v) => { const f = fn(v); return Number.isFinite(f) ? f : 1e300; }, { method: "BFGS", control: { reltol: 1e-15, maxit: 5000 } });
+    // BFGS to near the optimum (a stricter reltol runs to maxit on the objective's rounding noise), then Newton below
+    for (let round = 0; round < 2; round++) {
+      const r = optim(cur, (v) => { const f = fn(v); return Number.isFinite(f) ? f : 1e300; }, { method: "BFGS", control: { reltol: 1e-12, maxit: 500 } });
       code = r.convergence; const improved = last - r.value; cur = r.par; last = r.value;
       if (!(improved > 1e-15 * Math.max(1, Math.abs(last)))) break;
     }
