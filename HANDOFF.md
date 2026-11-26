@@ -45,7 +45,12 @@
     Chisq = n·log(SSR0/SSR1))
   - HoltWinters の乗法モデルの区間もユーザーの指示で再探索して解決 (ログ 16): var_h = var(残差) Σ_{j=0}^{h−1} (ψ_j num/den)²、
     num = 係数[2 + ((h−1) mod f + 1)]、den = 係数[2 + ((h−j) mod f)] (係数は (a, b, s1..sf) を常に仮定)。添字 0 で b で割り、
-    β なしでは季節係数が 1 つずれ h = 12・24 は NA になる R の添字の不具合。**R に合わせるか正しい形にするかはユーザーに確認中**
+    β なしでは季節係数が 1 つずれ h = 12・24 は NA になる R の添字の不具合 (ソースは読んでいない、出力からの推定)。
+    **ユーザーの決定 (2026-11-27): A = 正しい添字 (季節係数を周期どおり s_h / s_{h−j}) で計算し、R との違いを文書に書く** (トレンドありで
+    h < f は R と同じ)。R への報告は別セッションでユーザーが検討する。再現: `m <- HoltWinters(co2, alpha = 0.5, beta = 0.01,
+    gamma = 0.4, seasonal = "multiplicative"); p <- predict(m, 24, prediction.interval = TRUE)` で h = 11 → 12 の幅が約 3 倍に跳ぶ
+    (b = 0.1257 で割る)。`HoltWinters(AirPassengers, alpha = 0.4, beta = FALSE, gamma = 0.5, seasonal = "multiplicative")` では
+    h = 12・24 の区間が NA。証拠は `experiments/tsmeta120-hw3.{R,json}` とログ 16
   - **未解明:** po.test の p 値 (表の値が未確認)
   - **次:** stl (loess)、forecast の残り (ndiffs・nsdiffs・ocsb・auto.arima・ets・ses/holt/hw・thetaf・croston・BoxCox.lambda・mstl・
     tsclean・tsoutliers・na.interp・accuracy・dm.test・tsCV など)、その後メタ分析
