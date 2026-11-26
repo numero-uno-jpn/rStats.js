@@ -173,3 +173,12 @@ RUN install2.r --error --skipinstalled timeROC survivalROC timereg \
     && Rscript -e 'pk <- c("timeROC", "survivalROC", "timereg", "pec", "mvtnorm", "survival"); \
                    for (p in pk) suppressPackageStartupMessages(library(p, character.only = TRUE)); \
                    cat(sprintf("%s %s\n", pk, sapply(pk, function(p) as.character(packageVersion(p)))), sep = "")'
+
+# Time series and meta-analysis (1.20.0), in a layer of its own: tseries (unit-root and other tests) beside forecast
+# (already here), and meta and netmeta (pairwise and network meta-analysis). netmeta's igraph needs the GLPK library.
+RUN apt-get update && apt-get install -y --no-install-recommends libglpk40 \
+    && rm -rf /var/lib/apt/lists/* \
+    && install2.r --error --skipinstalled forecast tseries meta netmeta \
+    && Rscript -e 'pk <- c("forecast", "tseries", "meta", "netmeta", "metafor"); \
+                   for (p in pk) suppressPackageStartupMessages(library(p, character.only = TRUE)); \
+                   cat(sprintf("%s %s\n", pk, sapply(pk, function(p) as.character(packageVersion(p)))), sep = "")'
