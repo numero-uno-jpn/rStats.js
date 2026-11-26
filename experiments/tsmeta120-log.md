@@ -443,3 +443,27 @@ has the summaries.
    - **initial = "simple"** (Hyndman and Athanasopoulos): ses l0 = y1 (alpha estimated, 0.24657); holt l0 = y1,
      b0 = y2 - y1 (3.93, 1.38 for uspop); hw l0 = mean(y[1:m]) (9651.75), b0 = (mean(y[m + 1:m]) - mean(y[1:m])) / m
      (-77.77), s = y[1:m] - l0: exact; the smoothing parameters are then estimated (by what criterion: to find).
+36. `tsmeta120-ets3.R`: per horizon. **Class 3 point forecasts equal mu~_h s_h for h <= m and, for MNM, are multiplied
+   by exactly (1 + alpha gamma sigma2)^k beyond (k = floor((h - 1) / m); 9 digits)**: the expectation of the level
+   error times the same time's seasonal update (1 + gamma e). For MAM the factor varies with h (the trend's
+   response to the error). ANA's half-width equals the class 1 formula except at h = m and 2m.
+37. `tsmeta120-ets4.R` (edited in place for three runs): a candidate for the exact first and second moments of class 3,
+   derived for this experiment from the model of table 2.3: y_{n+h} = T_{n+h} s* (1 + e_{n+h}) prod_i (1 + gamma
+   e_{t_i}) with t_i = n + h - i m; the trend states x follow x' = (A + B e) x, so M1 = E[w x] and M2 = E[w^2 x x']
+   propagate exactly (paired steps: M1' = (A + gamma sigma2 B) M1, M2' = (1 + gamma^2 sigma2) A M2 A' + 2 gamma
+   sigma2 (A M2 B' + B M2 A') + sigma2 (1 + 3 gamma^2 sigma2) B M2 B'; other steps M1' = A M1, M2' = A M2 A' + sigma2
+   B M2 B'); E[y] = s* c'M1, var = s*^2 (1 + sigma2) c'M2 c - E[y]^2.
+   - **MNM and MAM (AirPassengers, USAccDeaths, co2): mean within 3e-15, sd within 4e-10 for h = 1..36**: R computes
+     the exact moments.
+   - MAdM: off by 7.4e-5 at h = 1, growing (run 2 printed the ratios). **Run 3: with the damping applied after the
+     trend in the forecast (T = l + b, b' = phi b, so T_{n+h} = l + (1 + phi + ... + phi^{h-1}) b) R agrees (6e-14)**
+     — while R's in-sample filter (item 33) and its class 1 / 2 forecasts (items 34-35: AAdN, AAdA, MAdN, MAdA)
+     use l + phi b (T_{n+h} = l + (phi + ... + phi^h) b). R's class 3 damped forecasts are inconsistent with its own
+     model: the forecast at h = 1 is l + b instead of the model's l + phi b.
+38. `tsmeta120-ets5.R` (first run stopped in my own candidate: sapply over an empty vector gives a list; vectorised):
+   **ANA and MNA (no trend, additive season): R's c_j has the seasonal term at (j + 1) mod m = 0 instead of j mod m
+   = 0** (for class 1 the same as counting floor(h / m) seasonal cycles instead of floor((h - 1) / m)): within 2e-15
+   in five cases (USAccDeaths, nottem, quarterly UKgas); the correct formula is off by 4e-6 to 0.35 (UKgas: the
+   quarterly half-width at h = 4 is 35% too wide). With a trend (AAA, AAdA, MAA, MAdA) R places the term correctly.
+   Two departures of forecast.ets from the model (items 37, 38); rStats.js uses the model's formulas (the user's rule:
+   R's errors are not imitated).

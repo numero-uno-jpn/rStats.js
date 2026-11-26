@@ -66,6 +66,10 @@
   - **ets (ログ 33〜35):** 13 モデルのフィルタ・尤度 (loglik = −0.5·lik)・aic/bic/aicc (p = length(par))・sigma2 = SSE/(n − p)・mse が R の
     推定値を入れて 2e-12。予測はクラス 1・2 の閉じた式で一致 (ANA・MNA だけ 1e-4 ほどずれ、未解明)。クラス 3 (乗法季節) の平均と分散、
     hw の乗法と ets(MAM) の違い、initial = "simple" の母数の推定基準、amse、モデル選択 (ZZZ)、admissible の範囲は未着手
+  - **ets の予測区間はすべて突き止めた (ログ 36〜38):** クラス 3 (MNM・MAM) は厳密なモーメント (状態の平均と 2 次モーメントの伝播)。
+    **forecast パッケージの不具合とみられるもの 2 件:** (1) MAdM などクラス 3 の減衰トレンドの予測が T = l + b (モデルは l + φb、標本内の
+    フィルタやクラス 1・2 は l + φb)。(2) ANA・MNA (トレンドなし・加法季節) の区間で季節の項が 1 つ早い ((j+1) mod m)。四半期の UKgas で
+    幅が 35% ずれる。**方針: R の誤りは模倣しない (ユーザーの stl での決定を当てはめた)、正しい式で実装し文書に。報告するかはユーザー**
   - **次:** forecast の残り (ndiffs・nsdiffs・ocsb・auto.arima・ets・ses/holt/hw・thetaf・croston・BoxCox.lambda・mstl・
     tsclean・tsoutliers・na.interp・accuracy・dm.test・tsCV など)、その後メタ分析
 
