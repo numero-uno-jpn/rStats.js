@@ -70,6 +70,10 @@
     **forecast パッケージの不具合とみられるもの 2 件:** (1) MAdM などクラス 3 の減衰トレンドの予測が T = l + b (モデルは l + φb、標本内の
     フィルタやクラス 1・2 は l + φb)。(2) ANA・MNA (トレンドなし・加法季節) の区間で季節の項が 1 つ早い ((j+1) mod m)。四半期の UKgas で
     幅が 35% ずれる。**方針: R の誤りは模倣しない (ユーザーの stl での決定を当てはめた)、正しい式で実装し文書に。報告するかはユーザー**
+  - **ndiffs・nsdiffs・ocsb・auto.arima (ログ 39〜46、2026-11-27):** ndiffs は KPSS (lag trunc(3√n/13)、p < alpha)・ADF (k = 1、
+    Dickey-Fuller の表を n ≤ 25/50/100/250/500 の区間で、p > alpha で差分)・PP (Z(t_α)、定数つき) で全件一致。nsdiffs は mstl の強さ > 0.64。
+    ocsb の統計量は一致、臨界値は m = 2〜400 の値を表として (式が出ない)。auto.arima は探索の順序・基準 (CSS-ML の AICc)・根 < 1.01 の棄却・
+    近似 (CSS の AICc で順位、表示だけ系列ごとの定数がずれる、選択には効かない) が分かった。チェッカーは `trace =` を引数名として許すよう変更
   - **次:** forecast の残り (ndiffs・nsdiffs・ocsb・auto.arima・ets・ses/holt/hw・thetaf・croston・BoxCox.lambda・mstl・
     tsclean・tsoutliers・na.interp・accuracy・dm.test・tsCV など)、その後メタ分析
 

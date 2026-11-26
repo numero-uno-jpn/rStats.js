@@ -542,3 +542,10 @@ has the summaries.
    -29.59, UKgas -39.07). The CSS and ML log-likelihoods of ARIMA(0,d,0)(0,D,0) are equal, so it is not that model.
    **The rejections in approximation mode follow the CSS fits' roots** (rejected: minimum roots 0.80 to 1.0086;
    accepted: >= 1.0110).
+46. `tsmeta120-autoarima4.R` (slow: several seasonal ML fits of co2 on emulated x86_64): the candidate "offset =
+   -2 loglik - nobs log sigma2 - nobs (log 2 pi + 1) of an ML reference fit" for every traced model and for
+   ARIMA(0,d,0)(0,D,0), (2,d,2)(1,D,1), (0,d,1)(0,D,1): none equals the series' offset (all q are within about 1 of
+   0 while the offsets are -155 to +80). Not resolved after two experiments. **It does not affect the choice**: the
+   offset is the same for every model searched in a series, so the ranking under approximation equals the ranking
+   of the CSS AICc, and the final model is refitted without approximation; only the printed trace values differ by
+   the constant. rStats.js ranks by the CSS AICc and reports the ML AICc of the final model.
