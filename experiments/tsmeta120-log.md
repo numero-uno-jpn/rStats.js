@@ -203,3 +203,18 @@ has the summaries.
      number of products; F = ((SSR0 - SSR1) / df) / (SSR1 / (m - df)) with m = n - lag**: within 8e-14 in all 36
      cases; p-values chi-squared(df) (2e-14) and F(df, m - df) (7e-17). Resolved. The other forms are 0.1 to 0.4
      off, and without intercepts 45 to 50.
+15. `tsmeta120-white.R` (white.test, third try, asked for by the user; edited in place for a second run that adds
+   the p-value candidates). After experiment 14, the form of the statistic (m R^2, n R^2, m log, n log; F over
+   m - qstar or m - qstar - lag - 1) crossed with 32 constructions of the hidden units (range: U(-range/2, range/2)
+   or U(-range, range); weights in a (lag + 1) x q matrix filled by rows or columns, or a separate bias row first or
+   last; logistic or tanh; principal components of the hidden units centred, scaled or not), on four series with
+   (lag, q, qstar, seed) = (1, 10, 2, 1), (1, 10, 2, 7), (2, 10, 2, 1), (1, 6, 3, 3) (16 cases).
+   - **white.test: y and its lags scaled (scale()); after set.seed, w = runif((lag + 1) q, -range/2, range/2) filled
+     by columns into a (lag + 1) x q matrix W (row 1 multiplies the constant); hidden units = logistic((1, X) W);
+     their principal components 2..qstar+1 from prcomp(·, scale. = TRUE); SSR0 of y on (1, X), SSR1 of y on (1, X,
+     components); Chisq = n log(SSR0 / SSR1) with n the series length, df = qstar; F = ((SSR0 - SSR1) / qstar) /
+     (SSR1 / (m - qstar)), m = n - lag**: within 2.4e-13 (Chisq) and 1.3e-13 (F) in all 16 cases; p-values
+     chi-squared(qstar) and F(qstar, m - qstar) within 1e-16. Resolved. In experiments 8-9 the right construction
+     was among the candidates but with the m R^2 form, 6.7e-2 to 0.13 off, which hid it.
+   - The random weights come from R's runif after set.seed, so rStats.js reproduces R's value given the same seed
+     only with R's generator (Mersenne-Twister, inversion) and the same number of draws.
