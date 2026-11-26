@@ -170,3 +170,25 @@ has the summaries.
    - ar.mle against tight arima(x, c(k, 0, 0), method = "ML"): the same orders (3, 2, 9, 12) but aic off by 0.014 to
      0.19 (n log sigma2 + 2k: 1.3 to 18), coefficients 1e-6 to 1e-4, the mean 1.3e-5 to 1.1 (sunspot), var.pred close
      to sigma2 without a factor. Not the same fit; arima0 is the next candidate.
+
+## stats' HoltWinters, and ar.mle (2026-11-26)
+
+12. `tsmeta120-hw.R` (first refused by the checker: my candidate's argument `seasonal` collides with forecast's
+   `seasonal`; renamed `stype` inside the candidate only):
+   - **HoltWinters with given parameters: start values from decompose() of the first 2 periods (start.periods),
+     l.start and b.start = intercept and slope of lm(trend ~ 1..k) over the k non-missing trend values (not their
+     time positions), s.start = the figure; the recursions of the help page from t = f + 1** (not 2f + 1); trend
+     only: a = x[2], b = x[2] - x[1] from t = 3; level only: a = x[1] from t = 2. SSE, fitted and coefficients (a, b,
+     s1..sp = the last p seasonal values) exactly equal (0 difference) for co2, AirPassengers (multiplicative),
+     USAccDeaths, uspop and Nile. The other three start candidates are off.
+   - Optimisation: R's default L-BFGS-B result equals a tight refit (factr = 1) for co2 and AirPassengers to 1e-13;
+     the level-only case (optimize) stops 6e-6 from a tight optimize in alpha (SSE 7e-8 relative higher).
+   - predict.HoltWinters: half-widths / qnorm are proportional to sqrt(1 + sum_{j<h} psi_j^2) with psi_j = alpha
+     (1 + j beta) + gamma (1 - alpha) [j mod p = 0] (the ratio is constant in h), but the variance is not SSE / n
+     (uspop 0.53 times).
+   - **ar.mle = arima0(x, c(k, 0, 0)) for each order up to min(order.max, 12): aic = arima0's aic minus the minimum
+     (within 6e-14), var.pred = arima0's sigma2 exactly.** (The arima fits of experiment 11 differ from arima0's.)
+13. `tsmeta120-hw2.R`: **the variance of the additive (and non-seasonal) intervals is var(residuals) (mean
+   removed, n - 1)**: within 6e-14 for co2 (given and optimised parameters), USAccDeaths, uspop, Nile; SSE / (n - 1)
+   is off. The intervals are symmetric. The multiplicative model's intervals are not given by this formula (0.28
+   off): open.
