@@ -106,3 +106,19 @@ has the summaries.
      best (su2 and the autocovariances over nn, s2 over nn - 3, my first candidate) is still 0.012 off. Not
      resolved by two experiments; one more candidate from the paper (the closed form with det(X'X)) goes into the
      next tseries experiment, otherwise it is left open for the user.
+8. `tsmeta120-tseries3.R`:
+   - **pp.test = Phillips and Perron's closed form with a trend: Z(alpha) = nn (rho - 1) - nn^6 / (24 Dx) (lambda2 -
+     su2), Z(t_alpha) = sqrt(su2 / lambda2) t - (lambda2 - su2) nn^3 / (4 sqrt(3) sqrt(Dx) sqrt(lambda2))**, Dx =
+     det(X'X) for X = (1, t, y_{t-1}), su2 and lambda2 over nn: within 1e-13 (1.3e-10 for LakeHuron, whose Dx is
+     large). Resolved: the se^2 / s2 form of experiments 6-7 replaces the finite-sample cofactor by n^4 / 12.
+     The p-values: Z(alpha) from the n(rho - 1) table and Z(t_alpha) from the tau table, at n - 1, matched the
+     5 printed digits in experiment 6.
+   - **runs.test = Wald-Wolfowitz**: runs R, mean 1 + 2 n1 n2 / n, variance 2 n1 n2 (2 n1 n2 - n) / (n^2 (n - 1)),
+     normal p for the three alternatives: exactly equal (0 difference) on the signs about the median.
+   - terasvirta.test: the degrees of freedom are right (2 for lag 1, 7 for lag 2; F with (df, n - lag - df - 1 -
+     ...) where R reports 45 for lh lag 1 = 47 - 2: so F's second df = m - df) but the statistics are 1% to 37% off
+     (lh lag 1: 2.7958 against 2.6593).
+   - white.test (set.seed(1)): none of 8 x 2 variants (weights filled by rows / columns, logistic / tanh, principal
+     components of the covariance / correlation) matches (lh: 3.2950 against 3.09 to 3.43).
+   - po.test: R's lag is trunc((n - 1) / 100) = 2 and trunc((n - 1) / 30) = 9 for n = 300 (my candidate used n); the
+     statistics are 0.001% to 2% off; p-values 0.01 and 0.15 (the table's ends).
