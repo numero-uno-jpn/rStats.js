@@ -728,3 +728,12 @@ has the summaries.
    - **metareg = rma(yi, sei, mods, method = "REML"): exact**; **metainf = the leave-one-out common estimates**
      (pooled "common" by default): exact; metacum recorded (common or random to check).
    - trimfill: meta k0 = 4 (17 studies after filling) against metafor's trimfill(rma(DL / REML)) k0 = 1: to find.
+69. `tsmeta120-meta2.R` (designed inputs for the SMD variance):
+   - with equal means (g = 0) the variance is exactly 1/n1 + 1/n2 for five (n1, n2); with the same n the excess
+     var(g) - var(0) is c(N) g^2 with c constant in g (and c computed with d is c(N) J^2); c(N) against forms:
+     0.030747 (N = 20), 0.010810 (50), 0.005195 (100), 0.032760 (19), 0.002837 (180) =
+     **1 - (N - 4) / ((N - 2) J^2)** (e.g. N = 20: 1 - (16/18)/0.917087 = 0.030746): **SMD variance = 1/n1 + 1/n2 +
+     (1 - (N - 4)/((N - 2) J^2)) g^2** (the unbiased estimator of var(g), Hedges 1981). Resolved.
+   - **trimfill = metafor's trimfill on the common-effect model (method = "FE", estimator "L0")**: k0 = 4, side
+     right, the common estimate -0.29103 exact; TE.random is that of the augmented data (to confirm).
+   - **metacum = the cumulative common estimates** (pooled "common"): exact.
