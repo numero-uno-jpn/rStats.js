@@ -40,7 +40,8 @@ of interest (default 1). Competing risks when some δ is neither 0 nor `cause`. 
 - TP and FP: one row per distinct marker value in decreasing order ("marker > the k-th largest value"), plus a last
   row with everyone positive (TP = FP = 1); the first row is "marker > max" (TP = FP = 0). TP the cases'
   weighted proportion, FP the controls'. The AUC equals the trapezoid over these rows.
-- CumulativeIncidence = Σ a / n; survProb = the Kaplan-Meier survival (any event) at t.
+- CumulativeIncidence = Σ a / n; survProb = the survivors' weighted mass #(T > t)-weights / n (with the marginal
+  weights exactly the Kaplan-Meier of any event; with Cox or Aalen weights R reports the weighted mass too).
 - Stats per time: Cases, survivor at t, [Other events at t,] Censored at t (counts of T < t & cause, T > t,
   [T < t & other,] the rest).
 - `times`: R adds 0 when a single time is given (AUC NA there); rStats.js: the times as given (a single time is fine;
@@ -53,12 +54,13 @@ of interest (default 1). Competing risks when some δ is neither 0 nor `cause`. 
   (weights within about 6e-7 of R's; log 39, 40). The controls' weights then differ, so TP / FP / AUC are weighted
   in both arguments.
 - **Aalen weights:** the additive hazards model of the censoring with the marker (and other markers): at each
-  censoring time u, dB(u) = (X'X)^-1 X' dN(u) over the subjects at risk (T ≥ u), X = [1, Z]; G(s | Z_i) =
+  censoring time u, dB(u) = (X'X)^-1 X' dN(u) over the subjects at risk (the marginal weights' risk set: T > u or
+  censored at u; without ties the same as T ≥ u), X = [1, Z]; G(s | Z_i) =
   exp(−Σ_{u ≤ s} [1, Z_i] dB(u)) truncated to [0, 1] (log 41, 42; equal to 1e-14 without ties). **Tied censoring times
   are taken together** (all censorings at u in dN(u)); R's timereg breaks ties with random noise (log 44, 45), so with
   ties rStats.js differs from R within R's random spread (Choice 2). A singular X'X (fewer subjects at risk than
-  columns): that increment and the later ones are not estimable; G is then left at its last value (to be checked
-  against R's behaviour in the edge pass).
+  columns): that increment and the later ones are not estimable; G is then left at its last value. The covariates
+  enter centred and scaled by powers of 2 (the same fitted G).
 - iid = TRUE with Cox or Aalen weights: an error, as R ("Weighting must be marginal for computing the iid
   representation").
 
@@ -95,16 +97,18 @@ positional compensator and depends on the data order within ties (log 8), which 
   by column (iid not centred; sd with n − 1). With the same `setSeed`, equal to R's (log 11) wherever the iid is (no
   ties).
 - Competing risks: CI_AUC_1, CB_AUC_1, C.alpha.1 and the same for definition (ii) (the simulation for (i) first, then
-  for (ii): to check the order of the draws in the fixture).
+  for (ii)): **one set of draws for both definitions** (log 49).
 - Requires marginal weights and iid (R's errors: to be recorded from the fixture).
 
 ## compare (log 9; Choice 4)
 
 - z_t = (AUC_x − AUC_y) / (sd(iid_x − iid_y) / √n), p = 2 (1 − Φ(|z|)) (equal); `adjusted = TRUE` adds the adjusted
   p-values P(max_t |Z_t| ≥ |z_t|) for Z ~ N(0, Cor), Cor the correlation of the differences' iid columns (equal), and
-  Cor. R integrates with mvtnorm's randomized GenzBretz (abseps 1e-6); rStats.js computes the rectangle probability of
-  the multivariate normal itself to about 1e-7 (Genz's separation of variables with a deterministic lattice rule;
-  bivariate by the existing pbvnorm), compared with R at about 1e-6. Competing risks: for each definition.
+  Cor. R integrates with mvtnorm's randomized GenzBretz (default absolute tolerance 1e-3; R's values were 3e-6 to 3e-5
+  from the exact ones, log 50); rStats.js computes the probability deterministically: exactly up to three times
+  (pnorm, pbvnorm, Gauss-Legendre over Z_1 of the conditional pbvnorm), from four on by Genz's separation of variables
+  with a Richtmyer lattice and fixed shifts to about 1e-7. Compared with R at 1e-4. Competing risks: for each
+  definition, Cor one matrix per definition.
 
 ## SeSpPPVNPV (log 23-29)
 
@@ -125,11 +129,16 @@ check its simulation against).
 
 ## survivalROC, KM (log 30)
 
-- cut.values: −Inf, then the sorted distinct markers (or the given cut.values). S(c, t) = KM_{M > c}(t) P(M > c), S(t)
+- cut.values: −Inf, then the sorted distinct markers, or the given cut.values sorted; **the last cut's point is (0, 0)**
+  whatever lies above it (log 48). S(c, t) = KM_{M > c}(t) P(M > c), S(t)
   the KM at predict.time (`Survival`); TP(c) = (P(M > c) − S(c, t)) / (1 − S(t)), FP(c) = S(c, t) / S(t) (not monotone
   and possibly above 1, as R). AUC = the trapezoid over the points in the order of cut.values with signed FP steps.
-- `method: "NNE"` (R's default): an error in rStats.js ("NNE is not offered"; Choice 1); `entry` (left truncation): to
-  be checked in the fixture or refused.
+- `method: "NNE"` (R's default): an error in rStats.js ("NNE is not offered"; Choice 1); `entry` (left truncation): not
+  offered.
+
+## R's failures (log 47)
+
+- R's competing-risks iid fails ("incorrect number of dimensions") at a time with a single survivor; rStats.js computes.
 
 ## API decisions (mine)
 
