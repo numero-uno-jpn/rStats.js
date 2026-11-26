@@ -794,3 +794,10 @@ has the summaries.
    glm(cbind(x, n - x) ~ 1, binomial)** exactly; meta's Q has two values = rma.glmm's QE.Wld and QE.LRT (their
    definitions to check); the random CI is "classic" (z). rStats.js's glmer already fits nAGQ > 1, so the GLMM can
    be built on it (compared with tight refits, as the earlier glmer fixtures).
+76. `tsmeta120-metaprop-glmm2.R` (the GLMM brought into scope by the user, 2026-11-27; edited in place for a second
+   run): **the LRT Q = the residual deviance of glm(cbind(x, n - x) ~ 1, binomial)** (3e-10, glm's convergence);
+   **the Wald Q = the Wald chi-square of glm(cbind(x, n - x) ~ factor(study), binomial) for all study effects equal,
+   on all studies, df = k - 1** (to 3e-15; without zero cells it is Cochran's Q of the plain logits). A study with 0
+   or n events diverges in glm's iterations (22 iterations here, "converged") and contributes about 2e-5: the
+   rStats.js implementation needs its glm to follow R's iterations in a separated fit (to check with the fixture).
+   Leaving that study out (df k - 2) or using incremented logits is off.

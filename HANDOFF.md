@@ -18,11 +18,11 @@
   `tsCV`・`CV`・`ma`・`bizdays`・`monthdays`・`easter`)、その土台の stats (`arima` (カルマンフィルタの厳密な尤度) と predict・`decompose`・`stl`・
   `filter`・`HoltWinters`・`Box.test`・`ar`・`diffinv`)、tseries (`adf.test`・`kpss.test`・`pp.test`・`po.test`・`jarque.bera.test`・`runs.test`・
   `white.test`・`terasvirta.test`)
-- **メタ分析:** meta (`metabin` (MH・Peto・逆分散)・`metacont`・`metagen`・`metainc`・`metacor`・`metamean`・`metarate`・`metaprop` (GLMM 以外)、
+- **メタ分析:** meta (`metabin` (MH・Peto・逆分散)・`metacont`・`metagen`・`metainc`・`metacor`・`metamean`・`metarate`・`metaprop` (GLMM も、2026-11-27 に範囲へ)、
   REML・HK、サブグループ、`metabias` (Egger・Begg・Harbord・Peters・Thompson-Sharp)・`trimfill`・`metareg`・`metainf`・`metacum`、funnel・baujat の値)、
   netmeta (`pairwise`・`netmeta` (共通・変量効果)・`netrank` (P スコア)・`netsplit`・`netleague`・`decomp.design`・`netmeasures`・`netconnection`・
   `netcomb`・`discomb`・`netposet`、forest・funnel の値)
-- **入れない:** 描画 (`autoplot`・`gg*`)、`nnetar`・`tbats`/`bats`・`baggedETS`・`arfima`・`dshw`・`splinef`・`garch`、`metaprop` の GLMM、
+- **入れない:** 描画 (`autoplot`・`gg*`)、`nnetar`・`tbats`/`bats`・`baggedETS`・`arfima`・`dshw`・`splinef`・`garch`、
   リサンプリングの `rankogram`
 - **準備済み (セッション 38、2026-11-26):** Issue #570、作業ブランチ `dev/ts-meta-1.20` (main の HANDOFF の 3 コミット込み、手元だけ)、
   イメージ (x86_64・arm64 とも作り直し済み) に forecast 9.0.2・tseries 0.10.63・meta 8.5.0・netmeta 3.7.0 (netmeta の igraph に
@@ -94,7 +94,7 @@
     metamean・metarate・metaprop (Inverse)、サブグループ、metabias (Egger・Begg・Thompson・Harbord・Peters)、trimfill (FE で L0)、metareg、
     metainf・metacum (共通効果) が一致。**rStats.js に足すもの:** rma の GENQ (一般化 Q の区間、重みつきカイ二乗の和の分布)。
     **metaprop の GLMM (ログ 75):** glmer(cbind(x, n − x) ~ 1 + (1 | study), binomial, nAGQ = 7) と完全一致 (= metafor の rma.glmm)。
-    rStats.js の glmer で組める。**範囲に戻すかはユーザーに確認中**
+    rStats.js の glmer で組める。**ユーザーの決定 (2026-11-27): 範囲に戻し、既定も R と同じ GLMM** (範囲の「入れない」から外す)
   - **netmeta の実験 (ログ 71〜74、2026-11-27):** Rücker (2012) のグラフ理論的な当てはめ (L = B′WB の擬似逆行列、多群は有効抵抗が分散に
     一致する重み)、τ² (DL) = (Q − df)/tr(W(I − H)S(I − H)′) (S は多群の対比の共分散 (1/2)CC′、Jackson ら 2012)、P スコア、netsplit
     (直接 = その比較の行を補正なしの分散で逆分散統合、割合 = v_net/v_dir)、decomp.design、pairwise (多群のどこかにゼロなら全腕に 0.5)、
