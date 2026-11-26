@@ -636,3 +636,20 @@ has the summaries.
    mstl(filled, robust = TRUE), interpolate x - seasonal linearly (constant beyond the ends, approx rule = 2) and add
    the seasonal back.** With two years or less (n = 24 for m = 12) R uses the linear interpolation (the default
    `linear` argument). Resolved.
+
+## tsoutliers and tsclean, resumed (2026-11-27, asked for by the user)
+
+58. `tsmeta120-outliers3.R`: remainder candidates for a seasonal series: **R2 = seasadj(mstl(x, robust = TRUE)) -
+   supsmu(1:n, seasadj)$y** (the non-seasonal method applied after removing the seasonal component) gives R's
+   iterate = 1 outliers for all five series (AirPassengers with and without planted outliers, USAccDeaths, co2,
+   UKgas with 16 flagged points) with the [Q1 - 3 IQR, Q3 + 3 IQR] rule, and **the replacements = na.interp of x with
+   the flagged points removed (log item 57) agree to 17 digits**. The plain mstl remainder (R1), the non-robust mstl
+   and stl periodic robust variants are off.
+59. `tsmeta120-outliers4.R`: iterate = 2: **the final set = the union of the first pass's flags and the flags of the
+   same pass applied to the series with the first pass's points replaced** (V3): all five series; using the
+   cleaned series' fit on the original x (V2, V4, V5) is off.
+60. `tsmeta120-outliers5.R`: **iterate = 1, 2 exact (indices and replacements) for seven series, including
+   non-seasonal ones (remainder = x - supsmu(1:n, x)), and tsclean = x with those replacements: exact for all
+   seven.** iterate = 3 agrees for six series and not for UKgas (the third pass of the candidate differs: left open,
+   the default is 2). tsclean with missing values in x: R's values recorded (log only; the order of interpolation and
+   outlier detection is to be checked with the fixture).

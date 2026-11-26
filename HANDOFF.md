@@ -82,9 +82,13 @@
     悪い局所解で止まる (rStats.js は最適解へ、文書に)
   - **na.interp の季節版はユーザーの指示で再探索して解決 (ログ 52〜57、設計した入力で):** lm(x ~ fourier(K = min(5, floor(m/2))) + poly(t,
     min(6, floor(n/10)))) で補完 → mstl(robust) の季節 → x − 季節を線形補間 → 季節を戻す。28 構成で 1e-13
-  - **時系列の実験はひととおり済んだ (ログ 1〜57)。未解明は 1 つ:** tsoutliers (AirPassengers での分解)、次に探索する。stlm は stlf と同じ
+  - **tsoutliers・tsclean もユーザーの指示で再探索して解決 (ログ 58〜60):** 残差 = mstl(robust) の季節調整済み − supsmu のトレンド
+    (季節なしは x − supsmu)、[Q1 − 3 IQR, Q3 + 3 IQR] の外、置き換えは na.interp、iterate = 2 は「1 回目」と「1 回目を置き換えた系列で同じ手順」
+    の和集合。iterate 1・2 と tsclean が 7 系列で完全一致。iterate = 3 だけ UKgas で違う (既定は 2、未解明として残す)
+  - **時系列の実験は済んだ (ログ 1〜60)。** 小さな未解明: auto.arima の近似モードの表示の offset (選択に効かない)、tsoutliers の iterate = 3、
+    supsmu の同じ x の扱い (forecast では使わない)stlm は stlf と同じ
     作りの見込み (fixture で確かめる)。ets と auto.arima の最適化の終点は fixture で厳しい当てはめと比べる
-  - **次:** ユーザーの判断 (未解明の 2 つ) → メタ分析 (meta・netmeta) の実験 (ndiffs・nsdiffs・ocsb・auto.arima・ets・ses/holt/hw・thetaf・croston・BoxCox.lambda・mstl・
+  - **次:** メタ分析 (meta・netmeta) の実験 (ndiffs・nsdiffs・ocsb・auto.arima・ets・ses/holt/hw・thetaf・croston・BoxCox.lambda・mstl・
     tsclean・tsoutliers・na.interp・accuracy・dm.test・tsCV など)、その後メタ分析
 
 ## 次のセッションで最初にやること: 次の版の範囲を決める (1.18.0 は公開済み、2026-11-26)
