@@ -244,7 +244,7 @@ as a regression with ARMA errors.
 6. **arima's kappa prior** (log 4): R's filter loses accuracy for kappa >= 1e8; rStats.js computes the kappa model exactly
    (equal to R at the default 1e6).
 
-# Choices (for the user)
+# Choices (decided by the user, 2026-11-27: all as recommended)
 
 1. **Function names and entry points.** Proposed: stats' `arima` and forecast's `Arima` as `arima` and `forecastArima`
    (JavaScript is case-sensitive, but two names differing only in case invite mistakes); `autoArima`, `ets`, `forecast`

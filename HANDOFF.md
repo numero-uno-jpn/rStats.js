@@ -101,8 +101,8 @@
     netconnection、netcomb (加法 CNMA)、discomb、netcomb の変量効果、forest の値、netleague の配置と書式、netposet (M0 はハッセ図) が一致
   - **metaprop の GLMM (ログ 75〜76):** 範囲に戻した。glmer(nAGQ = 7)、Q は Wald (飽和 glm の Wald 検定、全研究) と LRT (共通 glm の逸脱度)
   - **実験の段階は済んだ (ログ 1〜77、2026-11-27)。** 未確認の小さな点: funnel の値、tsoutliers の iterate = 3、auto.arima の近似の表示 offset
-  - **仕様書 `oracle/tsmeta-behaviour.md` を書いた (2026-11-27、英語、ログの番号つき)。Choices 1〜7 はユーザーに確認中**
-  - **次:** Choices の決定 → fixture → 実装 → 端のケースの点検 → 配線・文書・訳・デモ → 版 1.20.0。
+  - **仕様書 `oracle/tsmeta-behaviour.md` を書いた (2026-11-27、英語、ログの番号つき)。Choices 1〜7 はユーザーがすべて推奨どおりに決めた (2026-11-27)**
+  - **次:** fixture → 実装 (stats の arima から、時系列 → メタ分析の順) → 端のケースの点検 → 配線・文書・訳・デモ → 版 1.20.0。
     実装で新たに要るもの: rma の GENQ、supsmu、R の乱数に依る white.test、ocsb の臨界値の表、Phillips-Ouliaris の表、bizdays の暦 (ndiffs・nsdiffs・ocsb・auto.arima・ets・ses/holt/hw・thetaf・croston・BoxCox.lambda・mstl・
     tsclean・tsoutliers・na.interp・accuracy・dm.test・tsCV など)、その後メタ分析
 
