@@ -105,10 +105,11 @@ positional compensator and depends on the data order within ties (log 8), which 
 - z_t = (AUC_x − AUC_y) / (sd(iid_x − iid_y) / √n), p = 2 (1 − Φ(|z|)) (equal); `adjusted = TRUE` adds the adjusted
   p-values P(max_t |Z_t| ≥ |z_t|) for Z ~ N(0, Cor), Cor the correlation of the differences' iid columns (equal), and
   Cor. R integrates with mvtnorm's randomized GenzBretz (default absolute tolerance 1e-3; R's values were 3e-6 to 3e-5
-  from the exact ones, log 50); rStats.js computes the probability deterministically: exactly up to three times
-  (pnorm, pbvnorm, Gauss-Legendre over Z_1 of the conditional pbvnorm), from four on by Genz's separation of variables
-  with a Richtmyer lattice and fixed shifts to about 1e-7. Compared with R at 1e-4. Competing risks: for each
-  definition, Cor one matrix per definition.
+  from the exact ones, log 50); rStats.js computes Q = P(max |Z| >= b) deterministically and directly (log 53): Q =
+  2 Σ_i P(|Z_j| < b for j < i, Z_i >= b), each term by pnorm, pbvnorm, adaptive Gauss-Legendre over Z_3 >= b of the
+  conditional pbvnorm, or (four times and more, or a correlation within 1e-9 of ±1) Genz's separation of variables with
+  the exceedance first, a Richtmyer lattice and fixed shifts, to 1e-6 relative. Compared with R at 1e-4. Competing
+  risks: for each definition, Cor one matrix per definition.
 
 ## SeSpPPVNPV (log 23-29)
 

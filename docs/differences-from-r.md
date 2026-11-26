@@ -2061,9 +2061,11 @@ The references are R's `stats` functions. The implementation decisions are recor
   the same unless events fall at t).
 - `confint`'s limits are not rounded (R rounds the percentages to 2 decimals). With the same `setSeed`, the band is R's
   (one set of draws for both definitions of competing risks, as R).
-- `compare(adjusted = TRUE)`: the multivariate normal probability is computed deterministically, exactly up to three
-  times and to about 1e-7 from four on; R integrates at random with mvtnorm's default absolute tolerance 1e-3 (R's
-  values were 3e-6 to 3e-5 off in the examples).
+- `compare(adjusted = TRUE)`: the adjusted p-value P(max |Z| >= |z|) is computed deterministically as a sum of positive
+  terms (the first time whose |Z| reaches the bound), so small p-values keep their relative accuracy (down to 1e-88
+  and beyond): to rounding up to three times, to about 1e-6 relative from four on. R integrates 1 − P at random with
+  mvtnorm's default absolute tolerance 1e-3 (R's values were 3e-6 to 3e-5 off in the examples, and small p-values are
+  lost to the subtraction).
 - Cox weights use the maximum of the partial likelihood with Efron ties (R's rms `cph` stops about 5e-7 short: weights
   within about 1e-6), and the order of the times only (R's `cph` changes at times near 1e-300).
 - Aalen weights take tied censoring times together (R's timereg breaks ties with random noise, so R's weights depend on

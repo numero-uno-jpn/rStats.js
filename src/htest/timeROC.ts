@@ -461,11 +461,13 @@ function coxWeights(data: Data, Z: number[][], times: readonly number[]): Condit
   const sf = survfitCoxph(time, delta.map((d) => (d === 0 ? 1 : 0)), Z, { ties: "efron", confType: "none", control: { timefix: false } });
   const beta = sf.fit.coefficients.map((b) => (Number.isNaN(b) ? 0 : b)); // aliased columns: R's NA, no effect
   const means = sf.fit.means;
-  const H0 = sf.surv[0]!.map((v) => -Math.log(v));
-  const risk = Z.map((z) => Math.exp(z.reduce((acc, v, j) => acc + beta[j]! * (v - means[j]!), 0)));
+  // log H_0 + lp, not H_0 exp(lp): a large linear predictor would overflow exp(lp) and give 0 x Infinity = NaN where
+  // H_0 is still 0 (before the first censoring)
+  const logH0 = sf.surv[0]!.map((v) => Math.log(-Math.log(v)));
+  const lp = Z.map((z) => z.reduce((acc, v, j) => acc + beta[j]! * (v - means[j]!), 0));
   const read = (i: number, s: number, strict: boolean) => {
     const k = lastIndex(sf.time, s, strict);
-    return k >= 0 ? Math.exp(-H0[k]! * risk[i]!) : 1;
+    return k >= 0 ? Math.exp(-Math.exp(logH0[k]! + lp[i]!)) : 1;
   };
   return {
     left: Array.from({ length: n }, (_, i) => read(i, time[i]!, true)),
@@ -903,7 +905,7 @@ function comparison(x: { auc: number[]; iid: number[][] }, y: { auc: number[]; i
   const adj = z.map((v) => {
     const b = Math.abs(v);
     if (Number.isNaN(b)) return NaN;
-    return Math.min(1, Math.max(0, 1 - pmvnormSymmetric(b, cor)));
+    return pmaxAbsExceed(b, cor);
   });
   return { pValues, adjusted: adj, cor };
 }
@@ -912,8 +914,9 @@ function comparison(x: { auc: number[]; iid: number[][] }, y: { auc: number[]; i
  * Compares the time-dependent AUCs of two markers measured on the same subjects at each time, by the z statistic of
  * the difference with the standard error from the difference of the iid representations; with `adjusted`, also the
  * p-values adjusted for the several times, P(max_t |Z_t| >= |z_t|) for Z normal with the correlation of the
- * statistics (computed deterministically: exactly up to three times, to about 1e-7 from four on; R integrates at
- * random with mvtnorm's default absolute tolerance of 1e-3, so the two differ by up to about 1e-4).
+ * statistics (computed deterministically as a sum of positive terms, so that small p-values keep their relative
+ * accuracy: to rounding up to three times, to about 1e-6 relative from four on; R integrates 1 − P at random with
+ * mvtnorm's default absolute tolerance of 1e-3, so the two differ by up to about 1e-4).
  *
  * Equivalent to `timeROC::compare()` in R.
  *
@@ -937,46 +940,58 @@ export function timeROCCompare(x: TimeROCResult, y: TimeROCResult, options: Time
 }
 
 // ---------------------------------------------------------------------------------------------------------------
-// The multivariate normal probability P(|Z_j| <= b for all j), Z ~ N(0, cor)
+// The adjusted p-value P(max_j |Z_j| >= b), Z ~ N(0, cor)
 
 /**
- * P(|Z_j| <= b for all j), Z ~ N(0, cor). One and two dimensions exactly (pnorm, pbvnorm); three by composite
- * Gauss-Legendre over Z_1 of the conditional bivariate probability (pbvnorm), when no correlation with Z_1 is ±1; else
- * Genz's separation of variables (Genz 1992) with a Richtmyer lattice rule, periodized by the baker's transform and
- * randomized by fixed shifts from a private generator (deterministic, not touching the user's random numbers), the
- * points doubled until three standard errors over the shifts fall below 1e-8.
+ * P(max_j |Z_j| >= b) for Z ~ N(0, cor), computed directly (not as 1 − P(all |Z_j| < b), which loses the small values
+ * to cancellation) by the first exceedance: Q = 2 Σ_i P(|Z_j| < b for j < i, Z_i >= b), a sum of positive terms (the
+ * factor 2 by the symmetry Z → −Z). The i-th term is a probability of the leading i variables: pnorm for i = 1,
+ * pbvnorm for i = 2, adaptive Gauss-Legendre over Z_3 >= b of the conditional bivariate probability (pbvnorm) for
+ * i = 3, and Genz's separation of variables (Genz 1992) with a Richtmyer lattice for i >= 4 or a correlation within
+ * 1e-9 of ±1 (a Richtmyer lattice periodized by the baker's transform, fixed shifts from a private generator: no use of
+ * the user's random numbers; points doubled until two standard errors fall below 1e-6 of the term). Each term
+ * keeps its relative accuracy, so small adjusted p-values do too.
  *
  * @internal
  */
-export function pmvnormSymmetric(b: number, cor: readonly (readonly number[])[]): number {
+export function pmaxAbsExceed(b: number, cor: readonly (readonly number[])[]): number {
   const d = cor.length;
-  if (b === Infinity) return 1;
-  if (!(b > 0)) return 0;
-  if (d === 1) return 1 - 2 * pnorm1(-b, 0, 1, true, false);
-  if (d === 2) return pbvnorm([-b, -b], [b, b], Math.max(-1, Math.min(1, cor[0]![1]!)));
-  if (d === 3) {
-    const r12 = cor[0]![1]!;
-    const r13 = cor[0]![2]!;
-    const r23 = cor[1]![2]!;
-    if (Math.abs(r12) < 1 - 1e-9 && Math.abs(r13) < 1 - 1e-9) {
-      const s2 = Math.sqrt(1 - r12 * r12);
-      const s3 = Math.sqrt(1 - r13 * r13);
-      const rho = Math.max(-1, Math.min(1, (r23 - r12 * r13) / (s2 * s3)));
-      const lim = Math.min(b, 40);
-      const panels = 200;
-      const h = (2 * lim) / panels;
-      let tot = 0;
-      for (let k = 0; k < panels; k++) {
-        for (let q = 0; q < GL_X.length; q++) {
-          const x = -lim + h * (k + 0.5 + GL_X[q]! / 2);
-          const phi = Math.exp(-x * x / 2) / Math.sqrt(2 * Math.PI);
-          tot += (GL_W[q]! * h / 2) * phi * pbvnorm([(-b - r12 * x) / s2, (-b - r13 * x) / s3], [(b - r12 * x) / s2, (b - r13 * x) / s3], rho);
-        }
-      }
-      return tot;
+  if (Number.isNaN(b)) return NaN;
+  if (b === Infinity) return 0;
+  if (!(b > 0)) return 1;
+  let q = 0;
+  for (let i = 1; i <= d; i++) q += firstExceedance(b, cor, i);
+  return Math.min(1, 2 * q);
+}
+
+/** P(all |Z_j| <= b) = 1 − {@link pmaxAbsExceed} (for moderate b; the tests). @internal */
+export function pmvnormSymmetric(b: number, cor: readonly (readonly number[])[]): number {
+  return 1 - pmaxAbsExceed(b, cor);
+}
+
+/** P(|Z_j| < b for j < i, Z_i >= b) over the leading i variables. */
+function firstExceedance(b: number, cor: readonly (readonly number[])[], i: number): number {
+  if (i === 1) return pnorm1(-b, 0, 1, true, false);
+  const r = (a: number, c: number) => Math.max(-1, Math.min(1, cor[a]![c]!));
+  if (i === 2) return pbvnorm([-b, b], [b, Infinity], r(0, 1));
+  if (i === 3) {
+    const r13 = r(0, 2);
+    const r23 = r(1, 2);
+    if (Math.abs(r13) < 1 - 1e-9 && Math.abs(r23) < 1 - 1e-9) {
+      const s1 = Math.sqrt(1 - r13 * r13);
+      const s2 = Math.sqrt(1 - r23 * r23);
+      const rho = Math.max(-1, Math.min(1, (r(0, 1) - r13 * r23) / (s1 * s2)));
+      const f = (x: number) => (Math.exp(-x * x / 2) / Math.sqrt(2 * Math.PI))
+        * pbvnorm([(-b - r13 * x) / s1, (-b - r23 * x) / s2], [(b - r13 * x) / s1, (b - r23 * x) / s2], rho);
+      return adaptiveGL(f, b, b + 40);
     }
   }
-  return genzLattice(b, cor);
+  // the exceedance Z_i >= b first (the most constrained variable first, as Genz advises): the integrand is then Phi(-b)
+  // times conditional probabilities of order 1, so the lattice keeps the relative accuracy of a tiny term
+  const order = [i - 1, ...Array.from({ length: i - 1 }, (_, j) => j)];
+  const lower = order.map((j) => (j === i - 1 ? b : -b));
+  const upper = order.map((j) => (j === i - 1 ? Infinity : b));
+  return genzLattice(lower, upper, order.map((a) => order.map((c) => cor[a]![c]!)));
 }
 
 /** Ten-point Gauss-Legendre nodes and weights on [-1, 1]. */
@@ -985,7 +1000,38 @@ const GL_X = [-0.9739065285171717, -0.8650633666889845, -0.6794095682990244, -0.
 const GL_W = [0.0666713443086881, 0.1494513491505806, 0.219086362515982, 0.2692667193099963, 0.2955242247147529,
   0.2955242247147529, 0.2692667193099963, 0.219086362515982, 0.1494513491505806, 0.0666713443086881];
 
-function genzLattice(b: number, cor: readonly (readonly number[])[]): number {
+/** ∫_a^c f by ten-point Gauss-Legendre, halving the panels until the halves agree to 1e-13 of the total. */
+function adaptiveGL(f: (x: number) => number, a: number, c: number): number {
+  const gl = (lo: number, hi: number) => {
+    const m = (lo + hi) / 2;
+    const h = (hi - lo) / 2;
+    let s = 0;
+    for (let k = 0; k < 10; k++) s += GL_W[k]! * f(m + h * GL_X[k]!);
+    return s * h;
+  };
+  // start from panels that grow away from a (the integrand is largest near a)
+  const edges = [a];
+  for (let w = 1 / 64; edges[edges.length - 1]! < c; w *= 2) edges.push(Math.min(c, edges[edges.length - 1]! + w));
+  const panels = edges.slice(1).map((hi, k) => ({ lo: edges[k]!, hi, v: gl(edges[k]!, hi) }));
+  const scale = Math.abs(panels.reduce((s, p) => s + p.v, 0));
+  let total = 0;
+  const stack = panels.map((p) => ({ ...p, depth: 0 }));
+  while (stack.length) {
+    const p = stack.pop()!;
+    const m = (p.lo + p.hi) / 2;
+    const left = gl(p.lo, m);
+    const right = gl(m, p.hi);
+    if (Math.abs(left + right - p.v) <= 1e-13 * scale || p.depth >= 40) total += left + right;
+    else stack.push({ lo: p.lo, hi: m, v: left, depth: p.depth + 1 }, { lo: m, hi: p.hi, v: right, depth: p.depth + 1 });
+  }
+  return total;
+}
+
+/**
+ * P(lower < Z < upper), Z ~ N(0, cor), by Genz's separation of variables with a Richtmyer lattice (see
+ * {@link pmaxAbsExceed}); relative accuracy about 1e-6.
+ */
+function genzLattice(lower: readonly number[], upper: readonly number[], cor: readonly (readonly number[])[]): number {
   const d = cor.length;
   // Cholesky (positive semidefinite: a zero pivot makes that variable a combination of the earlier ones)
   const L = Array.from({ length: d }, () => new Array<number>(d).fill(0));
@@ -998,7 +1044,7 @@ function genzLattice(b: number, cor: readonly (readonly number[])[]): number {
     }
   }
   const primes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97];
-  const gen = Array.from({ length: d - 1 }, (_, j) => {
+  const gen = Array.from({ length: Math.max(1, d - 1) }, (_, j) => {
     const s = Math.sqrt(primes[j % primes.length]! + 100 * Math.floor(j / primes.length));
     return s - Math.floor(s);
   });
@@ -1009,24 +1055,34 @@ function genzLattice(b: number, cor: readonly (readonly number[])[]): number {
     seed ^= seed << 5;
     return (seed >>> 0) / 4294967296;
   };
+  // Each interval's width from the tail it lies in (the upper tail where both bounds are above the conditional mean), so
+  // that a tiny probability such as Z >= b keeps its relative accuracy; the draw inverts within the same tail.
+  const lowerTail = (x: number) => (x === -Infinity ? 0 : x === Infinity ? 1 : pnorm1(x, 0, 1, true, false));
+  const upperTail = (x: number) => (x === -Infinity ? 1 : x === Infinity ? 0 : pnorm1(x, 0, 1, false, false));
   const y = new Array<number>(d);
   const point = (w: readonly number[]) => {
     let f = 1;
     for (let i = 0; i < d; i++) {
       let s = 0;
       for (let k = 0; k < i; k++) s += L[i]![k]! * y[k]!;
-      let lo: number;
-      let hi: number;
-      if (L[i]![i]! > 0) {
-        lo = pnorm1((-b - s) / L[i]![i]!, 0, 1, true, false);
-        hi = pnorm1((b - s) / L[i]![i]!, 0, 1, true, false);
-      } else {
-        lo = 0;
-        hi = s >= -b && s <= b ? 1 : 0;
+      const l = L[i]![i]!;
+      if (l === 0) {
+        if (!(s >= lower[i]! && s <= upper[i]!)) return 0;
+        if (i < d - 1) y[i] = 0;
+        continue;
       }
-      f *= hi - lo;
-      if (f <= 0) return 0;
-      if (i < d - 1) y[i] = qnorm1(Math.min(Math.max(lo + w[i]! * (hi - lo), 1e-300), 1 - 1e-16), 0, 1, true, false);
+      const a = (lower[i]! - s) / l;
+      const c = (upper[i]! - s) / l;
+      const upperSide = a > 0;
+      const ta = upperSide ? upperTail(a) : lowerTail(a);
+      const tc = upperSide ? upperTail(c) : lowerTail(c);
+      const width = upperSide ? ta - tc : tc - ta;
+      f *= width;
+      if (!(f > 0)) return 0;
+      if (i < d - 1) {
+        const u = Math.max(upperSide ? ta - w[i]! * width : ta + w[i]! * width, 1e-300);
+        y[i] = upperSide ? -qnorm1(u, 0, 1, true, false) : qnorm1(Math.min(u, 1 - 1e-16), 0, 1, true, false);
+      }
     }
     return f;
   };
@@ -1051,7 +1107,7 @@ function genzLattice(b: number, cor: readonly (readonly number[])[]): number {
     const m = vals.reduce((s, v) => s + v, 0) / shifts;
     const se = Math.sqrt(vals.reduce((s, v) => s + (v - m) ** 2, 0) / (shifts - 1) / shifts);
     est = m;
-    if (2 * se < 1e-7) break;
+    if (2 * se <= 1e-6 * m || m === 0) break;
     N *= 2;
   }
   return est;

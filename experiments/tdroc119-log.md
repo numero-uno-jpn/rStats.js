@@ -246,3 +246,16 @@ script keeps the search that succeeded.
     TP (1, 0, 0, 0) and FP above 1. timeROC's aalen weights on the data without ties: a collinear (2 x marker) or a
     constant other marker gives **exactly the unweighted AUC** (0.75175, 0.71795): R's Aalen fit fails silently and the
     weights are all 1; the marker alone 0.74990, 0.72063.
+
+## The remaining axes before the release (2026-11-26)
+
+53. (rStats.js only, no R run; `test/tdroc119Edge.test.ts` "the remaining axes") Cox and Aalen with covariates of very
+    different scales together (1e300 with 1e-300 and so on): the weights to 1e-15. Heavy censoring (G(t) 0.013): normal
+    AUC and s.e.; no survivors: NaN. **Small adjusted p-values were lost**: 1 − P gave 4.4e-15 for 3.7e-15 at b = 8 and
+    0 at b = 10 (three times). Rewritten as Q = 2 Σ_i P(|Z_j| < b, j < i; Z_i >= b): within the Bonferroni bounds
+    S1 − S2 <= Q <= S1 at b up to 30, which pinch it to 1e-6 from b = 8 on, and equal to the equicorrelated closed form
+    to 1e-10 (three times) and 1e-5 (four and six). The lattice for four times first put the tiny variable last and
+    stopped at an absolute 1e-12: outside the bounds from b = 6 on; with the exceedance first and a relative criterion
+    inside them, and 2 to 30 times faster. Correlations at ±1 equal the one-dimensional limit; at 1 − 1e-10 within 1e-5
+    of it. Cox weights: exp(−exp(log H_0 + lp)) instead of exp(−H_0 exp(lp)), so that an overflowing exp(lp) where H_0 is 0
+    cannot give NaN (not reached with coxph's fits in the examples; defensive).

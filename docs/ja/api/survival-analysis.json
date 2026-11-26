@@ -2480,9 +2480,9 @@
     "ja": "同じ対象者と時点についての、もう 1 つの結果"
   },
   "timeROCCompare#summary": {
-    "hash": "bc59b768909b",
-    "en": "Compares the time-dependent AUCs of two markers measured on the same subjects at each time, by the z statistic of\nthe difference with the standard error from the difference of the iid representations; with `adjusted`, also the\np-values adjusted for the several times, P(max_t |Z_t| >= |z_t|) for Z normal with the correlation of the\nstatistics (computed deterministically: exactly up to three times, to about 1e-7 from four on; R integrates at\nrandom with mvtnorm's default absolute tolerance of 1e-3, so the two differ by up to about 1e-4).\n\nEquivalent to `timeROC::compare()` in R.",
-    "ja": "同じ対象者で測定した 2 つのマーカーの時間依存 AUC を、時点ごとに比較します。差の z 統計量を用い、標準誤差は iid 表現の差から求めます。`adjusted` を指定すると、複数の時点について調整した p 値、すなわち統計量の相関をもつ正規分布に従う Z についての P(max_t |Z_t| >= |z_t|) も返します (決定論的に計算します。時点が 3 つまでは厳密、4 つ以上では約 1e-7 の精度です。R は mvtnorm の既定の絶対許容誤差 1e-3 で乱数により積分するため、両者は最大で約 1e-4 異なります)。\n\nR の `timeROC::compare()` と同等です。"
+    "hash": "684ec87ba983",
+    "en": "Compares the time-dependent AUCs of two markers measured on the same subjects at each time, by the z statistic of\nthe difference with the standard error from the difference of the iid representations; with `adjusted`, also the\np-values adjusted for the several times, P(max_t |Z_t| >= |z_t|) for Z normal with the correlation of the\nstatistics (computed deterministically as a sum of positive terms, so that small p-values keep their relative\naccuracy: to rounding up to three times, to about 1e-6 relative from four on; R integrates 1 − P at random with\nmvtnorm's default absolute tolerance of 1e-3, so the two differ by up to about 1e-4).\n\nEquivalent to `timeROC::compare()` in R.",
+    "ja": "同じ対象者で測定した 2 つのマーカーの時間依存 AUC を、時点ごとに比較します。差の z 統計量を用い、標準誤差は iid 表現の差から求めます。`adjusted` を指定すると、複数の時点について調整した p 値、すなわち統計量の相関をもつ正規分布に従う Z についての P(max_t |Z_t| >= |z_t|) も返します (正の項の和として決定論的に計算するので、小さな p 値も相対精度を保ちます。時点が 3 つまでは丸めの誤差まで、4 つ以上では相対誤差約 1e-6 です。R は mvtnorm の既定の絶対許容誤差 1e-3 で 1 − P を乱数により積分するため、両者は最大で約 1e-4 異なります)。\n\nR の `timeROC::compare()` と同等です。"
   },
   "timeROCConfint#@param fit": {
     "hash": "34bb05c3c36f",

@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import {
   timeROC, timeROCConfint, timeROCCompare, seSpPPVNPV, survivalROC, timeROCAucCurve, timeROCAucDiff,
-  type TimeROCResult,
+  pmaxAbsExceed, type TimeROCResult,
 } from "../src/htest/timeROC.js";
+import { pbvnorm } from "../src/distributions/bvnorm.js";
+import { pnorm } from "../src/distributions/normal.js";
 import { setSeed } from "../src/random/rng.js";
 
 // The comprehensive edge pass of 1.19.0 (every published function on every axis): scales 1e±150 and 1e±300 of the
@@ -282,4 +284,97 @@ describe("large n", () => {
     expect(f.auc.every((v) => v > 0.5 && v < 0.7)).toBe(true);
     expect(f.inference!.sd.every((v) => v > 0 && v < 0.05)).toBe(true);
   }, 60000);
+});
+
+// The checks added before the release (the user's question about the remaining axes, 2026-11-26)
+describe("the remaining axes", () => {
+  const auc = (f: TimeROCResult) => (f.competingRisks ? f.auc1 : f.auc);
+  it("Cox and Aalen with covariates of very different scales together", () => {
+    const d = smooth;
+    const t = [4.1, 8.3, 12.7];
+    for (const w of ["cox", "aalen"] as const) {
+      const base = timeROC(d.T, d.delta, d.marker, { times: t, weighting: w, otherMarkers: d.other.map((x) => [x]) });
+      for (const [sm, so] of [[1e300, 1e-300], [1e-300, 1e300], [1e150, 1e-150], [1, 1e-300], [1, 1e300]]) {
+        const r = timeROC(d.T, d.delta, d.marker.map((x) => x * sm!), { times: t, weighting: w, otherMarkers: d.other.map((x) => [x * so!]) });
+        expect(rel(r.weights.ipcwTimes, base.weights.ipcwTimes), `${w} ${sm} ${so}`).toBeLessThan(1e-13);
+        expect(rel(summary(r), summary(base))).toBeLessThan(1e-13);
+      }
+    }
+  });
+
+  it("extreme weights: heavy censoring takes G(t) near 0; no survivors gives NaN", () => {
+    const n = 200;
+    let seed = 3;
+    const u = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    const M = Array.from({ length: n }, u);
+    const T0 = M.map((m) => -Math.log(u()) / Math.exp(2 * m));
+    const C = M.map(() => -Math.log(u()) * 0.05);
+    const T = T0.map((x, i) => Math.min(x, C[i]!));
+    const D = T0.map((x, i) => (x <= C[i]! ? 1 : 0));
+    const f = timeROC(T, D, M, { times: [0.05, 0.2, 0.4], iid: true });
+    if (f.competingRisks || f.weights.method !== "marginal") throw new Error("unexpected");
+    expect(f.weights.ipcwTimes[1]!).toBeLessThan(0.02);
+    expect(f.auc.slice(0, 2).every((v) => v > 0 && v < 1) && f.inference!.sd.slice(0, 2).every((v) => v > 0 && v < 1)).toBe(true);
+    expect(f.stats[2]!.survivors).toBe(0);
+    expect(Number.isNaN(f.auc[2]!)).toBe(true);
+    for (const w of ["cox", "aalen"] as const) {
+      const g = timeROC(T, D, M, { times: [0.05, 0.2], weighting: w });
+      expect(auc(g).every((v) => v > 0 && v < 1)).toBe(true);
+    }
+  });
+
+  // Bonferroni: S1 - S2 <= P(max |Z| >= b) <= S1
+  const both = (b: number, r: number) => 2 * (pbvnorm([b, b], [Infinity, Infinity], r) + pbvnorm([b, -Infinity], [Infinity, -b], r));
+  const bounds = (b: number, C: number[][]) => {
+    const S1 = C.length * 2 * (pnorm(-b) as number);
+    let S2 = 0;
+    for (let i = 0; i < C.length; i++) for (let j = i + 1; j < C.length; j++) S2 += both(b, C[i]![j]!);
+    return [S1 - S2, S1] as const;
+  };
+  // equicorrelation 1/2: Z_j = (W + E_j) / sqrt 2; P(max |Z| >= b) = E[1 - p(W)^d] with 1 - p^d = (1 - p)(1 + p + ... + p^(d-1))
+  const equi = (b: number, d: number) => {
+    const M = 60000, L = 12, h = (2 * L) / M;
+    let t = 0;
+    for (let k = 0; k < M; k++) {
+      const z = -L + (k + 0.5) * h;
+      const out = (pnorm(z - b * Math.SQRT2) as number) + (pnorm(-z - b * Math.SQRT2) as number); // P(|W + E| >= b sqrt 2 | W)
+      const p = 1 - out;
+      let geo = 0;
+      for (let j = 0; j < d; j++) geo += p ** j;
+      t += h * (Math.exp(-z * z / 2) / Math.sqrt(2 * Math.PI)) * out * geo;
+    }
+    return t;
+  };
+
+  it("small adjusted p-values keep their relative accuracy (three times)", () => {
+    const C = [[1, 0.5, 0.3], [0.5, 1, 0.5], [0.3, 0.5, 1]];
+    for (const b of [2, 4, 6, 8, 10, 20, 30]) {
+      const q = pmaxAbsExceed(b, C);
+      const [lo, hi] = bounds(b, C);
+      expect(q, `b ${b}`).toBeGreaterThanOrEqual(lo * (1 - 1e-12));
+      expect(q, `b ${b}`).toBeLessThanOrEqual(hi * (1 + 1e-12));
+      if (b >= 8) expect((q - lo) / q).toBeLessThan(1e-6); // the bounds pinch: q is right to that many digits
+    }
+    const E = Array.from({ length: 3 }, (_, i) => Array.from({ length: 3 }, (_, j) => (i === j ? 1 : 0.5)));
+    for (const b of [1, 3, 5, 7]) expect(Math.abs(pmaxAbsExceed(b, E) / equi(b, 3) - 1), `b ${b}`).toBeLessThan(1e-10);
+  });
+
+  it("small adjusted p-values keep their relative accuracy (four and six times)", () => {
+    for (const d of [4, 6]) {
+      const E = Array.from({ length: d }, (_, i) => Array.from({ length: d }, (_, j) => (i === j ? 1 : 0.5)));
+      for (const b of [2, 4, 6, 8, 12]) expect(Math.abs(pmaxAbsExceed(b, E) / equi(b, d) - 1), `d ${d} b ${b}`).toBeLessThan(1e-5);
+    }
+  }, 120000);
+
+  it("correlations at and near ±1", () => {
+    const one = 2 * (pnorm(-1.5) as number);
+    for (const r of [1, -1]) expect(Math.abs(pmaxAbsExceed(1.5, [[1, r, r], [r, 1, r], [r, r, 1]].map((row, i) => row.map((v, j) => (i === j ? 1 : r === -1 && i + j === 3 ? 1 : v))))) - one).toBeLessThan(1e-9);
+    // continuity: r = 1 - 1e-10 is next to the limit; 1 - 1e-6 a little above it
+    const near = (r: number) => pmaxAbsExceed(1.5, [[1, r, r], [r, 1, r], [r, r, 1]]);
+    expect(Math.abs(near(1 - 1e-10) - one)).toBeLessThan(1e-5);
+    expect(near(1 - 1e-6)).toBeGreaterThan(one);
+    expect(near(1 - 1e-6) - one).toBeLessThan(1e-3);
+    // bivariate: pbvnorm itself
+    expect(Math.abs(pmaxAbsExceed(1.5, [[1, 1], [1, 1]]) - one)).toBeLessThan(1e-12);
+  });
 });
