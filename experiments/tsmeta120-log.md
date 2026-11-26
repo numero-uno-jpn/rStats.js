@@ -801,3 +801,13 @@ has the summaries.
    or n events diverges in glm's iterations (22 iterations here, "converged") and contributes about 2e-5: the
    rStats.js implementation needs its glm to follow R's iterations in a separated fit (to check with the fixture).
    Leaving that study out (df k - 2) or using incremented logits is off.
+77. `tsmeta120-netmeta5.R`:
+   - **netcomb random: tau2 = (Q.additive - df) / tr(W (I - H)(I - H)') with H the additive model's hat matrix X (X'WX)^-1
+     X'W (two-arm studies here, so S = I), then the WLS with seTE^2 + tau2**: tau2, components and their se exact.
+   - **discomb (a disconnected network) = the same additive WLS**: components, Q.additive, df exact.
+   - **forest values: TE.random[, ref] +- qnorm(0.975) seTE.random[, ref]**: exact.
+   - **netleague: the lower triangle [i, j] = TE.random of the column treatment against the row treatment
+     (= -TE.random[i, j]) with its CI, the upper triangle the direct estimates; text "est (lower to upper)" with the
+     requested digits, numbers padded to a common width**: recorded.
+   - **netposet's M0 = the covering relation (Hasse diagram) of "i at least as good as j in every outcome and better
+     in one" on the P-scores**: the transitive edge (4 over 2 through 3) is left out; my plain relation had it.

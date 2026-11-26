@@ -98,8 +98,11 @@
   - **netmeta の実験 (ログ 71〜74、2026-11-27):** Rücker (2012) のグラフ理論的な当てはめ (L = B′WB の擬似逆行列、多群は有効抵抗が分散に
     一致する重み)、τ² (DL) = (Q − df)/tr(W(I − H)S(I − H)′) (S は多群の対比の共分散 (1/2)CC′、Jackson ら 2012)、P スコア、netsplit
     (直接 = その比較の行を補正なしの分散で逆分散統合、割合 = v_net/v_dir)、decomp.design、pairwise (多群のどこかにゼロなら全腕に 0.5)、
-    netconnection、netcomb (加法 CNMA) が一致。未確認: discomb、netcomb の変量効果、netleague・forest・funnel の値、netposet の順序関係
-  - **次:** 実験の残り (上の未確認) を済ませて、仕様書 (oracle/tsmeta-behaviour.md) → fixture → 実装へ (ndiffs・nsdiffs・ocsb・auto.arima・ets・ses/holt/hw・thetaf・croston・BoxCox.lambda・mstl・
+    netconnection、netcomb (加法 CNMA)、discomb、netcomb の変量効果、forest の値、netleague の配置と書式、netposet (M0 はハッセ図) が一致
+  - **metaprop の GLMM (ログ 75〜76):** 範囲に戻した。glmer(nAGQ = 7)、Q は Wald (飽和 glm の Wald 検定、全研究) と LRT (共通 glm の逸脱度)
+  - **実験の段階は済んだ (ログ 1〜77、2026-11-27)。** 未確認の小さな点: funnel の値、tsoutliers の iterate = 3、auto.arima の近似の表示 offset
+  - **次:** 仕様書 (oracle/tsmeta-behaviour.md、時系列とメタ分析) → fixture → 実装 → 端のケースの点検 → 配線・文書・訳・デモ → 版 1.20.0。
+    実装で新たに要るもの: rma の GENQ、supsmu、R の乱数に依る white.test、ocsb の臨界値の表、Phillips-Ouliaris の表、bizdays の暦 (ndiffs・nsdiffs・ocsb・auto.arima・ets・ses/holt/hw・thetaf・croston・BoxCox.lambda・mstl・
     tsclean・tsoutliers・na.interp・accuracy・dm.test・tsCV など)、その後メタ分析
 
 ## 次のセッションで最初にやること: 次の版の範囲を決める (1.18.0 は公開済み、2026-11-26)
