@@ -528,5 +528,12 @@
   "btAbilities": "Bradley-Terry モデルの対象の能力と標準誤差",
   "countsToBinomial": "勝敗の表から対象の組ごとの勝ち数を作る",
   "qvcalc": "準分散 (基準に依らない比較のための準標準誤差)",
-  "worstErrors": "準標準誤差の、すべての対比での最悪の相対誤差"
+  "worstErrors": "準標準誤差の、すべての対比での最悪の相対誤差",
+  "timeROC": "打ち切りのある事象時間の時間依存 ROC 曲線と AUC (累積/動的の定義、競合リスクの定義 (i)・(ii)、打ち切りの逆確率の重みは KM・Cox・Aalen、iid 表現と標準誤差)",
+  "timeROCConfint": "時間依存 AUC の点ごとの信頼区間と時点にわたる同時信頼帯 (乗数ブートストラップ)",
+  "timeROCCompare": "同じ対象で測った 2 つのマーカーの時間依存 AUC の比較 (時点ごとの p 値と多重性を調整した p 値)",
+  "timeROCAucCurve": "R の plotAUCcurve が描く値: 時点ごとの AUC と信頼区間・同時信頼帯",
+  "timeROCAucDiff": "2 つの時間依存 AUC の差と点ごとの信頼区間 (R の plotAUCcurveDiff の値)",
+  "seSpPPVNPV": "閾値「マーカー > c」の時間依存の感度・特異度・陽性的中率・陰性的中率 (timeROC の重み、iid 表現と標準誤差)",
+  "survivalROC": "Heagerty・Lumley・Pepe の Kaplan-Meier 推定量による予測時点の時間依存 ROC 曲線と AUC"
 }
