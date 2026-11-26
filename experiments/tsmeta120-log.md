@@ -367,3 +367,34 @@ has the summaries.
    - tsCV: h = 3 exact when the errors of origin t are stored in row t (not at t + h as the help page's e[t+h]
      suggests); h = 1 has NA at 1 and 100 and needs the same check.
    - **arimaorder**: c(p, d, q) or c(p, d, q, P, D, Q, Frequency) named.
+30. `tsmeta120-fsmall3.R`:
+   - **easter: the shares are rounded to two decimals** (round(share, 2)), with and without easter.mon, monthly and
+     quarterly, 1990-2035: exact.
+   - **tsCV**: h = 1 equal to y[t + 1] - f in position t (NA at 1, where R's first fit is missing, and at n): exact.
+   - **BoxCox.lambda "guerrero" = optimize(cv, c(lower, upper)) with optimize's default tolerance**: exact (0
+     difference) for five series and for lower = 0, upper = 1.
+   - **bizdays "NERC"**: weekdays minus New Year's Day, Memorial Day, Independence Day, Labor Day, Thanksgiving and
+     Christmas (Sunday to Monday, Saturday not moved): exact 2000-2025. New York: the NYSE rules agree except four
+     months, the special closings (2001-09, 2004-06, 2007-01, 2012-10).
+   - findfrequency: the period at the global maximum (F2) agrees except where R returns 1 for a visible peak; na.interp
+     for a seasonal series: no variant of "first filling + robust STL + linear interpolation of the seasonally
+     adjusted series" matches (best 9.7).
+31. `tsmeta120-fsmall4.R` (first refused: the case label "mstl" is a function's name; renamed):
+   - findfrequency on 600 series: R returns 1 in every case with max(spec) <= 9.77 and agrees with F2 in every case
+     with max(spec) >= 10.08: **a threshold of 10 on the maximum of spec.ar's spectrum**; one series with the maximum
+     at the lowest frequency returned 7 (a later local maximum).
+   - na.interp (seasonal): 75 combinations (19 first fillings x 4 decompositions): the best is 1.84 off. Not resolved
+     after two experiments: left to the user.
+   - bizdays: **Zurich** (1 and 2 January, Good Friday, Easter Monday, 1 May, Ascension, Whit Monday, 1 August, 25
+     and 26 December, Sechselaeuten = 3rd Monday of April, Knabenschiessen = 2nd Monday of September, none moved)
+     **exact 1995-2025**. New York: MLK Day only from 1998, and no 2018 / 2025 days of mourning; London / Toronto:
+     the Boxing Day rule when Christmas falls on Friday or Saturday.
+32. `tsmeta120-fsmall5.R` (first refused: my variable `rq` is quantreg's function; renamed `rQ`):
+   - **findfrequency: 1 if max(spec) <= 10; otherwise round(1 / f) at the maximum; if the maximum is at the lowest
+     frequency, the largest value after the spectrum first rises (both readings of "first rises" agree), 1 if that
+     is the last frequency**: 800 of 800 fresh series exact.
+   - **bizdays**, 1990-2030, monthly and quarterly: **London, NERC, Toronto, Zurich exact**; New York exact except
+     April 1994: the NYSE closing for President Nixon's funeral (27 April 1994), to be added to the special closings
+     (27 Apr 1994, 11-14 Sep 2001, 11 Jun 2004, 2 Jan 2007, 29-30 Oct 2012; not 5 Dec 2018 or 9 Jan 2025). The
+     corrected rules: NYSE New Year's Day on Saturday is not moved; London Boxing Day on Saturday -> Monday 28;
+     Toronto with Christmas on Saturday closes Monday 27 only.

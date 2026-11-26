@@ -1,0 +1,49 @@
+{
+  "R": "R version 4.6.2 (2026-10-29)",
+  "arch": "x86_64",
+  "forecast": "9.0.2",
+  "ff": {
+    "n": 800,
+    "G1_agree": 800,
+    "G2_agree": 800,
+    "G1_off": [],
+    "G2_off": []
+  },
+  "bizdays": {
+    "New York": {
+      "n_diff": 1,
+      "months": "1994-04",
+      "R": 19,
+      "cand": 20,
+      "q_diff": 1
+    },
+    "London": {
+      "n_diff": 0,
+      "months": [],
+      "R": [],
+      "cand": [],
+      "q_diff": 0
+    },
+    "NERC": {
+      "n_diff": 0,
+      "months": [],
+      "R": [],
+      "cand": [],
+      "q_diff": 0
+    },
+    "Toronto": {
+      "n_diff": 0,
+      "months": [],
+      "R": [],
+      "cand": [],
+      "q_diff": 0
+    },
+    "Zurich": {
+      "n_diff": 0,
+      "months": [],
+      "R": [],
+      "cand": [],
+      "q_diff": 0
+    }
+  }
+}

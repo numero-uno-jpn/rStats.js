@@ -59,6 +59,10 @@
     頑健化の重みの尺度 h が違う。R は n が偶数のとき約 1 割 (400 系列中、偶数 218 件のうち 23 件) で、中央の 2 つの順序統計量のうち 1 つを
     無関係な順位の値にして h = 3 (s_a + s_b) を使う (奇数の n は常に正しい)。部分ソートの不具合とみられる (ソースは読んでいない)。
     **ユーザーの決定 (2026-11-27): R の誤りは模倣しない。rStats.js は正しい中央値 (論文・ヘルプどおり)、R との違いを文書に。** 調査はユーザーが別の LLM で行う。R の誤った値を再現するには部分ソートの算法が要り、出力からは分からない
+  - **forecast の小さな関数 (ログ 28〜32、2026-11-27):** meanf・naive・rwf・snaive (σ の取り方も)・accuracy・ma・fourier・seasonaldummy・
+    monthdays・easter (割合を小数 2 桁に丸める)・dm.test・CV・checkresiduals・BoxCox・InvBoxCox・BoxCox.lambda (guerrero は末尾から区切り
+    optimize の既定の精度、loglik は 0.05 刻みの格子)・na.interp (線形)・tsCV (起点の行に入る)・arimaorder・findfrequency (閾値 10)・
+    bizdays (5 市場の暦、NYSE の臨時休場の一覧はログ 32) が完全一致。**未解明:** na.interp の季節版 (2 回で決着せず)
   - **次:** forecast の残り (ndiffs・nsdiffs・ocsb・auto.arima・ets・ses/holt/hw・thetaf・croston・BoxCox.lambda・mstl・
     tsclean・tsoutliers・na.interp・accuracy・dm.test・tsCV など)、その後メタ分析
 
