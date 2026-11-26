@@ -83,3 +83,26 @@ has the summaries.
      coefficients + 1, **fitted = InvBoxCox(BoxCox(y) - residuals)**, intervals = point +- qnorm(0.5 + level / 200)
      se back-transformed, and with biasadj **mean = InvBoxCox(m) (1 + v (1 - lambda) / (2 (lambda m + 1)^2))** with
      v = se^2 for forecasts and v = sigma2 (forecast's) for fitted values; the interval limits are not adjusted.
+
+## tseries' unit-root tests and Jarque-Bera (2026-11-26)
+
+6. `tsmeta120-tseries.R` (first refused by the checker: my variables `se` and `ls` collide with metafor's `se` and
+   base's `ls`; renamed `seb`, `lsh`): six series (lh, LakeHuron, a random walk of 200, white noise of 30,
+   log(AirPassengers), a trend plus AR(1) of 600).
+   - **kpss.test:** e = y - mean (Level) or the residuals on 1, t (Trend); stat = sum(cumsum(e)^2) / (n^2 s2),
+     s2 = sum(e^2)/n + 2 sum_{s<=l} (1 - s/(l+1)) sum(e_t e_{t-s}) / n, l = trunc(4 (n/100)^0.25) (lshort) or
+     trunc(12 (n/100)^0.25); **p = approx(KPSS Table 1 critical values, (0.10, 0.05, 0.025, 0.01), stat, rule = 2)**:
+     all within 4e-14 (statistic, lag, p) in 24 cases.
+   - **adf.test:** diff(y)_t on 1, t, y_{t-1} and k lagged differences, k = trunc((n - 1)^(1/3)); stat = the t value
+     of y_{t-1}: within 1e-14. p: the tau_tau table (n = 25, 50, 100, 250, 500, infinity) interpolated over n first,
+     then over the statistic: with n - 1 agrees to the 5 digits printed; with n or the regression's n it does not.
+   - **jarque.bera.test:** n (S^2/6 + (K - 3)^2/24) with moments divided by n, p chi-squared(2): within 2e-14.
+   - pp.test: the Phillips-Perron candidate (y_t on 1, t, y_{t-1}; Z(alpha) = nn (rho - 1) - (nn^2 se^2 / s2)
+     (lambda2 - su2) / 2; Z(t_alpha) likewise) is close but not equal: 4e-5 (lh, l = 3) to 1.2e-2 (white noise of
+     30, l = 8). Centring t does not change it. The lags agree.
+7. `tsmeta120-tseries2.R`:
+   - adf.test: **p = the interpolation at n - 1, exactly** (17 digits); **alternative = "explosive" gives 1 - p**.
+   - pp.test: a grid of 12 variants of the denominators (su2, s2 and the Newey-West sums over nn, nn - 3 or n): the
+     best (su2 and the autocovariances over nn, s2 over nn - 3, my first candidate) is still 0.012 off. Not
+     resolved by two experiments; one more candidate from the paper (the closed form with det(X'X)) goes into the
+     next tseries experiment, otherwise it is left open for the user.
