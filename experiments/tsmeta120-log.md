@@ -398,3 +398,20 @@ has the summaries.
      (27 Apr 1994, 11-14 Sep 2001, 11 Jun 2004, 2 Jan 2007, 29-30 Oct 2012; not 5 Dec 2018 or 9 Jan 2025). The
      corrected rules: NYSE New Year's Day on Saturday is not moved; London Boxing Day on Saturday -> Monday 28;
      Toronto with Christmas on Saturday closes Monday 27 only.
+
+## forecast's ets (2026-11-27)
+
+33. `tsmeta120-ets.R` (first refused by the checker: my variable `se`; renamed `sea`. The first run then stopped:
+   ets refuses ANM and AAM with "Forbidden model combination"; the second run records such errors): R's own
+   estimates (fit$par) put into a candidate filter written from Hyndman et al. (2008, table 2.3) for every
+   combination of additive / multiplicative errors, trends N, A, Ad, M, Md and seasons N, A, M (13 models on Nile,
+   uspop, USAccDeaths, AirPassengers):
+   - **The state space recursions of table 2.3, with the seasonal initial states s0 = the most recent (s_{t-1}),
+     s1, ..., and the m-th one implied (additive: -sum; multiplicative: m - sum; par holds m - 1 of them)**:
+     residuals (e = y - mu or (y - mu)/mu), fitted mu and the whole states matrix within 2e-12 for all 13 models.
+     The reversed seasonal order (SB) is far off.
+   - **loglik = -0.5 lik with lik = n log(sum e^2) (+ 2 sum log |mu| for multiplicative errors)** (no 2 pi or n
+     constants: the full Gaussian form is 1 to 150 off); **aic = -2 loglik + 2 (p + 1)** with p = length(par)
+     (smoothing parameters and initial states); **bic = aic + (p + 1)(log n - 2)**; **aicc = aic + 2 (p + 1)(p + 2)
+     / (n - p - 2)**; **sigma2 = sum e^2 / (n - p)**; **mse = mean((y - mu)^2)**: all within 2e-13.
+   - With restrict = TRUE (the default), additive errors with a multiplicative season are refused.
