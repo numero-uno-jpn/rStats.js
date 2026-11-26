@@ -482,3 +482,17 @@ has the summaries.
      0.01. ADF (drift, k = trunc((n - 1)^(1/3))): at best 410 of 500 with a fixed critical value.
    - ocsb.test(AirPassengers): statistic 1.5188, critical -1.803 ("5% critical value"), lag order 0 by "fixed"; the
      object has statistics, critical, method, lag.method, lag.order, fitted.model, data.name (no p-values).
+40. `tsmeta120-ndiffs2.R` (first refused: my variable `se`; renamed. Edited in place for a second run adding ADF with
+   k = 1, 2): statistics of several variants recorded for d = 0, 1, 2 on 500 series, the decision rules applied
+   outside R:
+   - **KPSS: lag trunc(3 sqrt(n) / 13)** (n = the length of the differenced series): **500 of 500 for type "level"
+     (critical 0.463) and "trend" (0.146)**; trunc(4 (n/100)^0.25) 466 / 448, trunc(12 (n/100)^0.25) 363 / 293, 0
+     421 / 381.
+   - **ADF: one lagged difference (k = 1), a constant ("level") or a constant and a trend ("trend"); difference while
+     the statistic is not below the 5% Dickey-Fuller critical value taken from the row of the table for the length's
+     size class (n <= 25, 50, 100, 250, 500, more; tau_mu: -3.00, -2.93, -2.89, -2.88, -2.87, -2.86; tau_tau: -3.60,
+     -3.50, -3.45, -3.43, -3.42, -3.41)**: 500 of 500 for both; interpolating the table over n: 497 / 496; other k
+     (0, 2, trunc((n - 1)^(1/3)), trunc(12 (n/100)^0.25), AIC) 207 to 477.
+   - **PP: Z(t_alpha) with a constant (y_t on 1, y_{t-1}), lag trunc(4 (n/100)^0.25), the same tau_mu rows: 500 of
+     500**; Z(alpha) with fixed critical values 485 at best.
+   - Not distinguished yet: "n <= boundary" or "n < boundary" for the size class, and the 1% / 10% columns.
