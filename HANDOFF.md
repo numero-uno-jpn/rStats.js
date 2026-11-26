@@ -63,6 +63,9 @@
     monthdays・easter (割合を小数 2 桁に丸める)・dm.test・CV・checkresiduals・BoxCox・InvBoxCox・BoxCox.lambda (guerrero は末尾から区切り
     optimize の既定の精度、loglik は 0.05 刻みの格子)・na.interp (線形)・tsCV (起点の行に入る)・arimaorder・findfrequency (閾値 10)・
     bizdays (5 市場の暦、NYSE の臨時休場の一覧はログ 32) が完全一致。**未解明:** na.interp の季節版 (2 回で決着せず)
+  - **ets (ログ 33〜35):** 13 モデルのフィルタ・尤度 (loglik = −0.5·lik)・aic/bic/aicc (p = length(par))・sigma2 = SSE/(n − p)・mse が R の
+    推定値を入れて 2e-12。予測はクラス 1・2 の閉じた式で一致 (ANA・MNA だけ 1e-4 ほどずれ、未解明)。クラス 3 (乗法季節) の平均と分散、
+    hw の乗法と ets(MAM) の違い、initial = "simple" の母数の推定基準、amse、モデル選択 (ZZZ)、admissible の範囲は未着手
   - **次:** forecast の残り (ndiffs・nsdiffs・ocsb・auto.arima・ets・ses/holt/hw・thetaf・croston・BoxCox.lambda・mstl・
     tsclean・tsoutliers・na.interp・accuracy・dm.test・tsCV など)、その後メタ分析
 

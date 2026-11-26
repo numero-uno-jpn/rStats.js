@@ -415,3 +415,31 @@ has the summaries.
      (smoothing parameters and initial states); **bic = aic + (p + 1)(log n - 2)**; **aicc = aic + 2 (p + 1)(p + 2)
      / (n - p - 2)**; **sigma2 = sum e^2 / (n - p)**; **mse = mean((y - mu)^2)**: all within 2e-13.
    - With restrict = TRUE (the default), additive errors with a multiplicative season are refused.
+34. `tsmeta120-ets2.R` (first refused by the checker: my `se` and the ets object's `$m`, which the checker reads as
+   nls's `m` element; renamed, and the period taken from frequency(fit$x)):
+   - **Class 1 (Hyndman et al. 2008, ch. 6): var_h = sigma2 (1 + sum_{j<h} c_j^2), c_j = alpha + beta phi_j + gamma
+     [j mod m = 0]**: ANN, AAN, AAdN exact (1e-15); **class 2: theta_1 = mu_1^2, theta_h = mu_h^2 + sigma2
+     sum_{j<h} c_j^2 theta_{h-j}, var_h = (1 + sigma2) theta_h - mu_h^2**: MNN, MAN, MAdN exact; intervals symmetric,
+     normal quantiles. The seasonal models were off through my own point forecasts (the seasonal index runs the other
+     way: the last row's s1 is the most recent).
+   - Class 3 (MNM, MAM, MAdM): the same under two seeds, so analytic; multiplicative trends (MMN, MMdM): different
+     under two seeds, so simulated.
+   - hw(additive) = forecast(ets(y, "AAA", damped = FALSE)) exactly; ses, holt and hw(multiplicative) differ from the
+     plain ets fits by 0.003 to 18 (other settings of ets inside the wrappers, to find); initial = "simple" returns an
+     ets-class object whose first fitted value is y1 (ses) — to examine.
+35. `tsmeta120-ets2.R`, second run (edited in place: the seasonal index of my point forecasts reversed, a class 3
+   candidate added, the wrappers' parameters recorded):
+   - **Point forecasts of classes 1 and 2 = the zero-error state recursion, the last row's s1 being the most recent
+     (period n + k uses s_{m - (k - 1) mod m})**: exact for all 12 models of classes 1 and 2.
+   - **Class 1 and class 2 variances exact for AAA, AAdA, MAA, MAdA** (and the non-seasonal ones); ANA (2.5e-4) and
+     MNA (1e-5) are slightly off — no trend with an additive season: to find.
+   - Class 3: R's point forecasts differ from mu~_h s_h by 0.2 to 0.7 (AirPassengers, values about 450), and the
+     section 6.3 variance candidate (theta of the non-seasonal part, (1 + gamma^2 sigma2)^floor((h-1)/m)) is 5e-3 to
+     7e-2 off: to find.
+   - ses / holt against ets(ANN / AAN): parameters 5e-4 / 2e-3 apart, log-likelihoods 1.5e-6 / 5.6e-6 apart: the same
+     model reached from different starting values by an optimiser that stops early (rStats.js: to the optimum and
+     compared with a tight refit). hw(multiplicative) against ets(MAM): alpha 0.315 against 0.395 — a different local
+     optimum or a different model, to find.
+   - **initial = "simple"** (Hyndman and Athanasopoulos): ses l0 = y1 (alpha estimated, 0.24657); holt l0 = y1,
+     b0 = y2 - y1 (3.93, 1.38 for uspop); hw l0 = mean(y[1:m]) (9651.75), b0 = (mean(y[m + 1:m]) - mean(y[1:m])) / m
+     (-77.77), s = y[1:m] - l0: exact; the smoothing parameters are then estimated (by what criterion: to find).
