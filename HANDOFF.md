@@ -74,6 +74,10 @@
     Dickey-Fuller の表を n ≤ 25/50/100/250/500 の区間で、p > alpha で差分)・PP (Z(t_α)、定数つき) で全件一致。nsdiffs は mstl の強さ > 0.64。
     ocsb の統計量は一致、臨界値は m = 2〜400 の値を表として (式が出ない)。auto.arima は探索の順序・基準 (CSS-ML の AICc)・根 < 1.01 の棄却・
     近似 (CSS の AICc で順位、表示だけ系列ごとの定数がずれる、選択には効かない) が分かった。チェッカーは `trace =` を引数名として許すよう変更
+  - **分解と残りの予測法 (ログ 47〜50):** mstl (季節 1 つなら stl(s.window = 11)、季節なしのトレンドは supsmu)・seasadj・stlf・thetaf (ses は
+    MSE 最小)・croston・tslm が完全一致。stats の **supsmu** を Friedman (1984) から書いて一致 (半幅は四捨五入、端で窓を内側にずらす)。
+    **未解明:** tsoutliers の分解 (AirPassengers で外れ値の集合が合わない、2 回で決着せず)、na.interp の季節版 (置き換えに使う)。
+    ログ 47 に手順の誤り (チェッカーの判定前に 1 回実行、出力は読まずに削除) を記録
   - **次:** forecast の残り (ndiffs・nsdiffs・ocsb・auto.arima・ets・ses/holt/hw・thetaf・croston・BoxCox.lambda・mstl・
     tsclean・tsoutliers・na.interp・accuracy・dm.test・tsCV など)、その後メタ分析
 

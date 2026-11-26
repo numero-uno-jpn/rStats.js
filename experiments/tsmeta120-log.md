@@ -572,3 +572,23 @@ has the summaries.
      its first value; forecast k z / p with k = 1, 1 - alpha/2, 1 - alpha/(2 - alpha): exact, flat over h; fitted
      values NA at 1 and 0 until the first demand has been seen.
    - **tslm = lm on trend = 1..n and season = factor(cycle)**: coefficients, forecasts and 95% intervals exact.
+48. `tsmeta120-supsmu.R`: a candidate supsmu from Friedman (1984, TR 5): **running lines with half-width k =
+   floor(s n / 2 + 0.5) (at least 2) and a window of 2k + 1 consecutive points kept at that size (shifted inward) at
+   the ends; leave-one-out residuals |y - s| / (1 - 1/m - (x - xbar)^2 / Sxx) (the slope set to 0 when Sxx <=
+   (0.001 (x_n - x_1))^2); spans 0.05 / 0.2 / 0.5, their residuals smoothed with 0.2, the span with the smallest
+   smoothed residual, bass: span + (0.5 - span) max(1e-7, r_min / r_woofer)^(10 - bass) when r_min < r_woofer; the
+   spans smoothed with 0.2 and clamped to [0.05, 0.5], the fit interpolated linearly in span between the 0.2 smooth
+   and the 0.05 or 0.5 smooth, then smoothed with 0.05; a fixed span: one running-lines smooth**: within 4e-11
+   (relative to the data's range) for four series (cv, bass = 5, span = 0.3). A shrinking window at the ends (E1)
+   is far off.
+49. `tsmeta120-outliers.R`: **supsmu's half-width is rounded half up** (floor(s n / 2 + 0.5) exact for n = 70, 90,
+   110, 130; the ceiling is 0.02 to 0.13 off). Tied x: R returns the unique x, and averaging y over ties first is
+   0.09 off (not needed for forecast, which uses x = 1..n). tsoutliers: Nile (supsmu remainder) and USAccDeaths
+   (mstl remainder) give R's indices with the [Q1 - 3 IQR, Q3 + 3 IQR] rule; for AirPassengers R's 12 indices are a
+   subset of the first-pass candidate's 17 (mstl robust), 15 (stl periodic robust) or neither (mstl).
+50. `tsmeta120-outliers2.R`: second-pass variants (remainder of the cleaned series' fit, the original minus that fit,
+   with its own or the cleaned series' quartiles, union, intersection): none gives R's set for AirPassengers, and
+   even iterate = 1 differs from the first-pass candidate (R: 7, 19, 30, 31, 100, 104, 116, 128, 139, 140), so the
+   decomposition behind tsoutliers is not mstl(x, robust = TRUE). Not resolved after two experiments (and the
+   replacements rest on na.interp's seasonal case, also open): left to the user. For USAccDeaths, co2 and nottem
+   with two planted outliers every variant agrees with R.
