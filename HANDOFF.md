@@ -40,7 +40,8 @@
   - tseries: kpss・adf (p は n − 1 で表を補間)・pp (論文の det(X'X) の閉じた式)・po (lag は n − 1 から)・jarque.bera・runs が一致
   - stats: filter・Box.test・diffinv・decompose (figure は最初の観測の位置から)・ar.yw・ar.burg・ar.ols (AIC の式も)・ar.mle (= arima0)・
     HoltWinters (初期値・フィルタ・加法の区間 = var(残差)) が一致
-  - **未解明 (ユーザーに判断を仰ぐ):** terasvirta.test (決定的なのに 8 通りで 1e-3〜0.2 ずれ)、white.test (乱数の重み、64 通りで 5e-4〜1e-2)、
+  - terasvirta.test はユーザーの指示で再探索して解決 (ログ 14: Chisq = n·log(SSR0/SSR1)、n は系列の長さ、F の分母の自由度は m − df)
+  - **未解明 (ユーザーに判断を仰ぐ):** white.test (乱数の重み、64 通りで 5e-4〜1e-2)、
     HoltWinters の乗法モデルの予測区間 (1 回目)、po.test の p 値 (表の値が未確認)
   - **次:** stl (loess)、forecast の残り (ndiffs・nsdiffs・ocsb・auto.arima・ets・ses/holt/hw・thetaf・croston・BoxCox.lambda・mstl・
     tsclean・tsoutliers・na.interp・accuracy・dm.test・tsCV など)、その後メタ分析

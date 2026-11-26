@@ -192,3 +192,14 @@ has the summaries.
    removed, n - 1)**: within 6e-14 for co2 (given and optimised parameters), USAccDeaths, uspop, Nile; SSE / (n - 1)
    is off. The intervals are symmetric. The multiplicative model's intervals are not given by this formula (0.28
    off): open.
+14. `tsmeta120-tseries5.R` (terasvirta.test, third try, asked for by the user; edited in place for a second run that
+   adds the p-value candidates). Re-reading experiment 8: all earlier candidates had the LM form m R^2, but for lh
+   lag 1, 48 log(SSR0 / SSR1) = 2.7955 was near R's 2.7958, and R's F reports the second df 45 = m - df. With lag 1
+   the auxiliary span {1, x, x^2, x^3} is invariant to scaling, so the regressions were likely right and the form of
+   the statistic was not. Grid: Chisq in {m R^2, n R^2, m log, n log}, F's second df in {m - df, m - df - lag - 1,
+   n - df}, with and without intercepts, scale TRUE / FALSE, lags 1-3, six series (36 cases).
+   - **terasvirta.test: SSR0 from y on (1, X), SSR1 from y on (1, X, the products x_i x_j (i <= j) and x_i x_j x_k
+     (i <= j <= k)); Chisq = n log(SSR0 / SSR1) with n = the length of the series (not the n - lag rows), df = the
+     number of products; F = ((SSR0 - SSR1) / df) / (SSR1 / (m - df)) with m = n - lag**: within 8e-14 in all 36
+     cases; p-values chi-squared(df) (2e-14) and F(df, m - df) (7e-17). Resolved. The other forms are 0.1 to 0.4
+     off, and without intercepts 45 to 50.
