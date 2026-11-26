@@ -211,3 +211,14 @@ script keeps the search that succeeded.
     confint / compare data for competing risks moved to times 2.1, 4.3, 6.7. rStats.js computes at such a time (a
     single control is a valid estimate; noted in the differences). Marginal IPCW.times is a vector, one per time.
     survivalROC's KM AUC at predict.time 30 is 1.0144 (above 1, as the spec's FP above 1 allows).
+48. `tdroc119-survivalroc9.R` (after the fixture, where the given cut 1.5 with two markers above it gave TP = FP = 0;
+    the data here are not exactly the fixture's, t2 was not drawn): **given cut.values are sorted** (c(-1, 0, 1.5, 0.5)
+    as c(-1, 0, 0.5, 1.5)), −Inf prepended, and **the last cut's point is (0, 0)** whatever is above it (cut 1.0 with
+    7 markers above: 0; with a further cut 3, the cut 1.5 is computed, 0.0486, and 3 gives 0).
+49. (From the fixture, no new R run) confint with competing risks: C.alpha.1 equal with the first n x n.sim draws;
+    C.alpha.2 not with the next draws (2.2996 vs 2.2556) nor with (ii) first; **equal (1e-15) with the same draws as
+    (i)**: R uses one matrix of multipliers for both definitions.
+50. (From the fixture) compare(adjusted = TRUE): my multivariate normal probability (three times: Gauss-Legendre
+    over Z_1 of the conditional pbvnorm) agrees with an independent lattice computation to 1e-8; R's adjusted
+    p-values are 3e-5 to 3e-6 from both, within mvtnorm's default GenzBretz absolute tolerance (1e-3). The tests
+    compare with R at 1e-4.

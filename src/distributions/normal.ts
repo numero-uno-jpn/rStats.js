@@ -69,7 +69,8 @@ function pnormStd(t: number, logP: boolean): number {
   return Math.log(0.5 * erfcxNonNegative(a * SQRT1_2)) - (a / 2) * a;
 }
 
-function pnorm1(q: number, mean: number, sd: number, lowerTail: boolean, logP: boolean): number {
+/** Scalar pnorm (for loops inside the library). @internal */
+export function pnorm1(q: number, mean: number, sd: number, lowerTail: boolean, logP: boolean): number {
   if (Number.isNaN(q) || Number.isNaN(mean) || Number.isNaN(sd)) return NaN;
   if (!Number.isFinite(q) && mean === q) return NaN; // Inf - Inf
   const p0 = lowerTail ? (logP ? -Infinity : 0) : logP ? 0 : 1;
@@ -82,7 +83,8 @@ function pnorm1(q: number, mean: number, sd: number, lowerTail: boolean, logP: b
   return pnormStd(lowerTail ? x : -x, logP);
 }
 
-function qnorm1(p: number, mean: number, sd: number, lowerTail: boolean, logP: boolean): number {
+/** Scalar qnorm (for loops inside the library). @internal */
+export function qnorm1(p: number, mean: number, sd: number, lowerTail: boolean, logP: boolean): number {
   if (Number.isNaN(p) || Number.isNaN(mean) || Number.isNaN(sd)) return NaN;
   // Endpoints corresponding to probabilities 0 and 1
   const left = lowerTail ? -Infinity : Infinity;

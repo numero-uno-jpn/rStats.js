@@ -70,6 +70,7 @@ for (nm in names(data)) {
 out$fits$smooth_aalen <- fit_out(call_tr(data$smooth, times$smooth, weighting = "aalen"))
 out$fits$smooth_aalen_other <- fit_out(call_tr(data$smooth, times$smooth, weighting = "aalen", other = TRUE))
 out$fits$crSmooth_aalen <- fit_out(call_tr(data$crSmooth, times$crSmooth, weighting = "aalen"))
+out$fits$crSmooth_ci <- fit_out(call_tr(data$crSmooth, times$crCi, iid = TRUE))
 out$fits$ties_single <- fit_out(call_tr(data$ties, 10, iid = TRUE))
 out$errors$cox_iid <- (run(call_tr(data$ties, times$ties, weighting = "cox", iid = TRUE))$error)
 
