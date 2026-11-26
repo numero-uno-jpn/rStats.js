@@ -43,7 +43,10 @@
   - terasvirta.test はユーザーの指示で再探索して解決 (ログ 14: Chisq = n·log(SSR0/SSR1)、n は系列の長さ、F の分母の自由度は m − df)
   - white.test もユーザーの指示で再探索して解決 (ログ 15: 重みは runif((lag+1)q, −range/2, range/2) を列順、logistic、主成分は scale. = TRUE、
     Chisq = n·log(SSR0/SSR1))
-  - **未解明 (ユーザーに判断を仰ぐ):** HoltWinters の乗法モデルの予測区間 (1 回目)、po.test の p 値 (表の値が未確認)
+  - HoltWinters の乗法モデルの区間もユーザーの指示で再探索して解決 (ログ 16): var_h = var(残差) Σ_{j=0}^{h−1} (ψ_j num/den)²、
+    num = 係数[2 + ((h−1) mod f + 1)]、den = 係数[2 + ((h−j) mod f)] (係数は (a, b, s1..sf) を常に仮定)。添字 0 で b で割り、
+    β なしでは季節係数が 1 つずれ h = 12・24 は NA になる R の添字の不具合。**R に合わせるか正しい形にするかはユーザーに確認中**
+  - **未解明:** po.test の p 値 (表の値が未確認)
   - **次:** stl (loess)、forecast の残り (ndiffs・nsdiffs・ocsb・auto.arima・ets・ses/holt/hw・thetaf・croston・BoxCox.lambda・mstl・
     tsclean・tsoutliers・na.interp・accuracy・dm.test・tsCV など)、その後メタ分析
 

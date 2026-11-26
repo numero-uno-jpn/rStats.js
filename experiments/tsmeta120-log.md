@@ -218,3 +218,26 @@ has the summaries.
      was among the candidates but with the m R^2 form, 6.7e-2 to 0.13 off, which hid it.
    - The random weights come from R's runif after set.seed, so rStats.js reproduces R's value given the same seed
      only with R's generator (Mersenne-Twister, inversion) and the same number of draws.
+16. `tsmeta120-hw3.R` (the multiplicative model's intervals, second try, asked for by the user; edited in place for
+   four runs, each adding a candidate after reading the previous run's numbers):
+   - Run 1: the ratio of R's half-width to the additive form sqrt(var(res) (1 + sum_{j<h} psi_j^2)) varies with h
+     and with the seasonal coefficients (C1-C6: s_h, s_h / mean(s), relative residuals, psi without or with other
+     seasonal terms, all 0.1 to 2 off). By hand: w_h = half^2 / var(res) at h = 1 is (alpha + gamma (1 - alpha))^2
+     for co2 (0.49), USAccDeaths (0.79^2) and AirPassengers (0.72^2): psi_0 includes the seasonal term (j = 0 counts
+     as j mod f = 0) and there is no leading 1. Solving USAccDeaths h = 2, 3 by hand gave
+     w_h = sum_{j=0}^{h-1} (psi_j s_h / s_{h-j})^2.
+   - Run 2: that candidate (C7a, cyclic seasonal index) agrees for h < f in every case and fails from h = f on (co2
+     h = 12: R's w is 9.5 times larger). From h = f on, (h - j) mod f = 0 occurs in the denominator for the first
+     time. co2's excess at h = 12, 30.39 = 0.49 ((s_12 / b)^2 - 1), gives b = 0.1257 if the zero index reads the
+     trend coefficient.
+   - Run 3 (C8: the denominator from the coefficient vector (a, b, s1..sf) at position 2 + ((h - j) mod f), so 0
+     reads b): within 5.4e-14 for the four models with a trend (co2's b is indeed 0.1257). Without a trend
+     (beta = FALSE) it fails from h = 2, and R itself returns NA at h = 12 and 24.
+   - Run 4 (C9): **both factors are read at fixed positions as if b were always present: numerator
+     coefficients[2 + ((h - 1) mod f + 1)], denominator coefficients[2 + ((h - j) mod f)];
+     var_h = var(residuals) sum_{j=0}^{h-1} (psi_j num / den)^2, psi_j = alpha (1 + j beta) + gamma (1 - alpha)
+     [j mod f = 0]**. Within 5.4e-14 in all five cases, and NA exactly where R gives NA (no trend: the numerator's
+     position 2 + f is past the end of the vector at h = 12, 24; the other seasonal factors shift by one). Resolved:
+     R's multiplicative intervals divide by the trend coefficient b where the seasonal index is 0, and read shifted
+     seasonal factors when there is no trend — artefacts of the indexing, not a variance formula from the
+     literature.
