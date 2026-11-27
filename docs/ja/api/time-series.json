@@ -222,87 +222,87 @@
   "ArimaResult.nCond#summary": {
     "hash": "9ff5f61a7cbf",
     "en": "Initial observations not used by CSS.",
-    "ja": ""
+    "ja": "CSS で使用しなかった初期観測値の数です。"
   },
   "ArimaResult.nobs#summary": {
     "hash": "db9bc77a10fb",
     "en": "The number of observations used in the likelihood.",
-    "ja": ""
+    "ja": "尤度の計算に使用した観測値の数です。"
   },
   "ArimaResult.residuals#summary": {
     "hash": "ad74bec39b0b",
     "en": "The fitted innovations (standardised one-step errors; NaN at missing values).",
-    "ja": ""
+    "ja": "当てはめたイノベーション (標準化された 1 期先誤差。欠測値の位置は NaN) です。"
   },
   "ArimaResult.sigma2#summary": {
     "hash": "6f8d77429ae6",
     "en": "The MLE of the innovations variance (CSS: the mean of the squared CSS residuals).",
-    "ja": ""
+    "ja": "イノベーション分散の最尤推定値です (CSS の場合は CSS 残差の二乗平均)。"
   },
   "ArimaResult.varCoef#summary": {
     "hash": "b525faf4057e",
     "en": "The variance matrix of the free coefficients (rows and columns as `coefNames` of the free ones).",
-    "ja": ""
+    "ja": "自由な係数の分散行列です (行と列は、自由な係数に対応する `coefNames` の順です)。"
   },
   "ArimaResult.x#summary": {
     "hash": "7b0494086b21",
     "en": "The series (as given).",
-    "ja": ""
+    "ja": "与えられた系列です。"
   },
   "ArimaResult.xreg#summary": {
     "hash": "65949c733c9c",
     "en": "The regressors (as given), including no intercept column.",
-    "ja": ""
+    "ja": "与えられた回帰変数です。切片の列は含みません。"
   },
   "ArimaSeasonal#summary": {
     "hash": "c76012bf3690",
     "en": "Seasonal part of an ARIMA model.",
-    "ja": ""
+    "ja": "ARIMA モデルの季節成分です。"
   },
   "ArimaSeasonal.order#summary": {
     "hash": "46bc238f178d",
     "en": "(P, D, Q). Default [0, 0, 0].",
-    "ja": ""
+    "ja": "(P, D, Q) です。既定は [0, 0, 0] です。"
   },
   "ArimaSeasonal.period#summary": {
     "hash": "31fb6f2f3c1c",
     "en": "The period. Default the series' frequency.",
-    "ja": ""
+    "ja": "周期です。既定は系列の頻度です。"
   },
   "ArimaStateModel#summary": {
     "hash": "1de83eeb657b",
     "en": "The state space model behind a fit, for forecasting.",
-    "ja": ""
+    "ja": "当てはめの背後にある、予測に使用する状態空間モデルです。"
   },
   "ArimaStateModel.a#summary": {
     "hash": "cd348a8c55fa",
     "en": "Filtered state and covariance at the end of the series (in units of sigma2).",
-    "ja": ""
+    "ja": "系列末尾におけるフィルタ済み状態と共分散です (sigma2 単位)。"
   },
   "AutoArimaOptions#summary": {
     "hash": "2bd8964c15cc",
     "en": "Options of {@link autoArima}.",
-    "ja": ""
+    "ja": "{@link autoArima} のオプションです。"
   },
   "AutoArimaOptions.approximation#summary": {
     "hash": "f0f4deacb79e",
     "en": "Rank the models by their CSS fits (default: n > 150 or frequency > 12), then refit the best without it.",
-    "ja": ""
+    "ja": "CSS による当てはめでモデルを順位付けします (既定: n > 150 または frequency > 12)。その後、最良のモデルを近似なしで再当てはめします。"
   },
   "AutoArimaResult#summary": {
     "hash": "e09f2f86bd28",
     "en": "Result of {@link autoArima}: the chosen model's fit and the search.",
-    "ja": ""
+    "ja": "{@link autoArima} の結果です。選択されたモデルの当てはめと探索結果を含みます。"
   },
   "AutoArimaTraceEntry#summary": {
     "hash": "09f272b1731b",
     "en": "One model of the search (forecast's trace).",
-    "ja": ""
+    "ja": "探索対象となった 1 つのモデルです (forecast の trace)。"
   },
   "AutoArimaTraceEntry.ic#summary": {
     "hash": "c7f2810c59d5",
     "en": "The criterion (Infinity for a rejected or failed fit; the CSS fit's value with approximation).",
-    "ja": ""
+    "ja": "情報量規準です (棄却または当てはめに失敗した場合は Infinity。近似を使った場合は CSS 当てはめの値)。"
   },
   "CcfOptions#summary": {
     "hash": "5c727c2ac872",
@@ -337,67 +337,67 @@
   "DecomposeResult#summary": {
     "hash": "5618a5945257",
     "en": "Result of {@link decompose}.",
-    "ja": ""
+    "ja": "{@link decompose} の結果です。"
   },
   "EtsForecast#summary": {
     "hash": "8f302be63a94",
     "en": "Result of {@link forecastEts}.",
-    "ja": ""
+    "ja": "{@link forecastEts} の結果です。"
   },
   "EtsOptions#summary": {
     "hash": "c746b078779f",
     "en": "Options of {@link ets}.",
-    "ja": ""
+    "ja": "{@link ets} のオプションです。"
   },
   "EtsOptions.damped#summary": {
     "hash": "c77ad77ece24",
     "en": "true / false, or undefined to try both when the trend is chosen.",
-    "ja": ""
+    "ja": "true / false、または trend が選択されたときに両方を試す場合は undefined です。"
   },
   "EtsOptions.model#summary": {
     "hash": "668a1ac0aa4b",
     "en": "Three letters (error, trend, season) of A, M, N and Z (chosen); default \"ZZZ\".",
-    "ja": ""
+    "ja": "誤差、トレンド、季節成分を表す 3 文字です。各文字は A、M、N、Z (選択) のいずれかで、既定は \"ZZZ\" です。"
   },
   "EtsOptions.optCrit#summary": {
     "hash": "a22f88d2b5a7",
     "en": "The estimation criterion: the likelihood (default) or the mean squared one-step error.",
-    "ja": ""
+    "ja": "推定規準です。尤度 (既定) または 1 期先誤差の平均二乗です。"
   },
   "EtsParameters#summary": {
     "hash": "1ac0d1e297f7",
     "en": "Parameters and initial states in R's order: alpha, beta, gamma, phi, l, b, s0 .. s_{m-2} (s0 the most recent).",
-    "ja": ""
+    "ja": "R と同じ順序のパラメータと初期状態です: alpha、beta、gamma、phi、l、b、s0 .. s_{m-2} (s0 が最も新しい値)。"
   },
   "EtsResult#summary": {
     "hash": "538848637568",
     "en": "Result of {@link ets}.",
-    "ja": ""
+    "ja": "{@link ets} の結果です。"
   },
   "EtsResult.method#summary": {
     "hash": "2e0853a13717",
     "en": "\"ETS(M,Ad,M)\" etc.",
-    "ja": ""
+    "ja": "\"ETS(M,Ad,M)\" などです。"
   },
   "EtsResult.nParams#summary": {
     "hash": "a1237bba174f",
     "en": "Number of estimated parameters (smoothing parameters and initial states).",
-    "ja": ""
+    "ja": "推定したパラメータ (平滑化パラメータと初期状態) の数です。"
   },
   "EtsSpec#summary": {
     "hash": "5af51a4a68b6",
     "en": "A fully specified ETS model.",
-    "ja": ""
+    "ja": "完全に指定された ETS モデルです。"
   },
   "ForecastArimaOptions#summary": {
     "hash": "790802da2493",
     "en": "Options of {@link forecastArima}.",
-    "ja": ""
+    "ja": "{@link forecastArima} のオプションです。"
   },
   "ForecastArimaOptions.lambda#summary": {
     "hash": "ac71b5347280",
     "en": "A Box-Cox lambda, or \"auto\" for {@link boxCoxLambda}.",
-    "ja": ""
+    "ja": "Box-Cox の lambda、または {@link boxCoxLambda} を使う場合は \"auto\" です。"
   },
   "ForecastArimaResult#summary": {
     "hash": "17484522c848",
