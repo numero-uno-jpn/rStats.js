@@ -330,6 +330,52 @@ ccf(x, y, { lagMax: 3 });
 
 `acf` returns autocorrelation by default; use `type: "covariance"` for autocovariance or `pacf` for partial autocorrelation. `ccf` returns cross-correlation (or cross-covariance) at lags from `-lagMax` through `lagMax`. Lags are integer observation offsets; calendar time units and R's `frequency` metadata are not represented. Missing values are rejected by default; `naAction: "pass"` omits incomplete pairs.
 
+Models and forecasts follow stats, forecast and tseries (1.20.0). A series is a plain array; its seasonal period is
+the `frequency` option (R's `ts` attribute):
+
+```ts
+import { arima, predictArima, forecastArima, forecastFromArima, autoArima, ets, forecastEts, stl, mstl, holtWinters,
+  ses, hw, thetaf, ndiffs, nsdiffs, boxTest, accuracy, adfTest, kpssTest, forecast } from "@numero-uno-jpn/rstats/timeseries";
+
+const fit = arima(y, { order: [0, 1, 1], seasonal: { order: [0, 1, 1], period: 12 }, frequency: 12 });
+predictArima(fit, 12);                                   // stats::predict: pred and se
+const a = autoArima(y, { frequency: 12 });               // forecast::auto.arima
+forecastFromArima(a, { h: 24 });                         // mean, lower and upper (80% and 95%)
+forecastArima(y, { order: [1, 1, 0], includeDrift: true, lambda: "auto" }); // forecast::Arima
+forecastEts(ets(y, { frequency: 12 }), { h: 24 });       // the model chosen by AICc among the ETS family
+forecast(y, { frequency: 12, h: 24 });                   // forecast::forecast on a series or on any fit
+stl(y, { frequency: 12, sWindow: "periodic" }); mstl(y, { frequency: 12 });
+ndiffs(y); nsdiffs(y, { frequency: 12 }); boxTest(fit.residuals, { lag: 24, type: "Ljung-Box", fitdf: 2 });
+adfTest(y); kpssTest(y);                                 // tseries' unit-root and stationarity tests
+```
+
+The fits are exact from 1e-300 to 2^1000 times a series (forecasts equivariant, statistics invariant), missing values
+(NaN) are accepted where R accepts them (`arima`, `ets`, `naive`, `mstl`, `kpssTest`, ...) and infinite values are
+errors. Short series follow R's rules (`ets` drops the seasonal component when the series is no longer than a period
+and fits small models without a likelihood when there are few values; `autoArima` limits its orders). Where R stops
+its optimiser early, rStats.js optimises further, so `ets` and `hw` can reach a higher likelihood than R (see the
+differences from R).
+
+## Meta-analysis (meta and netmeta)
+
+The meta package's functions and network meta-analysis are in `/tests`, beside metafor's `rma` and `escalc`:
+
+```ts
+import { metagen, metabin, metacont, metaprop, metabias, trimfill, metareg, netmeta, netrank, netsplit, netleague }
+  from "@numero-uno-jpn/rstats/tests";
+
+const m = metagen(TE, seTE);                             // common and random effects (REML), tau2 with its interval
+metabin(e1, n1, e2, n2, { sm: "OR", method: "MH" });     // also metacont, metainc, metacor, metamean, metarate, metaprop
+metabias(m); trimfill(m); metareg(m, latitude.map((v) => [v]));
+const n = netmeta(TE, seTE, treat1, treat2, studlab, { referenceGroup: "placebo" });
+netrank(n);                                              // P-scores
+netsplit(n); netleague(n, { digits: 2 });                // direct and indirect evidence, the league table
+```
+
+`metagen` and its relatives follow meta's defaults (REML, the Q-profile interval for tau2, H and I2 with Higgins and
+Thompson's intervals); the estimates are exact at any scale of TE and seTE. `netmeta` is the frequentist graph-theoretical
+model of Rücker (2012) with multi-arm studies; disconnected networks are refused (see `netconnection`).
+
 ## Causal inference
 
 Propensity score matching and balance are imported from the separate `/causal` entry point; `clogit` (conditional

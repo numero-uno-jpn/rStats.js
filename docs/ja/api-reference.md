@@ -286,6 +286,51 @@ ccf(x, y, { lagMax: 3 });
 
 `acf` は既定で自己相関を返します。`type: "covariance"` で自己共分散を返し、`pacf` は偏自己相関を返します。`ccf` は `-lagMax` から `lagMax` までの交差相関 (または交差共分散) を返します。ラグは整数の観測単位で、暦時間の単位や R の `frequency` メタデータは扱いません。欠測値は既定でエラーになり、`naAction: "pass"` では欠測を含む組を除きます。
 
+模型と予測は stats・forecast・tseries に従います (1.20.0)。系列はただの配列で、季節の周期は `frequency`
+オプションで渡します (R の `ts` の属性にあたります)。
+
+```ts
+import { arima, predictArima, forecastArima, forecastFromArima, autoArima, ets, forecastEts, stl, mstl, holtWinters,
+  ses, hw, thetaf, ndiffs, nsdiffs, boxTest, accuracy, adfTest, kpssTest, forecast } from "@numero-uno-jpn/rstats/timeseries";
+
+const fit = arima(y, { order: [0, 1, 1], seasonal: { order: [0, 1, 1], period: 12 }, frequency: 12 });
+predictArima(fit, 12);                                   // stats::predict: pred と se
+const a = autoArima(y, { frequency: 12 });               // forecast::auto.arima
+forecastFromArima(a, { h: 24 });                         // mean、lower、upper (80% と 95%)
+forecastArima(y, { order: [1, 1, 0], includeDrift: true, lambda: "auto" }); // forecast::Arima
+forecastEts(ets(y, { frequency: 12 }), { h: 24 });       // ETS の族から AICc で選んだ模型
+forecast(y, { frequency: 12, h: 24 });                   // 系列や任意の当てはめに対する forecast::forecast
+stl(y, { frequency: 12, sWindow: "periodic" }); mstl(y, { frequency: 12 });
+ndiffs(y); nsdiffs(y, { frequency: 12 }); boxTest(fit.residuals, { lag: 24, type: "Ljung-Box", fitdf: 2 });
+adfTest(y); kpssTest(y);                                 // tseries の単位根検定と定常性検定
+```
+
+当てはめは系列を 1e-300 倍から 2^1000 倍しても正確です (予測は同変、統計量は不変)。欠損値 (NaN) は R が受け付ける
+ところで受け付け (`arima`、`ets`、`naive`、`mstl`、`kpssTest` など)、無限大の値はエラーです。短い系列は R の規則に
+従います (`ets` は系列が 1 周期以下なら季節を落とし、値が少ないときは小さな模型を尤度を使わずに当てはめます。
+`autoArima` は次数を制限します)。R が最適化を早く止めるところでは rStats.js はさらに最適化するので、`ets` と `hw` は
+R より高い尤度に着くことがあります (R との違いを参照)。
+
+## メタ分析 (meta と netmeta)
+
+meta パッケージの関数とネットワークメタ分析は、metafor の `rma`・`escalc` と同じ `/tests` にあります。
+
+```ts
+import { metagen, metabin, metacont, metaprop, metabias, trimfill, metareg, netmeta, netrank, netsplit, netleague }
+  from "@numero-uno-jpn/rstats/tests";
+
+const m = metagen(TE, seTE);                             // 共通効果と変量効果 (REML)、tau2 とその区間
+metabin(e1, n1, e2, n2, { sm: "OR", method: "MH" });     // metacont、metainc、metacor、metamean、metarate、metaprop も
+metabias(m); trimfill(m); metareg(m, latitude.map((v) => [v]));
+const n = netmeta(TE, seTE, treat1, treat2, studlab, { referenceGroup: "placebo" });
+netrank(n);                                              // P スコア
+netsplit(n); netleague(n, { digits: 2 });                // 直接と間接のエビデンス、リーグ表
+```
+
+`metagen` とその仲間は meta の既定に従います (REML、tau2 の Q-profile 区間、Higgins と Thompson の区間付きの H と
+I2)。推定値は TE と seTE の尺度によらず正確です。`netmeta` は多群の研究を含む Rücker (2012) の頻度論のグラフ理論の
+模型です。連結でない網は受け付けません (`netconnection` を参照)。
+
 ## 因果推論
 
 傾向スコアのマッチングとバランスは、別の入口 `/causal` から読み込みます。`clogit` (マッチした組の条件付きロジスティック回帰) は `coxph` と同じく主な入口にあります。
