@@ -2,7 +2,7 @@
   "AccuracyRow#summary": {
     "hash": "568a0313ca47",
     "en": "One row of {@link accuracy}.",
-    "ja": ""
+    "ja": "{@link accuracy} の 1 行です。"
   },
   "AcfNaAction#summary": {
     "hash": "d16b6c246da1",
@@ -77,147 +77,147 @@
   "ArResult#summary": {
     "hash": "b681538a5ed9",
     "en": "Result of {@link ar}.",
-    "ja": ""
+    "ja": "{@link ar} の結果です。"
   },
   "ArResult.aic#summary": {
     "hash": "63283f5f6f7d",
     "en": "aic minus its minimum, for orders 0..orderMax.",
-    "ja": ""
+    "ja": "次数 0..orderMax における aic の最小値との差です。"
   },
   "ArResult.x#summary": {
     "hash": "eafb076ea6b8",
     "en": "The series (for predictions).",
-    "ja": ""
+    "ja": "系列 (予測用) です。"
   },
   "ArResult.xIntercept#summary": {
     "hash": "9afddd0f3be7",
     "en": "ar.ols's intercept (of the demeaned series).",
-    "ja": ""
+    "ja": "平均を差し引いた系列に対する ar.ols の切片です。"
   },
   "ArimaOptions#summary": {
     "hash": "508d2e1c33cf",
     "en": "Options of {@link arima}.",
-    "ja": ""
+    "ja": "{@link arima} のオプションです。"
   },
   "ArimaOptions.fixed#summary": {
     "hash": "56c12f26825f",
     "en": "Fixed values (NaN for the free ones), in the order of the coefficients.",
-    "ja": ""
+    "ja": "係数の順に並べた固定値です (自由な係数は NaN)。"
   },
   "ArimaOptions.frequency#summary": {
     "hash": "8513dc221838",
     "en": "The series' frequency (the seasonal period by default). Default 1.",
-    "ja": ""
+    "ja": "系列の頻度です (既定では季節周期)。既定は 1 です。"
   },
   "ArimaOptions.hessian#summary": {
     "hash": "c768b7b0a5f3",
     "en": "\"R\" (default): the variance matrix from R's numerical Hessian (agrees with R); \"exact\": a converged Hessian.",
-    "ja": ""
+    "ja": "\"R\" (既定): R の数値ヘッセ行列から得た分散行列 (R と一致します)。\"exact\": 収束したヘッセ行列です。"
   },
   "ArimaOptions.includeMean#summary": {
     "hash": "d680d37dfb48",
     "en": "Include a mean (ignored when differenced). Default true.",
-    "ja": ""
+    "ja": "平均を含めます (差分を取った場合は無視されます)。既定は true です。"
   },
   "ArimaOptions.init#summary": {
     "hash": "ec8a7a270446",
     "en": "Starting values (NaN filled by defaults).",
-    "ja": ""
+    "ja": "初期値です (NaN は既定値で補われます)。"
   },
   "ArimaOptions.kappa#summary": {
     "hash": "2293cc5fc3d4",
     "en": "Prior variance multiple of the presample values in a differenced model. Default 1e6.",
-    "ja": ""
+    "ja": "差分モデルにおける事前標本値の事前分散の倍率です。既定は 1e6 です。"
   },
   "ArimaOptions.method#summary": {
     "hash": "d6055079359f",
     "en": "\"CSS-ML\" (default), \"ML\" or \"CSS\".",
-    "ja": ""
+    "ja": "\"CSS-ML\" (既定)、\"ML\" または \"CSS\" です。"
   },
   "ArimaOptions.nCond#summary": {
     "hash": "b99321abfa37",
     "en": "Initial observations ignored by CSS (at least the AR lags).",
-    "ja": ""
+    "ja": "CSS で無視する初期観測値の数です (少なくとも AR のラグ数)。"
   },
   "ArimaOptions.order#summary": {
     "hash": "4150b11eadba",
     "en": "(p, d, q). Default [0, 0, 0].",
-    "ja": ""
+    "ja": "(p, d, q) です。既定は [0, 0, 0] です。"
   },
   "ArimaOptions.seasonal#summary": {
     "hash": "028786aecb8e",
     "en": "The seasonal part (an order, or an order and a period).",
-    "ja": ""
+    "ja": "季節成分です (次数、または次数と周期)。"
   },
   "ArimaOptions.transformPars#summary": {
     "hash": "fe78b148ba64",
     "en": "Transform the AR parameters to stationarity during the ML optimisation. Default true.",
-    "ja": ""
+    "ja": "ML の最適化中に AR パラメータを定常性を満たす形に変換します。既定は true です。"
   },
   "ArimaOptions.xreg#summary": {
     "hash": "d492aadcd1d7",
     "en": "Regressors: one array per regressor, each of the series' length.",
-    "ja": ""
+    "ja": "回帰変数です。各回帰変数につき、系列と同じ長さの配列を 1 つ指定します。"
   },
   "ArimaOptions.xregNames#summary": {
     "hash": "0991300136a4",
     "en": "Names of the regressors. Default \"xreg1\", \"xreg2\", ... (or \"xreg\" for one).",
-    "ja": ""
+    "ja": "回帰変数の名前です。既定は \"xreg1\", \"xreg2\", ... (1 つの場合は \"xreg\") です。"
   },
   "ArimaResult#summary": {
     "hash": "e0a0dd4ea6cd",
     "en": "Result of {@link arima}.",
-    "ja": ""
+    "ja": "{@link arima} の結果です。"
   },
   "ArimaResult.aic#summary": {
     "hash": "940d5bd1b2cf",
     "en": "-2 loglik + 2 (free coefficients + 1); NaN for CSS.",
-    "ja": ""
+    "ja": "-2 loglik + 2 (自由な係数 + 1) です。CSS の場合は NaN です。"
   },
   "ArimaResult.arma#summary": {
     "hash": "f058518b9180",
     "en": "(p, q, P, Q, period, d, D).",
-    "ja": ""
+    "ja": "(p, q, P, Q, period, d, D) です。"
   },
   "ArimaResult.code#summary": {
     "hash": "bbf142af027a",
     "en": "The optimiser's convergence code (0 = converged).",
-    "ja": ""
+    "ja": "最適化アルゴリズムの収束コードです (0 = 収束)。"
   },
   "ArimaResult.coef#summary": {
     "hash": "fa283f99e599",
     "en": "The coefficients (AR, MA, seasonal AR, seasonal MA, intercept, regressors).",
-    "ja": ""
+    "ja": "係数です (AR、MA、季節 AR、季節 MA、切片、回帰変数)。"
   },
   "ArimaResult.coefNames#summary": {
     "hash": "164e11d79f76",
     "en": "Their names (ar1, ma1, sar1, sma1, intercept, regressor names).",
-    "ja": ""
+    "ja": "係数名です (ar1、ma1、sar1、sma1、intercept、回帰変数名)。"
   },
   "ArimaResult.includeMean#summary": {
     "hash": "a8a602d7e471",
     "en": "Whether a mean was included.",
-    "ja": ""
+    "ja": "平均を含めたかどうかです。"
   },
   "ArimaResult.loglik#summary": {
     "hash": "518c67c84894",
     "en": "The maximised log-likelihood of the differenced data (CSS: R's approximation).",
-    "ja": ""
+    "ja": "差分データの最大化された対数尤度です (CSS の場合は R の近似値)。"
   },
   "ArimaResult.mask#summary": {
     "hash": "56931a9fb8ab",
     "en": "Mask of the free coefficients.",
-    "ja": ""
+    "ja": "自由な係数を示すマスクです。"
   },
   "ArimaResult.method#summary": {
     "hash": "ea18c721c600",
     "en": "\"CSS-ML\", \"ML\" or \"CSS\".",
-    "ja": ""
+    "ja": "\"CSS-ML\"、\"ML\" または \"CSS\" です。"
   },
   "ArimaResult.model#summary": {
     "hash": "82a4e6b00fca",
     "en": "The state space model at the end of the series.",
-    "ja": ""
+    "ja": "系列末尾における状態空間モデルです。"
   },
   "ArimaResult.nCond#summary": {
     "hash": "9ff5f61a7cbf",
