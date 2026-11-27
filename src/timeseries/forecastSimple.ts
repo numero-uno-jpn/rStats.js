@@ -172,6 +172,8 @@ export function hw(y: readonly number[], options: { frequency: number; h?: numbe
   checkOptions(options, HW_KEYS, "hw"); // generated: option-keys.mjs
   const m = options.frequency; const h = options.h ?? 2 * m; const level = [...(options.level ?? [80, 95])];
   const mult = options.seasonal === "multiplicative"; const damped = options.damped ?? false;
+  // R's minimum (log 109: "I need at least m + 3 observations to estimate seasonality", 15 for m = 12, 7 for m = 4)
+  if (y.length < m + 3) throw new RangeError(`hw: at least ${m + 3} observations are needed to estimate seasonality (got ${y.length})`);
   const spec: EtsSpec = { error: mult ? "M" : "A", trend: "A", damped, season: mult ? "M" : "A", m };
   let fit: EtsResult;
   if (options.initial === "simple") {

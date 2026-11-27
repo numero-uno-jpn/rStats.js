@@ -1499,3 +1499,8 @@ choices under several criteria).
        2 sum w^3 h_ii + tr((C G)^2) (G = X' D^2 X) and P y = w * residuals, all O(k p^2); P itself is formed only when
        asked for (the DL / HS standard errors, once). 0.15 s; tau2 and se against the old version within 1.3e-15 for
        REML, ML, DL, HS, PM, EB, SJ at k = 5, 30, 300; the 177 test files using the meta functions pass.
+   - **Second pass of the battery of 107** with the final code (1.6 min now, 8 before): against the run after the
+     fixes of 107, the new differences are intended (the NA input fitted as R's, short series as R's), except two
+     found and fixed: the simple ets fits' sigma2 is SSE / n in R (n = 3: 270600.3 = 811801 / 3; thetaf's interval
+     with it, 7% off before); hw needs m + 3 observations in R ("I need at least 15 observations to estimate
+     seasonality"; 7 for m = 4), where rStats.js had dropped the season silently: now the same error.

@@ -528,7 +528,9 @@ export function ets(y: readonly number[], options: EtsOptions = {}): EtsResult {
           const a0 = 0.2 / m; const f = fitModel(zs, spec, fixed, init, "mse", "simple", { alpha: a0, beta: 0.1 * a0, gamma: 0.05 * (1 - a0) });
           if (!f) continue;
           const fr = finish(zs, { ...f, nParams: npars }, nmse, null, false, zs);
-          r = { ...fr, loglik: NaN, aic: NaN, bic: NaN, aicc: NaN };
+          // sigma2 = SSE / n for the simple fits, as R's (n = 3: 811801 / 3; log 109)
+          const sse = fr.residuals.reduce((a, v) => (Number.isNaN(v) ? a : a + v * v), 0);
+          r = { ...fr, loglik: NaN, aic: NaN, bic: NaN, aicc: NaN, sigma2: sse / n };
         } catch (e) { firstError ??= e as Error; continue; }
       } else {
         const f = fitModel(zs, spec, fixed, undefined, options.optCrit ?? "lik");
