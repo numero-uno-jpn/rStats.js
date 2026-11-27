@@ -1109,3 +1109,24 @@ choices under several criteria).
      `src/timeseries/forecastDispatch.ts` (`stlm`, `forecastStlm`, `forecast`).
    - The experiment wrote stlm's method as "arim" (match.arg's partial matching): the checker rejects a string equal
      to a function name; the argument only selects the model.
+
+## tseries' p-value tables (2026-11-27, session 40)
+
+94. `tsmeta120-tables.R` and `-tables2.R` (designed: N = n - 1 exactly at 25, 50, 100, 250, 500 and beyond, 1000 and
+   5000; AR(1) coefficients 0.3 to 1.02 plus a trend to spread the statistics; 7 x 700 and 7 x 400 series) with
+   `tsmeta120-tables-knots.mjs` (the knots of the piecewise linear p) and `tsmeta120-tables-check.mjs`:
+   - pp.test's default type is "Z(alpha)" (the first run's "ppt" column was Z(alpha) too; tables2 records
+     "Z(t_alpha)" explicitly).
+   - the knots at N = 25..500 are Fuller's (1976) Table 8.5.2 (tau_tau, with a trend) for adf.test and pp.test
+     Z(t_alpha), and Table 8.5.1 (n(rho - 1), with a trend) for pp.test Z(alpha), at p = 0.01, 0.025, 0.05, 0.10, 0.90,
+     0.95, 0.975, 0.99 (published values; the rows n = 25, 50, 100, 250, 500, infinity).
+   - **p = the table interpolated linearly over n at N = n - 1 with infinity coded as n = 100000, then over the
+     statistic, clamped to [0.01, 0.99]; explosive = 1 - p**: within 1.1e-16 for every series of both runs (all N,
+     adf both alternatives, pp both types); infinity as 1e4, 1e6 or 1e300: 2e-5 to 4e-4 off at N = 1000, 5000.
+
+95. Implemented `src/timeseries/tseries.ts` (adfTest, kpssTest, ppTest, poTest, jarqueBeraTest, runsTest,
+   terasvirtaTest, whiteTest) from log 6-9, 14-15, 17-18, 94; fixture `oracle/tseries.R` (7 series: lh, LakeHuron, a
+   random walk, white noise of 30, log AirPassengers, AR(1) + trend of 600, an explosive series; 22 calls each, and
+   po.test for 2..4 variables x demean x lshort): **all within 1e-9 at the first run** (statistics, p-values,
+   parameters), white.test with R's seeds through rStats.js's R-compatible generator. pp.test's default type is
+   "Z(alpha)" as R's.
