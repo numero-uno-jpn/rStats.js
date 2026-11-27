@@ -1230,3 +1230,21 @@ choices under several criteria).
    - invalid input: the meta functions now check their inputs (events in 0..n, positive n and times, non-negative sd,
      correlations in [-1, 1], n > 3 for ZCOR) instead of failing later with "no study with a finite estimate".
    - metabin's MH estimates are exact with counts up to 1e12 (relative 1e-12).
+
+## Edge-case review, first round: time series, found (2026-11-27, session 40; not yet fixed)
+
+103. A battery (USAccDeaths; the series times 1e-150, 1e150, 1e-300, 2^1000, plus 1e8; forecasts / components linear,
+   statistics invariant) over 34 functions. **Findings, to fix in the next session (with R checked on the same inputs):**
+   - at 1e+-300 and 2^1000 (squares out of range): arima / forecastArima ("non-finite finite-difference value"),
+     ets and everything on it (ses, holt, hw, thetaf, stlf: "no model able to be fitted"; also at 1e150), holtWinters
+     (L-BFGS-B non-finite; also 1e150), autoArima ("no suitable ARIMA model"), kpss / pp / jarque.bera / Box.test (NaN;
+     kpss and pp also at 1e150, jarque.bera at 1e-150), terasvirta / white (errors), ar / ocsb / meanf / rwf / tslm
+     (wrong values, Infinity), ndiffs / nsdiffs (different decisions);
+   - at ordinary scales: ets AAA, holtWinters and hw differ by 1-2% at 1e-150 (absolute optimiser tolerances), holt
+     and thetaf by 7e-5; with +1e8: arima seasonal 6.8e-3, thetaf 1.1e-2, autoArima 2.6e-3, ets AAA 6.8e-4 (cancellation
+     or the optimiser);
+   - fine at every scale: adfTest, naInterp, tsclean, supsmu, mstl, accuracy; stl and decompose (their +1e8 entry was
+     the battery's error: the seasonal component does not shift); findfrequency's threshold (spectrum > 10) is
+     absolute as R's, so its scale dependence is R's rule.
+   - Plan: standardise by a power of two (and an origin where equivariant) inside the fitting functions, relative
+     tolerances in the optimisers, and R's own behaviour recorded for each (R breaks at 1e+-300 too, probably).

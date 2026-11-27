@@ -27,7 +27,11 @@ netmeta 一式も実装した (src/meta/netmeta.ts、oracle/netmeta.R、test/net
 @category、docs/r-functions.md (英)。
 
 **1.20.0 の残り (セッション 40 の終わり、2026-11-27):**
-1. 端のケースの点検 (仕様書の Edge-case plan、全部の関数を全部の軸で、メモリ feedback-rstats-comprehensive-edge-checks)。まだ手を付けていない
+1. 端のケースの点検 (仕様書の Edge-case plan、全部の関数を全部の軸で、メモリ feedback-rstats-comprehensive-edge-checks)。
+   **一巡目のメタ分析は済み** (ログ 102: confintRma の QP の尺度の不具合を直した、test/metaEdge120.test.ts)。
+   **時系列の一巡目は見つけただけで未修正** (ログ 103 の一覧: 1e±300 で arima・ets・holtWinters・検定が壊れる、ふつうの尺度でも
+   ets AAA・holtWinters・hw が 1e-150 倍で 1〜2%、+1e8 で arima 季節・thetaf・autoArima が 1e-3〜1e-2)。次のセッションはここから:
+   関数ごとに R の振る舞いを実験で確かめ、標準化と相対の許容で直す。そのあと netmeta・tseries の細かい軸、二巡目
 2. 文書: CHANGELOG (rma の PM・EB の不具合の修正も)、docs/differences-from-r.md に R との違い 1-15、日本語版
    (docs/ja/r-functions.json に 103 件の説明が不足 → test/rIndexDoc の ja が落ちる。訳は ChatGPT に依頼)、API の訳 (docs/ja/api/*.json)
 3. デモ: test/demo.test.ts「every export of the areas appears in some example」が落ちる (新しい関数のデモの例がない)
