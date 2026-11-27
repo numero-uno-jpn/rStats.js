@@ -201,11 +201,29 @@ function runLine(x: readonly number[], y: readonly number[], span: number, cv: b
   k = Math.min(k, Math.floor((n - 1) / 2));
   const fit = new Array<number>(n), res = new Array<number>(n);
   const tiny = (1e-3 * (x[n - 1]! - x[0]!)) ** 2;
+  const m = 2 * k + 1;
+  // the window of 2k + 1 consecutive points kept at that size at the ends (log 48). Its sums are updated as it moves
+  // (one point in, one out: O(n) instead of O(n k), log 109), about origins cx, cy (the window's means when the sums
+  // are recomputed exactly, every 256 moves, so that rounding does not accumulate)
+  let curLo = -1; let cx = 0, cy = 0, s1 = 0, t1 = 0, s2 = 0, st = 0; let moves = 0;
+  const exact = (lo: number): void => {
+    let a = 0, b = 0; for (let j = lo; j < lo + m; j++) { a += x[j]!; b += y[j]!; } cx = a / m; cy = b / m;
+    s1 = 0; t1 = 0; s2 = 0; st = 0;
+    for (let j = lo; j < lo + m; j++) { const u = x[j]! - cx, v = y[j]! - cy; s1 += u; t1 += v; s2 += u * u; st += u * v; }
+    moves = 0;
+  };
   for (let i = 0; i < n; i++) {
-    // the window of 2k + 1 consecutive points kept at that size at the ends (log 48)
-    const lo = Math.max(0, Math.min(i - k, n - 1 - 2 * k)); const hi = lo + 2 * k; const m = hi - lo + 1;
-    let xm = 0, ym = 0; for (let j = lo; j <= hi; j++) { xm += x[j]!; ym += y[j]!; } xm /= m; ym /= m;
-    let sxx = 0, sxy = 0; for (let j = lo; j <= hi; j++) { sxx += (x[j]! - xm) ** 2; sxy += (x[j]! - xm) * (y[j]! - ym); }
+    const lo = Math.max(0, Math.min(i - k, n - 1 - 2 * k));
+    if (lo !== curLo) {
+      if (curLo < 0 || lo !== curLo + 1 || moves >= 256) exact(lo);
+      else {
+        const uo = x[curLo]! - cx, vo = y[curLo]! - cy, un = x[lo + m - 1]! - cx, vn = y[lo + m - 1]! - cy;
+        s1 += un - uo; t1 += vn - vo; s2 += un * un - uo * uo; st += un * vn - uo * vo; moves++;
+      }
+      curLo = lo;
+    }
+    const mu = s1 / m, mv = t1 / m; const xm = cx + mu, ym = cy + mv;
+    const sxx = s2 - m * mu * mu, sxy = st - m * mu * mv;
     const slope = sxx > tiny; const b = slope ? sxy / sxx : 0;
     fit[i] = ym + b * (x[i]! - xm);
     if (cv) { const hh = 1 / m + (slope ? (x[i]! - xm) ** 2 / sxx : 0); res[i] = Math.abs(y[i]! - fit[i]!) / (1 - hh); }

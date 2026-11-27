@@ -7,7 +7,7 @@ import { confintRma, rma } from "../src/models/metaAnalysis.js";
 import { metabin } from "../src/meta/metabin.js";
 import { metagen } from "../src/meta/metagen.js";
 import { metacont, metacor, metainc, metamean, metaprop, metarate } from "../src/meta/metaother.js";
-import { netmeta } from "../src/meta/netmeta.js";
+import { netmeta, netrank } from "../src/meta/netmeta.js";
 
 const R = JSON.parse(readFileSync(new URL("../experiments/tsmeta120-metaedge.json", import.meta.url), "utf8")) as Record<string, any>;
 const num = (v: unknown): number => (v === null ? NaN : Number(v));
@@ -81,4 +81,29 @@ describe("meta: invalid input", () => {
     ["netmeta disconnected", () => netmeta([1, 1], [1, 1], ["A", "C"], ["B", "D"], ["s1", "s2"]), /not connected/],
   ];
   for (const [name, f, re] of throws) it(name, () => expect(f).toThrow(re));
+});
+
+// netmeta's fine axes (log 109; R on the same inputs: experiments/tsmeta120-netedge.json)
+describe("netmeta: special networks and scale as R (log 109)", () => {
+  const RN = JSON.parse(readFileSync(new URL("../experiments/tsmeta120-netedge.json", import.meta.url), "utf8")).netmeta as Record<string, any>;
+  const rowsOf = (d: any): any[] => (Array.isArray(d) ? d : d.stud.map((_: unknown, i: number) => ({ stud: d.stud[i], t1: d.t1[i], t2: d.t2[i], TE: d.TE[i], seTE: d.seTE[i] })));
+  const fitOf = (d: any, c = 1) => { const r = rowsOf(d); const trts = [...new Set(r.flatMap((x) => [x.t1, x.t2]))].sort() as string[];
+    return { trts, nm: netmeta(r.map((x) => x.TE * c), r.map((x) => x.seTE * c), r.map((x) => x.t1), r.map((x) => x.t2), r.map((x) => x.stud), { referenceGroup: trts[0]! }) }; };
+  const col = (nm: any, key: string, trts: string[]) => trts.map((t) => nm[key].values[nm[key].rows.indexOf(t)][nm[key].cols.indexOf(trts[0])]);
+  for (const name of ["base", "one", "star", "consistent", "equalse", "tied", "large"]) {
+    it(name, () => {
+      const r = name === "base" ? RN.base : RN[name].fit; const { trts, nm } = fitOf(name === "base" ? RN.data : RN[name].data);
+      for (const key of ["TE.common", "seTE.common", "TE.random", "seTE.random"]) col(nm, key, trts).forEach((v, i) => expect(Math.abs(v - r[key][i]), `${key} ${i}`).toBeLessThan(1e-12));
+      if (r.tau2 === null) expect(Number.isNaN(nm.tau2)).toBe(true); else expect(Math.abs(nm.tau2 - r.tau2)).toBeLessThan(1e-12);
+      const pr = netrank(nm); trts.forEach((t, i) => expect(Math.abs(pr[t]! - r["Pscore.random"][i]), t).toBeLessThan(1e-12));
+    });
+  }
+  it("TE and seTE times 1e-150 .. 1e150: equivariant (R fails from 1e+-10 on: a singular system)", () => {
+    const { trts, nm: b } = fitOf(RN.data);
+    for (const c of [1e-150, 1e-10, 1e10, 1e150]) {
+      const { nm } = fitOf(RN.data, c);
+      for (const key of ["TE.random", "seTE.random"]) col(nm, key, trts).forEach((v, i) => { const w = col(b, key, trts)[i]!; if (w) expect(Math.abs(v / c / w - 1), `${c} ${key}`).toBeLessThan(1e-13); });
+      expect(Math.abs(nm.tau2 / c / c / b.tau2 - 1)).toBeLessThan(1e-13); expect(Math.abs(nm.Q - b.Q)).toBeLessThan(1e-12 * b.Q);
+    }
+  });
 });

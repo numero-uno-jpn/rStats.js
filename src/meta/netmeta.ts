@@ -157,7 +157,10 @@ export function netmeta(TE: readonly number[], seTE: readonly number[], treat1: 
     "TE.random": matOf(trts, tR), "seTE.random": matOf(trts, sR), "lower.random": matOf(trts, (i, j) => tR(i, j) - z * sR(i, j)), "upper.random": matOf(trts, (i, j) => tR(i, j) + z * sR(i, j)),
     "lower.predict": matOf(trts, (i, j) => (i === j ? 0 : tR(i, j) - tp * Math.sqrt(sR(i, j) ** 2 + tau2))), "upper.predict": matOf(trts, (i, j) => (i === j ? 0 : tR(i, j) + tp * Math.sqrt(sR(i, j) ** 2 + tau2))),
     "TE.direct.common": dC.te, "seTE.direct.common": dC.se, "TE.direct.random": dR.te, "seTE.direct.random": dR.se,
-    Q: fitC.Q, "df.Q": dfQ, "pval.Q": dfQ > 0 ? (pchisq(fitC.Q, dfQ, { lowerTail: false }) as number) : NaN, tau2,
+    // without heterogeneity degrees of freedom (a star of single studies) tau2 is not estimable: NaN as R's NA, the
+    // random-effects results those of tau2 = 0 (log 109)
+    Q: fitC.Q, "df.Q": dfQ, "pval.Q": dfQ > 0 ? (pchisq(fitC.Q, dfQ, { lowerTail: false }) as number) : NaN,
+    tau2: options.tau2 === undefined && dfQ <= 0 ? NaN : tau2,
     I2: het.I2, "lower.I2": het.lI2, "upper.I2": het.uI2,
     "Q.heterogeneity": qHet, "df.Q.heterogeneity": dfHet, "Q.inconsistency": fitC.Q - qHet, "df.Q.inconsistency": dfQ - dfHet,
     "w.common": fitC.w, "w.random": fitR.w, referenceGroup: options.referenceGroup ?? null, level,

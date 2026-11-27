@@ -241,3 +241,24 @@ describe("ets on short series as R's (log 108, the user's decision 2026-11-28)",
     }
   }, 600_000);
 });
+
+describe("tseries: short series and degenerate input (log 109)", () => {
+  const RT = JSON.parse(readFileSync(new URL("../experiments/tsmeta120-netedge.json", import.meta.url), "utf8")).tseries as Record<string, any>;
+  const e = RT.e as number[]; const cum = (v: number[]): number[] => { let s = 0; return v.map((u) => (s += u)); };
+  it("too short: errors where R fails or returns NaN", () => {
+    expect(() => ppTest(cum(e.slice(0, 3)))).toThrow(/too short/);
+    for (const n of [3, 4, 5]) { expect(() => terasvirtaTest(cum(e.slice(0, n))), `${n}`).toThrow(/too short/); expect(() => whiteTest(cum(e.slice(0, n)), { seed: 1 }), `${n}`).toThrow(/too short/); }
+    const x6 = cum(e.slice(0, 6));
+    expect(Math.abs(terasvirtaTest(x6).statistic / RT.n6.terasvirta.statistic - 1)).toBeLessThan(1e-12);
+  });
+  it("poTest with collinear columns: an error (R's value is rounding noise)", () => {
+    const x = cum(e); expect(() => poTest(x.map((v) => [v, 2 * v]))).toThrow(/collinear/);
+  });
+  it("the options as R's", () => {
+    const x = cum(e);
+    const cases: [string, number][] = [["adf_explosive", adfTest(x, { alternative: "explosive" }).pValue], ["adf_k10", adfTest(x, { k: 10 }).statistic],
+      ["kpss_long", kpssTest(x, { lshort: false }).statistic], ["pp_alpha", ppTest(x, { type: "Z(alpha)" }).statistic], ["pp_long", ppTest(x, { lshort: false }).statistic],
+      ["terasvirta_F", terasvirtaTest(x, { type: "F" }).statistic], ["white_F", whiteTest(x, { type: "F", seed: 1 }).statistic]];
+    for (const [k, v] of cases) expect(Math.abs(v / (k === "adf_explosive" ? RT.options[k].p : RT.options[k].statistic) - 1), k).toBeLessThan(1e-12);
+  });
+});

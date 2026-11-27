@@ -1464,3 +1464,38 @@ choices under several criteria).
      160000 random parameter sets; normalised at each step: the same decisions on all 160000 (8 model shapes, m = 1, 4,
      12). The fits are bit for bit the same (ZZZ log-likelihood -552.2174794344394 before and after). Times: ets ZZZ on
      USAccDeaths 20.8 s -> 1.8 s, on 24 values 48.8 s -> 3.2 s; AAA 1.4 s -> 0.11 s; MAM 1.8 s -> 0.16 s.
+
+## Edge-case review, first round: netmeta's and tseries' fine axes, size (2026-11-28, session 42)
+
+109. R on `tsmeta120-netedge.R` / `.json` (netmeta 3.7.0, tseries; the netmeta calls wrapped in capture.output, which
+   prints a message about dropped comparisons on stdout and broke the first JSON; terasvirta.test / white.test need a
+   ts object, a plain vector dispatches to the (x, y) method and failed with "argument y is missing").
+   - **netmeta.** A 5-treatment network with a three-arm study and the special networks: one comparison (3 studies),
+     a star of single studies, a consistent network (Q = 0), equal seTE, tied P-scores, 30 treatments (60 studies):
+     TE / seTE (common and random), Q, tau2, P-scores equal to 1e-13. The star (df.Q = 0): R's tau2 and I2 are NA,
+     rStats.js's tau2 was 0: now NaN (the random-effects results those of tau2 = 0, as R's). **Scale: R fails** with TE
+     and seTE times 1e-10, 1e10, 1e-150 and 1e150 ("Lapack routine dgesv: system is exactly singular" / "computationally
+     singular"); rStats.js is equivariant there to 4e-15 (tau2 as a square, Q and the P-scores invariant to 3e-16).
+     Invalid input: R drops comparisons with a missing TE / seTE, zero seTE and also a negative seTE (with a warning)
+     and returns NaN estimates with an infinite TE; rStats.js keeps its errors (as metagen's, the first round's choice).
+   - **tseries.** The tests on random walks of n = 3..20 and the options on n = 200: the same to 2e-14 wherever both
+     give a number (adf with k = 0, 10, 150 (R: NA, rStats.js: the same NA), explosive; kpss with lshort = FALSE and
+     Trend; pp's types and lshort; terasvirta / white with F; po.test with three columns; runs.test with ties at the
+     median and two values). Changed: pp.test at n = 3 (R: an error, rStats.js NaN), terasvirta.test / white.test at
+     n = 3..5 (R: NaN with p = 0 or an error; rStats.js: Infinity) are now errors ("too short": the augmented regression
+     has no residual degree of freedom); po.test with collinear or identical columns (R -222.1, rStats.js -217.1: the
+     residuals of an exact cointegrating fit are rounding noise) is an error. adf.test at n = 3..5 (R: NA or an error)
+     was already an error.
+   - **Size** (n = 1e5 random walk / seasonal series; k = 1000 studies): tsFilter, diffinv, ma, acf / pacf (lag 50),
+     Box.test, kpss, pp, jarque.bera, runs, terasvirta, white, ndiffs / nsdiffs, decompose, stl, mstl, ar, arima(1,0,0),
+     ets ANN, HoltWinters, findfrequency, BoxCox.lambda: 1 ms to 1.9 s each (adf 0.85 s, naInterp 1.9 s, arima 1.2 s).
+     Slow and fixed:
+     - supsmu 46.6 s (and tsoutliers 40 s through it): every running-line window summed from scratch, O(n k) with k up
+       to n / 4. Now the window's sums are updated as it moves (about origins at the window's means, recomputed exactly
+       every 256 moves): 0.66 s (tsoutliers 2.2 s); against the old version 7e-15 (n = 200), 4e-16 (n = 5000) and 1e-15
+       of |y| with y around 1e8; the R fixtures unchanged.
+     - metagen with k = 1000 studies 22 s (300: 1.5 s): rma's weighted fit formed the k x k matrix P = D - D H D at
+       every REML / Q-profile step and its trace of P^2 in O(k^3). Now tr P = sum w - sum w^2 h_ii, tr P^2 = sum w^2 -
+       2 sum w^3 h_ii + tr((C G)^2) (G = X' D^2 X) and P y = w * residuals, all O(k p^2); P itself is formed only when
+       asked for (the DL / HS standard errors, once). 0.15 s; tau2 and se against the old version within 1.3e-15 for
+       REML, ML, DL, HS, PM, EB, SJ at k = 5, 30, 300; the 177 test files using the meta functions pass.

@@ -158,12 +158,20 @@ function weightedFit(y:number[], v:number[], X:number[][], tau2:number) {
   const residuals=y.map((z,i)=>z-fitted[i]!);
   const qeScaled=y.every(z=>z===y[0])?0:residuals.reduce((s,z,i)=>s+weights[i]!*z*z,0);
   const qe=qeScaled/minVariance;
-  const P=Array.from({length:k},(_,i)=>Array.from({length:k},(_,j)=>(i===j?weights[i]!:0)-weights[i]!*dot(X[i]!,matVec(covNorm,X[j]!).map((z)=>z*weights[j]!))));
-  const tracePNorm=P.reduce((s,row,i)=>s+row[i]!,0);
+  // P = D - D H D (D = diag(w), H = X C X', C = covNorm), in closed form without the k x k matrix (1.20.0, log 109:
+  // k = 1000 studies took 22 s): tr P = sum w - sum w^2 h_ii, tr P^2 = sum w^2 - 2 sum w^3 h_ii + tr((C G)^2) with
+  // G = X' D^2 X, P y = w * (y - X beta). P itself is formed only when asked for (the DL / HS standard errors).
+  const hii=X.map(row=>dot(row,matVec(covNorm,row)));
+  const G=Array.from({length:p},(_,a)=>Array.from({length:p},(_,b)=>X.reduce((s,row,i)=>s+weights[i]!*weights[i]!*row[a]!*row[b]!,0)));
+  const CG=covNorm.map(row=>Array.from({length:p},(_,b)=>row.reduce((s,z,c)=>s+z*G[c]![b]!,0)));
+  let trCG2=0; for(let a=0;a<p;a++)for(let b=0;b<p;b++)trCG2+=CG[a]![b]!*CG[b]![a]!;
+  const tracePNorm=weights.reduce((s,w,i)=>s+w-w*w*hii[i]!,0);
   const traceP=tracePNorm/minVariance;
-  const traceP2Norm=P.reduce((s,row,i)=>s+row.reduce((t,z,j)=>t+z*P[j]![i]!,0),0);
+  const traceP2Norm=weights.reduce((s,w,i)=>s+w*w-2*w*w*w*hii[i]!,0)+trCG2;
   const traceP2=traceP2Norm/minVariance/minVariance;
-  const py=P.map(row=>dot(row,y));
+  const py=residuals.map((z,i)=>weights[i]!*z);
+  let Pm:number[][]|null=null;
+  const getP=():number[][]=>(Pm??=Array.from({length:k},(_,i)=>{const ci=matVec(covNorm,X[i]!);return Array.from({length:k},(_,j)=>(i===j?weights[i]!:0)-weights[i]!*weights[j]!*dot(X[j]!,ci));}));
   // score and information share the omitted 1/minVariance^2 factor, so their
   // ratio (the Newton step) is evaluated without forming that potentially infinite factor.
   const score=0.5*(dot(py,py)-minVariance*tracePNorm);
@@ -174,7 +182,7 @@ function weightedFit(y:number[], v:number[], X:number[][], tau2:number) {
   const logLik=-0.5*(variance.reduce((s,z)=>s+Math.log(z),0)+logdetNorm-p*Math.log(minVariance)+qe);
   const cov=covNorm.map(row=>row.map(z=>z*minVariance));
   const se=covNorm.map((row,i)=>Math.sqrt(Math.max(0,row[i]!))*Math.sqrt(minVariance));
-  return {beta,cov,se,fitted,residuals,qe,qeScaled,weights,minVariance,P,traceP,tracePNorm,traceP2,traceP2Norm,
+  return {beta,cov,se,fitted,residuals,qe,qeScaled,weights,minVariance,get P(){return getP();},traceP,tracePNorm,traceP2,traceP2Norm,
     score,mlScore,mlInfo,logLik,sumWeightsNorm:sumWeights,sumWeightSquaredNorm};
 }
 function determinantSmall(a:number[][]):number {

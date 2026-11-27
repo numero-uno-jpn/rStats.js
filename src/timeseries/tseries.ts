@@ -139,6 +139,8 @@ export function ppTest(x: readonly number[], options: { alternative?: "stationar
   const statistic = type === "Z(alpha)"
     ? nn * (rho - 1) - (nn ** 6 / (24 * Dx)) * (lam - su2)
     : Math.sqrt(su2 / lam) * tr - ((lam - su2) * nn ** 3) / (4 * Math.sqrt(3) * Math.sqrt(Dx) * Math.sqrt(lam));
+  // too short a series (n = 3: the regression on 1, t, y_{t-1} has no residual degree of freedom): an error, as R's (log 109)
+  if (!Number.isFinite(statistic)) throw new RangeError(`ppTest: the series is too short (${n} values)`);
   let p = fullerP(type === "Z(alpha)" ? RHO_TAU : TAU_TAU, nn, statistic); if (options.alternative === "explosive") p = 1 - p;
   return { statistic, parameter: l, pValue: p, method: "Phillips-Perron Unit Root Test" };
 }
@@ -171,6 +173,10 @@ export function poTest(x: readonly (readonly number[])[], options: { demean?: bo
   const demean = options.demean ?? true; const nn = n - 1;
   const l = Math.trunc((nn) / (options.lshort ?? true ? 100 : 30));
   const u = lm(X.map((r) => r.slice(1)), X.map((r) => r[0]!), { intercept: demean }).residuals;
+  // collinear columns (an exact cointegrating relation): the residuals are rounding noise and the statistic with them
+  // (R's -222 against rStats.js's -217 for (x, 2x)); an error (log 109)
+  const ssy = X.reduce((a, r) => a + r[0]! * r[0]!, 0);
+  if (!(u.reduce((a, v) => a + v * v, 0) > 1e-24 * ssy)) throw new RangeError("poTest: the columns are collinear (the cointegrating regression fits exactly)");
   const g = lm(u.slice(0, n - 1).map((v) => [v]), u.slice(1), { intercept: false });
   const rho = g.coefficients[0]!; const e = g.residuals;
   const su2 = e.reduce((a, b) => a + b * b, 0) / nn; const lam = neweyWest(e, l, nn);
@@ -227,7 +233,10 @@ const embedLags = (y: readonly number[], lag: number): { resp: number[]; lags: n
 };
 const ssr = (X: number[][], y: number[]): number => lm(X, y, {}).residuals.reduce((a, b) => a + b * b, 0);
 
-function nonlinearityResult(n: number, m: number, df: number, ssr0: number, ssr1: number, type: "Chisq" | "F", method: string): TseriesTest {
+function nonlinearityResult(n: number, m: number, df: number, ssr0: number, ssr1: number, type: "Chisq" | "F", method: string, lag = 1): TseriesTest {
+  // the augmented regression (an intercept, the lags and df terms) needs more rows than columns; R returns NaN or
+  // fails below that (log 109)
+  if (m - (1 + lag + df) <= 0) throw new RangeError(`${method}: the series is too short (${n} values for lag ${lag})`);
   if (type === "F") {
     const statistic = ((ssr0 - ssr1) / df) / (ssr1 / (m - df));
     return { statistic, parameter: [df, m - df], pValue: pf(statistic, df, m - df, { lowerTail: false }) as number, method };
@@ -255,7 +264,7 @@ export function terasvirtaTest(x: readonly number[], options: { lag?: number; ty
     return out;
   });
   const df = prods[0]!.length;
-  return nonlinearityResult(y.length, m, df, ssr(lags, resp), ssr(lags.map((r, t) => [...r, ...prods[t]!]), resp), options.type ?? "Chisq", "Teraesvirta Neural Network Test");
+  return nonlinearityResult(y.length, m, df, ssr(lags, resp), ssr(lags.map((r, t) => [...r, ...prods[t]!]), resp), options.type ?? "Chisq", "Teraesvirta Neural Network Test", lag);
 }
 
 /**
@@ -280,5 +289,5 @@ export function whiteTest(x: readonly number[], options: { lag?: number; qstar?:
     return 1 / (1 + Math.exp(-s));
   }));
   const pc = prcomp(hidden, { scale: true }).x.map((r) => r.slice(1, qstar + 1));
-  return nonlinearityResult(y.length, m, qstar, ssr(lags, resp), ssr(lags.map((r, t) => [...r, ...pc[t]!]), resp), options.type ?? "Chisq", "White Neural Network Test");
+  return nonlinearityResult(y.length, m, qstar, ssr(lags, resp), ssr(lags.map((r, t) => [...r, ...pc[t]!]), resp), options.type ?? "Chisq", "White Neural Network Test", lag);
 }
