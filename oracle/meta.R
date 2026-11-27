@@ -31,4 +31,28 @@ for (nm in names(sets)) {
   mg[[nm]] <- list(TE = y, seTE = s, cases = cases)
 }
 out$metagen <- mg
+# metabin (log 64-65)
+data(Fleiss1993bin, package = "meta")
+fl <- Fleiss1993bin
+zero <- data.frame(e1 = c(0, 3, 5, 0, 12, 0, 7), n1 = c(20, 30, 40, 25, 60, 15, 33), e2 = c(2, 0, 8, 0, 15, 3, 7), n2 = c(22, 28, 41, 24, 58, 16, 33))
+full <- data.frame(e1 = c(10, 20, 5), n1 = c(10, 40, 30), e2 = c(8, 18, 0), n2 = c(9, 41, 32))
+bsets <- list(fleiss = list(fl$d.asp, fl$n.asp, fl$d.plac, fl$n.plac), zero = list(zero$e1, zero$n1, zero$e2, zero$n2), full = list(full$e1, full$n1, full$e2, full$n2))
+mb <- list()
+for (nm in names(bsets)) {
+  b <- bsets[[nm]]; cases <- list()
+  for (sm in c("RR", "OR", "RD")) for (meth in c("MH", "Inverse")) for (mt in c("REML", "DL")) {
+    m <- metabin(b[[1]], b[[2]], b[[3]], b[[4]], sm = sm, method = meth, method.tau = mt)
+    cases[[paste(sm, meth, mt)]] <- pick(m)
+  }
+  cases[["OR Peto REML"]] <- pick(metabin(b[[1]], b[[2]], b[[3]], b[[4]], sm = "OR", method = "Peto"))
+  cases[["OR Peto DL"]] <- pick(metabin(b[[1]], b[[2]], b[[3]], b[[4]], sm = "OR", method = "Peto", method.tau = "DL"))
+  cases[["OR MH REML exact"]] <- pick(metabin(b[[1]], b[[2]], b[[3]], b[[4]], sm = "OR", MH.exact = TRUE))
+  cases[["RR MH REML allstudies"]] <- pick(metabin(b[[1]], b[[2]], b[[3]], b[[4]], sm = "RR", allstudies = TRUE))
+  cases[["OR MH REML incr1"]] <- pick(metabin(b[[1]], b[[2]], b[[3]], b[[4]], sm = "OR", incr = 1))
+  cases[["OR MH REML all"]] <- pick(metabin(b[[1]], b[[2]], b[[3]], b[[4]], sm = "OR", method.incr = "all"))
+  cases[["OR MH REML if0all"]] <- pick(metabin(b[[1]], b[[2]], b[[3]], b[[4]], sm = "OR", method.incr = "if0all"))
+  cases[["RR MH DL QnotCochrane"]] <- pick(metabin(b[[1]], b[[2]], b[[3]], b[[4]], sm = "RR", method.tau = "DL", Q.Cochrane = FALSE))
+  mb[[nm]] <- list(e1 = b[[1]], n1 = b[[2]], e2 = b[[3]], n2 = b[[4]], cases = cases)
+}
+out$metabin <- mb
 writeLines(toJSON(out, digits = I(17), auto_unbox = TRUE, null = "null", na = "null", pretty = FALSE), file.path("/out", "meta.json"))

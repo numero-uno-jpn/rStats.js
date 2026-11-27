@@ -1147,3 +1147,13 @@ choices under several criteria).
    - **rStats.js's rma (since 1.0) returned NaN for PM and EB when Q(0) <= df** (the root search found no sign
      change); fixed: tau2 = 0, as metafor. A bug fix to list in the 1.20.0 notes.
    - When Q(0) is below the lower chi-squared quantile, metafor's Q-profile upper bound is NA and meta reports 0: done.
+
+97. `src/meta/metabin.ts` against the fixture's metabin section (Fleiss 1993, a set with zero cells and double zeros,
+   a set with all events; RR / OR / RD x MH / Inverse x REML / DL, Peto, MH.exact, allstudies, incr 1, method.incr
+   "all" / "if0all", Q.Cochrane FALSE):
+   - exact (1e-9) with the rules of log 64-65, plus one found here: **the MH risk difference = sum w RD / sum w with
+     w = N1 N2 / N from the incremented group sizes and RD the raw differences**, its Greenland-Robins variance from
+     the incremented cells (with the incremented cells throughout: 1e-3 off; raw throughout: 4e-4 off).
+   - REML near 0: meta's tau2 = 2.9e-6 where rStats.js's rma gives 0 (`tsmeta120-reml.R`): metafor's default stops
+     at threshold 1e-5 approaching the boundary (threshold 1e-10 gives 6.9e-11, tau2.init 0 gives 0), so 0 is the
+     maximum; the random part agrees to 1e-3 there and is compared so.

@@ -109,7 +109,10 @@ export function genqInterval(y: readonly number[], v: readonly number[], a: read
 }
 
 /** The pooled estimates and heterogeneity of study estimates TE with standard errors seTE (inverse variance). */
-export function metaCore(TE: readonly number[], seTE: readonly number[], options: MetaCommonOptions = {}): MetaResult {
+/** Internal: a tau2 and a Q fixed by the caller (metabin's Q about the MH estimate with DL, log 64). */
+export interface MetaCoreInternal { fixedTau2?: number; fixedQ?: number }
+
+export function metaCore(TE: readonly number[], seTE: readonly number[], options: MetaCommonOptions & MetaCoreInternal = {}): MetaResult {
   const k = TE.length; const v = seTE.map((s) => s * s);
   const methodTau = options.methodTau ?? "REML"; const ciMethod = options.methodRandomCi ?? "classic";
   const methodTauCi = options.methodTauCi ?? (methodTau === "DL" ? "J" : "QP");
@@ -117,9 +120,10 @@ export function metaCore(TE: readonly number[], seTE: readonly number[], options
   const zMa = qnorm(0.5 + levelMa / 2) as number;
   const w = v.map((x) => 1 / x); const sw = sum(w);
   const teC = sum(w.map((wi, i) => wi * TE[i]!)) / sw; const seC = Math.sqrt(1 / sw);
-  const Q = sum(w.map((wi, i) => wi * (TE[i]! - teC) ** 2)); const dfQ = k - 1;
+  const Q = options.fixedQ ?? sum(w.map((wi, i) => wi * (TE[i]! - teC) ** 2)); const dfQ = k - 1;
   let tau2 = 0;
-  if (k > 1) tau2 = rma(TE as number[], v, { method: methodTau as MetaMethod }).tau2;
+  if (options.fixedTau2 !== undefined) tau2 = options.fixedTau2;
+  else if (k > 1) tau2 = rma(TE as number[], v, { method: methodTau as MetaMethod }).tau2;
   const wr = v.map((x) => 1 / (x + tau2)); const swr = sum(wr);
   const teR = sum(wr.map((wi, i) => wi * TE[i]!)) / swr;
   let seR = Math.sqrt(1 / swr); let lowR: number, upR: number, statR: number, pR: number, dfR: number | null = null;

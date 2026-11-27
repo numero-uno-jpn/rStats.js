@@ -3,6 +3,7 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { metagen, pWeightedChisq, type MetaResult } from "../src/meta/metagen.js";
+import { metabin, type MetabinOptions } from "../src/meta/metabin.js";
 import { symmetricEigen } from "../src/random/mvrnorm.js";
 import { qchisq } from "../src/distributions/chisq.js";
 
@@ -67,6 +68,37 @@ describe("metagen", () => {
           expect(Math.abs(mine - rv), `${set} ${name} ${bound}`).toBeLessThan(1.3e-4);
           expect(Math.abs(Math.sqrt(mine) - num(r[bound.replace("tau2", "tau")])), `${set} ${name} tau`).toBeLessThan(5e-4);
         }
+      }
+      expect(bad).toEqual([]);
+    });
+  }
+});
+
+const TAU_INTERVAL = ["lower.tau2", "upper.tau2", "lower.tau", "upper.tau"];
+/** R's REML stops at threshold 1e-5 approaching tau2 = 0 (metafor's default; log 97): ours is the boundary itself. */
+const nearZeroReml = (m: MetaResult, r: any): boolean => m.methodTau === "REML" && m.tau2 === 0 && num(r.tau2) > 0 && num(r.tau2) < 1e-5;
+const RANDOM_FIELDS = ["TE.random", "seTE.random", "lower.random", "upper.random", "statistic.random", "pval.random", "seTE.predict", "lower.predict", "upper.predict", "tau2", "tau", "w.random"];
+/** Compare a meta result with R's: exact, except R's REML near 0 (the random part to 1e-3, tau = sqrt(tau2) not compared) and the tau2 interval. */
+export function compareMeta(m: MetaResult, r: any, label: string): string[] {
+  const loose = nearZeroReml(m, r);
+  const bad = diffFields(m as unknown as Record<string, unknown>, r, 1e-9, [...TAU_INTERVAL, ...(loose ? RANDOM_FIELDS : [])]).map((b) => `${label} ${b}`);
+  if (loose) bad.push(...diffFields(m as unknown as Record<string, unknown>, Object.fromEntries(RANDOM_FIELDS.filter((f) => f !== "tau").map((f) => [f, r[f]])), 1e-3).map((b) => `${label} (near 0) ${b}`));
+  return bad;
+}
+
+describe("metabin", () => {
+  for (const [set, s] of Object.entries(fx.metabin as Record<string, any>)) {
+    it(set, () => {
+      const bad: string[] = [];
+      for (const [name, r] of Object.entries(s.cases as Record<string, any>)) {
+        const p = name.split(" "); const o: MetabinOptions = { sm: p[0] as "RR", method: p[1] as "MH", methodTau: p[2] as "REML" };
+        if (name.endsWith("exact")) o.MHexact = true;
+        if (name.endsWith("allstudies")) o.allstudies = true;
+        if (name.endsWith("incr1")) o.incr = 1;
+        if (name.endsWith(" all")) o.methodIncr = "all";
+        if (name.endsWith("if0all")) o.methodIncr = "if0all";
+        if (name.endsWith("QnotCochrane")) o.QCochrane = false;
+        bad.push(...compareMeta(metabin(vec(s.e1), vec(s.n1), vec(s.e2), vec(s.n2), o), r, name));
       }
       expect(bad).toEqual([]);
     });
