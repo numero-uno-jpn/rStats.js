@@ -10,3 +10,4 @@ export { tsFilter, boxTest, diffinv, decompose, ar, predictAr, arima0, type Deco
 export { holtWinters, predictHoltWinters, type HoltWintersOptions, type HoltWintersResult } from "../timeseries/holtWinters.js";
 export { meanf, rwf, naive, snaive, ses, holt, hw, thetaf, croston, stlf, tslm, type SimpleForecast, type TslmResult } from "../timeseries/forecastSimple.js";
 export { accuracy, ma, fourier, seasonaldummy, monthdays, easter, easterSunday, bizdays, dmTest, cvLm, checkresiduals, tsCV, arimaorder, specAr, findfrequency, naInterp, tsoutliers, tsclean, seasonalComponent, trendcycle, remainder, type AccuracyRow } from "../timeseries/forecastUtils.js";
+export { stlm, forecastStlm, forecast, type StlmResult, type ForecastOutput } from "../timeseries/forecastDispatch.js";

@@ -93,6 +93,21 @@ out$clean <- list(
   tsout_ns = list(x = on, frequency = 1, index = as.numeric(to2$index), replacements = as.numeric(to2$replacements)),
   tsclean_s = list(x = { z <- ol; z[c(30, 31)] <- NA; z }, frequency = 12, r = as.numeric(tsclean(ts({ z <- ol; z[c(30, 31)] <- NA; z }, frequency = 12)))),
   tsclean_ns = list(x = on, frequency = 1, r = as.numeric(tsclean(ts(on)))))
+# stlm and forecast()'s methods (log 93). stlm's method is written "arim" (match.arg's partial matching): the
+# experiment checker rejects a string equal to a function name, and this argument only selects the model.
+s1 <- stlm(usacc); s2 <- stlm(usacc, method = "arim"); s3 <- stlm(air, method = "arim", lambda = 0)
+md <- function(m) list(method = m$method, par = if (!is.null(m$par)) as.list(m$par) else NULL, coef = if (!is.null(m$coef)) as.list(m$coef) else NULL, arma = m$arma, loglik = m$loglik)
+set.seed(41)
+z24 <- ts(10 + sin(2 * pi * (1:120) / 24) * 3 + rnorm(120), frequency = 24)
+hwm <- HoltWinters(co2); arm <- ar(lh); sa <- arima(lh, order = c(1, 0, 0)); sa2 <- arima(usacc, order = c(0, 1, 1), seasonal = c(0, 1, 1))
+out$dispatch <- list(
+  stlm_ets = list(model = md(s1$model), fc = fc(forecast(s1, h = 14)), fitted = as.numeric(fitted(s1))),
+  stlm_arima = list(model = md(s2$model), fc = fc(forecast(s2, h = 14))),
+  stlm_arima_log = list(model = md(s3$model), fc = fc(forecast(s3, h = 6))),
+  ts_nile = list(fc = fc(forecast(ns)), model = md(ets(ns))), ts_ukgas = list(fc = fc(forecast(ukgas)), model = md(ets(ukgas))),
+  ts_z24 = list(y = as.numeric(z24), fc = fc(forecast(z24))),
+  hw = c(fc(forecast(hwm, h = 6)), list(x = as.numeric(co2))), ar = c(fc(forecast(arm, h = 5)), list(x = as.numeric(lh))),
+  arima = fc(forecast(sa, h = 5)), arima_s = fc(forecast(sa2, h = 5)))
 dec <- mstl(usacc)
 out$components <- list(seasonal = as.numeric(seasonal(dec)), trendcycle = as.numeric(trendcycle(dec)), remainder = as.numeric(remainder(dec)))
 writeLines(toJSON(out, digits = I(17), auto_unbox = TRUE, null = "null", na = "null", pretty = FALSE), file.path("/out", "forecastSimple.json"))

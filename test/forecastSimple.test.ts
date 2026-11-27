@@ -8,6 +8,7 @@ import {
   type AccuracyRow, type SimpleForecast,
 } from "../src/entries/timeseries.js";
 import { etsAt, forecastEts, type EtsParameters, type EtsSpec } from "../src/timeseries/ets.js";
+import { ar, forecast, forecastStlm, holtWinters, stlm } from "../src/entries/timeseries.js";
 
 const fx = JSON.parse(readFileSync(new URL("./fixtures/forecastSimple.json", import.meta.url), "utf8")) as Record<string, any>;
 const num = (v: unknown): number => (v === null ? NaN : Number(v));
@@ -22,6 +23,15 @@ const D = fx.data; const nile = arr(D.nile), usacc = arr(D.usacc), air = arr(D.a
 const fcDiff = (f: SimpleForecast, r: any): number => Math.max(rel(f.mean, arr(r.mean)), rel(f.lower.flat(), mat(r.lower).flat()), rel(f.upper.flat(), mat(r.upper).flat()),
   rel(f.fitted, arr(r.fitted)), rel(f.residuals, arr(r.residuals)));
 
+const sp = (error: "A" | "M", trend: "N" | "A" | "M", damped: boolean, season: "N" | "A" | "M", m = 1): EtsSpec => ({ error, trend, damped, season, m });
+const parOf = (p: any): EtsParameters => {
+  const s = Object.keys(p).filter((k) => /^s\d+$/.test(k)).map((k) => num(p[k]));
+  const o: Record<string, unknown> = { alpha: num(p.alpha), l: num(p.l) };
+  for (const k of ["beta", "gamma", "phi", "b"]) if (p[k] !== undefined) o[k] = num(p[k]);
+  if (s.length) o.s = s;
+  return o as unknown as EtsParameters;
+};
+
 describe("simple methods (forecast)", () => {
   it("meanf, naive, rwf, snaive", () => {
     const b = fx.basic; const out: Record<string, number> = {
@@ -34,14 +44,6 @@ describe("simple methods (forecast)", () => {
   });
   // ses, holt, hw: at R's own estimates (no estimation) the filter and forecasts must be R's; the estimation itself must
   // reach R's criterion or better (experiments/tsmeta120-log.md item 91: ours is higher in every case)
-  const sp = (error: "A" | "M", trend: "N" | "A" | "M", damped: boolean, season: "N" | "A" | "M", m = 1): EtsSpec => ({ error, trend, damped, season, m });
-  const parOf = (p: any): EtsParameters => {
-    const s = Object.keys(p).filter((k) => /^s\d+$/.test(k)).map((k) => num(p[k]));
-    const o: Record<string, unknown> = { alpha: num(p.alpha), l: num(p.l) };
-    for (const k of ["beta", "gamma", "phi", "b"]) if (p[k] !== undefined) o[k] = num(p[k]);
-    if (s.length) o.s = s;
-    return o as unknown as EtsParameters;
-  };
   const E = fx.ets_based;
   const etsCases: [string, () => SimpleForecast, number[], EtsSpec, boolean][] = [
     ["ses", () => ses(nile, { h: 5 }), nile, sp("A", "N", false, "N"), false],
@@ -222,5 +224,48 @@ describe("small functions (forecast)", () => {
     const dec = mstl(usacc, { frequency: 12 }) as any;
     out.components = Math.max(rel(seasonalComponent(dec), arr(fx.components.seasonal)), rel(trendcycle(dec), arr(fx.components.trendcycle)), rel(remainder(dec), arr(fx.components.remainder)));
     for (const [k, v] of Object.entries(out)) expect(v, k).toBeLessThan(1e-10);
+  });
+});
+
+describe("stlm and forecast() (forecast)", () => {
+  const X = fx.dispatch;
+  const fcRel = (f: { mean: number[]; lower: number[][]; upper: number[][] }, r: any): number =>
+    Math.max(rel(f.mean, arr(r.mean)), rel(f.lower.flat(), mat(r.lower).flat()), rel(f.upper.flat(), mat(r.upper).flat()));
+  it("stlm(ets): at R's estimates, and the estimate", () => {
+    const r = X.stlm_ets; const fit = stlm(usacc, { frequency: 12 });
+    expect(fit.model.method).toBe(r.model.method);
+    expect((fit.model as any).loglik).toBeGreaterThanOrEqual(num(r.model.loglik) - 1e-6);
+    const at = { ...fit, model: etsAt(fit.adjusted, sp("A", "N", false, "N"), parOf(r.model.par), 2) };
+    expect(fcRel(forecastStlm(at, { h: 14 }), r.fc)).toBeLessThan(1e-10);
+    expect(forecastStlm(fit, { h: 14 }).method).toBe(r.fc.method);
+  });
+  it("stlm(arima): auto.arima without seasonal terms, with and without lambda", () => {
+    for (const [k, y, h, lambda] of [["stlm_arima", usacc, 14, undefined], ["stlm_arima_log", air, 6, 0]] as const) {
+      const r = X[k]; const fit = stlm(y, { frequency: 12, method: "arima", ...(lambda !== undefined ? { lambda } : {}) });
+      expect((fit.model as any).arma, k).toEqual(arr(r.model.arma));
+      expect(rel((fit.model as any).coef, Object.values(r.model.coef).map(num)), k).toBeLessThan(1e-5);
+      const f = forecastStlm(fit, { h }); expect(f.method, k).toBe(r.fc.method);
+      // the ARIMA estimate's own optimiser tolerance (coefficients within 3e-6 of R's)
+      expect(fcRel(f, r.fc), k).toBeLessThan(1e-6);
+    }
+  });
+  it("forecast() on a series: ets, or stlf for periods of 13 or more", () => {
+    expect(forecast(nile).method).toBe(X.ts_nile.fc.method);
+    expect(forecast(ukgas, { frequency: 4 }).method).toBe(X.ts_ukgas.fc.method);
+    expect(forecast(ukgas, { frequency: 4 }).mean.length).toBe(8);
+    const z = arr(X.ts_z24.y); const f = forecast(z, { frequency: 24 });
+    expect(f.method).toBe(X.ts_z24.fc.method); expect(f.mean.length).toBe(48);
+    expect(rel(f.mean, arr(X.ts_z24.fc.mean))).toBeLessThan(1e-3);
+  });
+  it("forecast() on HoltWinters, ar and stats' arima fits", () => {
+    const hwf = forecast(holtWinters(arr(X.hw.x), { frequency: 12 }), { h: 6 });
+    expect(hwf.method).toBe("HoltWinters"); expect(fcRel(hwf, X.hw)).toBeLessThan(1e-6);
+    const af = forecast(ar(arr(X.ar.x)), { h: 5 });
+    expect(af.method).toBe(X.ar.method); expect(fcRel(af, X.ar)).toBeLessThan(1e-10);
+    const lh = arr(X.ar.x);
+    // stats' arima: R's default fit stops a little short (log 1-13), 2e-6 in these forecasts
+    const s1 = forecast(arima(lh, { order: [1, 0, 0] }), { h: 5 }); expect(s1.method).toBe(X.arima.method); expect(fcRel(s1, X.arima)).toBeLessThan(1e-5);
+    const s2 = forecast(arima(usacc, { order: [0, 1, 1], seasonal: { order: [0, 1, 1], period: 12 } }), { h: 5 });
+    expect(s2.method).toBe(X.arima_s.method); expect(fcRel(s2, X.arima_s)).toBeLessThan(1e-5);
   });
 });

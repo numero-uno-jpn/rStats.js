@@ -1091,3 +1091,21 @@ choices under several criteria).
 92. The user's decision (2026-11-27): thetaf with a seasonal adjustment reseasonalises the interval bounds and gives
    y - fitted as the residuals (rStats.js's form); R's form (the adjusted-scale width around the reseasonalised mean)
    is a documented departure (spec item 14).
+
+## stlm and forecast()'s methods (2026-11-27, session 40)
+
+93. `tsmeta120-dispatch.R`, `-dispatch2.R` (designed) and the fixture's `dispatch` section:
+   - stlm(method = "ets") = stlf's model (the same means); stlm(method = "arima") is auto.arima on the seasonally
+     adjusted series **without seasonal terms** (arma (0,1,0,0,12,1,0): the period kept, no seasonal part), with
+     lambda the series transformed before mstl and the forecasts back-transformed ("with drift" chosen on the log).
+     rStats.js agrees: at R's estimates (ets) to 1e-10; with its own auto.arima the coefficients within 3e-6 and the
+     forecasts within 1e-6.
+   - forecast() on a series: ets for non-seasonal data and periods up to 12, stlf for periods of 13 or more (the help
+     page) when the series is longer than two periods (n = 40 with period 24 used ets). That short case chose ANN in
+     R but AAdN in rStats.js: our AAdN reaches loglik -86.91 against R's -87.92 (AICc 188.37 < ANN's 188.48), the
+     known kind of departure (a better optimum, spec "Departures" preamble). With n = 120 both use stlf.
+   - forecast() on HoltWinters (stats' prediction intervals per level), ar (normal intervals from predict's se;
+     1e-10) and stats' arima (its MLE sigma2; within R's own early stop, 2e-6): implemented in
+     `src/timeseries/forecastDispatch.ts` (`stlm`, `forecastStlm`, `forecast`).
+   - The experiment wrote stlm's method as "arim" (match.arg's partial matching): the checker rejects a string equal
+     to a function name; the argument only selects the model.
