@@ -6,7 +6,7 @@
 ## セッション 43 で最初にやること (2026-11-28、セッション 42 の終わりに書いた)
 
 **状態:** 作業ブランチ `dev/ts-meta-1.20` に 1.20.0 が完成 (ローカルの先頭は `git log -1`、push していない。リモートの
-dev/ts-meta-1.20 は `cef937a9` まで)。全体のテスト 5810 通過 (demo.test.ts も通る)、tsc 通過、日本語の API 訳は未訳 0・stale 0。
+dev/ts-meta-1.20 は `cef937a9` まで)。全体のテスト 5823 通過 (demo.test.ts も通る)、tsc 通過、日本語の API 訳は未訳 0・stale 0。
 - セッション 42 でやったこと (ログ 107-109、Issue #570 のコメント 3 つ): 時系列の尺度以外の端のケース、ユーザーの決定 5 つ
   (短い系列の ets・欠損・auto.arima の完全な当てはめ・naive の NA・ets の速さ)、netmeta と tseries の細かい軸
   (星形の網の tau2 NaN、tseries の短い系列と共線な po をエラーに)、大きさ (supsmu を O(n) に 70 倍、rma の射影の跡を閉じた形に
@@ -15,6 +15,12 @@ dev/ts-meta-1.20 は `cef937a9` まで)。全体のテスト 5810 通過 (demo.t
   「Time series and meta-analysis (1.20.0)」、API リファレンス (英・日) に時系列の予測とメタ分析の節、README・ROADMAP (英・日)。
 - デモ: 25 例 (ts-*、meta-*、netmeta-*) で新しい 102 の関数を全部。R の結果は demo:r で作り直した。
 - 版: package.json / lock 1.20.0、demo/app.js の VERSION v1.20.0、README の jsDelivr の版と大きさ (379.9 KB)。
+
+**追加 (ユーザーの指示、ログ 110):** 関数 × 軸の表を全部埋めた。rma (1.0 から) の標準化と説明変数の列の変換、metacont・metainc・
+netmeta 一式・pWeightedChisq の 1e±300、tslm・predictAr・accuracy・cvLm・dmTest・supsmu の 1e±300、共通の値によらない統計量の
++1e15、加法の ets の大きな共通の値、metaprop の 0・1 の近く (R と照合)。全体のテスト 5823 通過。**残り (ユーザーに伝える):**
+metapropGlmm でまれな事象 (割合 1e-5、n 1e5) のとき glmer が収束しない (R は当てはめる。/mixed の glmer の問題)、24 点の
+ets AAA の角の最適点 (浮動小数点で許容域の外、対数尤度 4e-5)。
 
 **最初にやること:** ユーザーに 1.20.0 の確認を頼み、了承があれば公開 (前回までの手順: main へ squash、CHANGELOG の日付、
 タグ v1.20.0、push。**push・タグはユーザーの確認なしにしない**)。公開の後、リモートの dev/ts-meta-1.20 の扱いを聞く
