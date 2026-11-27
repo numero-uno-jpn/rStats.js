@@ -3,7 +3,8 @@
 // functions", "ndiffs, nsdiffs, ocsb.test") with the details found in experiments/tsmeta120-log.md (items 5, 29-30,
 // 39-41). No R or package source was read.
 
-import { arima, predictArima, type ArimaResult } from "./arima.js";
+import { arima, predictArima, registerScaledArima, scaledArima, unscaleArima, type ArimaResult } from "./arima.js";
+import { powerOfTwoScale, standardise } from "./scale.js";
 import { optimize } from "../numerics/integrate.js";
 import { lm } from "../models/lm.js";
 import { qnorm } from "../distributions/normal.js";
@@ -163,19 +164,26 @@ export function forecastArima(y: readonly number[], options: ForecastArimaOption
   const n = y.length;
   const xreg = [...(options.xreg ?? []).map((c) => c.slice())]; const names = [...(options.xregNames ?? (xreg.length === 1 ? ["xreg"] : xreg.map((_, i) => `xreg${i + 1}`)))];
   if (drift) { xreg.push(Array.from({ length: n }, (_, i) => i + 1)); names.push("drift"); }
-  const fit = arima(z, { order, seasonal: { order: seasonal, period: frequency }, frequency, includeMean, method: options.method ?? "CSS-ML",
+  // far from unit scale, the fit of z / c (a power of two) as in arima, and forecast's sigma2 from its residuals, so
+  // that the squares stay in range (1.20.0, log 104)
+  const c0 = powerOfTwoScale(z); const c = Math.abs(Math.log2(c0)) > 200 ? c0 : 1;
+  const fitS = arima(c === 1 ? z : z.map((v) => v / c), { order, seasonal: { order: seasonal, period: frequency }, frequency, includeMean, method: options.method ?? "CSS-ML",
     ...(xreg.length ? { xreg, xregNames: names } : {}) });
+  const fit = c === 1 ? fitS : unscaleArima(fitS, c, z);
   const ncoef = fit.coef.length;
   // forecast's sigma2: the sum of all squared residuals (the first d + sD included) / (nobs - coefficients) (log 5)
   const raw = fit.residuals;
-  const sigma2 = raw.reduce((a, v) => (Number.isNaN(v) ? a : a + v * v), 0) / (fit.nobs - ncoef);
+  const sigma2S = fitS.residuals.reduce((a, v) => (Number.isNaN(v) ? a : a + v * v), 0) / (fit.nobs - ncoef);
+  const sigma2 = sigma2S * c * c;
   const npar = fit.mask.filter(Boolean).length + 1; const nstar = fit.nobs;
   const aicc = fit.aic + (2 * npar * (npar + 1)) / (nstar - npar - 1);
   const bic = fit.aic + npar * (Math.log(nstar) - 2);
   const fittedZ = z.map((v, i) => v - raw[i]!);
   const biasadj = options.biasadj ?? false;
   const fitted = lambda === null ? fittedZ : invBoxCox(fittedZ, lambda, { biasadj, fvar: sigma2 });
-  return { ...fit, residuals: raw, sigma2, sigma2Mle: fit.sigma2, aicc, bic, lambda, biasadj, fitted, series: y.slice(), drift };
+  const out = { ...fit, residuals: raw, sigma2, sigma2Mle: fit.sigma2, aicc, bic, lambda, biasadj, fitted, series: y.slice(), drift };
+  if (c !== 1) registerScaledArima(out, { ...fitS, sigma2: sigma2S }, c);
+  return out;
 }
 
 /**
@@ -204,7 +212,11 @@ export function forecastFromArima(fit: ForecastArimaResult, options: { h?: numbe
   const h = options.h ?? (fit.arma[4] > 1 ? 2 * fit.arma[4] : 10); const level = [...(options.level ?? [80, 95])];
   const newx = [...(options.xreg ?? []).map((c) => c.slice())];
   if (fit.drift) newx.push(Array.from({ length: h }, (_, i) => fit.series.length + i + 1));
-  const p = predictArima(fit, h, { ...(newx.length ? { newxreg: newx } : {}), sigma2: fit.sigma2 });
+  // a fit far from unit scale: from its standardised fit (forecast's sigma2 may be out of range as a square)
+  const sc = scaledArima(fit);
+  const p = sc
+    ? (({ pred, se }) => ({ pred: pred.map((v) => v * sc.c), se: se.map((v) => v * sc.c) }))(predictArima(sc.fit, h, { ...(newx.length ? { newxreg: newx } : {}), sigma2: sc.fit.sigma2 }))
+    : predictArima(fit, h, { ...(newx.length ? { newxreg: newx } : {}), sigma2: fit.sigma2 });
   const q = level.map((l) => qnorm(0.5 + l / 200));
   let lower = p.pred.map((m, i) => q.map((qq) => m - qq * p.se[i]!));
   let upper = p.pred.map((m, i) => q.map((qq) => m + qq * p.se[i]!));
@@ -333,7 +345,8 @@ export function ppStatisticConst(y: readonly number[], type: "level" | "trend"):
 export function ndiffs(x: readonly number[], options: { alpha?: number; test?: "kpss" | "adf" | "pp"; type?: "level" | "trend"; maxD?: number } = {}): number {
   checkOptions(options, NDIFFS_KEYS, "ndiffs"); // generated: option-keys.mjs
   const alpha = options.alpha ?? 0.05; const test = options.test ?? "kpss"; const type = options.type ?? "level"; const maxD = options.maxD ?? 2;
-  let y = x.filter(Number.isFinite);
+  // the tests do not depend on the scale: the series divided by a power of two (exact), so that 1e+-300 works
+  let y = standardise(x.filter(Number.isFinite));
   const isConstant = (v: readonly number[]): boolean => v.every((a) => a === v[0]);
   if (isConstant(y)) return 0;
   let d = 0;

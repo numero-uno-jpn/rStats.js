@@ -305,8 +305,19 @@ invariance (the same value after a change of scale or origin where theory says s
    approaching tau2 = 0 it can stop at a small positive value (2.9e-6 for a log RR), and on measures of small scale
    (IRD: variances about 5e-6) far from the maximum (5.4e-7, 10% of the variances; with a 1e-12 threshold R gives
    1e-13, and the log-likelihood at 0 is higher). rStats.js returns the maximum (0 there).
+16. **Scale** (log 103-104): R's ets, hw, HoltWinters and thetaf depend on the scale of the series (2-40% at 1e-150
+   times USAccDeaths, other models chosen) and most fits and tests fail beyond 1e+-150 (squares out of range).
+   rStats.js divides the series by a power of two (exact) inside ets (always), HoltWinters (its SSE below 1 by a power
+   of two near it; the series beyond 2^+-200), arima, forecastArima, autoArima and ar (beyond 2^+-200) and the tests
+   (always; the same values bit for bit at ordinary scales), so forecasts are equivariant and statistics invariant
+   from 1e-300 to 2^1000. At ordinary scales the fits stay R's; arima's kappa prior is absolute, as R's.
 
 # Open points found during the implementation (for the user)
+
+- **ets on a flat optimum** (log 104): with beta and gamma at their lower bound 1e-4 (USAccDeaths AAA, MNM), the
+  restarted Nelder-Mead stops at different points of the optimum after an exact change of scale or a shift (log-
+  likelihood differences up to 1e-2; forecasts 5e-4..1e-3). Not a scale problem; a better optimiser for the initial
+  states would remove it.
 
 - **netmeasures' mean path length and minimal parallelism** (log 101): not reproduced by the flows of the aggregated
   hat matrix (3-9% and 20-40% off); rStats.js's netmeasures returns the direct evidence proportion only.

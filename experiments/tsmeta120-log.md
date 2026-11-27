@@ -1248,3 +1248,52 @@ choices under several criteria).
      absolute as R's, so its scale dependence is R's rule.
    - Plan: standardise by a power of two (and an origin where equivariant) inside the fitting functions, relative
      tolerances in the optimisers, and R's own behaviour recorded for each (R breaks at 1e+-300 too, probably).
+
+## Edge-case review, first round: time series, fixed (2026-11-27, session 41)
+
+104. R on the battery of 103 (`tsmeta120-tsedge.R` / `.json`; USAccDeaths x 1, 1e-150, 1e150, 1e-300, 2^1000, 1e300,
+   and + 1e8; 26 functions, error messages kept). The same inputs through rStats.js with a temporary battery (deleted),
+   compared with the unit-scale fit of each side (forecasts / levels linear, statistics and decisions invariant).
+   - **R breaks on most of them.** At 1e-150: arima with a mean ("computationally singular"), auto.arima another model,
+     ets ZZZ picks SES, ets AAA / hw / ses / thetaf 2-20%, HoltWinters 40%, jarque.bera NA. At 1e150: HoltWinters and
+     ses / holt / hw / thetaf ("No model able to be fitted"), ets ZZZ ETS(A,Ad,A), kpss NA, pp an error. At 1e-300,
+     1e300 and 2^1000: arima and Arima ("initial value in 'vmmin' is not finite"), auto.arima, ets AAA, ar, kpss, pp,
+     terasvirta / white errors or NA, meanf / rwf / tslm NA intervals. With + 1e8: the airline arima moves by 7e-2 and
+     Arima's sigma2 by 2e4 relative, **the same as rStats.js**: the kappa prior (1e6) of the differenced states is
+     absolute, so a model with differencing is not shift invariant by definition (kept as R).
+   - **The causes in rStats.js** (found by scanning scales 1e-150..1e100 in steps):
+     - ets: the internal scale `max(1e-8, rms)` (an absolute floor; the fits moved from 1e-20 times the series on),
+       and the likelihood's squares out of range at 1e+-150;
+     - HoltWinters: L-BFGS-B stops at factr eps max(|f|, |f_old|, 1), absolute for an SSE below 1 (5% at 1e-10 times
+       USAccDeaths); squares out of range at 1e150;
+     - arima / forecastArima / autoArima, ar, kpss / pp / Box.test / jarque.bera (fourth powers) / terasvirta / white,
+       meanf / rwf, ndiffs / nsdiffs, thetaf's seasonality test: squares out of range only.
+   - **Fixed** (src/timeseries/scale.ts: `powerOfTwoScale` = 2^round(log2 max |y|), division exact):
+     - ets (and ses / holt / hw / thetaf / stlf / forecast() through it) fits the series divided by that power of two
+       always, the model choice included (the criteria move by the same 2 n log c), and maps the states, fitted
+       values, additive residuals, sigma2 (additive errors), mse / amse and the criteria back; forecastEts forecasts
+       from the standardised fit (a WeakMap from the result) and scales the forecasts back. The fixtures are
+       unchanged (USAccDeaths divided by 2^13 had given the unit-scale fit exactly).
+     - HoltWinters: the SSE divided by a power of two near it when it is below 1 (fnscale); the series divided only
+       beyond 2^+-200. A first version that always divided the series moved co2's fit off R's (alpha 3.5e-5: the SSE
+       43 / 2^16 fell under the absolute part of the stopping rule).
+     - arima (and forecastArima, predictArima, forecastFromArima, autoArima), ar: the series divided beyond 2^+-200
+       only (at ordinary scales the fit stays R's; the fits at 1e+-150 already equal the unit-scale fit to 1e-7), the
+       regression coefficients, state, sigma2, variance matrix, residuals and likelihood mapped back; predictions from
+       the standardised fit (WeakMap), so the standard errors are right where sigma2 itself is out of range.
+     - the tests (adf, kpss, pp, po per column, jarque.bera, terasvirta, white with scale = TRUE, Box.test, ndiffs,
+       nsdiffs, thetaf's acf) and the sd of meanf / rwf: the series divided by the power of two always: the same values
+       bit for bit where nothing over- or underflows.
+   - **After the fix** (rStats.js against its unit-scale fit): ets AAA, hw 4e-11, holt, thetaf 4e-10, ses 2e-16,
+     HoltWinters 1e-6..8e-6, arima 3e-8, statistics 1e-15, the same ndiffs / nsdiffs decisions and auto.arima model,
+     from 1e-300 to 2^1000. Out of range by definition: sigma2 and the SSE themselves at 1e-300 (0) and 2^1000
+     (Infinity), and ar's var.pred (predictAr's standard errors with it).
+   - **Tried and dropped:** estimating all-additive ets models on the series minus the initial level (for the + 1e8
+     case): 7e-4 became 5e-4 only, and the fits at ordinary scales moved to other points of the flat optimum (AAA 1e-11
+     to 1e-2, holt to 4e-4). First it also froze ses with a fixed alpha (the shifted level started at 1e-16, so
+     Nelder-Mead's first step 0.1 max |par| was 1e-17).
+   - **Left (optimiser, not scale):** ets AAA on USAccDeaths + 1e8 has a higher log-likelihood (-552.088) than the
+     unit-scale fit (-552.096): beta and gamma sit at the lower bound 1e-4 and Nelder-Mead stops at different points of
+     a flat optimum (R: 3e-3 between the two). Likewise MNM at 1e-40 times the series (loglik 9e-4 lower). thetaf + 1e8
+     (1e-2, R the same) and ets ZZZ's M models are multiplicative, not shift equivariant.
+   - Permanent test: test/tsEdge120.test.ts (26 cases, about 2 minutes).
