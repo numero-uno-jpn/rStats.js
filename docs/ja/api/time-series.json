@@ -402,7 +402,7 @@
   "ForecastArimaResult#summary": {
     "hash": "17484522c848",
     "en": "Result of {@link forecastArima}: stats' fit plus forecast's quantities.",
-    "ja": "forecast の数量を加えた stats の当てはめ結果です。"
+    "ja": "{@link forecastArima} の結果です。stats の当てはめに forecast の数量を加えたものです。"
   },
   "ForecastArimaResult.drift#summary": {
     "hash": "be12634968a4",
