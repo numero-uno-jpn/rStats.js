@@ -143,7 +143,9 @@ function acfValues(x: readonly number[], maxLag: number): number[] {
 /**
  * The theta method (forecast's `thetaf()`): a seasonality test |r_m| > qnorm(0.95) sqrt((1 + 2 sum_{i<m} r_i^2)/n), a
  * multiplicative decompose when seasonal, ses by MSE, mean = ses mean + b/2 (h - 1 + 1/alpha - (1 - alpha)^n / alpha)
- * with b the slope of lm(y ~ t), reseasonalised.
+ * with b the slope of lm(y ~ t), reseasonalised. Departs from R when seasonal: the interval bounds are reseasonalised
+ * (R adds the adjusted-scale width to the reseasonalised mean) and the residuals are y - fitted (R's are on the
+ * adjusted scale); the user's decision, log 91-92.
  *
  * @category Time series
  */

@@ -1087,3 +1087,7 @@ choices under several criteria).
      has NA there. rStats.js's naive returns y_1 with NaN intervals (an internal NA test, not an input check, in R).
    - holt(initial = "simple") reached alpha = 1, beta = 0 in R: R's own filter has the bounds [0, 1] (alpha, beta*,
      gamma) and no admissibility test; rStats.js's fit for initial = "simple" now uses those bounds (SSE R's or lower).
+
+92. The user's decision (2026-11-27): thetaf with a seasonal adjustment reseasonalises the interval bounds and gives
+   y - fitted as the residuals (rStats.js's form); R's form (the adjusted-scale width around the reseasonalised mean)
+   is a documented departure (spec item 14).

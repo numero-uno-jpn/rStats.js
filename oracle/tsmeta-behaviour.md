@@ -272,13 +272,12 @@ as a regression with ARMA errors.
 13. **hw(initial = "simple") intervals** (log 91): R's own filter uses the Holt-Winters beta* (beta = alpha beta*), and
    R puts that beta* into the ets variance formula as if it were beta (also the multiplicative mean). rStats.js uses
    the model's beta. Its sigma2 = SSE / n and the bounds [0, 1] are R's.
+14. **thetaf with a seasonal adjustment** (log 91; the user's decision 2026-11-27): R's intervals are the reseasonalised
+   mean +- the width on the adjusted scale, and its residuals are on the adjusted scale. rStats.js reseasonalises the
+   bounds (the width times the seasonal index) and gives y - fitted.
 
 # Open points found during the implementation (for the user)
 
-- **thetaf with a seasonal adjustment** (log 91): R's intervals are the reseasonalised mean +- the width on the adjusted
-  scale (the width not multiplied by the seasonal index), and its residuals are those of the ses on the adjusted
-  series. rStats.js reseasonalises the bounds and gives y - fitted. Is R's form an error (to be documented as a
-  departure) or to be followed?
 
 - **auto.arima's neighbour order:** the diagonal steps are (-1, -1), (-1, +1), (+1, -1), (+1, +1) (the fixture's traces;
   log 43 had the middle two the other way round), and the non-stepwise search fits the model without the constant
