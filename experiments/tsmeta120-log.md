@@ -1210,3 +1210,23 @@ choices under several criteria).
      1 / the largest flow below R's minimal parallelism (A:B: 1.77 against 2.72); R's values look like flows per
      contrast for minpar, which would make the sum larger, not smaller. Left out of rStats.js (netmeasures returns the
      proportion only); ReactiveStat does not call it. An open point for the user.
+
+## Edge-case review, first round: meta (2026-11-27, session 40)
+
+102. The plan is in the spec ("Edge-case plan"). Meta, scale / degenerate / invalid (test/metaEdge120.test.ts and
+   `tsmeta120-metaedge.R` for R's degenerate cases):
+   - **rStats.js's confintRma (since 1.0) lost its Q-profile upper bound away from unit scale**: 2e-6 relative at study
+     variances 1e-8 (seTE 1e-4), 3e-4 at 1e-10, 1.1% at 1e-12, and nonsense (4.8e285, 0, NA) at 1e+-150 and 1e-8
+     scale; the bisection stopped at an absolute 1e-14 (tol x max(1, mid)) and the bracket started at 1e-8 doubling 80
+     times. **Fixed**: relative stopping with up to 2200 steps, the bracket from the estimate or the smallest variance,
+     up to 2100 doublings (QP and PL). The same in metagen's J / BJ intervals (Ruben's cdf root): fixed alike.
+   - metaCore computes on TE / c, seTE / c (c a power of two) when seTE is beyond 2^+-200, so that 1e-300..2^1000
+     work (tau2 itself is then out of range as a square, tau is right); not for ordinary scales, where R's REML
+     stopping rule (an absolute threshold, reproduced) is not scale invariant (a first version rescaled always and
+     moved the REML fits of the fixture by 1.6e-6).
+   - degenerate, against R: one study (tau2 NA: ours was 0, fixed), two studies (H / I2 intervals NA), Q = 0 with HK
+     (R's se is rounding noise 2e-17), metabin with every study double-zero (all NA; ours had Infinity for
+     seTE.random, fixed: k = 0 gives NaN throughout), RD double-zero (kept).
+   - invalid input: the meta functions now check their inputs (events in 0..n, positive n and times, non-negative sd,
+     correlations in [-1, 1], n > 3 for ZCOR) instead of failing later with "no study with a finite estimate".
+   - metabin's MH estimates are exact with counts up to 1e12 (relative 1e-12).

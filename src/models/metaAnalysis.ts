@@ -125,17 +125,20 @@ const root = (f:(x:number)=>number, lo:number, hi:number, tol=1e-14):number => {
   if (fl===0) return lo;
   if (fh===0) return hi;
   if (!(fl*fh<0)) return NaN;
-  for(let i=0;i<180;i++){
+  // relative stopping and enough steps for roots of any scale (1.20.0: the absolute tol*max(1, mid) lost the relative
+  // precision of small tau2, 1e-6 relative at study variances 1e-8)
+  for(let i=0;i<2200;i++){
     const mid=lo+(hi-lo)/2, fm=f(mid);
     if(!Number.isFinite(fm)) { hi=mid; continue; }
-    if(Math.abs(hi-lo)<=tol*Math.max(1,Math.abs(mid)) || fm===0) return mid;
+    if(Math.abs(hi-lo)<=tol*Math.abs(mid) || fm===0 || mid===lo || mid===hi) return mid;
     if(fl*fm<=0){hi=mid;fh=fm;} else {lo=mid;fl=fm;}
   }
   return lo+(hi-lo)/2;
 };
 const upperRoot = (f:(x:number)=>number, start:number):number => {
-  let hi=Math.max(start,1e-8), value=f(hi);
-  for(let i=0;i<80 && value>0;i++){hi*=2;value=f(hi);}
+  // start at the scale of the data (the estimate or the smallest variance), not at 1e-8 (1.20.0)
+  let hi=start, value=f(hi);
+  for(let i=0;i<2100 && value>0 && Number.isFinite(hi);i++){hi*=2;value=f(hi);}
   return value<=0?root(f,0,hi):NaN;
 };
 
@@ -515,8 +518,9 @@ export function confintRma(object:RmaResult,options:ConfintRmaOptions={}):{rando
     const qUpper=qchisq(1-alpha/2,df),qLower=qchisq(alpha/2,df);
     const qAtZero=base.qe;
     const qAt=(t:number)=>weightedFit(object.yi,object.vi,object.mods,t).qe;
-    lo=qAtZero<=qUpper?0:upperRoot(t=>qAt(t)-qUpper,Math.max(object.tau2,1e-8));
-    hi=qAtZero<=qLower?NaN:upperRoot(t=>qAt(t)-qLower,Math.max(object.tau2,1e-8));
+    const start=object.tau2>0?object.tau2:base.minVariance;
+    lo=qAtZero<=qUpper?0:upperRoot(t=>qAt(t)-qUpper,start);
+    hi=qAtZero<=qLower?NaN:upperRoot(t=>qAt(t)-qLower,start);
   } else {
     const cutoff=qchisq(level/100,1);
     const ll=(t:number)=>weightedFit(object.yi,object.vi,object.mods,t).logLik;
@@ -525,12 +529,12 @@ export function confintRma(object:RmaResult,options:ConfintRmaOptions={}):{rando
       // If tau²=0 is inside the likelihood-ratio confidence set, the lower
       // endpoint is the boundary itself, not a root between 0 and the estimate.
       lo=target(0)<=0?0:root(target,0,object.tau2);
-      let upper=Math.max(object.tau2*2,1e-8),value=target(upper);
-      for(let i=0;i<80&&value<0;i++){upper*=2;value=target(upper);}
+      let upper=object.tau2*2,value=target(upper);
+      for(let i=0;i<2100&&value<0&&Number.isFinite(upper);i++){upper*=2;value=target(upper);}
       hi=value>=0?root(target,object.tau2,upper):NaN;
     }else{
-      let upper=1e-8,value=target(upper);
-      for(let i=0;i<80&&value<0;i++){upper*=2;value=target(upper);}
+      let upper=weightedFit(object.yi,object.vi,object.mods,0).minVariance,value=target(upper);
+      for(let i=0;i<2100&&value<0&&Number.isFinite(upper);i++){upper*=2;value=target(upper);}
       hi=value>=0?root(target,0,upper):NaN;
     }
   }

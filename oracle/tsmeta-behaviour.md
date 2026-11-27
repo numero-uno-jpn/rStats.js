@@ -232,6 +232,32 @@ as a regression with ARMA errors.
   covering relation of the dominance on P-scores.
 - netmeta refuses inconsistent multi-arm contrasts (tol.multiarm); rStats.js does the same.
 
+# Edge-case plan
+
+Written 2026-11-27 (session 40): every exported function on every axis (memory feedback-rstats-comprehensive-edge-checks).
+
+For each function, the applicable axes; R's behaviour checked by experiments where R itself breaks, rStats.js's by
+invariance (the same value after a change of scale or origin where theory says so) and by clear errors.
+- **Scale and origin:** the data times 1e-150, 1e-300, 1e150, 1e300, 2^1000 (overflow of squares: variances at 1e+-150
+  leave the range); a common value 1e8, 1e15 added (cancellation in means, differences, sums of squares). Time series:
+  arima, ets, holtWinters, stl, decompose, filters, the tests (statistics invariant to scale; tseries' and ndiffs'
+  shift-invariant ones); meta: TE and seTE scaled together (common, random, tau2 scale as squares; Q, I2, z invariant),
+  netmeta likewise, metabin with counts 1e6..1e9 (MH sums), metaprop near 0 and 1.
+- **Degenerate data:** constant series, series of length 1, 2, m, 2m, 2m + 1 (the seasonal limits), all zeros,
+  intermittent zeros (croston), a single study, two studies, Q = 0 (identical TE), seTE equal, tau2 at the boundary,
+  zero cells everywhere, all events, a network with one comparison, a star, a disconnected network (refused).
+- **Invalid input:** NaN / Infinity / negative se / n < events / unequal lengths / unknown options (checkOptions):
+  clear errors, not NaN results.
+- **Missing values:** where R allows them (na.interp, tsclean, ets's NA handling?, acf), else errors.
+- **Ties and duplicates:** supsmu's tied x (documented), runs.test with ties at the median, Begg's ties, trimfill's
+  tied ranks, P-score ties.
+- **Size:** n = 1e5 series for the filters and tests (speed and no O(n^2) memory), k = 1000 studies (metagen, the
+  generalised Q series), 30 treatments for netmeta.
+- **Probabilities:** p-values near 0 and 1 (lower tail by upper-tail functions, no 1 - p cancellation), the GENQ cdf
+  near 0 / 1, P-scores.
+- **Combinations:** Box-Cox lambda with scale, drift with scale, subgroups with tau.common and one-study subgroups,
+  forecast() dispatch on every fitted type.
+
 # Departures from R (R's errors are not imitated; the user, 2026-11-27)
 
 1. **predict.HoltWinters, multiplicative intervals** (log 16; R Bugzilla Bug 19369): R reads the seasonal factors at fixed

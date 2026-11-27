@@ -31,6 +31,13 @@ const sameLength = (what: string, ...v: readonly (readonly number[])[]): number 
   const k = v[0]!.length; if (v.some((x) => x.length !== k)) throw new RangeError(`${what}: the inputs must have the same length`);
   if (k === 0) throw new RangeError(`${what}: no studies`); return k;
 };
+/** Input checks with clear messages (1.20.0 edge-case review). */
+const check = (ok: boolean, msg: string): void => { if (!ok) throw new RangeError(msg); };
+const finitePos = (v: readonly number[], what: string, name: string): void => check(v.every((x) => Number.isFinite(x) && x > 0), `${what}: ${name} must be finite and positive`);
+const counts = (x: readonly number[], n: readonly number[], what: string): void => {
+  finitePos(n, what, "n");
+  check(x.every((e, i) => Number.isFinite(e) && e >= 0 && e <= n[i]!), `${what}: events must lie in 0..n`);
+};
 /** The pooled result of study values (NaN values left out of the pooling, kept in TE / seTE). */
 function pool(TE: number[], seTE: number[], options: MetaCommonOptions): MetaResult {
   const idx = TE.map((t, i) => (Number.isFinite(t) && Number.isFinite(seTE[i]!) && seTE[i]! > 0 ? i : -1)).filter((i) => i >= 0);
@@ -50,6 +57,9 @@ function pool(TE: number[], seTE: number[], options: MetaCommonOptions): MetaRes
 export function metacont(n1: readonly number[], m1: readonly number[], sd1: readonly number[], n2: readonly number[], m2: readonly number[], sd2: readonly number[], options: MetaCommonOptions & { sm?: "MD" | "SMD" | "ROM" } = {}): MetaResult {
   checkOptions(options, METACONT_KEYS, "metacont"); // generated: option-keys.mjs
   const k = sameLength("metacont", n1, m1, sd1, n2, m2, sd2); const sm = options.sm ?? "MD";
+  finitePos(n1, "metacont", "n1"); finitePos(n2, "metacont", "n2");
+  check([...sd1, ...sd2].every((x) => Number.isFinite(x) && x >= 0), "metacont: sd must be finite and non-negative");
+  check([...m1, ...m2].every(Number.isFinite), "metacont: means must be finite");
   const TE: number[] = [], seTE: number[] = [];
   for (let i = 0; i < k; i++) {
     const a = n1[i]!, b = n2[i]!, s1 = sd1[i]!, s2 = sd2[i]!;
@@ -76,6 +86,7 @@ export function metacont(n1: readonly number[], m1: readonly number[], sd1: read
 export function metainc(e1: readonly number[], t1: readonly number[], e2: readonly number[], t2: readonly number[], options: MetaCommonOptions & { sm?: "IRR" | "IRD"; method?: "MH" | "Inverse"; incr?: number } = {}): MetaResult {
   checkOptions(options, METAINC_KEYS, "metainc"); // generated: option-keys.mjs
   const k = sameLength("metainc", e1, t1, e2, t2); const sm = options.sm ?? "IRR"; const method = options.method ?? "MH"; const incr = options.incr ?? 0.5;
+  finitePos([...t1, ...t2], "metainc", "time"); check([...e1, ...e2].every((x) => Number.isFinite(x) && x >= 0), "metainc: events must be finite and non-negative");
   const TE: number[] = [], seTE: number[] = [];
   for (let i = 0; i < k; i++) {
     const z = e1[i] === 0 || e2[i] === 0 ? incr : 0; const x1 = e1[i]! + z, x2 = e2[i]! + z;
@@ -109,6 +120,8 @@ export function metainc(e1: readonly number[], t1: readonly number[], e2: readon
 export function metacor(cor: readonly number[], n: readonly number[], options: MetaCommonOptions & { sm?: "ZCOR" | "COR" } = {}): MetaResult {
   checkOptions(options, METACOR_KEYS, "metacor"); // generated: option-keys.mjs
   sameLength("metacor", cor, n); const sm = options.sm ?? "ZCOR";
+  check(cor.every((r) => Number.isFinite(r) && r >= -1 && r <= 1), "metacor: cor must lie in [-1, 1]");
+  check(n.every((x) => Number.isFinite(x) && x > (sm === "ZCOR" ? 3 : 1)), `metacor: n must exceed ${sm === "ZCOR" ? 3 : 1}`);
   return pool(cor.map((r) => (sm === "ZCOR" ? Math.atanh(r) : r)), cor.map((r, i) => (sm === "ZCOR" ? 1 / Math.sqrt(n[i]! - 3) : (1 - r * r) / Math.sqrt(n[i]! - 1))), options);
 }
 
@@ -122,6 +135,7 @@ export function metacor(cor: readonly number[], n: readonly number[], options: M
 export function metamean(n: readonly number[], mean: readonly number[], sd: readonly number[], options: MetaCommonOptions & { sm?: "MRAW" | "MLN" } = {}): MetaResult {
   checkOptions(options, METAMEAN_KEYS, "metamean"); // generated: option-keys.mjs
   sameLength("metamean", n, mean, sd); const sm = options.sm ?? "MRAW";
+  finitePos(n, "metamean", "n"); check(sd.every((x) => Number.isFinite(x) && x >= 0), "metamean: sd must be finite and non-negative");
   return pool(mean.map((m) => (sm === "MRAW" ? m : Math.log(m))), sd.map((s, i) => (sm === "MRAW" ? s / Math.sqrt(n[i]!) : s / (Math.sqrt(n[i]!) * mean[i]!))), options);
 }
 
@@ -135,6 +149,7 @@ export function metamean(n: readonly number[], mean: readonly number[], sd: read
 export function metarate(event: readonly number[], time: readonly number[], options: MetaCommonOptions & { sm?: "IRLN" | "IR" | "IRS" | "IRFT"; incr?: number } = {}): MetaResult {
   checkOptions(options, METARATE_KEYS, "metarate"); // generated: option-keys.mjs
   sameLength("metarate", event, time); const sm = options.sm ?? "IRLN"; const incr = options.incr ?? 0.5;
+  finitePos(time, "metarate", "time"); check(event.every((x) => Number.isFinite(x) && x >= 0), "metarate: events must be finite and non-negative");
   const TE: number[] = [], seTE: number[] = [];
   event.forEach((e0, i) => {
     const t = time[i]!; const e = (sm === "IR" || sm === "IRLN") && e0 === 0 ? e0 + incr : e0;
@@ -157,6 +172,7 @@ export function metarate(event: readonly number[], time: readonly number[], opti
 export function metaprop(event: readonly number[], n: readonly number[], options: MetaCommonOptions & { sm?: "PLOGIT" | "PFT" | "PAS" | "PRAW" | "PLN"; incr?: number } = {}): MetaResult {
   checkOptions(options, METAPROP_KEYS, "metaprop"); // generated: option-keys.mjs
   sameLength("metaprop", event, n); const sm = options.sm ?? "PLOGIT"; const incr = options.incr ?? 0.5;
+  counts(event, n, "metaprop");
   const TE: number[] = [], seTE: number[] = [];
   event.forEach((x, i) => {
     const N = n[i]!; const edge = x === 0 || x === N;
@@ -193,7 +209,7 @@ export type MetapropGlmmResult = Omit<MetaResult, "Q" | "df.Q" | "pval.Q"> & { Q
  */
 export function metapropGlmm(event: readonly number[], n: readonly number[], options: Omit<MetaCommonOptions, "methodTau" | "methodTauCi"> = {}): MetapropGlmmResult {
   checkOptions(options, METAPROP_GLMM_KEYS, "metapropGlmm"); // generated: option-keys.mjs
-  const k = sameLength("metapropGlmm", event, n);
+  const k = sameLength("metapropGlmm", event, n); counts(event, n, "metapropGlmm");
   if (k < 2) throw new RangeError("metapropGlmm: at least two studies");
   const study = event.map((_, i) => `s${String(i + 1).padStart(String(k).length, "0")}`);
   const data = { p: event.map((x, i) => x / n[i]!), w: n.slice(), study };

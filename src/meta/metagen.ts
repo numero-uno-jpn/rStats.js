@@ -122,9 +122,10 @@ export function genqInterval(y: readonly number[], v: readonly number[], a: read
   const alpha = 1 - level;
   const solve = (target: number): number => {
     if (cdf(0) <= target) return 0;
-    let hi = Math.max(1e-4, 1); while (cdf(hi) > target && hi < 1e12) hi *= 2;
+    // the bracket and the stopping rule at the data's scale (relative), for study variances of any size
+    let hi = Math.max(...v); for (let i = 0; i < 2100 && cdf(hi) > target && Number.isFinite(hi); i++) hi *= 2;
     let lo = 0;
-    for (let i = 0; i < 200 && hi - lo > 1e-15 * Math.max(1, hi); i++) { const mid = (lo + hi) / 2; if (cdf(mid) > target) lo = mid; else hi = mid; }
+    for (let i = 0; i < 2200 && hi - lo > 1e-15 * hi; i++) { const mid = (lo + hi) / 2; if (mid === lo || mid === hi) break; if (cdf(mid) > target) lo = mid; else hi = mid; }
     return (lo + hi) / 2;
   };
   return [solve(1 - alpha / 2), solve(alpha / 2)];
@@ -157,6 +158,29 @@ export function heterogeneityIntervals(Q: number, k: number, level: number): { H
 export interface MetaCoreInternal { fixedTau2?: number; fixedQ?: number }
 
 export function metaCore(TE: readonly number[], seTE: readonly number[], options: MetaCommonOptions & MetaCoreInternal = {}): MetaResult {
+  // all of it is equivariant in the scale: for extreme scales (seTE beyond 2^+-200, where the variances leave or near
+  // the double range) computed on TE / c, seTE / c with c a power of two near the largest seTE (exact). Not for ordinary
+  // scales: REML's stopping rule (metafor's absolute threshold, reproduced) is not scale invariant, and R's values are
+  // kept there (1.20.0 edge-case review)
+  const mx = Math.max(...seTE.map(Math.abs));
+  const c = mx > 0 && Number.isFinite(mx) && (mx > 2 ** 200 || mx < 2 ** -200) ? 2 ** Math.round(Math.log2(mx)) : 1;
+  if (c === 1) return metaCoreScaled(TE, seTE, options);
+  const r = metaCoreScaled(TE.map((t) => t / c), seTE.map((s) => s / c), { ...options, ...(options.fixedTau2 !== undefined ? { fixedTau2: options.fixedTau2 / c / c } : {}) });
+  const lin = ["TE.common", "seTE.common", "lower.common", "upper.common", "TE.random", "seTE.random", "lower.random", "upper.random", "seTE.predict", "lower.predict", "upper.predict", "tau", "lower.tau", "upper.tau"] as const;
+  const sq = ["tau2", "lower.tau2", "upper.tau2"] as const;
+  const out: MetaResult = { ...r, TE: TE.slice(), seTE: seTE.slice(), "w.common": r["w.common"].map((w) => w / c / c), "w.random": r["w.random"].map((w) => w / c / c) };
+  for (const k of lin) out[k] = r[k] * c;
+  for (const k of sq) out[k] = r[k] * c * c;
+  return out;
+}
+
+function metaCoreScaled(TE: readonly number[], seTE: readonly number[], options: MetaCommonOptions & MetaCoreInternal = {}): MetaResult {
+  if (TE.length === 0) {
+    // no study to pool (metabin with every study double-zero): R's NA everywhere
+    const r = metaCoreScaled([0], [1], options) as unknown as Record<string, unknown>;
+    for (const key of Object.keys(r)) if (typeof r[key] === "number") r[key] = NaN;
+    return { ...(r as unknown as MetaResult), TE: [], seTE: [], k: 0, "w.common": [], "w.random": [], "df.Q": NaN, "df.predict": NaN };
+  }
   const k = TE.length; const v = seTE.map((s) => s * s);
   const methodTau = options.methodTau ?? "REML"; const ciMethod = options.methodRandomCi ?? "classic";
   const methodTauCi = options.methodTauCi ?? (methodTau === "DL" ? "J" : "QP");
@@ -203,7 +227,8 @@ export function metaCore(TE: readonly number[], seTE: readonly number[], options
     "TE.random": teR, "seTE.random": seR, "lower.random": lowR, "upper.random": upR, "statistic.random": statR, "pval.random": pR, "df.random": dfR,
     "seTE.predict": sePred, "lower.predict": teR - tp * sePred, "upper.predict": teR + tp * sePred, "df.predict": dfPred,
     Q, "df.Q": dfQ, "pval.Q": k > 1 ? (pchisq(Q, dfQ, { lowerTail: false }) as number) : NaN,
-    tau2, "lower.tau2": lt, "upper.tau2": ut, tau: Math.sqrt(tau2), "lower.tau": Math.sqrt(lt), "upper.tau": Math.sqrt(ut),
+    // one study: no between-study variance (R's NA)
+    tau2: k > 1 ? tau2 : NaN, "lower.tau2": lt, "upper.tau2": ut, tau: k > 1 ? Math.sqrt(tau2) : NaN, "lower.tau": Math.sqrt(lt), "upper.tau": Math.sqrt(ut),
     H, "lower.H": lH, "upper.H": uH, I2, "lower.I2": lI2, "upper.I2": uI2,
     "w.common": w, "w.random": wr, methodTau, methodRandomCi: ciMethod, methodTauCi,
   };
