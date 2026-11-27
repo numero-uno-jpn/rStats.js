@@ -1454,3 +1454,13 @@ choices under several criteria).
      ("needs at least 2m (two seasonal periods)"); the last, ZZZ at n = 26 (m = 12), chooses ANA because rStats.js's
      ANA reaches a higher likelihood than R's. The simple fits' forecasts equal R's to 1e-5 without a season (n = 3..8)
      and to 2e-4 with one (m = 4, n = 10: three parameters, the optimisers stop at other points).
+   - **ets's time** (the user: make it faster). A CPU profile of ets(USAccDeaths, AAA): 85% in the eigenvalues of the
+     admissibility check (hqr2, orthes, balancing: a (2 + m)-square matrix at every evaluation of the objective). A
+     cache keyed by the smoothing parameters gave 1.5x only (Nelder-Mead moves them too). Replaced by the
+     characteristic polynomial of D = F - g w' in closed form (the matrix determinant lemma: p(z) = (z - 1)(z - phi)
+     (z^m - 1) + (z^m - 1)(alpha (z - phi) + phi beta) + phi beta (z - 1)(z^m - 1) + gamma (z - 1)(z - phi), the root
+     z = 1 of a seasonal model divided out) and the Schur-Cohn recursion for the roots inside 1 - 1e-10. A first version
+     underflowed (the coefficients square at each step: 1e-183 after 11 steps at m = 12) and disagreed on 14265 of
+     160000 random parameter sets; normalised at each step: the same decisions on all 160000 (8 model shapes, m = 1, 4,
+     12). The fits are bit for bit the same (ZZZ log-likelihood -552.2174794344394 before and after). Times: ets ZZZ on
+     USAccDeaths 20.8 s -> 1.8 s, on 24 values 48.8 s -> 3.2 s; AAA 1.4 s -> 0.11 s; MAM 1.8 s -> 0.16 s.

@@ -4,7 +4,6 @@
 // the admissible region of chapter 10 and the forecast variances of chapter 6. No R or package source was read.
 
 import { optim } from "../optim/optim.js";
-import { eigen } from "../linalg/eigen.js";
 import { qnorm } from "../distributions/normal.js";
 import { rnorm } from "../random/continuous.js";
 import { setSeed } from "../random/rng.js";
@@ -171,25 +170,37 @@ const UPPER = { alpha: 0.9999, beta: 0.9999, gamma: 0.9999, phi: 0.98 };
 export function admissible(spec: EtsSpec, al: number, be: number, ga: number, ph: number): boolean {
   const { trend, season, m } = spec;
   if (trend === "M") return true; // not linear; only the usual bounds
+  // the roots of the characteristic polynomial of D = F - g w' (state x = (l, b, s1..sm), y = w'x + e, x' = F x + g e),
+  // by the matrix determinant lemma det(zI - D) = det(zI - F) (1 + w' (zI - F)^-1 g):
+  //   p(z) = (z - 1)(z - phi)(z^m - 1) + (z^m - 1)(alpha (z - phi) + phi beta) + phi beta (z - 1)(z^m - 1) + gamma (z - 1)(z - phi)
+  // (without a trend the factors z - phi and the beta terms dropped, without a season z^m - 1 and gamma). With a season
+  // p(1) = 0 (the level and the seasonal sum are not separately identified; the normalised model of ch. 10 does not
+  // have that root): divided out. All other roots of modulus below 1 - 1e-10, by the Schur-Cohn recursion
+  // (normalised at each step). The same decisions as the eigenvalues of D on 160000 random parameter sets, at a small
+  // fraction of the cost (log 108)
   const hasB = trend !== "N"; const ms = season === "N" ? 0 : m;
-  const k = 1 + (hasB ? 1 : 0) + ms;
-  // state x = (l, b, s1..sm), y = w'x + e, x' = F x + g e
-  const w = new Array<number>(k).fill(0); w[0] = 1; if (hasB) w[1] = ph; if (ms) w[k - 1] = 1;
-  const F = Array.from({ length: k }, () => new Array<number>(k).fill(0));
-  F[0]![0] = 1; if (hasB) { F[0]![1] = ph; F[1]![1] = ph; }
-  if (ms) { const o = hasB ? 2 : 1; F[o]![k - 1] = 1; for (let i = 1; i < ms; i++) F[o + i]![o + i - 1] = 1; }
-  const g = new Array<number>(k).fill(0); g[0] = al; if (hasB) g[1] = be; if (ms) g[hasB ? 2 : 1] = ga;
-  const D = F.map((row, i) => row.map((v, j) => v - g[i]! * w[j]!));
-  const e = eigen(D, { onlyValues: true }) as { values: number[]; valuesIm?: number[] };
-  const mods = e.values.map((re, i) => ({ re, im: e.valuesIm?.[i] ?? 0, mod: Math.hypot(re, e.valuesIm?.[i] ?? 0) }));
-  if (ms) {
-    // with a seasonal component D always has the eigenvalue 1 (D v = v for v = (1, [0,] -1, ..., -1): the level and the
-    // seasonal sum are not separately identified), which the normalised model of ch. 10 does not have: drop it
-    let k1 = -1, best = Infinity;
-    mods.forEach((v, i) => { const d = Math.hypot(v.re - 1, v.im); if (d < best) { best = d; k1 = i; } });
-    if (best < 1e-6) mods.splice(k1, 1);
+  const mul = (a: readonly number[], b: readonly number[]): number[] => {
+    const r = new Array<number>(a.length + b.length - 1).fill(0);
+    for (let i = 0; i < a.length; i++) for (let j = 0; j < b.length; j++) r[i + j]! += a[i]! * b[j]!;
+    return r;
+  };
+  const addTo = (r: number[], a: readonly number[], c: number): void => { for (let i = 0; i < a.length; i++) r[i]! += c * a[i]!; };
+  const zm1 = [-1, 1]; const T = hasB ? [-ph, 1] : [1]; const zM = ms ? [-1, ...new Array<number>(ms - 1).fill(0), 1] : [1];
+  const p = mul(mul(zm1, T), zM);
+  addTo(p, mul(zM, hasB ? [al * -ph + ph * be, al] : [al]), 1);
+  if (hasB) addTo(p, mul(zm1, zM), ph * be);
+  if (ms) addTo(p, mul(zm1, T), ga);
+  let a = p;
+  if (ms) { const d = p.length - 1; const q = new Array<number>(d).fill(0); let r = p[d]!; for (let k = d - 1; k >= 0; k--) { q[k] = r; r = p[k]! + r; } a = q; }
+  const rad = 1 - 1e-10; a = a.map((v, k) => v * rad ** k);
+  while (a.length > 1) {
+    const d = a.length - 1; const lead = a[d]!, c0 = a[0]!;
+    if (!(Math.abs(c0) < Math.abs(lead))) return false;
+    const nb = new Array<number>(d);
+    for (let k = 0; k < d; k++) nb[k] = lead * a[k + 1]! - c0 * a[d - k - 1]!;
+    const top = nb[d - 1]!; a = nb.map((v) => v / top);
   }
-  return mods.every((v) => v.mod < 1 - 1e-10);
+  return true;
 }
 
 interface FitOut { spec: EtsSpec; par: EtsParameters; filter: FilterOut; nParams: number }

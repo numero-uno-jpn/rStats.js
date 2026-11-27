@@ -332,8 +332,6 @@ invariance (the same value after a change of scale or origin where theory says s
 - **Resolved (log 108, the user's decisions 2026-11-28):** missing values in ets / ses / holt / hw, kpss.test and
   mstl / stlf, auto.arima on exact fits and naive / rwf after a missing value now as R's.
 
-- **ets's time** (log 107): 20 s for ets(USAccDeaths) with ZZZ, 49 s on 24 values (the seasonal models 1-7 s each).
-
 - **Box-Cox lambda = 0.5 far below unit scale** (log 107): (x^0.5 - 1) / 0.5 is -2 to 1e-75 at 1e-150 times USAccDeaths,
   so forecastArima(lambda = 0.5) forecasts 0 (R fails): the transform itself loses the information.
 
