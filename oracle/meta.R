@@ -74,4 +74,17 @@ pr <- data.frame(e = c(4, 0, 15, 30, 9, 20), n = c(40, 25, 60, 30, 50, 45))
 opr <- list(data = pr, cases = list())
 for (sm in c("PLOGIT", "PFT", "PAS", "PRAW", "PLN")) opr$cases[[sm]] <- pick(metaprop(pr$e, pr$n, sm = sm, method = "Inverse"))
 out$other <- list(metacont = oc, metainc = oi, metacor = ocr, metamean = omn, metarate = ort, metaprop = opr)
+# metaprop's default GLMM (log 75-76)
+set.seed(74)
+gsets <- list(k6 = list(c(4, 0, 15, 30, 9, 20), c(40, 25, 60, 30, 50, 45)), k10 = list(rbinom(10, 80, 0.2), rep(80, 10)),
+              k20 = { n <- sample(20:150, 20); list(rbinom(20, n, plogis(rnorm(20, -1, 0.6))), n) }, nozero = list(c(12, 18, 7, 25, 14), c(60, 70, 40, 90, 55)))
+gl <- list()
+for (nm in names(gsets)) {
+  x <- gsets[[nm]][[1]]; n <- gsets[[nm]][[2]]
+  m <- metaprop(x, n); m90 <- metaprop(x, n, level.ma = 0.9, prediction = TRUE)
+  st <- factor(seq_along(x)); g <- lme4::glmer(cbind(x, n - x) ~ 1 + (1 | st), family = binomial, nAGQ = 7)
+  gl[[nm]] <- list(x = x, n = n, r = pick(m), Qs = unname(m$Q), dfQs = unname(m$df.Q), pvalQs = unname(m$pval.Q), r90 = pick(m90),
+                   lme4 = list(deviance = deviance(g), fixef = unname(lme4::fixef(g)), theta = unname(lme4::getME(g, "theta"))))
+}
+out$glmm <- gl
 writeLines(toJSON(out, digits = I(17), auto_unbox = TRUE, null = "null", na = "null", pretty = FALSE), file.path("/out", "meta.json"))

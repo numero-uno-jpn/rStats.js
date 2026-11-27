@@ -4,7 +4,8 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { metagen, pWeightedChisq, type MetaResult } from "../src/meta/metagen.js";
 import { metabin, type MetabinOptions } from "../src/meta/metabin.js";
-import { metacont, metacor, metainc, metamean, metaprop, metarate } from "../src/meta/metaother.js";
+import { metacont, metacor, metainc, metamean, metaprop, metapropGlmm, metarate } from "../src/meta/metaother.js";
+import { glmer } from "../src/models/glmer.js";
 import { symmetricEigen } from "../src/random/mvrnorm.js";
 import { qchisq } from "../src/distributions/chisq.js";
 
@@ -124,6 +125,25 @@ describe("metacont, metainc, metacor, metamean, metarate, metaprop (inverse vari
         if (nearZeroReml(m, r)) expect(num(r.tau2), k).toBeLessThan(1e-5);
       }
       expect(bad).toEqual([]);
+    });
+  }
+});
+
+describe("metaprop's GLMM", () => {
+  // the random part is glmer's (nAGQ = 7): rStats.js minimises the exact AGQ deviance (exact conditional mode and rule,
+  // test/glmerAgq.test.ts), lme4 an approximation of it, so the estimates differ by up to 1.2e-3 (k6, tau2 = 9) and lme4's deviance values
+  // are not comparable; started at lme4's estimates our fit returns to its own optimum. Everything else exact
+  for (const [set, v] of Object.entries(fx.glmm as Record<string, any>)) {
+    it(set, () => {
+      const m = metapropGlmm(vec(v.x), vec(v.n));
+      const r = { ...v.r, Q: v.Qs, "df.Q": v.dfQs, "pval.Q": v.pvalQs };
+      const random = ["TE.random", "seTE.random", "lower.random", "upper.random", "seTE.predict", "lower.predict", "upper.predict", "tau2", "tau"];
+      expect(diffFields(m as unknown as Record<string, unknown>, r, 1e-9, random)).toEqual([]);
+      expect(diffFields(m as unknown as Record<string, unknown>, Object.fromEntries(random.map((f) => [f, r[f]])), 2e-3)).toEqual([]);
+      const study = vec(v.x).map((_, i) => `s${String(i + 1).padStart(String(vec(v.x).length).length, "0")}`);
+      const fit = glmer("p ~ 1 + (1 | study)", { p: vec(v.x).map((x, i) => x / vec(v.n)[i]!), w: vec(v.n), study }, { family: "binomial", weights: "w", nAGQ: 7, start: { theta: [num(v.lme4.theta)], fixef: [num(v.lme4.fixef)] } });
+      expect(Math.abs(fit.fixef[0]! - m["TE.random"])).toBeLessThan(1e-9);
+      expect(Math.abs(fit.theta[0]! ** 2 - m.tau2)).toBeLessThan(1e-9 * Math.max(1, m.tau2));
     });
   }
 });

@@ -275,6 +275,10 @@ as a regression with ARMA errors.
 14. **thetaf with a seasonal adjustment** (log 91; the user's decision 2026-11-27): R's intervals are the reseasonalised
    mean +- the width on the adjusted scale, and its residuals are on the adjusted scale. rStats.js reseasonalises the
    bounds (the width times the seasonal index) and gives y - fitted.
+15. **REML's tau2 near 0** (log 97-98): metafor stops its Fisher scoring when the change is below an absolute 1e-5, so
+   approaching tau2 = 0 it can stop at a small positive value (2.9e-6 for a log RR), and on measures of small scale
+   (IRD: variances about 5e-6) far from the maximum (5.4e-7, 10% of the variances; with a 1e-12 threshold R gives
+   1e-13, and the log-likelihood at 0 is higher). rStats.js returns the maximum (0 there).
 
 # Open points found during the implementation (for the user)
 

@@ -1169,3 +1169,13 @@ choices under several criteria).
      than at meta's value (22.9185). R's tau2 matters there (10% of the study variances): a precision departure to
      document (REML on effect measures of small scale). The random part is not compared when R's tau2 < 1e-5 and ours
      is 0.
+
+99. `metapropGlmm` (meta's metaprop default, method "GLMM") on glmer(nAGQ = 7) and glm (fixture `glmm`: k = 6 with a
+   zero and an all-events study, 10, 20, and a set without heterogeneity): **the common effect (glm), Q = [Wald, LRT]
+   with their df and p, H and I2 (from the Wald Q, with Higgins and Thompson's intervals), the PLOGIT study values:
+   exact (1e-9), including the separated studies** (rStats.js's glm follows R's iterations there). meta's tau2
+   interval and weights are NA for the GLMM. The random part (TE.random, its se and interval, tau2, the prediction
+   interval t(k - 1) sqrt(tau2 + se^2)) is lme4's: meta = lme4 exactly; ours within 1.2e-3. rStats.js's glmer
+   minimises the exact AGQ deviance and lme4 an approximation (test/glmerAgq.test.ts), so lme4's deviance values are
+   not comparable (ours 1.8390843 against lme4's 1.8385860 at different points; started at lme4's estimates our fit
+   returns to its own optimum).

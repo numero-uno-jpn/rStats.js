@@ -108,6 +108,20 @@ export function genqInterval(y: readonly number[], v: readonly number[], a: read
   return [solve(1 - alpha / 2), solve(alpha / 2)];
 }
 
+/** H and I2 with Higgins and Thompson's (2002) intervals (H at least 1, as meta). */
+export function heterogeneityIntervals(Q: number, k: number, level: number): { H: number; lH: number; uH: number; I2: number; lI2: number; uI2: number } {
+  const dfQ = k - 1;
+  // meta reports H at least 1 (Q below its degrees of freedom: H = 1)
+  const H = k > 1 ? Math.max(1, Math.sqrt(Q / dfQ)) : NaN; const I2 = k > 1 ? Math.max(0, (Q - dfQ) / Q) : NaN;
+  let lH = NaN, uH = NaN;
+  if (k > 2) {
+    const seLog = Q > k ? (0.5 * (Math.log(Q) - Math.log(dfQ))) / (Math.sqrt(2 * Q) - Math.sqrt(2 * k - 3)) : Math.sqrt((1 / (2 * (k - 2))) * (1 - 1 / (3 * (k - 2) ** 2)));
+    const zl = qnorm(0.5 + level / 2) as number; const c = Math.log(Math.max(H, 1));
+    lH = Math.max(1, Math.exp(c - zl * seLog)); uH = Math.max(1, Math.exp(c + zl * seLog));
+  }
+  return { H, lH, uH, I2, lI2: Math.max(0, 1 - 1 / (lH * lH)), uI2: Math.max(0, 1 - 1 / (uH * uH)) };
+}
+
 /** The pooled estimates and heterogeneity of study estimates TE with standard errors seTE (inverse variance). */
 /** Internal: a tau2 and a Q fixed by the caller (metabin's Q about the MH estimate with DL, log 64). */
 export interface MetaCoreInternal { fixedTau2?: number; fixedQ?: number }
@@ -152,15 +166,7 @@ export function metaCore(TE: readonly number[], seTE: readonly number[], options
       [lt, ut] = genqInterval(TE, v, methodTauCi === "J" ? seTE.map((s) => 1 / s) : w, level);
     }
   }
-  // H and I2 (Higgins and Thompson 2002)
-  // meta reports H at least 1 (Q below its degrees of freedom: H = 1)
-  const H = k > 1 ? Math.max(1, Math.sqrt(Q / dfQ)) : NaN; const I2 = k > 1 ? Math.max(0, (Q - dfQ) / Q) : NaN;
-  let lH = NaN, uH = NaN;
-  if (k > 2) {
-    const seLog = Q > k ? (0.5 * (Math.log(Q) - Math.log(dfQ))) / (Math.sqrt(2 * Q) - Math.sqrt(2 * k - 3)) : Math.sqrt((1 / (2 * (k - 2))) * (1 - 1 / (3 * (k - 2) ** 2)));
-    const zl = qnorm(0.5 + level / 2) as number; const c = Math.log(Math.max(H, 1));
-    lH = Math.max(1, Math.exp(c - zl * seLog)); uH = Math.max(1, Math.exp(c + zl * seLog));
-  }
+  const { H, lH, uH, I2, lI2, uI2 } = heterogeneityIntervals(Q, k, level);
   return {
     TE: TE.slice(), seTE: seTE.slice(), k,
     "TE.common": teC, "seTE.common": seC, "lower.common": teC - zMa * seC, "upper.common": teC + zMa * seC, "statistic.common": statC, "pval.common": 2 * (pnorm(-Math.abs(statC)) as number),
@@ -168,7 +174,7 @@ export function metaCore(TE: readonly number[], seTE: readonly number[], options
     "seTE.predict": sePred, "lower.predict": teR - tp * sePred, "upper.predict": teR + tp * sePred, "df.predict": dfPred,
     Q, "df.Q": dfQ, "pval.Q": k > 1 ? (pchisq(Q, dfQ, { lowerTail: false }) as number) : NaN,
     tau2, "lower.tau2": lt, "upper.tau2": ut, tau: Math.sqrt(tau2), "lower.tau": Math.sqrt(lt), "upper.tau": Math.sqrt(ut),
-    H, "lower.H": lH, "upper.H": uH, I2, "lower.I2": Math.max(0, 1 - 1 / (lH * lH)), "upper.I2": Math.max(0, 1 - 1 / (uH * uH)),
+    H, "lower.H": lH, "upper.H": uH, I2, "lower.I2": lI2, "upper.I2": uI2,
     "w.common": w, "w.random": wr, methodTau, methodRandomCi: ciMethod, methodTauCi,
   };
 }

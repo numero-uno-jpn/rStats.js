@@ -2,9 +2,13 @@
 // behaviour specification oracle/tsmeta-behaviour.md with the details found in experiments/tsmeta120-log.md (items
 // 66-67, 69, 98). No R or package source was read.
 
+import { pchisq } from "../distributions/chisq.js";
 import { pnorm, qnorm } from "../distributions/normal.js";
+import { qt1 } from "../distributions/t.js";
+import { glm, glmSummary } from "../models/glm.js";
+import { glmer } from "../models/glmer.js";
 import { lgamma } from "../special/gamma.js";
-import { metaCore, type MetaCommonOptions, type MetaResult } from "./metagen.js";
+import { heterogeneityIntervals, metaCore, type MetaCommonOptions, type MetaResult } from "./metagen.js";
 
 const sum = (v: readonly number[]): number => v.reduce((a, b) => a + b, 0);
 const sameLength = (what: string, ...v: readonly (readonly number[])[]): number => {
@@ -141,4 +145,58 @@ export function metaprop(event: readonly number[], n: readonly number[], options
     }
   });
   return pool(TE, seTE, options);
+}
+
+/** The result of {@link metapropGlmm}: as {@link MetaResult}, with Q, df.Q and pval.Q as [Wald, LRT]. */
+export type MetapropGlmmResult = Omit<MetaResult, "Q" | "df.Q" | "pval.Q"> & { Q: [number, number]; "df.Q": [number, number]; "pval.Q": [number, number] };
+
+/**
+ * Meta-analysis of single proportions by a random intercept logistic model (meta's `metaprop()` default, method
+ * "GLMM"; log 75-76): glmer(x/n ~ 1 + (1 | study), binomial, weights n, nAGQ = 7) for the random effect and tau2,
+ * glm(x/n ~ 1) for the common effect; Q = [Wald, LRT]: the Wald test of equal study effects in glm(x/n ~ study) and the
+ * common glm's deviance; H and I2 from the Wald Q. Study values are the PLOGIT ones.
+ *
+ * @category Meta-analysis
+ */
+export function metapropGlmm(event: readonly number[], n: readonly number[], options: Omit<MetaCommonOptions, "methodTau" | "methodTauCi"> = {}): MetapropGlmmResult {
+  const k = sameLength("metapropGlmm", event, n);
+  if (k < 2) throw new RangeError("metapropGlmm: at least two studies");
+  const study = event.map((_, i) => `s${String(i + 1).padStart(String(k).length, "0")}`);
+  const data = { p: event.map((x, i) => x / n[i]!), w: n.slice(), study };
+  const fitR = glmer("p ~ 1 + (1 | study)", data, { family: "binomial", weights: "w", nAGQ: 7 });
+  const tau2 = fitR.theta[0]! ** 2; const teR = fitR.fixef[0]!; const seR = Math.sqrt(fitR.vcov[0]![0]!);
+  const fitC = glm("p ~ 1", data, { family: "binomial", weights: "w" }); const teC = fitC.coefficients[0]!; const seC = Math.sqrt(glmSummary(fitC).covUnscaled[0]![0]!);
+  const fitS = glm("p ~ study", data, { family: "binomial", weights: "w" }); const V = glmSummary(fitS).covUnscaled;
+  const d = fitS.coefficients.slice(1); const Vd = V.slice(1).map((r) => r.slice(1));
+  const qWald = dot(d, solveSym(Vd, d)); const qLrt = fitC.deviance; const df = k - 1;
+  const level = options.levelMa ?? options.level ?? 0.95; const z = qnorm(0.5 + level / 2) as number;
+  const levelPredict = options.levelPredict ?? options.level ?? 0.95;
+  const sePred = Math.sqrt(tau2 + seR * seR); const tp = qt1(0.5 + levelPredict / 2, df, true, false);
+  const het = heterogeneityIntervals(qWald, k, options.level ?? 0.95);
+  const plogit = metaprop(event, n, { sm: "PLOGIT" });
+  const stC = teC / seC;
+  return {
+    TE: plogit.TE, seTE: plogit.seTE, k,
+    "TE.common": teC, "seTE.common": seC, "lower.common": teC - z * seC, "upper.common": teC + z * seC, "statistic.common": stC, "pval.common": 2 * (pnorm(-Math.abs(stC)) as number),
+    "TE.random": teR, "seTE.random": seR, "lower.random": teR - z * seR, "upper.random": teR + z * seR, "statistic.random": teR / seR, "pval.random": 2 * (pnorm(-Math.abs(teR / seR)) as number), "df.random": null,
+    "seTE.predict": sePred, "lower.predict": teR - tp * sePred, "upper.predict": teR + tp * sePred, "df.predict": df,
+    Q: [qWald, qLrt], "df.Q": [df, df], "pval.Q": [pchisq(qWald, df, { lowerTail: false }) as number, pchisq(qLrt, df, { lowerTail: false }) as number],
+    tau2, "lower.tau2": NaN, "upper.tau2": NaN, tau: Math.sqrt(tau2), "lower.tau": NaN, "upper.tau": NaN,
+    H: het.H, "lower.H": het.lH, "upper.H": het.uH, I2: het.I2, "lower.I2": het.lI2, "upper.I2": het.uI2,
+    "w.common": new Array<number>(k).fill(NaN), "w.random": new Array<number>(k).fill(NaN),
+    methodTau: "ML", methodRandomCi: options.methodRandomCi ?? "classic", methodTauCi: "QP",
+  };
+}
+
+const dot = (a: readonly number[], b: readonly number[]): number => a.reduce((s, x, i) => s + x * b[i]!, 0);
+/** Solves A x = b for a symmetric positive definite A (Cholesky). */
+function solveSym(A: readonly (readonly number[])[], b: readonly number[]): number[] {
+  const n = b.length; const L = Array.from({ length: n }, () => new Array<number>(n).fill(0));
+  for (let i = 0; i < n; i++) for (let j = 0; j <= i; j++) {
+    let s = A[i]![j]!; for (let k = 0; k < j; k++) s -= L[i]![k]! * L[j]![k]!;
+    L[i]![j] = i === j ? Math.sqrt(s) : s / L[j]![j]!;
+  }
+  const y = new Array<number>(n); for (let i = 0; i < n; i++) { let s = b[i]!; for (let k = 0; k < i; k++) s -= L[i]![k]! * y[k]!; y[i] = s / L[i]![i]!; }
+  const x = new Array<number>(n); for (let i = n - 1; i >= 0; i--) { let s = y[i]!; for (let k = i + 1; k < n; k++) s -= L[k]![i]! * x[k]!; x[i] = s / L[i]![i]!; }
+  return x;
 }
