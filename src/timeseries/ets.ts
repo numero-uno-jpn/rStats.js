@@ -196,8 +196,12 @@ function initialStates(y: readonly number[], spec: EtsSpec): { l: number; b: num
   return { l, b, s };
 }
 
-/** Fits one model by minimising lik (= -2 loglik) within the usual bounds and the admissible region. */
-export function fitModel(y: readonly number[], spec: EtsSpec, fixed: Partial<Record<"alpha" | "beta" | "gamma" | "phi", number>> = {}, fixedInit?: { l: number; b?: number; s?: number[] }, optCrit: "lik" | "mse" = "lik"): FitOut | null {
+/**
+ * Fits one model by minimising lik (= -2 loglik) within the usual bounds and the admissible region. `bounds: "simple"`
+ * is forecast's initial = "simple" (its own Holt-Winters filter, log 91): alpha, beta* = beta / alpha and gamma in
+ * [0, 1], no admissibility check.
+ */
+export function fitModel(y: readonly number[], spec: EtsSpec, fixed: Partial<Record<"alpha" | "beta" | "gamma" | "phi", number>> = {}, fixedInit?: { l: number; b?: number; s?: number[] }, optCrit: "lik" | "mse" = "lik", bounds: "usual" | "simple" = "usual"): FitOut | null {
   const { trend, season, m } = spec; const n = y.length;
   const names: string[] = [];
   if (fixed.alpha === undefined) names.push("alpha");
@@ -222,6 +226,13 @@ export function fitModel(y: readonly number[], spec: EtsSpec, fixed: Partial<Rec
   };
   const objective = (u: number[]): number => {
     const p = decode(u); const al = p.alpha, be = p.beta ?? 0, ga = p.gamma ?? 0, ph = p.phi ?? 1;
+    if (bounds === "simple") {
+      if (!(al >= 0 && al <= 1) || (trend !== "N" && !(be >= 0 && be <= al)) || (season !== "N" && !(ga >= 0 && ga <= 1))) return Infinity;
+      if (spec.damped && !(ph >= LOWER.phi && ph <= UPPER.phi)) return Infinity;
+      if (season === "M" && fullSeason(spec, p.s ?? []).some((v) => !(v > 0))) return Infinity;
+      const v = optCrit === "mse" ? etsMse(y, spec, p) : etsLik(y, spec, p, sbuf);
+      return Number.isFinite(v) ? v : Infinity;
+    }
     if (!(al >= LOWER.alpha && al <= UPPER.alpha)) return Infinity;
     if (trend !== "N" && !(be >= LOWER.beta && be <= al)) return Infinity;
     if (season !== "N" && !(ga >= LOWER.gamma && ga <= 1 - al)) return Infinity;
@@ -368,8 +379,8 @@ export function ets(y: readonly number[], options: EtsOptions = {}): EtsResult {
 }
 
 /** Fits a given model with given smoothing parameters and initial states (no estimation): for ses/holt/hw "simple". */
-export function etsFixedInitial(y: readonly number[], spec: EtsSpec, init: { l: number; b?: number; s?: number[] }, fixed: Partial<Record<"alpha" | "beta" | "gamma" | "phi", number>> = {}, optCrit: "lik" | "mse" = "lik"): EtsResult {
-  const f = fitModel(y, spec, fixed, init, optCrit);
+export function etsFixedInitial(y: readonly number[], spec: EtsSpec, init: { l: number; b?: number; s?: number[] }, fixed: Partial<Record<"alpha" | "beta" | "gamma" | "phi", number>> = {}, optCrit: "lik" | "mse" = "lik", bounds: "usual" | "simple" = "usual"): EtsResult {
+  const f = fitModel(y, spec, fixed, init, optCrit, bounds);
   if (!f) throw new Error("ets: the model could not be fitted");
   return finish(y, f, 3, null, false, y.slice());
 }

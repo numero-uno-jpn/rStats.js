@@ -265,8 +265,20 @@ as a regression with ARMA errors.
    then reports and uses L - 1 lags. rStats.js (the user's decision, 2026-11-27): lags 0..maxlag compared on the same
    common sample, the chosen lag used. The criterion is R's (3387 of 3387 non-degenerate choices consistent); nsdiffs's
    decisions differ in 5 of the 120 fixture series, each explained by the off-by-one.
+11. **croston's forecast** (log 91): R forecasts from the state before the last observation (its last fitted value: the
+   last observation is unused when it is a demand). rStats.js forecasts from the state after it.
+12. **easter(easter.mon = TRUE) on quarterly data** (log 91): R shifts the shares where the holidays span two quarters
+   (it warns about a replacement length). rStats.js gives each quarter its share.
+13. **hw(initial = "simple") intervals** (log 91): R's own filter uses the Holt-Winters beta* (beta = alpha beta*), and
+   R puts that beta* into the ets variance formula as if it were beta (also the multiplicative mean). rStats.js uses
+   the model's beta. Its sigma2 = SSE / n and the bounds [0, 1] are R's.
 
 # Open points found during the implementation (for the user)
+
+- **thetaf with a seasonal adjustment** (log 91): R's intervals are the reseasonalised mean +- the width on the adjusted
+  scale (the width not multiplied by the seasonal index), and its residuals are those of the ses on the adjusted
+  series. rStats.js reseasonalises the bounds and gives y - fitted. Is R's form an error (to be documented as a
+  departure) or to be followed?
 
 - **auto.arima's neighbour order:** the diagonal steps are (-1, -1), (-1, +1), (+1, -1), (+1, +1) (the fixture's traces;
   log 43 had the middle two the other way round), and the non-stepwise search fits the model without the constant

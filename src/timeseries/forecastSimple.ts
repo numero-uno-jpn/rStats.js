@@ -70,9 +70,15 @@ export function snaive(y: readonly number[], options: { frequency: number; h?: n
   return rwf(y, { h: options.h ?? 2 * options.frequency, lag: options.frequency, ...(options.level ? { level: options.level } : {}) });
 }
 
-function fromEts(fit: EtsResult, h: number, level: number[], method: string): SimpleForecast {
+function fromEts(fit: EtsResult, h: number, level: number[], method: string, simple = false): SimpleForecast {
+  // initial = "simple": R's sigma2 is SSE / n (log 91). R's hw(initial = "simple") also puts its Holt-Winters beta*
+  // (beta = alpha beta*) into the ets variance as if it were beta; rStats.js uses the model's beta (a departure)
+  if (simple) fit.sigma2 = fit.residuals.reduce((a, v) => a + v * v, 0) / fit.x.length;
   const fc = forecastEts(fit, { h, level });
-  return { mean: fc.mean, lower: fc.lower, upper: fc.upper, level, fitted: fit.fitted, residuals: fit.x.map((v, i) => v - fit.fitted[i]!), method, model: fit };
+  // as R's: the model's innovations (relative for multiplicative errors) for an ets fit, y - fitted with
+  // initial = "simple" (log 91)
+  const residuals = simple ? fit.x.map((v, i) => v - fit.fitted[i]!) : fit.residuals.slice();
+  return { mean: fc.mean, lower: fc.lower, upper: fc.upper, level, fitted: fit.fitted, residuals, method, model: fit };
 }
 
 /**
@@ -85,9 +91,9 @@ export function ses(y: readonly number[], options: { h?: number; level?: readonl
   const h = options.h ?? 10; const level = [...(options.level ?? [80, 95])];
   const fixed = options.alpha !== undefined ? { alpha: options.alpha } : {};
   const fit = options.initial === "simple"
-    ? etsFixedInitial(y, { error: "A", trend: "N", damped: false, season: "N", m: 1 }, { l: y[0]! }, fixed, "mse")
+    ? etsFixedInitial(y, { error: "A", trend: "N", damped: false, season: "N", m: 1 }, { l: y[0]! }, fixed, "mse", "simple")
     : ets(y, { model: "ANN", ...fixed });
-  return fromEts(fit, h, level, "Simple exponential smoothing");
+  return fromEts(fit, h, level, "Simple exponential smoothing", options.initial === "simple");
 }
 
 /**
@@ -101,10 +107,10 @@ export function holt(y: readonly number[], options: { h?: number; level?: readon
   const damped = options.damped ?? false; const expo = options.exponential ?? false;
   const spec: EtsSpec = { error: expo ? "M" : "A", trend: expo ? "M" : "A", damped, season: "N", m: 1 };
   const fit = options.initial === "simple"
-    ? etsFixedInitial(y, spec, expo ? { l: y[0]!, b: y[1]! / y[0]! } : { l: y[0]!, b: y[1]! - y[0]! }, {}, "mse")
+    ? etsFixedInitial(y, spec, expo ? { l: y[0]!, b: y[1]! / y[0]! } : { l: y[0]!, b: y[1]! - y[0]! }, {}, "mse", "simple")
     : ets(y, { model: expo ? "MMN" : "AAN", damped });
   const method = damped ? (expo ? "Damped Holt's method with exponential trend" : "Damped Holt's method") : expo ? "Holt's method with exponential trend" : "Holt's method";
-  return fromEts(fit, h, level, method);
+  return fromEts(fit, h, level, method, options.initial === "simple");
 }
 
 /**
@@ -122,10 +128,10 @@ export function hw(y: readonly number[], options: { frequency: number; h?: numbe
     const l = meanOf(y.slice(0, m)); const b = (meanOf(y.slice(m, 2 * m)) - l) / m;
     // s1 = the most recent (period m), ..., sm = period 1
     const s = y.slice(0, m).map((v) => (mult ? v / l : v - l)).reverse();
-    fit = etsFixedInitial(y, spec, { l, b, s }, {}, "mse");
+    fit = etsFixedInitial(y, spec, { l, b, s }, {}, "mse", "simple");
   } else fit = ets(y, { frequency: m, model: mult ? "MAM" : "AAA", damped });
   const method = `${damped ? "Damped " : ""}Holt-Winters' ${mult ? "multiplicative" : "additive"} method`;
-  return fromEts(fit, h, level, method);
+  return fromEts(fit, h, level, method, options.initial === "simple");
 }
 
 /** The lag-k autocorrelations (mean removed, over n). */
@@ -167,7 +173,9 @@ export function thetaf(y: readonly number[], options: { frequency?: number; h?: 
 /**
  * Croston's method for intermittent demand (forecast's `croston()`): SES with alpha on the non-zero demands and on the
  * intervals between them (counted from time 0), each started at its first value; forecast k z / p with k = 1 (croston),
- * 1 - alpha/2 (sba) or 1 - alpha/(2 - alpha) (sbj). No intervals.
+ * 1 - alpha/2 (sba) or 1 - alpha/(2 - alpha) (sbj). No intervals. Departs from R when the last observation is a
+ * demand: R's forecast is the state before it (the last fitted value, the last observation unused; log 91), rStats.js
+ * forecasts from the state after it.
  *
  * @category Time series
  */

@@ -1043,3 +1043,47 @@ choices under several criteria).
      another (a first draft skipped candidates with n <= k + 1 for AIC and BIC too: 2 misses at n = 15, fixed by keeping
      that guard for AICc only). The stl fixture's nsdiffs(ocsb) decisions differ in 5 of 120 (26, 46, 72, 78, 82), each
      explained by the off-by-one. Both departures are in the spec's "Departures from R" (9, 10).
+
+## forecast's simple methods and small functions: the fixture (2026-11-27, session 40)
+
+91. `oracle/forecastSimple.R` (the fixture `test/fixtures/forecastSimple.json`) against `forecastSimple.ts` and
+   `forecastUtils.ts` (written in session 39, untested):
+   - exact (1e-10 or better): meanf, naive, rwf (with drift), snaive, tslm (+ forecast), CV, ma, fourier,
+     seasonaldummy, monthdays, bizdays (5 centres, 4 spans), na.interp (linear and seasonal), tsoutliers, the
+     mstl components, croston's fitted values, accuracy's columns (R omits ACF1 and Theil's U for a test set that is
+     not a ts: an input-type rule, compared on R's columns only).
+   - ets underneath (ses, holt, hw, stlf): my estimates reach R's log-likelihood or higher in every case (holt
+     -120.22 vs R -120.64, hw additive -552.10 vs -555.92, damped -551.02 vs -552.50, holt exponential -725.49 vs
+     -726.25, stlf -548.18 vs -548.21; ses equal to 1e-9); with initial = "simple" the SSE equals R's to 4 decimals
+     but beta differs (hw 0.019 vs 0.031, multiplicative 0.010 vs 0.035: the SSE is flat in beta). So these are
+     compared at R's own estimates (etsAt), and my estimation by the criterion. R's residuals of these forecasts are
+     the ets innovation residuals (relative for multiplicative errors), not y - fitted.
+   - tsclean with missing values: R replaces the outliers first and then interpolates (to 1e-13; interpolating with
+     the outliers removed as well: 2.4 and 29 off). Fixed in rStats.js.
+   `tsmeta120-simple2.R` (designed):
+   - **croston ignores the last observation**: the same series ending in 0, 4 and 100 give the same forecast, equal to
+     the last fitted value (the state before the last observation); ending in 4 then 0 changes it. An off-by-one in
+     forecast (not imitated: rStats.js forecasts from the state after the last observation).
+   - **easter(easter.mon = TRUE) on quarterly data is wrong in R**: R warns "number of items to replace is not a
+     multiple of replacement length" and shifts the shares (Easter 2013 is 31 March, Monday 1 April: R gives Q1 0.25 and
+     Q2 1 starting in Q1, other shifts starting in Q2); monthly data and easter.mon = FALSE are right. Not imitated.
+   - **thetaf with a seasonal adjustment**: R's model is ses on the seasonally adjusted series (alpha 0.8378, sigma2
+     115.69, residuals = that ses's residuals on the adjusted scale); R's intervals are the reseasonalised mean
+     +- z sqrt(sigma2 ...) on the adjusted scale (426.29 = 440.08 - 1.2816 x 10.756), i.e. the width is not
+     reseasonalised while the mean is. rStats.js reseasonalises the interval bounds (the width times the seasonal
+     index). For the user to decide (log 92).
+   - **initial = "simple" (R's own filter, not ets):** at R's estimates (`etsAt`, no estimation) with the trend
+     parameter converted, beta_ets = alpha beta* (R's beta is the Holt-Winters beta*: my beta 0.01862 = 0.5950 x
+     0.03129), the fitted values agree to 1e-15 (hw additive and multiplicative; gamma needs no conversion). R's
+     sigma2 is SSE / n (implied n - np = 100.000, 60.000, 72.000, 144.000 for ses, holt, hw, hw multiplicative), so
+     ses and holt with initial = "simple" agree to 4e-16. **hw's intervals (and the multiplicative mean, which carries
+     the variance) agree to 2e-14 only when the unconverted beta* is put into the ets variance as if it were beta**:
+     R's states use beta* in the Holt-Winters form, its variance uses it in the ets form. A mix of the two
+     parameterisations, an error in R (not imitated: rStats.js uses the model's beta_ets; sigma2 = SSE / n as R's).
+   - At R's estimates the optimal ets fits (ses, holt, damped, hw, damped hw) agree to 1e-13 in everything; holt with
+     exponential = TRUE (MMN) to 1e-15 in the mean and fitted values, its intervals being R's simulation (unseeded).
+   - `tsmeta120-simple3.R` (designed): tsCV does not skip origin 1 (a constant forecast function fills it); R's naive
+     and rwf fail on one observation ("missing value where TRUE/FALSE needed", meanf works), which is why tsCV(naive)
+     has NA there. rStats.js's naive returns y_1 with NaN intervals (an internal NA test, not an input check, in R).
+   - holt(initial = "simple") reached alpha = 1, beta = 0 in R: R's own filter has the bounds [0, 1] (alpha, beta*,
+     gamma) and no admissibility test; rStats.js's fit for initial = "simple" now uses those bounds (SSE R's or lower).

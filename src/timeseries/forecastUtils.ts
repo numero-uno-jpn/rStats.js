@@ -111,7 +111,9 @@ export function easterSunday(Y: number): [number, number] {
 
 /**
  * The Easter holidays in each month or quarter (forecast's `easter()`): the share of Good Friday .. Easter Sunday (..
- * Monday with `easterMon`) falling in the period, rounded to two decimals (as R).
+ * Monday with `easterMon`) falling in the period, rounded to two decimals (as R). Departs from R for quarterly data
+ * with `easterMon` when the holidays span two quarters: R's shares are shifted there (it warns about a replacement
+ * length; log 91), rStats.js gives each quarter its share.
  *
  * @category Time series
  */
@@ -401,10 +403,10 @@ export function tsoutliers(x: readonly number[], options: { frequency?: number; 
  */
 export function tsclean(x: readonly number[], options: { frequency?: number; replaceMissing?: boolean; iterate?: number } = {}): number[] {
   const m = options.frequency ?? 1;
-  const base = options.replaceMissing ?? true ? naInterp(x, { frequency: m }) : x.slice();
   const o = tsoutliers(x, { frequency: m, ...(options.iterate !== undefined ? { iterate: options.iterate } : {}) });
-  const out = base.slice(); o.index.forEach((i, k) => { out[i] = o.replacements[k]!; });
-  return out;
+  // the outliers replaced first, then the missing values interpolated (as R, log 91)
+  const out = x.slice(); o.index.forEach((i, k) => { out[i] = o.replacements[k]!; });
+  return options.replaceMissing ?? true ? naInterp(out, { frequency: m }) : out;
 }
 
 /** mstl's components (forecast's `seasonal()`, `trendcycle()`, `remainder()`). @category Time series */
