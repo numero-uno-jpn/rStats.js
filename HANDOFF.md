@@ -5,7 +5,7 @@
 
 ## セッション 43 で最初にやること (2026-11-28、セッション 42 で書いた)
 
-**状態:** 作業ブランチ `dev/ts-meta-1.20`、ローカルの先頭 `00308f21` (push していない)。セッション 42 で時系列の端のケースの
+**状態:** 作業ブランチ `dev/ts-meta-1.20`、ローカルの先頭 `ca2c2f80` (push していない、リモートは `cef937a9` まで)。セッション 42 で時系列の端のケースの
 尺度以外の軸 (退化・不正な入力・欠損・短い系列・同順位・確率の端・Box-Cox と尺度) を R と同じ入力で比べて直した: ログ 107、
 Issue #570 のコメント、仕様書の Departures 17-18 と Open points、test/tsEdge120.test.ts の 2 つの describe (log 107)。
 - R の実験: `experiments/tsmeta120-tsedge2.R` (本体)、`tsedge3` (auto.arima の trace、短い系列の ets の候補、NA で使う観測数)、
