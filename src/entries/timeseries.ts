@@ -6,3 +6,5 @@ export { boxCox, invBoxCox, boxCoxLambda, forecastArima, forecastFromArima, ndif
 export { stl, supsmu, mstl, seasadj, nsdiffs, ocsbTest, ocsbCritical, type StlOptions, type StlResult, type MstlResult } from "../timeseries/stl.js";
 export { autoArima, type AutoArimaOptions, type AutoArimaResult, type AutoArimaTraceEntry } from "../timeseries/autoArima.js";
 export { ets, forecastEts, type EtsOptions, type EtsResult, type EtsForecast, type EtsSpec, type EtsParameters } from "../timeseries/ets.js";
+export { filter, boxTest, diffinv, decompose, ar, predictAr, arima0, type DecomposeResult, type ArResult } from "../timeseries/statsTs.js";
+export { holtWinters, predictHoltWinters, type HoltWintersOptions, type HoltWintersResult } from "../timeseries/holtWinters.js";

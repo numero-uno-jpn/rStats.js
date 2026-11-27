@@ -907,3 +907,20 @@ rejects. This is an optimiser path; it is not near the chosen model.
    862.94683, the value found here; (3,1,0)(2,1,0) fails again. This is a failure of R's optimiser, not a property of
    the models. rStats.js fits them, and they are not near the chosen model. (The script's comparison model (1,1,0)(2,1,0)
    only gave a warning from my own root helper on an empty MA part; that is not used.)
+
+## arima0's likelihood (2026-11-27, during the implementation)
+
+84. `tsmeta120-arima0.R` (run 1 stopped: arima0 refuses to fix every parameter; run 2, edited in place, leaves the
+   mean free in both arima0 and arima): the statsTs fixture showed R's arima0 log-likelihood above arima's exact value
+   at arima's own maximum (lh ARMA(1,1): -28.76176 against -28.76203). Designed: the log-likelihood at fixed ARMA
+   coefficients for delta = -1, 0, 1e-4, 0.01, 0.1 and 0.5, on AR(1), AR(2), MA(1) with theta 0.2 and 0.9, ARMA(1,1)
+   and MA(2) of lh, beside arima's exact value:
+   - **delta <= 0: arima0's log-likelihood equals arima's exact one** (to 1e-14 in all six). With delta > 0 it departs,
+     and for pure AR it departs only once delta exceeds the early prediction variances (AR(2): exact for delta <= 0.01,
+     -28.6076 at 0.1). This is the help page's "fast recursions" switch, an approximation.
+   - The switch rule, replayed outside R: switch when F_t - 1 < delta and count that observation with F = 1 (A), or
+     switch after it (B). A comes close (MA(1) theta 0.2 at delta 0.01: 2.3e-7; ARMA(1,1): 1.1e-6) but is not exact
+     (MA(1) theta 0.9: 8.5e-2; MA(2): 5.6e-3). Not resolved; **left open for the user.**
+   - rStats.js: arima0 maximises the exact likelihood, which equals R's arima0(delta = -1); the statsTs fixture records
+     arima0 with delta = -1. ar(method = "mle") uses R's default delta, so it is compared loosely (coefficients and
+     var.pred within 1e-3; the orders are equal).

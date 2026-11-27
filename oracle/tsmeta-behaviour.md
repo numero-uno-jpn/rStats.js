@@ -56,8 +56,8 @@ as a regression with ARMA errors.
 - The default fit stops short (coefficients 1e-6 to 2e-3); rStats.js iterates to the maximum and is compared with a
   tight refit. (log 1)
 - **arima0 / ar.mle:** ar.mle = arima0 for each order up to min(order.max, 12), aic = arima0's aic minus its minimum,
-  var.pred = arima0's sigma2 (log 12). arima0 itself is fitted with the same exact likelihood (to be confirmed by the
-  fixture).
+  var.pred = arima0's sigma2 (log 12). arima0 maximises the exact likelihood; R's default delta = 0.01 approximates it
+  (log 84, open).
 
 ## forecast's Arima and forecast() (log 5)
 
@@ -261,6 +261,9 @@ as a regression with ARMA errors.
 - **nsdiffs(test = "ocsb")'s lag choice by AIC** (log 80): the prefiltered regression is exact for each lag, but the AIC
   rule choosing the lag is not found; rStats.js uses lag 0 (5 of 120 fixture decisions differ). The default "seas" test
   is not affected.
+- **arima0's default delta = 0.01** (log 84): R switches to "fast recursions" (an approximation) and the switch rule is
+  not found; rStats.js's arima0 is exact, equal to R's arima0(delta = -1). ar(method = "mle") differs from R by the
+  approximation (within 1e-3 in the fixture).
 - **auto.arima's neighbour order:** the diagonal steps are (-1, -1), (-1, +1), (+1, -1), (+1, +1) (the fixture's traces;
   log 43 had the middle two the other way round), and the non-stepwise search fits the model without the constant
   first.
