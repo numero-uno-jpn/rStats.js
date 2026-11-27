@@ -7,12 +7,12 @@
   "DecompDesignResult#summary": {
     "hash": "8ed44ad10eb6",
     "en": "The result of {@link decompDesign}.",
-    "ja": ""
+    "ja": "{@link decompDesign} の結果です。"
   },
   "DecompDesignResult.Q.decomp#summary": {
     "hash": "9bc9eab38e94",
     "en": "Total, within designs, between designs.",
-    "ja": ""
+    "ja": "全体、デザイン内、デザイン間の Q です。"
   },
   "EscalcMeasure#summary": {
     "hash": "7f7c6afa7653",
@@ -32,42 +32,42 @@
   "MetaCommonOptions#summary": {
     "hash": "b8216c7fd8fb",
     "en": "Options shared by the meta functions.",
-    "ja": ""
+    "ja": "メタ分析関数に共通するオプションです。"
   },
   "MetaCommonOptions.level#summary": {
     "hash": "57c3cdff65ae",
     "en": "Confidence level of the study and pooled intervals (default 0.95).",
-    "ja": ""
+    "ja": "研究および統合区間の信頼水準です (既定 0.95)。"
   },
   "MetaCommonOptions.levelMa#summary": {
     "hash": "881fabb521c6",
     "en": "Confidence level of the pooled intervals (default `level`).",
-    "ja": ""
+    "ja": "統合区間の信頼水準です (既定は `level`)。"
   },
   "MetaCommonOptions.levelPredict#summary": {
     "hash": "84d288d576a3",
     "en": "Level of the prediction interval (default `level`).",
-    "ja": ""
+    "ja": "予測区間の信頼水準です (既定は `level`)。"
   },
   "MetaCommonOptions.methodRandomCi#summary": {
     "hash": "c64ea9c2cc9f",
     "en": "\"classic\" (normal, default) or \"HK\" (Hartung-Knapp, t on k - 1).",
-    "ja": ""
+    "ja": "\"classic\" (正規分布、既定) または \"HK\" (Hartung-Knapp、k - 1 の t 分布) です。"
   },
   "MetaCommonOptions.methodTau#summary": {
     "hash": "fb6ba444e5f6",
     "en": "The between-study variance estimator (default \"REML\").",
-    "ja": ""
+    "ja": "研究間分散の推定量です (既定 \"REML\")。"
   },
   "MetaCommonOptions.methodTauCi#summary": {
     "hash": "69af69236994",
     "en": "The tau2 interval: \"QP\" (Q-profile), \"J\" (Jackson) or \"BJ\" (Biggerstaff-Jackson); default \"J\" for DL, else \"QP\".",
-    "ja": ""
+    "ja": "tau2 の区間です: \"QP\" (Q プロファイル)、\"J\" (Jackson)、または \"BJ\" (Biggerstaff-Jackson)。既定は DL の場合 \"J\"、それ以外は \"QP\" です。"
   },
   "MetaInfluenceResult#summary": {
     "hash": "82d0115568a4",
     "en": "Leave-one-out or cumulative estimates of {@link metainf} / {@link metacum}.",
-    "ja": ""
+    "ja": "{@link metainf} / {@link metacum} の 1 件除外または累積推定値です。"
   },
   "MetaMethod#summary": {
     "hash": "506131fd9efa",
@@ -77,32 +77,32 @@
   "MetaResult#summary": {
     "hash": "f84398aa550c",
     "en": "The result of {@link metagen} (R's element names).",
-    "ja": ""
+    "ja": "{@link metagen} の結果です (R の要素名)。"
   },
   "MetaResult.df.random#summary": {
     "hash": "f8fd7786d790",
     "en": "Degrees of freedom of the random interval (k - 1 with Hartung-Knapp, else null).",
-    "ja": ""
+    "ja": "変量効果の区間の自由度です (Hartung-Knapp の場合は k - 1、それ以外は null)。"
   },
   "MetaSubgroupResult#summary": {
     "hash": "46c0902476eb",
     "en": "The result of {@link metaSubgroup}.",
-    "ja": ""
+    "ja": "{@link metaSubgroup} の結果です。"
   },
   "MetaSubgroupResult.Q.w.random#summary": {
     "hash": "f58302b0d4be",
     "en": "With `tauCommon`: equal to Q.w.common (as meta); otherwise absent.",
-    "ja": ""
+    "ja": "`tauCommon` を指定した場合は Q.w.common と等しくなります (meta と同じ)。それ以外の場合は存在しません。"
   },
   "MetaSubgroupResult.tau2#summary": {
     "hash": "7d0f7b7b799f",
     "en": "The overall tau2 and random effect (of `overall`).",
-    "ja": ""
+    "ja": "全体の tau2 と変量効果です (`overall` の値)。"
   },
   "MetaTauMethod#summary": {
     "hash": "3aa9353b58af",
     "en": "The between-study variance estimators of meta (`method.tau`).",
-    "ja": ""
+    "ja": "meta の研究間分散推定量です (`method.tau`)。"
   },
   "MetaTest#summary": {
     "hash": "70ca64cbea7b",
@@ -112,52 +112,52 @@
   "MetabiasResult#summary": {
     "hash": "6dd483f8ac94",
     "en": "A test for funnel plot asymmetry from {@link metabias}.",
-    "ja": ""
+    "ja": "{@link metabias} によるファンネルプロットの非対称性の検定結果です。"
   },
   "MetabinOptions#summary": {
     "hash": "5a633fa4dda6",
     "en": "Options of {@link metabin}.",
-    "ja": ""
+    "ja": "{@link metabin} のオプションです。"
   },
   "MetabinOptions.MHexact#summary": {
     "hash": "c616c411ab09",
     "en": "The MH estimate without any increment (default false).",
-    "ja": ""
+    "ja": "補正値を加えない MH 推定値を使用します (既定 false)。"
   },
   "MetabinOptions.QCochrane#summary": {
     "hash": "27c28d739995",
     "en": "With methodTau \"DL\", Q about the MH estimate (default true).",
-    "ja": ""
+    "ja": "methodTau が \"DL\" の場合に、MH 推定値に関する Q を計算します (既定 true)。"
   },
   "MetabinOptions.allstudies#summary": {
     "hash": "3b33b9f20abd",
     "en": "Keep studies with no or all events in both groups (default false; RD keeps them anyway).",
-    "ja": ""
+    "ja": "両群ともイベントがない、または全例がイベントである研究を保持します (既定 false。RD では常に保持します)。"
   },
   "MetabinOptions.incr#summary": {
     "hash": "8b3ad18592f6",
     "en": "The continuity correction (default 0.5).",
-    "ja": ""
+    "ja": "連続性補正です (既定 0.5)。"
   },
   "MetabinOptions.method#summary": {
     "hash": "ba989788ec19",
     "en": "\"MH\" (default), \"Inverse\" or \"Peto\" (OR only).",
-    "ja": ""
+    "ja": "\"MH\" (既定)、\"Inverse\"、または \"Peto\" (OR のみ) です。"
   },
   "MetabinOptions.methodIncr#summary": {
     "hash": "de02bcc0d4a3",
     "en": "Which studies get it: \"only0\" (studies with a zero cell, default), \"all\", \"if0all\" (all when any has a zero).",
-    "ja": ""
+    "ja": "補正を適用する研究です: \"only0\" (ゼロセルのある研究のみ、既定)、\"all\"、\"if0all\" (いずれかにゼロがあればすべて) です。"
   },
   "MetabinOptions.sm#summary": {
     "hash": "ef1fd899f408",
     "en": "\"RR\" (default), \"OR\" or \"RD\".",
-    "ja": ""
+    "ja": "\"RR\" (既定)、\"OR\"、または \"RD\" です。"
   },
   "MetapropGlmmResult#summary": {
     "hash": "d20f41730f58",
     "en": "The result of {@link metapropGlmm}: as {@link MetaResult}, with Q, df.Q and pval.Q as [Wald, LRT].",
-    "ja": ""
+    "ja": "{@link metapropGlmm} の結果です。{@link MetaResult} と同じ形式で、Q、df.Q、pval.Q は [Wald, LRT] です。"
   },
   "ModeratorMatrix#summary": {
     "hash": "05f9a35b7f70",
@@ -167,17 +167,17 @@
   "NetcombResult#summary": {
     "hash": "7ba6aff0feef",
     "en": "The result of {@link netcomb} / {@link discomb}.",
-    "ja": ""
+    "ja": "{@link netcomb} / {@link discomb} の結果です。"
   },
   "NetmetaResult#summary": {
     "hash": "b4bc0a45b159",
     "en": "The result of {@link netmeta} (R's element names).",
-    "ja": ""
+    "ja": "{@link netmeta} の結果です (R の要素名)。"
   },
   "NetsplitPart#summary": {
     "hash": "4a22ec8f7200",
     "en": "One column of {@link netsplit}.",
-    "ja": ""
+    "ja": "{@link netsplit} の 1 列です。"
   },
   "NumericMatrix#summary": {
     "hash": "ec7b1dc6baa3",
@@ -212,17 +212,17 @@
   "TreatmentMatrix#summary": {
     "hash": "856ca10cbfb0",
     "en": "A matrix with treatment names.",
-    "ja": ""
+    "ja": "治療名を持つ行列です。"
   },
   "TrimfillResult#summary": {
     "hash": "23cf23473a10",
     "en": "The result of {@link trimfill}.",
-    "ja": ""
+    "ja": "{@link trimfill} の結果です。"
   },
   "baujat#summary": {
     "hash": "606ffb0aac92",
     "en": "The coordinates of Baujat's plot (meta's `baujat()`): x = each study's contribution to Q, w (TE - TE.common)^2;\ny = its influence on the common estimate, (TE.common - TE.common without it)^2 / seTE.common without it^2.\nEquivalent to `meta::baujat()` in R.",
-    "ja": ""
+    "ja": "Baujat プロットの座標です (meta の `baujat()`): x は各研究の Q への寄与 w (TE - TE.common)^2、y は共通効果推定値への影響 (その研究を除いた TE.common と TE.common の差)^2 / (その研究を除いた seTE.common)^2 です。\nR の `meta::baujat()` と同等です。"
   },
   "confintRma#summary": {
     "hash": "4af2851177f3",
@@ -232,12 +232,12 @@
   "decompDesign#summary": {
     "hash": "3645fd16576f",
     "en": "Q decomposed by design (netmeta's `decomp.design()`): the Q of each design = that of the network fitted to its\nstudies alone, df (studies - 1)(arms - 1); within = their sum, between = total - within. Designs are listed by their\nnumber of arms, then alphabetically.\nEquivalent to `netmeta::decomp.design()` in R.",
-    "ja": ""
+    "ja": "デザインごとに Q を分解します (netmeta の `decomp.design()`): 各デザインの Q は、そのデザインの研究だけに当てはめたネットワークの Q です。自由度は (studies - 1)(arms - 1) です。within はそれらの合計、between は全体から within を引いた値です。デザインはアーム数、次にアルファベット順で並びます。\nR の `netmeta::decomp.design()` と同等です。"
   },
   "discomb#summary": {
     "hash": "70b4b71459e0",
     "en": "The additive component network meta-analysis (netmeta's `netcomb()` / `discomb()`, Ruecker et al. 2020; the network\nmay be disconnected): treatments are \"+\"-joined components; the components' effects by weighted least squares on\nX = B C (C treatment by component, the `inactive` treatment left out), Q.additive the weighted residual sum of squares\non comparisons - rank(X) df, tau2 by the DL generalisation with the additive hat matrix (two-arm studies; log 77).\nEquivalent to `netmeta::discomb()` in R.",
-    "ja": ""
+    "ja": "加法的成分ネットワーク・メタアナリシスです (netmeta の `netcomb()` / `discomb()`、Ruecker et al. 2020。ネットワークが非連結でも構いません)。治療は成分を \"+\" で連結した名前です。成分の効果は X = B C (C は治療 x 成分行列で、`inactive` の治療を除外) に対する重み付き最小二乗法で求めます。Q.additive は比較数 - rank(X) を自由度とする重み付き残差平方和です。tau2 は加法的ハット行列を用いた DL の一般化で求めます (2 群研究。log 77)。\nR の `netmeta::discomb()` と同等です。"
   },
   "escalc#@param measure": {
     "hash": "eac3a9b0721d",
@@ -262,17 +262,17 @@
   "genqInterval#summary": {
     "hash": "5770b90c2503",
     "en": "The generalised Q interval for tau2 (Jackson 2013) with study weights a: Q_a = sum a (y - mu_a)^2 follows\nsum lambda chi2_1 with lambda the eigenvalues of S^(1/2) (A - a a' / sum a) S^(1/2), S = diag(v + tau2); the bounds\nsolve P(Q_a <= q_obs) = 1 - alpha/2 and alpha/2 (0 when not reached).\nNot an R function.",
-    "ja": ""
+    "ja": "研究の重み a を用いた tau2 の一般化 Q 区間です (Jackson 2013): Q_a = sum a (y - mu_a)^2 は、S^(1/2) (A - a a' / sum a) S^(1/2) の固有値 lambda を用いる sum lambda chi2_1 に従います。S = diag(v + tau2) です。上下限は P(Q_a <= q_obs) = 1 - alpha/2 および alpha/2 を解いて求めます (到達しない場合は 0)。\nR の関数ではありません。"
   },
   "heterogeneityIntervals#summary": {
     "hash": "1b709bdc08a1",
     "en": "H and I2 with Higgins and Thompson's (2002) intervals (H at least 1, as meta). Not an R function.",
-    "ja": ""
+    "ja": "H と I2 に対する Higgins と Thompson (2002) の区間です (H は少なくとも 1。meta と同じ)。R の関数ではありません。"
   },
   "metaSubgroup#summary": {
     "hash": "bd4535abd63f",
     "en": "Subgroup analysis (meta's `subgroup` argument): `refit(rows)` fits the same meta-analysis to the given study rows\n(for example `(r) => metabin(pick(e1, r), ...)`). Within each subgroup the common and random effects; Q.b = Q of the\nsubgroup estimates with weights 1/se^2 (common and random), Q.w = the within-subgroup Q. With `tauCommon`, one tau2\nfor all subgroups: that of the meta-regression on the subgroup (rma with the subgroup as a factor); the overall\nestimates stay those of `overall`.\nNot an R function. R: the `subgroup` argument of meta's functions.",
-    "ja": ""
+    "ja": "サブグループ解析です (meta 関数の `subgroup` 引数): `refit(rows)` は、指定した研究行に同じメタ分析を再度当てはめます (例: `(r) => metabin(pick(e1, r), ...)`)。各サブグループ内で共通効果と変量効果を求めます。Q.b は重み 1/se^2 (共通効果と変量効果) を用いたサブグループ推定値の Q、Q.w はサブグループ内の Q です。`tauCommon` を指定すると、すべてのサブグループに共通の tau2 を使用します。これはサブグループを因子とするメタ回帰 (rma) の tau2 です。全体の推定値は `overall` の値のままです。\nR の関数ではありません。R では meta の各関数の `subgroup` 引数に相当します。"
   },
   "metabias#summary": {
     "hash": "5b53ae81073c",
