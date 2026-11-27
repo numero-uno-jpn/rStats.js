@@ -1,4 +1,9 @@
 {
+  "AccuracyRow#summary": {
+    "hash": "568a0313ca47",
+    "en": "One row of {@link accuracy}.",
+    "ja": ""
+  },
   "AcfNaAction#summary": {
     "hash": "d16b6c246da1",
     "en": "Policy for missing observations in a time series.",
@@ -69,6 +74,236 @@
     "en": "Kind of autocorrelation statistic returned by acf().",
     "ja": "acf() が返す自己相関統計量の種類です。"
   },
+  "ArResult#summary": {
+    "hash": "b681538a5ed9",
+    "en": "Result of {@link ar}.",
+    "ja": ""
+  },
+  "ArResult.aic#summary": {
+    "hash": "63283f5f6f7d",
+    "en": "aic minus its minimum, for orders 0..orderMax.",
+    "ja": ""
+  },
+  "ArResult.x#summary": {
+    "hash": "eafb076ea6b8",
+    "en": "The series (for predictions).",
+    "ja": ""
+  },
+  "ArResult.xIntercept#summary": {
+    "hash": "9afddd0f3be7",
+    "en": "ar.ols's intercept (of the demeaned series).",
+    "ja": ""
+  },
+  "ArimaOptions#summary": {
+    "hash": "508d2e1c33cf",
+    "en": "Options of {@link arima}.",
+    "ja": ""
+  },
+  "ArimaOptions.fixed#summary": {
+    "hash": "56c12f26825f",
+    "en": "Fixed values (NaN for the free ones), in the order of the coefficients.",
+    "ja": ""
+  },
+  "ArimaOptions.frequency#summary": {
+    "hash": "8513dc221838",
+    "en": "The series' frequency (the seasonal period by default). Default 1.",
+    "ja": ""
+  },
+  "ArimaOptions.hessian#summary": {
+    "hash": "c768b7b0a5f3",
+    "en": "\"R\" (default): the variance matrix from R's numerical Hessian (agrees with R); \"exact\": a converged Hessian.",
+    "ja": ""
+  },
+  "ArimaOptions.includeMean#summary": {
+    "hash": "d680d37dfb48",
+    "en": "Include a mean (ignored when differenced). Default true.",
+    "ja": ""
+  },
+  "ArimaOptions.init#summary": {
+    "hash": "ec8a7a270446",
+    "en": "Starting values (NaN filled by defaults).",
+    "ja": ""
+  },
+  "ArimaOptions.kappa#summary": {
+    "hash": "2293cc5fc3d4",
+    "en": "Prior variance multiple of the presample values in a differenced model. Default 1e6.",
+    "ja": ""
+  },
+  "ArimaOptions.method#summary": {
+    "hash": "d6055079359f",
+    "en": "\"CSS-ML\" (default), \"ML\" or \"CSS\".",
+    "ja": ""
+  },
+  "ArimaOptions.nCond#summary": {
+    "hash": "b99321abfa37",
+    "en": "Initial observations ignored by CSS (at least the AR lags).",
+    "ja": ""
+  },
+  "ArimaOptions.order#summary": {
+    "hash": "4150b11eadba",
+    "en": "(p, d, q). Default [0, 0, 0].",
+    "ja": ""
+  },
+  "ArimaOptions.seasonal#summary": {
+    "hash": "028786aecb8e",
+    "en": "The seasonal part (an order, or an order and a period).",
+    "ja": ""
+  },
+  "ArimaOptions.transformPars#summary": {
+    "hash": "fe78b148ba64",
+    "en": "Transform the AR parameters to stationarity during the ML optimisation. Default true.",
+    "ja": ""
+  },
+  "ArimaOptions.xreg#summary": {
+    "hash": "d492aadcd1d7",
+    "en": "Regressors: one array per regressor, each of the series' length.",
+    "ja": ""
+  },
+  "ArimaOptions.xregNames#summary": {
+    "hash": "0991300136a4",
+    "en": "Names of the regressors. Default \"xreg1\", \"xreg2\", ... (or \"xreg\" for one).",
+    "ja": ""
+  },
+  "ArimaResult#summary": {
+    "hash": "e0a0dd4ea6cd",
+    "en": "Result of {@link arima}.",
+    "ja": ""
+  },
+  "ArimaResult.aic#summary": {
+    "hash": "940d5bd1b2cf",
+    "en": "-2 loglik + 2 (free coefficients + 1); NaN for CSS.",
+    "ja": ""
+  },
+  "ArimaResult.arma#summary": {
+    "hash": "f058518b9180",
+    "en": "(p, q, P, Q, period, d, D).",
+    "ja": ""
+  },
+  "ArimaResult.code#summary": {
+    "hash": "bbf142af027a",
+    "en": "The optimiser's convergence code (0 = converged).",
+    "ja": ""
+  },
+  "ArimaResult.coef#summary": {
+    "hash": "fa283f99e599",
+    "en": "The coefficients (AR, MA, seasonal AR, seasonal MA, intercept, regressors).",
+    "ja": ""
+  },
+  "ArimaResult.coefNames#summary": {
+    "hash": "164e11d79f76",
+    "en": "Their names (ar1, ma1, sar1, sma1, intercept, regressor names).",
+    "ja": ""
+  },
+  "ArimaResult.includeMean#summary": {
+    "hash": "a8a602d7e471",
+    "en": "Whether a mean was included.",
+    "ja": ""
+  },
+  "ArimaResult.loglik#summary": {
+    "hash": "518c67c84894",
+    "en": "The maximised log-likelihood of the differenced data (CSS: R's approximation).",
+    "ja": ""
+  },
+  "ArimaResult.mask#summary": {
+    "hash": "56931a9fb8ab",
+    "en": "Mask of the free coefficients.",
+    "ja": ""
+  },
+  "ArimaResult.method#summary": {
+    "hash": "ea18c721c600",
+    "en": "\"CSS-ML\", \"ML\" or \"CSS\".",
+    "ja": ""
+  },
+  "ArimaResult.model#summary": {
+    "hash": "82a4e6b00fca",
+    "en": "The state space model at the end of the series.",
+    "ja": ""
+  },
+  "ArimaResult.nCond#summary": {
+    "hash": "9ff5f61a7cbf",
+    "en": "Initial observations not used by CSS.",
+    "ja": ""
+  },
+  "ArimaResult.nobs#summary": {
+    "hash": "db9bc77a10fb",
+    "en": "The number of observations used in the likelihood.",
+    "ja": ""
+  },
+  "ArimaResult.residuals#summary": {
+    "hash": "ad74bec39b0b",
+    "en": "The fitted innovations (standardised one-step errors; NaN at missing values).",
+    "ja": ""
+  },
+  "ArimaResult.sigma2#summary": {
+    "hash": "6f8d77429ae6",
+    "en": "The MLE of the innovations variance (CSS: the mean of the squared CSS residuals).",
+    "ja": ""
+  },
+  "ArimaResult.varCoef#summary": {
+    "hash": "b525faf4057e",
+    "en": "The variance matrix of the free coefficients (rows and columns as `coefNames` of the free ones).",
+    "ja": ""
+  },
+  "ArimaResult.x#summary": {
+    "hash": "7b0494086b21",
+    "en": "The series (as given).",
+    "ja": ""
+  },
+  "ArimaResult.xreg#summary": {
+    "hash": "65949c733c9c",
+    "en": "The regressors (as given), including no intercept column.",
+    "ja": ""
+  },
+  "ArimaSeasonal#summary": {
+    "hash": "c76012bf3690",
+    "en": "Seasonal part of an ARIMA model.",
+    "ja": ""
+  },
+  "ArimaSeasonal.order#summary": {
+    "hash": "46bc238f178d",
+    "en": "(P, D, Q). Default [0, 0, 0].",
+    "ja": ""
+  },
+  "ArimaSeasonal.period#summary": {
+    "hash": "31fb6f2f3c1c",
+    "en": "The period. Default the series' frequency.",
+    "ja": ""
+  },
+  "ArimaStateModel#summary": {
+    "hash": "1de83eeb657b",
+    "en": "The state space model behind a fit, for forecasting.",
+    "ja": ""
+  },
+  "ArimaStateModel.a#summary": {
+    "hash": "cd348a8c55fa",
+    "en": "Filtered state and covariance at the end of the series (in units of sigma2).",
+    "ja": ""
+  },
+  "AutoArimaOptions#summary": {
+    "hash": "2bd8964c15cc",
+    "en": "Options of {@link autoArima}.",
+    "ja": ""
+  },
+  "AutoArimaOptions.approximation#summary": {
+    "hash": "f0f4deacb79e",
+    "en": "Rank the models by their CSS fits (default: n > 150 or frequency > 12), then refit the best without it.",
+    "ja": ""
+  },
+  "AutoArimaResult#summary": {
+    "hash": "e09f2f86bd28",
+    "en": "Result of {@link autoArima}: the chosen model's fit and the search.",
+    "ja": ""
+  },
+  "AutoArimaTraceEntry#summary": {
+    "hash": "09f272b1731b",
+    "en": "One model of the search (forecast's trace).",
+    "ja": ""
+  },
+  "AutoArimaTraceEntry.ic#summary": {
+    "hash": "c7f2810c59d5",
+    "en": "The criterion (Infinity for a rejected or failed fit; the CSS fit's value with approximation).",
+    "ja": ""
+  },
   "CcfOptions#summary": {
     "hash": "5c727c2ac872",
     "en": "Options for cross-correlation and cross-covariance. Equivalent to the arguments of R's stats::ccf().",
@@ -99,6 +334,156 @@
     "en": "Statistic to return: correlation or covariance.",
     "ja": "返す統計量です: 相関または共分散。"
   },
+  "DecomposeResult#summary": {
+    "hash": "5618a5945257",
+    "en": "Result of {@link decompose}.",
+    "ja": ""
+  },
+  "EtsForecast#summary": {
+    "hash": "8f302be63a94",
+    "en": "Result of {@link forecastEts}.",
+    "ja": ""
+  },
+  "EtsOptions#summary": {
+    "hash": "c746b078779f",
+    "en": "Options of {@link ets}.",
+    "ja": ""
+  },
+  "EtsOptions.damped#summary": {
+    "hash": "c77ad77ece24",
+    "en": "true / false, or undefined to try both when the trend is chosen.",
+    "ja": ""
+  },
+  "EtsOptions.model#summary": {
+    "hash": "668a1ac0aa4b",
+    "en": "Three letters (error, trend, season) of A, M, N and Z (chosen); default \"ZZZ\".",
+    "ja": ""
+  },
+  "EtsOptions.optCrit#summary": {
+    "hash": "a22f88d2b5a7",
+    "en": "The estimation criterion: the likelihood (default) or the mean squared one-step error.",
+    "ja": ""
+  },
+  "EtsParameters#summary": {
+    "hash": "1ac0d1e297f7",
+    "en": "Parameters and initial states in R's order: alpha, beta, gamma, phi, l, b, s0 .. s_{m-2} (s0 the most recent).",
+    "ja": ""
+  },
+  "EtsResult#summary": {
+    "hash": "538848637568",
+    "en": "Result of {@link ets}.",
+    "ja": ""
+  },
+  "EtsResult.method#summary": {
+    "hash": "2e0853a13717",
+    "en": "\"ETS(M,Ad,M)\" etc.",
+    "ja": ""
+  },
+  "EtsResult.nParams#summary": {
+    "hash": "a1237bba174f",
+    "en": "Number of estimated parameters (smoothing parameters and initial states).",
+    "ja": ""
+  },
+  "EtsSpec#summary": {
+    "hash": "5af51a4a68b6",
+    "en": "A fully specified ETS model.",
+    "ja": ""
+  },
+  "ForecastArimaOptions#summary": {
+    "hash": "790802da2493",
+    "en": "Options of {@link forecastArima}.",
+    "ja": ""
+  },
+  "ForecastArimaOptions.lambda#summary": {
+    "hash": "ac71b5347280",
+    "en": "A Box-Cox lambda, or \"auto\" for {@link boxCoxLambda}.",
+    "ja": ""
+  },
+  "ForecastArimaResult#summary": {
+    "hash": "17484522c848",
+    "en": "Result of {@link forecastArima}: stats' fit plus forecast's quantities.",
+    "ja": ""
+  },
+  "ForecastArimaResult.drift#summary": {
+    "hash": "be12634968a4",
+    "en": "Whether a drift column was added (the last regressor).",
+    "ja": ""
+  },
+  "ForecastArimaResult.fitted#summary": {
+    "hash": "d88b13d51913",
+    "en": "Fitted values on the original scale.",
+    "ja": ""
+  },
+  "ForecastArimaResult.series#summary": {
+    "hash": "0685e62397d3",
+    "en": "The series on the original scale.",
+    "ja": ""
+  },
+  "ForecastArimaResult.sigma2#summary": {
+    "hash": "92851c8278c7",
+    "en": "forecast's innovations variance: sum of squared residuals / (nobs - number of coefficients).",
+    "ja": ""
+  },
+  "ForecastArimaResult.sigma2Mle#summary": {
+    "hash": "9299dd1b9f48",
+    "en": "stats' MLE of the innovations variance.",
+    "ja": ""
+  },
+  "ForecastOutput#summary": {
+    "hash": "433538c38d15",
+    "en": "A forecast of {@link forecast}.",
+    "ja": ""
+  },
+  "ForecastResult#summary": {
+    "hash": "94ab4e3bb211",
+    "en": "Result of {@link forecast}.",
+    "ja": ""
+  },
+  "ForecastResult.se#summary": {
+    "hash": "e42870824942",
+    "en": "Forecast standard errors on the transformed scale (where analytic).",
+    "ja": ""
+  },
+  "HoltWintersOptions#summary": {
+    "hash": "51158bffce52",
+    "en": "Options of {@link holtWinters}.",
+    "ja": ""
+  },
+  "HoltWintersOptions.alpha#summary": {
+    "hash": "92b8fd3e45bc",
+    "en": "Given, or estimated when undefined; `false` for beta / gamma leaves that component out.",
+    "ja": ""
+  },
+  "HoltWintersResult#summary": {
+    "hash": "fc19ee893b0b",
+    "en": "Result of {@link holtWinters}.",
+    "ja": ""
+  },
+  "HoltWintersResult.coefficients#summary": {
+    "hash": "43c5cd47cc1a",
+    "en": "a, b, s1..sf (R's coefficients).",
+    "ja": ""
+  },
+  "HoltWintersResult.fitted#summary": {
+    "hash": "af2ef7b1e401",
+    "en": "One-step fitted values from the first fitted time (R's fitted xhat).",
+    "ja": ""
+  },
+  "HoltWintersResult.start#summary": {
+    "hash": "95df6205d43a",
+    "en": "The time index (0-based) of the first fitted value.",
+    "ja": ""
+  },
+  "MstlResult#summary": {
+    "hash": "924882d9b85b",
+    "en": "Result of {@link mstl}.",
+    "ja": ""
+  },
+  "MstlResult.seasonal#summary": {
+    "hash": "f7a0494b99f6",
+    "en": "The seasonal component (absent for a non-seasonal series).",
+    "ja": ""
+  },
   "PacfOptions#summary": {
     "hash": "d6327edae629",
     "en": "Options for partial autocorrelation. Equivalent to the arguments of R's stats::pacf().",
@@ -114,19 +499,474 @@
     "en": "Whether missing values cause an error or are omitted pairwise.",
     "ja": "欠損値がエラーの原因となるか、ペアごとに除外されるかを指定します。"
   },
+  "PredictArimaResult#summary": {
+    "hash": "4e28e78d393c",
+    "en": "Result of {@link predictArima}.",
+    "ja": ""
+  },
+  "SimpleForecast#summary": {
+    "hash": "65d19e4c93f0",
+    "en": "A forecast with intervals and the in-sample fit.",
+    "ja": ""
+  },
+  "SimpleForecast.model#summary": {
+    "hash": "6803eee078b8",
+    "en": "The ets model behind ses / holt / hw / stlf.",
+    "ja": ""
+  },
+  "StlOptions#summary": {
+    "hash": "d3f5a96f151a",
+    "en": "Options of {@link stl}.",
+    "ja": ""
+  },
+  "StlOptions.frequency#summary": {
+    "hash": "3fb628882243",
+    "en": "The seasonal period (R's frequency).",
+    "ja": ""
+  },
+  "StlOptions.sWindow#summary": {
+    "hash": "57cf05e90c26",
+    "en": "The seasonal loess span (odd, >= 7 recommended) or \"periodic\".",
+    "ja": ""
+  },
+  "StlResult#summary": {
+    "hash": "b43c29ec8750",
+    "en": "Result of {@link stl}.",
+    "ja": ""
+  },
+  "StlResult.weights#summary": {
+    "hash": "225ae66312b2",
+    "en": "The robustness weights of the last pass (all 1 without robustness iterations).",
+    "ja": ""
+  },
+  "StlResult.win#summary": {
+    "hash": "f88a3850c20a",
+    "en": "The windows (s, t, l), degrees, jumps and iteration counts used.",
+    "ja": ""
+  },
+  "StlmResult#summary": {
+    "hash": "b552d3dd8b1c",
+    "en": "Result of {@link stlm}.",
+    "ja": ""
+  },
+  "StlmResult.adjusted#summary": {
+    "hash": "94b0f720eb78",
+    "en": "The seasonally adjusted series (transformed scale).",
+    "ja": ""
+  },
+  "StlmResult.fitted#summary": {
+    "hash": "3f1e978a5c4c",
+    "en": "The in-sample fit on the original scale.",
+    "ja": ""
+  },
+  "StlmResult.model#summary": {
+    "hash": "60b25cfe2c5f",
+    "en": "The model of the seasonally adjusted series.",
+    "ja": ""
+  },
+  "StlmResult.stl#summary": {
+    "hash": "efd1d3dbc471",
+    "en": "The decomposition of the (Box-Cox transformed) series.",
+    "ja": ""
+  },
+  "TseriesTest#summary": {
+    "hash": "befd027eee3e",
+    "en": "A test result of the tseries functions.",
+    "ja": ""
+  },
+  "TslmResult#summary": {
+    "hash": "5e9435c2bada",
+    "en": "Result of {@link tslm}.",
+    "ja": ""
+  },
+  "TslmResult.forecast#summary": {
+    "hash": "e659c72d8a45",
+    "en": "Forecasts with t intervals from the regression.",
+    "ja": ""
+  },
+  "accuracy#summary": {
+    "hash": "1940f4c836ef",
+    "en": "Accuracy measures (forecast's `accuracy()`): ME, RMSE, MAE, MPE, MAPE, MASE (scaled by the training data's mean\n|y_t - y_{t-m}|), ACF1 of the errors; for a test set also Theil's U.\nEquivalent to `forecast::accuracy()` in R.",
+    "ja": ""
+  },
   "acf#summary": {
     "hash": "8950bb5836c9",
     "en": "Computes autocorrelation, autocovariance or partial autocorrelation of a univariate series.\nEquivalent to R's `stats::acf()`.",
     "ja": "単変量時系列の自己相関、自己共分散、または偏自己相関を計算します。\nR の `stats::acf()` と同等です。"
+  },
+  "adfTest#summary": {
+    "hash": "87070922ba34",
+    "en": "The augmented Dickey-Fuller test (tseries' `adf.test()`): Delta y_t on 1, t, y_{t-1} and k lagged differences\n(default k = trunc((n - 1)^(1/3))), the t value of y_{t-1}; p from Fuller's tau_tau table at n - 1 (clamped to\n[0.01, 0.99]); \"explosive\" gives 1 - p.\nEquivalent to `tseries::adf.test()` in R.",
+    "ja": ""
+  },
+  "ar#summary": {
+    "hash": "2e8acfbe29ed",
+    "en": "Fits an autoregressive model with the order chosen by AIC (stats' `ar()`): Yule-Walker (default), Burg, OLS or MLE\n(arima0 for each order).\nEquivalent to R's `ar()`.",
+    "ja": ""
+  },
+  "arima#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "arima#summary": {
+    "hash": "f4e8eb03d083",
+    "en": "Fits an ARIMA model by exact maximum likelihood (Kalman filter) or conditional sum of squares. Equivalent to R's\n`arima()`. The estimates are taken to the optimum, where R's optimiser may stop slightly short.",
+    "ja": ""
+  },
+  "arima0#summary": {
+    "hash": "a93a74640487",
+    "en": "stats' `arima0()`: an ARIMA model by maximum likelihood of the differenced series (no diffuse prior; the mean with\n`includeMean` when d + D = 0), with R's fast recursions once the prediction variance is within `delta` of its limit\n(default 0.01, as R; a negative delta gives the exact likelihood, equal to arima's). Log 84, 87.\nEquivalent to R's `arima0()`.",
+    "ja": ""
+  },
+  "arimaorder#summary": {
+    "hash": "a3f5d7c90575",
+    "en": "The (p, d, q) or (p, d, q, P, D, Q, frequency) of an ARIMA fit (forecast's `arimaorder()`). Equivalent to `forecast::arimaorder()` in R.",
+    "ja": ""
+  },
+  "autoArima#summary": {
+    "hash": "8f8af180dd9c",
+    "en": "Chooses and fits an ARIMA model by forecast's `auto.arima()` rules: d by {@link ndiffs} (after the seasonal\ndifferences), D by {@link nsdiffs}, then the stepwise search on the AICc (or all models up to maxOrder with\n`stepwise: false`).\nEquivalent to `forecast::auto.arima()` in R.\n\nWith approximation, models are ranked by the CSS fits' AICc; R's printed trace adds a constant per series whose origin\nis not known (it does not change the choice), so the trace values here are the CSS AICc themselves.",
+    "ja": ""
+  },
+  "bizdays#summary": {
+    "hash": "9d793124be71",
+    "en": "Trading days in each month or quarter (forecast's `bizdays()`): weekdays minus the holidays of the financial centre\n(\"New York\" (NYSE, default), \"London\", \"NERC\", \"Toronto\", \"Zurich\"; the rules of log 30-32).\nEquivalent to `forecast::bizdays()` in R.",
+    "ja": ""
+  },
+  "boxCox#summary": {
+    "hash": "301b88693980",
+    "en": "The Box-Cox transformation: log(x) for lambda = 0, (sign(x) |x|^lambda - 1) / lambda otherwise. Equivalent to\n`forecast::BoxCox()` in R.",
+    "ja": ""
+  },
+  "boxCoxLambda#summary": {
+    "hash": "066b17582af1",
+    "en": "Chooses the Box-Cox lambda by Guerrero's method (default) or the profile log-likelihood. Equivalent to\n`forecast::BoxCox.lambda()` in R.",
+    "ja": ""
+  },
+  "boxTest#summary": {
+    "hash": "4c39815c3837",
+    "en": "Box-Pierce or Ljung-Box test of white noise (stats' `Box.test()`): r_k the autocorrelations (mean removed, divided by\nn), Q = n sum r_k^2 or n (n + 2) sum r_k^2 / (n - k), chi-squared on lag - fitdf degrees of freedom.\nEquivalent to R's `Box.test()`.",
+    "ja": ""
   },
   "ccf#summary": {
     "hash": "54ffa675f482",
     "en": "Computes cross-correlation or cross-covariance of two equal-length series. Lag k pairs x[t+k] with y[t].\nEquivalent to R's `stats::ccf()`.",
     "ja": "長さが等しい 2 つの時系列の相互相関または相互共分散を計算します。ラグ k では x[t+k] と y[t] を組み合わせます。\nR の `stats::ccf()` と同等です。"
   },
+  "checkresiduals#summary": {
+    "hash": "d56d20d0bd24",
+    "en": "The Ljung-Box test of a model's residuals (forecast's `checkresiduals()`, without the plots): lag = min(2m, n/5) for\nseasonal data or min(10, n/5), at least df + 3, df = the number of ARMA coefficients (0 for plain residuals).\nEquivalent to `forecast::checkresiduals()` in R.",
+    "ja": ""
+  },
+  "croston#summary": {
+    "hash": "6e0752a2f9f7",
+    "en": "Croston's method for intermittent demand (forecast's `croston()`): SES with alpha on the non-zero demands and on the\nintervals between them (counted from time 0), each started at its first value; forecast k z / p with k = 1 (croston),\n1 - alpha/2 (sba) or 1 - alpha/(2 - alpha) (sbj). No intervals. Departs from R when the last observation is a\ndemand: R's forecast is the state before it (the last fitted value, the last observation unused; log 91), rStats.js\nforecasts from the state after it.\nEquivalent to `forecast::croston()` in R.",
+    "ja": ""
+  },
+  "cvLm#summary": {
+    "hash": "0a9ebf22d239",
+    "en": "Cross-validation and information criteria of a linear model (forecast's `CV()`): CV = mean((e / (1 - h_ii))^2), AIC =\nn log(SSE/n) + 2(k + 2), AICc, BIC, adjusted R^2 (k = the number of predictors).\nEquivalent to `forecast::CV()` in R.",
+    "ja": ""
+  },
+  "decompose#summary": {
+    "hash": "f709008c8efd",
+    "en": "Classical seasonal decomposition by moving averages (stats' `decompose()`). `start` is the position (1..frequency)\nof the first observation in the cycle; `figure` starts at that position, as R's.\nEquivalent to R's `decompose()`.",
+    "ja": ""
+  },
+  "diffinv#summary": {
+    "hash": "6e314d8bf868",
+    "en": "The inverse of differencing (stats' `diffinv()`): the cumulative sums at the given lag, repeated `differences`\ntimes, starting from `xi` (zeros by default).\nEquivalent to R's `diffinv()`.",
+    "ja": ""
+  },
+  "dmTest#summary": {
+    "hash": "43bd9fce5c99",
+    "en": "The Diebold-Mariano test with the Harvey-Leybourne-Newbold correction (forecast's `dm.test()`): d = |e1|^power -\n|e2|^power, its variance from the autocovariances up to h - 1 (over n), t(n - 1).\nEquivalent to `forecast::dm.test()` in R.",
+    "ja": ""
+  },
+  "easter#summary": {
+    "hash": "c90ee5aef50f",
+    "en": "The Easter holidays in each month or quarter (forecast's `easter()`): the share of Good Friday .. Easter Sunday (..\nMonday with `easterMon`) falling in the period, rounded to two decimals (as R). Departs from R for quarterly data\nwith `easterMon` when the holidays span two quarters: R's shares are shifted there (it warns about a replacement\nlength; log 91), rStats.js gives each quarter its share.\nEquivalent to `forecast::easter()` in R.",
+    "ja": ""
+  },
+  "easterSunday#summary": {
+    "hash": "531409c145da",
+    "en": "Easter Sunday of year Y (anonymous Gregorian algorithm) as [month, day]. Not an R function.",
+    "ja": ""
+  },
+  "ets#summary": {
+    "hash": "bd3d7e7f7a02",
+    "en": "Exponential smoothing state space model (forecast's `ets()`): one model, or the smallest information criterion\namong the allowed models for the letters given as \"Z\". The parameters are estimated to the optimum of the\nlikelihood within the usual bounds and the admissible region (R's optimiser can stop earlier).\nEquivalent to `forecast::ets()` in R.",
+    "ja": ""
+  },
+  "findfrequency#summary": {
+    "hash": "26aaf820082a",
+    "en": "The dominant period of a series (forecast's `findfrequency()`): 1 unless the maximum of the AR spectrum of the\ndetrended series exceeds 10; then round(1 / f) at the maximum, or, when the maximum is at the lowest frequency, at\nthe largest value after the spectrum first rises (1 if that is the last frequency).\nEquivalent to `forecast::findfrequency()` in R.",
+    "ja": ""
+  },
+  "forecast#summary": {
+    "hash": "1a54c9535625",
+    "en": "Forecasts from a series or a fitted model (forecast's `forecast()`):\n- a series (`frequency` in the options): ets, or stlf when the period is 13 or more and the series is longer than\n  two periods (forecast's help; log 93);\n- an {@link ets} fit, a {@link forecastArima} / {@link autoArima} fit, a stats {@link arima} fit (with its MLE\n  innovations variance), an {@link stlm} fit, a {@link holtWinters} fit (stats' prediction intervals) or an\n  {@link ar} fit (normal intervals from the prediction standard errors).\n`h` defaults to twice the period for seasonal data, else 10.\nEquivalent to `forecast::forecast()` in R.",
+    "ja": ""
+  },
+  "forecastArima#summary": {
+    "hash": "a1caeeafad12",
+    "en": "Fits an ARIMA model as forecast's `Arima()`: stats' arima on the Box-Cox transformed series, with a drift, and\nforecast's innovations variance, AICc and BIC.\nEquivalent to `forecast::Arima()` in R.",
+    "ja": ""
+  },
+  "forecastEts#summary": {
+    "hash": "17d3708463a7",
+    "en": "Point forecasts and prediction intervals from an {@link ets} fit (forecast's `forecast.ets()`): the analytic\nvariances of classes 1 and 2, the exact moments of class 3 (MNM, MAM, MAdM), and simulation otherwise (npaths\npaths with rStats.js's R-compatible generator, seeded by `seed`). Two departures from R's forecast.ets (the\nmodel's formulas are used): damped class 3 forecasts use l + phi b at h = 1, and ANA / MNA put the seasonal term\nof c_j at j mod m = 0.\nEquivalent to `forecast::forecast()` in R.",
+    "ja": ""
+  },
+  "forecastFromArima#summary": {
+    "hash": "042399093972",
+    "en": "Point forecasts and prediction intervals from a {@link forecastArima} fit (forecast's `forecast.Arima()`).\nEquivalent to `forecast::forecast()` in R.",
+    "ja": ""
+  },
+  "forecastStlm#summary": {
+    "hash": "ec2aca7e02e1",
+    "en": "Forecasts from an {@link stlm} fit (forecast's `forecast.stlm()`): the model's forecasts of the seasonally adjusted\nseries plus the last cycle of the seasonal component, back-transformed with the fit's lambda.\nEquivalent to `forecast::forecast()` in R.",
+    "ja": ""
+  },
+  "fourier#summary": {
+    "hash": "ae14c047c615",
+    "en": "Fourier terms (forecast's `fourier()`): S_k = sin(2 pi k t / m), C_k = cos(2 pi k t / m) for k = 1..K, t = 1..n (or\nn + 1..n + h), the sine dropped at k = m / 2; columns named \"S1-12\", \"C1-12\", ...\nEquivalent to `forecast::fourier()` in R.",
+    "ja": ""
+  },
+  "holt#summary": {
+    "hash": "a3d37164e2a3",
+    "en": "Holt's linear trend method (forecast's `holt()`): ets AAN (AAdN damped, MMN exponential); `initial: \"simple\"`\nstarts at l = y_1, b = y_2 - y_1.\nEquivalent to `forecast::holt()` in R.",
+    "ja": ""
+  },
+  "holtWinters#summary": {
+    "hash": "9a97ea6786f5",
+    "en": "Holt-Winters filtering (stats' `HoltWinters()`): exponential smoothing with optional trend and seasonal components,\nthe start values from decompose() of the first start.periods periods, the parameters minimising the SSE.\nEquivalent to R's `HoltWinters()`.",
+    "ja": ""
+  },
+  "hw#summary": {
+    "hash": "f8d94b2a571d",
+    "en": "Holt-Winters seasonal method (forecast's `hw()`): ets AAA or MAM (damped: AAdA, MAdM); `initial: \"simple\"` starts at\nl = mean(y[1:m]), b = (mean(y[m+1:2m]) - mean(y[1:m]))/m, s = y[1:m] - l (or / l).\nEquivalent to `forecast::hw()` in R.",
+    "ja": ""
+  },
+  "invBoxCox#summary": {
+    "hash": "5f77c63e006e",
+    "en": "The inverse Box-Cox transformation (sign-preserving where lambda z + 1 < 0), with forecast's bias adjustment when\n`fvar` (the forecast variances on the transformed scale) is given and `biasadj` is true. Equivalent to\n`forecast::InvBoxCox()` in R.",
+    "ja": ""
+  },
+  "jarqueBeraTest#summary": {
+    "hash": "705a1309f50d",
+    "en": "The Jarque-Bera test for normality (tseries' `jarque.bera.test()`): n (S^2/6 + (K - 3)^2/24) with the moments over n,\nchi-squared with 2 df.\nEquivalent to `tseries::jarque.bera.test()` in R.",
+    "ja": ""
+  },
+  "kpssPValue#summary": {
+    "hash": "71b5702bfaba",
+    "en": "The KPSS table's p-value, linear in the statistic between the 10%, 5%, 2.5%, 1% points, clamped to [0.01, 0.10]. Not an R function.",
+    "ja": ""
+  },
+  "kpssStatistic#summary": {
+    "hash": "1b2fe8688a9d",
+    "en": "The KPSS statistic with a given truncation lag (residuals on 1, or on 1 and t). Not an R function.",
+    "ja": ""
+  },
+  "kpssTest#summary": {
+    "hash": "35a27ae69658",
+    "en": "The KPSS test (tseries' `kpss.test()`): the null \"Level\" or \"Trend\", truncation lag trunc(4 (n/100)^0.25) (`lshort`)\nor trunc(12 (n/100)^0.25); p interpolated in the KPSS table (clamped to [0.01, 0.10]).\nEquivalent to `tseries::kpss.test()` in R.",
+    "ja": ""
+  },
+  "ma#summary": {
+    "hash": "5353ff57b529",
+    "en": "Moving-average smoother (forecast's `ma()`): order k, centred (a 2 x k average) for even k when `centre`. Equivalent to `forecast::ma()` in R.",
+    "ja": ""
+  },
+  "meanf#summary": {
+    "hash": "bb549904bdd4",
+    "en": "Forecasts by the mean (forecast's `meanf()`): intervals mean +- qt(level, n - 1) sd(y) sqrt(1 + 1/n).\nEquivalent to `forecast::meanf()` in R.",
+    "ja": ""
+  },
+  "minRootModulus#summary": {
+    "hash": "f1b115bb4708",
+    "en": "The roots' smallest modulus of 1 + c_1 z + ... + c_k z^k (Infinity for a constant). Not an R function.",
+    "ja": ""
+  },
+  "monthdays#summary": {
+    "hash": "918336d6d17c",
+    "en": "Days in each month or quarter (forecast's `monthdays()`). Equivalent to `forecast::monthdays()` in R.",
+    "ja": ""
+  },
+  "mstl#summary": {
+    "hash": "b339249e2220",
+    "en": "forecast's `mstl()` for one seasonal period: stl(x, s.window = 11); for a non-seasonal series (or fewer than two\nperiods) the trend is supsmu(1:n, x).\nEquivalent to `forecast::mstl()` in R.",
+    "ja": ""
+  },
+  "naInterp#summary": {
+    "hash": "66e73e76f0bc",
+    "en": "Interpolation of missing values (forecast's `na.interp()`): linear for non-seasonal series (or at most two periods\nobserved); for seasonal series the seasonal component of a robust mstl of a first filling (lm on Fourier terms K =\nmin(5, floor(m/2)) and a polynomial of degree min(6, floor(n/10))), the seasonally adjusted series interpolated\nlinearly.\nEquivalent to `forecast::na.interp()` in R.",
+    "ja": ""
+  },
+  "naive#summary": {
+    "hash": "b2c851fbb1f6",
+    "en": "Naive forecasts (forecast's `naive()`): {@link rwf} without a drift. Equivalent to `forecast::naive()` in R.",
+    "ja": ""
+  },
+  "ndiffs#summary": {
+    "hash": "833a3b4791c7",
+    "en": "The number of first differences needed for stationarity by a unit root test. Equivalent to `forecast::ndiffs()` in R.",
+    "ja": ""
+  },
+  "nsdiffs#summary": {
+    "hash": "99b355ba6329",
+    "en": "The number of seasonal differences: 1 when the seasonal strength of mstl, max(0, 1 - var(remainder) /\nvar(seasonal + remainder)), exceeds 0.64 (test \"seas\"), or by the OCSB test. Equivalent to `forecast::nsdiffs()` in R.",
+    "ja": ""
+  },
+  "ocsbCritical#summary": {
+    "hash": "a1fe80573c36",
+    "en": "The 5% critical value of the OCSB test for period m (the table read off R; log m interpolation beyond 400). Not an R function.",
+    "ja": ""
+  },
+  "ocsbTest#summary": {
+    "hash": "a51449be18e0",
+    "en": "The Osborn-Chui-Smith-Birchenhall test for a seasonal unit root: with w = Delta_m Delta_1 y and L lags, the AR(L)\ncoefficients a of w by least squares (no mean), then the regression of w_t on w_{t-1..L} and the two auxiliary\nseries filtered by a, (1 - a(B)) Delta_m y_{t-1} and (1 - a(B)) Delta_1 y_{t-m}, without a constant; the statistic\nis the t value of the second (log 41, 80). Equivalent to `forecast::ocsb.test()` in R. With `lagMethod` \"fixed\" (the\ndefault) L = `maxlag` (R's default 0). With \"AIC\", \"BIC\" or \"AICc\" the lags 0..maxlag are compared on a common\nsample (the rows of maxlag lags, the prefilter too) by the lm criterion with k = coefficients + 1 (AICc = AIC +\n2k(k + 1) / (n - k - 1), forecast's help), and the chosen L is used. **This departs from R:** forecast 9.0.2 compares\nL = 1..maxlag that way but reports and uses one lag fewer than the chosen L (log 89-90, an off-by-one; the user's\ndecision 2026-11-27 is not to imitate it). Candidates with a perfect fit (and for AICc, n <= k + 1) are skipped.",
+    "ja": ""
+  },
   "pacf#summary": {
     "hash": "e893717b8428",
     "en": "Computes partial autocorrelation of a univariate series with the Durbin–Levinson recursion.\nEquivalent to R's `stats::pacf()`.",
     "ja": "Durbin–Levinson の再帰計算により、単変量時系列の偏自己相関を計算します。\nR の `stats::pacf()` と同等です。"
+  },
+  "poTest#summary": {
+    "hash": "9e473336f73f",
+    "en": "The Phillips-Ouliaris cointegration test (tseries' `po.test()`): x has 2 to 6 columns (variables) as rows of\nobservations; u = the residuals of the first column on the others (with an intercept when `demean`, default),\nZ = (n - 1)(rho - 1) - (lambda^2 - s^2) / (2 sum u_{t-1}^2 / (n - 1)^2) from u_t on u_{t-1}; lag trunc((n - 1)/100)\n(`lshort`) or trunc((n - 1)/30); p from Table Ib / Ia (clamped to [0.01, 0.15]).\nEquivalent to `tseries::po.test()` in R.",
+    "ja": ""
+  },
+  "ppTest#summary": {
+    "hash": "3046b0ce8302",
+    "en": "The Phillips-Perron test (tseries' `pp.test()`): y_t on 1, t, y_{t-1}; Phillips and Perron's closed forms with\ndet(X'X) (log 8), type \"Z(alpha)\" (default, as R) or \"Z(t_alpha)\", truncation lag trunc(4 (n/100)^0.25) (`lshort`)\nor trunc(12 (n/100)^0.25); p from Fuller's n(rho - 1) or tau_tau table at n - 1; \"explosive\" gives 1 - p.\nEquivalent to `tseries::pp.test()` in R.",
+    "ja": ""
+  },
+  "predictAr#summary": {
+    "hash": "260ed58975b0",
+    "en": "Predictions from an {@link ar} fit (stats' `predict.ar`): the AR recursion about the mean, se = sqrt(var.pred cumsum(psi^2)). Equivalent to R's `predict()`.",
+    "ja": ""
+  },
+  "predictArima#summary": {
+    "hash": "f773b9017b88",
+    "en": "Forecasts from an {@link arima} fit by the Kalman filter (the exact predictor from the finite past). Equivalent to\nR's `predict.Arima()`.",
+    "ja": ""
+  },
+  "predictHoltWinters#summary": {
+    "hash": "de8ff5c5ff61",
+    "en": "Predictions from a {@link holtWinters} fit with intervals (stats' `predict.HoltWinters()`): additive and\nnon-seasonal models var(residuals) (1 + sum_{j<h} psi_j^2), psi_j = alpha (1 + j beta) + gamma (1 - alpha) [j mod f\n= 0]; multiplicative models var(residuals) sum_{j=0}^{h-1} (psi_j s_h / s_{h-j})^2 with cyclic seasonal indices\n(R reads the seasonal factors at fixed positions of its coefficient vector instead: R bug 19369; equal for h < f with\na trend).\nEquivalent to R's `predict()`.",
+    "ja": ""
+  },
+  "remainder#summary": {
+    "hash": "ca2e66a5bb7f",
+    "en": "The remainder component of an {@link mstl} decomposition (forecast's `remainder()`). Equivalent to `forecast::remainder()` in R.",
+    "ja": ""
+  },
+  "runsTest#summary": {
+    "hash": "c81997e3bc0c",
+    "en": "The Wald-Wolfowitz runs test (tseries' `runs.test()`) of a two-valued sequence: z = (R - mean) / sd with mean 1 +\n2 n1 n2 / n and variance 2 n1 n2 (2 n1 n2 - n) / (n^2 (n - 1)), normal p for \"two.sided\" (default), \"less\" or\n\"greater\".\nEquivalent to `tseries::runs.test()` in R.",
+    "ja": ""
+  },
+  "rwf#summary": {
+    "hash": "163f9aab5e2a",
+    "en": "Random walk forecasts (forecast's `rwf()`), with a drift (y_n - y_1)/(n - 1) when `drift`. sigma = sqrt(mean(res^2))\nwithout a drift, sd(res) with one; se_h = sigma sqrt(h) or sigma sqrt(h (1 + h/(n - 1))).\nEquivalent to `forecast::rwf()` in R.",
+    "ja": ""
+  },
+  "seasadj#summary": {
+    "hash": "5cee394e11e8",
+    "en": "The seasonally adjusted series of an mstl / stl decomposition (data - seasonal). Equivalent to `forecast::seasadj()` in R.",
+    "ja": ""
+  },
+  "seasonalComponent#summary": {
+    "hash": "231dce2fe437",
+    "en": "The seasonal component of an {@link mstl} decomposition (forecast's `seasonal()`; zeros without one). Equivalent to `forecast::seasonal()` in R.",
+    "ja": ""
+  },
+  "seasonaldummy#summary": {
+    "hash": "638efce05b03",
+    "en": "Seasonal dummies (forecast's `seasonaldummy()`): m - 1 columns, the last period omitted; `start` the cycle position (1-based) of the first row. Equivalent to `forecast::seasonaldummy()` in R.",
+    "ja": ""
+  },
+  "ses#summary": {
+    "hash": "db519d793201",
+    "en": "Simple exponential smoothing (forecast's `ses()`): ets(y, \"ANN\"), or with `initial: \"simple\"` the level started at\ny_1 and alpha minimising the one-step SSE.\nEquivalent to `forecast::ses()` in R.",
+    "ja": ""
+  },
+  "snaive#summary": {
+    "hash": "4ee499dcc2e7",
+    "en": "Seasonal naive forecasts (forecast's `snaive()`): y_{n - m + ...}, se_h = sigma sqrt(floor((h - 1)/m) + 1). Equivalent to `forecast::snaive()` in R.",
+    "ja": ""
+  },
+  "specAr#summary": {
+    "hash": "e03680b1d95e",
+    "en": "The AR spectrum (stats' `spec.ar()` at n.freq frequencies 0..0.5) of x: var.pred / |1 - sum a_k e^{-2 pi i f k}|^2. Equivalent to R's `spec.ar()`.",
+    "ja": ""
+  },
+  "stl#summary": {
+    "hash": "2776a1509088",
+    "en": "Seasonal-trend decomposition by loess (Cleveland et al. 1990). Equivalent to R's `stl()`. It differs in that the\nrobustness weights use the true median of |remainder| (R takes a wrong order statistic for some even-length series:\nR bug 19370, see the documentation's departures from R).",
+    "ja": ""
+  },
+  "stlf#summary": {
+    "hash": "419ccbc45b16",
+    "en": "STL + ETS forecasts (forecast's `stlf()`): mstl(y), forecast(ets(seasonally adjusted, \"ZZN\")), plus the last cycle of\nthe seasonal component repeated.\nEquivalent to `forecast::stlf()` in R.",
+    "ja": ""
+  },
+  "stlm#summary": {
+    "hash": "6c243e4a3977",
+    "en": "STL decomposition with a model of the seasonally adjusted series (forecast's `stlm()`): mstl of the series (Box-Cox\ntransformed with `lambda`), then `ets(adjusted, etsModel)` (default \"ZZN\") or, with `method: \"arima\"`,\n`auto.arima(adjusted, seasonal = FALSE)` (log 93: R's model has no seasonal part).\nEquivalent to `forecast::stlm()` in R.",
+    "ja": ""
+  },
+  "supsmu#summary": {
+    "hash": "e5e1a82432ab",
+    "en": "Friedman's super smoother (running lines with a cross-validated variable span). Equivalent to R's `supsmu()`.\nTied x are not handled as R does.",
+    "ja": ""
+  },
+  "terasvirtaTest#summary": {
+    "hash": "70a8e7ef8c49",
+    "en": "Teraesvirta's neural network test for neglected nonlinearity (tseries' `terasvirta.test()`): y_t on 1 and its lags,\nthen also on the second and third order products of the lags; Chisq = n log(SSR0 / SSR1) (n the series length) or\nF on (df, n - lag - df) (log 14). The series is standardised when `scale` (default).\nEquivalent to `tseries::terasvirta.test()` in R.",
+    "ja": ""
+  },
+  "thetaf#summary": {
+    "hash": "8af27b5edeb4",
+    "en": "The theta method (forecast's `thetaf()`): a seasonality test |r_m| > qnorm(0.95) sqrt((1 + 2 sum_{i<m} r_i^2)/n), a\nmultiplicative decompose when seasonal, ses by MSE, mean = ses mean + b/2 (h - 1 + 1/alpha - (1 - alpha)^n / alpha)\nwith b the slope of lm(y ~ t), reseasonalised. Departs from R when seasonal: the interval bounds are reseasonalised\n(R adds the adjusted-scale width to the reseasonalised mean) and the residuals are y - fitted (R's are on the\nadjusted scale); the user's decision, log 91-92.\nEquivalent to `forecast::thetaf()` in R.",
+    "ja": ""
+  },
+  "trendcycle#summary": {
+    "hash": "94246c18529e",
+    "en": "The trend-cycle component of an {@link mstl} decomposition (forecast's `trendcycle()`). Equivalent to `forecast::trendcycle()` in R.",
+    "ja": ""
+  },
+  "tsCV#summary": {
+    "hash": "f50716f82ea6",
+    "en": "Time series cross-validation (forecast's `tsCV()`): for each origin t the forecast errors of y_{t+1..t+h} from the fit\nto y_1..y_t, stored in row t (NaN where unavailable).\nEquivalent to `forecast::tsCV()` in R.",
+    "ja": ""
+  },
+  "tsFilter#summary": {
+    "hash": "e02f267edbc0",
+    "en": "Linear filtering of a series (stats' `filter()`): convolution, y_i = sum_j f_j x_{i + o - (j - 1)} with o = 0 for\n`sides: 1` and floor(p / 2) for `sides: 2` (NaN where an index falls outside, or wrapped with `circular`), or\nrecursive, y_i = x_i + sum_j f_j y_{i - j} with `init` (the most recent value first, as R).\nEquivalent to R's `filter()`.",
+    "ja": ""
+  },
+  "tsclean#summary": {
+    "hash": "6be533a0731e",
+    "en": "The series with missing values interpolated and outliers replaced (forecast's `tsclean()`).\nEquivalent to `forecast::tsclean()` in R.",
+    "ja": ""
+  },
+  "tslm#summary": {
+    "hash": "6a1a2b38269f",
+    "en": "Linear regression on a trend (1..n) and seasonal dummies (forecast's `tslm(y ~ trend + season)`), the first season\nthe baseline.\nEquivalent to `forecast::tslm()` in R.",
+    "ja": ""
+  },
+  "tsoutliers#summary": {
+    "hash": "eee787c7d03e",
+    "en": "Outliers and their replacements (forecast's `tsoutliers()`): the remainder of seasadj(robust mstl) minus supsmu (or x\nminus supsmu), points outside [Q1 - 3 IQR, Q3 + 3 IQR], replaced by na.interp with them removed; `iterate` passes\n(default 2), the union of the flags.\nEquivalent to `forecast::tsoutliers()` in R.",
+    "ja": ""
+  },
+  "whiteTest#summary": {
+    "hash": "7199da67dba0",
+    "en": "White's neural network test for neglected nonlinearity (tseries' `white.test()`): q logistic hidden units with\nweights runif((lag + 1) q, -range/2, range/2) (by columns, the first row on the constant), their principal components\n2..qstar + 1 (standardised), then the statistic as {@link terasvirtaTest} (log 15). The weights come from rStats.js's\nR-compatible generator: with `seed` (R's `set.seed`) the value equals R's; without, the current stream is used.\nEquivalent to `tseries::white.test()` in R.",
+    "ja": ""
   }
 }

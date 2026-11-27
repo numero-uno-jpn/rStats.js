@@ -4,6 +4,16 @@
     "en": "Options for {@link confintRma}.",
     "ja": "{@link confintRma} のオプションです。"
   },
+  "DecompDesignResult#summary": {
+    "hash": "8ed44ad10eb6",
+    "en": "The result of {@link decompDesign}.",
+    "ja": ""
+  },
+  "DecompDesignResult.Q.decomp#summary": {
+    "hash": "9bc9eab38e94",
+    "en": "Total, within designs, between designs.",
+    "ja": ""
+  },
   "EscalcMeasure#summary": {
     "hash": "7f7c6afa7653",
     "en": "Effect-size measure supported by {@link escalc}.",
@@ -19,20 +29,155 @@
     "en": "Study-level estimates returned by {@link escalc}.",
     "ja": "{@link escalc} が返す研究ごとの推定値です。"
   },
+  "MetaCommonOptions#summary": {
+    "hash": "b8216c7fd8fb",
+    "en": "Options shared by the meta functions.",
+    "ja": ""
+  },
+  "MetaCommonOptions.level#summary": {
+    "hash": "57c3cdff65ae",
+    "en": "Confidence level of the study and pooled intervals (default 0.95).",
+    "ja": ""
+  },
+  "MetaCommonOptions.levelMa#summary": {
+    "hash": "881fabb521c6",
+    "en": "Confidence level of the pooled intervals (default `level`).",
+    "ja": ""
+  },
+  "MetaCommonOptions.levelPredict#summary": {
+    "hash": "84d288d576a3",
+    "en": "Level of the prediction interval (default `level`).",
+    "ja": ""
+  },
+  "MetaCommonOptions.methodRandomCi#summary": {
+    "hash": "c64ea9c2cc9f",
+    "en": "\"classic\" (normal, default) or \"HK\" (Hartung-Knapp, t on k - 1).",
+    "ja": ""
+  },
+  "MetaCommonOptions.methodTau#summary": {
+    "hash": "fb6ba444e5f6",
+    "en": "The between-study variance estimator (default \"REML\").",
+    "ja": ""
+  },
+  "MetaCommonOptions.methodTauCi#summary": {
+    "hash": "69af69236994",
+    "en": "The tau2 interval: \"QP\" (Q-profile), \"J\" (Jackson) or \"BJ\" (Biggerstaff-Jackson); default \"J\" for DL, else \"QP\".",
+    "ja": ""
+  },
+  "MetaInfluenceResult#summary": {
+    "hash": "82d0115568a4",
+    "en": "Leave-one-out or cumulative estimates of {@link metainf} / {@link metacum}.",
+    "ja": ""
+  },
   "MetaMethod#summary": {
     "hash": "506131fd9efa",
     "en": "Estimator for the between-study variance.",
     "ja": "研究間分散の推定法です。"
+  },
+  "MetaResult#summary": {
+    "hash": "f84398aa550c",
+    "en": "The result of {@link metagen} (R's element names).",
+    "ja": ""
+  },
+  "MetaResult.df.random#summary": {
+    "hash": "f8fd7786d790",
+    "en": "Degrees of freedom of the random interval (k - 1 with Hartung-Knapp, else null).",
+    "ja": ""
+  },
+  "MetaSubgroupResult#summary": {
+    "hash": "46c0902476eb",
+    "en": "The result of {@link metaSubgroup}.",
+    "ja": ""
+  },
+  "MetaSubgroupResult.Q.w.random#summary": {
+    "hash": "f58302b0d4be",
+    "en": "With `tauCommon`: equal to Q.w.common (as meta); otherwise absent.",
+    "ja": ""
+  },
+  "MetaSubgroupResult.tau2#summary": {
+    "hash": "7d0f7b7b799f",
+    "en": "The overall tau2 and random effect (of `overall`).",
+    "ja": ""
+  },
+  "MetaTauMethod#summary": {
+    "hash": "3aa9353b58af",
+    "en": "The between-study variance estimators of meta (`method.tau`).",
+    "ja": ""
   },
   "MetaTest#summary": {
     "hash": "70ca64cbea7b",
     "en": "Inference method for model coefficients.",
     "ja": "モデル係数の推論方法です。"
   },
+  "MetabiasResult#summary": {
+    "hash": "6dd483f8ac94",
+    "en": "A test for funnel plot asymmetry from {@link metabias}.",
+    "ja": ""
+  },
+  "MetabinOptions#summary": {
+    "hash": "5a633fa4dda6",
+    "en": "Options of {@link metabin}.",
+    "ja": ""
+  },
+  "MetabinOptions.MHexact#summary": {
+    "hash": "c616c411ab09",
+    "en": "The MH estimate without any increment (default false).",
+    "ja": ""
+  },
+  "MetabinOptions.QCochrane#summary": {
+    "hash": "27c28d739995",
+    "en": "With methodTau \"DL\", Q about the MH estimate (default true).",
+    "ja": ""
+  },
+  "MetabinOptions.allstudies#summary": {
+    "hash": "3b33b9f20abd",
+    "en": "Keep studies with no or all events in both groups (default false; RD keeps them anyway).",
+    "ja": ""
+  },
+  "MetabinOptions.incr#summary": {
+    "hash": "8b3ad18592f6",
+    "en": "The continuity correction (default 0.5).",
+    "ja": ""
+  },
+  "MetabinOptions.method#summary": {
+    "hash": "ba989788ec19",
+    "en": "\"MH\" (default), \"Inverse\" or \"Peto\" (OR only).",
+    "ja": ""
+  },
+  "MetabinOptions.methodIncr#summary": {
+    "hash": "de02bcc0d4a3",
+    "en": "Which studies get it: \"only0\" (studies with a zero cell, default), \"all\", \"if0all\" (all when any has a zero).",
+    "ja": ""
+  },
+  "MetabinOptions.sm#summary": {
+    "hash": "ef1fd899f408",
+    "en": "\"RR\" (default), \"OR\" or \"RD\".",
+    "ja": ""
+  },
+  "MetapropGlmmResult#summary": {
+    "hash": "d20f41730f58",
+    "en": "The result of {@link metapropGlmm}: as {@link MetaResult}, with Q, df.Q and pval.Q as [Wald, LRT].",
+    "ja": ""
+  },
   "ModeratorMatrix#summary": {
     "hash": "05f9a35b7f70",
     "en": "A moderator matrix with optional column and row names.",
     "ja": "任意の列名と行名を指定できるモデレーター行列です。"
+  },
+  "NetcombResult#summary": {
+    "hash": "7ba6aff0feef",
+    "en": "The result of {@link netcomb} / {@link discomb}.",
+    "ja": ""
+  },
+  "NetmetaResult#summary": {
+    "hash": "b4bc0a45b159",
+    "en": "The result of {@link netmeta} (R's element names).",
+    "ja": ""
+  },
+  "NetsplitPart#summary": {
+    "hash": "4a22ec8f7200",
+    "en": "One column of {@link netsplit}.",
+    "ja": ""
   },
   "NumericMatrix#summary": {
     "hash": "ec7b1dc6baa3",
@@ -64,10 +209,35 @@
     "en": "Fitted meta-analysis model returned by {@link rma}.",
     "ja": "{@link rma} が返すメタアナリシスの当てはめ結果です。"
   },
+  "TreatmentMatrix#summary": {
+    "hash": "856ca10cbfb0",
+    "en": "A matrix with treatment names.",
+    "ja": ""
+  },
+  "TrimfillResult#summary": {
+    "hash": "23cf23473a10",
+    "en": "The result of {@link trimfill}.",
+    "ja": ""
+  },
+  "baujat#summary": {
+    "hash": "606ffb0aac92",
+    "en": "The coordinates of Baujat's plot (meta's `baujat()`): x = each study's contribution to Q, w (TE - TE.common)^2;\ny = its influence on the common estimate, (TE.common - TE.common without it)^2 / seTE.common without it^2.\nEquivalent to `meta::baujat()` in R.",
+    "ja": ""
+  },
   "confintRma#summary": {
     "hash": "4af2851177f3",
     "en": "Computes heterogeneity confidence intervals. Equivalent to `metafor::confint.rma()` in R.",
     "ja": "異質性の信頼区間を計算します。R の `metafor::confint.rma()` と同等です。"
+  },
+  "decompDesign#summary": {
+    "hash": "3645fd16576f",
+    "en": "Q decomposed by design (netmeta's `decomp.design()`): the Q of each design = that of the network fitted to its\nstudies alone, df (studies - 1)(arms - 1); within = their sum, between = total - within. Designs are listed by their\nnumber of arms, then alphabetically.\nEquivalent to `netmeta::decomp.design()` in R.",
+    "ja": ""
+  },
+  "discomb#summary": {
+    "hash": "70b4b71459e0",
+    "en": "The additive component network meta-analysis (netmeta's `netcomb()` / `discomb()`, Ruecker et al. 2020; the network\nmay be disconnected): treatments are \"+\"-joined components; the components' effects by weighted least squares on\nX = B C (C treatment by component, the `inactive` treatment left out), Q.additive the weighted residual sum of squares\non comparisons - rank(X) df, tau2 by the DL generalisation with the additive hat matrix (two-arm studies; log 77).\nEquivalent to `netmeta::discomb()` in R.",
+    "ja": ""
   },
   "escalc#@param measure": {
     "hash": "eac3a9b0721d",
@@ -88,6 +258,136 @@
     "hash": "fe5541380563",
     "en": "Computes study-level effect sizes and sampling variances. Equivalent to `metafor::escalc()` in R.",
     "ja": "研究ごとの効果量と標本分散を計算します。R の `metafor::escalc()` と同等です。"
+  },
+  "genqInterval#summary": {
+    "hash": "5770b90c2503",
+    "en": "The generalised Q interval for tau2 (Jackson 2013) with study weights a: Q_a = sum a (y - mu_a)^2 follows\nsum lambda chi2_1 with lambda the eigenvalues of S^(1/2) (A - a a' / sum a) S^(1/2), S = diag(v + tau2); the bounds\nsolve P(Q_a <= q_obs) = 1 - alpha/2 and alpha/2 (0 when not reached).\nNot an R function.",
+    "ja": ""
+  },
+  "heterogeneityIntervals#summary": {
+    "hash": "1b709bdc08a1",
+    "en": "H and I2 with Higgins and Thompson's (2002) intervals (H at least 1, as meta). Not an R function.",
+    "ja": ""
+  },
+  "metaSubgroup#summary": {
+    "hash": "bd4535abd63f",
+    "en": "Subgroup analysis (meta's `subgroup` argument): `refit(rows)` fits the same meta-analysis to the given study rows\n(for example `(r) => metabin(pick(e1, r), ...)`). Within each subgroup the common and random effects; Q.b = Q of the\nsubgroup estimates with weights 1/se^2 (common and random), Q.w = the within-subgroup Q. With `tauCommon`, one tau2\nfor all subgroups: that of the meta-regression on the subgroup (rma with the subgroup as a factor); the overall\nestimates stay those of `overall`.\nNot an R function. R: the `subgroup` argument of meta's functions.",
+    "ja": ""
+  },
+  "metabias#summary": {
+    "hash": "5b53ae81073c",
+    "en": "Tests for funnel plot asymmetry (meta's `metabias()`): \"Egger\" (default for continuous outcomes: the intercept of\nTE/seTE on 1/seTE, t on k - 2), \"Begg\" (Kendall's S of the standardised deviations against the variances, no\ncontinuity correction), \"Thompson\" (Thompson-Sharp: the REML meta-regression on seTE, its z with t(k - 2) p),\n\"Harbord\" (binary: lm(Z/sqrt(V) ~ sqrt(V)) with Z = O - E and V the hypergeometric variance) and \"Peters\" (binary:\nlm(TE ~ 1/N) with weights 1/(1/(a + c) + 1/(b + d))). Harbord and Peters need the 2 x 2 counts (`counts`).\nEquivalent to `meta::metabias()` in R.",
+    "ja": ""
+  },
+  "metabin#summary": {
+    "hash": "fce2893e9ed5",
+    "en": "Meta-analysis of binary outcomes (meta's `metabin()`): events e1 / e2 of totals n1 / n2. The common effect by\nMantel-Haenszel (OR with the Robins-Breslow-Greenland variance; RR and RD with Greenland and Robins'), Peto's\n(O - E) / V or the inverse variance; the random effect and heterogeneity as {@link metagen} on the study values.\nStudies with a zero cell get `incr` (0.5); studies with no or all events in both groups are left out for OR and RR.\nEquivalent to `meta::metabin()` in R.",
+    "ja": ""
+  },
+  "metacont#summary": {
+    "hash": "dd84eae8dea8",
+    "en": "Meta-analysis of continuous outcomes (meta's `metacont()`): sm \"MD\" (default), \"SMD\" (Hedges' g with the exact J;\nvariance 1/n1 + 1/n2 + (1 - (N - 4) / ((N - 2) J^2)) g^2, log 69) or \"ROM\" (log ratio of means).\nEquivalent to `meta::metacont()` in R.",
+    "ja": ""
+  },
+  "metacor#summary": {
+    "hash": "b08cb6df4fca",
+    "en": "Meta-analysis of correlations (meta's `metacor()`): sm \"ZCOR\" (Fisher's z, variance 1/(n - 3), default) or \"COR\"\n(variance (1 - r^2)^2 / (n - 1)).\nEquivalent to `meta::metacor()` in R.",
+    "ja": ""
+  },
+  "metacum#summary": {
+    "hash": "054b7fe8c8ff",
+    "en": "Cumulative meta-analysis (meta's `metacum()`): the pooled estimate of the first 1, 2, ... studies; `pooled` \"common\"\n(default) or \"random\".\nEquivalent to `meta::metacum()` in R.",
+    "ja": ""
+  },
+  "metagen#summary": {
+    "hash": "a1f922823669",
+    "en": "Generic inverse-variance meta-analysis (meta's `metagen()`): study estimates TE with standard errors seTE; the\ncommon effect, the random effect with tau2 by `methodTau` (default REML) and a classic or Hartung-Knapp interval,\nthe prediction interval (t on k - 1), Q, tau2's interval (QP, or J for DL), H and I2 with Higgins and Thompson's\nintervals.\nEquivalent to `meta::metagen()` in R.",
+    "ja": ""
+  },
+  "metainc#summary": {
+    "hash": "0be1bd2048b4",
+    "en": "Meta-analysis of incidence rates (meta's `metainc()`): events e1 / e2 in person-times t1 / t2; sm \"IRR\" (default) or\n\"IRD\"; method \"MH\" (default; Greenland and Robins 1985, no increments) or \"Inverse\". Studies with a zero get 0.5 added\nto the events for the study values (log 67).\nEquivalent to `meta::metainc()` in R.",
+    "ja": ""
+  },
+  "metainf#summary": {
+    "hash": "feb79c11355c",
+    "en": "Leave-one-out meta-analysis (meta's `metainf()`): the pooled estimate without each study in turn; `pooled` \"common\"\n(default) or \"random\".\nEquivalent to `meta::metainf()` in R.",
+    "ja": ""
+  },
+  "metamean#summary": {
+    "hash": "640af0300cd1",
+    "en": "Meta-analysis of single means (meta's `metamean()`): sm \"MRAW\" (default; variance sd^2/n) or \"MLN\" (log mean,\nvariance sd^2 / (n mean^2)).\nEquivalent to `meta::metamean()` in R.",
+    "ja": ""
+  },
+  "metaprop#summary": {
+    "hash": "165465ea64a9",
+    "en": "Meta-analysis of single proportions by the inverse variance (meta's `metaprop(method = \"Inverse\")`): sm \"PLOGIT\"\n(default; (x + 0.5)/(n + 1) for 0 or n events), \"PFT\" (Freeman-Tukey), \"PAS\" (arcsine), \"PRAW\" or \"PLN\"\n(log((x + 0.5)/(n + 0.5)) for 0; for n events the variance 1/x - 1/(n + 0.5)). The default method of meta, the GLMM, is {@link metapropGlmm}.\nEquivalent to `meta::metaprop()` in R.",
+    "ja": ""
+  },
+  "metapropGlmm#summary": {
+    "hash": "45d571e674bc",
+    "en": "Meta-analysis of single proportions by a random intercept logistic model (meta's `metaprop()` default, method\n\"GLMM\"; log 75-76): glmer(x/n ~ 1 + (1 | study), binomial, weights n, nAGQ = 7) for the random effect and tau2,\nglm(x/n ~ 1) for the common effect; Q = [Wald, LRT]: the Wald test of equal study effects in glm(x/n ~ study) and the\ncommon glm's deviance; H and I2 from the Wald Q. Study values are the PLOGIT ones.\nEquivalent to `meta::metaprop()` in R.",
+    "ja": ""
+  },
+  "metarate#summary": {
+    "hash": "bcc25d6aadb6",
+    "en": "Meta-analysis of single incidence rates (meta's `metarate()`): sm \"IRLN\" (log rate, default), \"IR\", \"IRS\" (square\nroot) or \"IRFT\" (Freeman-Tukey); 0.5 added to zero counts for IR and IRLN.\nEquivalent to `meta::metarate()` in R.",
+    "ja": ""
+  },
+  "metareg#summary": {
+    "hash": "7d896ca2fc6c",
+    "en": "Meta-regression (meta's `metareg()`): rma(TE, seTE^2, mods, method = the meta-analysis's tau2 method) on the studies\nwith finite values. `mods` has one row per study (all studies, as given to the meta function).\nEquivalent to `meta::metareg()` in R.",
+    "ja": ""
+  },
+  "netcomb#summary": {
+    "hash": "611b32cfd73f",
+    "en": "{@link discomb} for a fitted network (netmeta's `netcomb()`). Equivalent to `netmeta::netcomb()` in R.",
+    "ja": ""
+  },
+  "netconnection#summary": {
+    "hash": "3fb7cc450fa6",
+    "en": "The connected components of a network (netmeta's `netconnection()`): the number of subnets, the numbers of\nstudies k, treatments n and comparisons, and the distance matrix (shortest path lengths; Infinity between subnets).\nEquivalent to `netmeta::netconnection()` in R.",
+    "ja": ""
+  },
+  "netleague#summary": {
+    "hash": "27dd1d70e5d5",
+    "en": "The league table (netmeta's `netleague()`): the diagonal the treatments, the lower triangle [i][j] the network\nestimate of the column treatment against the row treatment (TE[j][i]) with its interval, the upper triangle the direct\nestimates (TE[i][j]; \".\" where there is none); \"est (lower to upper)\" with `digits` decimals, the bounds of a table\npadded to a common width.\nEquivalent to `netmeta::netleague()` in R.",
+    "ja": ""
+  },
+  "netmeasures#summary": {
+    "hash": "637de985ace7",
+    "en": "Network measures (netmeta's `netmeasures()`): the direct evidence proportion of each comparison, v_network / v_direct\n(0 without direct evidence), for the random-effects model (default, as netmeta when the fit has one) or the\ncommon-effect model. netmeta's mean path length and minimal parallelism are not provided (log 101: not reproduced).\nEquivalent to `netmeta::netmeasures()` in R.",
+    "ja": ""
+  },
+  "netmeta#summary": {
+    "hash": "f8c3edfa4903",
+    "en": "Frequentist network meta-analysis (netmeta's `netmeta()`): contrasts TE (treat1 versus treat2) with standard errors\nseTE from studies studlab; the common effects by weighted least squares on the network graph (Ruecker 2012; multi-arm\nstudies by the effective resistances of their comparisons), Q on sum(arms - 1) - (n - 1) df, tau2 by the DL\ngeneralisation of Jackson, White and Riley (2012), the random effects with seTE^2 + tau2, the direct estimates, the\nprediction interval (t on df.Q), and Q split into heterogeneity (within designs) and inconsistency (between).\nEquivalent to `netmeta::netmeta()` in R.",
+    "ja": ""
+  },
+  "netposet#summary": {
+    "hash": "61db0fe6c479",
+    "en": "The partial order of treatments over several outcomes (netmeta's `netposet()`): P the treatments by outcomes matrix of\nranking scores; M0 the covering relation (Hasse diagram) of \"i at least as good as j in every outcome and better in\none\" (M0[i][j] = 1: i directly above j).\nEquivalent to `netmeta::netposet()` in R.",
+    "ja": ""
+  },
+  "netrank#summary": {
+    "hash": "165104d594a0",
+    "en": "P-scores (netmeta's `netrank()`, Ruecker and Schwarzer 2015): for each treatment the mean over the others of the\nprobability that it is better, pnorm((TE_j - TE_i) / se_ij) when small values are desirable (default) or\npnorm((TE_i - TE_j) / se_ij) when undesirable.\nEquivalent to `netmeta::netrank()` in R.",
+    "ja": ""
+  },
+  "netsplit#summary": {
+    "hash": "edf230fea94c",
+    "en": "Direct and indirect evidence for each comparison (netmeta's `netsplit()`, back-calculation): the direct estimate (the\ninverse-variance pooling of the comparison's contrasts), the indirect one from the network estimate and the direct\none, their difference, and the direct evidence proportion v_network / v_direct.\nEquivalent to `netmeta::netsplit()` in R.",
+    "ja": ""
+  },
+  "pWeightedChisq#summary": {
+    "hash": "82feb07b4414",
+    "en": "P(sum_j lambda_j chi2_1 <= q) for lambda_j >= 0: Ruben's (1962) series sum_k c_k P(chi2_{r + 2k} <= q / beta) with\nbeta = 2 lmin lmax / (lmin + lmax), or Imhof's (1961) integral when the series would be long.\nNot an R function.",
+    "ja": ""
+  },
+  "pairwise#summary": {
+    "hash": "4dfd1a7b5979",
+    "en": "Contrasts from arm-level data (netmeta's `pairwise()`): every pair of arms of each study (treat1 the earlier arm).\nBinary outcomes (`event`, `n`; sm \"OR\", \"RR\" or \"RD\"): all arms of a study get 0.5 when any arm has 0 or n events\n(log 74); continuous (`mean`, `sd`, `n`; sm \"MD\").\nEquivalent to `netmeta::pairwise()` in R.",
+    "ja": ""
   },
   "predictRma#summary": {
     "hash": "0d7cd5a86e03",
@@ -113,5 +413,10 @@
     "hash": "4d690c3d8c5b",
     "en": "Fits an equal-effects or random-effects meta-analysis, including meta-regression. Equivalent to `metafor::rma.uni()` in R.",
     "ja": "等効果モデルまたはランダム効果モデルによるメタアナリシスを当てはめます。メタ回帰にも対応します。R の `metafor::rma.uni()` と同等です。"
+  },
+  "trimfill#summary": {
+    "hash": "5a35847ca18c",
+    "en": "Duval and Tweedie's trim-and-fill (meta's `trimfill()`): the L0 estimator on the common-effect model, iterated\n(trim the k0 most extreme studies on one side, re-estimate, re-rank), the side opposite to the asymmetry (the sign of\nthe Egger-type regression of TE on seTE); the k0 mirrored studies 2 theta - TE added, then the meta-analysis of the\naugmented data (random effect with the given tau2 method, default REML).\nEquivalent to `meta::trimfill()` in R.",
+    "ja": ""
   }
 }
