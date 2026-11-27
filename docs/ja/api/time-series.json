@@ -922,7 +922,7 @@
   "supsmu#summary": {
     "hash": "e5e1a82432ab",
     "en": "Friedman's super smoother (running lines with a cross-validated variable span). Equivalent to R's `supsmu()`.\nTied x are not handled as R does.",
-    "ja": "Friedman のスーパースムーザーです (交差検証によって変数幅を選ぶ移動直線法)。同じ x の値の扱いは R と異なります (R の `supsmu()` と同じではありません)。"
+    "ja": "Friedman のスーパースムーザーです (交差検証によって変数幅を選ぶ移動直線法)。R の `supsmu()` と同等ですが、同じ x の値の扱いは R と異なります。"
   },
   "terasvirtaTest#summary": {
     "hash": "70a8e7ef8c49",
