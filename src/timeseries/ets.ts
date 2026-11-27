@@ -60,16 +60,18 @@ export function etsFilter(y: readonly number[], spec: EtsSpec, par: EtsParameter
   const n = y.length; const e = new Array<number>(n), mu = new Array<number>(n);
   const row = (): number[] => [l, ...(trend !== "N" ? [b] : []), ...s];
   const states: number[][] = [row()];
-  let sse = 0, sumLogMu = 0;
+  let sse = 0, sumLogMu = 0, nObs = 0;
   for (let t = 0; t < n; t++) {
     const T = trend === "N" ? l : trend === "A" ? l + ph * b : l * b ** ph;
     const sm = season === "N" ? 0 : s[m - 1]!;
+    // a missing value: the states move on without a correction (the error 0), and it is left out of the likelihood (log 108)
+    const miss = Number.isNaN(y[t]!);
     const mt = season === "N" ? T : season === "A" ? T + sm : T * sm;
     mu[t] = mt;
     let ln: number, bn: number, sn = 0;
     let ee: number;
     if (error === "A") {
-      ee = y[t]! - mt;
+      ee = miss ? 0 : y[t]! - mt;
       if (season === "M") {
         ln = T + (al * ee) / sm;
         bn = trend === "N" ? b : trend === "A" ? ph * b + (be * ee) / sm : b ** ph + (be * ee) / (sm * l);
@@ -80,7 +82,7 @@ export function etsFilter(y: readonly number[], spec: EtsSpec, par: EtsParameter
         sn = sm + ga * ee;
       }
     } else {
-      ee = (y[t]! - mt) / mt;
+      ee = miss ? 0 : (y[t]! - mt) / mt;
       if (season === "A") {
         ln = T + al * mt * ee;
         bn = trend === "N" ? b : trend === "A" ? ph * b + be * mt * ee : b ** ph + (be * mt * ee) / l;
@@ -91,11 +93,15 @@ export function etsFilter(y: readonly number[], spec: EtsSpec, par: EtsParameter
         sn = season === "M" ? sm * (1 + ga * ee) : sm;
       }
     }
-    e[t] = ee; sse += ee * ee; if (error === "M") sumLogMu += Math.log(Math.abs(mt));
+    e[t] = miss ? NaN : ee;
+    if (!miss) { nObs++; sse += ee * ee; if (error === "M") sumLogMu += Math.log(Math.abs(mt)); }
     l = ln; b = bn;
     if (season !== "N") s = [sn, ...s.slice(0, m - 1)];
     states.push(row());
   }
+  // n the length including missing values, as R's (log 108: R's log-likelihood with an NA is -0.5 n log(sse) with n
+  // = 72 for 71 observations, equal to 1e-15)
+  void nObs;
   const lik = n * Math.log(sse) + (error === "M" ? 2 * sumLogMu : 0);
   return { e, mu, states, lik, sse };
 }
@@ -108,34 +114,37 @@ function etsLik(y: readonly number[], spec: EtsSpec, par: EtsParameters, sbuf: F
   // sbuf[(head + i) % m] = s_{i+1} (s_1 the most recent)
   let head = 0;
   if (season !== "N") { const s = fullSeason(spec, par.s ?? []); for (let i = 0; i < m; i++) sbuf[i] = s[i]!; }
-  const n = y.length; let sse = 0, sumLogMu = 0;
+  const n = y.length; let sse = 0, sumLogMu = 0, nObs = 0;
   for (let t = 0; t < n; t++) {
     const T = trend === "N" ? l : trend === "A" ? l + ph * b : l * b ** ph;
+    const miss = Number.isNaN(y[t]!);
     const iOld = season === "N" ? 0 : (head + m - 1) % m;
     const sm = season === "N" ? 0 : sbuf[iOld]!;
     const mt = season === "N" ? T : season === "A" ? T + sm : T * sm;
     let ln: number, bn: number, sn = 0, ee: number;
     if (error === "A") {
-      ee = y[t]! - mt;
+      ee = miss ? 0 : y[t]! - mt;
       if (season === "M") { ln = T + (al * ee) / sm; bn = trend === "N" ? b : trend === "A" ? ph * b + (be * ee) / sm : b ** ph + (be * ee) / (sm * l); sn = sm + (ga * ee) / T; }
       else { ln = T + al * ee; bn = trend === "N" ? b : trend === "A" ? ph * b + be * ee : b ** ph + (be * ee) / l; sn = sm + ga * ee; }
     } else {
       if (!(mt > 0)) return Infinity;
-      ee = (y[t]! - mt) / mt;
+      ee = miss ? 0 : (y[t]! - mt) / mt;
       if (season === "A") { ln = T + al * mt * ee; bn = trend === "N" ? b : trend === "A" ? ph * b + be * mt * ee : b ** ph + (be * mt * ee) / l; sn = sm + ga * mt * ee; }
       else { ln = T * (1 + al * ee); bn = trend === "N" ? b : trend === "A" ? ph * b + be * T * ee : b ** ph * (1 + be * ee); sn = season === "M" ? sm * (1 + ga * ee) : sm; }
-      sumLogMu += Math.log(mt);
+      if (!miss) sumLogMu += Math.log(mt);
     }
-    sse += ee * ee; l = ln; b = bn;
+    if (!miss) { nObs++; sse += ee * ee; }
+    l = ln; b = bn;
     if (season !== "N") { head = iOld; sbuf[head] = sn; } // the oldest slot becomes the newest
   }
+  void nObs;
   return n * Math.log(sse) + (error === "M" ? 2 * sumLogMu : 0);
 }
 
 function etsMse(y: readonly number[], spec: EtsSpec, par: EtsParameters): number {
   const f = etsFilter(y, spec, par); let s = 0;
-  for (let t = 0; t < y.length; t++) s += (y[t]! - f.mu[t]!) ** 2;
-  return s / y.length;
+  let k = 0; for (let t = 0; t < y.length; t++) if (!Number.isNaN(y[t]!)) { s += (y[t]! - f.mu[t]!) ** 2; k++; }
+  return s / k;
 }
 
 /** The zero-error point forecasts from a state row (l, b, s1..sm), h = 1..H. */
@@ -185,8 +194,20 @@ export function admissible(spec: EtsSpec, al: number, be: number, ga: number, ph
 
 interface FitOut { spec: EtsSpec; par: EtsParameters; filter: FilterOut; nParams: number }
 
-function initialStates(y: readonly number[], spec: EtsSpec): { l: number; b: number; s: number[] } {
-  const { trend, season, m } = spec; const n = y.length;
+/** Missing values replaced by linear interpolation (constant beyond the ends): for the starting states only. */
+function interpolated(y: readonly number[]): number[] {
+  if (!y.some((v) => Number.isNaN(v))) return y as number[];
+  const obs = y.map((_, i) => i).filter((i) => !Number.isNaN(y[i]!));
+  return y.map((v, i) => {
+    if (!Number.isNaN(v)) return v;
+    let j = 0; while (j < obs.length && obs[j]! < i) j++;
+    if (j === 0) return y[obs[0]!]!; if (j === obs.length) return y[obs[obs.length - 1]!]!;
+    const a = obs[j - 1]!, b = obs[j]!; return y[a]! + ((y[b]! - y[a]!) * (i - a)) / (b - a);
+  });
+}
+
+function initialStates(y0: readonly number[], spec: EtsSpec): { l: number; b: number; s: number[] } {
+  const { trend, season, m } = spec; const y = interpolated(y0); const n = y.length;
   let s: number[] = []; let adj = y.slice();
   if (season !== "N") {
     // a classical decomposition of the first (up to four) full cycles, seasonal indices averaged
@@ -232,7 +253,8 @@ export function fitModel(y: readonly number[], spec: EtsSpec, fixed: Partial<Rec
   const nSmooth = names.length;
   const init = fixedInit ?? initialStates(y, spec);
   const nState = fixedInit ? 0 : 1 + (trend !== "N" ? 1 : 0) + (season !== "N" ? m - 1 : 0);
-  const scale = Math.max(1e-8, Math.sqrt(y.reduce((a, v) => a + v * v, 0) / n));
+  const yo = y.filter((v) => !Number.isNaN(v));
+  const scale = Math.max(1e-8, Math.sqrt(yo.reduce((a, v) => a + v * v, 0) / yo.length));
   const sbuf = new Float64Array(Math.max(1, m));
   const decode = (u: readonly number[]): EtsParameters => {
     let j = 0; const v: Record<string, number> = { ...fixed };
@@ -371,12 +393,13 @@ function finish(y: readonly number[], f: FitOut, nmse: number, lambda: number | 
   // parameters as observations reported a large negative AICc and was chosen; log 107)
   const bic = aic + (p + 1) * (Math.log(n) - 2); const aicc = n - p - 2 > 0 ? aic + (2 * (p + 1) * (p + 2)) / (n - p - 2) : Infinity;
   const sigma2 = f.filter.sse / (n - p);
-  const mse = y.reduce((a, v, t) => a + (v - f.filter.mu[t]!) ** 2, 0) / n;
+  const obs = y.filter((v) => !Number.isNaN(v)).length;
+  const mse = y.reduce((a, v, t) => (Number.isNaN(v) ? a : a + (v - f.filter.mu[t]!) ** 2), 0) / obs;
   // amse: the mean over h = 1..nmse of the in-sample h-step mean squared errors along the zero-error path (log 51)
   let amse = 0;
   for (let h = 1; h <= nmse; h++) {
     let s = 0, c = 0;
-    for (let t = 0; t + h <= n; t++) { const fc = zeroErrorPath(f.spec, f.par, f.filter.states[t]!, h)[h - 1]!; s += (y[t + h - 1]! - fc) ** 2; c++; }
+    for (let t = 0; t + h <= n; t++) { if (Number.isNaN(y[t + h - 1]!)) continue; const fc = zeroErrorPath(f.spec, f.par, f.filter.states[t]!, h)[h - 1]!; s += (y[t + h - 1]! - fc) ** 2; c++; }
     amse += s / c;
   }
   amse /= nmse;
@@ -424,12 +447,12 @@ function unscaleFit(fs: EtsResult, c: number, lambda: number | null, biasadj: bo
  */
 export function ets(y: readonly number[], options: EtsOptions = {}): EtsResult {
   checkOptions(options, ETS_KEYS, "ets"); // generated: option-keys.mjs
-  // missing values: not supported yet (R's ets skips them in its filter; log 107)
-  const m0 = options.frequency ?? 1; const x = tsInput(y, "ets");
+  // missing values: skipped by the filter (the states move on without a correction), as R's (log 108)
+  const m0 = options.frequency ?? 1; const x = tsInput(y, "ets", { missing: "allow", minLength: 1 });
   const lambda = options.lambda ?? null; const z = lambda === null ? x.slice() : boxCox(x, lambda);
   const model = (options.model ?? "ZZZ").toUpperCase();
   if (!/^[AMZ][ANMZ][ANMZ]$/.test(model)) throw new RangeError(`ets: invalid model '${options.model}'`);
-  const positive = z.every((v) => v > 0);
+  const positive = z.every((v) => Number.isNaN(v) || v > 0);
   const restrict = options.restrict ?? true; const additiveOnly = options.additiveOnly ?? false;
   const errs: EtsError[] = model[0] === "Z" ? (additiveOnly || !positive ? ["A"] : ["A", "M"]) : [model[0] as EtsError];
   const trends: EtsTrend[] = model[1] === "Z" ? (options.allowMultiplicativeTrend && !additiveOnly && positive ? ["N", "A", "M"] : ["N", "A"]) : [model[1] as EtsTrend];
@@ -442,12 +465,13 @@ export function ets(y: readonly number[], options: EtsOptions = {}): EtsResult {
   // a constant series: every model fits exactly (zero errors, the likelihood unbounded), so no criterion separates
   // the parameters; the model asked for (A, N, N for the letters Z) at the starting values of the smoothing
   // parameters and the constant level, sigma2 = 0 (R fits one with some parameters; log 107)
-  if (zs.every((v) => v === zs[0])) {
+  const zObs = zs.filter((v) => !Number.isNaN(v));
+  if (zObs.every((v) => v === zObs[0])) {
     const error: EtsError = model[0] === "M" && positive ? "M" : "A";
     const trend: EtsTrend = model[1] === "Z" ? "N" : (model[1] as EtsTrend); const season: EtsSeason = model[2] === "Z" || m0 <= 1 ? "N" : (model[2] as EtsSeason);
     if ((trend === "M" || season === "M") && !positive) throw new RangeError("ets: a multiplicative component needs positive data");
     const spec: EtsSpec = { error, trend, damped: trend !== "N" && (options.damped ?? false), season, m: season === "N" ? 1 : m0 };
-    const v0 = zs[0]!; const mult = (k: EtsTrend | EtsSeason): boolean => k === "M";
+    const v0 = zObs[0]!; const mult = (k: EtsTrend | EtsSeason): boolean => k === "M";
     const init = { l: v0, ...(trend !== "N" ? { b: mult(trend) ? 1 : 0 } : {}), ...(season !== "N" ? { s: new Array<number>(m0 - 1).fill(mult(season) ? 1 : 0) } : {}) };
     const start = { alpha: 0.5, ...(trend !== "N" ? { beta: 0.05 } : {}), ...(season !== "N" ? { gamma: 0.05 } : {}), ...(spec.damped ? { phi: 0.95 } : {}), ...fixed };
     const f = fitModel(zs, spec, start, init);

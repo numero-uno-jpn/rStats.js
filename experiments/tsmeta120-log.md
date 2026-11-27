@@ -1416,3 +1416,27 @@ choices under several criteria).
      from 1e-150 to 1e150. ZZZ on n <= 4 fails ("no model able to be fitted": no candidate has a defined AICc; R fits
      the simple ANN), with the open point.
    - Permanent tests: test/tsEdge120.test.ts, the parts "invalid and missing values" and "degenerate and short series".
+
+## The open points of 107, decided by the user (2026-11-28, session 42): R's rules imitated, ets made faster
+
+108. The user's decisions on the open points of 107: imitate R's ets on short series, accept missing values as R does
+   (ets / ses / holt / hw, kpss.test, mstl / stlf), R's auto.arima on exact fits, R's naive / rwf after a missing
+   value, and make ets faster. Each checked against the R outputs already recorded (tsedge2, tsedge3, tsedge5):
+   - **naive / snaive / rwf** with an NA: R's fitted value is the last observed value of the same season (so the step
+     after the NA is a two-step one), the drift the mean of those steps, its variance term k / (number of steps): the
+     intervals equal R's to 1e-16 (naive, snaive, rwf with drift). Without NA the same as before.
+   - **auto.arima on an exact fit**: when the series differenced D times seasonally and d times is constant, R returns
+     ARIMA(0,d,0)(0,D,0) with the constant (mean for d + D = 0, drift for 1) equal to that constant, sigma2 0. Now
+     the same (a fit with the coefficient fixed, through an internal forecastArimaFixed): constant, zeros, line and
+     the exact seasonal pattern give R's orders, coefficient and forecasts (the seasonal pattern's sigma2 8.5e-6
+     against R's 8.2e-6: the diffuse start's residuals).
+   - **kpss.test** with an NA: the residuals of the observed values (the trend at their positions), the NA left out,
+     and n the length including it (in n^2 and in the long-run variance); Level and Trend equal to 1e-15. (Compacting
+     the series gave 0.2014 against 0.1986.)
+   - **mstl** with an NA: the decomposition of na.interp(x), with the data and the remainder NA there; equal to 1e-15.
+   - **ets** with an NA: the filter moves the states on without a correction at a missing value, which is left out of
+     the sum of squares; R's log-likelihood is -0.5 n log(sse) with n = 72, the length including the NA (equal to 1e-15
+     at R's parameters; with 71 the mapping back from the standardised scale was inconsistent). sigma2 = sse / (72 -
+     p) as R's. ANN reaches -628.3437110 (R -628.3437145), ZZZ the same ETS(A,N,A) at -552.548 (R -556.051: R's
+     optimiser stops earlier), so the forecasts differ (ZZZ 3e-3, hw 2%, stlf 2e-4). The starting states use a linearly
+     interpolated copy.

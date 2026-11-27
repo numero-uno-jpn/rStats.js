@@ -327,20 +327,14 @@ invariance (the same value after a change of scale or origin where theory says s
   likelihood differences up to 1e-2). Now every start is refined by L-BFGS-B within the box of the bounds alternated
   with Nelder-Mead: the same optimum at every scale (and shift, for additive models) to 1e-8.
 
-- **Short series in ets** (log 107; for the user): R fits no likelihood when n <= npars + 4 (a Holt-Winters fit with
+- **Resolved (log 108, the user's decisions 2026-11-28):** missing values in ets / ses / holt / hw, kpss.test and
+  mstl / stlf, auto.arima on exact fits and naive / rwf after a missing value now as R's.
+
+- **Short series in ets** (log 107; for the user; decided 2026-11-28: imitate R): R fits no likelihood when n <= npars + 4 (a Holt-Winters fit with
   simple starting values, damping dropped, an additive trend added to seasonal models, fixed parameters when n < 2m)
   and drops the seasonal component when n <= m. rStats.js now only refuses AICc's without a positive denominator; it
   still fits such models by the likelihood when asked for one explicitly, and fails below four values. Imitate R's
   simple fits, or refuse such models with a clear error?
-
-- **Missing values in ets / ses / holt / hw, kpss.test, mstl / stlf** (log 107): R accepts them (ets skips them in its
-  filter, mstl interpolates by na.interp); rStats.js: clear errors.
-
-- **auto.arima on an exact fit** (log 107): R returns the mean model with sigma2 0 for a constant series (zero for all
-  zeros) and ARIMA(0,1,0) with drift for a straight line; rStats.js's mean model fails (an unbounded likelihood), so it
-  chooses the zero-mean model (sigma2 = the square of the constant) or fails (all zeros).
-
-- **naive / rwf with a missing value** (log 107): R's residual after the NA is a two-step error; rStats.js's is NA.
 
 - **ets's time** (log 107): 20 s for ets(USAccDeaths) with ZZZ, 49 s on 24 values (the seasonal models 1-7 s each).
 

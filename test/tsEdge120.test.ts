@@ -184,3 +184,37 @@ describe("time series: degenerate and short series (log 107)", () => {
     }
   }, 300_000);
 });
+
+describe("time series: missing values and exact fits as R's (log 108, the user's decisions 2026-11-28)", () => {
+  const close = (a: readonly number[], b: readonly number[], tol: number): void => a.forEach((v, i) => expect(Math.abs(v / b[i]! - 1), `${i}`).toBeLessThan(tol));
+  it("naive / snaive / rwf: the step from the last observed value of the same season", () => {
+    close(naive(yNA, { h: 2 }).upper.map((r) => r[1]!), R3.na.naive.upper, 1e-15);
+    close(snaive(yNA, { frequency: 12, h: 2 }).upper.map((r) => r[1]!), R3.na.snaive.upper, 1e-15);
+    const d = rwf(yNA, { h: 2, drift: true }); close(d.mean, R3.na.rwf_drift.mean, 1e-15); close(d.upper.map((r) => r[1]!), R3.na.rwf_drift.upper, 1e-14);
+  });
+  it("kpssTest: the residuals of the observed values, n the length", () => {
+    expect(Math.abs(kpssTest(yNA).statistic / R3.na.kpss.statistic - 1)).toBeLessThan(1e-13);
+    expect(Math.abs(kpssTest(yNA, { null: "Trend" }).statistic / R3.na.kpss_trend.statistic - 1)).toBeLessThan(1e-13);
+  });
+  it("mstl: the decomposition of naInterp(x), data and remainder missing there", () => {
+    const m = mstl(yNA, { frequency: 12 });
+    expect(Number.isNaN(m.data[29]!) && Number.isNaN(m.remainder[29]!)).toBe(true);
+    close([m.trend[29]!, m.seasonal![29]!], R3.na.mstl.row30.slice(1, 3), 1e-12);
+    close([m.trend[0]!, m.seasonal![0]!, m.remainder[0]!], R3.na.mstl.first.slice(1), 1e-12);
+  });
+  it("ets: missing values skipped by the filter; R's log-likelihood (n the length) or a higher one", () => {
+    const f = ets(yNA, { frequency: 12, model: "ANN" });
+    expect(f.loglik).toBeGreaterThanOrEqual(R3.na.ets_ANN.loglik - 1e-9);
+    expect(Math.abs(f.sigma2 / R3.na.ets_ANN.sigma2 - 1)).toBeLessThan(1e-6);
+    expect(Number.isNaN(f.residuals[29]!)).toBe(true);
+    const z = ets(yNA, { frequency: 12 });
+    expect(z.method).toBe(R3.na.ets_ZZZ.method); expect(z.loglik).toBeGreaterThanOrEqual(R3.na.ets_ZZZ.loglik);
+  }, 300_000);
+  it("autoArima on exact fits: ARIMA(0,d,0)(0,D,0) with the constant, sigma2 0", () => {
+    for (const nm of ["const", "zero", "line", "season"]) {
+      const f = autoArima(R2.inputs[nm] as number[], { frequency: 12 }); const r = R2.runs[nm].auto_arima;
+      expect(f.arma, nm).toEqual(r.arma); expect(f.coef, nm).toEqual([r.coef]);
+      expect(forecastFromArima(f, { h: 3 }).mean, nm).toEqual(r.mean);
+    }
+  });
+});

@@ -158,6 +158,15 @@ export interface ForecastArimaResult extends ArimaResult {
  */
 export function forecastArima(y: readonly number[], options: ForecastArimaOptions = {}): ForecastArimaResult {
   checkOptions(options, FORECAST_ARIMA_KEYS, "forecastArima"); // generated: option-keys.mjs
+  return forecastArimaCore(y, options);
+}
+
+/** forecastArima with all coefficients fixed (autoArima's exact fits, log 108). Not exported from the entries. */
+export function forecastArimaFixed(y: readonly number[], options: ForecastArimaOptions, fixed: readonly number[]): ForecastArimaResult {
+  return forecastArimaCore(y, options, fixed);
+}
+
+function forecastArimaCore(y: readonly number[], options: ForecastArimaOptions, fixed?: readonly number[]): ForecastArimaResult {
   const order = options.order ?? [0, 0, 0]; const seasonal = options.seasonal ?? [0, 0, 0];
   const frequency = options.frequency ?? 1;
   const lambda = options.lambda === "auto" ? boxCoxLambda(y, { frequency }) : options.lambda ?? null;
@@ -174,7 +183,7 @@ export function forecastArima(y: readonly number[], options: ForecastArimaOption
   // far from unit scale, the fit of z / c (a power of two) as in arima, and forecast's sigma2 from its residuals, so
   // that the squares stay in range (1.20.0, log 104)
   const c0 = powerOfTwoScale(z); const c = Math.abs(Math.log2(c0)) > 200 ? c0 : 1;
-  const fitS = arima(c === 1 ? z : z.map((v) => v / c), { order, seasonal: { order: seasonal, period: frequency }, frequency, includeMean, method: options.method ?? "CSS-ML",
+  const fitS = arima(c === 1 ? z : z.map((v) => v / c), { order, seasonal: { order: seasonal, period: frequency }, frequency, includeMean, method: options.method ?? "CSS-ML", ...(fixed ? { fixed: fixed.map((v) => v / c) } : {}),
     ...(xreg.length ? { xreg, xregNames: names } : {}) });
   const fit = c === 1 ? fitS : unscaleArima(fitS, c, z);
   const ncoef = fit.coef.length;

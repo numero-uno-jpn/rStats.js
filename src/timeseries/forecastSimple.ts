@@ -72,8 +72,13 @@ export function rwf(y: readonly number[], options: { h?: number; drift?: boolean
   const h = options.h ?? 10; const level = [...(options.level ?? [80, 95])]; const drift = options.drift ?? false; const lag = options.lag ?? 1;
   // a missing value is skipped by the residual sd; at least lag + 1 values (R fails at n <= lag; log 107)
   y = tsInput(y, "rwf", { missing: "allow", minLength: lag + 1 });
-  const n = y.length; const b = drift ? (y[n - 1]! - y[0]!) / (n - 1) : 0;
-  const fitted = y.map((_, t) => (t < lag ? NaN : y[t - lag]! + b));
+  // with missing values as R's (log 108): the fitted value is the last observed value of the same season (y_{t - j lag},
+  // the smallest j with it observed), and the drift the mean of those steps (equal to 1e-16 in the intervals)
+  const n = y.length;
+  const prev = y.map((_, t) => { for (let k = t - lag; k >= 0; k -= lag) if (!Number.isNaN(y[k]!)) return y[k]!; return NaN; });
+  const steps = y.map((v, t) => v - prev[t]!).filter(Number.isFinite);
+  const b = drift ? steps.reduce((a, v) => a + v, 0) / steps.length : 0;
+  const fitted = prev.map((v) => v + b);
   const residuals = y.map((v, t) => v - fitted[t]!);
   const res = residuals.filter(Number.isFinite);
   // on the residuals divided by a power of two c (exact), times c: no overflow of the squares
@@ -83,7 +88,7 @@ export function rwf(y: readonly number[], options: { h?: number; drift?: boolean
   const se = Array.from({ length: h }, (_, i) => {
     const k = i + 1;
     if (lag > 1) return sigma * Math.sqrt(Math.floor((k - 1) / lag) + 1);
-    return drift ? sigma * Math.sqrt(k * (1 + k / (n - 1))) : sigma * Math.sqrt(k);
+    return drift ? sigma * Math.sqrt(k * (1 + k / steps.length)) : sigma * Math.sqrt(k);
   });
   return { mean, ...intervals(mean, se, level, zq), level, fitted, residuals,
     method: lag > 1 ? "Seasonal naive method" : drift ? "Random walk with drift" : "Random walk" };
