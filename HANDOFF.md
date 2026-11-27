@@ -21,8 +21,18 @@ R との違いが 11-14 増えた (croston・easter の四半期・hw の simple
 **さらに続き (2026-11-27):** meta を実装した (src/meta/: metagen・metabin・metaother (metacont・metainc・metacor・metamean・metarate・
 metaprop・metapropGlmm)・metaextra (metaSubgroup・metabias・trimfill・metareg・metainf・metacum・baujat))。oracle/meta.R、
 test/meta.test.ts 26 件、ログ 96-100。τ² の区間 J/BJ は Ruben の級数。rma の PM・EB が Q ≤ df で NaN だった不具合を直した
-(1.20.0 の変更点に書く)。R の REML の止まり方 (絶対閾値 1e-5) による差は R との違い 15。**次は netmeta (ログ 71-74, 77)。**
-入口 (/tests への配線)、型、option-keys、文書はまだ。
+(1.20.0 の変更点に書く)。R の REML の止まり方 (絶対閾値 1e-5) による差は R との違い 15。
+netmeta 一式も実装した (src/meta/netmeta.ts、oracle/netmeta.R、test/netmeta.test.ts 10 件、ログ 101)。netmeasures の meanpath・minpar は
+再現できず、proportion だけを返す (仕様書の Open points)。配線済み: メタ分析を /tests に、option-keys を生成、doc コメントの R の名前と
+@category、docs/r-functions.md (英)。
+
+**1.20.0 の残り (セッション 40 の終わり、2026-11-27):**
+1. 端のケースの点検 (仕様書の Edge-case plan、全部の関数を全部の軸で、メモリ feedback-rstats-comprehensive-edge-checks)。まだ手を付けていない
+2. 文書: CHANGELOG (rma の PM・EB の不具合の修正も)、docs/differences-from-r.md に R との違い 1-15、日本語版
+   (docs/ja/r-functions.json に 103 件の説明が不足 → test/rIndexDoc の ja が落ちる。訳は ChatGPT に依頼)、API の訳 (docs/ja/api/*.json)
+3. デモ: test/demo.test.ts「every export of the areas appears in some example」が落ちる (新しい関数のデモの例がない)
+4. 版 1.20.0、ユーザーの確認、main へ squash とタグ (push・タグはユーザーの確認なしにしない)
+- 全体のテストで既知の失敗: test/issue179.test.ts・test/issue513.test.ts の最終桁の差は**セッション前 (d719c7c4) から同じ** (今回の変更と無関係、別に調べる)
 
 **ユーザーの指示:** 未解決 2 件 (下の A・B) をさらに探る。そのあと 1.20.0 の残り (下の「残り」)。作業は Mac で、作業ブランチ
 `dev/ts-meta-1.20` (push していない)。**push・タグはユーザーの確認なしにしない。** R の実験は毎回チェッカーを先に
