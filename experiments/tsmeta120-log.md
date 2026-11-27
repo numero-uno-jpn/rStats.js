@@ -1191,3 +1191,22 @@ choices under several criteria).
    - **metainf and metacum return only the per-study results** (the overall estimate is not appended); metacum's tau2
      is NA for the first (one-study) step.
    - baujat: x = w (TE - TE.common)^2, y = (TE.common - TE.common without the study)^2 times the weight sum without it.
+
+## netmeta implemented (2026-11-27, session 40)
+
+101. `src/meta/netmeta.ts` against `oracle/netmeta.R` (the 5-treatment network of experiment 3 with three three-arm
+   studies and heterogeneity, a 4-treatment network and its second outcome, arm-level binary and continuous data, a
+   disconnected graph, the CNMA networks of experiments 4-5): **netmeta (all common, random, direct and prediction
+   matrices, Q and its split, tau2, I2 with its interval, the weights), netrank (both models, desirable and
+   undesirable), netsplit, decomp.design, netleague (random and common text), pairwise (OR, RR, RD, MD),
+   netconnection (subnets, distances), netcomb and discomb (components, combinations, Q.additive, tau2), netposet (P
+   and M0, both models): exact (1e-9) at the first or second run**, with these details found:
+   - netsplit names a comparison with the reference group "other:reference" and lists those first;
+   - the prediction matrices have 0 on the diagonal (t on df.Q, sqrt(se^2 + tau2));
+   - netmeasures uses the random-effects model by default (the fit has one); its proportion = v_net / v_dir;
+   - Q.heterogeneity = the sum of the per-design Q (df (studies - 1)(arms - 1)), Q.inconsistency the rest.
+   - **netmeasures' meanpath and minpar not reproduced**: the sum of the absolute flows of the aggregated hat matrix
+     row (with the direct weights, or the summed multi-arm adjusted weights) is 3-9% above R's mean path length, and
+     1 / the largest flow below R's minimal parallelism (A:B: 1.77 against 2.72); R's values look like flows per
+     contrast for minpar, which would make the sum larger, not smaller. Left out of rStats.js (netmeasures returns the
+     proportion only); ReactiveStat does not call it. An open point for the user.

@@ -282,6 +282,9 @@ as a regression with ARMA errors.
 
 # Open points found during the implementation (for the user)
 
+- **netmeasures' mean path length and minimal parallelism** (log 101): not reproduced by the flows of the aggregated
+  hat matrix (3-9% and 20-40% off); rStats.js's netmeasures returns the direct evidence proportion only.
+
 
 - **auto.arima's neighbour order:** the diagonal steps are (-1, -1), (-1, +1), (+1, -1), (+1, +1) (the fixture's traces;
   log 43 had the middle two the other way round), and the non-stepwise search fits the model without the constant
