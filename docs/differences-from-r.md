@@ -2082,3 +2082,63 @@ The references are R's `stats` functions. The implementation decisions are recor
 - As R: given thresholds are sorted, and from two given thresholds on the last point is (0, 0); TP and FP are not
   bounded by 1 and the AUC is the trapezoid in the order of the thresholds.
 - A prediction time before the first time: S = 1 and TP is NaN (R reads the Kaplan-Meier at the first time instead).
+
+## Time series and meta-analysis (1.20.0)
+
+The references are stats 4.6.2, forecast 9.0.2, tseries, urca, meta and netmeta 3.7.0 (x86_64 R); the details are in
+[oracle/tsmeta-behaviour.md](../oracle/tsmeta-behaviour.md) ("Departures from R").
+
+### Where R is in error and rStats.js follows the method
+
+- `predictHoltWinters`, multiplicative intervals: the seasonal factors are taken cyclically (R reads them at fixed
+  positions, R Bugzilla 19369).
+- `stl` with robustness weights: 6 times the true median of |R| (R takes a wrong order statistic for some even
+  lengths, R Bugzilla 19370).
+- `forecastEts`: the damped trend of class 3 models at h = 1, and the seasonal term of the ANA / MNA interval
+  coefficients, as the model defines them; `ets`'s amse for damped trends likewise.
+- `hw(seasonal = "multiplicative")` and `ets` in general are optimised to the optimum (R's optimiser can stop at a
+  worse point; the log-likelihood is then higher in rStats.js and the forecasts can differ by a few percent on short
+  series).
+- `autoArima`'s stepwise search continues from the best model's own neighbours (R skips the neighbours without the
+  constant after ARIMA(0,d,0) without one).
+- `ndiffs(test = "pp")` uses Phillips and Perron's statistic with the lagged level (urca's ur.pp uses the current one);
+  `ocsbTest` with a lag method compares the lags 0..maxlag and uses the chosen one (forecast reports and uses one lag
+  less).
+- `croston` forecasts from the state after the last observation; `easter(easterMon = true)` on quarterly data gives
+  each quarter its share; `hw(initial = "simple")`'s intervals use the model's beta; `thetaf` with a seasonal
+  adjustment reseasonalises the interval bounds and gives the residuals y - fitted.
+- `rma` and the meta functions: REML is iterated to its maximum (metafor stops at an absolute change of 1e-5, which
+  can leave a small positive tau2).
+- `meanf` with a missing value: the interval uses the number of observed values (R uses the length).
+
+### Scale
+
+- `ets`, `hw`, `holtWinters`, `thetaf` and the tests do not depend on the scale of the series; `arima`,
+  `forecastArima`, `autoArima` and `ar` give R's fits at ordinary scales and stay exact beyond 1e±60. From 1e-300 to
+  2^1000 the forecasts are equivariant and the statistics invariant. R's ets, hw and HoltWinters move by 2-40% at
+  1e-150 times a series, and most of R's fits and tests fail beyond 1e±150.
+- `netmeta` is equivariant in TE and seTE from 1e-150 to 1e150 (R's fails from 1e±10 on with a singular system); the
+  meta functions likewise (`confintRma`'s Q-profile bounds were wrong away from unit scale before 1.20.0).
+
+### Short, degenerate and invalid series
+
+- An infinite value is an error in every time-series function (R fails with various messages or returns NaN), except
+  `acf` / `pacf` / `ccf` and the arithmetic filters (`tsFilter`, `diffinv`, `ma`), which behave as R's.
+- Missing values are accepted as R accepts them: `arima` and its relatives, `ets` / `ses` / `holt` / `hw` (skipped by
+  the filter; R's log-likelihood with n the length), `boxTest` (the pairs both observed), `kpssTest`, `mstl` / `stlf`
+  (through `naInterp`), `naive` / `snaive` / `rwf` (the last observed value of the season), `boxCoxLambda`,
+  `ndiffs` / `nsdiffs`, `naInterp`, `tsclean`, `tslm`; elsewhere they are errors, as in R.
+- Short series as R: `ets` drops the seasonal component when n <= m and fits models with n <= (number of parameters)
+  + 4 by simple starting values without a likelihood; `autoArima` limits the seasonal orders to n / (3m) and uses the
+  AIC below four values, and returns the exact fit of a constant or polynomial series (sigma2 = 0); `hw` needs m + 3
+  values. Where R returns NA forecasts (ets's simple seasonal fits below two periods) or NaN statistics (terasvirta and
+  white on 3-5 values, pp on 3, po with collinear columns), rStats.js gives an error.
+- A constant series: `ets` forecasts the constant (the model asked for at its starting parameters); `stl` with
+  robustness weights and `tsoutliers` handle exact fits (R's results there come from rounding noise).
+- `netmeta`: a network without heterogeneity degrees of freedom reports tau2 as NaN (R's NA); missing TE / seTE and
+  seTE <= 0 are errors (R drops those comparisons with a warning).
+
+### Not supported
+
+- Plots; `netmeasures`' mean path length and minimal parallelism (the direct evidence proportion only); `supsmu`
+  keeps tied x as separate points (R returns the unique x).
