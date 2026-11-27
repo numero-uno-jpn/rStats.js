@@ -7,6 +7,9 @@ import { glm } from "../src/index.js";
 import { glmConfint } from "../src/models/glmConfint.js";
 
 const rel = (a: number, b: number): number => Math.abs(a / b - 1);
+// Within k units in the last place: Node's Math functions differ from Linux's in the last bit on macOS (its libm;
+// experiments/tsmeta120-log.md 106), so exact equality only held on Linux.
+const ulps = (a: number, b: number): number => { const d = new DataView(new ArrayBuffer(16)); d.setFloat64(0, a); d.setFloat64(8, b); return Math.abs(Number(d.getBigInt64(0) - d.getBigInt64(8))); };
 // intercept-only binomial (estimate 0, se 1): the limits are +-2 acosh(exp(c^2 / 8))
 const bin = glm([[], [], [], []], [0, 1, 0, 1], { family: "binomial" });
 // intercept-only poisson (estimate log 2.5): the limits solve 20 (e^t - 1 - t) = c^2
@@ -45,11 +48,14 @@ describe("issue #179", () => {
     expect(Math.abs(p.upper[0]! - 0.91629469519883478)).toBeLessThan(1e-14);
   });
 
-  it("leaves the limits at level 1.6e-3 and above unchanged", () => {
-    expect(glmConfint(bin, { level: 0.0016 })).toEqual({ lower: [-0.002005304131606309], upper: [0.0020053041315946374] });
-    expect(glmConfint(bin, { level: 0.01 })).toEqual({ lower: [-0.01253351052591734], upper: [0.012533510525923663] });
-    expect(glmConfint(bin, { level: 0.95 })).toEqual({ lower: [-2.119930271104542], upper: [2.1199302711045425] });
-    expect(glmConfint(poi, { level: 0.0016 })).toEqual({ lower: [0.9156565320537257], upper: [0.9169247976531394] });
-    expect(glmConfint(poi, { level: 0.95 })).toEqual({ lower: [0.2252943449805083], upper: [1.4781522700693732] });
+  it("leaves the limits at level 1.6e-3 and above unchanged (to 8 ulp)", () => {
+    const same = (r: { lower: number[]; upper: number[] }, lower: number, upper: number): void => {
+      expect(ulps(r.lower[0]!, lower)).toBeLessThanOrEqual(8); expect(ulps(r.upper[0]!, upper)).toBeLessThanOrEqual(8);
+    };
+    same(glmConfint(bin, { level: 0.0016 }), -0.002005304131606309, 0.0020053041315946374);
+    same(glmConfint(bin, { level: 0.01 }), -0.01253351052591734, 0.012533510525923663);
+    same(glmConfint(bin, { level: 0.95 }), -2.119930271104542, 2.1199302711045425);
+    same(glmConfint(poi, { level: 0.0016 }), 0.9156565320537257, 0.9169247976531394);
+    same(glmConfint(poi, { level: 0.95 }), 0.2252943449805083, 1.4781522700693732);
   });
 });

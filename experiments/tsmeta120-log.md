@@ -1325,4 +1325,5 @@ choices under several criteria).
    (the Mac's version). Node on macOS differs from Linux in the last bit of Math.log, atan, pow, log1p, log10, log2,
    asinh, acosh, atanh, tan, atan2 / hypot (0.01-0.7% of 20000 inputs each; exp, sin, cos, sqrt, expm1, cbrt, sinh,
    cosh, tanh, asin, acos agree): the system's libm. The differences: 6 ulp in the poisson limit, 1 ulp in the
-   round trip. The tests ask for exact equality; a tolerance of a few ulp would keep their meaning (for the user).
+   round trip. The tests asked for exact equality; with the user's approval they now allow 8 ulp (issue179's
+   unchanged limits) and 2 ulp (issue513's round trips).
