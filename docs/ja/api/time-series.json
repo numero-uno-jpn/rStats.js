@@ -402,87 +402,87 @@
   "ForecastArimaResult#summary": {
     "hash": "17484522c848",
     "en": "Result of {@link forecastArima}: stats' fit plus forecast's quantities.",
-    "ja": ""
+    "ja": "forecast の数量を加えた stats の当てはめ結果です。"
   },
   "ForecastArimaResult.drift#summary": {
     "hash": "be12634968a4",
     "en": "Whether a drift column was added (the last regressor).",
-    "ja": ""
+    "ja": "ドリフト列 (最後の回帰変数) を追加したかどうかです。"
   },
   "ForecastArimaResult.fitted#summary": {
     "hash": "d88b13d51913",
     "en": "Fitted values on the original scale.",
-    "ja": ""
+    "ja": "元の尺度での当てはめ値です。"
   },
   "ForecastArimaResult.series#summary": {
     "hash": "0685e62397d3",
     "en": "The series on the original scale.",
-    "ja": ""
+    "ja": "元の尺度での系列です。"
   },
   "ForecastArimaResult.sigma2#summary": {
     "hash": "92851c8278c7",
     "en": "forecast's innovations variance: sum of squared residuals / (nobs - number of coefficients).",
-    "ja": ""
+    "ja": "forecast のイノベーション分散です: 残差平方和 / (nobs - 係数の数)。"
   },
   "ForecastArimaResult.sigma2Mle#summary": {
     "hash": "9299dd1b9f48",
     "en": "stats' MLE of the innovations variance.",
-    "ja": ""
+    "ja": "stats によるイノベーション分散の最尤推定値です。"
   },
   "ForecastOutput#summary": {
     "hash": "433538c38d15",
     "en": "A forecast of {@link forecast}.",
-    "ja": ""
+    "ja": "{@link forecast} の予測値です。"
   },
   "ForecastResult#summary": {
     "hash": "94ab4e3bb211",
     "en": "Result of {@link forecast}.",
-    "ja": ""
+    "ja": "{@link forecast} の結果です。"
   },
   "ForecastResult.se#summary": {
     "hash": "e42870824942",
     "en": "Forecast standard errors on the transformed scale (where analytic).",
-    "ja": ""
+    "ja": "予測標準誤差です。解析的に求められる場合は変換後の尺度で示します。"
   },
   "HoltWintersOptions#summary": {
     "hash": "51158bffce52",
     "en": "Options of {@link holtWinters}.",
-    "ja": ""
+    "ja": "{@link holtWinters} のオプションです。"
   },
   "HoltWintersOptions.alpha#summary": {
     "hash": "92b8fd3e45bc",
     "en": "Given, or estimated when undefined; `false` for beta / gamma leaves that component out.",
-    "ja": ""
+    "ja": "指定された値です。undefined の場合は推定されます。beta / gamma に `false` を指定すると、その成分を含めません。"
   },
   "HoltWintersResult#summary": {
     "hash": "fc19ee893b0b",
     "en": "Result of {@link holtWinters}.",
-    "ja": ""
+    "ja": "{@link holtWinters} の結果です。"
   },
   "HoltWintersResult.coefficients#summary": {
     "hash": "43c5cd47cc1a",
     "en": "a, b, s1..sf (R's coefficients).",
-    "ja": ""
+    "ja": "a、b、s1..sf (R の係数) です。"
   },
   "HoltWintersResult.fitted#summary": {
     "hash": "af2ef7b1e401",
     "en": "One-step fitted values from the first fitted time (R's fitted xhat).",
-    "ja": ""
+    "ja": "最初の当てはめ時点からの 1 期先当てはめ値です (R の fitted xhat)。"
   },
   "HoltWintersResult.start#summary": {
     "hash": "95df6205d43a",
     "en": "The time index (0-based) of the first fitted value.",
-    "ja": ""
+    "ja": "最初の当てはめ値の時点インデックスです (0 始まり)。"
   },
   "MstlResult#summary": {
     "hash": "924882d9b85b",
     "en": "Result of {@link mstl}.",
-    "ja": ""
+    "ja": "{@link mstl} の結果です。"
   },
   "MstlResult.seasonal#summary": {
     "hash": "f7a0494b99f6",
     "en": "The seasonal component (absent for a non-seasonal series).",
-    "ja": ""
+    "ja": "季節成分です (非季節系列では存在しません)。"
   },
   "PacfOptions#summary": {
     "hash": "d6327edae629",
@@ -502,67 +502,67 @@
   "PredictArimaResult#summary": {
     "hash": "4e28e78d393c",
     "en": "Result of {@link predictArima}.",
-    "ja": ""
+    "ja": "{@link predictArima} の結果です。"
   },
   "SimpleForecast#summary": {
     "hash": "65d19e4c93f0",
     "en": "A forecast with intervals and the in-sample fit.",
-    "ja": ""
+    "ja": "予測区間と標本内の当てはめを含む予測値です。"
   },
   "SimpleForecast.model#summary": {
     "hash": "6803eee078b8",
     "en": "The ets model behind ses / holt / hw / stlf.",
-    "ja": ""
+    "ja": "ses / holt / hw / stlf の背後にある ets モデルです。"
   },
   "StlOptions#summary": {
     "hash": "d3f5a96f151a",
     "en": "Options of {@link stl}.",
-    "ja": ""
+    "ja": "{@link stl} のオプションです。"
   },
   "StlOptions.frequency#summary": {
     "hash": "3fb628882243",
     "en": "The seasonal period (R's frequency).",
-    "ja": ""
+    "ja": "季節周期です (R の frequency)。"
   },
   "StlOptions.sWindow#summary": {
     "hash": "57cf05e90c26",
     "en": "The seasonal loess span (odd, >= 7 recommended) or \"periodic\".",
-    "ja": ""
+    "ja": "季節成分の loess の幅です (奇数。7 以上を推奨)。または \"periodic\" です。"
   },
   "StlResult#summary": {
     "hash": "b43c29ec8750",
     "en": "Result of {@link stl}.",
-    "ja": ""
+    "ja": "{@link stl} の結果です。"
   },
   "StlResult.weights#summary": {
     "hash": "225ae66312b2",
     "en": "The robustness weights of the last pass (all 1 without robustness iterations).",
-    "ja": ""
+    "ja": "最後の反復のロバスト性重みです (ロバスト性反復を行わない場合はすべて 1)。"
   },
   "StlResult.win#summary": {
     "hash": "f88a3850c20a",
     "en": "The windows (s, t, l), degrees, jumps and iteration counts used.",
-    "ja": ""
+    "ja": "使用したウィンドウ (s、t、l)、次数、ジャンプ幅、反復回数です。"
   },
   "StlmResult#summary": {
     "hash": "b552d3dd8b1c",
     "en": "Result of {@link stlm}.",
-    "ja": ""
+    "ja": "{@link stlm} の結果です。"
   },
   "StlmResult.adjusted#summary": {
     "hash": "94b0f720eb78",
     "en": "The seasonally adjusted series (transformed scale).",
-    "ja": ""
+    "ja": "季節調整済み系列です (変換後の尺度)。"
   },
   "StlmResult.fitted#summary": {
     "hash": "3f1e978a5c4c",
     "en": "The in-sample fit on the original scale.",
-    "ja": ""
+    "ja": "元の尺度での標本内当てはめです。"
   },
   "StlmResult.model#summary": {
     "hash": "60b25cfe2c5f",
     "en": "The model of the seasonally adjusted series.",
-    "ja": ""
+    "ja": "季節調整済み系列のモデルです。"
   },
   "StlmResult.stl#summary": {
     "hash": "efd1d3dbc471",
