@@ -22,7 +22,7 @@ const ALLOWED_PACKAGES = new Set([
   "MASS", "quantreg", "SparseM", "MatrixModels", "geepack", "glmnet", "PMCMRplus", "outliers", "ca", "Matching", "cobalt",
   "tableone", "WeightIt", "CBPS", "survey", "sandwich", "nnet", "mediation", "interactions", "jtools", "lmtest",
   "AER", "betareg", "Formula", "qcc", "BradleyTerry2", "qvcalc", "timeROC", "survivalROC", "forecast", "tseries",
-  "meta", "netmeta", "jsonlite", "stats", "utils", "base",
+  "meta", "netmeta", "urca", "jsonlite", "stats", "utils", "base",
 ]);
 
 /** Functions of the reference packages: they may only be called. */
@@ -501,6 +501,11 @@ const REFERENCE_FUNCTIONS = [
   "plot.ipcwsurvivalROC", "plotAUCcurve", "plotAUCcurveDiff", "print.ipcwcompetingrisksROC",
   "print.ipcwcompetingrisksSeSpPPVNPV", "print.ipcwsurvivalROC", "print.ipcwsurvivalSeSpPPVNPV", "SeSpPPVNPV", "timeROC",
   "survivalROC", "survivalROC.C",
+  // urca 1.3.4 (forecast's dependency, called directly in the 1.20.0 experiments from log 85): its exported functions
+  // (not the generics plot, show, summary)
+  "ablrtest", "alphaols", "alrtest", "bh5lrtest", "bh6lrtest", "blrtest", "ca.jo", "ca.po", "cajolst", "cajools",
+  "cajorls", "lttest", "plotres", "punitroot", "qunitroot", "unitrootTable", "ur.df", "ur.ers", "ur.kpss", "ur.pp",
+  "ur.sp", "ur.za",
   // Time series (1.20.0): the exported functions and S3 methods of forecast 9.0.2 and tseries 0.10.63 (not tseries'
   // `value`: earlier experiments use it as a variable name), and stats' ARIMA, decomposition, filtering, exponential
   // smoothing and autoregression (R's own code, GPL like the packages)

@@ -924,3 +924,46 @@ rejects. This is an optimiser path; it is not near the chosen model.
    - rStats.js: arima0 maximises the exact likelihood, which equals R's arima0(delta = -1); the statsTs fixture records
      arima0 with delta = -1. ar(method = "mle") uses R's default delta, so it is compared loosely (coefficients and
      var.pred within 1e-3; the orders are equal).
+
+## The three open points, resumed with public building blocks (2026-11-27, asked for by the user)
+
+The method changed: instead of guessing formulas from R's final decisions (one bit per series), I compare inside R
+against the public functions that might be behind them, and record intermediate quantities (per-time residuals, the
+choices under several criteria).
+
+85. ndiffs(test = "pp"):
+   - `tsmeta120-ndiffs6.R`: `ndiffs(x, test = "pp", lags = "long")` changes the decisions (urca's ur.pp argument), and
+     `lshort = FALSE` (tseries' pp.test) is ignored. **R's p-value = ur.pp(x, type = "Z-tau", model, lags =
+     "short")'s statistic interpolated linearly in ur.pp's own critical values: 45 of 45 (trend) and 67 of 67 (constant)
+     to 1e-9. Those critical values = MacKinnon's (1991) response surfaces at N = n - 1: 0 difference in all 80
+     series** (the Fuller table rows of log 40-41 were close but not the source).
+   - With these critical values and my Phillips-Perron statistic, the fixture's PP decisions are 600 of 600 (level and
+     trend), and in ndiffs6's 80 designed series all 560 decisions agree; but **my statistic differs from ur.pp's by up
+     to 0.025 (constant) and 0.05 (trend)**, p by up to 3.4e-3.
+   - `tsmeta120-ndiffs7.R` (ur.pp's @testreg, @res, @auxstat): the test regression and residuals equal mine (4e-14);
+     no long-run variance makes my form equal ur.pp's statistic, and mixing SSR / nn with the lm sigma^2 does not
+     either (best 0.0135, a grid I should not have widened). `tsmeta120-ndiffs8.R` (designed: use.lag = 0..4): **with
+     no lags the statistic is still not t = (rho - 1) / se** (lh: -3.650 against -3.381), so ur.pp's form keeps a term
+     that does not vanish with the lag. Not resolved; **left open for the user** (decisions agree everywhere tested).
+   - Implemented: ndiffs's PP p-value from the MacKinnon critical values at N = n - 1.
+86. `tsmeta120-nsdiffs-ocsb2.R` (the same 300 series as log 80): ocsb.test's lag under AIC, BIC, AICc with maxlag 1,
+   2, 3, and public candidates for the criterion: ar()'s order for methods ols (with and without demean / intercept),
+   yule-walker (with and without demean), burg and mle; Arima(w, c(L, 0, 0)) AIC; AIC of ocsb.test's fitted model with
+   a fixed lag L:
+   - none matches the AIC choice with maxlag 3 (26 to 50 of 295);
+   - **the chosen lag is always at most maxlag - 1** (maxlag 1: always 0; maxlag 3: never 3), across all nine choices;
+   - over lags 0..maxlag - 1, or fitting 1..maxlag and reporting one less, the fitted models' AIC / BIC / AICc agree in
+     at most 1827 of 2685 choices.
+   - **Not resolved: left open for the user**, with the bound above. nsdiffs(test = "ocsb") keeps lag 0.
+87. `tsmeta120-arima0-2.R` (designed: no estimation, init = the coefficients and optim maxit = 0, confirmed by the
+   returned coef; residuals per time point for delta = -1, 1e-4, 0.01, 0.1, 0.5; MA(1) with theta 0.5 and 0.9,
+   ARMA(1,1), AR(2), MA(2) on lh and a simulated series of 120):
+   - the exact residuals = v_t / sqrt(F_t) (0 difference);
+   - **the switch: at the first t >= 1 with F_t - 1 < delta** (F_t the exact prediction variance in units of sigma2):
+     the first residual that leaves the exact ones is at that t in all 20 cases (AR(2) switches with no change, its F
+     is exactly 1 by then);
+   - **after the switch: F = 1, and the innovations by the ARMA recursion whose past innovations are the
+     standardised residuals** (0 to 4e-16 in all 20; with the raw v_t, 7e-6 to 0.2 off; switching at t = 0 is off);
+   - **loglik = -0.5 (n log(2 pi sigma2) + sum log F_t over the times before the switch + n), sigma2 = sum e^2 / n:
+     within 3e-14 in all 50 cases.** Resolved: rStats.js's arima0 takes `delta` (default 0.01) and agrees with R's
+     arima0 both with delta = -1 and with the default.

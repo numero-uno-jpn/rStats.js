@@ -4,7 +4,8 @@
 
 import { pchisq } from "../distributions/chisq.js";
 import { lm } from "../models/lm.js";
-import { arima, type ArimaResult } from "./arima.js";
+import { arima, expandArma, minRootModulus, stationaryCovariance, type ArimaResult } from "./arima.js";
+import { optim } from "../optim/optim.js";
 
 // ---------------------------------------------------------------------------------------------------------------
 // filter
@@ -228,17 +229,79 @@ export function predictAr(fit: ArResult, nAhead = 1): { pred: number[]; se: numb
 // arima0
 
 /**
- * stats' `arima0()`: an ARIMA model by exact maximum likelihood of the differenced series (no diffuse prior; the mean
- * of the differenced series with `includeMean` when d + D = 0).
+ * The exact Gaussian likelihood of an ARMA model on w (mean already removed) with arima0's fast recursions (log 87):
+ * the Kalman filter until the first t >= 1 with F_t - 1 < delta (delta <= 0: never), then F = 1 and the innovations by
+ * the ARMA recursion, the past innovations being the standardised residuals. Returns -loglik / n's parts.
+ */
+function arima0Filter(w: readonly number[], phi: readonly number[], theta: readonly number[], delta: number): { ssq: number; sumlog: number; n: number; resid: number[] } {
+  const p = phi.length, q = theta.length, r = Math.max(p, q + 1); const n = w.length;
+  const P0 = stationaryCovariance(phi, theta, r);
+  let P = P0.map((row) => row.slice()); let a = new Array<number>(r).fill(0);
+  const Rv = [1, ...Array.from({ length: r - 1 }, (_, i) => theta[i] ?? 0)];
+  const T = (x: readonly number[]): number[] => Array.from({ length: r }, (_, i) => (phi[i] ?? 0) * x[0]! + (i + 1 < r ? x[i + 1]! : 0));
+  const resid: number[] = []; let ssq = 0, sumlog = 0; let fast = false;
+  // missing values force full recursions (the help page)
+  const useFast = delta > 0 && w.every((v) => !Number.isNaN(v));
+  for (let t = 0; t < n; t++) {
+    if (!fast) {
+      if (t > 0) {
+        a = T(a);
+        const TP = P.map((_, c) => T(P.map((row) => row[c]!)));
+        P = Array.from({ length: r }, (_, i) => T(TP.map((c) => c[i]!))).map((row, i) => row.map((v, k) => v + Rv[i]! * Rv[k]!));
+      }
+      if (useFast && t > 0 && P[0]![0]! - 1 < delta) fast = true;
+    }
+    if (fast) {
+      let v = w[t]!; for (let i = 0; i < p; i++) v -= phi[i]! * (t - i - 1 >= 0 ? w[t - i - 1]! : 0);
+      for (let k = 0; k < q; k++) v -= theta[k]! * (t - k - 1 >= 0 ? resid[t - k - 1]! : 0);
+      resid.push(v); ssq += v * v; continue;
+    }
+    const F = P[0]![0]!;
+    if (Number.isNaN(w[t]!)) { resid.push(NaN); continue; }
+    const v = w[t]! - a[0]!; const e = v / Math.sqrt(F); resid.push(e); ssq += e * e; sumlog += Math.log(F);
+    const PZ = P.map((row) => row[0]!); a = a.map((ak, k) => ak + (PZ[k]! * v) / F); P = P.map((row, i) => row.map((pv, k) => pv - (PZ[i]! * PZ[k]!) / F));
+  }
+  return { ssq, sumlog, n: resid.filter((v) => !Number.isNaN(v)).length, resid };
+}
+
+/**
+ * stats' `arima0()`: an ARIMA model by maximum likelihood of the differenced series (no diffuse prior; the mean with
+ * `includeMean` when d + D = 0), with R's fast recursions once the prediction variance is within `delta` of its limit
+ * (default 0.01, as R; a negative delta gives the exact likelihood, equal to arima's). Log 84, 87.
  *
  * @category Time series
  */
-export function arima0(x: readonly number[], options: { order?: readonly [number, number, number]; seasonal?: readonly [number, number, number]; frequency?: number; includeMean?: boolean } = {}): ArimaResult {
+export function arima0(x: readonly number[], options: { order?: readonly [number, number, number]; seasonal?: readonly [number, number, number]; frequency?: number; includeMean?: boolean; delta?: number } = {}): ArimaResult {
   const order = options.order ?? [0, 0, 0]; const seasonal = options.seasonal ?? [0, 0, 0]; const s = options.frequency ?? 1;
+  const delta = options.delta ?? 0.01;
   let w = x.map(Number);
   for (let k = 0; k < order[1]; k++) w = w.slice(1).map((v, i) => v - w[i]!);
   for (let k = 0; k < seasonal[1]; k++) w = w.slice(s).map((v, i) => v - w[i]!);
-  const fit = arima(w, { order: [order[0], 0, order[2]], seasonal: { order: [seasonal[0], 0, seasonal[2]], period: s }, frequency: s,
-    includeMean: (options.includeMean ?? true) && order[1] + seasonal[1] === 0, method: "ML" });
-  return { ...fit, arma: [order[0], order[2], seasonal[0], seasonal[2], s, order[1], seasonal[1]] };
+  const includeMean = (options.includeMean ?? true) && order[1] + seasonal[1] === 0;
+  // the exact fit (arima's) as the start, then the arima0 likelihood optimised from there
+  const fit = arima(w, { order: [order[0], 0, order[2]], seasonal: { order: [seasonal[0], 0, seasonal[2]], period: s }, frequency: s, includeMean, method: "ML" });
+  const [p, q, P, Q] = [order[0], order[2], seasonal[0], seasonal[2]];
+  const narma = p + q + P + Q;
+  const obj = (c: readonly number[]): number => {
+    const ar = c.slice(0, p), ma = c.slice(p, p + q), sar = c.slice(p + q, p + q + P), sma = c.slice(p + q + P, narma);
+    const { phi, theta } = expandArma(ar, ma, sar, sma, s);
+    if (phi.length && minRootModulus(phi.map((v) => -v)) <= 1) return Infinity;
+    const mu = includeMean ? c[narma]! : 0;
+    const f = arima0Filter(w.map((v) => v - mu), phi, theta, delta);
+    return 0.5 * Math.log(f.ssq / f.n) + (0.5 * f.sumlog) / f.n;
+  };
+  let coef = fit.coef.slice();
+  if (delta > 0 && coef.length > 0) {
+    let best = obj(coef);
+    for (let round = 0; round < 3; round++) {
+      const r = optim(coef, (c) => { const v = obj(c); return Number.isFinite(v) ? v : 1e300; }, { method: "Nelder-Mead", control: { reltol: 1e-14, maxit: 5000 } });
+      if (!(r.value < best - 1e-15)) break; best = r.value; coef = r.par;
+    }
+  }
+  const ar = coef.slice(0, p), ma = coef.slice(p, p + q), sar = coef.slice(p + q, p + q + P), sma = coef.slice(p + q + P, narma);
+  const { phi, theta } = expandArma(ar, ma, sar, sma, s);
+  const mu = includeMean ? coef[narma]! : 0;
+  const f = arima0Filter(w.map((v) => v - mu), phi, theta, delta);
+  const sigma2 = f.ssq / f.n; const loglik = -0.5 * (f.n * Math.log(2 * Math.PI * sigma2) + f.sumlog + f.n);
+  return { ...fit, coef, sigma2, loglik, aic: -2 * loglik + 2 * (coef.length + 1), residuals: f.resid, arma: [p, q, P, Q, s, order[1], seasonal[1]] };
 }

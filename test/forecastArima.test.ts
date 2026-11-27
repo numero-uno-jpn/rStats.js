@@ -74,8 +74,8 @@ describe("ndiffs", () => {
         if (got !== num(r[key])) bad.push(`${i} ${key}: ${got} != ${r[key]}`);
       }
     });
-    // PP with a trend: 2 decisions differ, R's statistic is 0.005 to 0.07 less negative than Phillips and Perron's
-    // closed form (experiments/tsmeta120-log.md items 78-79, left open)
-    expect(bad.slice(0, 20)).toEqual(["1 pp_trend_0.025: 1 != 2", "61 pp_trend_0.01: 0 != 1"]);
+    // PP: the critical values of urca's ur.pp = MacKinnon (1991) at N = n - 1 (log 85); the statistic differs from
+    // ur.pp's by up to 0.05 (p by up to 3.4e-3), which changes none of these decisions
+    expect(bad.slice(0, 20)).toEqual([]);
   });
 });

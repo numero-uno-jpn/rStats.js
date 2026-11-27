@@ -110,7 +110,7 @@ function polyMul(a: readonly number[], b: readonly number[]): number[] {
 }
 
 /** The full AR and MA coefficients (lags 1..) from the non-seasonal and seasonal ones. */
-function expandArma(ar: readonly number[], ma: readonly number[], sar: readonly number[], sma: readonly number[], s: number): { phi: number[]; theta: number[] } {
+export function expandArma(ar: readonly number[], ma: readonly number[], sar: readonly number[], sma: readonly number[], s: number): { phi: number[]; theta: number[] } {
   const seasonalPoly = (c: readonly number[], sign: number): number[] => {
     const p = new Array<number>(s * c.length + 1).fill(0); p[0] = 1;
     for (let i = 0; i < c.length; i++) p[s * (i + 1)] = sign * c[i]!;
@@ -205,7 +205,7 @@ function positiveDefinite(H: readonly (readonly number[])[]): boolean {
   return true;
 }
 
-function stationaryCovariance(phi: readonly number[], theta: readonly number[], r: number): number[][] {
+export function stationaryCovariance(phi: readonly number[], theta: readonly number[], r: number): number[][] {
   // S = sum_k T^k R R' T'^k by doubling: S <- S + A S A', A <- A^2 (flat arrays: this runs at every likelihood
   // evaluation and dominated the seasonal fits)
   const S = new Float64Array(r * r); const R = new Float64Array(r); R[0] = 1; for (let i = 1; i < r; i++) R[i] = theta[i - 1] ?? 0;

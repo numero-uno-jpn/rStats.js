@@ -49,8 +49,12 @@ for (cs in list(list("lh_ar1", lh, c(1, 0, 0), c(0, 0, 0)), list("lh_arma11", lh
   # delta = -1: no fast recursions, i.e. the exact likelihood (log 84); the default delta = 0.01 is an approximation
   f <- arima0(cs[[2]], order = cs[[3]], seasonal = list(order = cs[[4]], period = frequency(cs[[2]])), delta = -1,
               optim.control = list(reltol = 1e-14, maxit = 2000))
+  # and the default delta = 0.01 (fast recursions, log 87), tightened likewise
+  g <- arima0(cs[[2]], order = cs[[3]], seasonal = list(order = cs[[4]], period = frequency(cs[[2]])),
+              optim.control = list(reltol = 1e-14, maxit = 2000))
   a0[[cs[[1]]]] <- list(x = as.numeric(cs[[2]]), frequency = frequency(cs[[2]]), order = cs[[3]], seasonal = cs[[4]],
-                        coef = unname(f$coef), names = names(f$coef), sigma2 = f$sigma2, loglik = f$loglik, aic = f$aic)
+                        coef = unname(f$coef), names = names(f$coef), sigma2 = f$sigma2, loglik = f$loglik, aic = f$aic,
+                        fast = list(coef = unname(g$coef), sigma2 = g$sigma2, loglik = g$loglik, resid = as.numeric(residuals(g))))
 }
 out$arima0 <- a0
 hw <- list()

@@ -56,8 +56,8 @@ as a regression with ARMA errors.
 - The default fit stops short (coefficients 1e-6 to 2e-3); rStats.js iterates to the maximum and is compared with a
   tight refit. (log 1)
 - **arima0 / ar.mle:** ar.mle = arima0 for each order up to min(order.max, 12), aic = arima0's aic minus its minimum,
-  var.pred = arima0's sigma2 (log 12). arima0 maximises the exact likelihood; R's default delta = 0.01 approximates it
-  (log 84, open).
+  var.pred = arima0's sigma2 (log 12). arima0's likelihood (log 84, 87): the Kalman filter until the first t >= 1 with
+  F_t - 1 < delta (default 0.01; negative: never), then F = 1 and the ARMA recursion on the standardised residuals.
 
 ## forecast's Arima and forecast() (log 5)
 
@@ -256,14 +256,12 @@ as a regression with ARMA errors.
 
 # Open points found during the implementation (for the user)
 
-- **ndiffs(test = "pp", type = "trend")** (log 78-79): R's statistic is 0.005 to 0.07 less negative than Phillips and
-  Perron's closed form; 2 of 600 fixture decisions differ. rStats.js keeps the closed form.
-- **nsdiffs(test = "ocsb")'s lag choice by AIC** (log 80): the prefiltered regression is exact for each lag, but the AIC
-  rule choosing the lag is not found; rStats.js uses lag 0 (5 of 120 fixture decisions differ). The default "seas" test
-  is not affected.
-- **arima0's default delta = 0.01** (log 84): R switches to "fast recursions" (an approximation) and the switch rule is
-  not found; rStats.js's arima0 is exact, equal to R's arima0(delta = -1). ar(method = "mle") differs from R by the
-  approximation (within 1e-3 in the fixture).
+- **ndiffs(test = "pp")** (log 78-79, 85): R uses urca's ur.pp; its critical values are MacKinnon's (1991) surfaces at
+  N = n - 1 (implemented, exact), but ur.pp's Z-tau differs from Phillips and Perron's form used here by up to 0.05
+  (p by up to 3.4e-3; no decision differed in 1160 checked). The remaining term is not found.
+- **nsdiffs(test = "ocsb")'s lag choice by AIC** (log 80, 86): the prefiltered regression is exact for each lag; the
+  chosen lag is always at most maxlag - 1, but no criterion found reproduces the choice. rStats.js uses lag 0 (5 of 120
+  fixture decisions differ). The default "seas" test is not affected.
 - **auto.arima's neighbour order:** the diagonal steps are (-1, -1), (-1, +1), (+1, -1), (+1, +1) (the fixture's traces;
   log 43 had the middle two the other way round), and the non-stepwise search fits the model without the constant
   first.

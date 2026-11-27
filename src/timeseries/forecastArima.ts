@@ -240,6 +240,22 @@ function dfPValue(stat: number, n: number, type: "level" | "trend"): number {
   return 0.1;
 }
 
+// MacKinnon's (1991) response surfaces b0 + b1/N + b2/N^2 for the 1%, 5%, 10% points (constant; constant and trend):
+// R's ndiffs(test = "pp") interpolates in urca's ur.pp critical values, which equal these at N = n - 1 (log 85: 0
+// difference in 80 series)
+const MACKINNON = {
+  level: [[-3.4335, -5.999, -29.25], [-2.8621, -2.738, -8.36], [-2.5671, -1.438, -4.48]],
+  trend: [[-3.9638, -8.353, -47.44], [-3.4126, -4.039, -17.83], [-3.1279, -2.418, -7.58]],
+};
+
+function ppPValue(stat: number, n: number, type: "level" | "trend"): number {
+  const N = n - 1; const c = MACKINNON[type].map(([b0, b1, b2]) => b0! + b1! / N + b2! / (N * N)); const P = [0.01, 0.05, 0.1];
+  if (stat <= c[0]!) return 0.01;
+  if (stat >= c[2]!) return 0.1;
+  for (let k = 0; k < 2; k++) if (stat <= c[k + 1]!) return P[k]! + ((P[k + 1]! - P[k]!) * (stat - c[k]!)) / (c[k + 1]! - c[k]!);
+  return 0.1;
+}
+
 /** The t value of the lagged level in the ADF regression with one lagged difference. */
 function adfStatisticK1(y: readonly number[], type: "level" | "trend"): number {
   const n = y.length; const rows: number[][] = []; const resp: number[] = [];
@@ -281,8 +297,8 @@ export function ndiffs(x: readonly number[], options: { alpha?: number; test?: "
   let d = 0;
   const dodiff = (v: readonly number[]): boolean => {
     if (test === "kpss") return kpssPValue(kpssStatistic(v, type, Math.trunc((3 * Math.sqrt(v.length)) / 13)), type) < alpha;
-    const stat = test === "adf" ? adfStatisticK1(v, type) : ppStatisticConst(v, type);
-    return dfPValue(stat, v.length, type) > alpha;
+    if (test === "adf") return dfPValue(adfStatisticK1(v, type), v.length, type) > alpha;
+    return ppPValue(ppStatisticConst(v, type), v.length, type) > alpha;
   };
   while (d < maxD && dodiff(y)) {
     d++; y = y.slice(1).map((v, i) => v - y[i]!);

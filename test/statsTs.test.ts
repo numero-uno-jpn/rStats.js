@@ -51,7 +51,8 @@ describe("ar and predict.ar (stats)", () => {
       it(`${name} ${method}`, () => {
         const x = arr(c.x); const r = c[method]; const a = ar(x, { method });
         expect(a.order).toBe(num(r.order));
-        // mle: arima0's fits; R's default delta = 0.01 approximates the likelihood (log 84), ours is exact, so looser
+        // mle: arima0's fits with the default delta (log 87); inside ar.mle R's optimiser stops short of the maximum
+        // (sunspot, order 9: var.pred 6e-4), while ours reaches it, hence looser
         const tol = method === "mle" ? 1e-3 : 1e-11;
         close(a.ar, arr(r.ar), tol);
         expect(Math.abs(a.varPred / num(r.var_pred) - 1)).toBeLessThan(method === "mle" ? 1e-3 : 1e-12);
@@ -72,10 +73,14 @@ describe("ar and predict.ar (stats)", () => {
 describe("arima0 (stats)", () => {
   for (const [name, c] of Object.entries(fx.arima0 as Record<string, any>)) {
     it(name, () => {
-      const f = arima0(arr(c.x), { order: c.order, seasonal: c.seasonal, frequency: num(c.frequency) });
+      const f = arima0(arr(c.x), { order: c.order, seasonal: c.seasonal, frequency: num(c.frequency), delta: -1 });
+      // the default delta = 0.01: R's fast recursions (log 87)
+      const g = arima0(arr(c.x), { order: c.order, seasonal: c.seasonal, frequency: num(c.frequency) });
+      expect(g.loglik).toBeGreaterThan(num(c.fast.loglik) - 1e-9 * Math.abs(num(c.fast.loglik)));
+      expect(Math.abs(g.loglik - num(c.fast.loglik))).toBeLessThan(1e-7 * Math.abs(num(c.fast.loglik)));
+      close(g.coef, arr(c.fast.coef), 1e-4, 1);
       // (R's arima0 returns its coefficients without names)
-      // against R's arima0(delta = -1), the exact likelihood (R's default delta = 0.01 switches to an approximation that
-      // is not reproduced, log 84); R's fit tightened with reltol 1e-14
+      // against R's arima0(delta = -1), the exact likelihood; R's fit tightened with reltol 1e-14
       expect(f.loglik).toBeGreaterThan(num(c.loglik) - 1e-9 * Math.abs(num(c.loglik)));
       expect(Math.abs(f.loglik - num(c.loglik))).toBeLessThan(1e-7 * Math.abs(num(c.loglik)));
       close(f.coef, arr(c.coef), 1e-4, 1);
