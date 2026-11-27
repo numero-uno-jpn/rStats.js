@@ -1504,3 +1504,13 @@ choices under several criteria).
      found and fixed: the simple ets fits' sigma2 is SSE / n in R (n = 3: 270600.3 = 811801 / 3; thetaf's interval
      with it, 7% off before); hw needs m + 3 observations in R ("I need at least 15 observations to estimate
      seasonality"; 7 for m = 4), where rStats.js had dropped the season silently: now the same error.
+   - **Demo** (1.20.0's remaining item 3): 25 examples (`ts-*`, `meta-*`, `netmeta-*`) covering the 102 new exports,
+     checked against R first with `demo120-check.R`, then `npm run demo:r`. Choices on the way: ets's seasonal models
+     on the first 48 values of USAccDeaths reach higher log-likelihoods in rStats.js than in R for every model tried
+     (`demo120-ets.R`: ANA -360.34 against -363.29, AAA -359.81 / -363.25, MAM -361.10 / -366.78, MNA, MNM; the forecasts
+     1-5% apart), so the ets example uses MNN and ANN (equal to 4e-5); holt with initial = "simple" (the optimal fit:
+     rStats.js's optimum higher); croston's series ends with a zero (departure 11); naInterp / tsoutliers on 47 values (on
+     48 the robust stl met R's median error, departure 2); pWeightedChisq with equal weights (R's integrate of Imhof's
+     integral failed with "roundoff error"), compared with pchisq; the tolerances: arima0 3e-4 (an approximate fit),
+     auto.arima 3e-4, the tau2 Q-profile upper bound 1e-4 (metafor's root search stops at eps^0.25), the GLMM's tau2 1e-4,
+     the subgroups' REML 3e-5 (departure 15).
