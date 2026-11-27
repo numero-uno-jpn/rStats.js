@@ -5,9 +5,11 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { confintRma, rma } from "../src/models/metaAnalysis.js";
 import { metabin } from "../src/meta/metabin.js";
-import { metagen } from "../src/meta/metagen.js";
+import { metagen, pWeightedChisq } from "../src/meta/metagen.js";
+import { metareg, metabias, trimfill, baujat } from "../src/meta/metaextra.js";
+import { pchisq } from "../src/distributions/chisq.js";
 import { metacont, metacor, metainc, metamean, metaprop, metarate } from "../src/meta/metaother.js";
-import { netmeta, netrank } from "../src/meta/netmeta.js";
+import { netmeta, netrank, netsplit, decompDesign, netmeasures } from "../src/meta/netmeta.js";
 
 const R = JSON.parse(readFileSync(new URL("../experiments/tsmeta120-metaedge.json", import.meta.url), "utf8")) as Record<string, any>;
 const num = (v: unknown): number => (v === null ? NaN : Number(v));
@@ -104,6 +106,59 @@ describe("netmeta: special networks and scale as R (log 109)", () => {
       const { nm } = fitOf(RN.data, c);
       for (const key of ["TE.random", "seTE.random"]) col(nm, key, trts).forEach((v, i) => { const w = col(b, key, trts)[i]!; if (w) expect(Math.abs(v / c / w - 1), `${c} ${key}`).toBeLessThan(1e-13); });
       expect(Math.abs(nm.tau2 / c / c / b.tau2 - 1)).toBeLessThan(1e-13); expect(Math.abs(nm.Q - b.Q)).toBeLessThan(1e-12 * b.Q);
+    }
+  });
+});
+
+// The function x axis matrix (log 110): the meta functions not covered by the first round.
+describe("meta: the rest of the function x axis matrix (log 110)", () => {
+  const te = [0.12, -0.35, 0.08, -0.51, -0.22, 0.31, -0.18, -0.44], se = [0.21, 0.18, 0.25, 0.3, 0.15, 0.27, 0.19, 0.22];
+  const EXT = [1e-300, 1e-150, 1e150, 1e300];
+  const close = (a: readonly number[], b: readonly number[], tol: number, what: string): void => a.forEach((v, i) => expect(Math.abs(v / b[i]! - 1), `${what} ${i}`).toBeLessThan(tol));
+  it("metacont and metainc's IRD at 1e+-300 (hypot instead of the squares)", () => {
+    const n1 = [30, 25, 40], m1 = [5.1, 4.8, 6.0], s1 = [1.2, 1.1, 1.5], n2 = [32, 24, 41], m2 = [5.6, 5.5, 6.3], s2 = [1.3, 1.0, 1.4];
+    for (const sm of ["MD", "SMD", "ROM"] as const) {
+      const f = (c: number) => { const r = metacont(n1, m1.map((v) => v * c), s1.map((v) => v * c), n2, m2.map((v) => v * c), s2.map((v) => v * c), { sm }); return [r["TE.random"], r["seTE.random"]]; };
+      const b = f(1); for (const c of EXT) close(f(c), b.map((v) => (sm === "MD" ? v * c : v)), 1e-13, `${sm} ${c}`);
+    }
+    const g = (c: number) => { const r = metainc([5, 8, 3], [1000, 1500, 800].map((v) => v * c), [10, 12, 9], [1100, 1400, 900].map((v) => v * c), { sm: "IRD" }); return [r["TE.common"], r["TE.random"], r["seTE.random"]]; };
+    const bg = g(1); for (const c of EXT) close(g(c), bg.map((v) => v / c), 1e-13, `IRD ${c}`);
+  });
+  it("metareg: moderators times 1e+-300 or plus 1e15 (X'WX was singular to the solver), effects at 1e+-300", () => {
+    const m = metagen(te, se); const x = [1, 2, 3, 4, 5, 6, 7, 8]; const b = metareg(m, x.map((v) => [v]));
+    const slope = (r: any) => [r.beta.rows[1][0], r.se[1], r.QM];
+    for (const c of [1e-300, 1e300]) { const r = metareg(m, x.map((v) => [v * c])); close([r.beta.rows[1]![0]! * c, (r.se as number[])[1]! * c, r.QM], slope(b), 1e-12, `mods x ${c}`); }
+    for (const s of [1e8, 1e15]) close(slope(metareg(m, x.map((v) => [v + s]))), slope(b), 1e-12, `mods + ${s}`);
+    // effects beyond 2^+-200: the standardised fit (at ordinary scales R's REML stopping rule, absolute 1e-5, is kept)
+    const e1 = metareg(metagen(te.map((v) => v * 1e-150), se.map((v) => v * 1e-150)), x.map((v) => [v]));
+    // (the standardised series differ by factors that are not powers of two, so REML's absolute stopping rule stops
+    // at points 7e-7 apart)
+    for (const c of [1e-300, 1e300]) { const r = metareg(metagen(te.map((v) => v * c), se.map((v) => v * c)), x.map((v) => [v])); expect(Math.abs(r.beta.rows[1]![0]! / c / (e1.beta.rows[1]![0]! / 1e-150) - 1)).toBeLessThan(1e-5); }
+  });
+  it("metabias, trimfill, baujat and the subgroups' common tau2 at 1e+-300", () => {
+    for (const c of EXT) {
+      const m = metagen(te.map((v) => v * c), se.map((v) => v * c));
+      for (const method of ["Egger", "Begg", "Thompson"] as const) expect(Number.isFinite(metabias(m, { method }).statistic), `${method} ${c}`).toBe(true);
+      expect(trimfill(m).meta["TE.random"] / c).toBeCloseTo(trimfill(metagen(te, se)).meta["TE.random"], 3);
+      expect(baujat(m).x.every(Number.isFinite)).toBe(true);
+    }
+  });
+  it("netmeta and its functions at 1e+-300", () => {
+    const TE = [0.25, 0.4, 0.15, 0.3, 0.55, 0.2, 0.1], s0 = [0.1, 0.12, 0.11, 0.14, 0.13, 0.1, 0.15], t1 = ["A", "A", "B", "A", "C", "B", "A"], t2 = ["B", "C", "C", "D", "D", "D", "B"], st = ["s1", "s2", "s3", "s4", "s5", "s6", "s7"];
+    const f = (c: number) => { const n = netmeta(TE.map((v) => v * c), s0.map((v) => v * c), t1, t2, st, { referenceGroup: "A" }); const sp = netsplit(n);
+      return { te: [...sp["indirect.random"].TE, ...sp["direct.common"].seTE].map((v) => v / c), inv: [...sp["compare.random"].z, ...decompDesign(n)["Q.decomp"].Q, ...Object.values(netmeasures(n).proportion), ...Object.values(netrank(n))] }; };
+    const b = f(1); for (const c of [1e-300, 1e300]) { const r = f(c); close(r.te, b.te, 1e-12, `te ${c}`); close(r.inv, b.inv, 1e-12, `inv ${c}`); }
+  });
+  it("pWeightedChisq: weights and q scaled together (1e+-300); equal weights give pchisq", () => {
+    const b = pWeightedChisq(3, [1, 0.5, 0.2]);
+    for (const c of EXT) expect(Math.abs(pWeightedChisq(3 * c, [1, 0.5, 0.2].map((v) => v * c)) / b - 1)).toBeLessThan(1e-13);
+    for (const [q, k] of [[1e-6, 3], [0.5, 5], [8, 4]] as const) expect(Math.abs(pWeightedChisq(q, new Array<number>(k).fill(0.5)) / (pchisq(q / 0.5, k) as number) - 1)).toBeLessThan(1e-13);
+  });
+  it("metaprop near 0 and 1 against R (zero cells, all events, rare events, large counts)", () => {
+    const RP = JSON.parse(readFileSync(new URL("../experiments/tsmeta120-propedge.json", import.meta.url), "utf8")) as Record<string, any>;
+    for (const nm of Object.keys(RP.sets)) for (const sm of ["PLOGIT", "PFT", "PAS", "PRAW", "PLN"] as const) {
+      const r = RP[nm][sm]; const j = metaprop(RP.sets[nm].e, RP.sets[nm].n, { sm });
+      close([j["TE.random"], j["seTE.random"]], [r["TE.random"], r["seTE.random"]], 1e-9, `${nm} ${sm}`);
     }
   });
 });

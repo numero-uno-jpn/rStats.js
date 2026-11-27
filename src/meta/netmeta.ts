@@ -5,6 +5,7 @@
 // The methods are those of Ruecker (2012), Jackson, White and Riley (2012), Ruecker and Schwarzer (2015) and Ruecker et
 // al. (2020). No R or package source was read.
 
+import { extremeEffectScale } from "../models/metaAnalysis.js";
 import { pchisq } from "../distributions/chisq.js";
 import { pnorm, qnorm } from "../distributions/normal.js";
 import { qt1 } from "../distributions/t.js";
@@ -111,6 +112,18 @@ export function netmeta(TE: readonly number[], seTE: readonly number[], treat1: 
   }
   const trts = [...new Set([...treat1, ...treat2])].sort(); const n = trts.length;
   if (netconnection(treat1, treat2, studlab)["n.subnets"] > 1) throw new RangeError("netmeta: the network is not connected (see netconnection)");
+  // TE and seTE beyond 2^+-200: the fit of TE / c, seTE / c (c a power of two; exact), mapped back (log 110: the
+  // variances seTE^2 left the range at 1e+-300)
+  const cs = extremeEffectScale(TE, seTE);
+  if (cs !== 1) {
+    const r = netmeta(TE.map((t) => t / cs), seTE.map((x) => x / cs), treat1, treat2, studlab, { ...options, ...(options.tau2 !== undefined ? { tau2: options.tau2 / cs / cs } : {}) });
+    const M = (m: TreatmentMatrix): TreatmentMatrix => ({ ...m, values: m.values.map((row) => row.map((v) => v * cs)) });
+    return { ...r, TE: [...TE], seTE: [...seTE], "TE.common": M(r["TE.common"]), "seTE.common": M(r["seTE.common"]), "lower.common": M(r["lower.common"]), "upper.common": M(r["upper.common"]),
+      "TE.random": M(r["TE.random"]), "seTE.random": M(r["seTE.random"]), "lower.random": M(r["lower.random"]), "upper.random": M(r["upper.random"]),
+      "lower.predict": M(r["lower.predict"]), "upper.predict": M(r["upper.predict"]), "TE.direct.common": M(r["TE.direct.common"]), "seTE.direct.common": M(r["seTE.direct.common"]),
+      "TE.direct.random": M(r["TE.direct.random"]), "seTE.direct.random": M(r["seTE.direct.random"]), tau2: r.tau2 * cs * cs,
+      "w.common": r["w.common"].map((w) => w / cs / cs), "w.random": r["w.random"].map((w) => w / cs / cs) };
+  }
   const v = seTE.map((s) => s * s); const studies = [...new Set(studlab)]; const k = studies.length;
   const fitC = fitNetwork(TE, v, treat1, treat2, studlab, trts);
   const arms = studies.map((s) => new Set(studlab.flatMap((x, i) => (x === s ? [treat1[i]!, treat2[i]!] : []))).size);
@@ -213,8 +226,11 @@ export function netsplit(fit: NetmetaResult): Record<"direct.random" | "indirect
     z: te.map((t, i) => t / se[i]!), p: te.map((t, i) => 2 * (pnorm(-Math.abs(t / se[i]!)) as number)),
   });
   const label = comps.map(([i, j]) => `${fit.trts[i]}:${fit.trts[j]}`);
+  // the effects divided by a power of two beyond 2^+-200 before squaring, mapped back (log 110)
+  const cs = extremeEffectScale(fit.TE, fit.seTE); const dv = (m: number[][]): number[][] => (cs === 1 ? m : m.map((r) => r.map((v) => v / cs)));
+  const back = (q: NetsplitPart): NetsplitPart => (cs === 1 ? q : { ...q, TE: q.TE.map((v) => v * cs), seTE: q.seTE.map((v) => v * cs), lower: q.lower.map((v) => v * cs), upper: q.upper.map((v) => v * cs) });
   const build = (kind: "common" | "random") => {
-    const N = fit[`TE.${kind}`].values, NS = fit[`seTE.${kind}`].values, D = fit[`TE.direct.${kind}`].values, DS = fit[`seTE.direct.${kind}`].values;
+    const N = dv(fit[`TE.${kind}`].values), NS = dv(fit[`seTE.${kind}`].values), D = dv(fit[`TE.direct.${kind}`].values), DS = dv(fit[`seTE.direct.${kind}`].values);
     const dte: number[] = [], dse: number[] = [], ite: number[] = [], ise: number[] = [], cte: number[] = [], cse: number[] = [], prop: number[] = [];
     for (const [i, j] of comps) {
       const vn = NS[i]![j]! ** 2, vd = DS[i]![j]! ** 2; dte.push(D[i]![j]!); dse.push(DS[i]![j]!);
@@ -224,7 +240,7 @@ export function netsplit(fit: NetmetaResult): Record<"direct.random" | "indirect
       const vi = 1 / (1 / vn - 1 / vd); const ti = vi * (N[i]![j]! / vn - D[i]![j]! / vd);
       ite.push(ti); ise.push(Math.sqrt(vi)); cte.push(D[i]![j]! - ti); cse.push(Math.sqrt(vd + vi));
     }
-    return { direct: part(dte, dse, label), indirect: part(ite, ise, label), compare: part(cte, cse, label), prop };
+    return { direct: back(part(dte, dse, label)), indirect: back(part(ite, ise, label)), compare: back(part(cte, cse, label)), prop };
   };
   const r = build("random"), c = build("common");
   return { "direct.random": r.direct, "indirect.random": r.indirect, "compare.random": r.compare, "direct.common": c.direct, "indirect.common": c.indirect, "compare.common": c.compare, "prop.random": r.prop, "prop.common": c.prop };
@@ -274,12 +290,14 @@ const designsOf = (fit: NetmetaResult): Map<string, string> => {
  * @category Meta-analysis
  */
 export function decompDesign(fit: NetmetaResult): DecompDesignResult {
-  const des = designsOf(fit); const v = fit.seTE.map((s) => s * s);
+  // TE and seTE divided by a power of two beyond 2^+-200 (the Q statistics do not depend on it; log 110)
+  const cs = extremeEffectScale(fit.TE, fit.seTE); const TEs = fit.TE.map((t) => t / cs);
+  const des = designsOf(fit); const v = fit.seTE.map((s) => (s / cs) * (s / cs));
   const names = [...new Set(des.values())].sort((a, b) => a.split(":").length - b.split(":").length || (a < b ? -1 : a > b ? 1 : 0));
   const Q: number[] = [], df: number[] = [];
   for (const g of names) {
     const rows = fit.studlab.map((x, i) => (des.get(x) === g ? i : -1)).filter((i) => i >= 0); const ts = g.split(":");
-    const f = fitNetwork(rows.map((i) => fit.TE[i]!), rows.map((i) => v[i]!), rows.map((i) => fit.treat1[i]!), rows.map((i) => fit.treat2[i]!), rows.map((i) => fit.studlab[i]!), ts);
+    const f = fitNetwork(rows.map((i) => TEs[i]!), rows.map((i) => v[i]!), rows.map((i) => fit.treat1[i]!), rows.map((i) => fit.treat2[i]!), rows.map((i) => fit.studlab[i]!), ts);
     Q.push(f.Q); df.push((new Set(rows.map((i) => fit.studlab[i]!)).size - 1) * (ts.length - 1));
   }
   const p = (q: number, d: number): number => (d > 0 ? (pchisq(q, d, { lowerTail: false }) as number) : NaN);
@@ -301,9 +319,10 @@ export function decompDesign(fit: NetmetaResult): DecompDesignResult {
 export function netmeasures(fit: NetmetaResult, options: { random?: boolean } = {}): { proportion: Record<string, number> } {
   checkOptions(options, NETMEASURES_KEYS, "netmeasures"); // generated: option-keys.mjs
   const kind = options.random === false ? "common" : "random"; const n = fit.trts.length; const DS = fit[`seTE.direct.${kind}`].values;
-  const proportion: Record<string, number> = {};
+  const proportion: Record<string, number> = {}; const cs = extremeEffectScale(fit.TE, fit.seTE);
   for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) {
-    const vn = fit[`seTE.${kind}`].values[i]![j]! ** 2; const vd = DS[i]![j]! ** 2;
+    // a ratio of variances: the standard errors divided by a power of two first (log 110)
+    const vn = (fit[`seTE.${kind}`].values[i]![j]! / cs) ** 2; const vd = (DS[i]![j]! / cs) ** 2;
     proportion[`${fit.trts[i]}:${fit.trts[j]}`] = Number.isFinite(vd) ? vn / vd : 0;
   }
   return { proportion };
@@ -362,6 +381,13 @@ export interface NetcombResult {
  */
 export function discomb(TE: readonly number[], seTE: readonly number[], treat1: readonly string[], treat2: readonly string[], studlab: readonly string[], options: { inactive?: string; sep?: string } = {}): NetcombResult {
   checkOptions(options, DISCOMB_KEYS, "discomb"); // generated: option-keys.mjs
+  // TE and seTE beyond 2^+-200: the fit of TE / c, seTE / c, mapped back (log 110)
+  const cs = extremeEffectScale(TE, seTE);
+  if (cs !== 1) {
+    const r = discomb(TE.map((t) => t / cs), seTE.map((x) => x / cs), treat1, treat2, studlab, options); const k = (a: number[]) => a.map((v) => v * cs);
+    return { ...r, "Comp.common": k(r["Comp.common"]), "seComp.common": k(r["seComp.common"]), "Comp.random": k(r["Comp.random"]), "seComp.random": k(r["seComp.random"]),
+      "Comb.common": k(r["Comb.common"]), "seComb.common": k(r["seComb.common"]), "Comb.random": k(r["Comb.random"]), "seComb.random": k(r["seComb.random"]), tau2: r.tau2 * cs * cs };
+  }
   const sep = options.sep ?? "+"; const trts = [...new Set([...treat1, ...treat2])].sort();
   const comps = [...new Set(trts.flatMap((t) => t.split(sep).map((c) => c.trim())))].filter((c) => c !== options.inactive).sort();
   const C = trts.map((t) => { const parts = t.split(sep).map((c) => c.trim()); return comps.map((c) => (parts.includes(c) ? 1 : 0)); });

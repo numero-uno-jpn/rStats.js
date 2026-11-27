@@ -2117,8 +2117,11 @@ The references are stats 4.6.2, forecast 9.0.2, tseries, urca, meta and netmeta 
   `forecastArima`, `autoArima` and `ar` give R's fits at ordinary scales and stay exact beyond 1e±60. From 1e-300 to
   2^1000 the forecasts are equivariant and the statistics invariant. R's ets, hw and HoltWinters move by 2-40% at
   1e-150 times a series, and most of R's fits and tests fail beyond 1e±150.
-- `netmeta` is equivariant in TE and seTE from 1e-150 to 1e150 (R's fails from 1e±10 on with a singular system); the
-  meta functions likewise (`confintRma`'s Q-profile bounds were wrong away from unit scale before 1.20.0).
+- `netmeta` and its functions are equivariant in TE and seTE from 1e-300 to 1e300 (R's fails from 1e±10 on with a
+  singular system); the meta functions likewise (`confintRma`'s Q-profile bounds were wrong away from unit scale
+  before 1.20.0), and `rma` / `metareg` take moderators of any scale or with a large common value.
+- Statistics that do not depend on a common value (the unit-root and stationarity tests, Box.test, acf, the seasonal
+  coefficients of tslm) are exact for a series plus 1e15; R's lose digits there (acf about 1e-9 at + 1e8).
 
 ### Short, degenerate and invalid series
 

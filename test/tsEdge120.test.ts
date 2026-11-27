@@ -9,6 +9,7 @@ import {
   adfTest, ar, arima, autoArima, boxTest, ets, forecastArima, forecastEts, forecastFromArima, holt, holtWinters, hw, jarqueBeraTest,
   kpssTest, meanf, ndiffs, nsdiffs, ocsbTest, poTest, ppTest, predictArima, predictHoltWinters, rwf, ses, stlf, terasvirtaTest,
   thetaf, whiteTest, boxCoxLambda, croston, decompose, findfrequency, mstl, naInterp, naive, snaive, specAr, stl, tsclean, tsFilter, tslm,
+  predictAr, accuracy, dmTest, cvLm, supsmu, acf,
 } from "../src/entries/timeseries.js";
 
 const R = JSON.parse(readFileSync(new URL("../experiments/tsmeta120-tsedge.json", import.meta.url), "utf8")) as Record<string, any>;
@@ -260,5 +261,54 @@ describe("tseries: short series and degenerate input (log 109)", () => {
       ["kpss_long", kpssTest(x, { lshort: false }).statistic], ["pp_alpha", ppTest(x, { type: "Z(alpha)" }).statistic], ["pp_long", ppTest(x, { lshort: false }).statistic],
       ["terasvirta_F", terasvirtaTest(x, { type: "F" }).statistic], ["white_F", whiteTest(x, { type: "F", seed: 1 }).statistic]];
     for (const [k, v] of cases) expect(Math.abs(v / (k === "adf_explosive" ? RT.options[k].p : RT.options[k].statistic) - 1), k).toBeLessThan(1e-12);
+  });
+});
+
+// The function x axis matrix (log 110): the functions not covered by the scale battery of log 104, the shift by 1e15
+// for the statistics that do not depend on a common value, and the new paths at extreme scales.
+describe("time series: the rest of the function x axis matrix (log 110)", () => {
+  const nile = [1120, 1160, 963, 1210, 1160, 1160, 813, 1230, 1370, 1140, 995, 935, 1110, 994, 1020, 960, 1180, 799, 958, 1140, 1100, 1210, 1150, 1250, 1260, 1220, 1030, 1100, 774, 840, 874, 694, 940, 833, 701, 916, 692, 1020, 1050, 969];
+  const EXT = [1e-300, 1e300, 2 ** 1000];
+  const close = (a: readonly number[], b: readonly number[], f: (v: number) => number, tol: number, what: string): void => a.forEach((v, i) => expect(Math.abs(v / f(b[i]!) - 1), `${what} ${i}`).toBeLessThan(tol));
+  it("tslm, predictAr, accuracy, dmTest, cvLm at 1e+-300: in range", () => {
+    const t = (x: number[]) => { const f = tslm(x, { frequency: 12 }).forecast(2); return [...f.mean, ...f.upper.map((r) => r[1]!)]; };
+    const p = (x: number[]) => { const r = predictAr(ar(x), 3); return [...r.pred, ...r.se]; };
+    const a = (x: number[]) => { const r = accuracy({ y: x, fitted: x.map((v, i) => (i ? x[i - 1]! : v)) }).training; return [r.RMSE, r.MAE, r.MAPE, r.MASE, r.ACF1]; };
+    const d = (x: number[]) => { const r = dmTest(x.slice(2).map((v, i) => v - x[i + 1]!), x.slice(2).map((v, i) => v - x[i]!)); return [r.statistic, r.pValue]; };
+    const bt = t(y0), bp = p(nile), ba = a(nile), bd = d(nile), bc = cvLm(nile.map((_, i) => [i + 1]), nile).AdjR2;
+    for (const c of EXT) {
+      close(t(y0.map((v) => v * c)), bt, (v) => v * c, 1e-12, `tslm ${c}`);
+      close(p(nile.map((v) => v * c)), bp, (v) => v * c, 1e-12, `predictAr ${c}`);
+      close(d(nile.map((v) => v * c)), bd, (v) => v, 1e-12, `dmTest ${c}`);
+      expect(Math.abs(cvLm(nile.map((_, i) => [i + 1]), nile.map((v) => v * c)).AdjR2 / bc - 1)).toBeLessThan(1e-12);
+    }
+  });
+  it("accuracy's RMSE and MAE scale, MAPE / MASE / ACF1 do not", () => {
+    const a = (x: number[]) => accuracy({ y: x, fitted: x.map((v, i) => (i ? x[i - 1]! : v)) }).training; const b = a(nile);
+    for (const c of EXT) { const r = a(nile.map((v) => v * c)); expect(Math.abs(r.RMSE / c / b.RMSE - 1)).toBeLessThan(1e-12); expect(Math.abs(r.MAPE / b.MAPE - 1)).toBeLessThan(1e-12); expect(Math.abs(r.ACF1 / b.ACF1 - 1)).toBeLessThan(1e-12); }
+  });
+  it("dmTest: errors of different lengths are an error", () => { expect(() => dmTest([1, 2, 3], [1, 2])).toThrow(/same length/); });
+  it("supsmu: the same smooth for x times 1e+-300 (the span's threshold)", () => {
+    const b = supsmu(nile, y0.slice(0, 40)).y;
+    for (const c of EXT) close(supsmu(nile.map((v) => v * c), y0.slice(0, 40)).y, b, (v) => v, 1e-12, `supsmu ${c}`);
+  });
+  it("statistics that do not depend on a common value: the same at + 1e15 (the sums passed 2^53)", () => {
+    const stats: [string, (x: number[]) => number][] = [["kpss", (x) => kpssTest(x).statistic], ["adf", (x) => adfTest(x).statistic], ["pp", (x) => ppTest(x).statistic],
+      ["jarque", (x) => jarqueBeraTest(x).statistic], ["box", (x) => boxTest(x, { lag: 5 }).statistic], ["acf", (x) => acf(x, { lagMax: 3 }).acf[3]!],
+      ["tslm season", (x) => tslm(x, { frequency: 12 }).coefficients[5]!], ["cvLm AdjR2", (x) => cvLm(x.map((_, i) => [i + 1]), x).AdjR2]];
+    for (const [k, f] of stats) { const b = f(y0); expect(Math.abs(f(y0.map((v) => v + 1e15)) / b - 1), k).toBeLessThan(1e-12); }
+  });
+  it("additive ets with a large common value: the same optimum as without it", () => {
+    const b = ets(nile, { model: "AAN", damped: true });
+    for (const s of [1e8, 1e15]) expect(Math.abs(ets(nile.map((v) => v + s), { model: "AAN", damped: true }).loglik - b.loglik), `+${s}`).toBeLessThan(1e-9);
+  });
+  it("the new paths at extreme scales: ets with a missing value, the simple fits, the exact auto.arima fit, naInterp, tsclean", () => {
+    const cases: [string, number[], (x: number[]) => number[]][] = [
+      ["ets NA", yNA, (x) => forecastEts(ets(x, { frequency: 12, model: "ANN" }), { h: 2 }).mean],
+      ["ets simple", y0.slice(0, 5), (x) => forecastEts(ets(x, { model: "AAN" }), { h: 2 }).mean],
+      ["autoArima exact", Array.from({ length: 48 }, (_, i) => 3 + 2 * i), (x) => forecastFromArima(autoArima(x), { h: 2 }).mean],
+      ["naInterp", yNA, (x) => naInterp(x, { frequency: 12 })], ["tsclean", y0.map((v, i) => (i === 30 ? v + 5000 : v)), (x) => tsclean(x, { frequency: 12 })],
+    ];
+    for (const [k, x, f] of cases) { const b = f(x); for (const c of EXT) close(f(x.map((v) => v * c)), b, (v) => v * c, 1e-9, `${k} ${c}`); }
   });
 });

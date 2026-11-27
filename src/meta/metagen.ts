@@ -4,6 +4,7 @@
 // experiments/tsmeta120-log.md (items 61-63). The generalised Q interval follows Jackson (2013), with the distribution of
 // a weighted sum of chi-squares by Imhof's (1961) integral. No R or package source was read.
 
+import { powerOfTwoScale } from "../timeseries/scale.js";
 import { pchisq } from "../distributions/chisq.js";
 import { pnorm, qnorm } from "../distributions/normal.js";
 import { pt1, qt1 } from "../distributions/t.js";
@@ -71,7 +72,10 @@ const sum = (v: readonly number[]): number => v.reduce((a, b) => a + b, 0);
  *
  * @category Meta-analysis
  */
-export function pWeightedChisq(q: number, lambda: readonly number[]): number {
+export function pWeightedChisq(q0: number, lambda0: readonly number[]): number {
+  // lambda and q divided by one power of two (exact; the probability does not depend on it), so that lmin lmax and the
+  // integrand stay in range for weights near 1e+-300 (log 110)
+  const c = powerOfTwoScale(lambda0); const lambda = lambda0.map((l) => l / c); const q = q0 / c;
   const mx = Math.max(0, ...lambda); const lam = lambda.filter((l) => l > 1e-14 * mx);
   if (lam.length === 0) return q >= 0 ? 1 : 0;
   if (q <= 0) return 0;

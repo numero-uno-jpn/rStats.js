@@ -18,3 +18,22 @@ export function standardise(y: readonly number[]): number[] {
   const c = powerOfTwoScale(y);
   return c === 1 ? y.slice() : y.map((v) => v / c);
 }
+
+/**
+ * A reference value to subtract from a series with a large common value (1.20.0, log 110): the first finite value
+ * when it exceeds 1024 times the range of the finite values (y + 1e15: the sums of the values pass 2^53 and the
+ * statistics lose digits), else 0, so that ordinary series are left as they are. y - r is exact for such values
+ * (Sterbenz: r and y within a factor 2).
+ */
+export function shiftReference(y: readonly number[]): number {
+  let first = NaN, lo = Infinity, hi = -Infinity;
+  for (const v of y) if (Number.isFinite(v)) { if (Number.isNaN(first)) first = v; if (v < lo) lo = v; if (v > hi) hi = v; }
+  if (Number.isNaN(first)) return 0;
+  return Math.abs(first) > 1024 * (hi - lo) && hi - lo > 0 ? first : 0;
+}
+
+/** The series minus {@link shiftReference} (NaN kept), for statistics that do not depend on a common value. */
+export function centred(y: readonly number[]): number[] {
+  const r = shiftReference(y);
+  return r === 0 ? y.slice() : y.map((v) => v - r);
+}

@@ -63,10 +63,11 @@ export function metacont(n1: readonly number[], m1: readonly number[], sd1: read
   const TE: number[] = [], seTE: number[] = [];
   for (let i = 0; i < k; i++) {
     const a = n1[i]!, b = n2[i]!, s1 = sd1[i]!, s2 = sd2[i]!;
-    if (sm === "MD") { TE.push(m1[i]! - m2[i]!); seTE.push(Math.sqrt((s1 * s1) / a + (s2 * s2) / b)); }
-    else if (sm === "ROM") { TE.push(Math.log(m1[i]! / m2[i]!)); seTE.push(Math.sqrt((s1 * s1) / (a * m1[i]! ** 2) + (s2 * s2) / (b * m2[i]! ** 2))); }
+    // the square roots of sums of squares by hypot: no overflow of the squares at means and sds near 1e+-300 (log 110)
+    if (sm === "MD") { TE.push(m1[i]! - m2[i]!); seTE.push(Math.hypot(s1 / Math.sqrt(a), s2 / Math.sqrt(b))); }
+    else if (sm === "ROM") { TE.push(Math.log(m1[i]! / m2[i]!)); seTE.push(Math.hypot(s1 / (Math.sqrt(a) * m1[i]!), s2 / (Math.sqrt(b) * m2[i]!))); }
     else {
-      const N = a + b; const sp = Math.sqrt(((a - 1) * s1 * s1 + (b - 1) * s2 * s2) / (N - 2)); const df = N - 2;
+      const N = a + b; const sp = Math.hypot(s1 * Math.sqrt(a - 1), s2 * Math.sqrt(b - 1)) / Math.sqrt(N - 2); const df = N - 2;
       const J = Math.exp(lgamma(df / 2) - 0.5 * Math.log(df / 2) - lgamma((df - 1) / 2));
       const g = (J * (m1[i]! - m2[i]!)) / sp;
       TE.push(g); seTE.push(Math.sqrt(1 / a + 1 / b + (1 - (N - 4) / ((N - 2) * J * J)) * g * g));
@@ -91,18 +92,22 @@ export function metainc(e1: readonly number[], t1: readonly number[], e2: readon
   for (let i = 0; i < k; i++) {
     const z = e1[i] === 0 || e2[i] === 0 ? incr : 0; const x1 = e1[i]! + z, x2 = e2[i]! + z;
     if (sm === "IRR") { TE.push(Math.log(x1 / t1[i]! / (x2 / t2[i]!))); seTE.push(Math.sqrt(1 / x1 + 1 / x2)); }
-    else { TE.push(e1[i]! / t1[i]! - e2[i]! / t2[i]!); seTE.push(Math.sqrt(x1 / t1[i]! ** 2 + x2 / t2[i]! ** 2)); }
+    else { TE.push(e1[i]! / t1[i]! - e2[i]! / t2[i]!); seTE.push(Math.hypot(Math.sqrt(x1) / t1[i]!, Math.sqrt(x2) / t2[i]!)); }
   }
   const res = pool(TE, seTE, options);
   if (method === "MH") {
     const T = t1.map((x, i) => x + t2[i]!); let te: number, se: number, w: number[];
     if (sm === "IRR") {
-      const R = e1.map((x, i) => (x * t2[i]!) / T[i]!), S = e2.map((x, i) => (x * t1[i]!) / T[i]!);
-      te = Math.log(sum(R) / sum(S)); se = Math.sqrt(sum(T.map((tt, i) => (t1[i]! * t2[i]! * (e1[i]! + e2[i]!)) / (tt * tt))) / (sum(R) * sum(S))); w = S;
+      // the person-time as fractions of T (no products of times: times near 1e+-300 work; log 110)
+      const R = e1.map((x, i) => x * (t2[i]! / T[i]!)), S = e2.map((x, i) => x * (t1[i]! / T[i]!));
+      te = Math.log(sum(R) / sum(S)); se = Math.sqrt(sum(T.map((tt, i) => (t1[i]! / tt) * (t2[i]! / tt) * (e1[i]! + e2[i]!))) / (sum(R) * sum(S))); w = S;
     } else {
-      const W = t1.map((x, i) => (x * t2[i]!) / T[i]!);
-      te = sum(e1.map((x, i) => (x * t2[i]! - e2[i]! * t1[i]!) / T[i]!)) / sum(W);
-      se = Math.sqrt(sum(W.map((wi, i) => wi * wi * (e1[i]! / t1[i]! ** 2 + e2[i]! / t2[i]! ** 2))) / sum(W) ** 2); w = W;
+      const W = t1.map((x, i) => x * (t2[i]! / T[i]!));
+      te = sum(e1.map((x, i) => x * (t2[i]! / T[i]!) - e2[i]! * (t1[i]! / T[i]!))) / sum(W);
+      // the weights relative to the largest (the ratio does not depend on their scale)
+      // e / t^2 = (e / t) / (t / tm) / tm (tm the largest time: no underflow at times near 1e300)
+      const wm = Math.max(...W); const Wn = W.map((wi) => wi / wm); const tm = Math.max(...t1, ...t2);
+      se = Math.sqrt(sum(Wn.map((wi, i) => wi * wi * ((e1[i]! / t1[i]!) / (t1[i]! / tm) + (e2[i]! / t2[i]!) / (t2[i]! / tm))))) / Math.sqrt(tm) / sum(Wn); w = W;
     }
     const level = options.levelMa ?? options.level ?? 0.95; const zq = qnorm(0.5 + level / 2) as number; const st = te / se;
     Object.assign(res, { "TE.common": te, "seTE.common": se, "lower.common": te - zq * se, "upper.common": te + zq * se, "statistic.common": st, "pval.common": 2 * (pnorm(-Math.abs(st)) as number), "w.common": w });

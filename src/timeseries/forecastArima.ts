@@ -4,7 +4,7 @@
 // 39-41). No R or package source was read.
 
 import { arima, predictArima, registerScaledArima, scaledArima, unscaleArima, type ArimaResult } from "./arima.js";
-import { powerOfTwoScale, standardise } from "./scale.js";
+import { centred, powerOfTwoScale, standardise } from "./scale.js";
 import { tsInput } from "./input.js";
 import { optimize } from "../numerics/integrate.js";
 import { lm } from "../models/lm.js";
@@ -362,7 +362,7 @@ export function ndiffs(x: readonly number[], options: { alpha?: number; test?: "
   checkOptions(options, NDIFFS_KEYS, "ndiffs"); // generated: option-keys.mjs
   const alpha = options.alpha ?? 0.05; const test = options.test ?? "kpss"; const type = options.type ?? "level"; const maxD = options.maxD ?? 2;
   // the tests do not depend on the scale: the series divided by a power of two (exact), so that 1e+-300 works
-  let y = standardise(tsInput(x, "ndiffs", { missing: "allow" }).filter(Number.isFinite));
+  let y = standardise(centred(tsInput(x, "ndiffs", { missing: "allow" }).filter(Number.isFinite)));
   const isConstant = (v: readonly number[]): boolean => v.every((a) => a === v[0]);
   if (isConstant(y)) return 0;
   let d = 0;

@@ -1514,3 +1514,68 @@ choices under several criteria).
      integral failed with "roundoff error"), compared with pchisq; the tolerances: arima0 3e-4 (an approximate fit),
      auto.arima 3e-4, the tau2 Q-profile upper bound 1e-4 (metafor's root search stops at eps^0.25), the GLMM's tau2 1e-4,
      the subgroups' REML 3e-5 (departure 15).
+
+## The function x axis matrix, completed (2026-11-28, session 42, asked for by the user)
+
+110. The user asked whether the edge cases, cancellation, overflow and underflow had been checked comprehensively; the
+   answer was no (functions without a scale check, the shift 1e15 not run, the new paths of 107-109 not at extreme
+   scales, the probability ends of pWeightedChisq and metaprop, the precision at large n). Temporary batteries over
+   every remaining function: the data times 1e-300, 1e-150, 1e150, 1e300, 2^1000 (equivariant or invariant as the
+   theory says) and plus 1e8, 1e15 where the result does not depend on a common value.
+   - **Time series, broken and fixed:**
+     - tslm's intervals, predictAr's standard errors, accuracy's RMSE / ACF1, cvLm's AdjR2 and dmTest at 1e+-300
+       (squares out of range): each on its values divided by a power of two (exact; the same results at ordinary
+       scales), predictAr from ar's standardised variance (a WeakMap). dmTest with errors of different lengths returned
+       NaN: an error.
+     - supsmu with x near 1e+-300: the span's threshold (1e-3 range)^2 under- or overflowed (9% off); x less a large
+       common value and divided by a power of two first.
+     - statistics that do not depend on a common value lost digits at + 1e15 (the sums passed 2^53: kpss 1e-3, tslm's
+       seasonal coefficients 1e-2, cvLm's AdjR2 9e-4, acf 7e-6): `shiftReference` / `centred` in scale.ts subtract the
+       first value when it exceeds 1024 times the range (exact, Sterbenz; ordinary series untouched), in adf, kpss, pp,
+       jarque.bera, terasvirta / white (scale = TRUE), po.test (per column, demeaned), Box.test, ndiffs, nsdiffs, thetaf's
+       seasonality test, acf / ccf (demeaned), tslm and cvLm (mapped back). Now 1e-15 at + 1e15.
+     - additive ets with a large common value: AAdN on Nile + 1e8 stopped 5e-4 lower in log-likelihood (the level near
+       1e8 was beyond the optimiser's resolution after the power-of-two scaling); when every candidate is additive and
+       the common value exceeds 1024 times the range, it is taken out and added back to the level (the models are
+       exactly shift equivariant). The same log-likelihood at + 1e8 and + 1e15 to 1e-15.
+   - **Time series, fine or inherent:** croston, tsCV, checkresiduals, arima0, stlm, forecast()'s dispatch, holt damped,
+     hw multiplicative, the NA paths (ets, mstl, kpss, Box, rwf, naInterp), the simple and exact fits, tsclean,
+     decompose, filters, diffinv, ma: 1e-9 or better at every scale. The equivariant outputs at + 1e15 are 1e-4 of the
+     unshifted values, i.e. 2e-15 of their own size (the representation). findfrequency's absolute threshold is R's
+     rule (log 103). ets on 24 values (AAA) moves by 1e-4 with the scale: its optimum is the corner alpha = 0.9999,
+     gamma = 1e-4 of the coupled bound gamma <= 1 - alpha, which is infeasible in floating point (1 - 0.9999 =
+     9.99999999999989e-5 < 1e-4); the log-likelihoods are 4e-5 apart. Kept (R has the same bounds).
+   - **Meta-analysis, broken and fixed:**
+     - rma itself (metafor's path, since 1.0) was never standardised: metareg, metabias(Thompson) and trimfill
+       through it were 4e-2 off at 1e-150 and failed at 1e+-300; moderators times 1e+-150 or plus 1e8 / 1e15 were
+       "not of full rank" or crashed. Now: (a) the weighted fit takes the moderator columns less a large common value
+       (with an intercept) and divided by a power of two beyond 2^+-200, and maps the coefficients back, with the
+       standard errors and the correlations computed in range (a slope's variance for moderators near 1e-300 is out of
+       range; QM by z' R^-1 z); (b) the rank check works on columns scaled to their largest value and centred; (c) rma
+       standardises yi and vi beyond 2^+-200 (not when a positive variance would underflow: subnormal variances beside
+       effects near 1e150 keep the old path, test/numerics15); (d) metareg, metabias, trimfill, baujat and the
+       subgroups' common tau2 divide TE and seTE before squaring. Equivariant to 3e-15 for moderators; for the effects
+       the standardised fits differ from the unit-scale one by REML's absolute stopping rule (2e-5..5e-5, R's rule kept).
+     - metacont (MD, SMD, ROM) and metainc's IRD failed at 1e+-300 ("no study with a finite estimate"): the standard
+       errors by hypot, the MH person-time as fractions (t1 / T) (t2 / T), the MH IRD variance with relative weights
+       and e / t^2 = (e / t) / (t / tm) / tm under the square root (a first version divided by tm outside it).
+     - netmeta and netsplit / decompDesign / netmeasures / netcomb / discomb failed at 1e+-300 (seTE^2): netmeta and
+       discomb fit TE / c, seTE / c beyond 2^+-200 and map back; the others divide the fit's values before squaring.
+     - pWeightedChisq with weights and q near 1e+-300 (lmin lmax overflowed): both divided by a power of two.
+   - **Meta-analysis, fine or inherent:** metamean, metarate, metainc's IRR, metacor, metabias Egger / Begg (after the
+     division), metainf, metacum, metaSubgroup, genqInterval to 1e-13 (beyond R's REML stopping, 1e-7..5e-5);
+     metacont / metamean with + 1e15 added to the means: the inputs themselves are rounded (5.1 + 1e15 to 0.125).
+   - **Probabilities:** pWeightedChisq with equal weights equals pchisq exactly from 1e-9 to 1 (it returns the lower
+     tail; 1 - P for the upper tail is lost below 1e-16, as a cdf). metaprop with zero cells, all events, rare events
+     (1e-5) and counts near 1e6 (`tsmeta120-propedge.R`): PLOGIT, PFT, PAS, PRAW, PLN equal to R to 3e-11, the GLMM to
+     1e-10, except **metapropGlmm on rare events** (p about 1e-5, n 1e5): rStats.js's glmer fails ("the minimisation
+     of the deviance did not converge"), R fits it (tau2 = 0): an open point in glmer (/mixed, since 1.x). The GLMM's
+     standard error with one zero cell is 2e-5 from R's (glmer's optimiser).
+   - **Size, precision:** at n = 1e5 the tests are 1e-12 under a change of scale by 3 and 1e-10 with + 1e8 (the input's
+     own rounding at 1e8 is 1.5e-8 absolute); supsmu's moving sums agree with the exact windows to 5e-15 at n = 2e4;
+     metagen with 1000 studies is 1e-15 under a permutation (and 1e-4 under a change of scale by 3: REML's absolute
+     stopping rule, R's).
+   - **Tests:** acf.test's acf_shift / ccf_shift compared rStats.js with R's acf of lh + 1e8, which R computes 1.5e-9
+     off (cancellation in the mean); the reference is now the acf of the stored values less 1e8 (exact), and the test
+     checks that R's value misses it. Permanent: test/tsEdge120 ("the rest of the function x axis matrix") and
+     test/metaEdge120 (likewise), 13 cases.
