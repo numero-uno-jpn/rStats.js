@@ -229,6 +229,9 @@ function tauEstimate(y:number[],v:number[],X:number[][],method:MetaMethod,contro
     return Math.max(0,a.reduce((s,z,i)=>s+z*fit.residuals[i]!*fit.residuals[i]!,0)/Math.max(1,df));
   }
   const qFunction=(t:number)=>weightedFit(y,v,X,t).qe-df;
+  // EB and PM: no positive root when Q(0) <= df (heterogeneity below its expectation): tau2 = 0, as metafor
+  // (before 1.20.0 the root search returned NaN here)
+  if((method==="EB"||method==="PM")&&qFunction(0)<=0) return 0;
   if(method==="EB") {
     const hi=control.tau2Max??Math.max(100,10*raw/k);
     return Math.max(0,root(qFunction,0,hi,1e-14));

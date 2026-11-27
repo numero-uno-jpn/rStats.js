@@ -1130,3 +1130,20 @@ choices under several criteria).
    po.test for 2..4 variables x demean x lshort): **all within 1e-9 at the first run** (statistics, p-values,
    parameters), white.test with R's seeds through rStats.js's R-compatible generator. pp.test's default type is
    "Z(alpha)" as R's.
+
+## meta: metagen implemented (2026-11-27, session 40)
+
+96. `src/meta/metagen.ts` with the fixture `oracle/meta.R` (7 data sets x 8 tau2 methods x classic / HK, the tau2
+   interval methods, other levels):
+   - exact (1e-9 or better): the common effect, the random effect (classic and HK), Q, tau2 (REML, DL, ML, SJ, HE,
+     HS), H, I2 and their intervals, the weights, the prediction interval. Two details found on the way: **meta's H is
+     at least 1** (Q below its df gives H = 1, I2 = 0), and **the prediction interval uses the classic seTE.random
+     also under Hartung-Knapp** (sqrt(tau2 + 1 / sum w*); with the HK se: 5e-2 off for HS + HK, k = 3).
+   - PM and EB tau2 and every tau2 interval (QP, J, BJ): R's values are within uniroot's default tolerance
+     (about 1.2e-4 absolute) of the roots: at R's tau2 the equations are off by up to 3e-3 (QP), 7e-5 (the
+     generalised Q cdf); ours solve them to 1e-8 or better, and the test checks the equations and |ours - R| < 1.3e-4.
+   - The generalised Q cdf: Imhof's integral needs too many subdivisions (oscillating, slow tail); **Ruben's (1962)
+     series with beta = 2 lmin lmax / (lmin + lmax)** is exact and fast (Imhof kept for very spread eigenvalues).
+   - **rStats.js's rma (since 1.0) returned NaN for PM and EB when Q(0) <= df** (the root search found no sign
+     change); fixed: tau2 = 0, as metafor. A bug fix to list in the 1.20.0 notes.
+   - When Q(0) is below the lower chi-squared quantile, metafor's Q-profile upper bound is NA and meta reports 0: done.
