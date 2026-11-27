@@ -70,6 +70,6 @@ describe("auto.arima (forecast)", () => {
       expect([p, d, q, P, D, Q, s].slice(0, arr(c.order).length)).toEqual(arr(c.order));
       expect(fit.coefNames).toEqual(Array.isArray(c.names) ? c.names : c.names === null ? [] : [c.names]);
       expect(Math.abs(fit.aicc - num(c.aicc))).toBeLessThan(1e-5 * Math.max(1, Math.abs(num(c.aicc))));
-    });
+    }, 300_000); // the full search of usacc takes about 2 minutes alone, more under a full run
   }
 });
