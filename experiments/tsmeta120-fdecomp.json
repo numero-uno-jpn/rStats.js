@@ -1,0 +1,152 @@
+{
+  "R": "R version 4.6.2 (2026-10-29)",
+  "arch": "x86_64",
+  "forecast": "9.0.2",
+  "mstl": {
+    "usacc": {
+      "cols": ["Data", "Trend", "Seasonal12", "Remainder"],
+      "seasonal": 0,
+      "trend": 0,
+      "rem_C1": 0,
+      "rem_C2": 0,
+      "seasadj": 0,
+      "robust_diff": 154.91356060093437,
+      "s7": 0,
+      "it1": 0
+    },
+    "co2": {
+      "cols": ["Data", "Trend", "Seasonal12", "Remainder"],
+      "seasonal": 0,
+      "trend": 0,
+      "rem_C1": 0,
+      "rem_C2": 0,
+      "seasadj": 0,
+      "robust_diff": 0.18230262093282601,
+      "s7": 0,
+      "it1": 0
+    },
+    "air": {
+      "cols": ["Data", "Trend", "Seasonal12", "Remainder"],
+      "seasonal": 0,
+      "trend": 0,
+      "rem_C1": 0,
+      "rem_C2": 0,
+      "seasadj": 0,
+      "robust_diff": 42.226317008025745,
+      "s7": 0,
+      "it1": 0
+    },
+    "nottem": {
+      "cols": ["Data", "Trend", "Seasonal12", "Remainder"],
+      "seasonal": 0,
+      "trend": 0,
+      "rem_C1": 0,
+      "rem_C2": 0,
+      "seasadj": 0,
+      "robust_diff": 1.2626454325197862,
+      "s7": 0,
+      "it1": 0
+    },
+    "q": {
+      "cols": ["Data", "Trend", "Seasonal4", "Remainder"],
+      "seasonal": 0,
+      "trend": 0,
+      "rem_C1": 0,
+      "rem_C2": 0,
+      "seasadj": 0,
+      "robust_diff": 215.51276845591619,
+      "s7": 0,
+      "it1": 0
+    }
+  },
+  "seasadj_decompose": [0, 0, 0],
+  "mstl_nonseasonal": {
+    "cols": ["Data", "Trend", "Remainder"],
+    "trend_vs_supsmu": 0
+  },
+  "stlf": {
+    "usacc": {
+      "mean": 0,
+      "upper": 0,
+      "method": "STL +  ETS(A,N,N)",
+      "ets_method": "ETS(A,N,N)"
+    },
+    "air": {
+      "mean": 0,
+      "upper": 0,
+      "method": "STL +  ETS(M,A,N)",
+      "ets_method": "ETS(M,A,N)"
+    },
+    "co2": {
+      "mean": 0,
+      "upper": 0,
+      "method": "STL +  ETS(A,A,N)",
+      "ets_method": "ETS(A,A,N)"
+    }
+  },
+  "thetaf": {
+    "nile": {
+      "seasonal": false,
+      "mean_mse": 0,
+      "mean_lik": 0.041932084259769908,
+      "method": "Theta",
+      "model_names": ["y", "series", "ses_model", "alpha", "drift", "sigma2", "fitted", "residuals", "seas_component", "lambda", "call"],
+      "alpha_R": 0.24566815365311614,
+      "drift_R": -1.3571527152715279
+    },
+    "air": {
+      "seasonal": true,
+      "mean_mse": 0,
+      "mean_lik": 0,
+      "method": "Theta",
+      "model_names": ["y", "series", "ses_model", "alpha", "drift", "sigma2", "fitted", "residuals", "seas_component", "lambda", "call"],
+      "alpha_R": 0.83775208994930184,
+      "drift_R": 1.3230696288025472
+    },
+    "usacc": {
+      "seasonal": true,
+      "mean_mse": 0,
+      "mean_lik": 0.074478751037531765,
+      "method": "Theta",
+      "model_names": ["y", "series", "ses_model", "alpha", "drift", "sigma2", "fitted", "residuals", "seas_component", "lambda", "call"],
+      "alpha_R": 0.55170261162723444,
+      "drift_R": -5.8496339295881912
+    },
+    "lynx": {
+      "seasonal": false,
+      "mean_mse": 0,
+      "mean_lik": 1.968076912817196e-05,
+      "method": "Theta",
+      "model_names": ["y", "series", "ses_model", "alpha", "drift", "sigma2", "fitted", "residuals", "seas_component", "lambda", "call"],
+      "alpha_R": 0.99989999070795754,
+      "drift_R": 1.6426236811729187
+    },
+    "uspop": {
+      "seasonal": false,
+      "mean_mse": 0,
+      "mean_lik": 0,
+      "method": "Theta",
+      "model_names": ["y", "series", "ses_model", "alpha", "drift", "sigma2", "fitted", "residuals", "seas_component", "lambda", "call"],
+      "alpha_R": 0.99989999950181052,
+      "drift_R": 5.393622807017544
+    }
+  },
+  "croston": {
+    "cases": {
+      "default 0.1": [1.2719723934775247, 1.2719723934775247, 0],
+      "default 0.3": [1.2402848021779733, 1.2402848021779733, 0],
+      "sba 0.1": [1.2083737738036484, 1.2083737738036484, 0],
+      "sba 0.3": [1.0542420818512774, 1.0542420818512774, 0],
+      "sbj 0.1": [1.2050264780313391, 1.2050264780313391, 0],
+      "sbj 0.3": [1.021411013558331, 1.021411013558331, 0]
+    },
+    "fitted_R": ["NA", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.59999999999999998, 0.59999999999999998, 0.59999999999999998, 0.63440860215053763, 0.63440860215053763, 0.63440860215053763, 0.63440860215053763, 0.63440860215053763, 0.72266065388951517, 0.72266065388951517, 0.72266065388951517, 0.72063262103102732, 0.72063262103102732, 0.72063262103102732, 0.72063262103102732, 0.72063262103102732, 0.71305014645429743, 0.71305014645429743, 0.71305014645429743, 0.79162192344250004, 0.88274328457531703, 0.88274328457531703, 0.88644692179280571, 0.88644692179280571, 0.99201294663934214, 0.99201294663934214, 1.0467602404203247, 1.0656063799767632, 1.128681646151666, 1.128681646151666, 1.1228151324503521, 1.2926939004903271, 1.3917280900479101, 1.3917280900479101, 1.3917280900479101, 1.3917280900479101, 1.3917280900479101, 1.3152599406093328, 1.3152599406093328, 1.3152599406093328, 1.2902538858658235, 1.3105092959091378, 1.3105092959091378, 1.3105092959091378, 1.31249193479405, 1.31249193479405, 1.3238278020847818, 1.3238278020847818, 1.2719723934775247, 1.2719723934775247],
+    "y": [0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 0, 0, 5, 0, 0, 0, 0, 11, 0, 0, 2, 0, 0, 0, 0, 3, 0, 0, 8, 7, 0, 2, 0, 8, 0, 5, 2, 4, 0, 2, 8, 5, 0, 0, 0, 0, 4, 0, 0, 3, 2, 0, 0, 4, 0, 3, 0, 1, 0, 0]
+  },
+  "tslm": {
+    "coef": 0,
+    "names": ["(Intercept)", "trend", "season2", "season3", "season4", "season5", "season6", "season7", "season8", "season9", "season10", "season11", "season12"],
+    "mean": 0,
+    "upper95": 0
+  }
+}

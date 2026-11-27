@@ -104,13 +104,86 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `vcov()` | `geeVcov` | 一般化推定方程式の係数のサンドイッチ共分散行列 |
 | `qvcalc::worstErrors()` | `worstErrors` | 準標準誤差の、すべての対比での最悪の相対誤差 |
 
-## Time series analysis (`rStats.js/timeseries`)
+## 時系列解析 (`rStats.js/timeseries`)
 
 | R | rStats.js | 説明 |
 | --- | --- | --- |
+| `forecast::accuracy()` | `accuracy` | 時系列予測の精度指標 |
 | `stats::acf()` | `acf` | 自己相関・自己共分散・偏自己相関 |
+| `tseries::adf.test()` | `adfTest` | 拡張 Dickey-Fuller 検定 |
+| `ar()` | `ar` | 自己回帰モデルの当てはめ |
+| `arima()` | `arima` | ARIMA モデルの当てはめ |
+| `forecast::Arima()` | `forecastArima` | Box-Cox 変換とドリフトを用いた ARIMA モデルの当てはめ |
+| `arima0()` | `arima0` | 差分系列の最尤法による ARIMA モデルの当てはめ |
+| `forecast::arimaorder()` | `arimaorder` | ARIMA モデルの次数と周期 |
+| `forecast::auto.arima()` | `autoArima` | 自動 ARIMA モデルの選択と当てはめ |
+| `forecast::bizdays()` | `bizdays` | 各月・四半期の営業日数 |
+| `Box.test()` | `boxTest` | Box-Pierce 検定・Ljung-Box 検定 |
+| `forecast::BoxCox.lambda()` | `boxCoxLambda` | Box-Cox 変換の lambda の選択 |
+| `forecast::BoxCox()` | `boxCox` | Box-Cox 変換 |
 | `stats::ccf()` | `ccf` | 2 つの系列の相互相関・相互共分散 |
+| `forecast::checkresiduals()` | `checkresiduals` | モデル残差の Ljung-Box 検定 |
+| `forecast::croston()` | `croston` | 間欠需要に対する Croston 法 |
+| `forecast::CV()` | `cvLm` | 線形モデルの交差検証と情報量規準 |
+| `decompose()` | `decompose` | 移動平均による古典的季節分解 |
+| `diffinv()` | `diffinv` | 差分の逆演算 |
+| `forecast::dm.test()` | `dmTest` | Diebold-Mariano 検定 |
+| `forecast::easter()` | `easter` | 月・四半期ごとのイースター休暇日数 |
+| `forecast::ets()` | `ets` | 指数平滑状態空間モデルの選択と当てはめ |
+| `filter()` | `tsFilter` | 時系列の線形フィルタリング |
+| `forecast::findfrequency()` | `findfrequency` | 時系列の卓越周期の推定 |
+| `forecast::forecast()` | `forecast` | 時系列・モデルからの予測 |
+| `forecast::forecast()` | `forecastEts` | ETS モデルによる予測と予測区間 |
+| `forecast::forecast()` | `forecastFromArima` | ARIMA モデルによる予測と予測区間 |
+| `forecast::forecast()` | `forecastStlm` | STLM モデルによる予測 |
+| `forecast::fourier()` | `fourier` | 時系列の Fourier 項 |
+| `forecast::holt()` | `holt` | Holt の線形トレンド法 |
+| `HoltWinters()` | `holtWinters` | Holt-Winters 指数平滑化 |
+| `forecast::hw()` | `hw` | Holt-Winters 季節法 |
+| `forecast::InvBoxCox()` | `invBoxCox` | 逆 Box-Cox 変換 |
+| `tseries::jarque.bera.test()` | `jarqueBeraTest` | Jarque-Bera 正規性検定 |
+| `tseries::kpss.test()` | `kpssTest` | KPSS 検定 |
+| `forecast::ma()` | `ma` | 移動平均による平滑化 |
+| `forecast::meanf()` | `meanf` | 平均による時系列予測 |
+| `forecast::monthdays()` | `monthdays` | 各月・四半期の日数 |
+| `forecast::mstl()` | `mstl` | 多重季節性の STL 分解 |
+| `forecast::na.interp()` | `naInterp` | 時系列の欠測値補間 |
+| `forecast::naive()` | `naive` | ナイーブ予測 |
+| `forecast::ndiffs()` | `ndiffs` | 定常性に必要な 1 階差分の回数 |
+| `forecast::nsdiffs()` | `nsdiffs` | 必要な季節差分の回数 |
+| `forecast::ocsb.test()` | `ocsbTest` | 季節単位根に対する OCSB 検定 |
 | `stats::pacf()` | `pacf` | 偏自己相関 |
+| `tseries::po.test()` | `poTest` | Phillips-Ouliaris 共和分検定 |
+| `tseries::pp.test()` | `ppTest` | Phillips-Perron 検定 |
+| `predict.Arima()` | `predictArima` | ARIMA モデルのカルマンフィルタ予測 |
+| `predict()` | `predictAr` | 自己回帰モデルの予測 |
+| `predict()` | `predictHoltWinters` | Holt-Winters モデルの予測と区間 |
+| `forecast::remainder()` | `remainder` | 時系列分解の残差成分 |
+| `tseries::runs.test()` | `runsTest` | Wald-Wolfowitz ラン検定 |
+| `forecast::rwf()` | `rwf` | ランダムウォーク予測 |
+| `forecast::seasadj()` | `seasadj` | 季節調整済み系列 |
+| `forecast::seasonal()` | `seasonalComponent` | 時系列分解の季節成分 |
+| `forecast::seasonaldummy()` | `seasonaldummy` | 季節ダミー変数 |
+| `forecast::ses()` | `ses` | 単純指数平滑法 |
+| `forecast::snaive()` | `snaive` | 季節ナイーブ予測 |
+| `spec.ar()` | `specAr` | 自己回帰スペクトル |
+| `stl()` | `stl` | loess による季節・トレンド分解 |
+| `forecast::stlf()` | `stlf` | STL と ETS による予測 |
+| `forecast::stlm()` | `stlm` | 季節調整済み系列に対するモデルを用いた STL 分解 |
+| `supsmu()` | `supsmu` | Friedman のスーパースムーザー |
+| `tseries::terasvirta.test()` | `terasvirtaTest` | Teraesvirta ニューラルネットワーク検定 |
+| `forecast::thetaf()` | `thetaf` | theta 法による時系列予測 |
+| `forecast::trendcycle()` | `trendcycle` | 時系列分解のトレンド・周期成分 |
+| `forecast::tsclean()` | `tsclean` | 欠測値補間と外れ値置換による時系列のクリーニング |
+| `forecast::tsCV()` | `tsCV` | 時系列の交差検証 |
+| `forecast::tslm()` | `tslm` | トレンドと季節ダミー変数による線形回帰 |
+| `forecast::tsoutliers()` | `tsoutliers` | 時系列の外れ値検出と置換 |
+| `tseries::white.test()` | `whiteTest` | White ニューラルネットワーク検定 |
+| (R にない) | `easterSunday` | イースターの日曜日 |
+| (R にない) | `kpssPValue` | KPSS 表による p 値の補間 |
+| (R にない) | `kpssStatistic` | KPSS 検定統計量 |
+| (R にない) | `minRootModulus` | 多項式の根の最小絶対値 |
+| (R にない) | `ocsbCritical` | OCSB 検定の臨界値 |
 
 ## 特殊関数 (`rStats.js/special`)
 
@@ -279,6 +352,7 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `aov()` | `aov` | 分散分析 |
 | `pROC::auc()` | `auc` | ROC 曲線の下の面積、または 2 つの特異度 (感度) の間の部分面積 |
 | `bartlett.test()` | `bartlettTest` | 複数の正規標本の分散が等しいことについての Bartlett 検定 |
+| `meta::baujat()` | `baujat` | Baujat プロットの座標 |
 | `binom.test()` | `binomTest` | ベルヌーイ試行の成功確率についての単純帰無仮説の正確検定 |
 | `DescTools::BinomCI()` | `binomCI` | 二項比率 x/n の信頼区間 |
 | `DescTools::BinomDiffCI()` | `binomDiffCI` | 独立な 2 つの比率 x1/n1 と x2/n2 の差 p1 - p2 の信頼区間 |
@@ -306,6 +380,8 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `cmprsk::crr()` | `crr` | Fine-Gray の部分分布ハザードの比例ハザード回帰 |
 | `cmprsk::cuminc()` | `cuminc` | 競合リスクの累積発生関数と Gray の検定 |
 | `nortest::cvm.test()` | `cvmTest` | Cramer-von Mises の正規性検定 |
+| `netmeta::decomp.design()` | `decompDesign` | デザイン別の Q 分解 |
+| `netmeta::discomb()` | `discomb` | 加法的成分ネットワーク・メタアナリシス |
 | `drop1()` | `drop1` | 項を 1 つずつ除いたモデルの比較 (lm と glm) |
 | `PMCMRplus::dscfAllPairsTest()` | `dscfAllPairsTest` | 対ごとの Mann-Whitney 統計量による Dwass-Steel-Critchlow-Fligner の全対比較検定 |
 | `dunn.test::dunn.test()` | `dunnTest` | 平均順位のすべての対についての Dunn の検定 |
@@ -355,8 +431,29 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `mauchly.test()` | `mauchlyTest` | `M` が張り `X` に直交する対比上での、各被験者の測定値の球面性についての Mauchly 検定 |
 | `mcnemar.test()` | `mcnemarTest` | 正方の計数表の行と列の対称性についての McNemar のカイ二乗検定 |
 | `mcr::mcreg()` | `mcreg` | 測定法の比較の回帰 (Deming、重みつき Deming、Passing-Bablok) と、係数の信頼区間 |
+| `meta::metabias()` | `metabias` | ファンネルプロットの非対称性検定 |
+| `meta::metabin()` | `metabin` | 二値アウトカムのメタ分析 |
+| `meta::metacont()` | `metacont` | 連続アウトカムのメタ分析 |
+| `meta::metacor()` | `metacor` | 相関のメタ分析 |
+| `meta::metacum()` | `metacum` | 累積メタ分析 |
+| `meta::metagen()` | `metagen` | 一般逆分散法によるメタ分析 |
+| `meta::metainc()` | `metainc` | 発生率のメタ分析 |
+| `meta::metainf()` | `metainf` | 1 件除外メタ分析 |
+| `meta::metamean()` | `metamean` | 単一平均のメタ分析 |
+| `meta::metaprop()` | `metaprop` | 単一割合の逆分散メタ分析 |
+| `meta::metaprop()` | `metapropGlmm` | ランダム切片ロジスティックモデルによる単一割合のメタ分析 |
+| `meta::metarate()` | `metarate` | 単一発生率のメタ分析 |
+| `meta::metareg()` | `metareg` | メタ回帰 |
 | `model.matrix()` | `modelMatrix` | データフレームに対する式のモデル行列 (R の `terms()` の属性つき) |
 | `mood.test()` | `moodTest` | 尺度についての Mood の 2 標本検定 |
+| `netmeta::netcomb()` | `netcomb` | ネットワークの成分メタ分析 |
+| `netmeta::netconnection()` | `netconnection` | ネットワークの連結成分 |
+| `netmeta::netleague()` | `netleague` | ネットワークのリーグテーブル |
+| `netmeta::netmeasures()` | `netmeasures` | ネットワーク指標 |
+| `netmeta::netmeta()` | `netmeta` | 頻度論的ネットワーク・メタアナリシス |
+| `netmeta::netposet()` | `netposet` | 複数アウトカムにおける治療の半順序 |
+| `netmeta::netrank()` | `netrank` | ネットワークメタ分析の P スコア |
+| `netmeta::netsplit()` | `netsplit` | 直接・間接エビデンスの分割 |
 | `powerSurvEpi::numDEpi.default()` | `numDEpi` | Schoenfeld・Latouche の方法で必要なイベント数 |
 | `epitools::oddsratio()` | `oddsRatio` | 2 x 2 表のオッズ比とその信頼区間、独立性の 3 つの p 値 |
 | `effectsize::omega_squared()` | `omegaSquared` | 分散分析表の各項のオメガ二乗 (反復測定計画にも対応) |
@@ -367,6 +464,7 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `pairwise.prop.test()` | `pairwisePropTest` | 比率が等しいことについての群の対ごとの 2 群検定 (調整済み p 値つき) |
 | `pairwise.t.test()` | `pairwiseTTest` | 群間の対ごとの t 検定 (調整済み p 値つき) |
 | `pairwise.wilcox.test()` | `pairwiseWilcoxTest` | 群間の対ごとの Wilcoxon 順位和検定 (調整済み p 値つき) |
+| `netmeta::pairwise()` | `pairwise` | アーム単位データからの対比生成 |
 | `psych::partial.r()` | `partialR` | `x` のほかのすべての列を与えたときの列 `i` と `j` の偏相関 |
 | `nortest::pearson.test()` | `pearsonTest` | Pearson のカイ二乗正規性検定 (当てはめた正規分布のもとで等確率の階級による) |
 | `outliers::pgrubbs()` | `pgrubbs` | Grubbs の検定統計量の分布関数 (type 10) |
@@ -430,6 +528,7 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `cmprsk::timepoints()` | `timepoints` | 累積発生関数の曲線を指定した時点で求める |
 | `timeROC::timeROC()` | `timeROC` | 打ち切りのある事象時間の時間依存 ROC 曲線と AUC (累積/動的の定義、競合リスクの定義 (i)・(ii)、打ち切りの逆確率の重みは KM・Cox・Aalen、iid 表現と標準誤差) |
 | `equivalence::tost()` | `tost` | 2 つの平均の同等性についての 2 つの片側 t 検定 (TOST) |
+| `meta::trimfill()` | `trimfill` | Duval-Tweedie の trim-and-fill 法 |
 | `TOSTER::tsum_TOST()` | `tsumTOST` | 要約統計量 (平均・標準偏差・標本の大きさ) からの `tTOST` |
 | `TukeyHSD()` | `TukeyHSD` | 一元配置分散分析の群平均の間の Tukey の HSD (honest significant differences) |
 | `PMCMRplus::tukeyTest()` | `tukeyTest` | 平均の Tukey の全対比較検定 |
@@ -439,6 +538,10 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `wilcox.test()` | `wilcoxTest` | Wilcoxon の符号付き順位検定と順位和検定 |
 | `BSDA::z.test()` | `zTest` | 標準偏差が既知の場合の、1 標本の平均または 2 標本の平均の差の z 検定 |
 | (R にない) | `binomDiffEquivalenceTest` | 独立な 2 つの比率 x1/n1 と x2/n2 の差が許容幅の内にあること (同等性) の検定 |
+| (R にない) | `genqInterval` | tau2 の一般化 Q 区間 |
+| (R にない) | `heterogeneityIntervals` | 異質性指標 H・I2 の区間 |
+| (R にない) | `metaSubgroup` | サブグループ解析 |
+| (R にない) | `pWeightedChisq` | 重み付きカイ二乗分布の累積確率 |
 | (R にない) | `setWarningHandler` | R の警告を受け取る関数の設定 (前の関数を返す) |
 | (R にない) | `timeROCAucDiff` | 2 つの時間依存 AUC の差と点ごとの信頼区間 (R の plotAUCcurveDiff の値) |
 

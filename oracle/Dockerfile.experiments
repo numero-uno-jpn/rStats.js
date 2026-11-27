@@ -142,3 +142,14 @@ RUN install2.r --error --skipinstalled timeROC survivalROC timereg \
                    got <- sapply(names(want), function(p) as.character(packageVersion(p))); \
                    cat(sprintf("%s %s\n", names(got), got), sep = ""); \
                    if (!identical(unname(got), unname(want))) quit(status = 1)'
+
+# Time series and meta-analysis (1.20.0): forecast and tseries, meta and netmeta (netmeta's igraph needs GLPK), in a
+# layer of their own, at the versions of the fixtures.
+RUN apt-get update && apt-get install -y --no-install-recommends libglpk40 \
+    && rm -rf /var/lib/apt/lists/* \
+    && install2.r --error --skipinstalled forecast tseries meta netmeta \
+    && Rscript -e 'want <- c(forecast = "9.0.2", tseries = "0.10.63", meta = "8.5.0", netmeta = "3.7.0"); \
+                   for (p in names(want)) suppressPackageStartupMessages(library(p, character.only = TRUE)); \
+                   got <- sapply(names(want), function(p) as.character(packageVersion(p))); \
+                   cat(sprintf("%s %s\n", names(got), got), sep = ""); \
+                   if (!identical(unname(got), unname(want))) quit(status = 1)'

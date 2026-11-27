@@ -158,6 +158,13 @@ describe("acf, pacf and ccf", () => {
     run("acf_scale_big", () => acf(lh.map((v) => v * 2 ** 300), { type: "covariance" }));
     run("acf_scale_big_cor", () => acf(lh.map((v) => v * 2 ** 300)));
     run("acf_scale_small", () => acf(lh.map((v) => v * 2 ** -300)));
+    // R's acf of lh + 1e8 loses digits to the mean (1.5e-9); rStats.js takes the common value out (1.20.0, log 110), so
+    // the reference is the acf of the stored values less 1e8 (exact), which R's value misses by that much
+    for (const [k, type] of [["acf_shift", "correlation"], ["acf_shift_cov", "covariance"]] as const) {
+      const exact = acf(lh.map((v) => v + 1e8).map((v) => v - 1e8), { type }).acf;
+      expect(Math.max(...nums(fixture[k].value.acf).map((v, i) => Math.abs(v - exact[i]!))), k).toBeGreaterThan(1e-10);
+      fixture[k].value.acf = exact;
+    }
     run("acf_shift", () => acf(lh.map((v) => v + 1e8)));
     run("acf_shift_cov", () => acf(lh.map((v) => v + 1e8), { type: "covariance" }));
     run("acf_matrix_1col", () => acf(lh.map((v) => [v])));
@@ -198,6 +205,12 @@ describe("acf, pacf and ccf", () => {
     run("ccf_na_pass", () => ccf([...x10.slice(0, 9), NaN], y10, { naAction: "pass" }));
     run("ccf_constant", () => ccf(Array(10).fill(1), y10));
     run("ccf_scale", () => ccf(x10.map((v) => v * 2 ** 300), y10.map((v) => v * 2 ** -300)));
+    // likewise R's ccf of x + 1e8 (1e-9 relative); the reference: the stored values less 1e8 (log 110)
+    {
+      const exact = ccf(x10.map((v) => v + 1e8).map((v) => v - 1e8), y10, { type: "covariance" }).acf;
+      expect(Math.max(...nums(fixture.ccf_shift.value.acf).map((v, i) => Math.abs(v / exact[i]! - 1)))).toBeGreaterThan(1e-10);
+      fixture.ccf_shift.value.acf = exact;
+    }
     run("ccf_shift", () => ccf(x10.map((v) => v + 1e8), y10, { type: "covariance" }));
     fail("ccf_nodemean", () => acf(x10.map((v, i) => [v, y10[i]!]) as any, { demean: false }));
 

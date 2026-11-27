@@ -33,7 +33,7 @@ against R and are not a priority.
 | Special functions | `gamma`, `lgamma`, `beta`, `lbeta`, `choose`, `lchoose`, `factorial`, `lfactorial`, `digamma`, `trigamma`, `psigamma`, `besselI`, `besselK`, `besselJ`, `besselY`, and `erf`, `erfc`, `erfinv`, `erfcinv`, `gammainc`, `perm` (not in R), and the log1p-type functions of R's C API `log1pmx`, `lgamma1p`, `log1mexp`, `log1pexp` |
 | Distributions | d/p/q with `lowerTail` and `logP` for all 20 distributions in R's `stats` (including the studentized range), the non-central chi-squared, t, F and beta, and inverse gamma, Kumaraswamy, Pareto, triangular, Laplace (extraDistr) and arcsine; `distSummary` for 23 of them (all but the Wilcoxon signed rank and rank sum distributions and the studentized range) |
 | Random numbers | R's default Mersenne-Twister with `set.seed()`-compatible streams, and `RNGkind` with `"L'Ecuyer-CMRG"` (with `parallel`'s `nextRNGStream` and `nextRNGSubStream`) and `sample.kind = "Rounding"`; 26 `r*` functions including `rmultinom` (extraDistr's streams for the extra distributions), `sample`, `sampleInt`, `r2dtable` |
-| Time series | `acf`, `pacf`, `ccf` (autocorrelation, partial autocorrelation and cross-correlation) |
+| Time series | `acf`, `pacf`, `ccf`; ARIMA (`arima`, forecast's `Arima` and `auto.arima`), exponential smoothing (`ets`, `HoltWinters`, `ses`, `holt`, `hw`), decompositions (`stl`, `mstl`, `decompose`), the simple forecasting methods, unit-root and seasonality tests and forecast's helpers; tseries' tests. Separate `/timeseries` area. |
 | Descriptive statistics | R's summaries (`mean`, `variance`, `quantile` with all nine types, `rank`, `cov`/`cor` matrices, `table`, `cut`, `hist`, `ecdf`, `scale`, ...) and e1071's and DescTools' (`skewness`, `kurtosis`, `geometricMean`, `modes`, `meanAD`, `cv`) |
 | Hypothesis tests | R's `htest` functions: `tTest`, `chisqTest` (including simulated p-values and two factor vectors), `fisherTest` (including r × c and simulated p-values), `wilcoxTest`, `corTest`, `binomTest`, `poissonTest`, `propTest`, `mcnemarTest`, `varTest`, `bartlettTest`, `kruskalTest`, `friedmanTest`, `quadeTest`, `flignerTest`, `moodTest`, `onewayTest`, `shapiroTest`, `mantelhaenTest`, `ansariTest` (with its confidence interval), `ksTest`, the `pairwise*` helpers, `pAdjust`; `aov` (one way), `TukeyHSD`, `zTest` (BSDA), `brunnerMunzelTest` (lawstat), Tamhane's T2/T2', Page's test and type-10 Grubbs' test |
 | Regression | Ordinal logistic regression (`polr`), robust regression (`rlm`) and nonlinear least squares (`nls`), with their summaries, covariance, prediction, confidence intervals and model comparisons; ten self-starting models. Separate `/regression` area. |
@@ -92,7 +92,8 @@ widely used in Japanese medical and psychological research) and ReactiveStat wit
 8. **Time-dependent ROC**: done for 1.19.0 (timeROC's cumulative/dynamic AUC with Kaplan-Meier, Cox and Aalen censoring
    weights, competing risks, iid standard errors, confint, compare and SeSpPPVNPV; survivalROC's Kaplan-Meier estimator;
    the nearest-neighbour estimator left out)
-9. To be considered afterwards: network meta-analysis [netmeta], time series [`arima`, forecast `auto.arima`]
+9. **Time series and meta-analysis**: done for 1.20.0 (stats' `arima`, `HoltWinters`, `stl`, `decompose`, `ar`; forecast's
+   `Arima`, `auto.arima`, `ets`, the simple methods and helpers; tseries' tests; meta's `metagen` to `trimfill`; netmeta)
 
 Mixed models continued (the former item 1) were done for 1.6.0: `confintLmer`, `confintGlmer`, `simulateLmer` and
 `simulateGlmer` after lme4's `confint` (profile likelihood and Wald) and `simulate`. Left out, as decided in the

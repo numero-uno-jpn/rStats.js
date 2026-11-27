@@ -1,0 +1,39 @@
+{
+  "R": "R version 4.6.2 (2026-10-29)",
+  "arch": "x86_64",
+  "netmeta": "3.7.0",
+  "twoarm": {
+    "order": ["A", "B", "C", "D"],
+    "TE.common": 1.1657341758564144e-15,
+    "seTE.common": 3.3306690738754696e-16,
+    "Q": -1.1102230246251565e-16,
+    "df.Q": 0,
+    "tau2": 0,
+    "tau2_T1": 0,
+    "TE.random": 1.1657341758564144e-15,
+    "seTE.random": 3.3306690738754696e-16,
+    "Pscore_R": [0.0085055457368419241, 0.61020301695376811, 0.97191457786450919, 0.40937685944488078],
+    "Pscore_undesirable": [0.99149445426315808, 0.38979698304623189, 0.028085422135490888, 0.59062314055511922],
+    "Pscore_cand": [0.0085055457368419241, 0.61020301695376811, 0.97191457786450919, 0.40937685944488078],
+    "names": ["studlab", "treat1", "treat2", "TE", "seTE", "seTE.adj", "seTE.adj.common", "seTE.adj.random", "design", "event1", "event2", "n1", "n2", "incr", "mean1", "mean2", "sd1", "sd2", "time1", "time2", "k", "m", "n", "d", "trts", "k.trts", "n.trts", "events.trts", "n.arms", "multiarm", "studies", "narms", "designs", "comparisons", "TE.nma.common", "seTE.nma.common", "lower.nma.common", "upper.nma.common", "statistic.nma.common", "pval.nma.common", "leverage.common", "w.common", "Q.common", "TE.common", "seTE.common", "lower.common", "upper.common", "statistic.common", "pval.common", "TE.nma.random", "seTE.nma.random", "lower.nma.random", "upper.nma.random", "statistic.nma.random", "pval.nma.random", "w.random", "TE.random", "seTE.random", "lower.random", "upper.random"],
+    "w_common": [44.444444444444443, 24.999999999999996, 30.8641975308642, 20.66115702479339, 16, 24.999999999999996, 34.602076124567468, 11.111111111111111],
+    "cand_w": [44.444444444444443, 24.999999999999996, 30.8641975308642, 20.66115702479339, 16, 24.999999999999996, 34.602076124567468, 11.111111111111111]
+  },
+  "threearm": {
+    "order": ["A", "B", "C", "D"],
+    "TE.common": 1.7763568394002505e-15,
+    "seTE.common": 3.3306690738754696e-16,
+    "Q": -2.2204460492503131e-16,
+    "df.Q": 0,
+    "tau2": 0,
+    "tau2_T1": 0,
+    "TE.random": 1.7763568394002505e-15,
+    "seTE.random": 3.3306690738754696e-16,
+    "Pscore_R": [0.010413757061099154, 0.61583233522685521, 0.97449174244518055, 0.39926216526686475],
+    "Pscore_undesirable": [0.98958624293890085, 0.38416766477314485, 0.025508257554819492, 0.60073783473313525],
+    "Pscore_cand": [0.010413757061099154, 0.61583233522685521, 0.97449174244518055, 0.39926216526686475],
+    "names": ["studlab", "treat1", "treat2", "TE", "seTE", "seTE.adj", "seTE.adj.common", "seTE.adj.random", "design", "event1", "event2", "n1", "n2", "incr", "mean1", "mean2", "sd1", "sd2", "time1", "time2", "k", "m", "n", "d", "trts", "k.trts", "n.trts", "events.trts", "n.arms", "multiarm", "studies", "narms", "designs", "comparisons", "TE.nma.common", "seTE.nma.common", "lower.nma.common", "upper.nma.common", "statistic.nma.common", "pval.nma.common", "leverage.common", "w.common", "Q.common", "TE.common", "seTE.common", "lower.common", "upper.common", "statistic.common", "pval.common", "TE.nma.random", "seTE.nma.random", "lower.nma.random", "upper.nma.random", "statistic.nma.random", "pval.nma.random", "w.random", "TE.random", "seTE.random", "lower.random", "upper.random"],
+    "w_common": [44.444444444444443, 24.999999999999996, 30.8641975308642, 20.66115702479339, 16, 24.999999999999996, 34.602076124567468, 11.111111111111111, 19.450561815814403, 27.166487164236624, 23.147776045266902],
+    "cand_w": [44.444444444444443, 24.999999999999996, 30.8641975308642, 20.66115702479339, 16, 24.999999999999996, 34.602076124567468, 11.111111111111111, 19.450561815814446, 27.166487164236653, 23.147776045266752]
+  }
+}

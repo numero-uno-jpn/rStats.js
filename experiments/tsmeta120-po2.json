@@ -1,0 +1,24 @@
+{
+  "R": "R version 4.6.2 (2026-10-29)",
+  "arch": "x86_64",
+  "tseries": "0.10.63",
+  "max_abs_diff": {
+    "k2_TRUE": 0,
+    "k2_FALSE": 0,
+    "k3_TRUE": 0,
+    "k3_FALSE": 0,
+    "k4_TRUE": 0,
+    "k4_FALSE": 0,
+    "k5_TRUE": 0,
+    "k5_FALSE": 0,
+    "k6_TRUE": 0,
+    "k6_FALSE": 0
+  },
+  "worst": 0,
+  "count": 4000,
+  "inside": 976,
+  "warnings": {
+    "low": "p-value smaller than printed p-value",
+    "high": "p-value greater than printed p-value"
+  }
+}

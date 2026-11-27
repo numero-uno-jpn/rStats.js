@@ -7,6 +7,42 @@ While the version is 0.x, a minor release (0.y.0) may contain breaking changes;
 they are listed under **Breaking** for each release. From 1.0.0 the project follows
 [Semantic Versioning](https://semver.org/).
 
+## 1.20.0 - 2026-11-28
+
+### Added
+
+- **Time series** in `/timeseries` (after stats, forecast and tseries; values only, no plots): `arima`, `predictArima`,
+  `arima0`, `forecastArima` (forecast's `Arima`, with drift and Box-Cox), `forecastFromArima`, `autoArima`, `ets`,
+  `forecastEts`, `holtWinters`, `predictHoltWinters`, `stl`, `mstl`, `stlm`, `forecastStlm`, `forecast` (a dispatcher),
+  `decompose`, `tsFilter` (stats' `filter`), `diffinv`, `ar`, `predictAr`, `boxTest`, `supsmu`; the simple methods `meanf`,
+  `rwf`, `naive`, `snaive`, `ses`, `holt`, `hw`, `thetaf`, `croston`, `stlf`, `tslm`; `boxCox`, `invBoxCox`,
+  `boxCoxLambda`, `ndiffs`, `nsdiffs`, `ocsbTest`, `ocsbCritical`, `kpssStatistic`, `kpssPValue`, `minRootModulus`,
+  `accuracy`, `ma`, `fourier`, `seasonaldummy`, `monthdays`, `easter`, `easterSunday`, `bizdays`, `dmTest`, `cvLm`,
+  `checkresiduals`, `tsCV`, `arimaorder`, `specAr`, `findfrequency`, `naInterp`, `tsoutliers`, `tsclean`, `seasadj`,
+  `seasonalComponent`, `trendcycle`, `remainder`; tseries' `adfTest`, `kpssTest`, `ppTest`, `poTest`, `jarqueBeraTest`,
+  `runsTest`, `terasvirtaTest`, `whiteTest`. Fits and tests are exact from 1e-300 to 2^1000 times a series, short and
+  degenerate series and missing values are handled as R handles them, and infinite values are errors
+  ([the differences](docs/differences-from-r.md#time-series-and-meta-analysis-1200)).
+- **Meta-analysis** in `/tests` (after meta): `metagen`, `metabin`, `metacont`, `metainc`, `metacor`, `metamean`,
+  `metarate`, `metaprop`, `metapropGlmm`, `metaSubgroup`, `metabias`, `metareg`, `metainf`, `metacum`, `baujat`,
+  `trimfill`, `heterogeneityIntervals`, `genqInterval`, `pWeightedChisq`; **network meta-analysis** (after netmeta):
+  `netmeta`, `netrank`, `netsplit`, `netleague`, `decompDesign`, `netmeasures`, `netconnection`, `pairwise`, `netcomb`,
+  `discomb`, `netposet`.
+
+### Fixed
+
+- `rma` with `method: "PM"` or `"EB"` returned NaN when Q(0) <= k - p; it now gives tau2 = 0, as metafor.
+- `confintRma`'s Q-profile (and profile-likelihood) bounds for tau2 were off away from unit scale (from 2e-6 at study
+  variances 1e-8 to wrong values at 1e±150); they are now exact at any scale.
+- `rma` is faster with many studies (k = 1000: 0.15 s instead of 22 s), with the same results.
+- `rma` and `metareg` with moderators of very different scales (1e±150 and beyond) or with a large common value
+  (x + 1e8) reported the model matrix as not of full rank; they now fit, with the same coefficients. Effects beyond
+  1e±60 are fitted on a standardised scale (they were off or failed, also through `metabias` and `trimfill`).
+- `acf` and `ccf` of a series with a large common value (x + 1e8) are exact (R's lose about 1e-9 to the mean).
+- `glmer` with a binomial response of rare events (proportions about 1e-5 with prior weights 1e5 and beyond) failed
+  ("the minimisation of the deviance did not converge"; R fits): the binomial deviance lost digits there. `glm`'s
+  binomial deviance is more accurate there too.
+
 ## 1.19.0 - 2026-11-26
 
 ### Added

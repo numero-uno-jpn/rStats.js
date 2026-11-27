@@ -1,0 +1,88 @@
+{
+  "R": "R version 4.6.2 (2026-10-29)",
+  "arch": "x86_64",
+  "meta": "8.5.0",
+  "smd": [0.00021983106704603905, 0.0030101874495850334, 0.020684060410222971],
+  "subgroup": {
+    "Q.b.common": 0,
+    "Q.b.random": 0,
+    "Q.w.common": 0,
+    "TE.random.w": 0.48969389817174641,
+    "df.Q.b": 1,
+    "tau.common": false,
+    "Q.b": 1.9458673684940178,
+    "pval.Q.b": 0.1630328780422885
+  },
+  "metabias": {
+    "Egger": {
+      "statistic": -1.4012820022893326,
+      "pval": 0.18870699508197877,
+      "estimate": [-2.112042120893296, 1.5072213283570082],
+      "df": {}
+    },
+    "Begg": {
+      "statistic": 0.12201777521731266,
+      "pval": 0.90288494086970994,
+      "estimate": [2.0000000000000004, 16.391054470858993],
+      "df": {}
+    },
+    "Thompson": {
+      "statistic": -0.80332911207010305,
+      "pval": 0.43879874693610521,
+      "estimate": [-0.76324000572381978, 0.95009628588838591],
+      "df": {}
+    },
+    "Egger_cand": {
+      "t": -1.4012820022893326,
+      "p": 0.18870699508197877,
+      "df": 11
+    },
+    "Begg_cand": {
+      "tau": 0.02564102564102564
+    },
+    "Harbord": {
+      "statistic": -1.2564743440450628,
+      "pval": 0.23497195212206617,
+      "df": {}
+    },
+    "Peters": {
+      "statistic": -1.3624761993970098,
+      "pval": 0.20029179228413554,
+      "df": {}
+    }
+  },
+  "trimfill": {
+    "k0": 4,
+    "TE.random": -0.34224368476427114,
+    "TE.common": -0.29102599210635322,
+    "mf_DL": {
+      "k0": 1,
+      "b": -0.65607321298860199
+    },
+    "mf_REML": {
+      "k0": 1,
+      "b": -0.65708280076036463
+    },
+    "k": 17,
+    "side": {},
+    "method.tau": "REML"
+  },
+  "metareg": {
+    "b": 0,
+    "se": 0,
+    "tau2": 0,
+    "QM": 0
+  },
+  "metainf": {
+    "TE": [-0.42796108964187823, -0.42046588220075515, -0.42664675964922189, -0.33999461309983398, -0.43732413017959482, -0.31944702002775893, -0.42146409453503442, -0.74273706304094822, -0.42911381223139472, -0.40866317576307976, -0.44412955902537282, -0.43299224401856762, -0.4399940295652971],
+    "cand_random": [-0.70708378803143657, -0.65403120039781448, -0.68555441797283234, -0.62840940786250532, -0.76417009498722177, -0.71087656485093553, -0.65524759979198433, -0.79476761094828685, -0.74119729931384748, -0.65303292576343119, -0.75785862520424896, -0.75981209733942201, -0.77753618077462427],
+    "cand_common": [-0.42796108964187823, -0.42046588220075515, -0.42664675964922189, -0.33999461309983398, -0.43732413017959482, -0.31944702002775893, -0.42146409453503442, -0.74273706304094822, -0.42911381223139472, -0.40866317576307976, -0.44412955902537282, -0.43299224401856762, -0.4399940295652971],
+    "pooled": "common",
+    "names": ["studlab", "TE", "seTE", "df.random", "lower", "upper", "statistic", "pval", "lower.predict", "upper.predict", "df.predict", "w", "tau2", "se.tau2", "lower.tau2", "upper.tau2", "tau", "lower.tau", "upper.tau", "sign.lower.tau", "sign.upper.tau", "I2", "lower.I2", "upper.I2", "Rb", "n.harmonic.mean", "t.harmonic.mean", "k", "k.study", "k.all", "k.TE", "k.MH", "sm", "null.effect", "pooled", "common", "random", "overall", "overall.hetstat", "prediction", "method.predict", "adhoc.hakn.pi", "backtransf", "func.backtransf", "level", "level.ma", "level.predict", "method", "method.random", "method.common.ci", "method.random.ci", "adhoc.hakn.ci", "method.tau", "method.tau.ci", "tau.preset", "TE.tau", "method.I2", "k.pooled", "k.study.pooled", "k.all.pooled", "k.TE.pooled", "k.MH.pooled", "TE.pooled", "seTE.pooled", "lower.pooled", "upper.pooled", "df.random.pooled", "statistic.pooled", "pval.pooled", "w.pooled", "text.pooled", "lower.predict.pooled", "upper.predict.pooled", "df.predict.pooled", "text.predict", "Q.pooled", "Q.Cochrane", "tau2.pooled", "se.tau2.pooled", "lower.tau2.pooled", "upper.tau2.pooled", "tau.pooled", "lower.tau.pooled", "upper.tau.pooled", "sign.lower.tau.pooled", "sign.upper.tau.pooled", "I2.pooled", "lower.I2.pooled", "upper.I2.pooled", "Rb.pooled", "n.harmonic.mean.pooled", "t.harmonic.mean.pooled", "pscale", "irscale", "irunit", "label.e", "label.c", "label.left", "label.right", "title", "complab", "outclab", "no", "x", "call", "version", "classes"]
+  },
+  "metacum": {
+    "TE": [-0.88931133392020545, -1.3250034422448755, -1.3302341492427767, -1.422044332803057, -1.1284780875899949, -0.9080656529083333, -0.92199815482806646, -0.43272216814180575, -0.43402378719025281, -0.45903225470060688, -0.44279565777948648, -0.4399940295652971, -0.43028516365409103],
+    "cand_random": [-1.3250034422448755, -1.3302341492427767, -1.4220443328030568, -1.0585852430799796, -0.98771769377538043, -1.05782504393263, -0.89901414462404972, -0.8380141425070069, -0.89411704952189797, -0.82863590506213725, -0.77753618077462427, -0.71453234836510138],
+    "pooled": "common"
+  }
+}

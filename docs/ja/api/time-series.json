@@ -1,4 +1,9 @@
 {
+  "AccuracyRow#summary": {
+    "hash": "568a0313ca47",
+    "en": "One row of {@link accuracy}.",
+    "ja": "{@link accuracy} の 1 行です。"
+  },
   "AcfNaAction#summary": {
     "hash": "d16b6c246da1",
     "en": "Policy for missing observations in a time series.",
@@ -69,6 +74,236 @@
     "en": "Kind of autocorrelation statistic returned by acf().",
     "ja": "acf() が返す自己相関統計量の種類です。"
   },
+  "ArResult#summary": {
+    "hash": "b681538a5ed9",
+    "en": "Result of {@link ar}.",
+    "ja": "{@link ar} の結果です。"
+  },
+  "ArResult.aic#summary": {
+    "hash": "63283f5f6f7d",
+    "en": "aic minus its minimum, for orders 0..orderMax.",
+    "ja": "次数 0..orderMax における aic の最小値との差です。"
+  },
+  "ArResult.x#summary": {
+    "hash": "eafb076ea6b8",
+    "en": "The series (for predictions).",
+    "ja": "系列 (予測用) です。"
+  },
+  "ArResult.xIntercept#summary": {
+    "hash": "9afddd0f3be7",
+    "en": "ar.ols's intercept (of the demeaned series).",
+    "ja": "平均を差し引いた系列に対する ar.ols の切片です。"
+  },
+  "ArimaOptions#summary": {
+    "hash": "508d2e1c33cf",
+    "en": "Options of {@link arima}.",
+    "ja": "{@link arima} のオプションです。"
+  },
+  "ArimaOptions.fixed#summary": {
+    "hash": "56c12f26825f",
+    "en": "Fixed values (NaN for the free ones), in the order of the coefficients.",
+    "ja": "係数の順に並べた固定値です (自由な係数は NaN)。"
+  },
+  "ArimaOptions.frequency#summary": {
+    "hash": "8513dc221838",
+    "en": "The series' frequency (the seasonal period by default). Default 1.",
+    "ja": "系列の頻度です (既定では季節周期)。既定は 1 です。"
+  },
+  "ArimaOptions.hessian#summary": {
+    "hash": "c768b7b0a5f3",
+    "en": "\"R\" (default): the variance matrix from R's numerical Hessian (agrees with R); \"exact\": a converged Hessian.",
+    "ja": "\"R\" (既定): R の数値ヘッセ行列から得た分散行列 (R と一致します)。\"exact\": 収束したヘッセ行列です。"
+  },
+  "ArimaOptions.includeMean#summary": {
+    "hash": "d680d37dfb48",
+    "en": "Include a mean (ignored when differenced). Default true.",
+    "ja": "平均を含めます (差分を取った場合は無視されます)。既定は true です。"
+  },
+  "ArimaOptions.init#summary": {
+    "hash": "ec8a7a270446",
+    "en": "Starting values (NaN filled by defaults).",
+    "ja": "初期値です (NaN は既定値で補われます)。"
+  },
+  "ArimaOptions.kappa#summary": {
+    "hash": "2293cc5fc3d4",
+    "en": "Prior variance multiple of the presample values in a differenced model. Default 1e6.",
+    "ja": "差分モデルにおける事前標本値の事前分散の倍率です。既定は 1e6 です。"
+  },
+  "ArimaOptions.method#summary": {
+    "hash": "d6055079359f",
+    "en": "\"CSS-ML\" (default), \"ML\" or \"CSS\".",
+    "ja": "\"CSS-ML\" (既定)、\"ML\" または \"CSS\" です。"
+  },
+  "ArimaOptions.nCond#summary": {
+    "hash": "b99321abfa37",
+    "en": "Initial observations ignored by CSS (at least the AR lags).",
+    "ja": "CSS で無視する初期観測値の数です (少なくとも AR のラグ数)。"
+  },
+  "ArimaOptions.order#summary": {
+    "hash": "4150b11eadba",
+    "en": "(p, d, q). Default [0, 0, 0].",
+    "ja": "(p, d, q) です。既定は [0, 0, 0] です。"
+  },
+  "ArimaOptions.seasonal#summary": {
+    "hash": "028786aecb8e",
+    "en": "The seasonal part (an order, or an order and a period).",
+    "ja": "季節成分です (次数、または次数と周期)。"
+  },
+  "ArimaOptions.transformPars#summary": {
+    "hash": "fe78b148ba64",
+    "en": "Transform the AR parameters to stationarity during the ML optimisation. Default true.",
+    "ja": "ML の最適化中に AR パラメータを定常性を満たす形に変換します。既定は true です。"
+  },
+  "ArimaOptions.xreg#summary": {
+    "hash": "d492aadcd1d7",
+    "en": "Regressors: one array per regressor, each of the series' length.",
+    "ja": "回帰変数です。各回帰変数につき、系列と同じ長さの配列を 1 つ指定します。"
+  },
+  "ArimaOptions.xregNames#summary": {
+    "hash": "0991300136a4",
+    "en": "Names of the regressors. Default \"xreg1\", \"xreg2\", ... (or \"xreg\" for one).",
+    "ja": "回帰変数の名前です。既定は \"xreg1\", \"xreg2\", ... (1 つの場合は \"xreg\") です。"
+  },
+  "ArimaResult#summary": {
+    "hash": "e0a0dd4ea6cd",
+    "en": "Result of {@link arima}.",
+    "ja": "{@link arima} の結果です。"
+  },
+  "ArimaResult.aic#summary": {
+    "hash": "940d5bd1b2cf",
+    "en": "-2 loglik + 2 (free coefficients + 1); NaN for CSS.",
+    "ja": "-2 loglik + 2 (自由な係数 + 1) です。CSS の場合は NaN です。"
+  },
+  "ArimaResult.arma#summary": {
+    "hash": "f058518b9180",
+    "en": "(p, q, P, Q, period, d, D).",
+    "ja": "(p, q, P, Q, period, d, D) です。"
+  },
+  "ArimaResult.code#summary": {
+    "hash": "bbf142af027a",
+    "en": "The optimiser's convergence code (0 = converged).",
+    "ja": "最適化アルゴリズムの収束コードです (0 = 収束)。"
+  },
+  "ArimaResult.coef#summary": {
+    "hash": "fa283f99e599",
+    "en": "The coefficients (AR, MA, seasonal AR, seasonal MA, intercept, regressors).",
+    "ja": "係数です (AR、MA、季節 AR、季節 MA、切片、回帰変数)。"
+  },
+  "ArimaResult.coefNames#summary": {
+    "hash": "164e11d79f76",
+    "en": "Their names (ar1, ma1, sar1, sma1, intercept, regressor names).",
+    "ja": "係数名です (ar1、ma1、sar1、sma1、intercept、回帰変数名)。"
+  },
+  "ArimaResult.includeMean#summary": {
+    "hash": "a8a602d7e471",
+    "en": "Whether a mean was included.",
+    "ja": "平均を含めたかどうかです。"
+  },
+  "ArimaResult.loglik#summary": {
+    "hash": "518c67c84894",
+    "en": "The maximised log-likelihood of the differenced data (CSS: R's approximation).",
+    "ja": "差分データの最大化された対数尤度です (CSS の場合は R の近似値)。"
+  },
+  "ArimaResult.mask#summary": {
+    "hash": "56931a9fb8ab",
+    "en": "Mask of the free coefficients.",
+    "ja": "自由な係数を示すマスクです。"
+  },
+  "ArimaResult.method#summary": {
+    "hash": "ea18c721c600",
+    "en": "\"CSS-ML\", \"ML\" or \"CSS\".",
+    "ja": "\"CSS-ML\"、\"ML\" または \"CSS\" です。"
+  },
+  "ArimaResult.model#summary": {
+    "hash": "82a4e6b00fca",
+    "en": "The state space model at the end of the series.",
+    "ja": "系列末尾における状態空間モデルです。"
+  },
+  "ArimaResult.nCond#summary": {
+    "hash": "9ff5f61a7cbf",
+    "en": "Initial observations not used by CSS.",
+    "ja": "CSS で使用しなかった初期観測値の数です。"
+  },
+  "ArimaResult.nobs#summary": {
+    "hash": "db9bc77a10fb",
+    "en": "The number of observations used in the likelihood.",
+    "ja": "尤度の計算に使用した観測値の数です。"
+  },
+  "ArimaResult.residuals#summary": {
+    "hash": "ad74bec39b0b",
+    "en": "The fitted innovations (standardised one-step errors; NaN at missing values).",
+    "ja": "当てはめたイノベーション (標準化された 1 期先誤差。欠測値の位置は NaN) です。"
+  },
+  "ArimaResult.sigma2#summary": {
+    "hash": "6f8d77429ae6",
+    "en": "The MLE of the innovations variance (CSS: the mean of the squared CSS residuals).",
+    "ja": "イノベーション分散の最尤推定値です (CSS の場合は CSS 残差の二乗平均)。"
+  },
+  "ArimaResult.varCoef#summary": {
+    "hash": "b525faf4057e",
+    "en": "The variance matrix of the free coefficients (rows and columns as `coefNames` of the free ones).",
+    "ja": "自由な係数の分散行列です (行と列は、自由な係数に対応する `coefNames` の順です)。"
+  },
+  "ArimaResult.x#summary": {
+    "hash": "7b0494086b21",
+    "en": "The series (as given).",
+    "ja": "与えられた系列です。"
+  },
+  "ArimaResult.xreg#summary": {
+    "hash": "65949c733c9c",
+    "en": "The regressors (as given), including no intercept column.",
+    "ja": "与えられた回帰変数です。切片の列は含みません。"
+  },
+  "ArimaSeasonal#summary": {
+    "hash": "c76012bf3690",
+    "en": "Seasonal part of an ARIMA model.",
+    "ja": "ARIMA モデルの季節成分です。"
+  },
+  "ArimaSeasonal.order#summary": {
+    "hash": "46bc238f178d",
+    "en": "(P, D, Q). Default [0, 0, 0].",
+    "ja": "(P, D, Q) です。既定は [0, 0, 0] です。"
+  },
+  "ArimaSeasonal.period#summary": {
+    "hash": "31fb6f2f3c1c",
+    "en": "The period. Default the series' frequency.",
+    "ja": "周期です。既定は系列の頻度です。"
+  },
+  "ArimaStateModel#summary": {
+    "hash": "1de83eeb657b",
+    "en": "The state space model behind a fit, for forecasting.",
+    "ja": "当てはめの背後にある、予測に使用する状態空間モデルです。"
+  },
+  "ArimaStateModel.a#summary": {
+    "hash": "cd348a8c55fa",
+    "en": "Filtered state and covariance at the end of the series (in units of sigma2).",
+    "ja": "系列末尾におけるフィルタ済み状態と共分散です (sigma2 単位)。"
+  },
+  "AutoArimaOptions#summary": {
+    "hash": "2bd8964c15cc",
+    "en": "Options of {@link autoArima}.",
+    "ja": "{@link autoArima} のオプションです。"
+  },
+  "AutoArimaOptions.approximation#summary": {
+    "hash": "f0f4deacb79e",
+    "en": "Rank the models by their CSS fits (default: n > 150 or frequency > 12), then refit the best without it.",
+    "ja": "CSS による当てはめでモデルを順位付けします (既定: n > 150 または frequency > 12)。その後、最良のモデルを近似なしで再当てはめします。"
+  },
+  "AutoArimaResult#summary": {
+    "hash": "e09f2f86bd28",
+    "en": "Result of {@link autoArima}: the chosen model's fit and the search.",
+    "ja": "{@link autoArima} の結果です。選択されたモデルの当てはめと探索結果を含みます。"
+  },
+  "AutoArimaTraceEntry#summary": {
+    "hash": "09f272b1731b",
+    "en": "One model of the search (forecast's trace).",
+    "ja": "探索対象となった 1 つのモデルです (forecast の trace)。"
+  },
+  "AutoArimaTraceEntry.ic#summary": {
+    "hash": "c7f2810c59d5",
+    "en": "The criterion (Infinity for a rejected or failed fit; the CSS fit's value with approximation).",
+    "ja": "情報量規準です (棄却または当てはめに失敗した場合は Infinity。近似を使った場合は CSS 当てはめの値)。"
+  },
   "CcfOptions#summary": {
     "hash": "5c727c2ac872",
     "en": "Options for cross-correlation and cross-covariance. Equivalent to the arguments of R's stats::ccf().",
@@ -99,6 +334,156 @@
     "en": "Statistic to return: correlation or covariance.",
     "ja": "返す統計量です: 相関または共分散。"
   },
+  "DecomposeResult#summary": {
+    "hash": "5618a5945257",
+    "en": "Result of {@link decompose}.",
+    "ja": "{@link decompose} の結果です。"
+  },
+  "EtsForecast#summary": {
+    "hash": "8f302be63a94",
+    "en": "Result of {@link forecastEts}.",
+    "ja": "{@link forecastEts} の結果です。"
+  },
+  "EtsOptions#summary": {
+    "hash": "c746b078779f",
+    "en": "Options of {@link ets}.",
+    "ja": "{@link ets} のオプションです。"
+  },
+  "EtsOptions.damped#summary": {
+    "hash": "c77ad77ece24",
+    "en": "true / false, or undefined to try both when the trend is chosen.",
+    "ja": "true / false、または trend が選択されたときに両方を試す場合は undefined です。"
+  },
+  "EtsOptions.model#summary": {
+    "hash": "668a1ac0aa4b",
+    "en": "Three letters (error, trend, season) of A, M, N and Z (chosen); default \"ZZZ\".",
+    "ja": "誤差、トレンド、季節成分を表す 3 文字です。各文字は A、M、N、Z (選択) のいずれかで、既定は \"ZZZ\" です。"
+  },
+  "EtsOptions.optCrit#summary": {
+    "hash": "a22f88d2b5a7",
+    "en": "The estimation criterion: the likelihood (default) or the mean squared one-step error.",
+    "ja": "推定規準です。尤度 (既定) または 1 期先誤差の平均二乗です。"
+  },
+  "EtsParameters#summary": {
+    "hash": "1ac0d1e297f7",
+    "en": "Parameters and initial states in R's order: alpha, beta, gamma, phi, l, b, s0 .. s_{m-2} (s0 the most recent).",
+    "ja": "R と同じ順序のパラメータと初期状態です: alpha、beta、gamma、phi、l、b、s0 .. s_{m-2} (s0 が最も新しい値)。"
+  },
+  "EtsResult#summary": {
+    "hash": "538848637568",
+    "en": "Result of {@link ets}.",
+    "ja": "{@link ets} の結果です。"
+  },
+  "EtsResult.method#summary": {
+    "hash": "2e0853a13717",
+    "en": "\"ETS(M,Ad,M)\" etc.",
+    "ja": "\"ETS(M,Ad,M)\" などです。"
+  },
+  "EtsResult.nParams#summary": {
+    "hash": "a1237bba174f",
+    "en": "Number of estimated parameters (smoothing parameters and initial states).",
+    "ja": "推定したパラメータ (平滑化パラメータと初期状態) の数です。"
+  },
+  "EtsSpec#summary": {
+    "hash": "5af51a4a68b6",
+    "en": "A fully specified ETS model.",
+    "ja": "完全に指定された ETS モデルです。"
+  },
+  "ForecastArimaOptions#summary": {
+    "hash": "790802da2493",
+    "en": "Options of {@link forecastArima}.",
+    "ja": "{@link forecastArima} のオプションです。"
+  },
+  "ForecastArimaOptions.lambda#summary": {
+    "hash": "ac71b5347280",
+    "en": "A Box-Cox lambda, or \"auto\" for {@link boxCoxLambda}.",
+    "ja": "Box-Cox の lambda、または {@link boxCoxLambda} を使う場合は \"auto\" です。"
+  },
+  "ForecastArimaResult#summary": {
+    "hash": "17484522c848",
+    "en": "Result of {@link forecastArima}: stats' fit plus forecast's quantities.",
+    "ja": "{@link forecastArima} の結果です。stats の当てはめに forecast の数量を加えたものです。"
+  },
+  "ForecastArimaResult.drift#summary": {
+    "hash": "be12634968a4",
+    "en": "Whether a drift column was added (the last regressor).",
+    "ja": "ドリフト列 (最後の回帰変数) を追加したかどうかです。"
+  },
+  "ForecastArimaResult.fitted#summary": {
+    "hash": "d88b13d51913",
+    "en": "Fitted values on the original scale.",
+    "ja": "元の尺度での当てはめ値です。"
+  },
+  "ForecastArimaResult.series#summary": {
+    "hash": "0685e62397d3",
+    "en": "The series on the original scale.",
+    "ja": "元の尺度での系列です。"
+  },
+  "ForecastArimaResult.sigma2#summary": {
+    "hash": "92851c8278c7",
+    "en": "forecast's innovations variance: sum of squared residuals / (nobs - number of coefficients).",
+    "ja": "forecast のイノベーション分散です: 残差平方和 / (nobs - 係数の数)。"
+  },
+  "ForecastArimaResult.sigma2Mle#summary": {
+    "hash": "9299dd1b9f48",
+    "en": "stats' MLE of the innovations variance.",
+    "ja": "stats によるイノベーション分散の最尤推定値です。"
+  },
+  "ForecastOutput#summary": {
+    "hash": "433538c38d15",
+    "en": "A forecast of {@link forecast}.",
+    "ja": "{@link forecast} の予測値です。"
+  },
+  "ForecastResult#summary": {
+    "hash": "94ab4e3bb211",
+    "en": "Result of {@link forecast}.",
+    "ja": "{@link forecast} の結果です。"
+  },
+  "ForecastResult.se#summary": {
+    "hash": "e42870824942",
+    "en": "Forecast standard errors on the transformed scale (where analytic).",
+    "ja": "予測標準誤差です。解析的に求められる場合は変換後の尺度で示します。"
+  },
+  "HoltWintersOptions#summary": {
+    "hash": "51158bffce52",
+    "en": "Options of {@link holtWinters}.",
+    "ja": "{@link holtWinters} のオプションです。"
+  },
+  "HoltWintersOptions.alpha#summary": {
+    "hash": "92b8fd3e45bc",
+    "en": "Given, or estimated when undefined; `false` for beta / gamma leaves that component out.",
+    "ja": "指定された値です。undefined の場合は推定されます。beta / gamma に `false` を指定すると、その成分を含めません。"
+  },
+  "HoltWintersResult#summary": {
+    "hash": "fc19ee893b0b",
+    "en": "Result of {@link holtWinters}.",
+    "ja": "{@link holtWinters} の結果です。"
+  },
+  "HoltWintersResult.coefficients#summary": {
+    "hash": "43c5cd47cc1a",
+    "en": "a, b, s1..sf (R's coefficients).",
+    "ja": "a、b、s1..sf (R の係数) です。"
+  },
+  "HoltWintersResult.fitted#summary": {
+    "hash": "af2ef7b1e401",
+    "en": "One-step fitted values from the first fitted time (R's fitted xhat).",
+    "ja": "最初の当てはめ時点からの 1 期先当てはめ値です (R の fitted xhat)。"
+  },
+  "HoltWintersResult.start#summary": {
+    "hash": "95df6205d43a",
+    "en": "The time index (0-based) of the first fitted value.",
+    "ja": "最初の当てはめ値の時点インデックスです (0 始まり)。"
+  },
+  "MstlResult#summary": {
+    "hash": "924882d9b85b",
+    "en": "Result of {@link mstl}.",
+    "ja": "{@link mstl} の結果です。"
+  },
+  "MstlResult.seasonal#summary": {
+    "hash": "f7a0494b99f6",
+    "en": "The seasonal component (absent for a non-seasonal series).",
+    "ja": "季節成分です (非季節系列では存在しません)。"
+  },
   "PacfOptions#summary": {
     "hash": "d6327edae629",
     "en": "Options for partial autocorrelation. Equivalent to the arguments of R's stats::pacf().",
@@ -114,19 +499,474 @@
     "en": "Whether missing values cause an error or are omitted pairwise.",
     "ja": "欠損値がエラーの原因となるか、ペアごとに除外されるかを指定します。"
   },
+  "PredictArimaResult#summary": {
+    "hash": "4e28e78d393c",
+    "en": "Result of {@link predictArima}.",
+    "ja": "{@link predictArima} の結果です。"
+  },
+  "SimpleForecast#summary": {
+    "hash": "65d19e4c93f0",
+    "en": "A forecast with intervals and the in-sample fit.",
+    "ja": "予測区間と標本内の当てはめを含む予測値です。"
+  },
+  "SimpleForecast.model#summary": {
+    "hash": "6803eee078b8",
+    "en": "The ets model behind ses / holt / hw / stlf.",
+    "ja": "ses / holt / hw / stlf の背後にある ets モデルです。"
+  },
+  "StlOptions#summary": {
+    "hash": "d3f5a96f151a",
+    "en": "Options of {@link stl}.",
+    "ja": "{@link stl} のオプションです。"
+  },
+  "StlOptions.frequency#summary": {
+    "hash": "3fb628882243",
+    "en": "The seasonal period (R's frequency).",
+    "ja": "季節周期です (R の frequency)。"
+  },
+  "StlOptions.sWindow#summary": {
+    "hash": "57cf05e90c26",
+    "en": "The seasonal loess span (odd, >= 7 recommended) or \"periodic\".",
+    "ja": "季節成分の loess の幅です (奇数。7 以上を推奨)。または \"periodic\" です。"
+  },
+  "StlResult#summary": {
+    "hash": "b43c29ec8750",
+    "en": "Result of {@link stl}.",
+    "ja": "{@link stl} の結果です。"
+  },
+  "StlResult.weights#summary": {
+    "hash": "225ae66312b2",
+    "en": "The robustness weights of the last pass (all 1 without robustness iterations).",
+    "ja": "最後の反復のロバスト性重みです (ロバスト性反復を行わない場合はすべて 1)。"
+  },
+  "StlResult.win#summary": {
+    "hash": "f88a3850c20a",
+    "en": "The windows (s, t, l), degrees, jumps and iteration counts used.",
+    "ja": "使用したウィンドウ (s、t、l)、次数、ジャンプ幅、反復回数です。"
+  },
+  "StlmResult#summary": {
+    "hash": "b552d3dd8b1c",
+    "en": "Result of {@link stlm}.",
+    "ja": "{@link stlm} の結果です。"
+  },
+  "StlmResult.adjusted#summary": {
+    "hash": "94b0f720eb78",
+    "en": "The seasonally adjusted series (transformed scale).",
+    "ja": "季節調整済み系列です (変換後の尺度)。"
+  },
+  "StlmResult.fitted#summary": {
+    "hash": "3f1e978a5c4c",
+    "en": "The in-sample fit on the original scale.",
+    "ja": "元の尺度での標本内当てはめです。"
+  },
+  "StlmResult.model#summary": {
+    "hash": "60b25cfe2c5f",
+    "en": "The model of the seasonally adjusted series.",
+    "ja": "季節調整済み系列のモデルです。"
+  },
+  "StlmResult.stl#summary": {
+    "hash": "efd1d3dbc471",
+    "en": "The decomposition of the (Box-Cox transformed) series.",
+    "ja": "(Box-Cox 変換後の) 系列の分解結果です。"
+  },
+  "TseriesTest#summary": {
+    "hash": "befd027eee3e",
+    "en": "A test result of the tseries functions.",
+    "ja": "tseries の関数による検定結果です。"
+  },
+  "TslmResult#summary": {
+    "hash": "5e9435c2bada",
+    "en": "Result of {@link tslm}.",
+    "ja": "{@link tslm} の結果です。"
+  },
+  "TslmResult.forecast#summary": {
+    "hash": "e659c72d8a45",
+    "en": "Forecasts with t intervals from the regression.",
+    "ja": "回帰から得られる t 分布に基づく区間を伴う予測値です。"
+  },
+  "accuracy#summary": {
+    "hash": "1940f4c836ef",
+    "en": "Accuracy measures (forecast's `accuracy()`): ME, RMSE, MAE, MPE, MAPE, MASE (scaled by the training data's mean\n|y_t - y_{t-m}|), ACF1 of the errors; for a test set also Theil's U.\nEquivalent to `forecast::accuracy()` in R.",
+    "ja": "予測精度の指標です (forecast の `accuracy()`): ME、RMSE、MAE、MPE、MAPE、MASE (訓練データの平均 |y_t - y_{t-m}| で尺度化)、誤差の ACF1 です。テストセットがある場合は Theil の U も含みます。\nR の `forecast::accuracy()` と同等です。"
+  },
   "acf#summary": {
     "hash": "8950bb5836c9",
     "en": "Computes autocorrelation, autocovariance or partial autocorrelation of a univariate series.\nEquivalent to R's `stats::acf()`.",
     "ja": "単変量時系列の自己相関、自己共分散、または偏自己相関を計算します。\nR の `stats::acf()` と同等です。"
+  },
+  "adfTest#summary": {
+    "hash": "87070922ba34",
+    "en": "The augmented Dickey-Fuller test (tseries' `adf.test()`): Delta y_t on 1, t, y_{t-1} and k lagged differences\n(default k = trunc((n - 1)^(1/3))), the t value of y_{t-1}; p from Fuller's tau_tau table at n - 1 (clamped to\n[0.01, 0.99]); \"explosive\" gives 1 - p.\nEquivalent to `tseries::adf.test()` in R.",
+    "ja": "拡張 Dickey-Fuller 検定です (tseries の `adf.test()`): 1、t、y_{t-1} および k 個のラグ付き差分に対する Delta y_t の回帰 (既定 k = trunc((n - 1)^(1/3))) を行い、y_{t-1} の t 値を検定統計量とします。p 値は n - 1 における Fuller の tau_tau 表から求めます ([0.01, 0.99] に制限)。\"explosive\" の場合は 1 - p です。\nR の `tseries::adf.test()` と同等です。"
+  },
+  "ar#summary": {
+    "hash": "2e8acfbe29ed",
+    "en": "Fits an autoregressive model with the order chosen by AIC (stats' `ar()`): Yule-Walker (default), Burg, OLS or MLE\n(arima0 for each order).\nEquivalent to R's `ar()`.",
+    "ja": "AIC で次数を選択する自己回帰モデルを当てはめます (stats の `ar()`): Yule-Walker (既定)、Burg、OLS または MLE (各次数について arima0)。\nR の `ar()` と同等です。"
+  },
+  "arima#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": "⟦code1⟧"
+  },
+  "arima#summary": {
+    "hash": "f4e8eb03d083",
+    "en": "Fits an ARIMA model by exact maximum likelihood (Kalman filter) or conditional sum of squares. Equivalent to R's\n`arima()`. The estimates are taken to the optimum, where R's optimiser may stop slightly short.",
+    "ja": "正確な最尤法 (カルマンフィルタ) または条件付き平方和によって ARIMA モデルを当てはめます。R の `arima()` と同等です。推定値は最適点まで求めますが、R の最適化アルゴリズムではわずかに手前で停止する場合があります。"
+  },
+  "arima0#summary": {
+    "hash": "a93a74640487",
+    "en": "stats' `arima0()`: an ARIMA model by maximum likelihood of the differenced series (no diffuse prior; the mean with\n`includeMean` when d + D = 0), with R's fast recursions once the prediction variance is within `delta` of its limit\n(default 0.01, as R; a negative delta gives the exact likelihood, equal to arima's). Log 84, 87.\nEquivalent to R's `arima0()`.",
+    "ja": "stats の `arima0()` です。差分系列の最尤法による ARIMA モデルです (拡散事前分布なし。d + D = 0 の場合は `includeMean` による平均を含みます)。予測分散が極限値の `delta` 以内に入ると、R の高速再帰計算を使用します (既定 0.01、R と同じ。負の delta では正確な尤度となり、arima と一致します)。Log 84、87。\nR の `arima0()` と同等です。"
+  },
+  "arimaorder#summary": {
+    "hash": "a3f5d7c90575",
+    "en": "The (p, d, q) or (p, d, q, P, D, Q, frequency) of an ARIMA fit (forecast's `arimaorder()`). Equivalent to `forecast::arimaorder()` in R.",
+    "ja": "ARIMA の当てはめにおける (p, d, q) または (p, d, q, P, D, Q, frequency) です (forecast の `arimaorder()`)。R の `forecast::arimaorder()` と同等です。"
+  },
+  "autoArima#summary": {
+    "hash": "8f8af180dd9c",
+    "en": "Chooses and fits an ARIMA model by forecast's `auto.arima()` rules: d by {@link ndiffs} (after the seasonal\ndifferences), D by {@link nsdiffs}, then the stepwise search on the AICc (or all models up to maxOrder with\n`stepwise: false`).\nEquivalent to `forecast::auto.arima()` in R.\n\nWith approximation, models are ranked by the CSS fits' AICc; R's printed trace adds a constant per series whose origin\nis not known (it does not change the choice), so the trace values here are the CSS AICc themselves.",
+    "ja": "forecast の `auto.arima()` の規則に従って ARIMA モデルを選択し、当てはめます。季節差分の後、{@link ndiffs} で d、{@link nsdiffs} で D を決め、その後 AICc によるステップワイズ探索を行います (`stepwise: false` の場合は maxOrder 以下の全モデルを探索します)。\nR の `forecast::auto.arima()` と同等です。\n\n近似を使う場合、CSS 当てはめの AICc でモデルを順位付けします。R の表示する trace には系列ごとの定数が加わりますが、その由来は不明です (モデルの選択には影響しません)。ここでの trace 値は CSS による AICc そのものです。"
+  },
+  "bizdays#summary": {
+    "hash": "9d793124be71",
+    "en": "Trading days in each month or quarter (forecast's `bizdays()`): weekdays minus the holidays of the financial centre\n(\"New York\" (NYSE, default), \"London\", \"NERC\", \"Toronto\", \"Zurich\"; the rules of log 30-32).\nEquivalent to `forecast::bizdays()` in R.",
+    "ja": "各月または四半期の営業日数です (forecast の `bizdays()`): 金融センターの祝日を除いた平日です (\"New York\" (NYSE、既定)、\"London\"、\"NERC\"、\"Toronto\"、\"Zurich\"。規則は log 30-32)。\nR の `forecast::bizdays()` と同等です。"
+  },
+  "boxCox#summary": {
+    "hash": "301b88693980",
+    "en": "The Box-Cox transformation: log(x) for lambda = 0, (sign(x) |x|^lambda - 1) / lambda otherwise. Equivalent to\n`forecast::BoxCox()` in R.",
+    "ja": "Box-Cox 変換です。lambda = 0 の場合は log(x)、それ以外の場合は (sign(x) |x|^lambda - 1) / lambda です。\nR の `forecast::BoxCox()` と同等です。"
+  },
+  "boxCoxLambda#summary": {
+    "hash": "066b17582af1",
+    "en": "Chooses the Box-Cox lambda by Guerrero's method (default) or the profile log-likelihood. Equivalent to\n`forecast::BoxCox.lambda()` in R.",
+    "ja": "Guerrero の方法 (既定) またはプロファイル対数尤度によって Box-Cox の lambda を選択します。\nR の `forecast::BoxCox.lambda()` と同等です。"
+  },
+  "boxTest#summary": {
+    "hash": "4c39815c3837",
+    "en": "Box-Pierce or Ljung-Box test of white noise (stats' `Box.test()`): r_k the autocorrelations (mean removed, divided by\nn), Q = n sum r_k^2 or n (n + 2) sum r_k^2 / (n - k), chi-squared on lag - fitdf degrees of freedom.\nEquivalent to R's `Box.test()`.",
+    "ja": "ホワイトノイズに対する Box-Pierce 検定または Ljung-Box 検定です (stats の `Box.test()`): r_k は自己相関 (平均を除き、n で除算)、Q = n sum r_k^2 または n (n + 2) sum r_k^2 / (n - k) です。自由度 lag - fitdf のカイ二乗分布を使用します。\nR の `Box.test()` と同等です。"
   },
   "ccf#summary": {
     "hash": "54ffa675f482",
     "en": "Computes cross-correlation or cross-covariance of two equal-length series. Lag k pairs x[t+k] with y[t].\nEquivalent to R's `stats::ccf()`.",
     "ja": "長さが等しい 2 つの時系列の相互相関または相互共分散を計算します。ラグ k では x[t+k] と y[t] を組み合わせます。\nR の `stats::ccf()` と同等です。"
   },
+  "checkresiduals#summary": {
+    "hash": "d56d20d0bd24",
+    "en": "The Ljung-Box test of a model's residuals (forecast's `checkresiduals()`, without the plots): lag = min(2m, n/5) for\nseasonal data or min(10, n/5), at least df + 3, df = the number of ARMA coefficients (0 for plain residuals).\nEquivalent to `forecast::checkresiduals()` in R.",
+    "ja": "モデルの残差に対する Ljung-Box 検定です (forecast の `checkresiduals()`。プロットなし)。季節データでは lag = min(2m, n/5)、それ以外では min(10, n/5) とし、少なくとも df + 3 とします。df は ARMA 係数の数です (通常の残差では 0)。\nR の `forecast::checkresiduals()` と同等です。"
+  },
+  "croston#summary": {
+    "hash": "6e0752a2f9f7",
+    "en": "Croston's method for intermittent demand (forecast's `croston()`): SES with alpha on the non-zero demands and on the\nintervals between them (counted from time 0), each started at its first value; forecast k z / p with k = 1 (croston),\n1 - alpha/2 (sba) or 1 - alpha/(2 - alpha) (sbj). No intervals. Departs from R when the last observation is a\ndemand: R's forecast is the state before it (the last fitted value, the last observation unused; log 91), rStats.js\nforecasts from the state after it.\nEquivalent to `forecast::croston()` in R.",
+    "ja": "間欠需要に対する Croston 法です (forecast の `croston()`): 非ゼロ需要と需要間隔 (時点 0 から数えます) にそれぞれ alpha を用いた SES を適用し、各系列は最初の値から開始します。予測値は k z / p で、k = 1 (croston)、1 - alpha/2 (sba)、または 1 - alpha/(2 - alpha) (sbj) です。区間はありません。最後の観測値が需要の場合は R と異なります。R の予測はその観測値の前の状態 (最後の当てはめ値であり、最後の観測値は未使用。log 91) ですが、rStats.js はその観測値の後の状態から予測します。\nR の `forecast::croston()` と同等です。"
+  },
+  "cvLm#summary": {
+    "hash": "0a9ebf22d239",
+    "en": "Cross-validation and information criteria of a linear model (forecast's `CV()`): CV = mean((e / (1 - h_ii))^2), AIC =\nn log(SSE/n) + 2(k + 2), AICc, BIC, adjusted R^2 (k = the number of predictors).\nEquivalent to `forecast::CV()` in R.",
+    "ja": "線形モデルの交差検証と情報量規準です (forecast の `CV()`): CV = mean((e / (1 - h_ii))^2)、AIC = n log(SSE/n) + 2(k + 2)、AICc、BIC、調整済み R^2 です (k は説明変数の数)。\nR の `forecast::CV()` と同等です。"
+  },
+  "decompose#summary": {
+    "hash": "f709008c8efd",
+    "en": "Classical seasonal decomposition by moving averages (stats' `decompose()`). `start` is the position (1..frequency)\nof the first observation in the cycle; `figure` starts at that position, as R's.\nEquivalent to R's `decompose()`.",
+    "ja": "移動平均による古典的な季節分解です (stats の `decompose()`)。`start` は周期内の最初の観測値の位置 (1..frequency) です。`figure` は R と同じくその位置から始まります。\nR の `decompose()` と同等です。"
+  },
+  "diffinv#summary": {
+    "hash": "6e314d8bf868",
+    "en": "The inverse of differencing (stats' `diffinv()`): the cumulative sums at the given lag, repeated `differences`\ntimes, starting from `xi` (zeros by default).\nEquivalent to R's `diffinv()`.",
+    "ja": "差分の逆演算です (stats の `diffinv()`): 指定されたラグでの累積和を `differences` 回繰り返します。`xi` (既定では 0) から開始します。\nR の `diffinv()` と同等です。"
+  },
+  "dmTest#summary": {
+    "hash": "43bd9fce5c99",
+    "en": "The Diebold-Mariano test with the Harvey-Leybourne-Newbold correction (forecast's `dm.test()`): d = |e1|^power -\n|e2|^power, its variance from the autocovariances up to h - 1 (over n), t(n - 1).\nEquivalent to `forecast::dm.test()` in R.",
+    "ja": "Harvey-Leybourne-Newbold 補正を伴う Diebold-Mariano 検定です (forecast の `dm.test()`): d = |e1|^power - |e2|^power とし、その分散は n で除した h - 1 までの自己共分散から求めます。t(n - 1) を使用します。\nR の `forecast::dm.test()` と同等です。"
+  },
+  "easter#summary": {
+    "hash": "c90ee5aef50f",
+    "en": "The Easter holidays in each month or quarter (forecast's `easter()`): the share of Good Friday .. Easter Sunday (..\nMonday with `easterMon`) falling in the period, rounded to two decimals (as R). Departs from R for quarterly data\nwith `easterMon` when the holidays span two quarters: R's shares are shifted there (it warns about a replacement\nlength; log 91), rStats.js gives each quarter its share.\nEquivalent to `forecast::easter()` in R.",
+    "ja": "各月または四半期におけるイースター休暇の日数割合です (forecast の `easter()`): Good Friday から Easter Sunday ( `easterMon` の場合は月曜日) までのうち、その期間に含まれる割合を小数第 2 位に丸めます (R と同じ)。`easterMon` を指定し、祝日が 2 つの四半期にまたがる四半期データでは R と異なります。R の割合はずれてしまいます (置換する長さについて警告します。log 91)。rStats.js は各四半期にそれぞれの割合を割り当てます。\nR の `forecast::easter()` と同等です。"
+  },
+  "easterSunday#summary": {
+    "hash": "531409c145da",
+    "en": "Easter Sunday of year Y (anonymous Gregorian algorithm) as [month, day]. Not an R function.",
+    "ja": "年 Y のイースターの日曜日を [月, 日] として返します (匿名のグレゴリオ暦アルゴリズム)。R の関数ではありません。"
+  },
+  "ets#summary": {
+    "hash": "bd3d7e7f7a02",
+    "en": "Exponential smoothing state space model (forecast's `ets()`): one model, or the smallest information criterion\namong the allowed models for the letters given as \"Z\". The parameters are estimated to the optimum of the\nlikelihood within the usual bounds and the admissible region (R's optimiser can stop earlier).\nEquivalent to `forecast::ets()` in R.",
+    "ja": "指数平滑状態空間モデルです (forecast の `ets()`): 1 つのモデル、または \"Z\" で指定された文字に許されるモデルのうち、情報量規準が最小のモデルを選択します。通常の境界条件と許容領域の範囲内で、尤度が最適になるまでパラメータを推定します (R の最適化アルゴリズムではより早く停止する場合があります)。\nR の `forecast::ets()` と同等です。"
+  },
+  "findfrequency#summary": {
+    "hash": "26aaf820082a",
+    "en": "The dominant period of a series (forecast's `findfrequency()`): 1 unless the maximum of the AR spectrum of the\ndetrended series exceeds 10; then round(1 / f) at the maximum, or, when the maximum is at the lowest frequency, at\nthe largest value after the spectrum first rises (1 if that is the last frequency).\nEquivalent to `forecast::findfrequency()` in R.",
+    "ja": "系列の卓越周期です (forecast の `findfrequency()`): トレンド除去後の系列の AR スペクトルの最大値が 10 を超えなければ 1 です。超える場合は、その最大位置の f に対して round(1 / f) とします。最大値が最低周波数にある場合は、スペクトルが最初に上昇した後の最大値の位置を使います (それが最後の周波数なら 1)。\nR の `forecast::findfrequency()` と同等です。"
+  },
+  "forecast#summary": {
+    "hash": "1a54c9535625",
+    "en": "Forecasts from a series or a fitted model (forecast's `forecast()`):\n- a series (`frequency` in the options): ets, or stlf when the period is 13 or more and the series is longer than\n  two periods (forecast's help; log 93);\n- an {@link ets} fit, a {@link forecastArima} / {@link autoArima} fit, a stats {@link arima} fit (with its MLE\n  innovations variance), an {@link stlm} fit, a {@link holtWinters} fit (stats' prediction intervals) or an\n  {@link ar} fit (normal intervals from the prediction standard errors).\n`h` defaults to twice the period for seasonal data, else 10.\nEquivalent to `forecast::forecast()` in R.",
+    "ja": "系列または当てはめ済みモデルから予測します (forecast の `forecast()`):\n- 系列 (`frequency` はオプションで指定): ets、または周期が 13 以上で系列が 2 周期より長い場合は stlf (forecast のヘルプ。log 93)。\n- {@link ets} の当てはめ、{@link forecastArima} / {@link autoArima} の当てはめ、stats の {@link arima} の当てはめ (イノベーション分散は最尤推定値)、{@link stlm} の当てはめ、{@link holtWinters} の当てはめ (stats の予測区間)、または {@link ar} の当てはめ (予測標準誤差に基づく正規区間)。\n季節データでは `h` の既定値は周期の 2 倍、それ以外では 10 です。\nR の `forecast::forecast()` と同等です。"
+  },
+  "forecastArima#summary": {
+    "hash": "a1caeeafad12",
+    "en": "Fits an ARIMA model as forecast's `Arima()`: stats' arima on the Box-Cox transformed series, with a drift, and\nforecast's innovations variance, AICc and BIC.\nEquivalent to `forecast::Arima()` in R.",
+    "ja": "forecast の `Arima()` と同様に ARIMA モデルを当てはめます。Box-Cox 変換した系列に stats の arima を適用し、ドリフト、forecast のイノベーション分散、AICc、BIC を含みます。\nR の `forecast::Arima()` と同等です。"
+  },
+  "forecastEts#summary": {
+    "hash": "17d3708463a7",
+    "en": "Point forecasts and prediction intervals from an {@link ets} fit (forecast's `forecast.ets()`): the analytic\nvariances of classes 1 and 2, the exact moments of class 3 (MNM, MAM, MAdM), and simulation otherwise (npaths\npaths with rStats.js's R-compatible generator, seeded by `seed`). Two departures from R's forecast.ets (the\nmodel's formulas are used): damped class 3 forecasts use l + phi b at h = 1, and ANA / MNA put the seasonal term\nof c_j at j mod m = 0.\nEquivalent to `forecast::forecast()` in R.",
+    "ja": "{@link ets} の当てはめから点予測と予測区間を求めます (forecast の `forecast.ets()`): クラス 1 と 2 では解析的な分散、クラス 3 (MNM、MAM、MAdM) では正確なモーメント、それ以外ではシミュレーションを使用します (npaths 個の経路を rStats.js の R 互換乱数生成器で生成し、`seed` で初期化します)。R の forecast.ets とは 2 点で異なります (モデルの式を使用します): 減衰したクラス 3 の予測では h = 1 において l + phi b を使用し、ANA / MNA では c_j の季節項を j mod m = 0 に配置します。\nR の `forecast::forecast()` と同等です。"
+  },
+  "forecastFromArima#summary": {
+    "hash": "042399093972",
+    "en": "Point forecasts and prediction intervals from a {@link forecastArima} fit (forecast's `forecast.Arima()`).\nEquivalent to `forecast::forecast()` in R.",
+    "ja": "{@link forecastArima} の当てはめから点予測と予測区間を求めます (forecast の `forecast.Arima()`)。\nR の `forecast::forecast()` と同等です。"
+  },
+  "forecastStlm#summary": {
+    "hash": "ec2aca7e02e1",
+    "en": "Forecasts from an {@link stlm} fit (forecast's `forecast.stlm()`): the model's forecasts of the seasonally adjusted\nseries plus the last cycle of the seasonal component, back-transformed with the fit's lambda.\nEquivalent to `forecast::forecast()` in R.",
+    "ja": "{@link stlm} の当てはめから予測します (forecast の `forecast.stlm()`): 季節調整済み系列に対するモデルの予測値に季節成分の最後の周期を加え、当てはめの lambda で逆変換します。\nR の `forecast::forecast()` と同等です。"
+  },
+  "fourier#summary": {
+    "hash": "ae14c047c615",
+    "en": "Fourier terms (forecast's `fourier()`): S_k = sin(2 pi k t / m), C_k = cos(2 pi k t / m) for k = 1..K, t = 1..n (or\nn + 1..n + h), the sine dropped at k = m / 2; columns named \"S1-12\", \"C1-12\", ...\nEquivalent to `forecast::fourier()` in R.",
+    "ja": "Fourier 項です (forecast の `fourier()`): k = 1..K、t = 1..n (または n + 1..n + h) に対して S_k = sin(2 pi k t / m)、C_k = cos(2 pi k t / m) です。k = m / 2 では正弦項を除きます。列名は \"S1-12\"、\"C1-12\"、... です。\nR の `forecast::fourier()` と同等です。"
+  },
+  "holt#summary": {
+    "hash": "a3d37164e2a3",
+    "en": "Holt's linear trend method (forecast's `holt()`): ets AAN (AAdN damped, MMN exponential); `initial: \"simple\"`\nstarts at l = y_1, b = y_2 - y_1.\nEquivalent to `forecast::holt()` in R.",
+    "ja": "Holt の線形トレンド法です (forecast の `holt()`): ets AAN (減衰の場合は AAdN、指数トレンドの場合は MMN) です。`initial: \"simple\"` の場合は l = y_1、b = y_2 - y_1 から開始します。\nR の `forecast::holt()` と同等です。"
+  },
+  "holtWinters#summary": {
+    "hash": "9a97ea6786f5",
+    "en": "Holt-Winters filtering (stats' `HoltWinters()`): exponential smoothing with optional trend and seasonal components,\nthe start values from decompose() of the first start.periods periods, the parameters minimising the SSE.\nEquivalent to R's `HoltWinters()`.",
+    "ja": "Holt-Winters フィルタリングです (stats の `HoltWinters()`): トレンド成分と季節成分を任意に含む指数平滑化です。最初の start.periods 周期から decompose() で初期値を求め、SSE を最小化するパラメータを推定します。\nR の `HoltWinters()` と同等です。"
+  },
+  "hw#summary": {
+    "hash": "f8d94b2a571d",
+    "en": "Holt-Winters seasonal method (forecast's `hw()`): ets AAA or MAM (damped: AAdA, MAdM); `initial: \"simple\"` starts at\nl = mean(y[1:m]), b = (mean(y[m+1:2m]) - mean(y[1:m]))/m, s = y[1:m] - l (or / l).\nEquivalent to `forecast::hw()` in R.",
+    "ja": "Holt-Winters の季節法です (forecast の `hw()`): ets AAA または MAM (減衰の場合は AAdA、MAdM) です。`initial: \"simple\"` の場合は l = mean(y[1:m])、b = (mean(y[m+1:2m]) - mean(y[1:m]))/m、s = y[1:m] - l (または / l) から開始します。\nR の `forecast::hw()` と同等です。"
+  },
+  "invBoxCox#summary": {
+    "hash": "5f77c63e006e",
+    "en": "The inverse Box-Cox transformation (sign-preserving where lambda z + 1 < 0), with forecast's bias adjustment when\n`fvar` (the forecast variances on the transformed scale) is given and `biasadj` is true. Equivalent to\n`forecast::InvBoxCox()` in R.",
+    "ja": "逆 Box-Cox 変換です (lambda z + 1 < 0 の場合は符号を保持します)。`fvar` (変換後の尺度における予測分散) が指定され、`biasadj` が true の場合は forecast のバイアス調整を行います。\nR の `forecast::InvBoxCox()` と同等です。"
+  },
+  "jarqueBeraTest#summary": {
+    "hash": "705a1309f50d",
+    "en": "The Jarque-Bera test for normality (tseries' `jarque.bera.test()`): n (S^2/6 + (K - 3)^2/24) with the moments over n,\nchi-squared with 2 df.\nEquivalent to `tseries::jarque.bera.test()` in R.",
+    "ja": "正規性に対する Jarque-Bera 検定です (tseries の `jarque.bera.test()`): n (S^2/6 + (K - 3)^2/24) を使用し、モーメントは n で計算します。自由度 2 のカイ二乗分布を使用します。\nR の `tseries::jarque.bera.test()` と同等です。"
+  },
+  "kpssPValue#summary": {
+    "hash": "71b5702bfaba",
+    "en": "The KPSS table's p-value, linear in the statistic between the 10%, 5%, 2.5%, 1% points, clamped to [0.01, 0.10]. Not an R function.",
+    "ja": "KPSS 表の p 値です。検定統計量が 10%、5%、2.5%、1% の各点の間にある場合は線形補間し、[0.01, 0.10] に制限します。R の関数ではありません。"
+  },
+  "kpssStatistic#summary": {
+    "hash": "1b2fe8688a9d",
+    "en": "The KPSS statistic with a given truncation lag (residuals on 1, or on 1 and t). Not an R function.",
+    "ja": "指定された打ち切りラグに対する KPSS 統計量です (残差は 1、または 1 と t に回帰して求めます)。R の関数ではありません。"
+  },
+  "kpssTest#summary": {
+    "hash": "35a27ae69658",
+    "en": "The KPSS test (tseries' `kpss.test()`): the null \"Level\" or \"Trend\", truncation lag trunc(4 (n/100)^0.25) (`lshort`)\nor trunc(12 (n/100)^0.25); p interpolated in the KPSS table (clamped to [0.01, 0.10]).\nEquivalent to `tseries::kpss.test()` in R.",
+    "ja": "KPSS 検定です (tseries の `kpss.test()`): 帰無仮説は \"Level\" または \"Trend\" です。打ち切りラグは trunc(4 (n/100)^0.25) (`lshort`) または trunc(12 (n/100)^0.25) とします。p 値は KPSS 表で補間し、[0.01, 0.10] に制限します。\nR の `tseries::kpss.test()` と同等です。"
+  },
+  "ma#summary": {
+    "hash": "5353ff57b529",
+    "en": "Moving-average smoother (forecast's `ma()`): order k, centred (a 2 x k average) for even k when `centre`. Equivalent to `forecast::ma()` in R.",
+    "ja": "移動平均による平滑化です (forecast の `ma()`): 次数 k です。k が偶数で `centre` が指定された場合は、2 x k の平均を中央に配置します。\nR の `forecast::ma()` と同等です。"
+  },
+  "meanf#summary": {
+    "hash": "bb549904bdd4",
+    "en": "Forecasts by the mean (forecast's `meanf()`): intervals mean +- qt(level, n - 1) sd(y) sqrt(1 + 1/n).\nEquivalent to `forecast::meanf()` in R.",
+    "ja": "平均による予測です (forecast の `meanf()`): 区間は mean +- qt(level, n - 1) sd(y) sqrt(1 + 1/n) です。\nR の `forecast::meanf()` と同等です。"
+  },
+  "minRootModulus#summary": {
+    "hash": "f1b115bb4708",
+    "en": "The roots' smallest modulus of 1 + c_1 z + ... + c_k z^k (Infinity for a constant). Not an R function.",
+    "ja": "1 + c_1 z + ... + c_k z^k の根の絶対値の最小値です (定数の場合は Infinity)。R の関数ではありません。"
+  },
+  "monthdays#summary": {
+    "hash": "918336d6d17c",
+    "en": "Days in each month or quarter (forecast's `monthdays()`). Equivalent to `forecast::monthdays()` in R.",
+    "ja": "各月または四半期の日数です (forecast の `monthdays()`)。\nR の `forecast::monthdays()` と同等です。"
+  },
+  "mstl#summary": {
+    "hash": "b339249e2220",
+    "en": "forecast's `mstl()` for one seasonal period: stl(x, s.window = 11); for a non-seasonal series (or fewer than two\nperiods) the trend is supsmu(1:n, x).\nEquivalent to `forecast::mstl()` in R.",
+    "ja": "1 つの季節周期に対する forecast の `mstl()` です: stl(x, s.window = 11) を使用します。非季節系列 (または 2 周期未満の系列) では、トレンドは supsmu(1:n, x) です。\nR の `forecast::mstl()` と同等です。"
+  },
+  "naInterp#summary": {
+    "hash": "66e73e76f0bc",
+    "en": "Interpolation of missing values (forecast's `na.interp()`): linear for non-seasonal series (or at most two periods\nobserved); for seasonal series the seasonal component of a robust mstl of a first filling (lm on Fourier terms K =\nmin(5, floor(m/2)) and a polynomial of degree min(6, floor(n/10))), the seasonally adjusted series interpolated\nlinearly.\nEquivalent to `forecast::na.interp()` in R.",
+    "ja": "欠測値の補間です (forecast の `na.interp()`): 非季節系列 (または観測された周期が 2 以下) では線形補間します。季節系列では、最初に補完した系列に対するロバストな mstl の季節成分を使用します (Fourier 項 K = min(5, floor(m/2)) と次数 min(6, floor(n/10)) の多項式による lm)。季節調整済み系列は線形補間します。\nR の `forecast::na.interp()` と同等です。"
+  },
+  "naive#summary": {
+    "hash": "b2c851fbb1f6",
+    "en": "Naive forecasts (forecast's `naive()`): {@link rwf} without a drift. Equivalent to `forecast::naive()` in R.",
+    "ja": "ナイーブ予測です (forecast の `naive()`): ドリフトなしの {@link rwf} です。\nR の `forecast::naive()` と同等です。"
+  },
+  "ndiffs#summary": {
+    "hash": "833a3b4791c7",
+    "en": "The number of first differences needed for stationarity by a unit root test. Equivalent to `forecast::ndiffs()` in R.",
+    "ja": "単位根検定に基づく、定常性を得るために必要な 1 階差分の回数です。\nR の `forecast::ndiffs()` と同等です。"
+  },
+  "nsdiffs#summary": {
+    "hash": "99b355ba6329",
+    "en": "The number of seasonal differences: 1 when the seasonal strength of mstl, max(0, 1 - var(remainder) /\nvar(seasonal + remainder)), exceeds 0.64 (test \"seas\"), or by the OCSB test. Equivalent to `forecast::nsdiffs()` in R.",
+    "ja": "季節差分の回数です。mstl の季節強度 max(0, 1 - var(remainder) / var(seasonal + remainder)) が 0.64 を超える場合 (検定 \"seas\") は 1、そうでなければ OCSB 検定で決めます。\nR の `forecast::nsdiffs()` と同等です。"
+  },
+  "ocsbCritical#summary": {
+    "hash": "a1fe80573c36",
+    "en": "The 5% critical value of the OCSB test for period m (the table read off R; log m interpolation beyond 400). Not an R function.",
+    "ja": "周期 m に対する OCSB 検定の 5% 臨界値です (R の表から読み取った値。400 を超える場合は m について補間します。log m)。R の関数ではありません。"
+  },
+  "ocsbTest#summary": {
+    "hash": "a51449be18e0",
+    "en": "The Osborn-Chui-Smith-Birchenhall test for a seasonal unit root: with w = Delta_m Delta_1 y and L lags, the AR(L)\ncoefficients a of w by least squares (no mean), then the regression of w_t on w_{t-1..L} and the two auxiliary\nseries filtered by a, (1 - a(B)) Delta_m y_{t-1} and (1 - a(B)) Delta_1 y_{t-m}, without a constant; the statistic\nis the t value of the second (log 41, 80). Equivalent to `forecast::ocsb.test()` in R. With `lagMethod` \"fixed\" (the\ndefault) L = `maxlag` (R's default 0). With \"AIC\", \"BIC\" or \"AICc\" the lags 0..maxlag are compared on a common\nsample (the rows of maxlag lags, the prefilter too) by the lm criterion with k = coefficients + 1 (AICc = AIC +\n2k(k + 1) / (n - k - 1), forecast's help), and the chosen L is used. **This departs from R:** forecast 9.0.2 compares\nL = 1..maxlag that way but reports and uses one lag fewer than the chosen L (log 89-90, an off-by-one; the user's\ndecision 2026-11-27 is not to imitate it). Candidates with a perfect fit (and for AICc, n <= k + 1) are skipped.",
+    "ja": "季節単位根に対する Osborn-Chui-Smith-Birchenhall 検定です。w = Delta_m Delta_1 y とし、w の AR(L) 係数 a を最小二乗法で求めます (平均なし)。次に w_t を w_{t-1..L} および a でフィルタした 2 つの補助系列 (1 - a(B)) Delta_m y_{t-1}、(1 - a(B)) Delta_1 y_{t-m} に回帰します (定数項なし)。検定統計量は 2 番目の t 値です (log 41、80)。R の `forecast::ocsb.test()` と同等です。`lagMethod` が \"fixed\" (既定) の場合、L = `maxlag` (R の既定は 0) です。\"AIC\"、\"BIC\"、\"AICc\" の場合、0..maxlag のラグを共通の標本 (maxlag 個のラグを持つ行。事前フィルタも含む) で比較し、係数 + 1 を k とする lm の規準を使います (AICc = AIC + 2k(k + 1) / (n - k - 1)、forecast のヘルプ)。選択した L を使用します。**R との違い:** forecast 9.0.2 は L = 1..maxlag を同じ方法で比較しますが、選択された L より 1 つ少ないラグを報告して使用します (log 89-90、1 つずれる問題。ユーザーの 2026-11-27 の決定では、これを模倣しません)。完全に当てはまる候補 (AICc では n <= k + 1 の候補も) は除外します。"
+  },
   "pacf#summary": {
     "hash": "e893717b8428",
     "en": "Computes partial autocorrelation of a univariate series with the Durbin–Levinson recursion.\nEquivalent to R's `stats::pacf()`.",
     "ja": "Durbin–Levinson の再帰計算により、単変量時系列の偏自己相関を計算します。\nR の `stats::pacf()` と同等です。"
+  },
+  "poTest#summary": {
+    "hash": "9e473336f73f",
+    "en": "The Phillips-Ouliaris cointegration test (tseries' `po.test()`): x has 2 to 6 columns (variables) as rows of\nobservations; u = the residuals of the first column on the others (with an intercept when `demean`, default),\nZ = (n - 1)(rho - 1) - (lambda^2 - s^2) / (2 sum u_{t-1}^2 / (n - 1)^2) from u_t on u_{t-1}; lag trunc((n - 1)/100)\n(`lshort`) or trunc((n - 1)/30); p from Table Ib / Ia (clamped to [0.01, 0.15]).\nEquivalent to `tseries::po.test()` in R.",
+    "ja": "共和分に対する Phillips-Ouliaris 検定です (tseries の `po.test()`): x は 2～6 列 (変数) で、行が観測値です。u は第 1 列を他の列に回帰した残差です (`demean` が true (既定) の場合は切片を含みます)。u_t を u_{t-1} に回帰して Z = (n - 1)(rho - 1) - (lambda^2 - s^2) / (2 sum u_{t-1}^2 / (n - 1)^2) を求めます。ラグは trunc((n - 1)/100) (`lshort`) または trunc((n - 1)/30) です。p 値は Table Ib / Ia から求め ([0.01, 0.15] に制限)、R の `tseries::po.test()` と同等です。"
+  },
+  "ppTest#summary": {
+    "hash": "3046b0ce8302",
+    "en": "The Phillips-Perron test (tseries' `pp.test()`): y_t on 1, t, y_{t-1}; Phillips and Perron's closed forms with\ndet(X'X) (log 8), type \"Z(alpha)\" (default, as R) or \"Z(t_alpha)\", truncation lag trunc(4 (n/100)^0.25) (`lshort`)\nor trunc(12 (n/100)^0.25); p from Fuller's n(rho - 1) or tau_tau table at n - 1; \"explosive\" gives 1 - p.\nEquivalent to `tseries::pp.test()` in R.",
+    "ja": "Phillips-Perron 検定です (tseries の `pp.test()`): y_t を 1、t、y_{t-1} に回帰します。det(X'X) を用いた Phillips と Perron の閉形式 (log 8) により、\"Z(alpha)\" (既定、R と同じ) または \"Z(t_alpha)\" を計算します。打ち切りラグは trunc(4 (n/100)^0.25) (`lshort`) または trunc(12 (n/100)^0.25) です。p 値は n - 1 における Fuller の n(rho - 1) または tau_tau 表から求めます。\"explosive\" の場合は 1 - p です。\nR の `tseries::pp.test()` と同等です。"
+  },
+  "predictAr#summary": {
+    "hash": "260ed58975b0",
+    "en": "Predictions from an {@link ar} fit (stats' `predict.ar`): the AR recursion about the mean, se = sqrt(var.pred cumsum(psi^2)). Equivalent to R's `predict()`.",
+    "ja": "{@link ar} の当てはめから予測します (stats の `predict.ar`): 平均からの偏差について AR の再帰計算を行い、se = sqrt(var.pred cumsum(psi^2)) です。\nR の `predict()` と同等です。"
+  },
+  "predictArima#summary": {
+    "hash": "f773b9017b88",
+    "en": "Forecasts from an {@link arima} fit by the Kalman filter (the exact predictor from the finite past). Equivalent to\nR's `predict.Arima()`.",
+    "ja": "{@link arima} の当てはめからカルマンフィルタで予測します (有限の過去データに基づく正確な予測値)。\nR の `predict.Arima()` と同等です。"
+  },
+  "predictHoltWinters#summary": {
+    "hash": "de8ff5c5ff61",
+    "en": "Predictions from a {@link holtWinters} fit with intervals (stats' `predict.HoltWinters()`): additive and\nnon-seasonal models var(residuals) (1 + sum_{j<h} psi_j^2), psi_j = alpha (1 + j beta) + gamma (1 - alpha) [j mod f\n= 0]; multiplicative models var(residuals) sum_{j=0}^{h-1} (psi_j s_h / s_{h-j})^2 with cyclic seasonal indices\n(R reads the seasonal factors at fixed positions of its coefficient vector instead: R bug 19369; equal for h < f with\na trend).\nEquivalent to R's `predict()`.",
+    "ja": "{@link holtWinters} の当てはめから区間を伴う予測値を求めます (stats の `predict.HoltWinters()`): 加法モデルと非季節モデルでは var(residuals) (1 + sum_{j<h} psi_j^2)、psi_j = alpha (1 + j beta) + gamma (1 - alpha) [j mod f = 0] です。乗法モデルでは var(residuals) sum_{j=0}^{h-1} (psi_j s_h / s_{h-j})^2 とし、季節インデックスは循環します (R は代わりに係数ベクトル内の固定位置から季節因子を読み取ります。R bug 19369。トレンドがある場合、h < f では一致します)。\nR の `predict()` と同等です。"
+  },
+  "remainder#summary": {
+    "hash": "ca2e66a5bb7f",
+    "en": "The remainder component of an {@link mstl} decomposition (forecast's `remainder()`). Equivalent to `forecast::remainder()` in R.",
+    "ja": "{@link mstl} 分解の残差成分です (forecast の `remainder()`)。\nR の `forecast::remainder()` と同等です。"
+  },
+  "runsTest#summary": {
+    "hash": "c81997e3bc0c",
+    "en": "The Wald-Wolfowitz runs test (tseries' `runs.test()`) of a two-valued sequence: z = (R - mean) / sd with mean 1 +\n2 n1 n2 / n and variance 2 n1 n2 (2 n1 n2 - n) / (n^2 (n - 1)), normal p for \"two.sided\" (default), \"less\" or\n\"greater\".\nEquivalent to `tseries::runs.test()` in R.",
+    "ja": "2 値系列に対する Wald-Wolfowitz のラン検定です (tseries の `runs.test()`): z = (R - mean) / sd、平均は 1 + 2 n1 n2 / n、分散は 2 n1 n2 (2 n1 n2 - n) / (n^2 (n - 1)) です。\"two.sided\" (既定)、\"less\"、\"greater\" に対する正規分布の p 値を返します。\nR の `tseries::runs.test()` と同等です。"
+  },
+  "rwf#summary": {
+    "hash": "163f9aab5e2a",
+    "en": "Random walk forecasts (forecast's `rwf()`), with a drift (y_n - y_1)/(n - 1) when `drift`. sigma = sqrt(mean(res^2))\nwithout a drift, sd(res) with one; se_h = sigma sqrt(h) or sigma sqrt(h (1 + h/(n - 1))).\nEquivalent to `forecast::rwf()` in R.",
+    "ja": "ランダムウォーク予測です (forecast の `rwf()`)。`drift` の場合、ドリフトは (y_n - y_1)/(n - 1) です。ドリフトなしでは sigma = sqrt(mean(res^2))、ドリフトありでは sd(res) です。se_h = sigma sqrt(h)、または sigma sqrt(h (1 + h/(n - 1))) です。\nR の `forecast::rwf()` と同等です。"
+  },
+  "seasadj#summary": {
+    "hash": "5cee394e11e8",
+    "en": "The seasonally adjusted series of an mstl / stl decomposition (data - seasonal). Equivalent to `forecast::seasadj()` in R.",
+    "ja": "mstl / stl 分解の季節調整済み系列です (data - seasonal)。\nR の `forecast::seasadj()` と同等です。"
+  },
+  "seasonalComponent#summary": {
+    "hash": "231dce2fe437",
+    "en": "The seasonal component of an {@link mstl} decomposition (forecast's `seasonal()`; zeros without one). Equivalent to `forecast::seasonal()` in R.",
+    "ja": "{@link mstl} 分解の季節成分です (forecast の `seasonal()`。季節成分がない場合は 0)。\nR の `forecast::seasonal()` と同等です。"
+  },
+  "seasonaldummy#summary": {
+    "hash": "638efce05b03",
+    "en": "Seasonal dummies (forecast's `seasonaldummy()`): m - 1 columns, the last period omitted; `start` the cycle position (1-based) of the first row. Equivalent to `forecast::seasonaldummy()` in R.",
+    "ja": "季節ダミー変数です (forecast の `seasonaldummy()`): m - 1 列とし、最後の周期を除きます。`start` は最初の行の周期内の位置 (1 始まり) です。\nR の `forecast::seasonaldummy()` と同等です。"
+  },
+  "ses#summary": {
+    "hash": "db519d793201",
+    "en": "Simple exponential smoothing (forecast's `ses()`): ets(y, \"ANN\"), or with `initial: \"simple\"` the level started at\ny_1 and alpha minimising the one-step SSE.\nEquivalent to `forecast::ses()` in R.",
+    "ja": "単純指数平滑法です (forecast の `ses()`): ets(y, \"ANN\") を使用します。`initial: \"simple\"` の場合は、レベルを y_1 から開始し、1 期先 SSE を最小化する alpha を求めます。\nR の `forecast::ses()` と同等です。"
+  },
+  "snaive#summary": {
+    "hash": "4ee499dcc2e7",
+    "en": "Seasonal naive forecasts (forecast's `snaive()`): y_{n - m + ...}, se_h = sigma sqrt(floor((h - 1)/m) + 1). Equivalent to `forecast::snaive()` in R.",
+    "ja": "季節ナイーブ予測です (forecast の `snaive()`): y_{n - m + ...}、se_h = sigma sqrt(floor((h - 1)/m) + 1) です。\nR の `forecast::snaive()` と同等です。"
+  },
+  "specAr#summary": {
+    "hash": "e03680b1d95e",
+    "en": "The AR spectrum (stats' `spec.ar()` at n.freq frequencies 0..0.5) of x: var.pred / |1 - sum a_k e^{-2 pi i f k}|^2. Equivalent to R's `spec.ar()`.",
+    "ja": "x の AR スペクトルです (stats の `spec.ar()`。n.freq 個の周波数 0..0.5 で評価): var.pred / |1 - sum a_k e^{-2 pi i f k}|^2 です。\nR の `spec.ar()` と同等です。"
+  },
+  "stl#summary": {
+    "hash": "2776a1509088",
+    "en": "Seasonal-trend decomposition by loess (Cleveland et al. 1990). Equivalent to R's `stl()`. It differs in that the\nrobustness weights use the true median of |remainder| (R takes a wrong order statistic for some even-length series:\nR bug 19370, see the documentation's departures from R).",
+    "ja": "loess による季節・トレンド分解です (Cleveland et al. 1990)。R の `stl()` と同等です。ロバスト性重みの計算では |remainder| の真の中央値を使用する点が異なります (R は一部の偶数長系列で誤った順序統計量を使用します。R bug 19370。R との相違点のドキュメントを参照)。"
+  },
+  "stlf#summary": {
+    "hash": "419ccbc45b16",
+    "en": "STL + ETS forecasts (forecast's `stlf()`): mstl(y), forecast(ets(seasonally adjusted, \"ZZN\")), plus the last cycle of\nthe seasonal component repeated.\nEquivalent to `forecast::stlf()` in R.",
+    "ja": "STL + ETS による予測です (forecast の `stlf()`): mstl(y)、季節調整済み系列に対する forecast(ets(..., \"ZZN\")) を行い、季節成分の最後の周期を繰り返して加えます。\nR の `forecast::stlf()` と同等です。"
+  },
+  "stlm#summary": {
+    "hash": "6c243e4a3977",
+    "en": "STL decomposition with a model of the seasonally adjusted series (forecast's `stlm()`): mstl of the series (Box-Cox\ntransformed with `lambda`), then `ets(adjusted, etsModel)` (default \"ZZN\") or, with `method: \"arima\"`,\n`auto.arima(adjusted, seasonal = FALSE)` (log 93: R's model has no seasonal part).\nEquivalent to `forecast::stlm()` in R.",
+    "ja": "季節調整済み系列のモデルを用いた STL 分解です (forecast の `stlm()`): 系列を (`lambda` で Box-Cox 変換して) mstl で分解し、`ets(adjusted, etsModel)` (既定 \"ZZN\")、または `method: \"arima\"` の場合は `auto.arima(adjusted, seasonal = FALSE)` を適用します (log 93: R のモデルには季節成分がありません)。\nR の `forecast::stlm()` と同等です。"
+  },
+  "supsmu#summary": {
+    "hash": "e5e1a82432ab",
+    "en": "Friedman's super smoother (running lines with a cross-validated variable span). Equivalent to R's `supsmu()`.\nTied x are not handled as R does.",
+    "ja": "Friedman のスーパースムーザーです (交差検証によって変数幅を選ぶ移動直線法)。R の `supsmu()` と同等ですが、同じ x の値の扱いは R と異なります。"
+  },
+  "terasvirtaTest#summary": {
+    "hash": "70a8e7ef8c49",
+    "en": "Teraesvirta's neural network test for neglected nonlinearity (tseries' `terasvirta.test()`): y_t on 1 and its lags,\nthen also on the second and third order products of the lags; Chisq = n log(SSR0 / SSR1) (n the series length) or\nF on (df, n - lag - df) (log 14). The series is standardised when `scale` (default).\nEquivalent to `tseries::terasvirta.test()` in R.",
+    "ja": "非線形性の見落としに対する Teraesvirta のニューラルネットワーク検定です (tseries の `terasvirta.test()`): y_t を 1 とそのラグに回帰し、さらにラグの 2 次および 3 次の積にも回帰します。Chisq = n log(SSR0 / SSR1) (n は系列長)、または F (df, n - lag - df) です (log 14)。`scale` が true (既定) の場合は系列を標準化します。\nR の `tseries::terasvirta.test()` と同等です。"
+  },
+  "thetaf#summary": {
+    "hash": "8af27b5edeb4",
+    "en": "The theta method (forecast's `thetaf()`): a seasonality test |r_m| > qnorm(0.95) sqrt((1 + 2 sum_{i<m} r_i^2)/n), a\nmultiplicative decompose when seasonal, ses by MSE, mean = ses mean + b/2 (h - 1 + 1/alpha - (1 - alpha)^n / alpha)\nwith b the slope of lm(y ~ t), reseasonalised. Departs from R when seasonal: the interval bounds are reseasonalised\n(R adds the adjusted-scale width to the reseasonalised mean) and the residuals are y - fitted (R's are on the\nadjusted scale); the user's decision, log 91-92.\nEquivalent to `forecast::thetaf()` in R.",
+    "ja": "theta 法です (forecast の `thetaf()`): 季節性検定 |r_m| > qnorm(0.95) sqrt((1 + 2 sum_{i<m} r_i^2)/n)、季節性がある場合は乗法分解、MSE による ses を行います。平均は ses mean + b/2 (h - 1 + 1/alpha - (1 - alpha)^n / alpha) で、b は lm(y ~ t) の傾きです。季節成分を再適用します。季節性がある場合は R と異なります。区間の上下限も季節成分を再適用します (R は調整済み尺度の幅を季節成分を再適用した平均に加えます)。残差は y - fitted です (R の残差は調整済み尺度)。ユーザーの決定については log 91-92 を参照してください。\nR の `forecast::thetaf()` と同等です。"
+  },
+  "trendcycle#summary": {
+    "hash": "94246c18529e",
+    "en": "The trend-cycle component of an {@link mstl} decomposition (forecast's `trendcycle()`). Equivalent to `forecast::trendcycle()` in R.",
+    "ja": "{@link mstl} 分解のトレンド・周期成分です (forecast の `trendcycle()`)。\nR の `forecast::trendcycle()` と同等です。"
+  },
+  "tsCV#summary": {
+    "hash": "f50716f82ea6",
+    "en": "Time series cross-validation (forecast's `tsCV()`): for each origin t the forecast errors of y_{t+1..t+h} from the fit\nto y_1..y_t, stored in row t (NaN where unavailable).\nEquivalent to `forecast::tsCV()` in R.",
+    "ja": "時系列の交差検証です (forecast の `tsCV()`): 各起点 t について、y_1..y_t に当てはめたモデルから得られる y_{t+1..t+h} の予測誤差を行 t に格納します (利用できない箇所は NaN)。\nR の `forecast::tsCV()` と同等です。"
+  },
+  "tsFilter#summary": {
+    "hash": "e02f267edbc0",
+    "en": "Linear filtering of a series (stats' `filter()`): convolution, y_i = sum_j f_j x_{i + o - (j - 1)} with o = 0 for\n`sides: 1` and floor(p / 2) for `sides: 2` (NaN where an index falls outside, or wrapped with `circular`), or\nrecursive, y_i = x_i + sum_j f_j y_{i - j} with `init` (the most recent value first, as R).\nEquivalent to R's `filter()`.",
+    "ja": "系列の線形フィルタリングです (stats の `filter()`): 畳み込みでは、`sides: 1` の場合 o = 0、`sides: 2` の場合 o = floor(p / 2) として y_i = sum_j f_j x_{i + o - (j - 1)} です (インデックスが範囲外なら NaN、`circular` の場合は循環させます)。再帰型では、`init` を用いて y_i = x_i + sum_j f_j y_{i - j} です (R と同じく最も新しい値を先頭にします)。\nR の `filter()` と同等です。"
+  },
+  "tsclean#summary": {
+    "hash": "6be533a0731e",
+    "en": "The series with missing values interpolated and outliers replaced (forecast's `tsclean()`).\nEquivalent to `forecast::tsclean()` in R.",
+    "ja": "欠測値を補間し、外れ値を置き換えた系列です (forecast の `tsclean()`)。\nR の `forecast::tsclean()` と同等です。"
+  },
+  "tslm#summary": {
+    "hash": "6a1a2b38269f",
+    "en": "Linear regression on a trend (1..n) and seasonal dummies (forecast's `tslm(y ~ trend + season)`), the first season\nthe baseline.\nEquivalent to `forecast::tslm()` in R.",
+    "ja": "トレンド (1..n) と季節ダミー変数に対する線形回帰です (forecast の `tslm(y ~ trend + season)`)。最初の季節を基準とします。\nR の `forecast::tslm()` と同等です。"
+  },
+  "tsoutliers#summary": {
+    "hash": "eee787c7d03e",
+    "en": "Outliers and their replacements (forecast's `tsoutliers()`): the remainder of seasadj(robust mstl) minus supsmu (or x\nminus supsmu), points outside [Q1 - 3 IQR, Q3 + 3 IQR], replaced by na.interp with them removed; `iterate` passes\n(default 2), the union of the flags.\nEquivalent to `forecast::tsoutliers()` in R.",
+    "ja": "外れ値とその置換値です (forecast の `tsoutliers()`): seasadj(ロバストな mstl) の残差から supsmu を差し引いた値 (または x から supsmu を差し引いた値) を求め、[Q1 - 3 IQR, Q3 + 3 IQR] の範囲外の点を検出します。検出点を除いて na.interp で置換します。`iterate` 回 (既定 2 回) の反復で得られたフラグの和集合を返します。\nR の `forecast::tsoutliers()` と同等です。"
+  },
+  "whiteTest#summary": {
+    "hash": "7199da67dba0",
+    "en": "White's neural network test for neglected nonlinearity (tseries' `white.test()`): q logistic hidden units with\nweights runif((lag + 1) q, -range/2, range/2) (by columns, the first row on the constant), their principal components\n2..qstar + 1 (standardised), then the statistic as {@link terasvirtaTest} (log 15). The weights come from rStats.js's\nR-compatible generator: with `seed` (R's `set.seed`) the value equals R's; without, the current stream is used.\nEquivalent to `tseries::white.test()` in R.",
+    "ja": "非線形性の見落としに対する White のニューラルネットワーク検定です (tseries の `white.test()`): 重み runif((lag + 1) q, -range/2, range/2) (列ごと。最初の行は定数項) を持つ q 個のロジスティック隠れユニットを作り、その主成分 2..qstar + 1 (標準化済み) を用いて {@link terasvirtaTest} と同じ統計量を計算します (log 15)。重みは rStats.js の R 互換乱数生成器から得ます。`seed` (R の `set.seed`) を指定すると R と同じ値になり、指定しない場合は現在の乱数ストリームを使用します。\nR の `tseries::white.test()` と同等です。"
   }
 }

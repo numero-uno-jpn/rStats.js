@@ -448,3 +448,12 @@ export {
 export { tamhaneT2Test, type TamhaneT2Options } from "../htest/multipleComparisons.js";
 
 export { grubbsTest, pgrubbs, qgrubbs, type GrubbsTestOptions, type GrubbsTestResult } from "../htest/grubbs.js";
+
+export { metagen, pWeightedChisq, genqInterval, heterogeneityIntervals, type MetaCommonOptions, type MetaResult, type MetaTauMethod } from "../meta/metagen.js";
+export { metabin, type MetabinOptions } from "../meta/metabin.js";
+export { metacont, metainc, metacor, metamean, metarate, metaprop, metapropGlmm, type MetapropGlmmResult } from "../meta/metaother.js";
+export { metaSubgroup, metabias, metareg, metainf, metacum, baujat, trimfill, type MetaSubgroupResult, type MetabiasResult, type MetaInfluenceResult, type TrimfillResult } from "../meta/metaextra.js";
+export {
+  netmeta, netrank, netsplit, decompDesign, netmeasures, pairwise, discomb, netcomb, netleague, netposet, netconnection,
+  type NetmetaResult, type TreatmentMatrix, type NetsplitPart, type DecompDesignResult, type NetcombResult,
+} from "../meta/netmeta.js";

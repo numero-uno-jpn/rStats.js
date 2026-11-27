@@ -427,7 +427,10 @@ function binomialDev(y: number, mu: number, w: number): number {
     return outOfRange(y, mu, w, D, r) ? binomialNearScaled(y, mu, w) : r;
   }
   const a = y === 0 ? 0 : y * Math.log(y / mu);
-  const b = y === 1 ? 0 : y === 0 && mu < 0.1 ? -Math.log1p(-mu) : (1 - y) * Math.log((1 - y) / (1 - mu));
+  // for y and mu below 0.1 (rare events) log((1 - y) / (1 - mu)) is log1p((mu - y) / (1 - mu)) from the exact
+  // difference: the ratio near 1 lost digits (1e-10 of the term at mu = 1.1e-5, y = 1e-5, which with weights 1e7 made
+  // glmer's penalised deviance noisy to 1e-10 and its PIRLS stall; 1.20.0, log 111)
+  const b = y === 1 ? 0 : y === 0 && mu < 0.1 ? -Math.log1p(-mu) : y < 0.1 && mu < 0.1 ? (1 - y) * Math.log1p((mu - y) / (1 - mu)) : (1 - y) * Math.log((1 - y) / (1 - mu));
   return 2 * w * (a + b);
 }
 
