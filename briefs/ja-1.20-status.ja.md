@@ -3,7 +3,7 @@
 ## 書き込んでよい場所 (これ以外には書き込まない)
 
 - リポジトリ: `numero-uno-jpn/rStats.js` (https://github.com/numero-uno-jpn/rStats.js)
-- 土台: ブランチ `dev/ts-meta-1.20` のコミット `<BASE>`。作業の前に、`git log -1 --format=%H origin/dev/ts-meta-1.20` がこれと一致することを確かめる。
+- 土台: ブランチ `dev/ts-meta-1.20` のコミット `656fe8500c6f162e2a73d6dc9e3d9886482ad666`。作業の前に、`git log -1 --format=%H origin/dev/ts-meta-1.20` がこれと一致することを確かめる。
 - 作業ブランチ: **`work/ja-1.20`** を土台から作り、ここにだけ push する。`main`、`dev/ts-meta-1.20`、ほかのブランチ、タグには push しない。
 - PR・Issue・リリースは作らない。コメントもしない (PR を作ると CI が走る)。
 - 変えてよいファイルは次の 3 つだけ。
