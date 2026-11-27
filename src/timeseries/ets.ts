@@ -1,0 +1,485 @@
+// forecast's ets and forecast.ets. Written for rStats.js from the behaviour specification oracle/tsmeta-behaviour.md
+// ("ets") with the details found in experiments/tsmeta120-log.md (items 33-38, 51), from Hyndman, Koehler, Ord and
+// Snyder (2008, Forecasting with Exponential Smoothing): the recursions of table 2.3, the likelihood of section 5.2,
+// the admissible region of chapter 10 and the forecast variances of chapter 6. No R or package source was read.
+
+import { optim } from "../optim/optim.js";
+import { eigen } from "../linalg/eigen.js";
+import { qnorm } from "../distributions/normal.js";
+import { rnorm } from "../random/continuous.js";
+import { setSeed } from "../random/rng.js";
+import { boxCox, invBoxCox } from "./forecastArima.js";
+
+export type EtsError = "A" | "M";
+export type EtsTrend = "N" | "A" | "M";
+export type EtsSeason = "N" | "A" | "M";
+
+/** A fully specified ETS model. */
+export interface EtsSpec { error: EtsError; trend: EtsTrend; damped: boolean; season: EtsSeason; m: number }
+
+/** Parameters and initial states in R's order: alpha, beta, gamma, phi, l, b, s0 .. s_{m-2} (s0 the most recent). */
+export interface EtsParameters { alpha: number; beta?: number; gamma?: number; phi?: number; l: number; b?: number; s?: number[] }
+
+interface FilterOut { e: number[]; mu: number[]; states: number[][]; lik: number; sse: number }
+
+/** The seasonal initial states with the m-th one implied (additive: -sum; multiplicative: m - sum). */
+function fullSeason(spec: EtsSpec, s: readonly number[]): number[] {
+  if (spec.season === "N") return [];
+  if (s.length === spec.m) return s.slice();
+  const sum = s.reduce((a, b) => a + b, 0);
+  return [...s, spec.season === "A" ? -sum : spec.m - sum];
+}
+
+/** The filter of table 2.3 given the parameters and initial states (states rows 0..n: l, b, s1..sm). */
+export function etsFilter(y: readonly number[], spec: EtsSpec, par: EtsParameters): FilterOut {
+  const { error, trend, season, m } = spec;
+  const al = par.alpha, be = par.beta ?? 0, ga = par.gamma ?? 0, ph = spec.damped ? par.phi ?? 1 : 1;
+  let l = par.l; let b = trend === "N" ? 0 : par.b ?? (trend === "M" ? 1 : 0);
+  let s = fullSeason(spec, par.s ?? []);
+  const n = y.length; const e = new Array<number>(n), mu = new Array<number>(n);
+  const row = (): number[] => [l, ...(trend !== "N" ? [b] : []), ...s];
+  const states: number[][] = [row()];
+  let sse = 0, sumLogMu = 0;
+  for (let t = 0; t < n; t++) {
+    const T = trend === "N" ? l : trend === "A" ? l + ph * b : l * b ** ph;
+    const sm = season === "N" ? 0 : s[m - 1]!;
+    const mt = season === "N" ? T : season === "A" ? T + sm : T * sm;
+    mu[t] = mt;
+    let ln: number, bn: number, sn = 0;
+    let ee: number;
+    if (error === "A") {
+      ee = y[t]! - mt;
+      if (season === "M") {
+        ln = T + (al * ee) / sm;
+        bn = trend === "N" ? b : trend === "A" ? ph * b + (be * ee) / sm : b ** ph + (be * ee) / (sm * l);
+        sn = sm + (ga * ee) / T;
+      } else {
+        ln = T + al * ee;
+        bn = trend === "N" ? b : trend === "A" ? ph * b + be * ee : b ** ph + (be * ee) / l;
+        sn = sm + ga * ee;
+      }
+    } else {
+      ee = (y[t]! - mt) / mt;
+      if (season === "A") {
+        ln = T + al * mt * ee;
+        bn = trend === "N" ? b : trend === "A" ? ph * b + be * mt * ee : b ** ph + (be * mt * ee) / l;
+        sn = sm + ga * mt * ee;
+      } else {
+        ln = T * (1 + al * ee);
+        bn = trend === "N" ? b : trend === "A" ? ph * b + be * T * ee : b ** ph * (1 + be * ee);
+        sn = season === "M" ? sm * (1 + ga * ee) : sm;
+      }
+    }
+    e[t] = ee; sse += ee * ee; if (error === "M") sumLogMu += Math.log(Math.abs(mt));
+    l = ln; b = bn;
+    if (season !== "N") s = [sn, ...s.slice(0, m - 1)];
+    states.push(row());
+  }
+  const lik = n * Math.log(sse) + (error === "M" ? 2 * sumLogMu : 0);
+  return { e, mu, states, lik, sse };
+}
+
+/** lik only (no states kept; a circular seasonal buffer): the objective of the estimation. */
+function etsLik(y: readonly number[], spec: EtsSpec, par: EtsParameters, sbuf: Float64Array): number {
+  const { error, trend, season, m } = spec;
+  const al = par.alpha, be = par.beta ?? 0, ga = par.gamma ?? 0, ph = spec.damped ? par.phi ?? 1 : 1;
+  let l = par.l; let b = trend === "N" ? 0 : par.b ?? (trend === "M" ? 1 : 0);
+  // sbuf[(head + i) % m] = s_{i+1} (s_1 the most recent)
+  let head = 0;
+  if (season !== "N") { const s = fullSeason(spec, par.s ?? []); for (let i = 0; i < m; i++) sbuf[i] = s[i]!; }
+  const n = y.length; let sse = 0, sumLogMu = 0;
+  for (let t = 0; t < n; t++) {
+    const T = trend === "N" ? l : trend === "A" ? l + ph * b : l * b ** ph;
+    const iOld = season === "N" ? 0 : (head + m - 1) % m;
+    const sm = season === "N" ? 0 : sbuf[iOld]!;
+    const mt = season === "N" ? T : season === "A" ? T + sm : T * sm;
+    let ln: number, bn: number, sn = 0, ee: number;
+    if (error === "A") {
+      ee = y[t]! - mt;
+      if (season === "M") { ln = T + (al * ee) / sm; bn = trend === "N" ? b : trend === "A" ? ph * b + (be * ee) / sm : b ** ph + (be * ee) / (sm * l); sn = sm + (ga * ee) / T; }
+      else { ln = T + al * ee; bn = trend === "N" ? b : trend === "A" ? ph * b + be * ee : b ** ph + (be * ee) / l; sn = sm + ga * ee; }
+    } else {
+      if (!(mt > 0)) return Infinity;
+      ee = (y[t]! - mt) / mt;
+      if (season === "A") { ln = T + al * mt * ee; bn = trend === "N" ? b : trend === "A" ? ph * b + be * mt * ee : b ** ph + (be * mt * ee) / l; sn = sm + ga * mt * ee; }
+      else { ln = T * (1 + al * ee); bn = trend === "N" ? b : trend === "A" ? ph * b + be * T * ee : b ** ph * (1 + be * ee); sn = season === "M" ? sm * (1 + ga * ee) : sm; }
+      sumLogMu += Math.log(mt);
+    }
+    sse += ee * ee; l = ln; b = bn;
+    if (season !== "N") { head = iOld; sbuf[head] = sn; } // the oldest slot becomes the newest
+  }
+  return n * Math.log(sse) + (error === "M" ? 2 * sumLogMu : 0);
+}
+
+/** The zero-error point forecasts from a state row (l, b, s1..sm), h = 1..H. */
+function zeroErrorPath(spec: EtsSpec, par: EtsParameters, state: readonly number[], H: number): number[] {
+  const { trend, season, m } = spec; const ph = spec.damped ? par.phi ?? 1 : 1;
+  let l = state[0]!; let b = trend !== "N" ? state[1]! : 0; const s = state.slice(trend !== "N" ? 2 : 1);
+  const out: number[] = [];
+  for (let k = 1; k <= H; k++) {
+    const T = trend === "N" ? l : trend === "A" ? l + ph * b : l * b ** ph;
+    const sk = season === "N" ? 0 : s[m - 1 - ((k - 1) % m)]!;
+    out.push(season === "N" ? T : season === "A" ? T + sk : T * sk);
+    l = T; if (trend === "A") b = ph * b; else if (trend === "M") b = b ** ph;
+  }
+  return out;
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// estimation
+
+const LOWER = { alpha: 1e-4, beta: 1e-4, gamma: 1e-4, phi: 0.8 };
+const UPPER = { alpha: 0.9999, beta: 0.9999, gamma: 0.9999, phi: 0.98 };
+
+/** The admissible region (Hyndman et al. 2008, ch. 10): the discount matrix F - g w' of the linear model is stable. */
+export function admissible(spec: EtsSpec, al: number, be: number, ga: number, ph: number): boolean {
+  const { trend, season, m } = spec;
+  if (trend === "M") return true; // not linear; only the usual bounds
+  const hasB = trend !== "N"; const ms = season === "N" ? 0 : m;
+  const k = 1 + (hasB ? 1 : 0) + ms;
+  // state x = (l, b, s1..sm), y = w'x + e, x' = F x + g e
+  const w = new Array<number>(k).fill(0); w[0] = 1; if (hasB) w[1] = ph; if (ms) w[k - 1] = 1;
+  const F = Array.from({ length: k }, () => new Array<number>(k).fill(0));
+  F[0]![0] = 1; if (hasB) { F[0]![1] = ph; F[1]![1] = ph; }
+  if (ms) { const o = hasB ? 2 : 1; F[o]![k - 1] = 1; for (let i = 1; i < ms; i++) F[o + i]![o + i - 1] = 1; }
+  const g = new Array<number>(k).fill(0); g[0] = al; if (hasB) g[1] = be; if (ms) g[hasB ? 2 : 1] = ga;
+  const D = F.map((row, i) => row.map((v, j) => v - g[i]! * w[j]!));
+  const e = eigen(D, { onlyValues: true }) as { values: number[]; valuesIm?: number[] };
+  const mods = e.values.map((re, i) => ({ re, im: e.valuesIm?.[i] ?? 0, mod: Math.hypot(re, e.valuesIm?.[i] ?? 0) }));
+  if (ms) {
+    // with a seasonal component D always has the eigenvalue 1 (D v = v for v = (1, [0,] -1, ..., -1): the level and the
+    // seasonal sum are not separately identified), which the normalised model of ch. 10 does not have: drop it
+    let k1 = -1, best = Infinity;
+    mods.forEach((v, i) => { const d = Math.hypot(v.re - 1, v.im); if (d < best) { best = d; k1 = i; } });
+    if (best < 1e-6) mods.splice(k1, 1);
+  }
+  return mods.every((v) => v.mod < 1 - 1e-10);
+}
+
+interface FitOut { spec: EtsSpec; par: EtsParameters; filter: FilterOut; nParams: number }
+
+function initialStates(y: readonly number[], spec: EtsSpec): { l: number; b: number; s: number[] } {
+  const { trend, season, m } = spec; const n = y.length;
+  let s: number[] = []; let adj = y.slice();
+  if (season !== "N") {
+    // a classical decomposition of the first (up to four) full cycles, seasonal indices averaged
+    const nc = Math.max(2, Math.min(4, Math.floor(n / m))); const z = y.slice(0, nc * m);
+    const ma: number[] = new Array<number>(z.length).fill(NaN); const half = Math.floor(m / 2);
+    for (let t = half; t < z.length - half; t++) {
+      let v = 0; if (m % 2 === 0) { for (let k = -half; k <= half; k++) v += (Math.abs(k) === half ? 0.5 : 1) * z[t + k]!; v /= m; }
+      else { for (let k = -half; k <= half; k++) v += z[t + k]!; v /= m; }
+      ma[t] = v;
+    }
+    const idx = new Array<number>(m).fill(0), cnt = new Array<number>(m).fill(0);
+    z.forEach((v, t) => { if (Number.isFinite(ma[t]!)) { idx[t % m]! += season === "A" ? v - ma[t]! : v / ma[t]!; cnt[t % m]!++; } });
+    let si = idx.map((v, i) => (cnt[i] ? v / cnt[i]! : season === "A" ? 0 : 1));
+    const mean = si.reduce((a, b) => a + b, 0) / m;
+    si = si.map((v) => (season === "A" ? v - mean : v / mean));
+    // states: s1 = the most recent before t = 1, i.e. the season of period m, ..., sm = period 1
+    s = si.slice().reverse();
+    adj = y.map((v, t) => (season === "A" ? v - si[t % m]! : v / si[t % m]!));
+  }
+  const k = Math.min(10, n); const tt = Array.from({ length: k }, (_, i) => i + 1);
+  const tm = tt.reduce((a, b) => a + b, 0) / k; const ym = adj.slice(0, k).reduce((a, b) => a + b, 0) / k;
+  let sxy = 0, sxx = 0; for (let i = 0; i < k; i++) { sxy += (tt[i]! - tm) * (adj[i]! - ym); sxx += (tt[i]! - tm) ** 2; }
+  const slope = sxx > 0 ? sxy / sxx : 0; let l = ym - slope * tm; let b = slope;
+  if (trend === "N") { l = ym; b = 0; }
+  // a fast-growing start can put the line's value at t = 0 below zero (uspop): start from the first value instead
+  if (trend === "A" && !(l > 0) && adj[0]! > 0) { l = adj[0]!; b = k > 1 ? (adj[k - 1]! - adj[0]!) / (k - 1) : 0; }
+  if (trend === "M") { b = Math.max(0.5, Math.min(1.5, 1 + slope / Math.max(1e-8, Math.abs(l)))); if (!(l > 0)) l = Math.max(1e-8, adj[0]!); }
+  return { l, b, s };
+}
+
+/** Fits one model by minimising lik (= -2 loglik) within the usual bounds and the admissible region. */
+export function fitModel(y: readonly number[], spec: EtsSpec, fixed: Partial<Record<"alpha" | "beta" | "gamma" | "phi", number>> = {}, fixedInit?: { l: number; b?: number; s?: number[] }): FitOut | null {
+  const { trend, season, m } = spec; const n = y.length;
+  const names: string[] = [];
+  if (fixed.alpha === undefined) names.push("alpha");
+  if (trend !== "N" && fixed.beta === undefined) names.push("beta");
+  if (season !== "N" && fixed.gamma === undefined) names.push("gamma");
+  if (spec.damped && fixed.phi === undefined) names.push("phi");
+  const nSmooth = names.length;
+  const init = fixedInit ?? initialStates(y, spec);
+  const nState = fixedInit ? 0 : 1 + (trend !== "N" ? 1 : 0) + (season !== "N" ? m - 1 : 0);
+  const scale = Math.max(1e-8, Math.sqrt(y.reduce((a, v) => a + v * v, 0) / n));
+  const sbuf = new Float64Array(Math.max(1, m));
+  const decode = (u: readonly number[]): EtsParameters => {
+    let j = 0; const v: Record<string, number> = { ...fixed };
+    for (const nm of names) v[nm] = u[j++]!;
+    let l = init.l, b = init.b ?? (trend === "M" ? 1 : 0), s = init.s ?? [];
+    if (!fixedInit) {
+      l = u[j++]! * scale; if (trend !== "N") b = trend === "M" ? u[j++]! : u[j++]! * scale;
+      if (season !== "N") { s = []; for (let i = 0; i < m - 1; i++) s.push(season === "A" ? u[j++]! * scale : u[j++]!); }
+    }
+    return { alpha: v.alpha!, ...(trend !== "N" ? { beta: v.beta! } : {}), ...(season !== "N" ? { gamma: v.gamma! } : {}),
+      ...(spec.damped ? { phi: v.phi! } : {}), l, ...(trend !== "N" ? { b } : {}), ...(season !== "N" ? { s } : {}) };
+  };
+  const objective = (u: number[]): number => {
+    const p = decode(u); const al = p.alpha, be = p.beta ?? 0, ga = p.gamma ?? 0, ph = p.phi ?? 1;
+    if (!(al >= LOWER.alpha && al <= UPPER.alpha)) return Infinity;
+    if (trend !== "N" && !(be >= LOWER.beta && be <= al)) return Infinity;
+    if (season !== "N" && !(ga >= LOWER.gamma && ga <= 1 - al)) return Infinity;
+    if (spec.damped && !(ph >= LOWER.phi && ph <= UPPER.phi)) return Infinity;
+    if (!admissible(spec, al, be, ga, ph)) return Infinity;
+    if (season === "M" && fullSeason(spec, p.s ?? []).some((v) => !(v > 0))) return Infinity;
+    if (trend === "M" && !((p.b ?? 1) > 0)) return Infinity;
+    const v = etsLik(y, spec, p, sbuf);
+    return Number.isFinite(v) ? v : Infinity;
+  };
+  const u0: number[] = [];
+  for (const nm of names) u0.push(nm === "alpha" ? 0.5 : nm === "beta" ? 0.05 : nm === "gamma" ? 0.05 : 0.95);
+  if (!fixedInit) {
+    const ib = init.b ?? 0, is = init.s ?? [];
+    u0.push(init.l / scale); if (trend !== "N") u0.push(trend === "M" ? ib : ib / scale);
+    if (season !== "N") for (let i = 0; i < m - 1; i++) u0.push(season === "A" ? is[i]! / scale : is[i]!);
+  }
+  if (u0.length === 0) { const p = decode([]); const f = etsFilter(y, spec, p); return { spec, par: p, filter: f, nParams: 0 }; }
+  // several starting values for the smoothing parameters, Nelder-Mead restarted until it stops improving
+  const starts: number[][] = [u0];
+  if (nSmooth > 0) for (const a of [0.1, 0.9]) { const u = u0.slice(); u[0] = a; if (names[1] === "beta") u[1] = Math.min(u[1]!, a / 2); if (names.includes("gamma")) u[names.indexOf("gamma")] = Math.min(0.05, (1 - a) / 2); starts.push(u); }
+  // Nelder-Mead from each start (2000 iterations, as R's default), then restarted from the best until it stops improving
+  let best: number[] | null = null; let bestV = Infinity;
+  for (const st of starts) {
+    if (!Number.isFinite(objective(st))) continue;
+    const r = optim(st, objective, { method: "Nelder-Mead", control: { maxit: 2000, reltol: 1e-10 } });
+    if (r.value < bestV) { bestV = r.value; best = r.par; }
+  }
+  if (best) {
+    for (let round = 0; round < 10; round++) {
+      const r = optim(best, objective, { method: "Nelder-Mead", control: { maxit: 4000, reltol: 1e-14 } });
+      const gain = bestV - r.value;
+      if (r.value < bestV) { bestV = r.value; best = r.par; }
+      if (!(gain > 1e-12 * Math.max(1, Math.abs(bestV)))) break;
+    }
+  }
+  if (!best || !Number.isFinite(bestV)) return null;
+  const par = decode(best);
+  return { spec, par, filter: etsFilter(y, spec, par), nParams: nSmooth + nState };
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// the public fit
+
+/** Options of {@link ets}. */
+export interface EtsOptions {
+  frequency?: number;
+  /** Three letters (error, trend, season) of A, M, N and Z (chosen); default "ZZZ". */
+  model?: string;
+  /** true / false, or undefined to try both when the trend is chosen. */
+  damped?: boolean;
+  alpha?: number; beta?: number; gamma?: number; phi?: number;
+  additiveOnly?: boolean;
+  allowMultiplicativeTrend?: boolean;
+  restrict?: boolean;
+  ic?: "aicc" | "aic" | "bic";
+  lambda?: number;
+  biasadj?: boolean;
+  nmse?: number;
+}
+
+/** Result of {@link ets}. */
+export interface EtsResult {
+  spec: EtsSpec;
+  /** "ETS(M,Ad,M)" etc. */
+  method: string;
+  par: EtsParameters;
+  /** Number of estimated parameters (smoothing parameters and initial states). */
+  nParams: number;
+  loglik: number; aic: number; bic: number; aicc: number;
+  sigma2: number; mse: number; amse: number;
+  fitted: number[]; residuals: number[];
+  states: number[][];
+  x: number[];
+  lambda: number | null;
+  biasadj: boolean;
+}
+
+function methodName(spec: EtsSpec): string {
+  return `ETS(${spec.error},${spec.trend}${spec.damped ? "d" : ""},${spec.season})`;
+}
+
+function finish(y: readonly number[], f: FitOut, nmse: number, lambda: number | null, biasadj: boolean, x: number[]): EtsResult {
+  const n = y.length; const p = f.nParams; const lik = f.filter.lik;
+  const loglik = -0.5 * lik; const aic = -2 * loglik + 2 * (p + 1);
+  const bic = aic + (p + 1) * (Math.log(n) - 2); const aicc = aic + (2 * (p + 1) * (p + 2)) / (n - p - 2);
+  const sigma2 = f.filter.sse / (n - p);
+  const mse = y.reduce((a, v, t) => a + (v - f.filter.mu[t]!) ** 2, 0) / n;
+  // amse: the mean over h = 1..nmse of the in-sample h-step mean squared errors along the zero-error path (log 51)
+  let amse = 0;
+  for (let h = 1; h <= nmse; h++) {
+    let s = 0, c = 0;
+    for (let t = 0; t + h <= n; t++) { const fc = zeroErrorPath(f.spec, f.par, f.filter.states[t]!, h)[h - 1]!; s += (y[t + h - 1]! - fc) ** 2; c++; }
+    amse += s / c;
+  }
+  amse /= nmse;
+  const fittedZ = f.filter.mu;
+  const fitted = lambda === null ? fittedZ.slice() : invBoxCox(fittedZ, lambda, { biasadj, fvar: sigma2 });
+  return { spec: f.spec, method: methodName(f.spec), par: f.par, nParams: p, loglik, aic, bic, aicc, sigma2, mse, amse,
+    fitted, residuals: f.filter.e.slice(), states: f.filter.states, x, lambda, biasadj };
+}
+
+/**
+ * Exponential smoothing state space model (forecast's `ets()`): one model, or the smallest information criterion
+ * among the allowed models for the letters given as "Z". The parameters are estimated to the optimum of the
+ * likelihood within the usual bounds and the admissible region (R's optimiser can stop earlier).
+ *
+ * @category Time series
+ */
+export function ets(y: readonly number[], options: EtsOptions = {}): EtsResult {
+  const m0 = options.frequency ?? 1; const x = y.map(Number);
+  const lambda = options.lambda ?? null; const z = lambda === null ? x.slice() : boxCox(x, lambda);
+  const model = (options.model ?? "ZZZ").toUpperCase();
+  if (!/^[AMZ][ANMZ][ANMZ]$/.test(model)) throw new RangeError(`ets: invalid model '${options.model}'`);
+  const positive = z.every((v) => v > 0);
+  const restrict = options.restrict ?? true; const additiveOnly = options.additiveOnly ?? false;
+  const errs: EtsError[] = model[0] === "Z" ? (additiveOnly || !positive ? ["A"] : ["A", "M"]) : [model[0] as EtsError];
+  const trends: EtsTrend[] = model[1] === "Z" ? (options.allowMultiplicativeTrend && !additiveOnly && positive ? ["N", "A", "M"] : ["N", "A"]) : [model[1] as EtsTrend];
+  const seasonal = m0 > 1 && m0 <= 24;
+  const seasons: EtsSeason[] = model[2] === "Z" ? (!seasonal ? ["N"] : additiveOnly || !positive ? ["N", "A"] : ["N", "A", "M"]) : [model[2] as EtsSeason];
+  const fixed: Partial<Record<"alpha" | "beta" | "gamma" | "phi", number>> = {};
+  for (const k of ["alpha", "beta", "gamma", "phi"] as const) if (options[k] !== undefined) fixed[k] = options[k]!;
+  const ic = options.ic ?? "aicc"; const nmse = options.nmse ?? 3; const biasadj = options.biasadj ?? false;
+  let best: EtsResult | null = null; let bestIc = Infinity;
+  for (const error of errs) for (const trend of trends) for (const season of seasons) {
+    if (season !== "N" && !seasonal) continue;
+    if ((error === "M" || trend === "M" || season === "M") && !positive) continue;
+    if (restrict && ((error === "A" && (trend === "M" || season === "M")) || (error === "M" && trend === "M" && season === "A"))) continue;
+    const dampedSet = trend === "N" ? [false] : options.damped === undefined ? (model[1] === "Z" ? [true, false] : [false]) : [options.damped];
+    for (const damped of dampedSet) {
+      const spec: EtsSpec = { error, trend, damped, season, m: season === "N" ? 1 : m0 };
+      const f = fitModel(z, spec, fixed);
+      if (!f) continue;
+      const r = finish(z, f, nmse, lambda, biasadj, x);
+      const v = ic === "aic" ? r.aic : ic === "bic" ? r.bic : r.aicc;
+      if (Number.isFinite(v) && v < bestIc) { bestIc = v; best = r; }
+    }
+  }
+  if (!best) throw new Error("ets: no model able to be fitted");
+  return best;
+}
+
+/** Fits a given model with given smoothing parameters and initial states (no estimation): for ses/holt/hw "simple". */
+export function etsFixedInitial(y: readonly number[], spec: EtsSpec, init: { l: number; b?: number; s?: number[] }, fixed: Partial<Record<"alpha" | "beta" | "gamma" | "phi", number>> = {}): EtsResult {
+  const f = fitModel(y, spec, fixed, init);
+  if (!f) throw new Error("ets: the model could not be fitted");
+  return finish(y, f, 3, null, false, y.slice());
+}
+
+/** The fit at given parameters (no estimation; for checks against R's own estimates). */
+export function etsAt(y: readonly number[], spec: EtsSpec, par: EtsParameters, nParams: number): EtsResult {
+  const f: FitOut = { spec, par, filter: etsFilter(y, spec, par), nParams };
+  return finish(y, f, 3, null, false, y.slice());
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// forecasts
+
+/** Result of {@link forecastEts}. */
+export interface EtsForecast { mean: number[]; lower: number[][]; upper: number[][]; level: number[]; method: string; variance?: number[] }
+
+/**
+ * Point forecasts and prediction intervals from an {@link ets} fit (forecast's `forecast.ets()`): the analytic
+ * variances of classes 1 and 2, the exact moments of class 3 (MNM, MAM, MAdM), and simulation otherwise (npaths
+ * paths with rStats.js's R-compatible generator, seeded by `seed`). Two departures from R's forecast.ets (the
+ * model's formulas are used): damped class 3 forecasts use l + phi b at h = 1, and ANA / MNA put the seasonal term
+ * of c_j at j mod m = 0.
+ *
+ * @category Time series
+ */
+export function forecastEts(fit: EtsResult, options: { h?: number; level?: readonly number[]; npaths?: number; seed?: number; biasadj?: boolean } = {}): EtsForecast {
+  const spec = fit.spec; const m = spec.m; const h = options.h ?? (m > 1 ? 2 * m : 10); const level = [...(options.level ?? [80, 95])];
+  const par = fit.par; const last = fit.states[fit.states.length - 1]!; const s2 = fit.sigma2;
+  const al = par.alpha, be = par.beta ?? 0, ga = par.gamma ?? 0, ph = spec.damped ? par.phi ?? 1 : 1;
+  let mean = zeroErrorPath(spec, par, last, h);
+  let variance: number[] | null = null;
+  const cj = (j: number): number => {
+    const phj = spec.damped ? Array.from({ length: j }, (_, i) => ph ** (i + 1)).reduce((a, b) => a + b, 0) : j;
+    return al + (spec.trend !== "N" ? be * phj : 0) + (spec.season !== "N" && j % m === 0 ? ga : 0);
+  };
+  const cls1 = spec.error === "A" && spec.trend !== "M" && spec.season !== "M";
+  const cls2 = spec.error === "M" && spec.trend !== "M" && spec.season !== "M";
+  const cls3 = spec.error === "M" && spec.trend !== "M" && spec.season === "M";
+  if (cls1) {
+    variance = []; let acc = 0;
+    for (let k = 1; k <= h; k++) { variance.push(s2 * (1 + acc)); acc += cj(k) ** 2; }
+  } else if (cls2) {
+    const theta: number[] = []; variance = [];
+    for (let k = 1; k <= h; k++) {
+      let th = mean[k - 1]! ** 2; for (let j = 1; j < k; j++) th += s2 * cj(j) ** 2 * theta[k - j - 1]!;
+      theta.push(th); variance.push((1 + s2) * th - mean[k - 1]! ** 2);
+    }
+  } else if (cls3) {
+    // exact first and second moments (log 37), with the model's T = l + phi b
+    const hasB = spec.trend !== "N";
+    const x0 = hasB ? [last[0]!, last[1]!] : [last[0]!]; const sv = last.slice(hasB ? 2 : 1);
+    const cv = hasB ? [1, ph] : [1];
+    const A = hasB ? [[1, ph], [0, ph]] : [[1]];
+    const B = hasB ? [[al, al * ph], [be, be * ph]] : [[al]];
+    const mv = (M: number[][], v: number[]): number[] => M.map((r) => r.reduce((a, x, i) => a + x * v[i]!, 0));
+    const mm = (X: number[][], Y: number[][]): number[][] => X.map((r) => Y[0]!.map((_, j) => r.reduce((a, x, i) => a + x * Y[i]![j]!, 0)));
+    const tr = (X: number[][]): number[][] => X[0]!.map((_, j) => X.map((r) => r[j]!));
+    const add = (...Ms: [number, number[][]][]): number[][] => Ms[0]![1].map((r, i) => r.map((_, j) => Ms.reduce((a, [c, M]) => a + c * M[i]![j]!, 0)));
+    mean = []; variance = [];
+    for (let hh = 1; hh <= h; hh++) {
+      const k = Math.floor((hh - 1) / m); const paired = new Set(Array.from({ length: k }, (_, i) => hh - (i + 1) * m));
+      let M1 = x0.slice(); let M2 = x0.map((a) => x0.map((b) => a * b));
+      for (let j = 1; j <= hh - 1; j++) {
+        if (paired.has(j)) {
+          M1 = mv(add([1, A], [ga * s2, B]), M1);
+          const AMA = mm(mm(A, M2), tr(A)), AMB = mm(mm(A, M2), tr(B)), BMA = mm(mm(B, M2), tr(A)), BMB = mm(mm(B, M2), tr(B));
+          M2 = add([1 + ga * ga * s2, AMA], [2 * ga * s2, AMB], [2 * ga * s2, BMA], [s2 * (1 + 3 * ga * ga * s2), BMB]);
+        } else {
+          M1 = mv(A, M1); M2 = add([1, mm(mm(A, M2), tr(A))], [s2, mm(mm(B, M2), tr(B))]);
+        }
+      }
+      const sstar = sv[m - 1 - ((hh - 1) % m)]!;
+      const Ey = sstar * cv.reduce((a, c, i) => a + c * M1[i]!, 0);
+      const Ey2 = sstar * sstar * (1 + s2) * cv.reduce((a, ci, i) => a + ci * cv.reduce((b, cjj, j) => b + M2[i]![j]! * cjj, 0), 0);
+      mean.push(Ey); variance.push(Ey2 - Ey * Ey);
+    }
+  }
+  let lower: number[][], upper: number[][];
+  if (variance) {
+    const q = level.map((l) => qnorm(0.5 + l / 200));
+    lower = mean.map((mu, i) => q.map((qq) => mu - qq * Math.sqrt(variance![i]!)));
+    upper = mean.map((mu, i) => q.map((qq) => mu + qq * Math.sqrt(variance![i]!)));
+  } else {
+    // simulation of the model from the last state (Choice 6: rStats.js's R-compatible generator, seeded)
+    const npaths = options.npaths ?? 5000; if (options.seed !== undefined) setSeed(options.seed);
+    const sims: number[][] = Array.from({ length: h }, () => []);
+    const sd = Math.sqrt(s2);
+    for (let pth = 0; pth < npaths; pth++) {
+      const eps = rnorm(h, { sd }); const yy = simulatePath(spec, par, last, eps);
+      for (let k = 0; k < h; k++) sims[k]!.push(yy[k]!);
+    }
+    const quant = (v: number[], pr: number): number => { const s = v.slice().sort((a, b) => a - b); const idx = (s.length - 1) * pr; const lo = Math.floor(idx); return s[lo]! + (s[Math.min(lo + 1, s.length - 1)]! - s[lo]!) * (idx - lo); };
+    lower = sims.map((v) => level.map((l) => quant(v, 0.5 - l / 200)));
+    upper = sims.map((v) => level.map((l) => quant(v, 0.5 + l / 200)));
+  }
+  const lam = fit.lambda;
+  if (lam !== null) {
+    const biasadj = options.biasadj ?? fit.biasadj;
+    mean = invBoxCox(mean, lam, { biasadj, ...(variance ? { fvar: variance } : {}) });
+    lower = lower.map((r) => invBoxCox(r, lam)); upper = upper.map((r) => invBoxCox(r, lam));
+  }
+  return { mean, lower, upper, level, method: fit.method, ...(variance ? { variance } : {}) };
+}
+
+/** One simulated future path given the errors. */
+function simulatePath(spec: EtsSpec, par: EtsParameters, state: readonly number[], eps: readonly number[]): number[] {
+  const { error, trend, season, m } = spec; const ph = spec.damped ? par.phi ?? 1 : 1;
+  const al = par.alpha, be = par.beta ?? 0, ga = par.gamma ?? 0;
+  let l = state[0]!; let b = trend !== "N" ? state[1]! : 0; let s = state.slice(trend !== "N" ? 2 : 1);
+  const out: number[] = [];
+  for (const ee of eps) {
+    const T = trend === "N" ? l : trend === "A" ? l + ph * b : l * b ** ph;
+    const sm = season === "N" ? 0 : s[m - 1]!;
+    const mt = season === "N" ? T : season === "A" ? T + sm : T * sm;
+    const yv = error === "A" ? mt + ee : mt * (1 + ee);
+    out.push(yv);
+    // the same updates as the filter with this error
+    const f = etsFilter([yv], spec, { alpha: al, beta: be, gamma: ga, phi: ph, l, b, s: s.slice() });
+    const st = f.states[1]!; l = st[0]!; if (trend !== "N") b = st[1]!; s = st.slice(trend !== "N" ? 2 : 1);
+  }
+  return out;
+}

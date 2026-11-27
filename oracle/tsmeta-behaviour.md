@@ -74,8 +74,8 @@ as a regression with ARMA errors.
 - d by ndiffs on the seasonally differenced series, D by nsdiffs (below).
 - **Stepwise search:** start with (2,d,2)(1,D,1), (0,d,0)(0,D,0), (1,d,0)(1,D,0), (0,d,1)(0,D,1) (with a constant when
   d + D <= 1), then (0,d,0) without the constant when d + D <= 1; from the current best the neighbours in the order P-1,
-  Q-1, P+1, Q+1, (P-1,Q-1), (P+1,Q-1), (P-1,Q+1), (P+1,Q+1), then p-1, q-1, p+1, q+1, (p-1,q-1), (p+1,q-1), (p-1,q+1),
-  (p+1,q+1), then the constant switched; skip models outside the bounds (max.p 5, max.q 5, max.P 2, max.Q 2, max.order
+  Q-1, P+1, Q+1, (P-1,Q-1), (P-1,Q+1), (P+1,Q-1), (P+1,Q+1), then p-1, q-1, p+1, q+1, (p-1,q-1), (p-1,q+1), (p+1,q-1),
+  (p+1,q+1), then the constant switched (the diagonal order corrected from the fixture's traces, 2026-11-27); skip models outside the bounds (max.p 5, max.q 5, max.P 2, max.Q 2, max.order
   for the non-stepwise search) or already fitted; the first improvement becomes the best and the list restarts;
   at most nmodels (94).
 - **Criterion = Arima(..., method = "CSS-ML")'s aicc** (default ic). **A model is rejected (printed Inf) when an AR or MA
@@ -102,6 +102,10 @@ as a regression with ARMA errors.
   4e-10. Multiplicative trends: R simulates; rStats.js simulates with R's generator (Choice 6). (log 34-38)
 - Estimation: R's optimiser stops early; rStats.js optimises to the optimum within the usual bounds (alpha, beta, gamma
   in [1e-4, 0.9999], phi in [0.8, 0.98], admissible region), compared with tight values.
+  (Implementation, 2026-11-27: beta <= alpha, gamma <= 1 - alpha; the admissible region is the stability of F - g w'
+  with the seasonal unit eigenvalue removed; multiplicative errors require positive means, while R's fits can stop at a
+  negative mean, uspop MAN. Every single-model fit of the fixture reaches R's likelihood or more; with ZZZ the choice
+  then differs for AirPassengers (MAM here, R MAdM) and uspop (MAN here, R AAN).)
 - ses, holt, hw = ets ANN, AAN (AAdN damped, MMN exponential), AAA or MAM with the same settings; initial = "simple":
   ses l0 = y1, holt l0 = y1, b0 = y2 - y1, hw l0 = mean(y[1:m]), b0 = (mean(y[m+1:2m]) - mean(y[1:m]))/m, s = y[1:m] - l0
   (/ l0); the smoothing parameters minimise the one-step SSE. (log 34-35, 51)
@@ -243,6 +247,23 @@ as a regression with ARMA errors.
 5. **hw(seasonal = "multiplicative")** (log 51): R stops at a worse local optimum than ets(MAM); rStats.js optimises.
 6. **arima's kappa prior** (log 4): R's filter loses accuracy for kappa >= 1e8; rStats.js computes the kappa model exactly
    (equal to R at the default 1e6).
+7. **auto.arima's stepwise search after ARIMA(0,d,0) without the constant** (log 81, found during the implementation):
+   when that initial model is the best, R takes its neighbours with the constant flag of the earlier best and so skips
+   the neighbours without the constant (16 of 16 traces; 3 of 16 designed series and LakeHuron affected, where R stops
+   at a higher AICc). rStats.js: the neighbours of the best model itself (Hyndman and Khandakar 2008).
+8. **ets's amse for damped trends** (log 82, found during the implementation): R's in-sample h-step forecasts use
+   T = l + (phi + phi + phi^2 + ... + phi^{h-1}) b, not the model's l + (phi + ... + phi^h) b. rStats.js: the model's.
+
+# Open points found during the implementation (for the user)
+
+- **ndiffs(test = "pp", type = "trend")** (log 78-79): R's statistic is 0.005 to 0.07 less negative than Phillips and
+  Perron's closed form; 2 of 600 fixture decisions differ. rStats.js keeps the closed form.
+- **nsdiffs(test = "ocsb")'s lag choice by AIC** (log 80): the prefiltered regression is exact for each lag, but the AIC
+  rule choosing the lag is not found; rStats.js uses lag 0 (5 of 120 fixture decisions differ). The default "seas" test
+  is not affected.
+- **auto.arima's neighbour order:** the diagonal steps are (-1, -1), (-1, +1), (+1, -1), (+1, +1) (the fixture's traces;
+  log 43 had the middle two the other way round), and the non-stepwise search fits the model without the constant
+  first.
 
 # Choices (decided by the user, 2026-11-27: all as recommended)
 

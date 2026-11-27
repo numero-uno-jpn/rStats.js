@@ -1,0 +1,28 @@
+{
+  "R": "R version 4.6.2 (2026-10-29)",
+  "arch": "x86_64",
+  "m111_210_CSS-ML": {
+    "error": "non-finite finite-difference value [4]"
+  },
+  "m111_210_ML": {
+    "coef": [0.13032194442434269, -0.53114318733442556, -0.43774369575682537, -0.21971979651775289],
+    "names": ["ar1", "ma1", "sar1", "sar2"],
+    "aicc": 862.94682610330506,
+    "loglik": -425.90737531580345,
+    "code": 0,
+    "ar_root": 1.0651778262119294,
+    "ma_root": 1.8827314815399609
+  },
+  "m310_210_CSS-ML": {
+    "error": "non-finite finite-difference value [5]"
+  },
+  "m310_210_ML": {
+    "error": "non-finite finite-difference value [1]"
+  },
+  "m110_210_CSS-ML": {
+    "warning": "no non-missing arguments to min; returning Inf"
+  },
+  "m110_210_ML": {
+    "warning": "no non-missing arguments to min; returning Inf"
+  }
+}

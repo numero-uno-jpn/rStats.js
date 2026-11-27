@@ -194,24 +194,42 @@ function maInvert(ma: readonly number[]): number[] {
 // the Kalman filter
 
 /** Stationary covariance of the ARMA state (Harvey form) per unit innovations variance, by the doubling algorithm. */
+function positiveDefinite(H: readonly (readonly number[])[]): boolean {
+  const k = H.length; const L = H.map((r) => r.slice());
+  for (let j = 0; j < k; j++) {
+    let d = L[j]![j]!; for (let m = 0; m < j; m++) d -= L[j]![m]! ** 2;
+    if (!(d > 0)) return false;
+    const ljj = Math.sqrt(d); L[j]![j] = ljj;
+    for (let i = j + 1; i < k; i++) { let v = L[i]![j]!; for (let m = 0; m < j; m++) v -= L[i]![m]! * L[j]![m]!; L[i]![j] = v / ljj; }
+  }
+  return true;
+}
+
 function stationaryCovariance(phi: readonly number[], theta: readonly number[], r: number): number[][] {
-  const T: number[][] = []; for (let i = 0; i < r; i++) { const row = new Array<number>(r).fill(0); row[0] = phi[i] ?? 0; if (i + 1 < r) row[i + 1] = 1; T.push(row); }
-  // note: T as defined maps alpha_{t+1}[i] = phi_{i+1} alpha_t[0] + alpha_t[i+1]
-  const Tm: number[][] = []; for (let i = 0; i < r; i++) { const row = new Array<number>(r).fill(0); row[0] = phi[i] ?? 0; if (i + 1 < r) row[i + 1] = 1; Tm.push(row); }
-  const R = [1, ...Array.from({ length: r - 1 }, (_, i) => theta[i] ?? 0)];
-  let S: number[][] = R.map((a) => R.map((b) => a * b));
-  let A = Tm.map((row) => row.slice());
-  const mul = (X: number[][], Y: number[][]): number[][] => X.map((row) => Y[0]!.map((_, j) => row.reduce((s, v, k) => s + v * Y[k]![j]!, 0)));
-  const tr = (X: number[][]): number[][] => X[0]!.map((_, j) => X.map((row) => row[j]!));
+  // S = sum_k T^k R R' T'^k by doubling: S <- S + A S A', A <- A^2 (flat arrays: this runs at every likelihood
+  // evaluation and dominated the seasonal fits)
+  const S = new Float64Array(r * r); const R = new Float64Array(r); R[0] = 1; for (let i = 1; i < r; i++) R[i] = theta[i - 1] ?? 0;
+  for (let i = 0; i < r; i++) for (let j = 0; j < r; j++) S[i * r + j] = R[i]! * R[j]!;
+  let A = new Float64Array(r * r); for (let i = 0; i < r; i++) { A[i * r] = phi[i] ?? 0; if (i + 1 < r) A[i * r + i + 1] = 1; }
+  let AS = new Float64Array(r * r), A2 = new Float64Array(r * r);
   for (let it = 0; it < 200; it++) {
-    const add = mul(mul(A, S), tr(A));
+    AS.fill(0);
+    for (let i = 0; i < r; i++) for (let k = 0; k < r; k++) { const aik = A[i * r + k]!; if (aik === 0) continue; for (let j = 0; j < r; j++) AS[i * r + j]! += aik * S[k * r + j]!; }
     let maxAdd = 0, maxS = 0;
-    S = S.map((row, i) => row.map((v, j) => { maxAdd = Math.max(maxAdd, Math.abs(add[i]![j]!)); const w = v + add[i]![j]!; maxS = Math.max(maxS, Math.abs(w)); return w; }));
-    A = mul(A, A);
+    for (let i = 0; i < r; i++) for (let j = 0; j < r; j++) {
+      let v = 0; for (let k = 0; k < r; k++) v += AS[i * r + k]! * A[j * r + k]!;
+      const w = S[i * r + j]! + v; S[i * r + j] = w;
+      const av = Math.abs(v); if (av > maxAdd) maxAdd = av; const aw = Math.abs(w); if (aw > maxS) maxS = aw;
+    }
+    A2.fill(0);
+    for (let i = 0; i < r; i++) for (let k = 0; k < r; k++) { const aik = A[i * r + k]!; if (aik === 0) continue; for (let j = 0; j < r; j++) A2[i * r + j]! += aik * A[k * r + j]!; }
+    const t = A; A = A2; A2 = t;
     if (maxAdd <= 1e-17 * maxS) break;
   }
-  void T;
-  return S.map((row, i) => row.map((v, j) => (v + S[j]![i]!) / 2));
+  void AS;
+  const out: number[][] = [];
+  for (let i = 0; i < r; i++) { const row = new Array<number>(r); for (let j = 0; j < r; j++) row[j] = (S[i * r + j]! + S[j * r + i]!) / 2; out.push(row); }
+  return out;
 }
 
 interface FilterResult { ssq: number; sumlog: number; nu: number; resid: number[]; a: number[]; P: number[][]; }
@@ -220,39 +238,52 @@ interface FilterResult { ssq: number; sumlog: number; nu: number; resid: number[
 function kalman(y: readonly number[], phi: readonly number[], theta: readonly number[], delta: readonly number[], kappa: number): FilterResult {
   const p = phi.length, q = theta.length; const r = Math.max(p, q + 1); const nd = delta.length; const rd = r + nd;
   const P0 = stationaryCovariance(phi, theta, r);
-  let a = new Array<number>(rd).fill(0);
-  let P: number[][] = Array.from({ length: rd }, (_, i) => Array.from({ length: rd }, (_, j) => (i < r && j < r ? P0[i]![j]! : i === j ? kappa : 0)));
-  const Rv = [1, ...Array.from({ length: r - 1 }, (_, i) => theta[i] ?? 0)];
-  const Z = new Array<number>(rd).fill(0); Z[0] = 1; for (let k = 0; k < nd; k++) Z[r + k] = delta[k]!;
+  const ph = new Float64Array(r); for (let i = 0; i < p; i++) ph[i] = phi[i]!;
+  const dl = Float64Array.from(delta);
+  let a = new Float64Array(rd);
+  let P = new Float64Array(rd * rd);
+  for (let i = 0; i < rd; i++) for (let j = 0; j < rd; j++) P[i * rd + j] = i < r && j < r ? P0[i]![j]! : i === j ? kappa : 0;
+  const Rv = new Float64Array(r); Rv[0] = 1; for (let i = 1; i < r; i++) Rv[i] = theta[i - 1] ?? 0;
   const n = y.length; const resid = new Array<number>(n).fill(NaN);
   let ssq = 0, sumlog = 0, nu = 0;
-  const transition = (x: number[]): number[] => {
-    const out = new Array<number>(rd).fill(0);
-    for (let i = 0; i < r; i++) out[i] = (phi[i] ?? 0) * x[0]! + (i + 1 < r ? x[i + 1]! : 0);
-    if (nd > 0) { let z = 0; for (let k = 0; k < rd; k++) z += Z[k]! * x[k]!; out[r] = z; for (let k = 1; k < nd; k++) out[r + k] = x[r + k - 1]!; }
-    return out;
+  // (T x)_i = phi_i x_0 + x_{i+1} (i < r); (T x)_r = x_0 + sum_k delta_k x_{r+k}; (T x)_{r+k} = x_{r+k-1}
+  // applied to the vector x[off + stride * k], k = 0..rd-1, written to out[oo + ostride * i]
+  const applyT = (x: Float64Array, off: number, stride: number, out: Float64Array, oo: number, ostride: number): void => {
+    const x0 = x[off]!;
+    for (let i = 0; i < r; i++) out[oo + ostride * i] = ph[i]! * x0 + (i + 1 < r ? x[off + stride * (i + 1)]! : 0);
+    if (nd > 0) {
+      let z = x0; for (let k = 0; k < nd; k++) z += dl[k]! * x[off + stride * (r + k)]!;
+      out[oo + ostride * r] = z;
+      for (let k = 1; k < nd; k++) out[oo + ostride * (r + k)] = x[off + stride * (r + k - 1)]!;
+    }
   };
+  const M = new Float64Array(rd * rd); let a2 = new Float64Array(rd); const PZ = new Float64Array(rd);
   for (let t = 0; t < n; t++) {
     if (t > 0) {
-      a = transition(a);
-      // P = T P T' + R R' (R only on the ARMA block)
-      const TP: number[][] = P.map((_, j) => transition(P.map((row) => row[j]!))); // columns of T P
-      const TPT: number[][] = Array.from({ length: rd }, (_, i) => transition(TP.map((col) => col[i]!)));
-      P = TPT.map((row, i) => row.map((v, j) => v + (i < r && j < r ? Rv[i]! * Rv[j]! : 0)));
-      for (let i = 0; i < rd; i++) for (let j = i + 1; j < rd; j++) { const m = (P[i]![j]! + P[j]![i]!) / 2; P[i]![j] = m; P[j]![i] = m; }
+      applyT(a, 0, 1, a2, 0, 1); { const tmp = a; a = a2; a2 = tmp; }
+      // M = T P (T on each column of P), then P = T M' (T on each row of M) = T P T'; plus R R' on the ARMA block
+      for (let j = 0; j < rd; j++) applyT(P, j, rd, M, j, rd);
+      const Pn = new Float64Array(rd * rd);
+      for (let i = 0; i < rd; i++) applyT(M, i * rd, 1, Pn, i, rd);
+      for (let i = 0; i < r; i++) for (let j = 0; j < r; j++) Pn[i * rd + j]! += Rv[i]! * Rv[j]!;
+      for (let i = 0; i < rd; i++) for (let j = i + 1; j < rd; j++) { const m = (Pn[i * rd + j]! + Pn[j * rd + i]!) / 2; Pn[i * rd + j] = m; Pn[j * rd + i] = m; }
+      P = Pn;
     }
     const yt = y[t]!;
     if (Number.isNaN(yt)) continue;
-    let fc = 0; for (let k = 0; k < rd; k++) fc += Z[k]! * a[k]!;
-    const PZ = P.map((row) => row.reduce((s, v, k) => s + v * Z[k]!, 0));
-    const F = PZ.reduce((s, v, k) => s + v * Z[k]!, 0);
+    // Z = (1, 0, ..., 0, delta_1, ..., delta_nd)
+    let fc = a[0]!; for (let k = 0; k < nd; k++) fc += dl[k]! * a[r + k]!;
+    for (let i = 0; i < rd; i++) { let v = P[i * rd]!; for (let k = 0; k < nd; k++) v += P[i * rd + r + k]! * dl[k]!; PZ[i] = v; }
+    let F = PZ[0]!; for (let k = 0; k < nd; k++) F += PZ[r + k]! * dl[k]!;
     const v = yt - fc;
     resid[t] = v / Math.sqrt(F);
     if (F < 1e4) { ssq += (v * v) / F; sumlog += Math.log(F); nu++; }
-    a = a.map((ak, k) => ak + (PZ[k]! * v) / F);
-    P = P.map((row, i) => row.map((pij, j) => pij - (PZ[i]! * PZ[j]!) / F));
+    for (let k = 0; k < rd; k++) a[k]! += (PZ[k]! * v) / F;
+    for (let i = 0; i < rd; i++) { const pi = PZ[i]! / F; for (let j = 0; j < rd; j++) P[i * rd + j]! -= pi * PZ[j]!; }
   }
-  return { ssq, sumlog, nu, resid, a, P };
+  void M;
+  const Pout: number[][] = []; for (let i = 0; i < rd; i++) Pout.push(Array.from(P.subarray(i * rd, (i + 1) * rd)));
+  return { ssq, sumlog, nu, resid, a: Array.from(a), P: Pout };
 }
 
 /** CSS residuals of the differenced series w (mean / regression already removed before differencing). */
@@ -386,17 +417,31 @@ export function arima(xIn: readonly number[], options: ArimaOptions = {}): Arima
     }
     // BFGS with numerical gradients of step 1e-3 (as R) stops about 1e-6 short; finish with Newton steps whose gradient
     // and Hessian are central differences with Richardson extrapolation
+    let damped = 0, slow = 0, lastGain = Infinity;
     for (let it = 0; it < 30; it++) {
       const g = convergedGradient(fn, cur); const H = convergedHessian(fn, cur);
+      // only where the Hessian is positive definite: on a ridge or towards a boundary the steps crawl (a seasonal
+      // USAccDeaths model took 22 steps of 1e-7 each) and BFGS's point is kept
+      if (!positiveDefinite(H)) break;
       const step = solveSymmetric(H.map((r) => r.slice()), g.map((v) => -v));
       if (step.some((v) => !Number.isFinite(v))) break;
       let t = 1, accepted = false;
       while (t > 1e-6) {
         const cand = cur.map((v, i) => v + t * step[i]!); const fc = fn(cand);
-        if (Number.isFinite(fc) && fc <= last) { const gain = last - fc; cur = cand; last = fc; accepted = true; if (gain <= 1e-16 * Math.max(1, Math.abs(fc))) it = 1e9; break; }
+        if (Number.isFinite(fc) && fc <= last) {
+          const gain = last - fc; cur = cand; last = fc; accepted = true;
+          if (gain <= 1e-16 * Math.max(1, Math.abs(fc))) it = 1e9;
+          // not converging faster than linearly (the gain shrinking by less than 4x)
+          slow = gain > 0.25 * lastGain ? slow + 1 : 0; lastGain = gain;
+          break;
+        }
         t /= 2;
       }
       if (!accepted || Math.max(...step.map(Math.abs)) < 1e-12) break;
+      // outside Newton's region: two damped steps, or two steps that did not converge faster than linearly, in a row
+      // (a seasonal USAccDeaths model crawled for 30 full steps of 1e-7 each)
+      damped = t < 1 ? damped + 1 : 0;
+      if (damped >= 2 || slow >= 2) break;
     }
     return { par: cur, code };
   };

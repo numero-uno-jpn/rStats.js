@@ -867,3 +867,43 @@ statistic > its critical value", in both directions, although that statistic its
      ocsb.test with a fixed lag (the prefiltered regression), and nsdiffs(test = "ocsb") with lag 0 and nsdiffs = 0 when
      the series has at most m + 5 values (only m = 4 observed; 2m + 1 fits the same data). The default nsdiffs test
      "seas" is not affected.
+
+## auto.arima's search, checked against the fixture (2026-11-27, during the implementation)
+
+The autoArima fixture (oracle/autoArima.R, 12 series with R's printed traces) corrected two details of log 43:
+**the diagonal neighbours come in the order (-1, -1), (-1, +1), (+1, -1), (+1, +1)** (WWWusage, Nile, lynx with BIC:
+log 43 had the middle two the other way round), and **the non-stepwise search fits each order without the constant
+first** (lh, stepwise = FALSE). With these, the traces of lh, WWWusage, Nile, lynx (BIC), sunspot.year (approximation),
+UKgas and USAccDeaths agree model by model, with values within the printed digits.
+In the non-stepwise lh search, ARIMA(3,0,2) with zero mean differs. R stops at an interior local maximum (AICc 84.63).
+rStats.js reaches the higher likelihood at the MA unit-root boundary (AICc 81.69, root 1.0000), which the 1.01 rule
+rejects. This is an optimiser path; it is not near the chosen model.
+
+81. `tsmeta120-autoarima5.R`: LakeHuron's trace stops after one more model once ARIMA(0,1,0) without drift (the fifth
+   initial model) is the best, and that model, ARIMA(1,1,1) with drift, is not a neighbour of the best. The hypothesis:
+   **R takes the neighbours of the best orders with the constant flag of the earlier best**. Designed: 16 series (random
+   walks without drift and zero-mean noise with ARMA(1,1) errors) for which the model without the constant is likely
+   best after the initial models; R's traces replayed outside R under both rules. **The stale-flag rule: 16 of 16
+   traces; the published rule (the best model's own neighbours, Hyndman and Khandakar 2008): 13 of 16** (the 3 others
+   are affected, together with LakeHuron, where R then stops at AICc 220.26 while the search goes on to 213.51).
+   An error of R's search, not imitated (Departures from R, item 7).
+
+## ets's amse for damped trends (2026-11-27, during the implementation)
+
+82. `tsmeta120-ets7.R`: the ets fixture showed amse equal to log 51's candidate for every undamped model but not for
+   damped ones (AAdN 9%, MAdN, AAdA, MAdM 0.05-0.5%). Designed probe: the same fit refitted with model = fit,
+   use.initial.values = TRUE and nmse = 1..6, so that h amse_h - (h - 1) amse_{h-1} is R's in-sample MSE of horizon h
+   alone. With T = l + kappa_h b, the kappa_h implied by R's MSE_h: **kappa_h = phi + (phi + phi^2 + ... + phi^{h-1})**
+   (phi = 0.8 for uspop MAdN: 1.6000, 2.2400, 2.7520, 3.1616, 3.4893 for h = 2..6; the same for AAdN, phi = 0.9235, and
+   AAdA, phi = 0.9586, to 1e-6), against the model's phi + phi^2 + ... + phi^h; undamped: identical (uspop AAN).
+   R's in-sample h-step forecasts take the model's first step and then add phi^{k-1} b at step k, the damping placed
+   after the trend as in its class 3 forecasts (log 37). This is inconsistent with the model's own h-step forecast.
+   It is an error of R's, not imitated (Departures from R, item 8): rStats.js's amse uses the model's forecasts.
+   It only affects amse and opt.crit = "amse".
+83. `tsmeta120-autoarima6.R`: in the autoArima fixture's full USAccDeaths search R prints Inf for
+   ARIMA(1,1,1)(2,1,0)[12] and (3,1,0)(2,1,0)[12]. Their fits here have AR roots of modulus 1.065 and 1.067 and AICc
+   862.95 and 865.40. Refitted in R with Arima, **CSS-ML stops with the error "non-finite finite-difference value"
+   in optim for both**, which auto.arima prints as Inf. With method = "ML", R reaches (1,1,1)(2,1,0) at AICc
+   862.94683, the value found here; (3,1,0)(2,1,0) fails again. This is a failure of R's optimiser, not a property of
+   the models. rStats.js fits them, and they are not near the chosen model. (The script's comparison model (1,1,0)(2,1,0)
+   only gave a warning from my own root helper on an empty MA part; that is not used.)

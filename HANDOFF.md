@@ -105,7 +105,13 @@
   - **実装 (2026-11-27〜):** `src/timeseries/arima.ts` (arima・predictArima: カルマンフィルタ、kappa = 1e6、CSS、R と同じ数値 Hessian、
     非可逆な MA に動いたら反転して可逆な領域で当てはめ直す、回帰係数は尺度で正規化して最適化)、fixture `oracle/arima.R` (R の尤度を
     fixed で評価して Newton で最適点へ。境界に向かうときは R の既定の当てはめの局所極大)、`test/arima.test.ts` 16 件が通る
-  - **次:** forecast の Arima・forecast()・auto.arima・ndiffs など → 残りの時系列 → メタ分析 → 端のケースの点検 → 配線・文書・訳・デモ → 版 1.20.0。
+  - **実装済み (2026-11-27):** forecastArima・forecastFromArima・boxCox 系・ndiffs (src/timeseries/forecastArima.ts)、
+    stl・supsmu・mstl・seasadj・nsdiffs・ocsbTest (stl.ts)、autoArima (autoArima.ts)、ets・forecastEts (ets.ts)。
+    fixture: oracle/forecastArima.R・stl.R・autoArima.R・ets.R。テスト 105 件が通る (autoArima は約 2 分)
+  - **R との違い 7・8 を追加** (auto.arima の定数の印、ets の減衰トレンドの amse)。**ユーザーに相談する未解決 2 件**:
+    ndiffs の PP (trend) (log 78-79)、nsdiffs の OCSB のラグの AIC 選択 (log 80)。仕様書の "Open points" 節
+  - **次:** stats の filter・Box.test・diffinv・decompose・ar・arima0・HoltWinters → forecast の簡単な手法と小関数、
+    na.interp・tsoutliers・tsclean → tseries → メタ分析 → 端のケースの点検 → 配線・文書・訳・デモ → 版 1.20.0。
     実装で新たに要るもの: rma の GENQ、supsmu、R の乱数に依る white.test、ocsb の臨界値の表、Phillips-Ouliaris の表、bizdays の暦 (ndiffs・nsdiffs・ocsb・auto.arima・ets・ses/holt/hw・thetaf・croston・BoxCox.lambda・mstl・
     tsclean・tsoutliers・na.interp・accuracy・dm.test・tsCV など)、その後メタ分析
 
