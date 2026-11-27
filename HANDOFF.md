@@ -1,6 +1,74 @@
 # 引継ぎ: rStats.js (外部レビュー対応 2026-10-30〜11-04、1.0.0 への準備 11-04〜)
 
-最終更新: 2026-11-26 (セッション 38、Mac mini: 1.20.0 の準備が済んだ (Issue #570、作業ブランチ `dev/ts-meta-1.20`、イメージ、チェッカー)。時系列の R の実験 1〜13 (arima・forecast の Arima・tseries・stats の土台) が済んだ。以前: 2026-11-26 (セッション 37、Mac mini: 1.19.0 (時間依存 ROC) を公開し、1.20.0 の範囲を決めた (時系列とメタ分析、下の節)。次は準備。以前: 2026-11-26 (セッション 36 の終わり、Mac mini: **1.18.0 を公開** (管理図・一対比較、1.16.0・1.17.0 の極端な尺度の修正)。次は 1.19.0 の範囲を決める (下の節)。以前: 2026-11-25 (セッション 36 の続き、**1.18.0 が作業ブランチ `dev/qcc-bt-1.18` でほぼ完成** (実装・fixture・端のケース 2 回・配線・デモ・文書・版 1.18.0)。残りはユーザーの確認と公開 (下の節)。以前: 2026-11-25 (セッション 36、1.18.0 の R の実験が済んだ)。以前: 2026-11-25 (セッション 35 の終わり、Mac mini: **1.17.0 を公開** (tobit・betareg・loglin・loglm、survreg の parms)。1.18.0 = 管理図と一対比較の範囲をユーザーが決め、準備済み (Issue #568、作業ブランチ `dev/qcc-bt-1.18`)。次は R の実験から (下の節)。以前: 2026-11-25 (セッション 35、1.17.0 が作業ブランチで完成。以前: 2026-11-25 (セッション 34 の終わり、Mac mini: **1.16.0 を公開** (mediate・simSlopes・johnsonNeyman・sobelTest・mediationMonteCarlo・moderatedMediation・mvrnorm)。次は 1.17.0 = Tobit 回帰・ベータ回帰・対数線形モデル、範囲はユーザーが決めた (下の節)、準備から)。以前: 2026-11-25 (セッション 34、1.16.0 が作業ブランチで完成)。以前: 2026-11-25 (セッション 33 の終わり、Mac mini: **1.15.0 を公開** (step・stepAIC・drop1・add1・extractAIC、glm の式の入口)。次は 1.16.0 = 媒介・調整・調整媒介分析、範囲はユーザーが決めた (下の節))。以前: 2026-11-25 (セッション 33、1.15.0 の範囲を決め、glm の式の入口と step 本体を実装)。以前: 2026-11-24 (セッション 32 の終わり、Mac mini: **1.14.0 を公開** (`/regression` の multinom とその関数)。次は 1.15.0 = 変数選択 (`step`・`stepAIC`、ROADMAP の 4)、範囲を決めるところから (下の節))。以前: 2026-11-24 (セッション 32、Mac mini: 1.14.0 を版 1.14.0 まで済み)。以前: 2026-11-24 (セッション 31 の終わり、Mac mini: **1.13.0 を公開** (`/causal` の weightit・trimWeights・weightSummary、`/tests` の svyglm・survfitCoxph、整数でない重みの survfit)。次の作業は未定 (ROADMAP の 3 = 多項ロジスティック回帰 `multinom` から))。以前: 2026-11-24 (セッション 31 の続き、Mac mini: 1.13.0 の fixture・実装・端のケース・文書 (英・日)・訳・デモまで済み)。以前: 2026-11-24 (セッション 31、Mac mini: 1.13.0 (IPTW) の準備。作業ブランチ `dev/iptw-1.13` (手元だけ)、Issue #563、イメージとチェッカーに WeightIt・CBPS・survey・sandwich、最初の R の実験 `experiments/iptw113` と仕様書 `oracle/weightit-behaviour.md`、Choices をユーザーが決めた。次は fixture と実装)。以前: 2026-11-24 (セッション 30 の終わり、Mac mini: **1.12.0 を公開** (`/causal` の match・matchWeights・balTab・tableOneSmd、`/tests` の clogit)。次は 1.13.0 = IPTW、範囲はユーザーが決めた (下の節))。以前: 2026-11-24 (セッション 30、Mac mini: 1.12.0 (マッチング) の準備。作業ブランチ `dev/psm-1.12` (手元だけ)、Issue #562、イメージとチェッカーに Matching・cobalt・tableone、最初の R の実験 3 本と仕様書の下書き `oracle/match-behaviour.md`。Match・バランス・clogit を実装して R と一致、端のケースも点検、訳・文書・デモ・版 1.12.0 まで済み。次は main への push とタグ)。以前: 2026-11-24 (セッション 29 の終わり、Mac mini: **1.11.0 を公開** (acf・pacf・ccf の `/timeseries`、ca・caSummary・caCoord・mjca・sammon・isoMDS)。次は 1.12.0 = 傾向スコア (ROADMAP の新しい 1 番)、範囲を決めるところから)。以前: 2026-11-24 (セッション 29: 1.11.0 の作業ブランチは完成、GitHub Actions が支払いのロックで止まっていて取り込み待ち)。以前: 2026-11-23 (セッション 29 の始め、Mac mini: 1.11.0 の範囲をユーザーが決めた (mjca も入れる、ほかは推奨どおり)。準備が全部済んだ (Issue #560・draft PR #561・作業ブランチ `work/ca-acf-mds-1.11`)。段階 1 も済み、Decisions を決めて choices・fixture・段階 2 の指示を置いた (ブランチ `40aa5d94`)。次は ChatGPT の段階 2 (実装))。以前: 2026-11-23 (セッション 28 の終わり、Mac mini: **1.10.0 を公開** (dist・hclust・cutree・kmeans・cmdscale)。次は 1.11.0 = ca・acf・pacf・isoMDS・sammon、1.12.0 = arima (ユーザーの決定)。範囲を決めるところから)。以前: 2026-11-22 夜 (セッション 28、Mac mini: 1.10.0 の範囲をユーザーが決め (全部推奨どおり)、準備 (チェッカー・R の実験・指示書) を main に置き、Issue #556・draft PR #557 を作った。段階 1 を終え、次は ChatGPT の段階 2)。以前: 2026-11-22 夜 (セッション 27 の終わり、Mac mini: **1.9.0 を公開** (T2・Page・Grubbs、manova・lda・cancor)。次は 1.10.0 = クラスタ分析と多次元尺度法 (ユーザーの決定)、範囲を決めるところから)。以前: 2026-11-22 (セッション 27 の始め、Mac mini: 1.9.0 の範囲を決め、準備中)。以前: 2026-11-22 (セッション 26 の終わり、Mac mini: **1.8.0 を公開** (rq・geeglm・glmnet)。次は 1.9.0 = 小さな検定 3 つ + 多変量 3 つ (ユーザーの決定)、範囲を決めるところから)。以前: 2026-11-20 夜 (セッション 26 の始め: 1.8.0 の範囲を決め、準備)。以前: 2026-11-20 夕 (セッション 25 の終わり、Mac mini: **1.7.0 を公開** (回帰 polr・rlm・nls、`/regression`)。次の作業は未定 (ROADMAP の 2 = 1.8.0)。以前: 2026-11-20 昼 (セッション 25、Mac mini: 段階 3 の端の入力の直しも済み (最後は私が引き継いだ)。次は「nls の後」の配線と文書)。以前: 2026-11-19 深夜 (セッション 24、polr・rlm は完了、nls を ChatGPT に依頼)。以前: 2026-11-19 (セッション 23、1.6.0 を公開 (混合モデルの confint と simulate))。以前: 2026-11-17 (セッション 22、1.5.0 を公開)。その前: 2026-11-16 (セッション 21、Mac mini: 1.4.0 を公開、同時刻の Gray の検定を ChatGPT がクリーンルームで修正 (1.4.1 に入る、未公開)、外注用の R の実験の仕組みを作った。次は ROADMAP の 1 番)
+最終更新: 2026-11-27 夜 (セッション 39 の終わり、Mac mini: 1.20.0 の時系列の大部分を実装 (作業ブランチ `dev/ts-meta-1.20`、手元だけ、最後のコミット `92fac09b` の後に HANDOFF)。次のセッションは下の「セッション 40 で最初にやること」から。以前: 2026-11-26 (セッション 38、Mac mini: 1.20.0 の準備が済んだ (Issue #570、作業ブランチ `dev/ts-meta-1.20`、イメージ、チェッカー)。時系列の R の実験 1〜13 (arima・forecast の Arima・tseries・stats の土台) が済んだ。以前: 2026-11-26 (セッション 37、Mac mini: 1.19.0 (時間依存 ROC) を公開し、1.20.0 の範囲を決めた (時系列とメタ分析、下の節)。次は準備。以前: 2026-11-26 (セッション 36 の終わり、Mac mini: **1.18.0 を公開** (管理図・一対比較、1.16.0・1.17.0 の極端な尺度の修正)。次は 1.19.0 の範囲を決める (下の節)。以前: 2026-11-25 (セッション 36 の続き、**1.18.0 が作業ブランチ `dev/qcc-bt-1.18` でほぼ完成** (実装・fixture・端のケース 2 回・配線・デモ・文書・版 1.18.0)。残りはユーザーの確認と公開 (下の節)。以前: 2026-11-25 (セッション 36、1.18.0 の R の実験が済んだ)。以前: 2026-11-25 (セッション 35 の終わり、Mac mini: **1.17.0 を公開** (tobit・betareg・loglin・loglm、survreg の parms)。1.18.0 = 管理図と一対比較の範囲をユーザーが決め、準備済み (Issue #568、作業ブランチ `dev/qcc-bt-1.18`)。次は R の実験から (下の節)。以前: 2026-11-25 (セッション 35、1.17.0 が作業ブランチで完成。以前: 2026-11-25 (セッション 34 の終わり、Mac mini: **1.16.0 を公開** (mediate・simSlopes・johnsonNeyman・sobelTest・mediationMonteCarlo・moderatedMediation・mvrnorm)。次は 1.17.0 = Tobit 回帰・ベータ回帰・対数線形モデル、範囲はユーザーが決めた (下の節)、準備から)。以前: 2026-11-25 (セッション 34、1.16.0 が作業ブランチで完成)。以前: 2026-11-25 (セッション 33 の終わり、Mac mini: **1.15.0 を公開** (step・stepAIC・drop1・add1・extractAIC、glm の式の入口)。次は 1.16.0 = 媒介・調整・調整媒介分析、範囲はユーザーが決めた (下の節))。以前: 2026-11-25 (セッション 33、1.15.0 の範囲を決め、glm の式の入口と step 本体を実装)。以前: 2026-11-24 (セッション 32 の終わり、Mac mini: **1.14.0 を公開** (`/regression` の multinom とその関数)。次は 1.15.0 = 変数選択 (`step`・`stepAIC`、ROADMAP の 4)、範囲を決めるところから (下の節))。以前: 2026-11-24 (セッション 32、Mac mini: 1.14.0 を版 1.14.0 まで済み)。以前: 2026-11-24 (セッション 31 の終わり、Mac mini: **1.13.0 を公開** (`/causal` の weightit・trimWeights・weightSummary、`/tests` の svyglm・survfitCoxph、整数でない重みの survfit)。次の作業は未定 (ROADMAP の 3 = 多項ロジスティック回帰 `multinom` から))。以前: 2026-11-24 (セッション 31 の続き、Mac mini: 1.13.0 の fixture・実装・端のケース・文書 (英・日)・訳・デモまで済み)。以前: 2026-11-24 (セッション 31、Mac mini: 1.13.0 (IPTW) の準備。作業ブランチ `dev/iptw-1.13` (手元だけ)、Issue #563、イメージとチェッカーに WeightIt・CBPS・survey・sandwich、最初の R の実験 `experiments/iptw113` と仕様書 `oracle/weightit-behaviour.md`、Choices をユーザーが決めた。次は fixture と実装)。以前: 2026-11-24 (セッション 30 の終わり、Mac mini: **1.12.0 を公開** (`/causal` の match・matchWeights・balTab・tableOneSmd、`/tests` の clogit)。次は 1.13.0 = IPTW、範囲はユーザーが決めた (下の節))。以前: 2026-11-24 (セッション 30、Mac mini: 1.12.0 (マッチング) の準備。作業ブランチ `dev/psm-1.12` (手元だけ)、Issue #562、イメージとチェッカーに Matching・cobalt・tableone、最初の R の実験 3 本と仕様書の下書き `oracle/match-behaviour.md`。Match・バランス・clogit を実装して R と一致、端のケースも点検、訳・文書・デモ・版 1.12.0 まで済み。次は main への push とタグ)。以前: 2026-11-24 (セッション 29 の終わり、Mac mini: **1.11.0 を公開** (acf・pacf・ccf の `/timeseries`、ca・caSummary・caCoord・mjca・sammon・isoMDS)。次は 1.12.0 = 傾向スコア (ROADMAP の新しい 1 番)、範囲を決めるところから)。以前: 2026-11-24 (セッション 29: 1.11.0 の作業ブランチは完成、GitHub Actions が支払いのロックで止まっていて取り込み待ち)。以前: 2026-11-23 (セッション 29 の始め、Mac mini: 1.11.0 の範囲をユーザーが決めた (mjca も入れる、ほかは推奨どおり)。準備が全部済んだ (Issue #560・draft PR #561・作業ブランチ `work/ca-acf-mds-1.11`)。段階 1 も済み、Decisions を決めて choices・fixture・段階 2 の指示を置いた (ブランチ `40aa5d94`)。次は ChatGPT の段階 2 (実装))。以前: 2026-11-23 (セッション 28 の終わり、Mac mini: **1.10.0 を公開** (dist・hclust・cutree・kmeans・cmdscale)。次は 1.11.0 = ca・acf・pacf・isoMDS・sammon、1.12.0 = arima (ユーザーの決定)。範囲を決めるところから)。以前: 2026-11-22 夜 (セッション 28、Mac mini: 1.10.0 の範囲をユーザーが決め (全部推奨どおり)、準備 (チェッカー・R の実験・指示書) を main に置き、Issue #556・draft PR #557 を作った。段階 1 を終え、次は ChatGPT の段階 2)。以前: 2026-11-22 夜 (セッション 27 の終わり、Mac mini: **1.9.0 を公開** (T2・Page・Grubbs、manova・lda・cancor)。次は 1.10.0 = クラスタ分析と多次元尺度法 (ユーザーの決定)、範囲を決めるところから)。以前: 2026-11-22 (セッション 27 の始め、Mac mini: 1.9.0 の範囲を決め、準備中)。以前: 2026-11-22 (セッション 26 の終わり、Mac mini: **1.8.0 を公開** (rq・geeglm・glmnet)。次は 1.9.0 = 小さな検定 3 つ + 多変量 3 つ (ユーザーの決定)、範囲を決めるところから)。以前: 2026-11-20 夜 (セッション 26 の始め: 1.8.0 の範囲を決め、準備)。以前: 2026-11-20 夕 (セッション 25 の終わり、Mac mini: **1.7.0 を公開** (回帰 polr・rlm・nls、`/regression`)。次の作業は未定 (ROADMAP の 2 = 1.8.0)。以前: 2026-11-20 昼 (セッション 25、Mac mini: 段階 3 の端の入力の直しも済み (最後は私が引き継いだ)。次は「nls の後」の配線と文書)。以前: 2026-11-19 深夜 (セッション 24、polr・rlm は完了、nls を ChatGPT に依頼)。以前: 2026-11-19 (セッション 23、1.6.0 を公開 (混合モデルの confint と simulate))。以前: 2026-11-17 (セッション 22、1.5.0 を公開)。その前: 2026-11-16 (セッション 21、Mac mini: 1.4.0 を公開、同時刻の Gray の検定を ChatGPT がクリーンルームで修正 (1.4.1 に入る、未公開)、外注用の R の実験の仕組みを作った。次は ROADMAP の 1 番)
+
+
+## セッション 40 で最初にやること (2026-11-27 夜に書いた)
+
+**ユーザーの指示:** 未解決 2 件 (下の A・B) をさらに探る。そのあと 1.20.0 の残り (下の「残り」)。作業は Mac で、作業ブランチ
+`dev/ts-meta-1.20` (push していない)。**push・タグはユーザーの確認なしにしない。** R の実験は毎回チェッカーを先に
+(`node scripts/r-experiment-check.mjs f.R && docker run --rm --platform linux/amd64 -v "$PWD/experiments:/e:ro" rstats-oracle-amd64:4.6.2 Rscript /e/f.R > f.json`)、
+外れも含め `experiments/tsmeta120-log.md` (いま項目 87 まで) と Issue #570 に記録する。R・GPL (urca も) のソースは読まない。
+
+**探索のやり方 (セッション 39 で効いた、メモリ feedback-rstats-designed-probes の項目 4):** 判定 (1 ビット) から手元で式を当てない。
+裏にある公開関数を R の中で直接比べ、中間量 (時点ごとの残差、slot、最適化を止めた固定値の出力 `init` + `optim.control = list(maxit = 0)`、
+項を消す公開引数) を記録する。候補の格子を広げるのは最後の手段。
+
+### A. ndiffs(test = "pp") の統計量 = urca の ur.pp の Z-tau (ログ 78-79, 85)
+
+- **分かっていること:** ndiffs の PP は `ur.pp(x, type = "Z-tau", model = "constant" / "trend", lags = "short")` の統計量を、ur.pp の
+  臨界値 (= MacKinnon 1991 の応答曲面を N = n − 1 で、実装済み `src/timeseries/forecastArima.ts` の `MACKINNON`・`ppPValue`) で線形補間した
+  p 値 (ndiffs6: 45/45・67/67)。ur.pp の検定回帰と残差 (@testreg・@res) は私のもの (y_t を 1, y_{t−1}, t − n/2 に回帰) と 4e-14 で一致。
+  ラグは trunc(4 (n/100)^0.25)。
+- **分かっていないこと:** ur.pp の Z-tau の式。私の Phillips-Perron の形 (`ppStatisticConst`) とは最大 0.025 (constant)・0.05 (trend) 違う。
+  **use.lag = 0 でも t = (ρ − 1)/se にならない** (lh の constant: ur.pp −3.650、t −3.381) ので、ラグで消えない項がある。いまは判定が
+  1160 件すべて一致 (p の差は最大 3.4e-3)。データ: `experiments/tsmeta120-ndiffs6/7/8.json` (8 は use.lag 0..4 の統計量と @res・@testreg)。
+- **次の一手 (設計した入力):**
+  1. `type = "Z-alpha"` の use.lag = 0 を記録する。Z-alpha = n(ρ − 1) − ½ (n² σ̂_ρ² / s²)(λ² − γ0) は λ² について**一次**なので、
+     各系列で (λ² − γ0) をそのまま解ける。use.lag = 0 で 0 にならなければ、λ² か γ0 の分母 (n か n − k か) が違う → その値を Z-tau に
+     入れて残りの項を確かめる。
+  2. @auxstat (Z-tau-mu、Z-tau-beta) も同じ式の部品なので、同じ λ² で再現できるかを見る (整合性の検査)。
+  3. 尺度・ずらしの不変性 (y × c、y + c) で、統計量がどの量に依存するかを分ける。
+  - 文献の候補: Phillips and Perron (1988)、Hamilton (1994) 17.6 節の形。urca の作者の本 (Pfaff 2008) の式もヘルプの参照にあれば候補にしてよい
+    (ソースではないので可)。
+
+### B. nsdiffs(test = "ocsb") のラグの選び方 (ログ 80, 86)
+
+- **分かっていること:** nsdiffs(test = "ocsb") = `ocsb.test(y, lag.method = "AIC", maxlag = 3)` の統計量 > 臨界値 (295/295)。ラグ L の
+  回帰は完全に再現 (w = Δm Δ1 y の AR(L) を平均なしの最小二乗で当て、その係数で Δm y_{t−1} と Δ1 y_{t−m} を濾過してから w_t を
+  w_{t−1..L} と濾過した 2 つに定数なしで回帰、最後の係数の t 値、`src/timeseries/stl.ts` の `ocsbTest`)。n = 9 (m = 4) で ocsb.test が
+  エラーになり、nsdiffs は 0 を返す。**選ばれるラグはいつも maxlag − 1 以下** (AIC・BIC・AICc × maxlag 1〜3 の 9 通りで)。
+- **合わなかった候補 (同じことを試さない):** ar() の次数 (ols の平均あり・なし、yule-walker の平均あり・なし、burg、mle)、
+  Arima(w, c(L,0,0)) の AIC・AICc・BIC、ocsb.test(fixed, maxlag = L) の fitted.model の AIC・BIC (自分の行、0..maxlag、0..maxlag − 1、
+  1..maxlag で当てて 1 を引く)、手元での lm の AIC 12 通り (ログ 80)。最も良くて 2685 件中 1827 件。データ:
+  `experiments/tsmeta120-nsdiffs-ocsb2.json` (系列・9 通りの選択・候補の値)。
+- **次の一手 (設計した入力):**
+  1. maxlag を 1〜6 に広げ、同じ系列で選択がどう変わるかを見る (「maxlag − 1 以下」が maxlag を上げても続くか、0 と maxlag − 1 だけか)。
+  2. 系列の長さを 1 点ずつ切り詰めて選択が切り替わる境目を集め、境目で 2 つのラグの基準が等しいことから、各ラグの「尤度」と
+     罰則の n・k を逆算する (BIC と AIC の境目の違いで n が、AIC と AICc の違いで k が分かる)。
+  3. w の AR の次数がはっきりした系列 (AR(2) の係数を大きく) を作り、正しい次数が 2 のときに何が選ばれるかを見る (選択の対象が
+     AR の次数そのものか、ずれた添字か)。
+
+## 1.20.0 の残り (セッション 39 の終わりの状態)
+
+- **実装・テスト済み (時系列、fixture と R の比較、テストはすべて通る):** `arima`・`predictArima`・`arima0` (delta つき、R と一致)、
+  `forecastArima`・`forecastFromArima`・`boxCox`・`invBoxCox`・`boxCoxLambda`・`ndiffs`、`stl`・`supsmu`・`mstl`・`seasadj`・`nsdiffs`・`ocsbTest`、
+  `autoArima`、`ets`・`forecastEts`、`tsFilter` (stats の filter、名前はユーザー決定)・`boxTest`・`diffinv`・`decompose`・`ar`・`predictAr`、
+  `holtWinters`・`predictHoltWinters`。テスト: `test/arima・forecastArima・stl・ets・autoArima・statsTs.test.ts` (autoArima は約 2 分)
+- **書いたが未テスト (コミット `a5006cd3`):** `src/timeseries/forecastSimple.ts` (meanf・rwf・naive・snaive・ses・holt・hw・thetaf・croston・
+  stlf・tslm)、`src/timeseries/forecastUtils.ts` (accuracy・ma・fourier・seasonaldummy・monthdays・easter・bizdays・dmTest・cvLm・
+  checkresiduals・tsCV・arimaorder・specAr・findfrequency・naInterp・tsoutliers・tsclean・seasonalComponent・trendcycle・remainder)。
+  次は oracle/forecastSimple.R (ログ 28-32, 47, 52-60 の確かめた事例) と test を書いて合わせる。stlm と forecast() の振り分け (Arima・ets・
+  stlm・HoltWinters など) はまだ書いていない
+- **まだ:** tseries 8 関数 (ログ 6-9, 14-18、po の表はログ 18)、メタ分析 (meta・netmeta、ログ 61-77、GLMM は glmer の nAGQ = 7)、
+  端のケースの点検 (仕様書の Edge-case plan、全部の関数を全部の軸で)、配線 (entries、型、option-keys の生成)、文書 (英・日)・訳・デモ、
+  版 1.20.0、ユーザーの確認、main へ squash とタグ
+- **R との違い (仕様書 "Departures from R" 1〜8):** HoltWinters の乗法区間 (Bug 19369)、stl の中央値 (Bug 19370)、ets の class 3 減衰と
+  ANA/MNA の区間、hw(乗法) の局所解、arima の kappa、auto.arima の古い定数の印 (ログ 81)、ets の減衰トレンドの amse (ログ 82)。
+  ほかに推定が R より良い最適点に届くことによる違い (ets の ZZZ の選択: AirPassengers MAM・uspop MAN、auto.arima の一部の模型の値、
+  ログ 83 の R の optim の失敗)。文書を書くときにすべて載せる
+- **未解決 (ユーザーに相談済み、A・B が続き):** 上の A・B。仕様書の "Open points" 節
+
 
 ## まず読むこと (セッション 16 から)
 
