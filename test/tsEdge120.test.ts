@@ -8,7 +8,7 @@ import { readFileSync } from "node:fs";
 import {
   adfTest, ar, arima, autoArima, boxTest, ets, forecastArima, forecastEts, forecastFromArima, holt, holtWinters, hw, jarqueBeraTest,
   kpssTest, meanf, ndiffs, nsdiffs, ocsbTest, poTest, ppTest, predictArima, predictHoltWinters, rwf, ses, stlf, terasvirtaTest,
-  thetaf, whiteTest,
+  thetaf, whiteTest, boxCoxLambda, croston, decompose, findfrequency, mstl, naInterp, naive, snaive, specAr, stl, tsclean, tsFilter, tslm,
 } from "../src/entries/timeseries.js";
 
 const R = JSON.parse(readFileSync(new URL("../experiments/tsmeta120-tsedge.json", import.meta.url), "utf8")) as Record<string, any>;
@@ -100,4 +100,87 @@ describe("time series: statistics and decisions invariant from 1e-300 to 2^1000"
       expect([ndiffs(x), ndiffs(x, { test: "adf" }), ndiffs(x, { test: "pp" }), nsdiffs(x, { frequency: 12 }), nsdiffs(x, { frequency: 12, test: "ocsb" })], String(c)).toEqual(b);
     }
   });
+});
+
+// The second part of the 1.20.0 edge-case review (log 107): degenerate series, invalid values, missing values and
+// short series against R on the same inputs (experiments/tsmeta120-tsedge2..5.json).
+const R2 = JSON.parse(readFileSync(new URL("../experiments/tsmeta120-tsedge2.json", import.meta.url), "utf8")) as Record<string, any>;
+const R3 = JSON.parse(readFileSync(new URL("../experiments/tsmeta120-tsedge3.json", import.meta.url), "utf8")) as Record<string, any>;
+const yNA = (R2.inputs.na as (number | null)[]).map((v) => v ?? NaN);
+const yInf = y0.map((v, i) => (i === 29 ? Infinity : v));
+
+describe("time series: invalid and missing values (log 107)", () => {
+  it("an infinite value is an error", () => {
+    const calls: [string, () => unknown][] = [
+      ["arima", () => arima(yInf, { order: [0, 1, 1] })], ["forecastArima", () => forecastArima(yInf, { order: [0, 1, 0], includeDrift: true })],
+      ["autoArima", () => autoArima(yInf, { frequency: 12 })], ["ets", () => ets(yInf, { frequency: 12, model: "ANN" })],
+      ["holtWinters", () => holtWinters(yInf, { frequency: 12 })], ["meanf", () => meanf(yInf)], ["rwf", () => rwf(yInf, { drift: true })],
+      ["croston", () => croston(yInf)], ["tslm", () => tslm(yInf, { frequency: 12 })], ["ar", () => ar(yInf)],
+      ["boxTest", () => boxTest(yInf, { lag: 5 })], ["decompose", () => decompose(yInf, { frequency: 12 })],
+      ["stl", () => stl(yInf, { frequency: 12, sWindow: "periodic" })], ["mstl", () => mstl(yInf, { frequency: 12 })],
+      ["ndiffs", () => ndiffs(yInf)], ["nsdiffs", () => nsdiffs(yInf, { frequency: 12 })], ["ocsbTest", () => ocsbTest(yInf, { frequency: 12 })],
+      ["naInterp", () => naInterp(yInf, { frequency: 12 })], ["tsclean", () => tsclean(yInf, { frequency: 12 })],
+      ["findfrequency", () => findfrequency(yInf)], ["boxCoxLambda", () => boxCoxLambda(yInf, { frequency: 12 })],
+      ["kpssTest", () => kpssTest(yInf)], ["jarqueBeraTest", () => jarqueBeraTest(yInf)],
+    ];
+    for (const [name, f] of calls) expect(f, name).toThrow(/infinite/);
+  });
+  it("a missing value is an error where R's function fails too", () => {
+    const calls: [string, () => unknown][] = [
+      ["ar", () => ar(yNA)], ["ar burg", () => ar(yNA, { method: "burg" })], ["ar mle", () => ar(yNA, { method: "mle" })],
+      ["decompose", () => decompose(yNA, { frequency: 12 })], ["specAr", () => specAr(yNA)], ["croston", () => croston(yNA)],
+      ["thetaf", () => thetaf(yNA, { frequency: 12 })], ["ocsbTest", () => ocsbTest(yNA, { frequency: 12 })],
+      ["holtWinters", () => holtWinters(yNA, { frequency: 12 })],
+    ];
+    for (const [name, f] of calls) expect(f, name).toThrow(/missing/);
+  });
+  it("boxTest with a missing value: R's (the pairs both observed, n the number observed)", () => {
+    expect(Math.abs(boxTest(yNA, { lag: 5, type: "Ljung-Box" }).statistic / R3.na.Box.statistic - 1)).toBeLessThan(1e-13);
+    expect(Math.abs(boxTest(yNA, { lag: 5 }).statistic / R3.na.Box_pierce.statistic - 1)).toBeLessThan(1e-13);
+  });
+  it("boxCoxLambda with a missing value: R's (the groups and the trend keep their positions)", () => {
+    expect(Math.abs(boxCoxLambda(yNA, { frequency: 12 }) - R3.na.lambda.guerrero)).toBeLessThan(1e-8);
+    expect(boxCoxLambda(yNA, { frequency: 12, method: "loglik" })).toBeCloseTo(R3.na.lambda.loglik, 10);
+  });
+});
+
+describe("time series: degenerate and short series (log 107)", () => {
+  const cst = new Array<number>(48).fill(5); const zero = new Array<number>(48).fill(0);
+  it("a constant series: ets and the methods on it forecast the constant (R likewise)", () => {
+    for (const x of [cst, zero]) {
+      const v = x[0]!;
+      for (const model of ["ZZZ", "ANN", "AAA"]) expect(forecastEts(ets(x, { frequency: 12, model }), { h: 3 }).mean, model).toEqual([v, v, v]);
+      for (const f of [ses(x, { h: 3 }), holt(x, { h: 3 }), hw(x, { frequency: 12, h: 3 }), thetaf(x, { frequency: 12, h: 3 })]) f.mean.forEach((m) => expect(Math.abs(m - v)).toBeLessThan(1e-12));
+    }
+  });
+  it("stl with robustness weights on an exact fit: no NaN (6 median |R| = 0)", () => {
+    const s = stl(cst, { frequency: 12, sWindow: 7, robust: true });
+    expect(s.seasonal.every(Number.isFinite) && s.trend.every(Number.isFinite)).toBe(true);
+    expect(tsclean(cst, { frequency: 12 })).toEqual(cst);
+  });
+  it("too short for the method: errors as R's", () => {
+    expect(() => naive([9007])).toThrow(/at least 2/);
+    expect(() => snaive(y0.slice(0, 12), { frequency: 12 })).toThrow(/at least 13/);
+    expect(() => tsFilter([1, 2], [1 / 3, 1 / 3, 1 / 3])).toThrow(/longer/);
+    expect(() => ar([9007])).toThrow(/at least 2/);
+    expect(() => croston([0, 0, 3, 0])).toThrow(/two non-zero/);
+    expect(() => tslm([9007], { frequency: 12 })).toThrow(/at least 2/);
+  });
+  it("ets: a model asked for is fitted although its AICc is undefined; ZZZ does not choose such a model", () => {
+    const x = y0.slice(0, 12);
+    expect(ets(x, { frequency: 12, model: "AAA", damped: false }).method).toBe("ETS(A,A,A)");
+    expect(ets(x, { frequency: 12 }).method).toBe(R2.runs.len12.ets_ZZZ.method);
+  });
+  it("stlf on fewer than two periods: forecasts without a seasonal component (no NaN)", () => {
+    expect(stlf(y0.slice(0, 20), { frequency: 12, h: 3 }).mean.every(Number.isFinite)).toBe(true);
+  });
+  it("ndiffs and nsdiffs: a test that fails stops the differencing (R warns and does the same)", () => {
+    for (const n of [2, 3]) for (const test of ["kpss", "adf", "pp"] as const) expect(ndiffs(y0.slice(0, n), { test }), `${n} ${test}`).toBe(0);
+    expect(nsdiffs(R2.inputs.line as number[], { frequency: 12 })).toBe(0);
+  });
+  it("autoArima on short series: R's models (seasonal orders at most n / 3m, the AIC below four values)", () => {
+    for (const nm of ["len2", "len3", "len12", "len24", "len25"]) {
+      expect(autoArima(R2.inputs[nm] as number[], { frequency: 12 }).arma, nm).toEqual(R2.runs[nm].auto_arima.arma);
+    }
+  }, 300_000);
 });

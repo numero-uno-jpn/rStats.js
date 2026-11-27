@@ -208,8 +208,8 @@ describe("small functions (forecast)", () => {
     expect(arimaorder(arima(usacc, { order: [1, 0, 1], seasonal: { order: [0, 1, 1], period: 12 } }))).toEqual(Object.fromEntries(Object.entries(fx.arimaorder.s).map(([k, v]) => [k, num(v)])));
     expect(arimaorder(arima(nile, { order: [1, 1, 1] }))).toEqual(Object.fromEntries(Object.entries(fx.arimaorder.ns).map(([k, v]) => [k, num(v)])));
     // origin 1: R's naive fails on one observation ("missing value where TRUE/FALSE needed", tsmeta120-simple3) and
-    // tsCV records NA; rStats.js's naive gives y_1 (NaN intervals), so that one error is 40 here
-    const cv = tsCV(nile, (y, h) => naive(y, { h }).mean); expect(cv[0]).toEqual([nile[1]! - nile[0]!]);
+    // tsCV records NA; rStats.js's naive fails there too since 1.20.0's edge-case review (log 107)
+    const cv = tsCV(nile, (y, h) => naive(y, { h }).mean); expect(cv[0]).toEqual([NaN]);
     expect(rel(cv.slice(1).flat(), mat(fx.tscv.naive_h1).slice(1).flat())).toBeLessThan(1e-12);
     expect(rel(tsCV(rw, (y, h) => rwf(y, { h, drift: true }).mean, { h: 3 }).flat(), mat(fx.tscv.rwf_h3).flat())).toBeLessThan(1e-10);
   });

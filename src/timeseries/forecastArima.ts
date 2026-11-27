@@ -5,6 +5,7 @@
 
 import { arima, predictArima, registerScaledArima, scaledArima, unscaleArima, type ArimaResult } from "./arima.js";
 import { powerOfTwoScale, standardise } from "./scale.js";
+import { tsInput } from "./input.js";
 import { optimize } from "../numerics/integrate.js";
 import { lm } from "../models/lm.js";
 import { qnorm } from "../distributions/normal.js";
@@ -64,14 +65,17 @@ export function invBoxCox(z: readonly number[], lambda: number, options: { biasa
 export function boxCoxLambda(x: readonly number[], options: { method?: "guerrero" | "loglik"; lower?: number; upper?: number; frequency?: number } = {}): number {
   checkOptions(options, BOX_COX_LAMBDA_KEYS, "boxCoxLambda"); // generated: option-keys.mjs
   const lower = options.lower ?? -1, upper = options.upper ?? 2; const m = options.frequency ?? 1;
-  const xs = x.filter(Number.isFinite);
+  // missing values keep their positions (the groups and the trend as R's, log 107); the series divided by a power
+  // of two (exact; lambda does not depend on the scale)
+  const xa = standardise(tsInput(x, "boxCoxLambda", { missing: "allow", minLength: 2 }));
   if ((options.method ?? "guerrero") === "guerrero") {
     // groups of length max(2, m) taken from the end, the coefficient of variation of sd / mean^(1 - lambda) (log 29-30)
-    const len = Math.max(2, m); const ng = Math.floor(xs.length / len); const tail = xs.slice(xs.length - ng * len);
+    const len = Math.max(2, m); const ng = Math.floor(xa.length / len); const tail = xa.slice(xa.length - ng * len);
     const mu: number[] = [], sd: number[] = [];
     for (let g = 0; g < ng; g++) {
-      const v = tail.slice(g * len, (g + 1) * len); const mean = v.reduce((a, b) => a + b, 0) / len;
-      mu.push(mean); sd.push(Math.sqrt(v.reduce((a, b) => a + (b - mean) ** 2, 0) / (len - 1)));
+      const v = tail.slice(g * len, (g + 1) * len).filter((a) => !Number.isNaN(a)); const k = v.length;
+      const mean = v.reduce((a, b) => a + b, 0) / k;
+      mu.push(mean); sd.push(Math.sqrt(v.reduce((a, b) => a + (b - mean) ** 2, 0) / (k - 1)));
     }
     const cv = (lam: number): number => {
       const r = sd.map((s, i) => s / mu[i]! ** (1 - lam)); const mean = r.reduce((a, b) => a + b, 0) / r.length;
@@ -80,15 +84,18 @@ export function boxCoxLambda(x: readonly number[], options: { method?: "guerrero
     };
     return optimize(cv, lower, upper).optimum;
   }
-  // the profile log-likelihood of lm on a trend (+ seasonal dummies), maximised on the grid seq(lower, upper, 0.05)
-  const n = xs.length; const rows = xs.map((_, t) => {
+  // the profile log-likelihood of lm on a trend (+ seasonal dummies), maximised on the grid seq(lower, upper, 0.05).
+  // The transform x^lambda / lambda (log x at 0): the Box-Cox transform without its constant -1 / lambda, which the
+  // intercept absorbs, so that x^lambda is not cancelled against 1 (the choice moved with the scale, log 107)
+  const tObs = xa.map((_, t) => t).filter((t) => !Number.isNaN(xa[t]!)); const xs = tObs.map((t) => xa[t]!);
+  const n = xs.length; const rows = tObs.map((t) => {
     const r = [t + 1];
     if (m > 1) for (let k = 2; k <= m; k++) r.push(t % m === k - 1 ? 1 : 0);
     return r;
   });
   const sumLog = xs.reduce((a, b) => a + Math.log(b), 0);
   const pll = (lam: number): number => {
-    const z = boxCox(xs, lam); const f = lm(rows, z, {}); const sse = f.residuals.reduce((a, b) => a + b * b, 0);
+    const z = xs.map((v) => (lam === 0 ? Math.log(v) : v ** lam / lam)); const f = lm(rows, z, {}); const sse = f.residuals.reduce((a, b) => a + b * b, 0);
     return (-n / 2) * Math.log(sse / n) + (lam - 1) * sumLog;
   };
   let best = lower, bestV = -Infinity;
@@ -346,16 +353,21 @@ export function ndiffs(x: readonly number[], options: { alpha?: number; test?: "
   checkOptions(options, NDIFFS_KEYS, "ndiffs"); // generated: option-keys.mjs
   const alpha = options.alpha ?? 0.05; const test = options.test ?? "kpss"; const type = options.type ?? "level"; const maxD = options.maxD ?? 2;
   // the tests do not depend on the scale: the series divided by a power of two (exact), so that 1e+-300 works
-  let y = standardise(x.filter(Number.isFinite));
+  let y = standardise(tsInput(x, "ndiffs", { missing: "allow" }).filter(Number.isFinite));
   const isConstant = (v: readonly number[]): boolean => v.every((a) => a === v[0]);
   if (isConstant(y)) return 0;
   let d = 0;
   const dodiff = (v: readonly number[]): boolean => {
-    if (test === "kpss") return kpssPValue(kpssStatistic(v, type, Math.trunc((3 * Math.sqrt(v.length)) / 13)), type) < alpha;
-    if (test === "adf") return dfPValue(adfStatisticK1(v, type), v.length, type) > alpha;
-    return ppPValue(ppStatisticConst(v, type), v.length, type) > alpha;
+    // a statistic that is not finite (too few values for the regression) is a failed test (log 107)
+    const stat = test === "kpss" ? kpssStatistic(v, type, Math.trunc((3 * Math.sqrt(v.length)) / 13)) : test === "adf" ? adfStatisticK1(v, type) : ppStatisticConst(v, type);
+    if (!Number.isFinite(stat)) throw new RangeError("ndiffs: the test statistic is not finite");
+    if (test === "kpss") return kpssPValue(stat, type) < alpha;
+    if (test === "adf") return dfPValue(stat, v.length, type) > alpha;
+    return ppPValue(stat, v.length, type) > alpha;
   };
-  while (d < maxD && dodiff(y)) {
+  // a test that fails (too short a series, a degenerate regression) stops the differencing, as R's (which warns; log 107)
+  const tryDiff = (v: readonly number[]): boolean => { try { return dodiff(v); } catch { return false; } };
+  while (d < maxD && tryDiff(y)) {
     d++; y = y.slice(1).map((v, i) => v - y[i]!);
     if (isConstant(y)) break;
   }

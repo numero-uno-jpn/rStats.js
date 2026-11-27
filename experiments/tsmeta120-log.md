@@ -1327,3 +1327,92 @@ choices under several criteria).
    cosh, tanh, asin, acos agree): the system's libm. The differences: 6 ulp in the poisson limit, 1 ulp in the
    round trip. The tests asked for exact equality; with the user's approval they now allow 8 ulp (issue179's
    unchanged limits) and 2 ulp (issue513's round trips).
+
+## Edge-case review, first round: time series, the axes other than scale (2026-11-28, session 42)
+
+107. R on degenerate, invalid, missing-value, short and tied inputs (`tsmeta120-tsedge2.R` / `.json`: a constant series,
+   all zeros, a straight line, an exact seasonal pattern, USAccDeaths of lengths 1, 2, 3, 12, 24, 25, 36, with one NA
+   or one Inf at t = 30, intermittent demand, ties, p-values near 0 and 1, Box-Cox with scale; 56 functions per input,
+   errors and warnings kept). The same inputs through rStats.js with a temporary battery (deleted), compared value by
+   value. Before the fixes: 93 cases where R fails and rStats.js returns something, 40 the other way, 149 different
+   values. Follow-ups `tsedge3` (auto.arima's traces, ets's candidates on short series, the observations R uses with an
+   NA), `tsedge4` (auto.arima on n = 2..14 and the seasonal orders at n = 25..72 / m = 4), `tsedge5` (ets on n = 2..26).
+   - **Invalid values.** rStats.js took an Inf as a value or as a missing one (arima, forecastArima, autoArima, rwf,
+     tslm, ar, croston, ocsb, tsclean, findfrequency, boxCoxLambda: results; meanf, naive, decompose, Box: numbers where
+     R gives NaN). Now an error everywhere (src/timeseries/input.ts `tsInput`), except acf / pacf / ccf, whose Inf
+     handling was R's by an earlier decision (the acf fixture's acf_inf), and the arithmetic filters (tsFilter, diffinv,
+     ma) that propagate as R's.
+   - **Missing values where R fails** (ar of every method, decompose, spec.ar, croston, thetaf, ocsb.test, HoltWinters):
+     rStats.js returned NaN or a fit of the compacted series; now errors. Where R allows them:
+     - Box.test: R uses acf(na.pass) and n = the number observed (equal to 1e-15); rStats.js had compacted the series.
+       Fixed.
+     - BoxCox.lambda: guerrero's groups keep their positions with the mean and sd of each group over its observed values
+       (R -0.087870458582, rStats.js now -0.087870458585: the optimiser's tolerance); the loglik method's trend keeps the
+       positions. Fixed.
+     - meanf: R's interval uses n = the length with the NA (df and sqrt(1 + 1/n); 6e-5 here); rStats.js uses the number
+       observed (kept: the NA is no observation). naive / rwf: R's residual after the NA is a two-step error (y_31 -
+       y_29); rStats.js leaves it NA (8e-5 in the interval; kept, open point).
+     - ets / ses / holt / hw, kpss.test, mstl / stlf accept NA in R (ets skips them in its filter, mstl interpolates);
+       rStats.js: errors (open point).
+   - **Degenerate series.**
+     - stl with robustness weights on an exact fit: 6 median |R| = 0, so u = R / h was NaN and the whole decomposition
+       NaN (also tsclean and tsoutliers on a constant series). The bisquare's limits are now compared without dividing
+       by h (weight 1 for R <= 0.001 h, 0 beyond 0.999 h). Fixed.
+     - tsoutliers flagged rounding residuals (1e-16) of an exact fit as outliers (IQR 0); residuals below 1e-12 of the
+       largest |x| are now zero (R's are exact zeros there). Fixed.
+     - ets on a constant series (and all zeros): no model, since the likelihood is unbounded at every parameter; R fits
+       one with some parameters (ZZZ: SES alpha 0.99999; ANN alpha 0.20006, AAA its starting values). Now the model asked
+       for (A,N,N for Z letters) at the starting smoothing parameters and the constant level, sigma2 = 0: the forecasts
+       are the constant (also ses, holt, hw, thetaf). Fixed.
+     - auto.arima on a constant series: R returns the mean model with sigma2 0 (and on the straight line ARIMA(0,1,0)
+       with drift 1, sigma2 0); rStats.js's mean model fails to fit (the likelihood unbounded), so it chose the
+       zero-mean model (sigma2 25) or none (all zeros: an error). Open point.
+     - ndiffs / nsdiffs: R warns and keeps the differences so far when a test fails (too short, a degenerate
+       regression); rStats.js threw "0 (non-NA) cases". Now the same as R.
+   - **Short series.**
+     - R's errors kept as errors: naive / rwf with n <= lag, snaive with n <= m, tslm with one value, ar with one, a
+       convolution filter longer than the series, croston with fewer than two demands (rStats.js had forecast from one).
+       pacf, mstl / stlf with fewer than two periods: rStats.js keeps its documented non-seasonal fallback (mstl's trend
+       by supsmu), and stlf no longer forecasts NaN there.
+     - auto.arima (tsedge3, tsedge4): R's search on short series, read off its traces: the seasonal orders P, Q are at
+       most floor(n / (3 m)) (m = 12: none below 36, one from 36; m = 4: none below 12; exact at both boundaries), and
+       for n <= 3 the trace and the choice use the AIC (n = 2, 3: the printed value is the AIC, at n = 4 the AICc).
+       rStats.js let a model whose AICc denominator n - k - 1 is negative win with a large negative correction (n = 3:
+       (0,0,0)(1,0,1); n = 24: (0,0,3)(1,0,0)). Now: the two limits as R's, and no positive denominator = not a
+       candidate. The models of n = 2, 3, 12, 24, 25 are R's. R's start orders are also reduced for short series
+       ((0,0,0) at n = 2, (1,0,1) for n = 3..9, (2,0,2) from 10; at n = 9 R still visits p = 2), a rule not found:
+       not imitated.
+     - ets (tsedge3, tsedge5): R's rules, read off its fits: (1) with n <= m the seasonal component is dropped (AAA at n
+       = 12 = m is AAN by the likelihood); (2) with n <= npars + 4 (npars = smoothing parameters + initial states,
+       damping included) R fits no likelihood (loglik NA): damping is dropped with a warning, a seasonal model gets an
+       additive trend (ANA -> AAA, MNM -> MAM), a non-seasonal one an additive error (MNN -> ANN), and the parameters
+       are those of a Holt-Winters fit with simple starting values (n = 3: ANN alpha 0.0876803551609 = HoltWinters'
+       0.0876803551609219; AAN's forecasts equal rStats.js's holt(initial = "simple") to 1e-6), fixed at alpha = 0.2 / m,
+       beta = 0.1 alpha, gamma = 0.05 (1 - alpha) when n < 2m (seasonal) and at alpha 0.2 for ANN at n = 2. The
+       boundaries are exact for ANN (simple to n = 6), AAN (8), AAdN (9), AAA at m = 12 (20), ANA (18), m = 4 likewise.
+       rStats.js fitted any model by the likelihood (16 parameters on 12 values: AICc -751, chosen by ZZZ) and failed
+       below four values. Now the AICc of a model without a positive denominator n - p - 2 is Infinity (not chosen);
+       the rest is an open point for the user (imitate the simple fits, or refuse such models).
+     - On the lengths 24..36 rStats.js's ets and holt reach higher log-likelihoods than R (AAA at 24: -153.8 against
+       R's -174.8; holt at 12: -92.90 against -93.50): R's optimiser stops earlier (kept).
+   - **Other differences seen** (kept, recorded): ets with a few observations is slow in rStats.js (ZZZ on 24 values
+     49 s, on USAccDeaths 20 s; seasonal models 1-7 s each; the refinement of log 105 doubled the time on short series,
+     the rest was there before); BoxCox.lambda(method = "loglik") moved with the scale in rStats.js (1e10: -1 against
+     -0.65; the transform's -1 cancelled x^lambda): now x^lambda / lambda (the constant absorbed by the intercept),
+     invariant; R is invariant from 1e-10 to 1e10 and breaks at 1e+-150. Arima(lambda = 0.5) at 1e-150 forecasts 0 in
+     rStats.js (R fails): (x^0.5 - 1) / 0.5 is -2 to 1e-75, the information lost by the transform itself (open point).
+     supsmu with tied x: R returns the unique x (10 of the 20 here) with one smoothed value each; rStats.js all of
+     them (documented: "Tied x are not handled as R does").
+     croston's forecasts differ where the last value is a demand (departure 11). The arima fits on the short series
+     reach R's log-likelihood or a higher one (flat optima).
+   - After the fixes, the battery again: 58 cases where R fails and rStats.js returns something (mostly
+     degenerate fits that R refuses and rStats.js computes, e.g. arima on a constant series, ar on zero variance,
+     findfrequency 1 on a constant), 31 the other way (the open points: ets on n <= 3 and with NA, kpss / mstl /
+     stlf with NA, auto.arima on all zeros), 132 different values (mostly the better optima and the departures above).
+     Two regressions found by it and fixed: an ets model asked for explicitly was refused once its AICc became
+     Infinity (n = 12, AAA: now the one candidate is returned whatever its AICc; ZZZ still does not choose it, and
+     picks ETS(A,N,N) as R); ndiffs took a NaN statistic (n = 2, 3, adf / pp) as p = 0.1 and differenced: now a test
+     whose statistic is not finite has failed (0 differences, R's). BoxCox.lambda(loglik) is now -0.65 at every scale
+     from 1e-150 to 1e150. ZZZ on n <= 4 fails ("no model able to be fitted": no candidate has a defined AICc; R fits
+     the simple ANN), with the open point.
+   - Permanent tests: test/tsEdge120.test.ts, the parts "invalid and missing values" and "degenerate and short series".

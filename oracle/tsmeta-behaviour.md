@@ -312,12 +312,40 @@ invariance (the same value after a change of scale or origin where theory says s
    (always; the same values bit for bit at ordinary scales), so forecasts are equivariant and statistics invariant
    from 1e-300 to 2^1000. At ordinary scales the fits stay R's; arima's kappa prior is absolute, as R's.
 
+17. **meanf with a missing value** (log 107): R's interval uses n = the length including the NA (its t quantile's
+   degrees of freedom and sqrt(1 + 1/n)). rStats.js uses the number of observed values.
+18. **Short and degenerate series** (log 107): where R fails and rStats.js has a rule (tsFilter's errors aside), or
+   R's rule was not imitated: auto.arima's reduced start orders for n < 10 (not found); stl's robustness weights on
+   an exact fit (R's are finite through rounding noise; rStats.js compares the bisquare's limits without dividing by
+   6 median |R| = 0); ets on a constant series (the model asked for at the starting parameters, sigma2 = 0); the
+   AICc of ets and auto.arima's candidates without a positive denominator is Infinity.
+
 # Open points found during the implementation (for the user)
 
 - **ets on a flat optimum** (log 104; resolved, log 105): with beta and gamma at their lower bound 1e-4 (USAccDeaths
   AAA, MNM) Nelder-Mead stopped at different points of the optimum after an exact change of scale or a shift (log-
   likelihood differences up to 1e-2). Now every start is refined by L-BFGS-B within the box of the bounds alternated
   with Nelder-Mead: the same optimum at every scale (and shift, for additive models) to 1e-8.
+
+- **Short series in ets** (log 107; for the user): R fits no likelihood when n <= npars + 4 (a Holt-Winters fit with
+  simple starting values, damping dropped, an additive trend added to seasonal models, fixed parameters when n < 2m)
+  and drops the seasonal component when n <= m. rStats.js now only refuses AICc's without a positive denominator; it
+  still fits such models by the likelihood when asked for one explicitly, and fails below four values. Imitate R's
+  simple fits, or refuse such models with a clear error?
+
+- **Missing values in ets / ses / holt / hw, kpss.test, mstl / stlf** (log 107): R accepts them (ets skips them in its
+  filter, mstl interpolates by na.interp); rStats.js: clear errors.
+
+- **auto.arima on an exact fit** (log 107): R returns the mean model with sigma2 0 for a constant series (zero for all
+  zeros) and ARIMA(0,1,0) with drift for a straight line; rStats.js's mean model fails (an unbounded likelihood), so it
+  chooses the zero-mean model (sigma2 = the square of the constant) or fails (all zeros).
+
+- **naive / rwf with a missing value** (log 107): R's residual after the NA is a two-step error; rStats.js's is NA.
+
+- **ets's time** (log 107): 20 s for ets(USAccDeaths) with ZZZ, 49 s on 24 values (the seasonal models 1-7 s each).
+
+- **Box-Cox lambda = 0.5 far below unit scale** (log 107): (x^0.5 - 1) / 0.5 is -2 to 1e-75 at 1e-150 times USAccDeaths,
+  so forecastArima(lambda = 0.5) forecasts 0 (R fails): the transform itself loses the information.
 
 - **netmeasures' mean path length and minimal parallelism** (log 101): not reproduced by the flows of the aggregated
   hat matrix (3-9% and 20-40% off); rStats.js's netmeasures returns the direct evidence proportion only.
