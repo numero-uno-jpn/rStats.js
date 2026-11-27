@@ -32,8 +32,11 @@ netmeta 一式も実装した (src/meta/netmeta.ts、oracle/netmeta.R、test/net
    **時系列の一巡目は見つけただけで未修正** (ログ 103 の一覧: 1e±300 で arima・ets・holtWinters・検定が壊れる、ふつうの尺度でも
    ets AAA・holtWinters・hw が 1e-150 倍で 1〜2%、+1e8 で arima 季節・thetaf・autoArima が 1e-3〜1e-2)。次のセッションはここから:
    関数ごとに R の振る舞いを実験で確かめ、標準化と相対の許容で直す。そのあと netmeta・tseries の細かい軸、二巡目
-2. 文書: CHANGELOG (rma の PM・EB の不具合の修正も)、docs/differences-from-r.md に R との違い 1-15、日本語版
-   (docs/ja/r-functions.json に 103 件の説明が不足 → test/rIndexDoc の ja が落ちる。訳は ChatGPT に依頼)、API の訳 (docs/ja/api/*.json)
+2. 文書: CHANGELOG (rma の PM・EB と confintRma の不具合の修正も)、docs/differences-from-r.md に R との違い 1-15。
+   **日本語の訳は済み** (2026-11-27、ChatGPT が work/ja-1.20 で API 229 件と関数索引 103 件、私が点検して早送りで取り込み:
+   en・hash 不変、記号の個数一致、未訳 0、test/rIndexDoc 通過)。端のケースの修正で英文が変わったら
+   `node scripts/api-ja-extract.mjs` の stale を同じ手順で頼む (入口 briefs/ja-1.20-status.ja.md)。
+   リモートには dev/ts-meta-1.20 (cef937a9 まで、ローカルの方が新しい) と work/ja-1.20 が残っている (消すかはユーザーに聞く)
 3. デモ: test/demo.test.ts「every export of the areas appears in some example」が落ちる (新しい関数のデモの例がない)
 4. 版 1.20.0、ユーザーの確認、main へ squash とタグ (push・タグはユーザーの確認なしにしない)
 - 全体のテストで既知の失敗: test/issue179.test.ts・test/issue513.test.ts の最終桁の差は**セッション前 (d719c7c4) から同じ** (今回の変更と無関係、別に調べる)
