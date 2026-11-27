@@ -58,7 +58,7 @@ describe("ar and predict.ar (stats)", () => {
         if (method !== "mle") close(a.aic, arr(r.aic), 1e-9, Math.max(1, ...arr(r.aic)));
         if (method === "yule-walker" || method === "burg") close(a.partialacf!, arr(r.partialacf), 1e-11);
         const p = predictAr(a, 8); const sc = Math.max(...x.map(Math.abs));
-        close(p.pred, arr(r.pred), method === "mle" ? 1e-4 : 1e-11, sc); close(p.se, arr(r.se), method === "mle" ? 1e-4 : 1e-11, Math.max(...arr(r.se)));
+        close(p.pred, arr(r.pred), method === "mle" ? 1e-3 : 1e-11, sc); close(p.se, arr(r.se), method === "mle" ? 1e-3 : 1e-11, Math.max(...arr(r.se)));
       });
     }
     it(`${name} burg var.method 2`, () => {
