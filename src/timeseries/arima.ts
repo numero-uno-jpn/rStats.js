@@ -354,7 +354,7 @@ function normalizeSeasonal(opt: ArimaOptions): { P: number; D: number; Q: number
  * const lh = [2.4, 2.4, 2.4, 2.2, 2.1, 1.5, 2.3, 2.3, 2.5, 2.0, 1.9, 1.7, 2.2, 1.8, 3.2, 3.2, 2.7, 2.2, 2.2, 1.9, 1.9, 1.8, 2.7, 3.0,
  *   2.3, 2.0, 2.0, 2.9, 2.9, 2.7, 2.7, 2.3, 2.6, 2.4, 1.8, 1.7, 1.5, 1.4, 2.1, 3.3, 3.5, 3.5, 3.1, 2.6, 2.1, 3.4, 3.0, 2.9];
  * const fit = arima(lh, { order: [1, 0, 0] });
- * fit.coef; // [0.5739243883790134, 2.413285607754319] (ar1, intercept)
+ * fit.coef; // [0.5739243884, 2.413285608] (ar1, intercept; the last digits differ between platforms' math libraries)
  * ```
  *
  * @category Time series

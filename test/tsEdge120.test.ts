@@ -18,13 +18,13 @@ const SCALES = [1e-300, 1e-150, 1e-20, 1e-10, 1e10, 1e150, 1e300, 2 ** 1000];
 const relMax = (a: readonly number[], b: readonly number[], c: number): number => Math.max(...a.map((v, i) => Math.abs(v / c / b[i]! - 1)));
 
 describe("time series: forecasts equivariant from 1e-300 to 2^1000", () => {
-  // tolerances: the optimisers' stopping (ets about 4e-9 on its flat optimum, the arima fits 1e-7, HoltWinters'
-  // L-BFGS-B 1e-5)
+  // tolerances: the optimisers' stopping (ets about 4e-9 on its flat optimum, 1.1e-8 on Linux, whose libm differs in
+  // the last bits; the arima fits 1e-7, HoltWinters' L-BFGS-B 1e-5)
   const cases: [string, (x: number[]) => number[], number][] = [
-    ["ets AAA", (x) => forecastEts(ets(x, { frequency: 12, model: "AAA", damped: false }), { h: 3 }).mean, 1e-8],
+    ["ets AAA", (x) => forecastEts(ets(x, { frequency: 12, model: "AAA", damped: false }), { h: 3 }).mean, 3e-8],
     ["ses", (x) => ses(x, { h: 3 }).mean, 1e-10],
     ["holt", (x) => holt(x, { h: 3 }).mean, 1e-8],
-    ["hw", (x) => hw(x, { frequency: 12, h: 3 }).mean, 1e-8],
+    ["hw", (x) => hw(x, { frequency: 12, h: 3 }).mean, 3e-8],
     ["thetaf", (x) => thetaf(x, { frequency: 12, h: 3 }).mean, 1e-8],
     ["stlf", (x) => stlf(x, { frequency: 12, h: 3 }).mean, 1e-7],
     ["holtWinters", (x) => predictHoltWinters(holtWinters(x, { frequency: 12 }), { nAhead: 3 }).fit, 2e-5],
