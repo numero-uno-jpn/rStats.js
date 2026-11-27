@@ -275,20 +275,37 @@ export function fitModel(y: readonly number[], spec: EtsSpec, fixed: Partial<Rec
   // several starting values for the smoothing parameters, Nelder-Mead restarted until it stops improving
   const starts: number[][] = [u0];
   if (nSmooth > 0) for (const a of [0.1, 0.9]) { const u = u0.slice(); u[0] = a; if (names[1] === "beta") u[1] = Math.min(u[1]!, a / 2); if (names.includes("gamma")) u[names.indexOf("gamma")] = Math.min(0.05, (1 - a) / 2); starts.push(u); }
-  // Nelder-Mead from each start (2000 iterations, as R's default), then restarted from the best until it stops improving
+  // Nelder-Mead from each start (2000 iterations, as R's default), then refined from each: in the usual bounds,
+  // L-BFGS-B within the box of the bounds alternated with restarted Nelder-Mead until neither improves (log 105).
+  // Nelder-Mead alone stopped at different points of a flat optimum whose smoothing parameters sit at a bound
+  // (USAccDeaths AAA: beta and gamma at 1e-4; log-likelihoods 1e-2 apart after exact changes of scale), which the box
+  // handles exactly; refining every start, not only the best, finds the same one of several local optima (MAM) after
+  // such changes. The coupled limits (beta <= alpha, gamma <= 1 - alpha, admissibility, positive means) stay in the
+  // objective, as a large finite value for L-BFGS-B, which needs finite values; a polish that fails is dropped.
+  const lo = [...names.map((nm) => LOWER[nm as keyof typeof LOWER]), ...new Array<number>(u0.length - nSmooth).fill(-Infinity)];
+  const hi = [...names.map((nm) => UPPER[nm as keyof typeof UPPER]), ...new Array<number>(u0.length - nSmooth).fill(Infinity)];
+  const boxed = (u: number[]): number => { const v = objective(u); return Number.isFinite(v) ? v : 1e100; };
+  const refine = (u: number[], v: number): [number[], number] => {
+    for (let round = 0; round < 10; round++) {
+      const before = v;
+      if (bounds === "usual") {
+        try {
+          const r = optim(u, boxed, { method: "L-BFGS-B", lower: lo, upper: hi, control: { factr: 1, ndeps: 1e-7 } });
+          if (r.value < v) { v = r.value; u = r.par; }
+        } catch { /* dropped */ }
+      }
+      const r2 = optim(u, objective, { method: "Nelder-Mead", control: { maxit: 4000, reltol: 1e-14 } });
+      if (r2.value < v) { v = r2.value; u = r2.par; }
+      if (!(before - v > 1e-12 * Math.max(1, Math.abs(v)))) break;
+    }
+    return [u, v];
+  };
   let best: number[] | null = null; let bestV = Infinity;
   for (const st of starts) {
     if (!Number.isFinite(objective(st))) continue;
     const r = optim(st, objective, { method: "Nelder-Mead", control: { maxit: 2000, reltol: 1e-10 } });
-    if (r.value < bestV) { bestV = r.value; best = r.par; }
-  }
-  if (best) {
-    for (let round = 0; round < 10; round++) {
-      const r = optim(best, objective, { method: "Nelder-Mead", control: { maxit: 4000, reltol: 1e-14 } });
-      const gain = bestV - r.value;
-      if (r.value < bestV) { bestV = r.value; best = r.par; }
-      if (!(gain > 1e-12 * Math.max(1, Math.abs(bestV)))) break;
-    }
+    const [u, v] = refine(r.par, r.value);
+    if (v < bestV) { bestV = v; best = u; }
   }
   if (!best || !Number.isFinite(bestV)) return null;
   const par = decode(best);

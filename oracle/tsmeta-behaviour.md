@@ -314,10 +314,10 @@ invariance (the same value after a change of scale or origin where theory says s
 
 # Open points found during the implementation (for the user)
 
-- **ets on a flat optimum** (log 104): with beta and gamma at their lower bound 1e-4 (USAccDeaths AAA, MNM), the
-  restarted Nelder-Mead stops at different points of the optimum after an exact change of scale or a shift (log-
-  likelihood differences up to 1e-2; forecasts 5e-4..1e-3). Not a scale problem; a better optimiser for the initial
-  states would remove it.
+- **ets on a flat optimum** (log 104; resolved, log 105): with beta and gamma at their lower bound 1e-4 (USAccDeaths
+  AAA, MNM) Nelder-Mead stopped at different points of the optimum after an exact change of scale or a shift (log-
+  likelihood differences up to 1e-2). Now every start is refined by L-BFGS-B within the box of the bounds alternated
+  with Nelder-Mead: the same optimum at every scale (and shift, for additive models) to 1e-8.
 
 - **netmeasures' mean path length and minimal parallelism** (log 101): not reproduced by the flows of the aggregated
   hat matrix (3-9% and 20-40% off); rStats.js's netmeasures returns the direct evidence proportion only.

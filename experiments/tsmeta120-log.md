@@ -1297,3 +1297,32 @@ choices under several criteria).
      a flat optimum (R: 3e-3 between the two). Likewise MNM at 1e-40 times the series (loglik 9e-4 lower). thetaf + 1e8
      (1e-2, R the same) and ets ZZZ's M models are multiplicative, not shift equivariant.
    - Permanent test: test/tsEdge120.test.ts (26 cases, about 2 minutes).
+
+## ets's optimiser on flat optima (2026-11-27, session 41, asked for by the user)
+
+105. The open point of 104 (USAccDeaths AAA, MNM: Nelder-Mead stops at different points of a flat optimum after an
+   exact change of scale). Measured as the log-likelihood (+ n log c) over scales 1, 1e-40, 1e-10, 1e2, 1e5, 1e20 and
+   shifts + 1e4, 1e6, 1e8, for AAA, MNM, MAM, ANA, AAdA:
+   - before: AAA -552.0960 at the scales, -552.0974..-552.0880 with the shifts (spread 9e-3); ANA 3e-3; AAdA 4e-3;
+     MNM -552.6416 but -552.6407 at 1e-40; MAM -552.6474 everywhere (equal, but not the best point).
+   - 1st try, L-BFGS-B within the box of the usual bounds from Nelder-Mead's best point (factr 1, ndeps 1e-7): AAA
+     -552.086808 everywhere (2e-7; better than every earlier point), ANA 5e-8; MNM at 1e-40 unchanged: L-BFGS-B threw
+     "needs finite values of 'fn'" (a trial point outside the coupled limits); AAdA + 1e8 stopped at an abnormal line
+     search.
+   - 2nd: Infinity outside the coupled limits replaced by 1e100 for L-BFGS-B, and L-BFGS-B alternated with restarted
+     Nelder-Mead until neither improves: MNM equal at every scale; MAM now reached better points but different ones
+     (-552.555 / -552.570 / -552.631 / -552.640: several local optima).
+   - 3rd (kept): the refinement from every one of the three starts, not only from the best: every model equal at every
+     scale (AAA, ANA 1.5e-9; MNM -552.640064; MAM -552.555168), and the additive models also with the shifts (AAdA
+     + 1e8 3e-6). Time about the same (16-26 s for 9 fits per model). The R fixtures still pass (the fits reach R's
+     criterion or better); test/tsEdge120 has the scale / shift checks (forecast tolerance 1e-8 for AAA and hw: 4e-9).
+
+## issue179 / issue513's last digits (2026-11-27, session 41, asked for by the user)
+
+106. test/issue179 ("leaves the limits at level 1.6e-3 and above unchanged": poisson lower limit at 0.0016) and
+   test/issue513 (ptukey(qtukey(0.5, 5, 7)) = 0.5 exactly) fail on this Mac and pass in CI. Not the code: v1.19.0
+   fails here too, and both pass in Docker on Linux amd64 and arm64 with Node 24.22.3 and Linux arm64 with Node 24.19.0
+   (the Mac's version). Node on macOS differs from Linux in the last bit of Math.log, atan, pow, log1p, log10, log2,
+   asinh, acosh, atanh, tan, atan2 / hypot (0.01-0.7% of 20000 inputs each; exp, sin, cos, sqrt, expm1, cbrt, sinh,
+   cosh, tanh, asin, acos agree): the system's libm. The differences: 6 ulp in the poisson limit, 1 ulp in the
+   round trip. The tests ask for exact equality; a tolerance of a few ulp would keep their meaning (for the user).
