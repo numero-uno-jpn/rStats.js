@@ -1157,3 +1157,15 @@ choices under several criteria).
    - REML near 0: meta's tau2 = 2.9e-6 where rStats.js's rma gives 0 (`tsmeta120-reml.R`): metafor's default stops
      at threshold 1e-5 approaching the boundary (threshold 1e-10 gives 6.9e-11, tau2.init 0 gives 0), so 0 is the
      maximum; the random part agrees to 1e-3 there and is compared so.
+
+98. `src/meta/metaother.ts` (metacont, metainc, metacor, metamean, metarate, metaprop with method "Inverse") against
+   the fixture's `other` section: exact (1e-9) with log 66-67, 69, plus:
+   - **metaprop PLN with n events: TE = the raw log(x/n) = 0, variance 1/x - 1/(n + 0.5)** (with 0 events both
+     incremented, as log 67).
+   - metainc IRR keeps a double-zero study (both events +0.5), unlike metabin.
+   - **metainc IRD with REML: meta's tau2 = 5.4e-7 where ours is 0** (`tsmeta120-reml2.R`): the study values are of
+     order 1e-3 (variances about 5e-6), and metafor's absolute threshold 1e-5 stops at once; with threshold 1e-12
+     R gives 2.5e-13, on the values times 1000 it gives 6.7e-13, and the REML log-likelihood at 0 (22.9953) is higher
+     than at meta's value (22.9185). R's tau2 matters there (10% of the study variances): a precision departure to
+     document (REML on effect measures of small scale). The random part is not compared when R's tau2 < 1e-5 and ours
+     is 0.

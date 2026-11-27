@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { metagen, pWeightedChisq, type MetaResult } from "../src/meta/metagen.js";
 import { metabin, type MetabinOptions } from "../src/meta/metabin.js";
+import { metacont, metacor, metainc, metamean, metaprop, metarate } from "../src/meta/metaother.js";
 import { symmetricEigen } from "../src/random/mvrnorm.js";
 import { qchisq } from "../src/distributions/chisq.js";
 
@@ -78,12 +79,12 @@ const TAU_INTERVAL = ["lower.tau2", "upper.tau2", "lower.tau", "upper.tau"];
 /** R's REML stops at threshold 1e-5 approaching tau2 = 0 (metafor's default; log 97): ours is the boundary itself. */
 const nearZeroReml = (m: MetaResult, r: any): boolean => m.methodTau === "REML" && m.tau2 === 0 && num(r.tau2) > 0 && num(r.tau2) < 1e-5;
 const RANDOM_FIELDS = ["TE.random", "seTE.random", "lower.random", "upper.random", "statistic.random", "pval.random", "seTE.predict", "lower.predict", "upper.predict", "tau2", "tau", "w.random"];
-/** Compare a meta result with R's: exact, except R's REML near 0 (the random part to 1e-3, tau = sqrt(tau2) not compared) and the tau2 interval. */
+/** Compare a meta result with R's: exact, except R's REML near 0 (the random part) and the tau2 interval. */
 export function compareMeta(m: MetaResult, r: any, label: string): string[] {
+  // near 0, R's tau2 is an artefact of the absolute stopping threshold (log 97-98: at a 1e-12 threshold, or the values
+  // rescaled, R gives 1e-13 and its log-likelihood is lower than at 0): the random part is not compared there
   const loose = nearZeroReml(m, r);
-  const bad = diffFields(m as unknown as Record<string, unknown>, r, 1e-9, [...TAU_INTERVAL, ...(loose ? RANDOM_FIELDS : [])]).map((b) => `${label} ${b}`);
-  if (loose) bad.push(...diffFields(m as unknown as Record<string, unknown>, Object.fromEntries(RANDOM_FIELDS.filter((f) => f !== "tau").map((f) => [f, r[f]])), 1e-3).map((b) => `${label} (near 0) ${b}`));
-  return bad;
+  return diffFields(m as unknown as Record<string, unknown>, r, 1e-9, [...TAU_INTERVAL, ...(loose ? RANDOM_FIELDS : [])]).map((b) => `${label} ${b}`);
 }
 
 describe("metabin", () => {
@@ -99,6 +100,28 @@ describe("metabin", () => {
         if (name.endsWith("if0all")) o.methodIncr = "if0all";
         if (name.endsWith("QnotCochrane")) o.QCochrane = false;
         bad.push(...compareMeta(metabin(vec(s.e1), vec(s.n1), vec(s.e2), vec(s.n2), o), r, name));
+      }
+      expect(bad).toEqual([]);
+    });
+  }
+});
+
+describe("metacont, metainc, metacor, metamean, metarate, metaprop (inverse variance)", () => {
+  const O = fx.other; const col = (d: any[], k: string): number[] => d.map((row) => num(row[k]));
+  const runs: [string, string, (k: string) => MetaResult][] = [
+    ["metacont", "", (k) => { const [sm, mt] = k.split(" "); const d = O.metacont.data; return metacont(col(d, "n1"), col(d, "m1"), col(d, "sd1"), col(d, "n2"), col(d, "m2"), col(d, "sd2"), { sm: sm as "MD", methodTau: mt as "REML" }); }],
+    ["metainc", "", (k) => { const [sm, me] = k.split(" "); const d = O.metainc.data; return metainc(col(d, "e1"), col(d, "t1"), col(d, "e2"), col(d, "t2"), { sm: sm as "IRR", method: me as "MH" }); }],
+    ["metacor", "", (k) => { const d = O.metacor.data; return metacor(col(d, "r"), col(d, "n"), { sm: k as "ZCOR" }); }],
+    ["metamean", "", (k) => { const d = O.metamean.data; return metamean(col(d, "n"), col(d, "mean"), col(d, "sd"), { sm: k as "MRAW" }); }],
+    ["metarate", "", (k) => { const d = O.metarate.data; return metarate(col(d, "e"), col(d, "t"), { sm: k as "IR" }); }],
+    ["metaprop", "", (k) => { const d = O.metaprop.data; return metaprop(col(d, "e"), col(d, "n"), { sm: k as "PLN" }); }],
+  ];
+  for (const [fn, , run] of runs) {
+    it(fn, () => {
+      const bad: string[] = [];
+      for (const [k, r] of Object.entries(O[fn].cases as Record<string, any>)) {
+        const m = run(k); bad.push(...compareMeta(m, r, k));
+        if (nearZeroReml(m, r)) expect(num(r.tau2), k).toBeLessThan(1e-5);
       }
       expect(bad).toEqual([]);
     });
