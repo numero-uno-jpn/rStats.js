@@ -166,9 +166,9 @@ describe("time series: degenerate and short series (log 107)", () => {
     expect(() => croston([0, 0, 3, 0])).toThrow(/two non-zero/);
     expect(() => tslm([9007], { frequency: 12 })).toThrow(/at least 2/);
   });
-  it("ets: a model asked for is fitted although its AICc is undefined; ZZZ does not choose such a model", () => {
+  it("ets on 12 = m values: the seasonal component dropped, as R's", () => {
     const x = y0.slice(0, 12);
-    expect(ets(x, { frequency: 12, model: "AAA", damped: false }).method).toBe("ETS(A,A,A)");
+    expect(ets(x, { frequency: 12, model: "AAA", damped: false }).method).toBe(R2.runs.len12.ets_AAA.method);
     expect(ets(x, { frequency: 12 }).method).toBe(R2.runs.len12.ets_ZZZ.method);
   });
   it("stlf on fewer than two periods: forecasts without a seasonal component (no NaN)", () => {
@@ -217,4 +217,27 @@ describe("time series: missing values and exact fits as R's (log 108, the user's
       expect(forecastFromArima(f, { h: 3 }).mean, nm).toEqual(r.mean);
     }
   });
+});
+
+describe("ets on short series as R's (log 108, the user's decision 2026-11-28)", () => {
+  const R5 = JSON.parse(readFileSync(new URL("../experiments/tsmeta120-tsedge5.json", import.meta.url), "utf8")) as Record<string, any>;
+  const g0 = [160.1, 129.7, 84.8, 120.1, 160.1, 124.9, 84.8, 116.9, 169.7, 140.9, 89.7, 123.3, 187.3, 144.1];
+  const opts: Record<string, Record<string, unknown>> = { ANN: { model: "ANN" }, AAN: { model: "AAN", damped: false }, AAdN: { model: "AAN", damped: true },
+    MNN: { model: "MNN" }, ZZZ: {}, AAA: { model: "AAA", damped: false }, ANA: { model: "ANA" }, MNM: { model: "MNM" } };
+  it("the model and whether it has a likelihood (n <= npars + 4: none), for n = 2..10 and the seasonal limits", () => {
+    for (const [sec, m, src] of [["nonseasonal", 1, y0], ["seasonal4", 4, g0], ["seasonal12", 12, y0]] as const) for (const [n, r] of Object.entries<any>(R5[sec])) for (const [k, rv] of Object.entries<any>(r)) {
+      if (k === "hw" || rv.error) continue;
+      if (sec === "seasonal12" && k === "ZZZ" && n === "26") continue; // rStats.js's ANA reaches a higher likelihood than R's and wins
+      const x = src.slice(0, +n);
+      // R's seasonal simple fits below 2m values have NA forecasts: an error here
+      if (m > 1 && +n < 2 * m && /,[AM]\)$/.test(rv.method) && rv.loglik === null) { expect(() => ets(x, { frequency: m, ...opts[k] }), `${sec} ${n} ${k}`).toThrow(/two seasonal periods/); continue; }
+      if (sec === "seasonal12" && k !== "ZZZ" && +n > 12) continue; // likelihood fits of 14-16 parameters: slow, covered above
+      const f = ets(x, { frequency: m, ...opts[k] });
+      expect(f.method, `${sec} ${n} ${k}`).toBe(rv.method);
+      expect(Number.isNaN(f.loglik), `${sec} ${n} ${k}`).toBe(rv.loglik === null);
+      // the forecasts of the simple fits: 1e-5 without a season, 1e-3 with one (three parameters: the optimisers stop
+      // at points 2e-4 apart at m = 4, n = 10)
+      if (rv.loglik === null && +n >= 3) forecastEts(f, { h: 2 }).mean.forEach((v, i) => expect(Math.abs(v / rv.mean[i] - 1), `${sec} ${n} ${k}`).toBeLessThan(m > 1 && f.spec.season !== "N" ? 1e-3 : 1e-5));
+    }
+  }, 600_000);
 });

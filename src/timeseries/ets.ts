@@ -243,7 +243,7 @@ function initialStates(y0: readonly number[], spec: EtsSpec): { l: number; b: nu
  * is forecast's initial = "simple" (its own Holt-Winters filter, log 91): alpha, beta* = beta / alpha and gamma in
  * [0, 1], no admissibility check.
  */
-export function fitModel(y: readonly number[], spec: EtsSpec, fixed: Partial<Record<"alpha" | "beta" | "gamma" | "phi", number>> = {}, fixedInit?: { l: number; b?: number; s?: number[] }, optCrit: "lik" | "mse" = "lik", bounds: "usual" | "simple" = "usual"): FitOut | null {
+export function fitModel(y: readonly number[], spec: EtsSpec, fixed: Partial<Record<"alpha" | "beta" | "gamma" | "phi", number>> = {}, fixedInit?: { l: number; b?: number; s?: number[] }, optCrit: "lik" | "mse" = "lik", bounds: "usual" | "simple" = "usual", start?: Partial<Record<"alpha" | "beta" | "gamma" | "phi", number>>): FitOut | null {
   const { trend, season, m } = spec; const n = y.length;
   const names: string[] = [];
   if (fixed.alpha === undefined) names.push("alpha");
@@ -288,7 +288,7 @@ export function fitModel(y: readonly number[], spec: EtsSpec, fixed: Partial<Rec
     return Number.isFinite(v) ? v : Infinity;
   };
   const u0: number[] = [];
-  for (const nm of names) u0.push(nm === "alpha" ? 0.5 : nm === "beta" ? 0.05 : nm === "gamma" ? 0.05 : 0.95);
+  for (const nm of names) u0.push(start?.[nm as "alpha"] ?? (nm === "alpha" ? 0.5 : nm === "beta" ? 0.05 : nm === "gamma" ? 0.05 : 0.95));
   if (!fixedInit) {
     const ib = init.b ?? 0, is = init.s ?? [];
     u0.push(init.l / scale); if (trend !== "N") u0.push(trend === "M" ? ib : ib / scale);
@@ -478,24 +478,63 @@ export function ets(y: readonly number[], options: EtsOptions = {}): EtsResult {
     if (!f) throw new Error("ets: no model able to be fitted");
     return unscaleFit(finish(zs, { ...f, nParams: Object.keys(start).length - Object.keys(fixed).length + 1 + (trend !== "N" ? 1 : 0) + (season !== "N" ? m0 - 1 : 0) }, nmse, null, false, zs), c, lambda, biasadj, x);
   }
-  let best: EtsResult | null = null; let bestIc = Infinity; const fits: EtsResult[] = [];
-  for (const error of errs) for (const trend of trends) for (const season of seasons) {
-    if (season !== "N" && !seasonal) continue;
-    if ((error === "M" || trend === "M" || season === "M") && !positive) continue;
-    if (restrict && ((error === "A" && (trend === "M" || season === "M")) || (error === "M" && trend === "M" && season === "A"))) continue;
-    const dampedSet = trend === "N" ? [false] : options.damped === undefined ? (model[1] === "Z" ? [true, false] : [false]) : [options.damped];
-    for (const damped of dampedSet) {
-      const spec: EtsSpec = { error, trend, damped, season, m: season === "N" ? 1 : m0 };
-      const f = fitModel(zs, spec, fixed, undefined, options.optCrit ?? "lik");
-      if (!f) continue;
-      // the criteria of the standardised fits differ from the original ones by the same constant 2 n log c
-      const r = finish(zs, f, nmse, null, false, zs);
-      const v = ic === "aic" ? r.aic : ic === "bic" ? r.bic : r.aicc; fits.push(r);
-      if (Number.isFinite(v) && v < bestIc) { bestIc = v; best = r; }
+  // short series as R's (log 107-108): with n <= m the seasonal component is dropped; a model with n <= npars + 4
+  // (npars = the smoothing parameters and the initial states) is not fitted by the likelihood but by the one-step
+  // squared errors from simple starting values (forecast's initial = "simple": l = y_1, b = y_2 - y_1; seasonal: the
+  // first two cycles), damping dropped, a seasonal model with an additive trend and the season's kind of error, a
+  // non-seasonal one with additive errors; its log-likelihood and criteria are NaN (R's NA). A seasonal model needs
+  // 2m values there (R's starting trend is NA below, and so are all its forecasts): an error instead. With letters Z
+  // the likelihood fits are compared; only when none has a criterion, the simple fits by their mean squared error
+  const n = zs.length; const zi = interpolated(zs);
+  const tried = new Set<string>(); const fits: { r: EtsResult; simple: boolean }[] = []; let firstError: Error | null = null;
+  let best: EtsResult | null = null; let bestIc = Infinity;
+  for (const error0 of errs) for (const trend0 of trends) for (const season0 of seasons) {
+    if (season0 !== "N" && !seasonal) continue;
+    if ((error0 === "M" || trend0 === "M" || season0 === "M") && !positive) continue;
+    if (restrict && ((error0 === "A" && (trend0 === "M" || season0 === "M")) || (error0 === "M" && trend0 === "M" && season0 === "A"))) continue;
+    const dampedSet = trend0 === "N" ? [false] : options.damped === undefined ? (model[1] === "Z" ? [true, false] : [false]) : [options.damped];
+    for (const damped0 of dampedSet) {
+      const season = n <= m0 ? "N" : season0; const m = season === "N" ? 1 : m0;
+      const nSmooth = 1 + (trend0 !== "N" ? 1 : 0) + (season !== "N" ? 1 : 0) + (damped0 ? 1 : 0)
+        - (["alpha", "beta", "gamma", "phi"] as const).filter((k) => fixed[k] !== undefined && (k === "alpha" || (k === "beta" && trend0 !== "N") || (k === "gamma" && season !== "N") || (k === "phi" && damped0))).length;
+      const npars = nSmooth + 1 + (trend0 !== "N" ? 1 : 0) + (season !== "N" ? m - 1 : 0);
+      const simple = n <= npars + 4;
+      const spec: EtsSpec = simple
+        ? { error: season === "N" ? "A" : (season as EtsError), trend: season !== "N" ? "A" : trend0, damped: false, season, m }
+        : { error: error0, trend: trend0, damped: damped0, season, m };
+      const key = `${spec.error}${spec.trend}${spec.damped}${spec.season}${simple}`; if (tried.has(key)) continue; tried.add(key);
+      let r: EtsResult;
+      if (simple) {
+        try {
+          if (season !== "N" && n < 2 * m) throw new RangeError(`ets: ${spec.error}${spec.trend}${spec.season} on ${n} values needs at least ${2 * m} (two seasonal periods)`);
+          if (spec.trend !== "N" && n < 2) throw new RangeError("ets: a trend needs at least two values");
+          const mean = (a: number[]): number => a.reduce((u, v) => u + v, 0) / a.length;
+          const init = season !== "N"
+            ? (() => { const l = mean(zi.slice(0, m)); const b = (mean(zi.slice(m, 2 * m)) - l) / m; return { l, b, s: zi.slice(0, m).map((v) => (season === "M" ? v / l : v - l)).reverse() }; })()
+            : { l: zi[0]!, ...(spec.trend === "A" ? { b: zi[1]! - zi[0]! } : spec.trend === "M" ? { b: zi[1]! / zi[0]! } : {}) };
+          // R's starting values (alpha 0.2 / m, beta 0.1 alpha, gamma 0.05 (1 - alpha)): where the squared errors do not
+          // depend on a parameter (n = 2) the fit stays there, as R's
+          const a0 = 0.2 / m; const f = fitModel(zs, spec, fixed, init, "mse", "simple", { alpha: a0, beta: 0.1 * a0, gamma: 0.05 * (1 - a0) });
+          if (!f) continue;
+          const fr = finish(zs, { ...f, nParams: npars }, nmse, null, false, zs);
+          r = { ...fr, loglik: NaN, aic: NaN, bic: NaN, aicc: NaN };
+        } catch (e) { firstError ??= e as Error; continue; }
+      } else {
+        const f = fitModel(zs, spec, fixed, undefined, options.optCrit ?? "lik");
+        if (!f) continue;
+        // the criteria of the standardised fits differ from the original ones by the same constant 2 n log c
+        r = finish(zs, f, nmse, null, false, zs);
+      }
+      fits.push({ r, simple });
+      const v = ic === "aic" ? r.aic : ic === "bic" ? r.bic : r.aicc;
+      if (!simple && Number.isFinite(v) && v < bestIc) { bestIc = v; best = r; }
     }
   }
-  // one model asked for: its fit, also when its AICc is undefined (Infinity)
-  if (!best && fits.length === 1) best = fits[0]!;
+  // one model asked for: its fit, also when its AICc is undefined (Infinity); otherwise the simple ANN (log 108)
+  if (!best && fits.length === 1) best = fits[0]!.r;
+  // among simple fits only: the smallest mean squared error, the first on ties (R's choices at n = 2..6, log 108)
+  if (!best) { let mse = Infinity; for (const f of fits) if (f.simple && f.r.mse < mse) { mse = f.r.mse; best = f.r; } }
+  if (!best && firstError) throw firstError;
   if (!best) throw new Error("ets: no model able to be fitted");
   return unscaleFit(best, c, lambda, biasadj, x);
 }

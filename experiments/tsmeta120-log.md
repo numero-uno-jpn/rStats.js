@@ -1440,3 +1440,17 @@ choices under several criteria).
      p) as R's. ANN reaches -628.3437110 (R -628.3437145), ZZZ the same ETS(A,N,A) at -552.548 (R -556.051: R's
      optimiser stops earlier), so the forecasts differ (ZZZ 3e-3, hw 2%, stlf 2e-4). The starting states use a linearly
      interpolated copy.
+   - **ets on short series** (the rules of 107, imitated): with n <= m the seasonal component is dropped; with n <=
+     npars + 4 the model is fitted by the one-step squared errors from simple starting values (l = y_1, b = y_2 - y_1;
+     seasonal: the first two cycles as hw(initial = "simple")) within [0, 1] (beta <= alpha), damping dropped, a
+     seasonal model with an additive trend and the season's kind of error, a non-seasonal one with additive errors;
+     log-likelihood and criteria NaN (R's NA). R's starting values alpha 0.2 / m, beta 0.1 alpha, gamma 0.05 (1 - alpha)
+     (R's fixed parameters below 2m values are these): at n = 2 the squared error does not depend on alpha and the fit
+     stays at 0.2, as R's (ANN 8826.8). With letters Z: the likelihood fits compared by the criterion; when none has
+     one, the simple fits by their mean squared error (R's choices at n = 2..6 and m = 4, n = 4 all explained: AAN
+     wins at n = 6 with MSE 4.54e5 against ANN's 4.93e5, ANN at 3..5). Against tsedge5 (149 cases): the same model and
+     the same NA / non-NA log-likelihood in all but 30 cases, 29 of them deliberate: R's seasonal simple fits below
+     2m values (n = 13..20 at m = 12, 5..7 at m = 4) have an NA trend start and NA forecasts, rStats.js an error
+     ("needs at least 2m (two seasonal periods)"); the last, ZZZ at n = 26 (m = 12), chooses ANA because rStats.js's
+     ANA reaches a higher likelihood than R's. The simple fits' forecasts equal R's to 1e-5 without a season (n = 3..8)
+     and to 2e-4 with one (m = 4, n = 10: three parameters, the optimisers stop at other points).

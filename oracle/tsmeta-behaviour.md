@@ -318,7 +318,9 @@ invariance (the same value after a change of scale or origin where theory says s
    R's rule was not imitated: auto.arima's reduced start orders for n < 10 (not found); stl's robustness weights on
    an exact fit (R's are finite through rounding noise; rStats.js compares the bisquare's limits without dividing by
    6 median |R| = 0); ets on a constant series (the model asked for at the starting parameters, sigma2 = 0); the
-   AICc of ets and auto.arima's candidates without a positive denominator is Infinity.
+   AICc of ets and auto.arima's candidates without a positive denominator is Infinity. ets's simple fits of a
+   seasonal model below 2m values (R: an NA starting trend and NA forecasts): an error (log 108). R's other rules for
+   short series are imitated (log 108).
 
 # Open points found during the implementation (for the user)
 
@@ -329,12 +331,6 @@ invariance (the same value after a change of scale or origin where theory says s
 
 - **Resolved (log 108, the user's decisions 2026-11-28):** missing values in ets / ses / holt / hw, kpss.test and
   mstl / stlf, auto.arima on exact fits and naive / rwf after a missing value now as R's.
-
-- **Short series in ets** (log 107; for the user; decided 2026-11-28: imitate R): R fits no likelihood when n <= npars + 4 (a Holt-Winters fit with
-  simple starting values, damping dropped, an additive trend added to seasonal models, fixed parameters when n < 2m)
-  and drops the seasonal component when n <= m. rStats.js now only refuses AICc's without a positive denominator; it
-  still fits such models by the likelihood when asked for one explicitly, and fails below four values. Imitate R's
-  simple fits, or refuse such models with a clear error?
 
 - **ets's time** (log 107): 20 s for ets(USAccDeaths) with ZZZ, 49 s on 24 values (the seasonal models 1-7 s each).
 
