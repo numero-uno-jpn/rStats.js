@@ -110,8 +110,13 @@
     fixture: oracle/forecastArima.R・stl.R・autoArima.R・ets.R。テスト 105 件が通る (autoArima は約 2 分)
   - **R との違い 7・8 を追加** (auto.arima の定数の印、ets の減衰トレンドの amse)。**ユーザーに相談する未解決 2 件**:
     ndiffs の PP (trend) (log 78-79)、nsdiffs の OCSB のラグの AIC 選択 (log 80)。仕様書の "Open points" 節
-  - **次:** stats の filter・Box.test・diffinv・decompose・ar・arima0・HoltWinters → forecast の簡単な手法と小関数、
-    na.interp・tsoutliers・tsclean → tseries → メタ分析 → 端のケースの点検 → 配線・文書・訳・デモ → 版 1.20.0。
+  - **実装済み・テスト済み:** statsTs.ts (filter・boxTest・diffinv・decompose・ar・predictAr・arima0)、holtWinters.ts。42 件通過。
+    arima0 は厳密尤度 (R の既定 delta = 0.01 の近似は未解決、log 84、相談事項)
+  - **書いたが未テスト (WIP コミット):** forecastSimple.ts (meanf・rwf・naive・snaive・ses・holt・hw・thetaf・croston・stlf・tslm)、
+    forecastUtils.ts (accuracy・ma・fourier・seasonaldummy・monthdays・easter・bizdays・dmTest・cvLm・checkresiduals・tsCV・
+    arimaorder・specAr・findfrequency・naInterp・tsoutliers・tsclean)。ets に optCrit "mse" を追加
+  - **次:** 上の 2 ファイルの oracle (oracle/forecastSimple.R) とテストを書いて合わせる → tseries → forecast() の振り分け → メタ分析
+  - 関数名 `filter` (Choice 1 の "tsFilter?") はユーザーに確認 → 端のケースの点検 → 配線・文書・訳・デモ → 版 1.20.0。
     実装で新たに要るもの: rma の GENQ、supsmu、R の乱数に依る white.test、ocsb の臨界値の表、Phillips-Ouliaris の表、bizdays の暦 (ndiffs・nsdiffs・ocsb・auto.arima・ets・ses/holt/hw・thetaf・croston・BoxCox.lambda・mstl・
     tsclean・tsoutliers・na.interp・accuracy・dm.test・tsCV など)、その後メタ分析
 

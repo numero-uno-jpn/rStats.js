@@ -111,6 +111,12 @@ function etsLik(y: readonly number[], spec: EtsSpec, par: EtsParameters, sbuf: F
   return n * Math.log(sse) + (error === "M" ? 2 * sumLogMu : 0);
 }
 
+function etsMse(y: readonly number[], spec: EtsSpec, par: EtsParameters): number {
+  const f = etsFilter(y, spec, par); let s = 0;
+  for (let t = 0; t < y.length; t++) s += (y[t]! - f.mu[t]!) ** 2;
+  return s / y.length;
+}
+
 /** The zero-error point forecasts from a state row (l, b, s1..sm), h = 1..H. */
 function zeroErrorPath(spec: EtsSpec, par: EtsParameters, state: readonly number[], H: number): number[] {
   const { trend, season, m } = spec; const ph = spec.damped ? par.phi ?? 1 : 1;
@@ -191,7 +197,7 @@ function initialStates(y: readonly number[], spec: EtsSpec): { l: number; b: num
 }
 
 /** Fits one model by minimising lik (= -2 loglik) within the usual bounds and the admissible region. */
-export function fitModel(y: readonly number[], spec: EtsSpec, fixed: Partial<Record<"alpha" | "beta" | "gamma" | "phi", number>> = {}, fixedInit?: { l: number; b?: number; s?: number[] }): FitOut | null {
+export function fitModel(y: readonly number[], spec: EtsSpec, fixed: Partial<Record<"alpha" | "beta" | "gamma" | "phi", number>> = {}, fixedInit?: { l: number; b?: number; s?: number[] }, optCrit: "lik" | "mse" = "lik"): FitOut | null {
   const { trend, season, m } = spec; const n = y.length;
   const names: string[] = [];
   if (fixed.alpha === undefined) names.push("alpha");
@@ -223,7 +229,8 @@ export function fitModel(y: readonly number[], spec: EtsSpec, fixed: Partial<Rec
     if (!admissible(spec, al, be, ga, ph)) return Infinity;
     if (season === "M" && fullSeason(spec, p.s ?? []).some((v) => !(v > 0))) return Infinity;
     if (trend === "M" && !((p.b ?? 1) > 0)) return Infinity;
-    const v = etsLik(y, spec, p, sbuf);
+    // "mse": the mean squared one-step error y - mu (forecast's opt.crit = "mse", used by thetaf's ses)
+    const v = optCrit === "mse" ? etsMse(y, spec, p) : etsLik(y, spec, p, sbuf);
     return Number.isFinite(v) ? v : Infinity;
   };
   const u0: number[] = [];
@@ -275,6 +282,8 @@ export interface EtsOptions {
   lambda?: number;
   biasadj?: boolean;
   nmse?: number;
+  /** The estimation criterion: the likelihood (default) or the mean squared one-step error. */
+  optCrit?: "lik" | "mse";
 }
 
 /** Result of {@link ets}. */
@@ -347,7 +356,7 @@ export function ets(y: readonly number[], options: EtsOptions = {}): EtsResult {
     const dampedSet = trend === "N" ? [false] : options.damped === undefined ? (model[1] === "Z" ? [true, false] : [false]) : [options.damped];
     for (const damped of dampedSet) {
       const spec: EtsSpec = { error, trend, damped, season, m: season === "N" ? 1 : m0 };
-      const f = fitModel(z, spec, fixed);
+      const f = fitModel(z, spec, fixed, undefined, options.optCrit ?? "lik");
       if (!f) continue;
       const r = finish(z, f, nmse, lambda, biasadj, x);
       const v = ic === "aic" ? r.aic : ic === "bic" ? r.bic : r.aicc;
@@ -359,8 +368,8 @@ export function ets(y: readonly number[], options: EtsOptions = {}): EtsResult {
 }
 
 /** Fits a given model with given smoothing parameters and initial states (no estimation): for ses/holt/hw "simple". */
-export function etsFixedInitial(y: readonly number[], spec: EtsSpec, init: { l: number; b?: number; s?: number[] }, fixed: Partial<Record<"alpha" | "beta" | "gamma" | "phi", number>> = {}): EtsResult {
-  const f = fitModel(y, spec, fixed, init);
+export function etsFixedInitial(y: readonly number[], spec: EtsSpec, init: { l: number; b?: number; s?: number[] }, fixed: Partial<Record<"alpha" | "beta" | "gamma" | "phi", number>> = {}, optCrit: "lik" | "mse" = "lik"): EtsResult {
+  const f = fitModel(y, spec, fixed, init, optCrit);
   if (!f) throw new Error("ets: the model could not be fitted");
   return finish(y, f, 3, null, false, y.slice());
 }
