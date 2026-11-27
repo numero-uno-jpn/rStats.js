@@ -632,22 +632,22 @@
   "bizdays#summary": {
     "hash": "9d793124be71",
     "en": "Trading days in each month or quarter (forecast's `bizdays()`): weekdays minus the holidays of the financial centre\n(\"New York\" (NYSE, default), \"London\", \"NERC\", \"Toronto\", \"Zurich\"; the rules of log 30-32).\nEquivalent to `forecast::bizdays()` in R.",
-    "ja": ""
+    "ja": "各月または四半期の営業日数です (forecast の `bizdays()`): 金融センターの祝日を除いた平日です (\"New York\" (NYSE、既定)、\"London\"、\"NERC\"、\"Toronto\"、\"Zurich\"。規則は log 30-32)。\nR の `forecast::bizdays()` と同等です。"
   },
   "boxCox#summary": {
     "hash": "301b88693980",
     "en": "The Box-Cox transformation: log(x) for lambda = 0, (sign(x) |x|^lambda - 1) / lambda otherwise. Equivalent to\n`forecast::BoxCox()` in R.",
-    "ja": ""
+    "ja": "Box-Cox 変換です。lambda = 0 の場合は log(x)、それ以外の場合は (sign(x) |x|^lambda - 1) / lambda です。\nR の `forecast::BoxCox()` と同等です。"
   },
   "boxCoxLambda#summary": {
     "hash": "066b17582af1",
     "en": "Chooses the Box-Cox lambda by Guerrero's method (default) or the profile log-likelihood. Equivalent to\n`forecast::BoxCox.lambda()` in R.",
-    "ja": ""
+    "ja": "Guerrero の方法 (既定) またはプロファイル対数尤度によって Box-Cox の lambda を選択します。\nR の `forecast::BoxCox.lambda()` と同等です。"
   },
   "boxTest#summary": {
     "hash": "4c39815c3837",
     "en": "Box-Pierce or Ljung-Box test of white noise (stats' `Box.test()`): r_k the autocorrelations (mean removed, divided by\nn), Q = n sum r_k^2 or n (n + 2) sum r_k^2 / (n - k), chi-squared on lag - fitdf degrees of freedom.\nEquivalent to R's `Box.test()`.",
-    "ja": ""
+    "ja": "ホワイトノイズに対する Box-Pierce 検定または Ljung-Box 検定です (stats の `Box.test()`): r_k は自己相関 (平均を除き、n で除算)、Q = n sum r_k^2 または n (n + 2) sum r_k^2 / (n - k) です。自由度 lag - fitdf のカイ二乗分布を使用します。\nR の `Box.test()` と同等です。"
   },
   "ccf#summary": {
     "hash": "54ffa675f482",
@@ -657,72 +657,72 @@
   "checkresiduals#summary": {
     "hash": "d56d20d0bd24",
     "en": "The Ljung-Box test of a model's residuals (forecast's `checkresiduals()`, without the plots): lag = min(2m, n/5) for\nseasonal data or min(10, n/5), at least df + 3, df = the number of ARMA coefficients (0 for plain residuals).\nEquivalent to `forecast::checkresiduals()` in R.",
-    "ja": ""
+    "ja": "モデルの残差に対する Ljung-Box 検定です (forecast の `checkresiduals()`。プロットなし)。季節データでは lag = min(2m, n/5)、それ以外では min(10, n/5) とし、少なくとも df + 3 とします。df は ARMA 係数の数です (通常の残差では 0)。\nR の `forecast::checkresiduals()` と同等です。"
   },
   "croston#summary": {
     "hash": "6e0752a2f9f7",
     "en": "Croston's method for intermittent demand (forecast's `croston()`): SES with alpha on the non-zero demands and on the\nintervals between them (counted from time 0), each started at its first value; forecast k z / p with k = 1 (croston),\n1 - alpha/2 (sba) or 1 - alpha/(2 - alpha) (sbj). No intervals. Departs from R when the last observation is a\ndemand: R's forecast is the state before it (the last fitted value, the last observation unused; log 91), rStats.js\nforecasts from the state after it.\nEquivalent to `forecast::croston()` in R.",
-    "ja": ""
+    "ja": "間欠需要に対する Croston 法です (forecast の `croston()`): 非ゼロ需要と需要間隔 (時点 0 から数えます) にそれぞれ alpha を用いた SES を適用し、各系列は最初の値から開始します。予測値は k z / p で、k = 1 (croston)、1 - alpha/2 (sba)、または 1 - alpha/(2 - alpha) (sbj) です。区間はありません。最後の観測値が需要の場合は R と異なります。R の予測はその観測値の前の状態 (最後の当てはめ値であり、最後の観測値は未使用。log 91) ですが、rStats.js はその観測値の後の状態から予測します。\nR の `forecast::croston()` と同等です。"
   },
   "cvLm#summary": {
     "hash": "0a9ebf22d239",
     "en": "Cross-validation and information criteria of a linear model (forecast's `CV()`): CV = mean((e / (1 - h_ii))^2), AIC =\nn log(SSE/n) + 2(k + 2), AICc, BIC, adjusted R^2 (k = the number of predictors).\nEquivalent to `forecast::CV()` in R.",
-    "ja": ""
+    "ja": "線形モデルの交差検証と情報量規準です (forecast の `CV()`): CV = mean((e / (1 - h_ii))^2)、AIC = n log(SSE/n) + 2(k + 2)、AICc、BIC、調整済み R^2 です (k は説明変数の数)。\nR の `forecast::CV()` と同等です。"
   },
   "decompose#summary": {
     "hash": "f709008c8efd",
     "en": "Classical seasonal decomposition by moving averages (stats' `decompose()`). `start` is the position (1..frequency)\nof the first observation in the cycle; `figure` starts at that position, as R's.\nEquivalent to R's `decompose()`.",
-    "ja": ""
+    "ja": "移動平均による古典的な季節分解です (stats の `decompose()`)。`start` は周期内の最初の観測値の位置 (1..frequency) です。`figure` は R と同じくその位置から始まります。\nR の `decompose()` と同等です。"
   },
   "diffinv#summary": {
     "hash": "6e314d8bf868",
     "en": "The inverse of differencing (stats' `diffinv()`): the cumulative sums at the given lag, repeated `differences`\ntimes, starting from `xi` (zeros by default).\nEquivalent to R's `diffinv()`.",
-    "ja": ""
+    "ja": "差分の逆演算です (stats の `diffinv()`): 指定されたラグでの累積和を `differences` 回繰り返します。`xi` (既定では 0) から開始します。\nR の `diffinv()` と同等です。"
   },
   "dmTest#summary": {
     "hash": "43bd9fce5c99",
     "en": "The Diebold-Mariano test with the Harvey-Leybourne-Newbold correction (forecast's `dm.test()`): d = |e1|^power -\n|e2|^power, its variance from the autocovariances up to h - 1 (over n), t(n - 1).\nEquivalent to `forecast::dm.test()` in R.",
-    "ja": ""
+    "ja": "Harvey-Leybourne-Newbold 補正を伴う Diebold-Mariano 検定です (forecast の `dm.test()`): d = |e1|^power - |e2|^power とし、その分散は n で除した h - 1 までの自己共分散から求めます。t(n - 1) を使用します。\nR の `forecast::dm.test()` と同等です。"
   },
   "easter#summary": {
     "hash": "c90ee5aef50f",
     "en": "The Easter holidays in each month or quarter (forecast's `easter()`): the share of Good Friday .. Easter Sunday (..\nMonday with `easterMon`) falling in the period, rounded to two decimals (as R). Departs from R for quarterly data\nwith `easterMon` when the holidays span two quarters: R's shares are shifted there (it warns about a replacement\nlength; log 91), rStats.js gives each quarter its share.\nEquivalent to `forecast::easter()` in R.",
-    "ja": ""
+    "ja": "各月または四半期におけるイースター休暇の日数割合です (forecast の `easter()`): Good Friday から Easter Sunday ( `easterMon` の場合は月曜日) までのうち、その期間に含まれる割合を小数第 2 位に丸めます (R と同じ)。`easterMon` を指定し、祝日が 2 つの四半期にまたがる四半期データでは R と異なります。R の割合はずれてしまいます (置換する長さについて警告します。log 91)。rStats.js は各四半期にそれぞれの割合を割り当てます。\nR の `forecast::easter()` と同等です。"
   },
   "easterSunday#summary": {
     "hash": "531409c145da",
     "en": "Easter Sunday of year Y (anonymous Gregorian algorithm) as [month, day]. Not an R function.",
-    "ja": ""
+    "ja": "年 Y のイースターの日曜日を [月, 日] として返します (匿名のグレゴリオ暦アルゴリズム)。R の関数ではありません。"
   },
   "ets#summary": {
     "hash": "bd3d7e7f7a02",
     "en": "Exponential smoothing state space model (forecast's `ets()`): one model, or the smallest information criterion\namong the allowed models for the letters given as \"Z\". The parameters are estimated to the optimum of the\nlikelihood within the usual bounds and the admissible region (R's optimiser can stop earlier).\nEquivalent to `forecast::ets()` in R.",
-    "ja": ""
+    "ja": "指数平滑状態空間モデルです (forecast の `ets()`): 1 つのモデル、または \"Z\" で指定された文字に許されるモデルのうち、情報量規準が最小のモデルを選択します。通常の境界条件と許容領域の範囲内で、尤度が最適になるまでパラメータを推定します (R の最適化アルゴリズムではより早く停止する場合があります)。\nR の `forecast::ets()` と同等です。"
   },
   "findfrequency#summary": {
     "hash": "26aaf820082a",
     "en": "The dominant period of a series (forecast's `findfrequency()`): 1 unless the maximum of the AR spectrum of the\ndetrended series exceeds 10; then round(1 / f) at the maximum, or, when the maximum is at the lowest frequency, at\nthe largest value after the spectrum first rises (1 if that is the last frequency).\nEquivalent to `forecast::findfrequency()` in R.",
-    "ja": ""
+    "ja": "系列の卓越周期です (forecast の `findfrequency()`): トレンド除去後の系列の AR スペクトルの最大値が 10 を超えなければ 1 です。超える場合は、その最大位置の f に対して round(1 / f) とします。最大値が最低周波数にある場合は、スペクトルが最初に上昇した後の最大値の位置を使います (それが最後の周波数なら 1)。\nR の `forecast::findfrequency()` と同等です。"
   },
   "forecast#summary": {
     "hash": "1a54c9535625",
     "en": "Forecasts from a series or a fitted model (forecast's `forecast()`):\n- a series (`frequency` in the options): ets, or stlf when the period is 13 or more and the series is longer than\n  two periods (forecast's help; log 93);\n- an {@link ets} fit, a {@link forecastArima} / {@link autoArima} fit, a stats {@link arima} fit (with its MLE\n  innovations variance), an {@link stlm} fit, a {@link holtWinters} fit (stats' prediction intervals) or an\n  {@link ar} fit (normal intervals from the prediction standard errors).\n`h` defaults to twice the period for seasonal data, else 10.\nEquivalent to `forecast::forecast()` in R.",
-    "ja": ""
+    "ja": "系列または当てはめ済みモデルから予測します (forecast の `forecast()`):\n- 系列 (`frequency` はオプションで指定): ets、または周期が 13 以上で系列が 2 周期より長い場合は stlf (forecast のヘルプ。log 93)。\n- {@link ets} の当てはめ、{@link forecastArima} / {@link autoArima} の当てはめ、stats の {@link arima} の当てはめ (イノベーション分散は最尤推定値)、{@link stlm} の当てはめ、{@link holtWinters} の当てはめ (stats の予測区間)、または {@link ar} の当てはめ (予測標準誤差に基づく正規区間)。\n季節データでは `h` の既定値は周期の 2 倍、それ以外では 10 です。\nR の `forecast::forecast()` と同等です。"
   },
   "forecastArima#summary": {
     "hash": "a1caeeafad12",
     "en": "Fits an ARIMA model as forecast's `Arima()`: stats' arima on the Box-Cox transformed series, with a drift, and\nforecast's innovations variance, AICc and BIC.\nEquivalent to `forecast::Arima()` in R.",
-    "ja": ""
+    "ja": "forecast の `Arima()` と同様に ARIMA モデルを当てはめます。Box-Cox 変換した系列に stats の arima を適用し、ドリフト、forecast のイノベーション分散、AICc、BIC を含みます。\nR の `forecast::Arima()` と同等です。"
   },
   "forecastEts#summary": {
     "hash": "17d3708463a7",
     "en": "Point forecasts and prediction intervals from an {@link ets} fit (forecast's `forecast.ets()`): the analytic\nvariances of classes 1 and 2, the exact moments of class 3 (MNM, MAM, MAdM), and simulation otherwise (npaths\npaths with rStats.js's R-compatible generator, seeded by `seed`). Two departures from R's forecast.ets (the\nmodel's formulas are used): damped class 3 forecasts use l + phi b at h = 1, and ANA / MNA put the seasonal term\nof c_j at j mod m = 0.\nEquivalent to `forecast::forecast()` in R.",
-    "ja": ""
+    "ja": "{@link ets} の当てはめから点予測と予測区間を求めます (forecast の `forecast.ets()`): クラス 1 と 2 では解析的な分散、クラス 3 (MNM、MAM、MAdM) では正確なモーメント、それ以外ではシミュレーションを使用します (`npaths` 個の経路を rStats.js の R 互換乱数生成器で生成し、`seed` で初期化します)。R の forecast.ets とは 2 点で異なります (モデルの式を使用します): 減衰したクラス 3 の予測では h = 1 において l + phi b を使用し、ANA / MNA では c_j の季節項を j mod m = 0 に配置します。\nR の `forecast::forecast()` と同等です。"
   },
   "forecastFromArima#summary": {
     "hash": "042399093972",
     "en": "Point forecasts and prediction intervals from a {@link forecastArima} fit (forecast's `forecast.Arima()`).\nEquivalent to `forecast::forecast()` in R.",
-    "ja": ""
+    "ja": "{@link forecastArima} の当てはめから点予測と予測区間を求めます (forecast の `forecast.Arima()`)。\nR の `forecast::forecast()` と同等です。"
   },
   "forecastStlm#summary": {
     "hash": "ec2aca7e02e1",
