@@ -1179,3 +1179,15 @@ choices under several criteria).
    minimises the exact AGQ deviance and lme4 an approximation (test/glmerAgq.test.ts), so lme4's deviance values are
    not comparable (ours 1.8390843 against lme4's 1.8385860 at different points; started at lme4's estimates our fit
    returns to its own optimum).
+
+100. `src/meta/metaextra.ts` (metaSubgroup, metabias, metareg, metainf, metacum, baujat, trimfill) against the
+   fixture's `extra` section (BCG with alloc as subgroup and |ablat| as moderator; Fleiss and the zero-cell set for
+   Harbord and Peters): exact (1e-9) with log 68-70, plus:
+   - **tau.common = TRUE: the within-subgroup tau2 = that of rma with the subgroup as a factor; the overall estimates
+     are unchanged; Q.w.random is then reported and equals Q.w.common.** The subgroup levels are in order of
+     appearance. metabin's MH subgroups refit MH within each subgroup.
+   - **trimfill's side: "left" when the FE regression of TE on seTE has a negative slope** (my first rule was the
+     reverse: k0 = 0 against R's 4; with the side switched, k0 = 4 and 3 and every value exact).
+   - **metainf and metacum return only the per-study results** (the overall estimate is not appended); metacum's tau2
+     is NA for the first (one-study) step.
+   - baujat: x = w (TE - TE.common)^2, y = (TE.common - TE.common without the study)^2 times the weight sum without it.

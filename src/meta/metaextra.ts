@@ -1,0 +1,236 @@
+// meta's subgroup analysis, metabias (Egger, Begg, Thompson, Harbord, Peters), trimfill, metareg, metainf, metacum
+// and baujat. Written for rStats.js from the behaviour specification oracle/tsmeta-behaviour.md ("Subgroups, bias,
+// trim-and-fill, regression, influence") with the details found in experiments/tsmeta120-log.md (items 68-70, 100).
+// No R or package source was read.
+
+import { pchisq } from "../distributions/chisq.js";
+import { pnorm } from "../distributions/normal.js";
+import { pt1 } from "../distributions/t.js";
+import { lm } from "../models/lm.js";
+import { rma, type MetaMethod, type RmaResult } from "../models/metaAnalysis.js";
+import { metaCore, type MetaCommonOptions, type MetaResult } from "./metagen.js";
+
+const sum = (v: readonly number[]): number => v.reduce((a, b) => a + b, 0);
+const finiteIdx = (m: MetaResult): number[] => m.TE.map((t, i) => (Number.isFinite(t) && Number.isFinite(m.seTE[i]!) && m.seTE[i]! > 0 ? i : -1)).filter((i) => i >= 0);
+/** Q of estimates about their inverse-variance mean. */
+const qOf = (te: readonly number[], se: readonly number[]): number => {
+  const w = se.map((s) => 1 / (s * s)); const mu = sum(w.map((wi, i) => wi * te[i]!)) / sum(w);
+  return sum(w.map((wi, i) => wi * (te[i]! - mu) ** 2));
+};
+
+/** The result of {@link metaSubgroup}. */
+export interface MetaSubgroupResult {
+  levels: string[];
+  "TE.common.w": number[]; "seTE.common.w": number[]; "TE.random.w": number[]; "seTE.random.w": number[];
+  "tau2.w": number[]; "Q.w": number[]; "k.w": number[];
+  "Q.w.common": number;
+  /** With `tauCommon`: equal to Q.w.common (as meta); otherwise absent. */
+  "Q.w.random"?: number;
+  "Q.b.common": number; "Q.b.random": number; "df.Q.b": number; "df.Q.w": number;
+  "pval.Q.b.common": number; "pval.Q.b.random": number;
+  /** The overall tau2 and random effect (of `overall`). */
+  tau2: number; "TE.random": number; "seTE.random": number;
+}
+
+/**
+ * Subgroup analysis (meta's `subgroup` argument): `refit(rows)` fits the same meta-analysis to the given study rows
+ * (for example `(r) => metabin(pick(e1, r), ...)`). Within each subgroup the common and random effects; Q.b = Q of the
+ * subgroup estimates with weights 1/se^2 (common and random), Q.w = the within-subgroup Q. With `tauCommon`, one tau2
+ * for all subgroups: that of the meta-regression on the subgroup (rma with the subgroup as a factor); the overall
+ * estimates stay those of `overall`.
+ *
+ * @category Meta-analysis
+ */
+export function metaSubgroup(overall: MetaResult, subgroup: readonly (string | number)[], refit: (rows: number[]) => MetaResult, options: MetaCommonOptions & { tauCommon?: boolean } = {}): MetaSubgroupResult {
+  if (subgroup.length !== overall.TE.length) throw new RangeError("metaSubgroup: one subgroup per study");
+  const ok = new Set(finiteIdx(overall));
+  const levels: string[] = []; for (const [i, g] of subgroup.entries()) if (ok.has(i) && !levels.includes(String(g))) levels.push(String(g));
+  let tau2Common: number | undefined;
+  if (options.tauCommon) {
+    const idx = [...ok].sort((a, b) => a - b);
+    const mods = idx.map((i) => levels.slice(1).map((l) => (String(subgroup[i]) === l ? 1 : 0)));
+    tau2Common = rma(idx.map((i) => overall.TE[i]!), idx.map((i) => overall.seTE[i]! ** 2), { method: (options.methodTau ?? "REML") as MetaMethod, mods }).tau2;
+  }
+  const fits = levels.map((l) => {
+    const f = refit(subgroup.map((g, i) => (String(g) === l && ok.has(i) ? i : -1)).filter((i) => i >= 0));
+    if (tau2Common === undefined) return f;
+    // the random part with the common tau2
+    const j = finiteIdx(f); const r = metaCore(j.map((i) => f.TE[i]!), j.map((i) => f.seTE[i]!), { ...options, fixedTau2: tau2Common });
+    return { ...f, "TE.random": r["TE.random"], "seTE.random": r["seTE.random"], tau2: tau2Common };
+  });
+  const teC = fits.map((f) => f["TE.common"]), seC = fits.map((f) => f["seTE.common"]), teR = fits.map((f) => f["TE.random"]), seR = fits.map((f) => f["seTE.random"]);
+  const qbC = qOf(teC, seC), qbR = qOf(teR, seR); const df = levels.length - 1;
+  // the overall estimates are not affected by tauCommon (as meta)
+  const overallR = { tau2: overall.tau2, te: overall["TE.random"], se: overall["seTE.random"] };
+  return {
+    levels, "TE.common.w": teC, "seTE.common.w": seC, "TE.random.w": teR, "seTE.random.w": seR, "tau2.w": fits.map((f) => f.tau2), "Q.w": fits.map((f) => f.Q as number), "k.w": fits.map((f) => f.k),
+    "Q.w.common": sum(fits.map((f) => f.Q as number)), "Q.b.common": qbC, "Q.b.random": qbR, "df.Q.b": df, "df.Q.w": sum(fits.map((f) => f.k - 1)),
+    "pval.Q.b.common": pchisq(qbC, df, { lowerTail: false }) as number, "pval.Q.b.random": pchisq(qbR, df, { lowerTail: false }) as number,
+    tau2: overallR.tau2, "TE.random": overallR.te, "seTE.random": overallR.se,
+    ...(tau2Common !== undefined ? { "Q.w.random": sum(fits.map((f) => f.Q as number)) } : {}),
+  };
+}
+
+/** A test for funnel plot asymmetry from {@link metabias}. */
+export interface MetabiasResult { statistic: number; df: number | null; pValue: number; estimate: [number, number]; method: string }
+
+/** The t test of coefficient j of a weighted least squares fit. */
+function lmT(X: number[][], y: number[], j: number, weights?: number[]): { est: number; se: number; t: number; df: number } {
+  const f = lm(X, y, weights ? { weights } : {});
+  return { est: f.coefficients[j]!, se: f.coefTable.stdError[j]!, t: f.coefTable.tValue[j]!, df: f.dfResidual };
+}
+
+/**
+ * Tests for funnel plot asymmetry (meta's `metabias()`): "Egger" (default for continuous outcomes: the intercept of
+ * TE/seTE on 1/seTE, t on k - 2), "Begg" (Kendall's S of the standardised deviations against the variances, no
+ * continuity correction), "Thompson" (Thompson-Sharp: the REML meta-regression on seTE, its z with t(k - 2) p),
+ * "Harbord" (binary: lm(Z/sqrt(V) ~ sqrt(V)) with Z = O - E and V the hypergeometric variance) and "Peters" (binary:
+ * lm(TE ~ 1/N) with weights 1/(1/(a + c) + 1/(b + d))). Harbord and Peters need the 2 x 2 counts (`counts`).
+ *
+ * @category Meta-analysis
+ */
+export function metabias(m: MetaResult, options: { method?: "Egger" | "Begg" | "Thompson" | "Harbord" | "Peters"; counts?: { e1: readonly number[]; n1: readonly number[]; e2: readonly number[]; n2: readonly number[] } } = {}): MetabiasResult {
+  const method = options.method ?? "Egger"; const idx = finiteIdx(m); const k = idx.length;
+  if (k < 3) throw new RangeError("metabias: at least three studies");
+  const te = idx.map((i) => m.TE[i]!), se = idx.map((i) => m.seTE[i]!);
+  if (method === "Egger") {
+    const r = lmT(se.map((s) => [1 / s]), te.map((t, j) => t / se[j]!), 0);
+    return { statistic: r.t, df: r.df, pValue: 2 * pt1(-Math.abs(r.t), r.df, true, false), estimate: [r.est, r.se], method: "Linear regression test of funnel plot asymmetry" };
+  }
+  if (method === "Begg") {
+    const wC = se.map((s) => 1 / (s * s)); const teC = sum(wC.map((w, j) => w * te[j]!)) / sum(wC); const vC = 1 / sum(wC);
+    const z = te.map((t, j) => (t - teC) / Math.sqrt(se[j]! ** 2 - vC)); const v = se.map((s) => s * s);
+    let S = 0; for (let i = 0; i < k; i++) for (let j = i + 1; j < k; j++) S += Math.sign(z[i]! - z[j]!) * Math.sign(v[i]! - v[j]!);
+    const sd = Math.sqrt((k * (k - 1) * (2 * k + 5)) / 18); const st = S / sd;
+    return { statistic: st, df: null, pValue: 2 * (pnorm(-Math.abs(st)) as number), estimate: [S, sd], method: "Rank correlation test of funnel plot asymmetry" };
+  }
+  if (method === "Thompson") {
+    const f = rma(te, se.map((s) => s * s), { method: "REML", mods: se.map((s) => [s]) });
+    const b = (f.beta.rows as number[][])[1]![0]!; const sb = (f.se as number[])[1]!; const zv = b / sb;
+    return { statistic: zv, df: k - 2, pValue: 2 * pt1(-Math.abs(zv), k - 2, true, false), estimate: [b, sb], method: "Linear regression test of funnel plot asymmetry (methods of moment)" };
+  }
+  const c = options.counts; if (!c) throw new RangeError(`metabias: method '${method}' needs the 2 x 2 counts`);
+  const a = idx.map((i) => c.e1[i]!), b = idx.map((i) => c.n1[i]! - c.e1[i]!), cc = idx.map((i) => c.e2[i]!), d = idx.map((i) => c.n2[i]! - c.e2[i]!);
+  if (method === "Harbord") {
+    const N = a.map((x, j) => x + b[j]! + cc[j]! + d[j]!); const n1 = a.map((x, j) => x + b[j]!), m1 = a.map((x, j) => x + cc[j]!);
+    const Z = a.map((x, j) => x - (n1[j]! * m1[j]!) / N[j]!); const V = N.map((n, j) => (n1[j]! * (n - n1[j]!) * m1[j]! * (n - m1[j]!)) / (n * n * (n - 1)));
+    const r = lmT(V.map((v) => [Math.sqrt(v)]), Z.map((z, j) => z / Math.sqrt(V[j]!)), 0);
+    return { statistic: r.t, df: r.df, pValue: 2 * pt1(-Math.abs(r.t), r.df, true, false), estimate: [r.est, r.se], method: "Linear regression test of funnel plot asymmetry (efficient score)" };
+  }
+  const N = a.map((x, j) => x + b[j]! + cc[j]! + d[j]!);
+  const w = a.map((x, j) => 1 / (1 / (x + cc[j]!) + 1 / (b[j]! + d[j]!)));
+  const r = lmT(N.map((n) => [1 / n]), te, 1, w);
+  return { statistic: r.t, df: r.df, pValue: 2 * pt1(-Math.abs(r.t), r.df, true, false), estimate: [r.est, r.se], method: "Linear regression test of funnel plot asymmetry (based on sample size)" };
+}
+
+/**
+ * Meta-regression (meta's `metareg()`): rma(TE, seTE^2, mods, method = the meta-analysis's tau2 method) on the studies
+ * with finite values. `mods` has one row per study (all studies, as given to the meta function).
+ *
+ * @category Meta-analysis
+ */
+export function metareg(m: MetaResult, mods: readonly (readonly number[])[]): RmaResult {
+  const idx = finiteIdx(m);
+  return rma(idx.map((i) => m.TE[i]!), idx.map((i) => m.seTE[i]! ** 2), { method: m.methodTau as MetaMethod, mods: idx.map((i) => [...mods[i]!]), ...(m.methodRandomCi === "HK" ? { test: "knha" as const } : {}) });
+}
+
+/** Leave-one-out or cumulative estimates of {@link metainf} / {@link metacum}. */
+export interface MetaInfluenceResult { TE: number[]; seTE: number[]; lower: number[]; upper: number[]; pval: number[]; tau2: number[]; I2: number[] }
+
+function sequenceOf(m: MetaResult, subsets: number[][], pooled: "common" | "random", options: MetaCommonOptions): MetaInfluenceResult {
+  const out: MetaInfluenceResult = { TE: [], seTE: [], lower: [], upper: [], pval: [], tau2: [], I2: [] };
+  const opt: MetaCommonOptions = { methodTau: m.methodTau, methodRandomCi: m.methodRandomCi, ...options };
+  for (const rows of subsets) {
+    const f = metaCore(rows.map((i) => m.TE[i]!), rows.map((i) => m.seTE[i]!), opt);
+    const p = pooled === "common" ? "common" : "random";
+    out.TE.push(f[`TE.${p}`]); out.seTE.push(f[`seTE.${p}`]); out.lower.push(f[`lower.${p}`]); out.upper.push(f[`upper.${p}`]); out.pval.push(f[`pval.${p}`]);
+    out.tau2.push(rows.length > 1 ? f.tau2 : NaN); out.I2.push(f.I2);
+  }
+  return out;
+}
+
+/**
+ * Leave-one-out meta-analysis (meta's `metainf()`): the pooled estimate without each study in turn; `pooled` "common"
+ * (default) or "random".
+ *
+ * @category Meta-analysis
+ */
+export function metainf(m: MetaResult, options: MetaCommonOptions & { pooled?: "common" | "random" } = {}): MetaInfluenceResult {
+  const idx = finiteIdx(m);
+  return sequenceOf(m, idx.map((i) => idx.filter((j) => j !== i)), options.pooled ?? "common", options);
+}
+
+/**
+ * Cumulative meta-analysis (meta's `metacum()`): the pooled estimate of the first 1, 2, ... studies; `pooled` "common"
+ * (default) or "random".
+ *
+ * @category Meta-analysis
+ */
+export function metacum(m: MetaResult, options: MetaCommonOptions & { pooled?: "common" | "random" } = {}): MetaInfluenceResult {
+  const idx = finiteIdx(m);
+  return sequenceOf(m, idx.map((_, j) => idx.slice(0, j + 1)), options.pooled ?? "common", options);
+}
+
+/**
+ * The coordinates of Baujat's plot (meta's `baujat()`): x = each study's contribution to Q, w (TE - TE.common)^2;
+ * y = its influence on the common estimate, (TE.common - TE.common without it)^2 / seTE.common without it^2.
+ *
+ * @category Meta-analysis
+ */
+export function baujat(m: MetaResult): { x: number[]; y: number[] } {
+  const idx = finiteIdx(m); const x: number[] = [], y: number[] = [];
+  for (const i of idx) {
+    x.push((m.TE[i]! - m["TE.common"]) ** 2 / m.seTE[i]! ** 2);
+    const rest = idx.filter((j) => j !== i); const w = rest.map((j) => 1 / m.seTE[j]! ** 2);
+    const te = sum(w.map((wj, t) => wj * m.TE[rest[t]!]!)) / sum(w);
+    y.push((m["TE.common"] - te) ** 2 * sum(w));
+  }
+  return { x, y };
+}
+
+/** The result of {@link trimfill}. */
+export interface TrimfillResult { k0: number; side: "left" | "right"; TE: number[]; seTE: number[]; filled: boolean[]; meta: MetaResult }
+
+/**
+ * Duval and Tweedie's trim-and-fill (meta's `trimfill()`): the L0 estimator on the common-effect model, iterated
+ * (trim the k0 most extreme studies on one side, re-estimate, re-rank), the side opposite to the asymmetry (the sign of
+ * the Egger-type regression of TE on seTE); the k0 mirrored studies 2 theta - TE added, then the meta-analysis of the
+ * augmented data (random effect with the given tau2 method, default REML).
+ *
+ * @category Meta-analysis
+ */
+export function trimfill(m: MetaResult, options: MetaCommonOptions & { side?: "left" | "right"; maxiter?: number } = {}): TrimfillResult {
+  const idx = finiteIdx(m); const te0 = idx.map((i) => m.TE[i]!), se0 = idx.map((i) => m.seTE[i]!); const k = idx.length;
+  let side = options.side;
+  if (!side) {
+    const f = rma(te0, se0.map((s) => s * s), { method: "FE", mods: se0.map((s) => [s]) });
+    // the missing studies are on the side opposite to the asymmetry (log 100)
+    side = (f.beta.rows as number[][])[1]![0]! < 0 ? "left" : "right";
+  }
+  // work on the side to trim as the right side: mirror the values for "left"
+  const sgn = side === "right" ? 1 : -1; const y = te0.map((t) => sgn * t);
+  const order = y.map((_, i) => i).sort((a, b) => y[a]! - y[b]!);
+  const ys = order.map((i) => y[i]!), ss = order.map((i) => se0[i]!);
+  const fe = (n: number): number => { const w = ss.slice(0, n).map((s) => 1 / (s * s)); return sum(w.map((wi, j) => wi * ys[j]!)) / sum(w); };
+  let k0 = 0, prev = -1, theta = fe(k); const maxiter = options.maxiter ?? 100;
+  for (let it = 0; it < maxiter && k0 !== prev; it++) {
+    prev = k0; theta = fe(k - k0);
+    const dev = ys.map((v) => v - theta);
+    const absRank = rankAvg(dev.map(Math.abs));
+    const Tn = sum(dev.map((d, j) => (d > 0 ? absRank[j]! : 0)));
+    const L0 = (4 * Tn - k * (k + 1)) / (2 * k - 1);
+    k0 = Math.max(0, Math.round(L0));
+  }
+  theta = fe(k - k0);
+  const filledY = ys.slice(k - k0).map((v) => 2 * theta - v); const filledS = ss.slice(k - k0);
+  const TE = [...te0, ...filledY.map((v) => sgn * v)], seTE = [...se0, ...filledS];
+  const meta = metaCore(TE, seTE, { methodTau: options.methodTau ?? m.methodTau, ...options });
+  return { k0, side, TE, seTE, filled: TE.map((_, i) => i >= k), meta };
+}
+
+/** Ranks with ties averaged. */
+function rankAvg(v: readonly number[]): number[] {
+  const o = v.map((_, i) => i).sort((a, b) => v[a]! - v[b]!); const r = new Array<number>(v.length);
+  for (let i = 0; i < o.length;) { let j = i; while (j + 1 < o.length && v[o[j + 1]!] === v[o[i]!]) j++; for (let t = i; t <= j; t++) r[o[t]!] = (i + j) / 2 + 1; i = j + 1; }
+  return r;
+}

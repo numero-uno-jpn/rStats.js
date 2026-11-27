@@ -6,6 +6,7 @@ import { metagen, pWeightedChisq, type MetaResult } from "../src/meta/metagen.js
 import { metabin, type MetabinOptions } from "../src/meta/metabin.js";
 import { metacont, metacor, metainc, metamean, metaprop, metapropGlmm, metarate } from "../src/meta/metaother.js";
 import { glmer } from "../src/models/glmer.js";
+import { baujat, metabias, metacum, metainf, metareg, metaSubgroup, trimfill } from "../src/meta/metaextra.js";
 import { symmetricEigen } from "../src/random/mvrnorm.js";
 import { qchisq } from "../src/distributions/chisq.js";
 
@@ -146,4 +147,70 @@ describe("metaprop's GLMM", () => {
       expect(Math.abs(fit.theta[0]! ** 2 - m.tau2)).toBeLessThan(1e-9 * Math.max(1, m.tau2));
     });
   }
+});
+
+describe("subgroups, metabias, trimfill, metareg, metainf, metacum, baujat", () => {
+  const E = fx.extra; const TE = vec(E.TE), se = vec(E.seTE); const alloc = E.alloc as string[]; const lat = vec(E.lat);
+  const cmp = (a: unknown, e: unknown, tol = 1e-9): boolean => {
+    const A = Array.isArray(a) ? (a as number[]) : [a as number]; const B = vec(e);
+    return A.length === B.length && A.every((x, i) => (Number.isNaN(x) && Number.isNaN(B[i]!)) || Math.abs(x - B[i]!) <= tol * Math.max(1, Math.abs(B[i]!)));
+  };
+  it("subgroups (metagen; tau.common)", () => {
+    const bad: string[] = [];
+    for (const [key, r] of Object.entries(E.subgroups as Record<string, any>)) {
+      if (key.startsWith("metabin")) continue;
+      const [mt, tc] = key.split(" ");
+      const m = metagen(TE, se, { methodTau: mt as "REML" });
+      const s = metaSubgroup(m, alloc, (rows) => metagen(rows.map((i) => TE[i]!), rows.map((i) => se[i]!), { methodTau: mt as "REML" }), { methodTau: mt as "REML", tauCommon: tc === "TRUE" });
+      expect(s.levels).toEqual(r.levels);
+      for (const f of Object.keys(r)) if (f !== "levels" && r[f] !== null && !cmp((s as any)[f], r[f])) bad.push(`${key} ${f}`);
+    }
+    expect(bad).toEqual([]);
+  });
+  it("subgroups (metabin MH OR)", () => {
+    const b = fx.metabin.fleiss; const g = ["a", "a", "b", "b", "a", "b", "a"]; const r = E.subgroups["metabin MH OR"];
+    const pick = (v: unknown[], rows: number[]): number[] => rows.map((i) => num(v[i]));
+    const m = metabin(vec(b.e1), vec(b.n1), vec(b.e2), vec(b.n2), { sm: "OR" });
+    const s = metaSubgroup(m, g, (rows) => metabin(pick(b.e1, rows), pick(b.n1, rows), pick(b.e2, rows), pick(b.n2, rows), { sm: "OR" }));
+    for (const f of Object.keys(r)) if (f !== "levels") expect(cmp((s as any)[f], r[f]), f).toBe(true);
+  });
+  it("metabias", () => {
+    const m = metagen(TE, se);
+    for (const meth of ["Egger", "Begg", "Thompson"] as const) {
+      const b = metabias(m, { method: meth }); const r = E.bias[meth];
+      expect(cmp([b.statistic, b.pValue, ...b.estimate], [r.statistic, r.p, ...vec(r.estimate)]), meth).toBe(true);
+      if (r.df !== null) expect(b.df).toBe(num(r.df));
+    }
+    for (const set of ["fleiss", "zero"] as const) {
+      const d = fx.metabin[set]; const counts = { e1: vec(d.e1), n1: vec(d.n1), e2: vec(d.e2), n2: vec(d.n2) };
+      const mb = metabin(counts.e1, counts.n1, counts.e2, counts.n2, { sm: "OR" });
+      for (const meth of ["Harbord", "Peters", "Egger"] as const) {
+        const b = metabias(mb, { method: meth, counts }); const r = E.bias[`${set} ${meth}`];
+        expect(cmp([b.statistic, b.pValue, ...b.estimate], [r.statistic, r.p, ...vec(r.estimate)]), `${set} ${meth}`).toBe(true);
+      }
+    }
+  });
+  it("trimfill", () => {
+    for (const [key, t] of [["trimfill", trimfill(metagen(TE, se))], ["trimfill_left", trimfill(metagen(TE.filter((_, i) => i !== 0 && i !== 3), se.filter((_, i) => i !== 0 && i !== 3)))]] as const) {
+      const r = E[key];
+      expect(t.k0, key).toBe(num(r.k0)); expect(t.meta.k, key).toBe(num(r.k));
+      expect(cmp(t.TE, r.TE) && cmp(t.seTE, r.seTE), key).toBe(true);
+      for (const f of ["TE.common", "seTE.common", "TE.random", "seTE.random", "tau2", "Q"] as const) expect(cmp(t.meta[f], r[f]), `${key} ${f}`).toBe(true);
+    }
+  });
+  it("metareg", () => {
+    const f1 = metareg(metagen(TE, se), lat.map((x) => [x]));
+    const dummies = alloc.map((a) => [a === "random" ? 1 : 0, a === "systematic" ? 1 : 0]);
+    const f2 = metareg(metagen(TE, se, { methodTau: "DL" }), lat.map((x, i) => [x, ...dummies[i]!]));
+    for (const [f, r] of [[f1, E.metareg], [f2, E.metareg2]] as const) {
+      expect(cmp((f.beta.rows as number[][]).map((x) => x[0]!), r.beta)).toBe(true);
+      for (const k of ["se", "zval", "pval", "tau2", "QE", "QM", "QMp"] as const) expect(cmp((f as any)[k], r[k]), k).toBe(true);
+    }
+  });
+  it("metainf, metacum, baujat", () => {
+    const m = metagen(TE, se);
+    for (const [key, f] of [["metainf", metainf(m)], ["metainf_random", metainf(m, { pooled: "random" })], ["metacum", metacum(m)], ["metacum_random", metacum(m, { pooled: "random" })]] as const)
+      for (const k of ["TE", "seTE", "lower", "upper", "pval", "tau2", "I2"] as const) expect(cmp(f[k], E[key][k]), `${key} ${k}`).toBe(true);
+    const bj = baujat(m); expect(cmp(bj.x, E.baujat.x) && cmp(bj.y, E.baujat.y)).toBe(true);
+  });
 });

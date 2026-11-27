@@ -87,4 +87,36 @@ for (nm in names(gsets)) {
                    lme4 = list(deviance = deviance(g), fixef = unname(lme4::fixef(g)), theta = unname(lme4::getME(g, "theta"))))
 }
 out$glmm <- gl
+# subgroups, metabias, trimfill, metareg, metainf, metacum, baujat (log 68-70)
+bcg <- dat.colditz1994
+ebcg <- escalc("RR", ai = tpos, bi = tneg, ci = cpos, di = cneg, data = bcg)
+lat <- abs(bcg$ablat); alloc <- as.character(bcg$alloc)
+mbcg <- metagen(as.numeric(ebcg$yi), sqrt(as.numeric(ebcg$vi)))
+sg <- list()
+for (mt in c("REML", "DL")) for (tc in c(FALSE, TRUE)) {
+  m <- metagen(as.numeric(ebcg$yi), sqrt(as.numeric(ebcg$vi)), subgroup = alloc, method.tau = mt, tau.common = tc)
+  sg[[paste(mt, tc)]] <- list(levels = m$subgroup.levels, TE.common.w = unname(m$TE.common.w), seTE.common.w = unname(m$seTE.common.w),
+    TE.random.w = unname(m$TE.random.w), seTE.random.w = unname(m$seTE.random.w), tau2.w = unname(m$tau2.w), Q.w = unname(m$Q.w), k.w = unname(m$k.w),
+    Q.w.common = m$Q.w.common, Q.w.random = m$Q.w.random, Q.b.common = m$Q.b.common, Q.b.random = m$Q.b.random, df.Q.b = m$df.Q.b, df.Q.w = m$df.Q.w,
+    pval.Q.b.common = m$pval.Q.b.common, pval.Q.b.random = m$pval.Q.b.random, tau2 = m$tau2, TE.random = m$TE.random, seTE.random = m$seTE.random)
+}
+mbsub <- metabin(fl$d.asp, fl$n.asp, fl$d.plac, fl$n.plac, sm = "OR", subgroup = c("a", "a", "b", "b", "a", "b", "a"))
+sg[["metabin MH OR"]] <- list(levels = mbsub$subgroup.levels, TE.common.w = unname(mbsub$TE.common.w), seTE.common.w = unname(mbsub$seTE.common.w),
+  TE.random.w = unname(mbsub$TE.random.w), seTE.random.w = unname(mbsub$seTE.random.w), Q.b.common = mbsub$Q.b.common, Q.b.random = mbsub$Q.b.random, Q.w = unname(mbsub$Q.w))
+bias <- list()
+bt <- function(b) list(statistic = unname(b$statistic), df = if (is.null(b$df)) NULL else unname(b$df), p = unname(b$p.value), estimate = unname(b$estimate))
+for (mb in c("Egger", "Begg", "Thompson")) bias[[mb]] <- bt(metabias(mbcg, method.bias = mb, k.min = 3))
+mbor <- metabin(fl$d.asp, fl$n.asp, fl$d.plac, fl$n.plac, sm = "OR")
+zor <- metabin(zero$e1, zero$n1, zero$e2, zero$n2, sm = "OR")
+for (mb in c("Harbord", "Peters", "Egger")) { bias[[paste("fleiss", mb)]] <- bt(metabias(mbor, method.bias = mb, k.min = 3)); bias[[paste("zero", mb)]] <- bt(metabias(zor, method.bias = mb, k.min = 3)) }
+tf <- trimfill(mbcg); tfl <- trimfill(metagen(as.numeric(ebcg$yi)[-c(1, 4)], sqrt(as.numeric(ebcg$vi))[-c(1, 4)]))
+tfo <- function(t) list(k0 = t$k0, TE = unname(t$TE), seTE = unname(t$seTE), TE.common = t$TE.common, seTE.common = t$seTE.common, TE.random = t$TE.random, seTE.random = t$seTE.random, tau2 = t$tau2, Q = t$Q, k = t$k)
+mr <- metareg(mbcg, ~ lat); mr2 <- metareg(metagen(as.numeric(ebcg$yi), sqrt(as.numeric(ebcg$vi)), method.tau = "DL"), ~ lat + alloc)
+mro <- function(r) list(beta = as.numeric(r$beta), se = unname(r$se), zval = unname(r$zval), pval = unname(r$pval), tau2 = r$tau2, QE = r$QE, QM = r$QM, QMp = r$QMp, R2 = r$R2, I2 = r$I2)
+inf <- function(x) list(TE = unname(x$TE), seTE = unname(x$seTE), lower = unname(x$lower), upper = unname(x$upper), tau2 = unname(x$tau2), I2 = unname(x$I2), pval = unname(x$pval))
+bj <- baujat(mbcg, plot = FALSE)
+out$extra <- list(TE = as.numeric(ebcg$yi), seTE = sqrt(as.numeric(ebcg$vi)), lat = lat, alloc = alloc, subgroups = sg, bias = bias,
+  trimfill = tfo(tf), trimfill_left = tfo(tfl), metareg = mro(mr), metareg2 = mro(mr2),
+  metainf = inf(metainf(mbcg)), metainf_random = inf(metainf(mbcg, pooled = "random")), metacum = inf(metacum(mbcg)), metacum_random = inf(metacum(mbcg, pooled = "random")),
+  baujat = list(x = unname(bj$x), y = unname(bj$y)))
 writeLines(toJSON(out, digits = I(17), auto_unbox = TRUE, null = "null", na = "null", pretty = FALSE), file.path("/out", "meta.json"))
