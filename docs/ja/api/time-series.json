@@ -717,7 +717,7 @@
   "forecastEts#summary": {
     "hash": "17d3708463a7",
     "en": "Point forecasts and prediction intervals from an {@link ets} fit (forecast's `forecast.ets()`): the analytic\nvariances of classes 1 and 2, the exact moments of class 3 (MNM, MAM, MAdM), and simulation otherwise (npaths\npaths with rStats.js's R-compatible generator, seeded by `seed`). Two departures from R's forecast.ets (the\nmodel's formulas are used): damped class 3 forecasts use l + phi b at h = 1, and ANA / MNA put the seasonal term\nof c_j at j mod m = 0.\nEquivalent to `forecast::forecast()` in R.",
-    "ja": "{@link ets} の当てはめから点予測と予測区間を求めます (forecast の `forecast.ets()`): クラス 1 と 2 では解析的な分散、クラス 3 (MNM、MAM、MAdM) では正確なモーメント、それ以外ではシミュレーションを使用します (`npaths` 個の経路を rStats.js の R 互換乱数生成器で生成し、`seed` で初期化します)。R の forecast.ets とは 2 点で異なります (モデルの式を使用します): 減衰したクラス 3 の予測では h = 1 において l + phi b を使用し、ANA / MNA では c_j の季節項を j mod m = 0 に配置します。\nR の `forecast::forecast()` と同等です。"
+    "ja": "{@link ets} の当てはめから点予測と予測区間を求めます (forecast の `forecast.ets()`): クラス 1 と 2 では解析的な分散、クラス 3 (MNM、MAM、MAdM) では正確なモーメント、それ以外ではシミュレーションを使用します (npaths 個の経路を rStats.js の R 互換乱数生成器で生成し、`seed` で初期化します)。R の forecast.ets とは 2 点で異なります (モデルの式を使用します): 減衰したクラス 3 の予測では h = 1 において l + phi b を使用し、ANA / MNA では c_j の季節項を j mod m = 0 に配置します。\nR の `forecast::forecast()` と同等です。"
   },
   "forecastFromArima#summary": {
     "hash": "042399093972",
@@ -917,12 +917,12 @@
   "stlm#summary": {
     "hash": "6c243e4a3977",
     "en": "STL decomposition with a model of the seasonally adjusted series (forecast's `stlm()`): mstl of the series (Box-Cox\ntransformed with `lambda`), then `ets(adjusted, etsModel)` (default \"ZZN\") or, with `method: \"arima\"`,\n`auto.arima(adjusted, seasonal = FALSE)` (log 93: R's model has no seasonal part).\nEquivalent to `forecast::stlm()` in R.",
-    "ja": "季節調整済み系列のモデルを用いた STL 分解です (forecast の `stlm()`): 系列を (lambda で Box-Cox 変換して) mstl で分解し、`ets(adjusted, etsModel)` (既定 \"ZZN\")、または `method: \"arima\"` の場合は `auto.arima(adjusted, seasonal = FALSE)` を適用します (log 93: R のモデルには季節成分がありません)。\nR の `forecast::stlm()` と同等です。"
+    "ja": "季節調整済み系列のモデルを用いた STL 分解です (forecast の `stlm()`): 系列を (`lambda` で Box-Cox 変換して) mstl で分解し、`ets(adjusted, etsModel)` (既定 \"ZZN\")、または `method: \"arima\"` の場合は `auto.arima(adjusted, seasonal = FALSE)` を適用します (log 93: R のモデルには季節成分がありません)。\nR の `forecast::stlm()` と同等です。"
   },
   "supsmu#summary": {
     "hash": "e5e1a82432ab",
     "en": "Friedman's super smoother (running lines with a cross-validated variable span). Equivalent to R's `supsmu()`.\nTied x are not handled as R does.",
-    "ja": "Friedman のスーパースムーザーです (交差検証によって変数幅を選ぶ移動直線法)。同じ x の値の扱いは R と異なります。"
+    "ja": "Friedman のスーパースムーザーです (交差検証によって変数幅を選ぶ移動直線法)。同じ x の値の扱いは R と異なります (R の `supsmu()` と同じではありません)。"
   },
   "terasvirtaTest#summary": {
     "hash": "70a8e7ef8c49",
