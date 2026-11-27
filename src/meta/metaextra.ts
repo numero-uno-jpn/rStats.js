@@ -35,7 +35,11 @@ const qOf = (te: readonly number[], se: readonly number[]): number => {
   return sum(w.map((wi, i) => wi * (te[i]! - mu) ** 2));
 };
 
-/** The result of {@link metaSubgroup}. */
+/**
+ * The result of {@link metaSubgroup}.
+ *
+ * @category Meta-analysis
+ */
 export interface MetaSubgroupResult {
   levels: string[];
   "TE.common.w": number[]; "seTE.common.w": number[]; "TE.random.w": number[]; "seTE.random.w": number[];
@@ -55,6 +59,7 @@ export interface MetaSubgroupResult {
  * subgroup estimates with weights 1/se^2 (common and random), Q.w = the within-subgroup Q. With `tauCommon`, one tau2
  * for all subgroups: that of the meta-regression on the subgroup (rma with the subgroup as a factor); the overall
  * estimates stay those of `overall`.
+ * Not an R function. R: the `subgroup` argument of meta's functions.
  *
  * @category Meta-analysis
  */
@@ -89,7 +94,11 @@ export function metaSubgroup(overall: MetaResult, subgroup: readonly (string | n
   };
 }
 
-/** A test for funnel plot asymmetry from {@link metabias}. */
+/**
+ * A test for funnel plot asymmetry from {@link metabias}.
+ *
+ * @category Meta-analysis
+ */
 export interface MetabiasResult { statistic: number; df: number | null; pValue: number; estimate: [number, number]; method: string }
 
 /** The t test of coefficient j of a weighted least squares fit. */
@@ -104,6 +113,7 @@ function lmT(X: number[][], y: number[], j: number, weights?: number[]): { est: 
  * continuity correction), "Thompson" (Thompson-Sharp: the REML meta-regression on seTE, its z with t(k - 2) p),
  * "Harbord" (binary: lm(Z/sqrt(V) ~ sqrt(V)) with Z = O - E and V the hypergeometric variance) and "Peters" (binary:
  * lm(TE ~ 1/N) with weights 1/(1/(a + c) + 1/(b + d))). Harbord and Peters need the 2 x 2 counts (`counts`).
+ * Equivalent to `meta::metabias()` in R.
  *
  * @category Meta-analysis
  */
@@ -146,6 +156,7 @@ export function metabias(m: MetaResult, options: { method?: "Egger" | "Begg" | "
 /**
  * Meta-regression (meta's `metareg()`): rma(TE, seTE^2, mods, method = the meta-analysis's tau2 method) on the studies
  * with finite values. `mods` has one row per study (all studies, as given to the meta function).
+ * Equivalent to `meta::metareg()` in R.
  *
  * @category Meta-analysis
  */
@@ -154,7 +165,11 @@ export function metareg(m: MetaResult, mods: readonly (readonly number[])[]): Rm
   return rma(idx.map((i) => m.TE[i]!), idx.map((i) => m.seTE[i]! ** 2), { method: m.methodTau as MetaMethod, mods: idx.map((i) => [...mods[i]!]), ...(m.methodRandomCi === "HK" ? { test: "knha" as const } : {}) });
 }
 
-/** Leave-one-out or cumulative estimates of {@link metainf} / {@link metacum}. */
+/**
+ * Leave-one-out or cumulative estimates of {@link metainf} / {@link metacum}.
+ *
+ * @category Meta-analysis
+ */
 export interface MetaInfluenceResult { TE: number[]; seTE: number[]; lower: number[]; upper: number[]; pval: number[]; tau2: number[]; I2: number[] }
 
 function sequenceOf(m: MetaResult, subsets: number[][], pooled: "common" | "random", options: MetaCommonOptions): MetaInfluenceResult {
@@ -172,6 +187,7 @@ function sequenceOf(m: MetaResult, subsets: number[][], pooled: "common" | "rand
 /**
  * Leave-one-out meta-analysis (meta's `metainf()`): the pooled estimate without each study in turn; `pooled` "common"
  * (default) or "random".
+ * Equivalent to `meta::metainf()` in R.
  *
  * @category Meta-analysis
  */
@@ -184,6 +200,7 @@ export function metainf(m: MetaResult, options: MetaCommonOptions & { pooled?: "
 /**
  * Cumulative meta-analysis (meta's `metacum()`): the pooled estimate of the first 1, 2, ... studies; `pooled` "common"
  * (default) or "random".
+ * Equivalent to `meta::metacum()` in R.
  *
  * @category Meta-analysis
  */
@@ -196,6 +213,7 @@ export function metacum(m: MetaResult, options: MetaCommonOptions & { pooled?: "
 /**
  * The coordinates of Baujat's plot (meta's `baujat()`): x = each study's contribution to Q, w (TE - TE.common)^2;
  * y = its influence on the common estimate, (TE.common - TE.common without it)^2 / seTE.common without it^2.
+ * Equivalent to `meta::baujat()` in R.
  *
  * @category Meta-analysis
  */
@@ -210,7 +228,11 @@ export function baujat(m: MetaResult): { x: number[]; y: number[] } {
   return { x, y };
 }
 
-/** The result of {@link trimfill}. */
+/**
+ * The result of {@link trimfill}.
+ *
+ * @category Meta-analysis
+ */
 export interface TrimfillResult { k0: number; side: "left" | "right"; TE: number[]; seTE: number[]; filled: boolean[]; meta: MetaResult }
 
 /**
@@ -218,6 +240,7 @@ export interface TrimfillResult { k0: number; side: "left" | "right"; TE: number
  * (trim the k0 most extreme studies on one side, re-estimate, re-rank), the side opposite to the asymmetry (the sign of
  * the Egger-type regression of TE on seTE); the k0 mirrored studies 2 theta - TE added, then the meta-analysis of the
  * augmented data (random effect with the given tau2 method, default REML).
+ * Equivalent to `meta::trimfill()` in R.
  *
  * @category Meta-analysis
  */

@@ -35,10 +35,18 @@ function pinvSym(A: Mat): Mat {
   return out;
 }
 
-/** A matrix with treatment names. */
+/**
+ * A matrix with treatment names.
+ *
+ * @category Meta-analysis
+ */
 export interface TreatmentMatrix { rows: string[]; cols: string[]; values: number[][] }
 
-/** The result of {@link netmeta} (R's element names). */
+/**
+ * The result of {@link netmeta} (R's element names).
+ *
+ * @category Meta-analysis
+ */
 export interface NetmetaResult {
   trts: string[]; studlab: string[]; treat1: string[]; treat2: string[]; TE: number[]; seTE: number[];
   k: number; n: number; m: number;
@@ -89,6 +97,7 @@ const matOf = (trts: readonly string[], f: (i: number, j: number) => number): Tr
  * studies by the effective resistances of their comparisons), Q on sum(arms - 1) - (n - 1) df, tau2 by the DL
  * generalisation of Jackson, White and Riley (2012), the random effects with seTE^2 + tau2, the direct estimates, the
  * prediction interval (t on df.Q), and Q split into heterogeneity (within designs) and inconsistency (between).
+ * Equivalent to `netmeta::netmeta()` in R.
  *
  * @category Meta-analysis
  */
@@ -159,6 +168,7 @@ export function netmeta(TE: readonly number[], seTE: readonly number[], treat1: 
  * P-scores (netmeta's `netrank()`, Ruecker and Schwarzer 2015): for each treatment the mean over the others of the
  * probability that it is better, pnorm((TE_j - TE_i) / se_ij) when small values are desirable (default) or
  * pnorm((TE_i - TE_j) / se_ij) when undesirable.
+ * Equivalent to `netmeta::netrank()` in R.
  *
  * @category Meta-analysis
  */
@@ -174,13 +184,18 @@ export function netrank(fit: NetmetaResult, options: { random?: boolean; smallVa
   return out;
 }
 
-/** One column of {@link netsplit}. */
+/**
+ * One column of {@link netsplit}.
+ *
+ * @category Meta-analysis
+ */
 export interface NetsplitPart { comparison: string[]; TE: number[]; seTE: number[]; lower: number[]; upper: number[]; z: number[]; p: number[] }
 
 /**
  * Direct and indirect evidence for each comparison (netmeta's `netsplit()`, back-calculation): the direct estimate (the
  * inverse-variance pooling of the comparison's contrasts), the indirect one from the network estimate and the direct
  * one, their difference, and the direct evidence proportion v_network / v_direct.
+ * Equivalent to `netmeta::netsplit()` in R.
  *
  * @category Meta-analysis
  */
@@ -215,6 +230,7 @@ export function netsplit(fit: NetmetaResult): Record<"direct.random" | "indirect
 /**
  * The connected components of a network (netmeta's `netconnection()`): the number of subnets, the numbers of
  * studies k, treatments n and comparisons, and the distance matrix (shortest path lengths; Infinity between subnets).
+ * Equivalent to `netmeta::netconnection()` in R.
  *
  * @category Meta-analysis
  */
@@ -228,7 +244,11 @@ export function netconnection(treat1: readonly string[], treat2: readonly string
   return { "n.subnets": c, k: new Set(studlab ?? treat1.map((_, i) => String(i))).size, n, m: treat1.length, D: { rows: trts, cols: trts, values: D }, subnet };
 }
 
-/** The result of {@link decompDesign}. */
+/**
+ * The result of {@link decompDesign}.
+ *
+ * @category Meta-analysis
+ */
 export interface DecompDesignResult {
   /** Total, within designs, between designs. */
   "Q.decomp": { Q: number[]; df: number[]; pval: number[] };
@@ -246,6 +266,7 @@ const designsOf = (fit: NetmetaResult): Map<string, string> => {
  * Q decomposed by design (netmeta's `decomp.design()`): the Q of each design = that of the network fitted to its
  * studies alone, df (studies - 1)(arms - 1); within = their sum, between = total - within. Designs are listed by their
  * number of arms, then alphabetically.
+ * Equivalent to `netmeta::decomp.design()` in R.
  *
  * @category Meta-analysis
  */
@@ -270,6 +291,7 @@ export function decompDesign(fit: NetmetaResult): DecompDesignResult {
  * Network measures (netmeta's `netmeasures()`): the direct evidence proportion of each comparison, v_network / v_direct
  * (0 without direct evidence), for the random-effects model (default, as netmeta when the fit has one) or the
  * common-effect model. netmeta's mean path length and minimal parallelism are not provided (log 101: not reproduced).
+ * Equivalent to `netmeta::netmeasures()` in R.
  *
  * @category Meta-analysis
  */
@@ -288,6 +310,7 @@ export function netmeasures(fit: NetmetaResult, options: { random?: boolean } = 
  * Contrasts from arm-level data (netmeta's `pairwise()`): every pair of arms of each study (treat1 the earlier arm).
  * Binary outcomes (`event`, `n`; sm "OR", "RR" or "RD"): all arms of a study get 0.5 when any arm has 0 or n events
  * (log 74); continuous (`mean`, `sd`, `n`; sm "MD").
+ * Equivalent to `netmeta::pairwise()` in R.
  *
  * @category Meta-analysis
  */
@@ -314,7 +337,11 @@ export function pairwise(data: { treat: readonly string[]; studlab: readonly str
   return out;
 }
 
-/** The result of {@link netcomb} / {@link discomb}. */
+/**
+ * The result of {@link netcomb} / {@link discomb}.
+ *
+ * @category Meta-analysis
+ */
 export interface NetcombResult {
   comps: string[]; "Comp.common": number[]; "seComp.common": number[]; "Comp.random": number[]; "seComp.random": number[];
   trts: string[]; "Comb.common": number[]; "seComb.common": number[]; "Comb.random": number[]; "seComb.random": number[];
@@ -326,6 +353,7 @@ export interface NetcombResult {
  * may be disconnected): treatments are "+"-joined components; the components' effects by weighted least squares on
  * X = B C (C treatment by component, the `inactive` treatment left out), Q.additive the weighted residual sum of squares
  * on comparisons - rank(X) df, tau2 by the DL generalisation with the additive hat matrix (two-arm studies; log 77).
+ * Equivalent to `netmeta::discomb()` in R.
  *
  * @category Meta-analysis
  */
@@ -357,7 +385,11 @@ export function discomb(TE: readonly number[], seTE: readonly number[], treat1: 
   return { comps, "Comp.common": c0.beta, "seComp.common": c0.se, "Comp.random": cr.beta, "seComp.random": cr.se, trts, "Comb.common": kc.e, "seComb.common": kc.s, "Comb.random": kr.e, "seComb.random": kr.s, "Q.additive": c0.Q, "df.Q.additive": df, tau2 };
 }
 
-/** {@link discomb} for a fitted network (netmeta's `netcomb()`). @category Meta-analysis */
+/**
+ * {@link discomb} for a fitted network (netmeta's `netcomb()`). Equivalent to `netmeta::netcomb()` in R.
+ *
+ * @category Meta-analysis
+ */
 export function netcomb(fit: NetmetaResult, options: { inactive?: string; sep?: string } = {}): NetcombResult {
   checkOptions(options, NETCOMB_KEYS, "netcomb"); // generated: option-keys.mjs
   return discomb(fit.TE, fit.seTE, fit.treat1, fit.treat2, fit.studlab, options);
@@ -373,6 +405,7 @@ function matrixRank(X: Mat): number {
  * estimate of the column treatment against the row treatment (TE[j][i]) with its interval, the upper triangle the direct
  * estimates (TE[i][j]; "." where there is none); "est (lower to upper)" with `digits` decimals, the bounds of a table
  * padded to a common width.
+ * Equivalent to `netmeta::netleague()` in R.
  *
  * @category Meta-analysis
  */
@@ -396,6 +429,7 @@ export function netleague(fit: NetmetaResult, options: { random?: boolean; digit
  * The partial order of treatments over several outcomes (netmeta's `netposet()`): P the treatments by outcomes matrix of
  * ranking scores; M0 the covering relation (Hasse diagram) of "i at least as good as j in every outcome and better in
  * one" (M0[i][j] = 1: i directly above j).
+ * Equivalent to `netmeta::netposet()` in R.
  *
  * @category Meta-analysis
  */

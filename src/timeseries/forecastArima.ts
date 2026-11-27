@@ -24,7 +24,7 @@ const NDIFFS_KEYS = ["alpha", "test", "type", "maxD"] as const;
 
 /**
  * The Box-Cox transformation: log(x) for lambda = 0, (sign(x) |x|^lambda - 1) / lambda otherwise. Equivalent to
- * forecast's `BoxCox()`.
+ * `forecast::BoxCox()` in R.
  *
  * @category Time series
  */
@@ -34,8 +34,8 @@ export function boxCox(x: readonly number[], lambda: number): number[] {
 
 /**
  * The inverse Box-Cox transformation (sign-preserving where lambda z + 1 < 0), with forecast's bias adjustment when
- * `fvar` (the forecast variances on the transformed scale) is given and `biasadj` is true. Equivalent to forecast's
- * `InvBoxCox()`.
+ * `fvar` (the forecast variances on the transformed scale) is given and `biasadj` is true. Equivalent to
+ * `forecast::InvBoxCox()` in R.
  *
  * @category Time series
  */
@@ -55,8 +55,8 @@ export function invBoxCox(z: readonly number[], lambda: number, options: { biasa
 }
 
 /**
- * Chooses the Box-Cox lambda by Guerrero's method (default) or the profile log-likelihood. Equivalent to forecast's
- * `BoxCox.lambda()`.
+ * Chooses the Box-Cox lambda by Guerrero's method (default) or the profile log-likelihood. Equivalent to
+ * `forecast::BoxCox.lambda()` in R.
  *
  * @category Time series
  */
@@ -99,7 +99,11 @@ export function boxCoxLambda(x: readonly number[], options: { method?: "guerrero
 // ---------------------------------------------------------------------------------------------------------------
 // Arima
 
-/** Options of {@link forecastArima}. */
+/**
+ * Options of {@link forecastArima}.
+ *
+ * @category Time series
+ */
 export interface ForecastArimaOptions {
   order?: readonly [number, number, number];
   seasonal?: readonly [number, number, number];
@@ -115,7 +119,11 @@ export interface ForecastArimaOptions {
   method?: "CSS-ML" | "ML" | "CSS";
 }
 
-/** Result of {@link forecastArima}: stats' fit plus forecast's quantities. */
+/**
+ * Result of {@link forecastArima}: stats' fit plus forecast's quantities.
+ *
+ * @category Time series
+ */
 export interface ForecastArimaResult extends ArimaResult {
   /** forecast's innovations variance: sum of squared residuals / (nobs - number of coefficients). */
   sigma2: number;
@@ -136,6 +144,7 @@ export interface ForecastArimaResult extends ArimaResult {
 /**
  * Fits an ARIMA model as forecast's `Arima()`: stats' arima on the Box-Cox transformed series, with a drift, and
  * forecast's innovations variance, AICc and BIC.
+ * Equivalent to `forecast::Arima()` in R.
  *
  * @category Time series
  */
@@ -169,7 +178,11 @@ export function forecastArima(y: readonly number[], options: ForecastArimaOption
   return { ...fit, residuals: raw, sigma2, sigma2Mle: fit.sigma2, aicc, bic, lambda, biasadj, fitted, series: y.slice(), drift };
 }
 
-/** Result of {@link forecast}. */
+/**
+ * Result of {@link forecast}.
+ *
+ * @category Time series
+ */
 export interface ForecastResult {
   mean: number[];
   lower: number[][];
@@ -182,6 +195,7 @@ export interface ForecastResult {
 
 /**
  * Point forecasts and prediction intervals from a {@link forecastArima} fit (forecast's `forecast.Arima()`).
+ * Equivalent to `forecast::forecast()` in R.
  *
  * @category Time series
  */
@@ -221,7 +235,11 @@ function arimaMethodName(fit: ForecastArimaResult): string {
 const KPSS_TABLE = { level: [0.347, 0.463, 0.574, 0.739], trend: [0.119, 0.146, 0.176, 0.216] };
 const KPSS_P = [0.1, 0.05, 0.025, 0.01];
 
-/** The KPSS statistic with a given truncation lag (residuals on 1, or on 1 and t). */
+/**
+ * The KPSS statistic with a given truncation lag (residuals on 1, or on 1 and t). Not an R function.
+ *
+ * @category Time series
+ */
 export function kpssStatistic(x: readonly number[], type: "level" | "trend", lag: number): number {
   const n = x.length; let e: number[];
   if (type === "level") { const m = x.reduce((a, b) => a + b, 0) / n; e = x.map((v) => v - m); }
@@ -232,7 +250,11 @@ export function kpssStatistic(x: readonly number[], type: "level" | "trend", lag
   return sum / (n * n * v);
 }
 
-/** The KPSS table's p-value, linear in the statistic between the 10%, 5%, 2.5%, 1% points, clamped to [0.01, 0.10]. */
+/**
+ * The KPSS table's p-value, linear in the statistic between the 10%, 5%, 2.5%, 1% points, clamped to [0.01, 0.10]. Not an R function.
+ *
+ * @category Time series
+ */
 export function kpssPValue(stat: number, type: "level" | "trend"): number {
   const T = KPSS_TABLE[type];
   if (stat <= T[0]!) return 0.1;
@@ -304,7 +326,7 @@ export function ppStatisticConst(y: readonly number[], type: "level" | "trend"):
 }
 
 /**
- * The number of first differences needed for stationarity by a unit root test. Equivalent to forecast's `ndiffs()`.
+ * The number of first differences needed for stationarity by a unit root test. Equivalent to `forecast::ndiffs()` in R.
  *
  * @category Time series
  */

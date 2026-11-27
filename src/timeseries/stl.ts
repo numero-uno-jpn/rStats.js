@@ -83,7 +83,11 @@ const median = (v: readonly number[]): number => {
   return s.length % 2 ? s[m]! : (s[m - 1]! + s[m]!) / 2;
 };
 
-/** Options of {@link stl}. */
+/**
+ * Options of {@link stl}.
+ *
+ * @category Time series
+ */
 export interface StlOptions {
   /** The seasonal period (R's frequency). */
   frequency: number;
@@ -102,7 +106,11 @@ export interface StlOptions {
   outer?: number;
 }
 
-/** Result of {@link stl}. */
+/**
+ * Result of {@link stl}.
+ *
+ * @category Time series
+ */
 export interface StlResult {
   seasonal: number[];
   trend: number[];
@@ -118,7 +126,7 @@ export interface StlResult {
 }
 
 /**
- * Seasonal-trend decomposition by loess (Cleveland et al. 1990). Equivalent to stats' `stl()`, except that the
+ * Seasonal-trend decomposition by loess (Cleveland et al. 1990). Equivalent to R's `stl()`. It differs in that the
  * robustness weights use the true median of |remainder| (R takes a wrong order statistic for some even-length series:
  * R bug 19370, see the documentation's departures from R).
  *
@@ -203,8 +211,8 @@ function runLine(x: readonly number[], y: readonly number[], span: number, cv: b
 }
 
 /**
- * Friedman's super smoother (running lines with a cross-validated variable span). Equivalent to stats' `supsmu()`
- * for distinct x (tied x are not handled as R does).
+ * Friedman's super smoother (running lines with a cross-validated variable span). Equivalent to R's `supsmu()`.
+ * Tied x are not handled as R does.
  *
  * @category Time series
  */
@@ -238,7 +246,11 @@ export function supsmu(x: readonly number[], y: readonly number[], options: { sp
 // ---------------------------------------------------------------------------------------------------------------
 // mstl, seasadj, nsdiffs, ocsb.test
 
-/** Result of {@link mstl}. */
+/**
+ * Result of {@link mstl}.
+ *
+ * @category Time series
+ */
 export interface MstlResult {
   data: number[];
   trend: number[];
@@ -251,6 +263,7 @@ export interface MstlResult {
 /**
  * forecast's `mstl()` for one seasonal period: stl(x, s.window = 11); for a non-seasonal series (or fewer than two
  * periods) the trend is supsmu(1:n, x).
+ * Equivalent to `forecast::mstl()` in R.
  *
  * @category Time series
  */
@@ -265,7 +278,11 @@ export function mstl(x: readonly number[], options: { frequency?: number; sWindo
   return { data, trend: t, remainder: data.map((v, i) => v - t[i]!), frequency: m };
 }
 
-/** The seasonally adjusted series of an mstl / stl decomposition (data - seasonal). Equivalent to forecast's `seasadj()`. */
+/**
+ * The seasonally adjusted series of an mstl / stl decomposition (data - seasonal). Equivalent to `forecast::seasadj()` in R.
+ *
+ * @category Time series
+ */
 export function seasadj(dec: MstlResult): number[] {
   return dec.seasonal ? dec.data.map((v, i) => v - dec.seasonal![i]!) : dec.data.slice();
 }
@@ -276,7 +293,7 @@ const variance = (v: readonly number[]): number => {
 
 /**
  * The number of seasonal differences: 1 when the seasonal strength of mstl, max(0, 1 - var(remainder) /
- * var(seasonal + remainder)), exceeds 0.64 (test "seas"), or by the OCSB test. Equivalent to forecast's `nsdiffs()`.
+ * var(seasonal + remainder)), exceeds 0.64 (test "seas"), or by the OCSB test. Equivalent to `forecast::nsdiffs()` in R.
  *
  * @category Time series
  */
@@ -304,7 +321,11 @@ export function nsdiffs(x: readonly number[], options: { frequency: number; test
   return D;
 }
 
-/** The 5% critical value of the OCSB test for period m (the table read off R; log m interpolation beyond 400). */
+/**
+ * The 5% critical value of the OCSB test for period m (the table read off R; log m interpolation beyond 400). Not an R function.
+ *
+ * @category Time series
+ */
 export function ocsbCritical(m: number): number {
   const i = OCSB_M.indexOf(m);
   if (i >= 0) return OCSB_CRITICAL[i]!;
@@ -342,7 +363,7 @@ function ocsbRegression(y: readonly number[], m: number, L: number, t0: number, 
  * The Osborn-Chui-Smith-Birchenhall test for a seasonal unit root: with w = Delta_m Delta_1 y and L lags, the AR(L)
  * coefficients a of w by least squares (no mean), then the regression of w_t on w_{t-1..L} and the two auxiliary
  * series filtered by a, (1 - a(B)) Delta_m y_{t-1} and (1 - a(B)) Delta_1 y_{t-m}, without a constant; the statistic
- * is the t value of the second (log 41, 80). Equivalent to forecast's `ocsb.test()`. With `lagMethod` "fixed" (the
+ * is the t value of the second (log 41, 80). Equivalent to `forecast::ocsb.test()` in R. With `lagMethod` "fixed" (the
  * default) L = `maxlag` (R's default 0). With "AIC", "BIC" or "AICc" the lags 0..maxlag are compared on a common
  * sample (the rows of maxlag lags, the prefilter too) by the lm criterion with k = coefficients + 1 (AICc = AIC +
  * 2k(k + 1) / (n - k - 1), forecast's help), and the chosen L is used. **This departs from R:** forecast 9.0.2 compares

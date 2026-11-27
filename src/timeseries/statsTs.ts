@@ -23,6 +23,7 @@ const ARIMA0_KEYS = ["order", "seasonal", "frequency", "includeMean", "delta"] a
  * Linear filtering of a series (stats' `filter()`): convolution, y_i = sum_j f_j x_{i + o - (j - 1)} with o = 0 for
  * `sides: 1` and floor(p / 2) for `sides: 2` (NaN where an index falls outside, or wrapped with `circular`), or
  * recursive, y_i = x_i + sum_j f_j y_{i - j} with `init` (the most recent value first, as R).
+ * Equivalent to R's `filter()`.
  *
  * @category Time series
  */
@@ -58,6 +59,7 @@ export function tsFilter(x: readonly number[], f: readonly number[], options: { 
 /**
  * Box-Pierce or Ljung-Box test of white noise (stats' `Box.test()`): r_k the autocorrelations (mean removed, divided by
  * n), Q = n sum r_k^2 or n (n + 2) sum r_k^2 / (n - k), chi-squared on lag - fitdf degrees of freedom.
+ * Equivalent to R's `Box.test()`.
  *
  * @category Time series
  */
@@ -82,6 +84,7 @@ export function boxTest(x: readonly number[], options: { lag?: number; type?: "B
 /**
  * The inverse of differencing (stats' `diffinv()`): the cumulative sums at the given lag, repeated `differences`
  * times, starting from `xi` (zeros by default).
+ * Equivalent to R's `diffinv()`.
  *
  * @category Time series
  */
@@ -104,12 +107,17 @@ export function diffinv(x: readonly number[], options: { lag?: number; differenc
 // ---------------------------------------------------------------------------------------------------------------
 // decompose
 
-/** Result of {@link decompose}. */
+/**
+ * Result of {@link decompose}.
+ *
+ * @category Time series
+ */
 export interface DecomposeResult { x: number[]; seasonal: number[]; trend: number[]; random: number[]; figure: number[]; type: "additive" | "multiplicative" }
 
 /**
  * Classical seasonal decomposition by moving averages (stats' `decompose()`). `start` is the position (1..frequency)
  * of the first observation in the cycle; `figure` starts at that position, as R's.
+ * Equivalent to R's `decompose()`.
  *
  * @category Time series
  */
@@ -133,7 +141,11 @@ export function decompose(x: readonly number[], options: { frequency: number; ty
 // ---------------------------------------------------------------------------------------------------------------
 // ar
 
-/** Result of {@link ar}. */
+/**
+ * Result of {@link ar}.
+ *
+ * @category Time series
+ */
 export interface ArResult {
   order: number;
   ar: number[];
@@ -154,6 +166,7 @@ export interface ArResult {
 /**
  * Fits an autoregressive model with the order chosen by AIC (stats' `ar()`): Yule-Walker (default), Burg, OLS or MLE
  * (arima0 for each order).
+ * Equivalent to R's `ar()`.
  *
  * @category Time series
  */
@@ -225,7 +238,11 @@ export function ar(x: readonly number[], options: { method?: "yule-walker" | "bu
   return { order, ar: ff.coef.slice(0, order), varPred: ff.sigma2, xMean: mean, aic: rel(aicM), residuals: residualsOf(ff.coef.slice(0, order), mean), method: "MLE", orderMax, x: xs };
 }
 
-/** Predictions from an {@link ar} fit (stats' `predict.ar`): the AR recursion about the mean, se = sqrt(var.pred cumsum(psi^2)). */
+/**
+ * Predictions from an {@link ar} fit (stats' `predict.ar`): the AR recursion about the mean, se = sqrt(var.pred cumsum(psi^2)). Equivalent to R's `predict()`.
+ *
+ * @category Time series
+ */
 export function predictAr(fit: ArResult, nAhead = 1): { pred: number[]; se: number[] } {
   const p = fit.order; const x = fit.x; const mu = fit.xMean; const c = fit.xIntercept ?? 0;
   const hist = x.map((v) => v - mu); const pred: number[] = [];
@@ -282,6 +299,7 @@ function arima0Filter(w: readonly number[], phi: readonly number[], theta: reado
  * stats' `arima0()`: an ARIMA model by maximum likelihood of the differenced series (no diffuse prior; the mean with
  * `includeMean` when d + D = 0), with R's fast recursions once the prediction variance is within `delta` of its limit
  * (default 0.01, as R; a negative delta gives the exact likelihood, equal to arima's). Log 84, 87.
+ * Equivalent to R's `arima0()`.
  *
  * @category Time series
  */

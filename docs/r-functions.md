@@ -108,9 +108,82 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 
 | R | rStats.js | Description |
 | --- | --- | --- |
+| `forecast::accuracy()` | `accuracy` | Accuracy measures (forecast's `accuracy()`). |
 | `stats::acf()` | `acf` | Computes autocorrelation, autocovariance or partial autocorrelation of a univariate series. |
+| `tseries::adf.test()` | `adfTest` | The augmented Dickey-Fuller test (tseries' `adf.test()`). |
+| `ar()` | `ar` | Fits an autoregressive model with the order chosen by AIC (stats' `ar()`). |
+| `arima()` | `arima` | Fits an ARIMA model by exact maximum likelihood or conditional sum of squares. |
+| `forecast::Arima()` | `forecastArima` | Fits an ARIMA model as forecast's `Arima()`: stats' arima on the Box-Cox transformed series, with a drift, and forecast's innovations variance, AICc and BIC. |
+| `arima0()` | `arima0` | stats' `arima0()`: an ARIMA model by maximum likelihood of the differenced series, with R's fast recursions once the prediction variance is within `delta` of its limit. |
+| `forecast::arimaorder()` | `arimaorder` | The (p, d, q) or of an ARIMA fit (forecast's `arimaorder()`). |
+| `forecast::auto.arima()` | `autoArima` | Chooses and fits an ARIMA model by forecast's `auto.arima()` rules: d by `ndiffs`, D by `nsdiffs`, then the stepwise search on the AICc. |
+| `forecast::bizdays()` | `bizdays` | Trading days in each month or quarter (forecast's `bizdays()`): weekdays minus the holidays of the financial centre. |
+| `Box.test()` | `boxTest` | Box-Pierce or Ljung-Box test of white noise (stats' `Box.test()`): r_k the autocorrelations, Q = n sum r_k^2 or n (n + 2) sum r_k^2 / (n - k), chi-squared on lag - fitdf degrees of freedom. |
+| `forecast::BoxCox.lambda()` | `boxCoxLambda` | Chooses the Box-Cox lambda by Guerrero's method or the profile log-likelihood. |
+| `forecast::BoxCox()` | `boxCox` | The Box-Cox transformation: log(x) for lambda = 0, (sign(x) \|x\|^lambda - 1) / lambda otherwise. |
 | `stats::ccf()` | `ccf` | Computes cross-correlation or cross-covariance of two equal-length series. |
+| `forecast::checkresiduals()` | `checkresiduals` | The Ljung-Box test of a model's residuals (forecast's `checkresiduals()`, without the plots): lag = min(2m, n/5) for seasonal data or min(10, n/5), at least df + 3, df = the number of ARMA coefficients. |
+| `forecast::croston()` | `croston` | Croston's method for intermittent demand (forecast's `croston()`). |
+| `forecast::CV()` | `cvLm` | Cross-validation and information criteria of a linear model (forecast's `CV()`). |
+| `decompose()` | `decompose` | Classical seasonal decomposition by moving averages (stats' `decompose()`). |
+| `diffinv()` | `diffinv` | The inverse of differencing (stats' `diffinv()`): the cumulative sums at the given lag, repeated `differences` times, starting from `xi`. |
+| `forecast::dm.test()` | `dmTest` | The Diebold-Mariano test with the Harvey-Leybourne-Newbold correction (forecast's `dm.test()`): d = \|e1\|^power - \|e2\|^power, its variance from the autocovariances up to h - 1, t(n - 1). |
+| `forecast::easter()` | `easter` | The Easter holidays in each month or quarter (forecast's `easter()`): the share of Good Friday .. |
+| `forecast::ets()` | `ets` | Exponential smoothing state space model (forecast's `ets()`): one model, or the smallest information criterion among the allowed models for the letters given as "Z". |
+| `filter()` | `tsFilter` | Linear filtering of a series (stats' `filter()`): convolution, y_i = sum_j f_j x_{i + o - (j - 1)} with o = 0 for `sides: 1` and floor(p / 2) for `sides: 2`, or recursive, y_i = x_i + sum_j f_j y_{i - j} with `init`. |
+| `forecast::findfrequency()` | `findfrequency` | The dominant period of a series (forecast's `findfrequency()`): 1 unless the maximum of the AR spectrum of the detrended series exceeds 10; then round(1 / f) at the maximum, or, when the maximum is at the lowest frequency, at the largest value after the spectrum first rises. |
+| `forecast::forecast()` | `forecast` | Forecasts from a series or a fitted model (forecast's `forecast()`): - a series: ets, or stlf when the period is 13 or more and the series is longer than two periods; - an `ets` fit, a `forecastArima` / `autoArima` fit, a stats `arima` fit, an `stlm` fit, a `holtWinters` fit or an `ar` fit. |
+| `forecast::forecast()` | `forecastEts` | Point forecasts and prediction intervals from an `ets` fit (forecast's `forecast.ets()`): the analytic variances of classes 1 and 2, the exact moments of class 3, and simulation otherwise. |
+| `forecast::forecast()` | `forecastFromArima` | Point forecasts and prediction intervals from a `forecastArima` fit (forecast's `forecast.Arima()`). |
+| `forecast::forecast()` | `forecastStlm` | Forecasts from an `stlm` fit (forecast's `forecast.stlm()`): the model's forecasts of the seasonally adjusted series plus the last cycle of the seasonal component, back-transformed with the fit's lambda. |
+| `forecast::fourier()` | `fourier` | Fourier terms (forecast's `fourier()`). |
+| `forecast::holt()` | `holt` | Holt's linear trend method (forecast's `holt()`): ets AAN; `initial: "simple"` starts at l = y_1, b = y_2 - y_1. |
+| `HoltWinters()` | `holtWinters` | Holt-Winters filtering (stats' `HoltWinters()`): exponential smoothing with optional trend and seasonal components, the start values from decompose() of the first start.periods periods, the parameters minimising the SSE. |
+| `forecast::hw()` | `hw` | Holt-Winters seasonal method (forecast's `hw()`): ets AAA or MAM (damped. |
+| `forecast::InvBoxCox()` | `invBoxCox` | The inverse Box-Cox transformation, with forecast's bias adjustment when `fvar` is given and `biasadj` is true. |
+| `tseries::jarque.bera.test()` | `jarqueBeraTest` | The Jarque-Bera test for normality (tseries' `jarque.bera.test()`): n (S^2/6 + (K - 3)^2/24) with the moments over n, chi-squared with 2 df. |
+| `tseries::kpss.test()` | `kpssTest` | The KPSS test (tseries' `kpss.test()`): the null "Level" or "Trend", truncation lag trunc(4 (n/100)^0.25) or trunc(12 (n/100)^0.25); p interpolated in the KPSS table. |
+| `forecast::ma()` | `ma` | Moving-average smoother (forecast's `ma()`): order k, centred for even k when `centre`. |
+| `forecast::meanf()` | `meanf` | Forecasts by the mean (forecast's `meanf()`): intervals mean +- qt(level, n - 1) sd(y) sqrt(1 + 1/n). |
+| `forecast::monthdays()` | `monthdays` | Days in each month or quarter (forecast's `monthdays()`). |
+| `forecast::mstl()` | `mstl` | forecast's `mstl()` for one seasonal period: stl(x, s.window = 11); for a non-seasonal series the trend is supsmu(1:n, x). |
+| `forecast::na.interp()` | `naInterp` | Interpolation of missing values (forecast's `na.interp()`): linear for non-seasonal series; for seasonal series the seasonal component of a robust mstl of a first filling (lm on Fourier terms K = min(5, floor(m/2)) and a polynomial of degree min(6, floor(n/10))), the seasonally adjusted series interpolated linearly. |
+| `forecast::naive()` | `naive` | Naive forecasts (forecast's `naive()`). |
+| `forecast::ndiffs()` | `ndiffs` | The number of first differences needed for stationarity by a unit root test. |
+| `forecast::nsdiffs()` | `nsdiffs` | The number of seasonal differences: 1 when the seasonal strength of mstl, max(0, 1 - var(remainder) / var(seasonal + remainder)), exceeds 0.64, or by the OCSB test. |
+| `forecast::ocsb.test()` | `ocsbTest` | The Osborn-Chui-Smith-Birchenhall test for a seasonal unit root: with w = Delta_m Delta_1 y and L lags, the AR(L) coefficients a of w by least squares, then the regression of w_t on w_{t-1..L} and the two auxiliary series filtered by a, (1 - a(B)) Delta_m y_{t-1} and (1 - a(B)) Delta_1 y_{t-m}, without a constant; the statistic is the t value of the second. |
 | `stats::pacf()` | `pacf` | Computes partial autocorrelation of a univariate series with the Durbin–Levinson recursion. |
+| `tseries::po.test()` | `poTest` | The Phillips-Ouliaris cointegration test (tseries' `po.test()`): x has 2 to 6 columns as rows of observations; u = the residuals of the first column on the others, Z = (n - 1)(rho - 1) - / (2 sum u_{t-1}^2 / (n - 1)^2) from u_t on u_{t-1}; lag trunc((n - 1)/100) or trunc((n - 1)/30); p from Table Ib / Ia. |
+| `tseries::pp.test()` | `ppTest` | The Phillips-Perron test (tseries' `pp.test()`): y_t on 1, t, y_{t-1}; Phillips and Perron's closed forms with det(X'X), type "Z(alpha)" or "Z(t_alpha)", truncation lag trunc(4 (n/100)^0.25) or trunc(12 (n/100)^0.25); p from Fuller's n(rho - 1) or tau_tau table at n - 1; "explosive" gives 1 - p. |
+| `predict.Arima()` | `predictArima` | Forecasts from an `arima` fit by the Kalman filter. |
+| `predict()` | `predictAr` | Predictions from an `ar` fit: the AR recursion about the mean, se = sqrt(var.pred cumsum(psi^2)). |
+| `predict()` | `predictHoltWinters` | Predictions from a `holtWinters` fit with intervals (stats' `predict.HoltWinters()`): additive and non-seasonal models var(residuals), psi_j = alpha + gamma [j mod f = 0]; multiplicative models var(residuals) sum_{j=0}^{h-1}^2 with cyclic seasonal indices (R reads the seasonal factors at fixed positions of its coefficient vector instead. |
+| `forecast::remainder()` | `remainder` | The remainder component of an `mstl` decomposition (forecast's `remainder()`). |
+| `tseries::runs.test()` | `runsTest` | The Wald-Wolfowitz runs test (tseries' `runs.test()`) of a two-valued sequence: z = / sd with mean 1 + 2 n1 n2 / n and variance 2 n1 n2 (2 n1 n2 - n) / (n^2 (n - 1)), normal p for "two.sided", "less" or "greater". |
+| `forecast::rwf()` | `rwf` | Random walk forecasts (forecast's `rwf()`), with a drift (y_n - y_1)/(n - 1) when `drift`. sigma = sqrt(mean(res^2)) without a drift, sd(res) with one; se_h = sigma sqrt(h) or sigma sqrt(h (1 + h/(n - 1))). |
+| `forecast::seasadj()` | `seasadj` | The seasonally adjusted series of an mstl / stl decomposition. |
+| `forecast::seasonal()` | `seasonalComponent` | The seasonal component of an `mstl` decomposition (forecast's `seasonal()`; zeros without one). |
+| `forecast::seasonaldummy()` | `seasonaldummy` | Seasonal dummies (forecast's `seasonaldummy()`): m - 1 columns, the last period omitted; `start` the cycle position of the first row. |
+| `forecast::ses()` | `ses` | Simple exponential smoothing (forecast's `ses()`): ets(y, "ANN"), or with `initial: "simple"` the level started at y_1 and alpha minimising the one-step SSE. |
+| `forecast::snaive()` | `snaive` | Seasonal naive forecasts (forecast's `snaive()`): y_{n - m + ...}, se_h = sigma sqrt(floor((h - 1)/m) + 1). |
+| `spec.ar()` | `specAr` | The AR spectrum (stats' `spec.ar()` at n.freq frequencies 0..0.5) of x: var.pred / \|1 - sum a_k e^{-2 pi i f k}\|^2. |
+| `stl()` | `stl` | Seasonal-trend decomposition by loess. |
+| `forecast::stlf()` | `stlf` | STL + ETS forecasts (forecast's `stlf()`): mstl(y), forecast(ets(seasonally adjusted, "ZZN")), plus the last cycle of the seasonal component repeated. |
+| `forecast::stlm()` | `stlm` | STL decomposition with a model of the seasonally adjusted series (forecast's `stlm()`): mstl of the series, then `ets(adjusted, etsModel)` or, with `method: "arima"`, `auto.arima(adjusted, seasonal = FALSE)` (log 93. |
+| `supsmu()` | `supsmu` | Friedman's super smoother. |
+| `tseries::terasvirta.test()` | `terasvirtaTest` | Teraesvirta's neural network test for neglected nonlinearity (tseries' `terasvirta.test()`): y_t on 1 and its lags, then also on the second and third order products of the lags; Chisq = n log(SSR0 / SSR1) or F on. |
+| `forecast::thetaf()` | `thetaf` | The theta method (forecast's `thetaf()`): a seasonality test \|r_m\| > qnorm(0.95) sqrt((1 + 2 sum_{i<m} r_i^2)/n), a multiplicative decompose when seasonal, ses by MSE, mean = ses mean + b/2 with b the slope of lm(y ~ t), reseasonalised. |
+| `forecast::trendcycle()` | `trendcycle` | The trend-cycle component of an `mstl` decomposition (forecast's `trendcycle()`). |
+| `forecast::tsclean()` | `tsclean` | The series with missing values interpolated and outliers replaced (forecast's `tsclean()`). |
+| `forecast::tsCV()` | `tsCV` | Time series cross-validation (forecast's `tsCV()`): for each origin t the forecast errors of y_{t+1..t+h} from the fit to y_1..y_t, stored in row t. |
+| `forecast::tslm()` | `tslm` | Linear regression on a trend (1..n) and seasonal dummies (forecast's `tslm(y ~ trend + season)`), the first season the baseline. |
+| `forecast::tsoutliers()` | `tsoutliers` | Outliers and their replacements (forecast's `tsoutliers()`): the remainder of seasadj(robust mstl) minus supsmu, points outside [Q1 - 3 IQR, Q3 + 3 IQR], replaced by na.interp with them removed; `iterate` passes, the union of the flags. |
+| `tseries::white.test()` | `whiteTest` | White's neural network test for neglected nonlinearity (tseries' `white.test()`): q logistic hidden units with weights runif((lag + 1) q, -range/2, range/2), their principal components 2..qstar + 1, then the statistic as `terasvirtaTest`. |
+| (not in R) | `easterSunday` | Easter Sunday of year Y as [month, day]. |
+| (not in R) | `kpssPValue` | The KPSS table's p-value, linear in the statistic between the 10%, 5%, 2.5%, 1% points, clamped to [0.01, 0.10]. |
+| (not in R) | `kpssStatistic` | The KPSS statistic with a given truncation lag. |
+| (not in R) | `minRootModulus` | The roots' smallest modulus of 1 + c_1 z + ... + c_k z^k. |
+| (not in R) | `ocsbCritical` | The 5% critical value of the OCSB test for period m. |
 
 ## Special functions (`rStats.js/special`)
 
@@ -279,6 +352,7 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `aov()` | `aov` | Analysis of variance. |
 | `pROC::auc()` | `auc` | The area under a ROC curve, or the partial area between two specificities or sensitivities. |
 | `bartlett.test()` | `bartlettTest` | Bartlett's test that the variances of several normal samples are equal. |
+| `meta::baujat()` | `baujat` | The coordinates of Baujat's plot (meta's `baujat()`): x = each study's contribution to Q, w^2; y = its influence on the common estimate,^2 / seTE.common without it^2. |
 | `binom.test()` | `binomTest` | Exact test of a simple null hypothesis about the probability of success in Bernoulli trials. |
 | `DescTools::BinomCI()` | `binomCI` | Confidence interval for a binomial proportion x/n. |
 | `DescTools::BinomDiffCI()` | `binomDiffCI` | Confidence interval for the difference p1 - p2 of two independent proportions x1/n1 and x2/n2. |
@@ -306,6 +380,8 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `cmprsk::crr()` | `crr` | Fine-Gray proportional subdistribution hazards regression. |
 | `cmprsk::cuminc()` | `cuminc` | Cumulative incidence functions and Gray's tests for competing risks. |
 | `nortest::cvm.test()` | `cvmTest` | Cramer-von Mises test for normality. |
+| `netmeta::decomp.design()` | `decompDesign` | Q decomposed by design (netmeta's `decomp.design()`): the Q of each design = that of the network fitted to its studies alone, df(arms - 1); within = their sum, between = total - within. |
+| `netmeta::discomb()` | `discomb` | The additive component network meta-analysis (netmeta's `netcomb()` / `discomb()`, Ruecker et al. 2020; the network may be disconnected): treatments are "+"-joined components; the components' effects by weighted least squares on X = B C, Q.additive the weighted residual sum of squares on comparisons - rank(X) df, tau2 by the DL generalisation with the additive hat matrix. |
 | `drop1()` | `drop1` | The models with one term dropped, for lm and glm. |
 | `PMCMRplus::dscfAllPairsTest()` | `dscfAllPairsTest` | Dwass-Steel-Critchlow-Fligner all-pairs test of pairwise Mann-Whitney statistics. |
 | `dunn.test::dunn.test()` | `dunnTest` | Dunn's test of all pairs of mean ranks. |
@@ -355,8 +431,29 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `mauchly.test()` | `mauchlyTest` | Mauchly's test of sphericity of the measurements of each subject, on the contrasts spanned by `M` and orthogonal to `X`. |
 | `mcnemar.test()` | `mcnemarTest` | McNemar's chi-squared test for symmetry of rows and columns in a square table of counts. |
 | `mcr::mcreg()` | `mcreg` | Method comparison regression of y on x. |
+| `meta::metabias()` | `metabias` | Tests for funnel plot asymmetry (meta's `metabias()`): "Egger", "Begg", "Thompson" (Thompson-Sharp: the REML meta-regression on seTE, its z with t(k - 2) p), "Harbord" (binary: lm(Z/sqrt(V) ~ sqrt(V)) with Z = O - E and V the hypergeometric variance) and "Peters" (binary: lm(TE ~ 1/N) with weights 1/(1/(a + c) + 1/(b + d))). |
+| `meta::metabin()` | `metabin` | Meta-analysis of binary outcomes (meta's `metabin()`): events e1 / e2 of totals n1 / n2. |
+| `meta::metacont()` | `metacont` | Meta-analysis of continuous outcomes (meta's `metacont()`): sm "MD", "SMD" (Hedges' g with the exact J; variance 1/n1 + 1/n2 + (1 - (N - 4) / ((N - 2) J^2)) g^2, log 69) or "ROM". |
+| `meta::metacor()` | `metacor` | Meta-analysis of correlations (meta's `metacor()`): sm "ZCOR" (Fisher's z, variance 1/(n - 3), default) or "COR" (variance (1 - r^2)^2 / (n - 1)). |
+| `meta::metacum()` | `metacum` | Cumulative meta-analysis (meta's `metacum()`): the pooled estimate of the first 1, 2, ... studies; `pooled` "common" or "random". |
+| `meta::metagen()` | `metagen` | Generic inverse-variance meta-analysis (meta's `metagen()`): study estimates TE with standard errors seTE; the common effect, the random effect with tau2 by `methodTau` and a classic or Hartung-Knapp interval, the prediction interval (t on k - 1), Q, tau2's interval, H and I2 with Higgins and Thompson's intervals. |
+| `meta::metainc()` | `metainc` | Meta-analysis of incidence rates (meta's `metainc()`): events e1 / e2 in person-times t1 / t2; sm "IRR" or "IRD"; method "MH" or "Inverse". |
+| `meta::metainf()` | `metainf` | Leave-one-out meta-analysis (meta's `metainf()`): the pooled estimate without each study in turn; `pooled` "common" or "random". |
+| `meta::metamean()` | `metamean` | Meta-analysis of single means (meta's `metamean()`): sm "MRAW" or "MLN". |
+| `meta::metaprop()` | `metaprop` | Meta-analysis of single proportions by the inverse variance (meta's `metaprop(method = "Inverse")`): sm "PLOGIT" (default; (x + 0.5)/(n + 1) for 0 or n events), "PFT", "PAS", "PRAW" or "PLN" (log((x + 0.5)/(n + 0.5)) for 0; for n events the variance 1/x - 1/(n + 0.5)). |
+| `meta::metaprop()` | `metapropGlmm` | Meta-analysis of single proportions by a random intercept logistic model (meta's `metaprop()` default, method "GLMM"; log 75-76): glmer(x/n ~ 1 +, binomial, weights n, nAGQ = 7) for the random effect and tau2, glm(x/n ~ 1) for the common effect; Q = [Wald, LRT]: the Wald test of equal study effects in glm(x/n ~ study) and the common glm's deviance; H and I2 from the Wald Q. |
+| `meta::metarate()` | `metarate` | Meta-analysis of single incidence rates (meta's `metarate()`): sm "IRLN", "IR", "IRS" or "IRFT"; 0.5 added to zero counts for IR and IRLN. |
+| `meta::metareg()` | `metareg` | Meta-regression (meta's `metareg()`): rma(TE, seTE^2, mods, method = the meta-analysis's tau2 method) on the studies with finite values. |
 | `model.matrix()` | `modelMatrix` | The model matrix of a formula on a data frame, with the attributes of R's `terms()`. |
 | `mood.test()` | `moodTest` | Mood's two-sample test of scale. |
+| `netmeta::netcomb()` | `netcomb` | `discomb` for a fitted network (netmeta's `netcomb()`). |
+| `netmeta::netconnection()` | `netconnection` | The connected components of a network (netmeta's `netconnection()`): the number of subnets, the numbers of studies k, treatments n and comparisons, and the distance matrix. |
+| `netmeta::netleague()` | `netleague` | The league table (netmeta's `netleague()`): the diagonal the treatments, the lower triangle [i][j] the network estimate of the column treatment against the row treatment (TE[j][i]) with its interval, the upper triangle the direct estimates; "est" with `digits` decimals, the bounds of a table padded to a common width. |
+| `netmeta::netmeasures()` | `netmeasures` | Network measures (netmeta's `netmeasures()`): the direct evidence proportion of each comparison, v_network / v_direct, for the random-effects model or the common-effect model. netmeta's mean path length and minimal parallelism are not provided. |
+| `netmeta::netmeta()` | `netmeta` | Frequentist network meta-analysis (netmeta's `netmeta()`): contrasts TE with standard errors seTE from studies studlab; the common effects by weighted least squares on the network graph, Q on sum(arms - 1) - (n - 1) df, tau2 by the DL generalisation of Jackson, White and Riley (2012), the random effects with seTE^2 + tau2, the direct estimates, the prediction interval (t on df.Q), and Q split into heterogeneity and inconsistency. |
+| `netmeta::netposet()` | `netposet` | The partial order of treatments over several outcomes (netmeta's `netposet()`). |
+| `netmeta::netrank()` | `netrank` | P-scores (netmeta's `netrank()`, Ruecker and Schwarzer 2015): for each treatment the mean over the others of the probability that it is better, pnorm((TE_j - TE_i) / se_ij) when small values are desirable or pnorm((TE_i - TE_j) / se_ij) when undesirable. |
+| `netmeta::netsplit()` | `netsplit` | Direct and indirect evidence for each comparison (netmeta's `netsplit()`, back-calculation): the direct estimate, the indirect one from the network estimate and the direct one, their difference, and the direct evidence proportion v_network / v_direct. |
 | `powerSurvEpi::numDEpi.default()` | `numDEpi` | Schoenfeld/Latouche required event count. |
 | `epitools::oddsratio()` | `oddsRatio` | Odds ratio of a 2 x 2 table with its confidence interval and three p-values of independence. |
 | `effectsize::omega_squared()` | `omegaSquared` | Omega squared of the terms of an analysis-of-variance table, also of repeated-measures designs. |
@@ -367,6 +464,7 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `pairwise.prop.test()` | `pairwisePropTest` | Pairwise two-group tests of equal proportions, with adjusted p-values. |
 | `pairwise.t.test()` | `pairwiseTTest` | Pairwise t tests between groups, with adjusted p-values. |
 | `pairwise.wilcox.test()` | `pairwiseWilcoxTest` | Pairwise Wilcoxon rank sum tests between groups, with adjusted p-values. |
+| `netmeta::pairwise()` | `pairwise` | Contrasts from arm-level data (netmeta's `pairwise()`): every pair of arms of each study. |
 | `psych::partial.r()` | `partialR` | Partial correlation of columns `i` and `j` of `x` given all its other columns. |
 | `nortest::pearson.test()` | `pearsonTest` | Pearson chi-square test for normality, with classes of equal probability under the fitted normal distribution. |
 | `outliers::pgrubbs()` | `pgrubbs` | Cumulative distribution of the type-10 Grubbs statistic. |
@@ -430,6 +528,7 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `cmprsk::timepoints()` | `timepoints` | Evaluate cumulative-incidence curves at requested times. |
 | `timeROC::timeROC()` | `timeROC` | Time-dependent ROC curves and AUC for censored event times, with a single event or competing risks: the cumulative/dynamic definition (cases T < t with the cause, controls T > t, and for competing risks definition (ii) also the subjects with another event before t), inverse probability of censoring weights from the Kaplan-Meier of the censoring, a Cox model or Aalen's additive model with the marker and `otherMarkers`; ties in the marker count 1/2. |
 | `equivalence::tost()` | `tost` | Two one-sided t tests of equivalence of two means. |
+| `meta::trimfill()` | `trimfill` | Duval and Tweedie's trim-and-fill (meta's `trimfill()`): the L0 estimator on the common-effect model, iterated, the side opposite to the asymmetry; the k0 mirrored studies 2 theta - TE added, then the meta-analysis of the augmented data. |
 | `TOSTER::tsum_TOST()` | `tsumTOST` | `tTOST` from summary statistics: means, standard deviations, sample sizes and, for paired samples, the correlation of the pairs. |
 | `TukeyHSD()` | `TukeyHSD` | Tukey's honest significant differences between the group means of a one-way ANOVA. |
 | `PMCMRplus::tukeyTest()` | `tukeyTest` | Tukey's all-pairs test of means. |
@@ -439,6 +538,10 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `wilcox.test()` | `wilcoxTest` | Wilcoxon signed rank and rank sum tests. |
 | `BSDA::z.test()` | `zTest` | z test for the mean of one sample, or the difference of the means of two, with known standard deviations. |
 | (not in R) | `binomDiffEquivalenceTest` | Test of equivalence of two independent proportions x1/n1 and x2/n2 within a margin. |
+| (not in R) | `genqInterval` | The generalised Q interval for tau2 with study weights a. |
+| (not in R) | `heterogeneityIntervals` | H and I2 with Higgins and Thompson's (2002) intervals. |
+| (not in R) | `metaSubgroup` | Subgroup analysis. |
+| (not in R) | `pWeightedChisq` | P(sum_j lambda_j chi2_1 <= q) for lambda_j >= 0. |
 | (not in R) | `setWarningHandler` | Sets the function that receives R's warnings, and returns the one it replaces. |
 | (not in R) | `timeROCAucDiff` | The values behind R's `plotAUCcurveDiff`: the difference of two time-dependent AUCs over the times with the pointwise confidence interval from the difference of the iid representations. |
 
