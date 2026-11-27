@@ -567,27 +567,27 @@
   "StlmResult.stl#summary": {
     "hash": "efd1d3dbc471",
     "en": "The decomposition of the (Box-Cox transformed) series.",
-    "ja": ""
+    "ja": "(Box-Cox 変換後の) 系列の分解結果です。"
   },
   "TseriesTest#summary": {
     "hash": "befd027eee3e",
     "en": "A test result of the tseries functions.",
-    "ja": ""
+    "ja": "tseries の関数による検定結果です。"
   },
   "TslmResult#summary": {
     "hash": "5e9435c2bada",
     "en": "Result of {@link tslm}.",
-    "ja": ""
+    "ja": "{@link tslm} の結果です。"
   },
   "TslmResult.forecast#summary": {
     "hash": "e659c72d8a45",
     "en": "Forecasts with t intervals from the regression.",
-    "ja": ""
+    "ja": "回帰から得られる t 分布に基づく区間を伴う予測値です。"
   },
   "accuracy#summary": {
     "hash": "1940f4c836ef",
     "en": "Accuracy measures (forecast's `accuracy()`): ME, RMSE, MAE, MPE, MAPE, MASE (scaled by the training data's mean\n|y_t - y_{t-m}|), ACF1 of the errors; for a test set also Theil's U.\nEquivalent to `forecast::accuracy()` in R.",
-    "ja": ""
+    "ja": "予測精度の指標です (forecast の `accuracy()`): ME、RMSE、MAE、MPE、MAPE、MASE (訓練データの平均 |y_t - y_{t-m}| で尺度化)、誤差の ACF1 です。テストセットがある場合は Theil の U も含みます。\nR の `forecast::accuracy()` と同等です。"
   },
   "acf#summary": {
     "hash": "8950bb5836c9",
@@ -597,37 +597,37 @@
   "adfTest#summary": {
     "hash": "87070922ba34",
     "en": "The augmented Dickey-Fuller test (tseries' `adf.test()`): Delta y_t on 1, t, y_{t-1} and k lagged differences\n(default k = trunc((n - 1)^(1/3))), the t value of y_{t-1}; p from Fuller's tau_tau table at n - 1 (clamped to\n[0.01, 0.99]); \"explosive\" gives 1 - p.\nEquivalent to `tseries::adf.test()` in R.",
-    "ja": ""
+    "ja": "拡張 Dickey-Fuller 検定です (tseries の `adf.test()`): 1、t、y_{t-1} および k 個のラグ付き差分に対する Delta y_t の回帰 (既定 k = trunc((n - 1)^(1/3))) を行い、y_{t-1} の t 値を検定統計量とします。p 値は n - 1 における Fuller の tau_tau 表から求めます ([0.01, 0.99] に制限)。\"explosive\" の場合は 1 - p です。\nR の `tseries::adf.test()` と同等です。"
   },
   "ar#summary": {
     "hash": "2e8acfbe29ed",
     "en": "Fits an autoregressive model with the order chosen by AIC (stats' `ar()`): Yule-Walker (default), Burg, OLS or MLE\n(arima0 for each order).\nEquivalent to R's `ar()`.",
-    "ja": ""
+    "ja": "AIC で次数を選択する自己回帰モデルを当てはめます (stats の `ar()`): Yule-Walker (既定)、Burg、OLS または MLE (各次数について arima0)。\nR の `ar()` と同等です。"
   },
   "arima#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "arima#summary": {
     "hash": "f4e8eb03d083",
     "en": "Fits an ARIMA model by exact maximum likelihood (Kalman filter) or conditional sum of squares. Equivalent to R's\n`arima()`. The estimates are taken to the optimum, where R's optimiser may stop slightly short.",
-    "ja": ""
+    "ja": "正確な最尤法 (カルマンフィルタ) または条件付き平方和によって ARIMA モデルを当てはめます。R の `arima()` と同等です。推定値は最適点まで求めますが、R の最適化アルゴリズムではわずかに手前で停止する場合があります。"
   },
   "arima0#summary": {
     "hash": "a93a74640487",
     "en": "stats' `arima0()`: an ARIMA model by maximum likelihood of the differenced series (no diffuse prior; the mean with\n`includeMean` when d + D = 0), with R's fast recursions once the prediction variance is within `delta` of its limit\n(default 0.01, as R; a negative delta gives the exact likelihood, equal to arima's). Log 84, 87.\nEquivalent to R's `arima0()`.",
-    "ja": ""
+    "ja": "stats の `arima0()` です。差分系列の最尤法による ARIMA モデルです (拡散事前分布なし。d + D = 0 の場合は `includeMean` による平均を含みます)。予測分散が極限値の `delta` 以内に入ると、R の高速再帰計算を使用します (既定 0.01、R と同じ。負の delta では正確な尤度となり、arima と一致します)。Log 84、87。\nR の `arima0()` と同等です。"
   },
   "arimaorder#summary": {
     "hash": "a3f5d7c90575",
     "en": "The (p, d, q) or (p, d, q, P, D, Q, frequency) of an ARIMA fit (forecast's `arimaorder()`). Equivalent to `forecast::arimaorder()` in R.",
-    "ja": ""
+    "ja": "ARIMA の当てはめにおける (p, d, q) または (p, d, q, P, D, Q, frequency) です (forecast の `arimaorder()`)。R の `forecast::arimaorder()` と同等です。"
   },
   "autoArima#summary": {
     "hash": "8f8af180dd9c",
     "en": "Chooses and fits an ARIMA model by forecast's `auto.arima()` rules: d by {@link ndiffs} (after the seasonal\ndifferences), D by {@link nsdiffs}, then the stepwise search on the AICc (or all models up to maxOrder with\n`stepwise: false`).\nEquivalent to `forecast::auto.arima()` in R.\n\nWith approximation, models are ranked by the CSS fits' AICc; R's printed trace adds a constant per series whose origin\nis not known (it does not change the choice), so the trace values here are the CSS AICc themselves.",
-    "ja": ""
+    "ja": "forecast の `auto.arima()` の規則に従って ARIMA モデルを選択し、当てはめます。季節差分の後、{@link ndiffs} で d、{@link nsdiffs} で D を決め、その後 AICc によるステップワイズ探索を行います (`stepwise: false` の場合は maxOrder 以下の全モデルを探索します)。\nR の `forecast::auto.arima()` と同等です。\n\n近似を使う場合、CSS 当てはめの AICc でモデルを順位付けします。R の表示する trace には系列ごとの定数が加わりますが、その由来は不明です (モデルの選択には影響しません)。ここでの trace 値は CSS による AICc そのものです。"
   },
   "bizdays#summary": {
     "hash": "9d793124be71",
