@@ -5,6 +5,13 @@
 
 ## セッション 40 で最初にやること (2026-11-27 夜に書いた)
 
+**セッション 40 の結果 (2026-11-27): A・B とも解決 (ログ 88-90)。** 別の LLM に、ソースを引用させずに不具合かどうかだけを確かめてもらった (ユーザーの依頼)。
+A は urca の誤り (分母を y_{t−1} でなく y_t で作る。use.lag = 0 の 1:0 ループ)。B は forecast の off-by-one
+(1..maxlag を共通の標本で比べ、選んだ L から 1 を引く)。方針は「R の誤りは模倣しない」。A は教科書の形のまま、
+B はユーザーの決定で 0..maxlag を共通の標本で比べ、選んだ L を使う形に実装した (`ocsbTest` の `lagMethod`、nsdiffs は AIC・maxlag 3)。
+仕様書の Departures from R の 9・10 に記録し、Open points から外した。テストは通る。未コミット。Issue #570 への記録はまだ。
+R への報告 (forecast は GitHub、urca は保守者) はユーザーが行う。**次は下の「1.20.0 の残り」から。**
+
 **ユーザーの指示:** 未解決 2 件 (下の A・B) をさらに探る。そのあと 1.20.0 の残り (下の「残り」)。作業は Mac で、作業ブランチ
 `dev/ts-meta-1.20` (push していない)。**push・タグはユーザーの確認なしにしない。** R の実験は毎回チェッカーを先に
 (`node scripts/r-experiment-check.mjs f.R && docker run --rm --platform linux/amd64 -v "$PWD/experiments:/e:ro" rstats-oracle-amd64:4.6.2 Rscript /e/f.R > f.json`)、

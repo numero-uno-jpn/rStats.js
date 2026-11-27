@@ -253,15 +253,21 @@ as a regression with ARMA errors.
    at a higher AICc). rStats.js: the neighbours of the best model itself (Hyndman and Khandakar 2008).
 8. **ets's amse for damped trends** (log 82, found during the implementation): R's in-sample h-step forecasts use
    T = l + (phi + phi + phi^2 + ... + phi^{h-1}) b, not the model's l + (phi + ... + phi^h) b. rStats.js: the model's.
+9. **ndiffs(test = "pp"), urca's ur.pp statistic** (log 85, 88, 90; resolved in session 40, confirmed as an
+   implementation error by another LLM at the user's request): ur.pp forms the sum of squares S (constant) and
+   det(X'X) of (1, t, y) (trend) from the current values y_t instead of the lagged regressor y_{t-1}; also with
+   use.lag = 0 its long-run variance keeps a lag-1 term (an R `1:0` loop; never reached by ndiffs, whose lag is >= 1).
+   rStats.js: Phillips and Perron's (1988) form with the lagged level (as tseries' pp.test). The statistics differ by
+   up to 0.025 (constant) and 0.05 (trend), p by up to 3.4e-3; no decision differed in the 1160 checked. The critical
+   values (MacKinnon 1991 at N = n - 1) are R's.
+10. **ocsb.test's lag selection and nsdiffs(test = "ocsb")** (log 80, 86, 89, 90; resolved in session 40, confirmed as
+   an off-by-one by another LLM): forecast compares L = 1..maxlag on a common sample by the lm AIC / BIC / AICc and
+   then reports and uses L - 1 lags. rStats.js (the user's decision, 2026-11-27): lags 0..maxlag compared on the same
+   common sample, the chosen lag used. The criterion is R's (3387 of 3387 non-degenerate choices consistent); nsdiffs's
+   decisions differ in 5 of the 120 fixture series, each explained by the off-by-one.
 
 # Open points found during the implementation (for the user)
 
-- **ndiffs(test = "pp")** (log 78-79, 85): R uses urca's ur.pp; its critical values are MacKinnon's (1991) surfaces at
-  N = n - 1 (implemented, exact), but ur.pp's Z-tau differs from Phillips and Perron's form used here by up to 0.05
-  (p by up to 3.4e-3; no decision differed in 1160 checked). The remaining term is not found.
-- **nsdiffs(test = "ocsb")'s lag choice by AIC** (log 80, 86): the prefiltered regression is exact for each lag; the
-  chosen lag is always at most maxlag - 1, but no criterion found reproduces the choice. rStats.js uses lag 0 (5 of 120
-  fixture decisions differ). The default "seas" test is not affected.
 - **auto.arima's neighbour order:** the diagonal steps are (-1, -1), (-1, +1), (+1, -1), (+1, +1) (the fixture's traces;
   log 43 had the middle two the other way round), and the non-stepwise search fits the model without the constant
   first.

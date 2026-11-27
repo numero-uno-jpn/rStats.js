@@ -967,3 +967,79 @@ choices under several criteria).
    - **loglik = -0.5 (n log(2 pi sigma2) + sum log F_t over the times before the switch + n), sigma2 = sum e^2 / n:
      within 3e-14 in all 50 cases.** Resolved: rStats.js's arima0 takes `delta` (default 0.01) and agrees with R's
      arima0 both with delta = -1 and with the default.
+
+## Open point A resumed: ur.pp's Z-tau (2026-11-27, session 40, asked for by the user)
+
+88. `tsmeta120-ndiffs9.R` (designed: type = "Z-alpha" with use.lag = 0..4, Z-tau and @auxstat for the same calls, and
+   the series scaled (y * 3) and shifted (y + 5); the same 21 series as ndiffs8):
+   - both statistics are invariant to scale and shift (equal to 1e-6 printed), so they depend on the residuals and
+     the regressors' sums only.
+   - Z-alpha is linear in the correction: solving D = 2 (n (rho - 1) - Z-alpha) / (n^2 (X'X)^-1_rho) per series and
+     regressing D on the residual autocovariances g_j = sum e_t e_{t-j} / n gave weights 2 (1 - j / (L + 1)) for
+     j = 1..L (L = 1..4: 1.01; 1.35, 0.73; 1.52, 1.07, 0.52; 1.62, 1.27, 0.83, 0.33), **and for use.lag = 0 a weight
+     of 2 on g_1** (as if the lag were 1 with weight 1). The fit left 2-3% (first wrong turn: the weights were right,
+     the denominator was not).
+   - With the Bartlett weights fixed, the ratio of the implied denominator to (X'X)^-1 was **constant across L for each
+     series** (0.957 to 1.013): only the sum of squares differed. **The candidate that gives 1.000000 in all series:
+     sum (y_t - mean)^2 over the current values y_2..y_N, not the lagged y_{t-1}** (lagged with the whole-series mean,
+     the lagged mean, or the current mean: 0.987 to 1.045; all of y: 0.988 to 1.000).
+   - **Resolved, all 21 series x 2 models x use.lag 0..4, to 1e-12:** with e the residuals of y_t on (1, y_{t-1}) or
+     (1, y_{t-1}, t - n/2), n = N - 1, g_j as above, s^2 = g_0 = SSR / n (not the lm sigma^2: 0.11 off),
+     lambda^2 = g_0 + 2 sum_{j=1}^{l} (1 - j / (l + 1)) g_j (l = 0: g_0 + 2 g_1), t the lm t value of rho - 1:
+     - constant: Z-alpha = n (rho - 1) - (lambda^2 - s^2) n^2 / (2 S), Z-tau = (s / lambda) t - (lambda^2 - s^2) n / (2 lambda sqrt(S)),
+       S = sum_{t=2}^{N} (y_t - mean(y_2..y_N))^2;
+     - trend: Z-alpha = n (rho - 1) - n^6 (lambda^2 - s^2) / (24 Dx), Z-tau = (s / lambda) t - (lambda^2 - s^2) n^3 / (4 sqrt(3) sqrt(Dx) lambda),
+       Dx = det(X'X) of X = (1, t, y_t) (current y; with the lagged y_{t-1}, as tseries' pp.test and Phillips and Perron: 0.08 off).
+   - The one NaN (constant, use.lag = 0, Z-tau) is lambda^2 < 0 (-1.5e-2) from the weight-2 g_1 term.
+   - ndiffs's lags = "short" is trunc(4 (n / 100)^0.25) >= 1 for every n >= 1, so the use.lag = 0 term never reaches ndiffs.
+   - My implementation (`ppStatisticConst`) used the lagged y in S and Dx (the textbook form): that is the whole
+     0.025 / 0.05 difference of log 85.
+
+## Open point B resumed: ocsb.test's lag selection (2026-11-27, session 40, asked for by the user)
+
+89. `tsmeta120-nsdiffs-ocsb3.R` (designed: w = diff(diff(y, m)) a strong AR(p), p = 0..3, n = 240 (m = 4) and 400
+   (m = 12), 6 series each; lag.order for AIC, BIC, AICc and maxlag 1..6; the coefficient names and nobs of the AIC
+   fit with maxlag 6):
+   - **the chosen order is the true order minus one**: AR(2) -> 1, AR(3) -> 2 (maxlag >= 3), AR(1) and white noise
+     -> mostly 0. "At most maxlag - 1" persists up to maxlag 6. But AR(3) with maxlag 2 -> 0 in 12 of 12 (not 1), so
+     "argmin minus one" over the fixed fits alone does not explain it.
+   - the returned fitted.model has the reported number of lags (names `xregmf.x.lag_1`..; one lag is `xregmf.x`)
+     and its own rows (nobs = n - m - 1 - order): the statistic comes from the fixed fit with the reported order.
+   `tsmeta120-nsdiffs-ocsb4.R` (the same series; fixed fits L = 0..6: AIC, BIC, logLik, nobs, k): fitted.model is an
+   `lm` without a constant (k = L + 2). The choices against the fixed fits' AIC need an extra penalty of about 2.3 to
+   2.7 per lag (bounds from three choices of one series), about one observation's -2 log-likelihood: the candidates
+   are compared on a common sample.
+   - Tested outside R on all choices of ocsb2 (300 series x 9) and ocsb3 (48 x 18), 3549 cases: candidate sets
+     {1..maxlag, reported minus one}, {0..maxlag - 1}, {0..maxlag}; own rows or the rows of the largest candidate;
+     the AR prefilter on its own rows or the common rows; k = coefficients or coefficients + 1 (24 variants, a small
+     designed set, not a widened grid). Own rows: at most 2246 / 3517. **{1..maxlag} on the common rows, reported
+     minus one: 3483 / 3507**; the 24 misses are all n = 10..12 with m = 4, where the common sample has 3 to 5 rows
+     for up to 5 coefficients (saturated or aliased fits; 42 more could not be fitted by my plain normal equations).
+   - **Resolved, all 3387 non-degenerate cases (common rows > maxlag + 3):** for L = 1..maxlag, fit the OCSB
+     regression with L lags on the rows t >= m + 1 + maxlag (the AR(L) prefilter of w also on w's rows from maxlag),
+     criterion = lm's AIC / BIC with k = L + 3 (the coefficients and sigma), AICc = AIC + 2k(k + 1) / (n - k - 1)
+     (the help page's formula, same k); take the minimising L, **report L - 1**, and refit the test with L - 1 lags on
+     its own rows. With k = L + 2: 3377; with the prefilter on its own rows: 3377.
+   - The reported order is one less than the model the criterion chose (the criterion's model with L lags, the test
+     with L - 1). It looks like an off-by-one in forecast (the source not read); a correct selection would use the
+     chosen L itself. Degenerate tiny samples (n <= m + 1 + maxlag + maxlag + 3) depend on lm's handling of aliased
+     columns and were not resolved.
+
+90. Checked by another LLM at the user's request (2026-11-27; it read the sources and answered in prose only, no
+   code quoted, so the clean room holds; I read nothing):
+   - urca's ur.pp: (a) use.lag = 0 is the R `1:0` loop (a lag-1 term enters), a bug; (b) S and Dx from the current
+     y_t instead of the lagged y_{t-1} is an implementation error (Phillips and Perron 1988 and Pfaff 2008 use the
+     lagged level). **Both bugs, matching log 88.** No public report found (urca has no issue tracker).
+   - forecast's ocsb.test: its first answer ("candidates 0..maxlag, index minus one, as changed in NEWS") was wrong:
+     forecast 9.0.2's NEWS.md mentions ocsb only as "Added `ocsb.test()`", and maxlag = 1 returns 0 for every strong
+     AR(2) series. Asked again with these counter-observations, it traced the implementation: candidates L = 1..maxlag
+     on a common sample, the criterion of L lags stored at position L, and **the reported and used order is the
+     argmin position minus one: an off-by-one bug**, matching log 89. No GitHub issue found.
+   - Policy (the user's, 2026-11-27): R's errors are not imitated. A: rStats.js keeps the textbook form (lagged y in S
+     and Dx), a documented departure from R. B: the fix of the selection is for the user to decide (next).
+   - **Implemented (the user's decision, 2026-11-27: lags 0..maxlag on the common sample, the chosen lag used):**
+     `ocsbTest(x, { frequency, maxlag, lagMethod })` and nsdiffs(test = "ocsb") with AIC and maxlag 3. Checked against
+     ocsb2 / ocsb3: in all 3387 non-degenerate cases rStats.js's lag is R's criterion's L (1343) or 0 (2044), never
+     another (a first draft skipped candidates with n <= k + 1 for AIC and BIC too: 2 misses at n = 15, fixed by keeping
+     that guard for AICc only). The stl fixture's nsdiffs(ocsb) decisions differ in 5 of 120 (26, 46, 72, 78, 82), each
+     explained by the off-by-one. Both departures are in the spec's "Departures from R" (9, 10).

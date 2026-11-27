@@ -264,7 +264,11 @@ function adfStatisticK1(y: readonly number[], type: "level" | "trend"): number {
   return f.coefTable.tValue[j]!;
 }
 
-/** The Phillips-Perron Z(t_alpha) with a constant (y_t on 1, y_{t-1}), lag trunc(4 (n/100)^0.25). */
+/**
+ * The Phillips-Perron Z(t_alpha) with a constant (y_t on 1, y_{t-1}), lag trunc(4 (n/100)^0.25). Phillips and Perron's
+ * form with the lagged level in the sum of squares and det(X'X). R's ndiffs uses urca's ur.pp, which takes the current
+ * y_t there (an implementation error, log 88, 90; the user's policy: not imitated), up to 0.05 off in the statistic.
+ */
 export function ppStatisticConst(y: readonly number[], type: "level" | "trend"): number {
   const n = y.length; const nn = n - 1; const rows: number[][] = []; const resp: number[] = [];
   for (let t = 1; t < n; t++) { rows.push(type === "trend" ? [t, y[t - 1]!] : [y[t - 1]!]); resp.push(y[t]!); }

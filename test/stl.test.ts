@@ -69,8 +69,29 @@ describe("nsdiffs and ocsb.test (forecast)", () => {
       const o2 = ocsbTest(y, { frequency: m, maxlag: 2 });
       if (Math.abs(o2.statistic - num(r.ocsb2_stat)) > 1e-10 * Math.max(1, Math.abs(num(r.ocsb2_stat)))) bad.push(`${i} stat2 ${o2.statistic} ${r.ocsb2_stat}`);
     });
-    // nsdiffs(test = "ocsb") chooses ocsb.test's lag by AIC (maxlag 3) in a way not reproduced (experiments/
-    // tsmeta120-log.md item 80, left open); rStats.js uses lag 0, which differs in these 5 of 120
-    expect(bad.slice(0, 20)).toEqual(["26 ocsb", "33 ocsb", "46 ocsb", "78 ocsb", "85 ocsb"]);
+    // nsdiffs(test = "ocsb") chooses ocsb.test's lag by AIC (maxlag 3). forecast compares lags 1..3 and uses one
+    // lag fewer than the chosen one (an off-by-one, experiments/tsmeta120-log.md items 89-90); rStats.js compares
+    // 0..3 and uses the chosen lag (the user's decision). The decisions differ in these 5 of 120, each explained by
+    // that: 26 and 78 choose lag 0 (not a candidate in R), 46, 72 and 82 choose R's criterion's lag (R uses one less)
+    expect(bad.slice(0, 20)).toEqual(["26 ocsb", "46 ocsb", "72 ocsb", "78 ocsb", "82 ocsb"]);
+  });
+
+  // The selection's criterion against R's (experiments/tsmeta120-nsdiffs-ocsb2/3.json: ocsb.test's lag.order for
+  // AIC, BIC, AICc and maxlag 1..3 / 1..6). R reports c = L_R - 1 where L_R minimises the criterion over 1..maxlag on
+  // the common sample; rStats.js minimises over 0..maxlag on the same sample, so its lag is L_R or 0. Tiny samples
+  // (common rows <= maxlag + 3, where lm's handling of aliased columns matters) are left out.
+  it("lag selection: the same criterion as R over 1..maxlag, plus lag 0", () => {
+    const cases: { y: number[]; m: number; meth: "AIC" | "BIC" | "AICc"; ml: number; c: number }[] = [];
+    const read = (f: string): any => JSON.parse(readFileSync(new URL(`../experiments/${f}`, import.meta.url), "utf8"));
+    for (const r of read("tsmeta120-nsdiffs-ocsb3.json").rows) for (const meth of ["AIC", "BIC", "AICc"] as const) (r.choices[meth] as number[]).forEach((c, i) => cases.push({ y: r.y, m: r.m, meth, ml: i + 1, c }));
+    for (const r of read("tsmeta120-nsdiffs-ocsb2.json").rows) for (const meth of ["AIC", "BIC", "AICc"] as const) for (let ml = 1; ml <= 3; ml++) { const c = r.choices[`${meth}_${ml}`]; if (c != null) cases.push({ y: r.y, m: r.m, meth, ml, c }); }
+    let same = 0, zero = 0; const bad: string[] = [];
+    for (const c of cases) {
+      if (c.y.length - c.m - 1 - c.ml <= c.ml + 3) continue;
+      const L = ocsbTest(c.y, { frequency: c.m, lagMethod: c.meth, maxlag: c.ml }).lagOrder;
+      if (L === c.c + 1) same++; else if (L === 0) zero++; else bad.push(`${c.meth} m${c.m} n${c.y.length} maxlag ${c.ml}: R ${c.c}, rStats.js ${L}`);
+    }
+    expect(bad).toEqual([]);
+    expect([same, zero]).toEqual([1343, 2044]);
   });
 });

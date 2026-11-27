@@ -3,7 +3,7 @@
 // (stl: items 19-27, from Cleveland, Cleveland, McRae and Terpenning 1990; supsmu: items 48-49, from Friedman 1984;
 // mstl, nsdiffs, ocsb: items 39-42, 47). No R or package source was read.
 
-import { lm } from "../models/lm.js";
+import { lm, type LmResult } from "../models/lm.js";
 import { OCSB_CRITICAL, OCSB_M } from "./ocsbCritical.js";
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -280,9 +280,9 @@ export function nsdiffs(x: readonly number[], options: { frequency: number; test
       return Math.max(0, 1 - variance(dec.remainder) / variance(sr)) > 0.64;
     }
     // R's nsdiffs calls ocsb.test with lag.method "AIC" and maxlag 3, which fails (and nsdiffs returns 0) when the
-    // series has at most m + 5 values; the AIC choice of the lag is not reproduced (log 80, left open), lag 0 is used
+    // series has at most m + 5 values. The lag is chosen correctly here, unlike R's off-by-one (ocsbTest, log 89-90)
     if (v.length <= m + 5) return false;
-    const r = ocsbTest(v, { frequency: m });
+    const r = ocsbTest(v, { frequency: m, lagMethod: "AIC", maxlag: 3 });
     return r.statistic > r.critical;
   };
   while (D < maxD && dodiff(y)) { D++; y = y.slice(m).map((v, i) => v - y[i]!); if (y.every((v) => v === y[0])) break; }
@@ -300,17 +300,10 @@ export function ocsbCritical(m: number): number {
   return OCSB_CRITICAL[k]! + ((OCSB_CRITICAL[k + 1]! - OCSB_CRITICAL[k]!) * (Math.log(m) - a)) / (b - a);
 }
 
-/**
- * The Osborn-Chui-Smith-Birchenhall test for a seasonal unit root: with w = Delta_m Delta_1 y and L lags, the AR(L)
- * coefficients a of w by least squares (no mean), then the regression of w_t on w_{t-1..L} and the two auxiliary
- * series filtered by a, (1 - a(B)) Delta_m y_{t-1} and (1 - a(B)) Delta_1 y_{t-m}, without a constant; the statistic
- * is the t value of the second (log 41, 80). Equivalent to forecast's `ocsb.test()` with `lag.method = "fixed"`
- * (`maxlag` lags; R's default is 0). R's AIC / BIC / AICc lag selection is not reproduced (log 80, left open).
- *
- * @category Time series
- */
-export function ocsbTest(x: readonly number[], options: { frequency: number; maxlag?: number }): { statistic: number; critical: number; lagOrder: number } {
-  const m = options.frequency; const y = x.map(Number); const n = y.length; const L = options.maxlag ?? 0;
+// The OCSB regression with L lags on the rows t >= t0 of y; the AR(L) prefilter of w = Delta_m Delta_1 y is fitted on
+// w's rows from arFrom (L for the test itself, the largest candidate's lag when lags are compared on a common sample).
+function ocsbRegression(y: readonly number[], m: number, L: number, t0: number, arFrom: number): LmResult {
+  const n = y.length;
   const dd = (t: number): number => y[t]! - y[t - 1]! - y[t - m]! + y[t - m - 1]!;
   const dm = (t: number): number => y[t]! - y[t - m]!;
   const d1 = (t: number): number => y[t]! - y[t - 1]!;
@@ -318,15 +311,50 @@ export function ocsbTest(x: readonly number[], options: { frequency: number; max
   if (L > 0) {
     const w: number[] = []; for (let t = m + 1; t < n; t++) w.push(dd(t));
     const X: number[][] = [], Y: number[] = [];
-    for (let t = L; t < w.length; t++) { X.push(Array.from({ length: L }, (_, i) => w[t - 1 - i]!)); Y.push(w[t]!); }
+    for (let t = arFrom; t < w.length; t++) { X.push(Array.from({ length: L }, (_, i) => w[t - 1 - i]!)); Y.push(w[t]!); }
     a = lm(X, Y, { intercept: false }).coefficients;
   }
   const rows: number[][] = [], resp: number[] = [];
-  for (let t = m + 1 + L; t < n; t++) {
+  for (let t = t0; t < n; t++) {
     let z4 = dm(t - 1), z5 = d1(t - m);
     for (let i = 1; i <= L; i++) { z4 -= a[i - 1]! * dm(t - 1 - i); z5 -= a[i - 1]! * d1(t - m - i); }
     rows.push([...Array.from({ length: L }, (_, i) => dd(t - 1 - i)), z4, z5]); resp.push(dd(t));
   }
-  const f = lm(rows, resp, { intercept: false });
+  return lm(rows, resp, { intercept: false });
+}
+
+/**
+ * The Osborn-Chui-Smith-Birchenhall test for a seasonal unit root: with w = Delta_m Delta_1 y and L lags, the AR(L)
+ * coefficients a of w by least squares (no mean), then the regression of w_t on w_{t-1..L} and the two auxiliary
+ * series filtered by a, (1 - a(B)) Delta_m y_{t-1} and (1 - a(B)) Delta_1 y_{t-m}, without a constant; the statistic
+ * is the t value of the second (log 41, 80). Equivalent to forecast's `ocsb.test()`. With `lagMethod` "fixed" (the
+ * default) L = `maxlag` (R's default 0). With "AIC", "BIC" or "AICc" the lags 0..maxlag are compared on a common
+ * sample (the rows of maxlag lags, the prefilter too) by the lm criterion with k = coefficients + 1 (AICc = AIC +
+ * 2k(k + 1) / (n - k - 1), forecast's help), and the chosen L is used. **This departs from R:** forecast 9.0.2 compares
+ * L = 1..maxlag that way but reports and uses one lag fewer than the chosen L (log 89-90, an off-by-one; the user's
+ * decision 2026-11-27 is not to imitate it). Candidates with a perfect fit (and for AICc, n <= k + 1) are skipped.
+ *
+ * @category Time series
+ */
+export function ocsbTest(
+  x: readonly number[],
+  options: { frequency: number; maxlag?: number; lagMethod?: "fixed" | "AIC" | "BIC" | "AICc" },
+): { statistic: number; critical: number; lagOrder: number } {
+  const m = options.frequency; const y = x.map(Number); const maxlag = options.maxlag ?? 0; const method = options.lagMethod ?? "fixed";
+  let L = maxlag;
+  if (method !== "fixed" && maxlag > 0) {
+    let best = Infinity; L = 0;
+    for (let cand = 0; cand <= maxlag; cand++) {
+      const f = ocsbRegression(y, m, cand, m + 1 + maxlag, maxlag);
+      const nobs = f.residuals.length; const k = f.rank + 1;
+      if (method === "AICc" && nobs - k - 1 <= 0) continue;
+      const rss = f.residuals.reduce((s, e) => s + e * e, 0);
+      if (!(rss > 0)) continue;
+      const aic = nobs * (Math.log((2 * Math.PI * rss) / nobs) + 1) + 2 * k;
+      const crit = method === "AIC" ? aic : method === "BIC" ? aic - 2 * k + Math.log(nobs) * k : aic + (2 * k * (k + 1)) / (nobs - k - 1);
+      if (crit < best) { best = crit; L = cand; }
+    }
+  }
+  const f = ocsbRegression(y, m, L, m + 1 + L, L);
   return { statistic: f.coefTable.tValue[L + 1]!, critical: ocsbCritical(m), lagOrder: L };
 }
