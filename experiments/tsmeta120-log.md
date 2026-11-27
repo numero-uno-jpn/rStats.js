@@ -1579,3 +1579,26 @@ choices under several criteria).
      off (cancellation in the mean); the reference is now the acf of the stored values less 1e8 (exact), and the test
      checks that R's value misses it. Permanent: test/tsEdge120 ("the rest of the function x axis matrix") and
      test/metaEdge120 (likewise), 13 cases.
+
+## glmer on rare events (2026-11-28, session 42, the user's decision: fix it for 1.20.0)
+
+111. The open point of 110 (metapropGlmm on proportions about 1e-5 with n about 1e5: rStats.js's glmer "did not
+   converge", R fits it with theta = 0). `tsmeta120-glmmrare.R`: lme4's fit of the same data for nAGQ 0, 1, 7.
+   - The failure was already at nAGQ = 0: the PIRLS iteration ran to its 500 iterations with steps of about 1e-8 that
+     every step halving rejected (the penalised deviance, 0.025, rose by rounding beyond the slack 1e-13 pdev), and the
+     outer minimiser's Hessian then failed on both sides.
+   - First attempts in glmerDeviance (kept out): ending the iteration when all halvings fail on a small step (5.7e-10
+     off in test F1, near-collinear predictors, and the mode 2.7e-8 off at nAGQ = 0); then taking the full Newton step
+     there (F1 wandered along its flat direction to the limit); then a test on the predicted decrease g'delta: these
+     fixed the case and more (see below) but made a third case fail. The traces showed the cause: the noise of pdev,
+     about 1e-10 with weights 1e7, far above eps pdev.
+   - **The cause:** the binomial deviance's term (1 - y) log((1 - y) / (1 - mu)) for y and mu below 0.1 (the "far" branch,
+     |y - mu| >= 0.1 min(mu, 1 - mu)) takes the log of a ratio near 1: a relative error eps / |mu - y| (1e-10 of the term
+     at mu = 1.1e-5, y = 1e-5), times the prior weight. Now (1 - y) log1p((mu - y) / (1 - mu)) there, from the exact
+     difference (glmFamily.ts; mu >= 0.1 keeps R's bits). With that alone, and glmerDeviance unchanged, every case
+     converges: the data of 110 equal to R to 1e-14 in the fixed effect and the log-likelihood at nAGQ 0, 1 and 7 (theta
+     0 as R's); `tsmeta120-glmmrare2.R` (proportions 1e-3..1e-6, weights 1e3..1e7, a covariate, group effects 0 / 0.5;
+     poisson with rates through offsets 1e8, 1e12): every fit R's log-likelihood or a higher one (R stops early by up to
+     1e-4 with the offsets), the fixed effects within 1e-5. Two cases (weights 1e7 with group variation) had failed in
+     rStats.js before, besides the one of 110. metapropGlmm on the rare data equals R to 2e-14.
+   - The full suite passes unchanged (the glm and glmer fixtures). Permanent: test/glmerRare120.test.ts.

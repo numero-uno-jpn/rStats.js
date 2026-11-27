@@ -39,6 +39,9 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   (x + 1e8) reported the model matrix as not of full rank; they now fit, with the same coefficients. Effects beyond
   1e±60 are fitted on a standardised scale (they were off or failed, also through `metabias` and `trimfill`).
 - `acf` and `ccf` of a series with a large common value (x + 1e8) are exact (R's lose about 1e-9 to the mean).
+- `glmer` with a binomial response of rare events (proportions about 1e-5 with prior weights 1e5 and beyond) failed
+  ("the minimisation of the deviance did not converge"; R fits): the binomial deviance lost digits there. `glm`'s
+  binomial deviance is more accurate there too.
 
 ## 1.19.0 - 2026-11-26
 
