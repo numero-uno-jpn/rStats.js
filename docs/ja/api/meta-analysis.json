@@ -277,117 +277,117 @@
   "metabias#summary": {
     "hash": "5b53ae81073c",
     "en": "Tests for funnel plot asymmetry (meta's `metabias()`): \"Egger\" (default for continuous outcomes: the intercept of\nTE/seTE on 1/seTE, t on k - 2), \"Begg\" (Kendall's S of the standardised deviations against the variances, no\ncontinuity correction), \"Thompson\" (Thompson-Sharp: the REML meta-regression on seTE, its z with t(k - 2) p),\n\"Harbord\" (binary: lm(Z/sqrt(V) ~ sqrt(V)) with Z = O - E and V the hypergeometric variance) and \"Peters\" (binary:\nlm(TE ~ 1/N) with weights 1/(1/(a + c) + 1/(b + d))). Harbord and Peters need the 2 x 2 counts (`counts`).\nEquivalent to `meta::metabias()` in R.",
-    "ja": ""
+    "ja": "ファンネルプロットの非対称性を検定します (meta の `metabias()`): \"Egger\" (連続アウトカムの既定。TE/seTE を 1/seTE に回帰した切片を、自由度 k - 2 の t 分布で検定)、\"Begg\" (標準化偏差と分散の Kendall の S。連続性補正なし)、\"Thompson\" (Thompson-Sharp: seTE に対する REML メタ回帰。その z 値の p 値は自由度 k - 2 の t 分布で求めます)、\"Harbord\" (二値アウトカム: Z = O - E、V は超幾何分散として lm(Z/sqrt(V) ~ sqrt(V)))、\"Peters\" (二値アウトカム: 重み 1/(1/(a + c) + 1/(b + d)) を用いた lm(TE ~ 1/N)) です。Harbord と Peters には 2 x 2 の度数 (`counts`) が必要です。\nR の `meta::metabias()` と同等です。"
   },
   "metabin#summary": {
     "hash": "fce2893e9ed5",
     "en": "Meta-analysis of binary outcomes (meta's `metabin()`): events e1 / e2 of totals n1 / n2. The common effect by\nMantel-Haenszel (OR with the Robins-Breslow-Greenland variance; RR and RD with Greenland and Robins'), Peto's\n(O - E) / V or the inverse variance; the random effect and heterogeneity as {@link metagen} on the study values.\nStudies with a zero cell get `incr` (0.5); studies with no or all events in both groups are left out for OR and RR.\nEquivalent to `meta::metabin()` in R.",
-    "ja": ""
+    "ja": "二値アウトカムのメタ分析です (meta の `metabin()`): 総数 n1 / n2 に対するイベント数 e1 / e2 です。Mantel-Haenszel 法による共通効果 (OR は Robins-Breslow-Greenland の分散、RR と RD は Greenland と Robins の分散)、Peto の (O - E) / V、または逆分散法で推定します。変量効果と異質性は、研究ごとの値に {@link metagen} を適用して求めます。ゼロセルのある研究には `incr` (0.5) を加えます。両群ともイベントがない、または全例がイベントである研究は OR と RR から除外します。\nR の `meta::metabin()` と同等です。"
   },
   "metacont#summary": {
     "hash": "dd84eae8dea8",
     "en": "Meta-analysis of continuous outcomes (meta's `metacont()`): sm \"MD\" (default), \"SMD\" (Hedges' g with the exact J;\nvariance 1/n1 + 1/n2 + (1 - (N - 4) / ((N - 2) J^2)) g^2, log 69) or \"ROM\" (log ratio of means).\nEquivalent to `meta::metacont()` in R.",
-    "ja": ""
+    "ja": "連続アウトカムのメタ分析です (meta の `metacont()`): sm は \"MD\" (既定)、\"SMD\" (正確な J を用いた Hedges の g。分散は 1/n1 + 1/n2 + (1 - (N - 4) / ((N - 2) J^2)) g^2。log 69)、または \"ROM\" (平均の対数比) です。\nR の `meta::metacont()` と同等です。"
   },
   "metacor#summary": {
     "hash": "b08cb6df4fca",
     "en": "Meta-analysis of correlations (meta's `metacor()`): sm \"ZCOR\" (Fisher's z, variance 1/(n - 3), default) or \"COR\"\n(variance (1 - r^2)^2 / (n - 1)).\nEquivalent to `meta::metacor()` in R.",
-    "ja": ""
+    "ja": "相関のメタ分析です (meta の `metacor()`): sm は \"ZCOR\" (Fisher の z、分散 1/(n - 3)、既定)、または \"COR\" (分散 (1 - r^2)^2 / (n - 1)) です。\nR の `meta::metacor()` と同等です。"
   },
   "metacum#summary": {
     "hash": "054b7fe8c8ff",
     "en": "Cumulative meta-analysis (meta's `metacum()`): the pooled estimate of the first 1, 2, ... studies; `pooled` \"common\"\n(default) or \"random\".\nEquivalent to `meta::metacum()` in R.",
-    "ja": ""
+    "ja": "累積メタ分析です (meta の `metacum()`): 最初の 1、2、... 件の研究を統合した推定値を求めます。`pooled` は \"common\" (既定) または \"random\" です。\nR の `meta::metacum()` と同等です。"
   },
   "metagen#summary": {
     "hash": "a1f922823669",
     "en": "Generic inverse-variance meta-analysis (meta's `metagen()`): study estimates TE with standard errors seTE; the\ncommon effect, the random effect with tau2 by `methodTau` (default REML) and a classic or Hartung-Knapp interval,\nthe prediction interval (t on k - 1), Q, tau2's interval (QP, or J for DL), H and I2 with Higgins and Thompson's\nintervals.\nEquivalent to `meta::metagen()` in R.",
-    "ja": ""
+    "ja": "一般逆分散法によるメタ分析です (meta の `metagen()`): 研究ごとの推定値 TE と標準誤差 seTE を入力し、共通効果、`methodTau` (既定 REML) による tau2 を用いた変量効果、古典的区間または Hartung-Knapp 区間、予測区間 (自由度 k - 1 の t 分布)、Q、tau2 の区間 (QP、または DL の場合は J)、H、Higgins と Thompson の区間を伴う I2 を求めます。\nR の `meta::metagen()` と同等です。"
   },
   "metainc#summary": {
     "hash": "0be1bd2048b4",
     "en": "Meta-analysis of incidence rates (meta's `metainc()`): events e1 / e2 in person-times t1 / t2; sm \"IRR\" (default) or\n\"IRD\"; method \"MH\" (default; Greenland and Robins 1985, no increments) or \"Inverse\". Studies with a zero get 0.5 added\nto the events for the study values (log 67).\nEquivalent to `meta::metainc()` in R.",
-    "ja": ""
+    "ja": "発生率のメタ分析です (meta の `metainc()`): 人時間 t1 / t2 に対するイベント数 e1 / e2 を入力します。sm は \"IRR\" (既定) または \"IRD\"、method は \"MH\" (既定。Greenland と Robins 1985、補正値なし) または \"Inverse\" です。研究ごとの値では、イベント数が 0 の場合に 0.5 を加えます (log 67)。\nR の `meta::metainc()` と同等です。"
   },
   "metainf#summary": {
     "hash": "feb79c11355c",
     "en": "Leave-one-out meta-analysis (meta's `metainf()`): the pooled estimate without each study in turn; `pooled` \"common\"\n(default) or \"random\".\nEquivalent to `meta::metainf()` in R.",
-    "ja": ""
+    "ja": "1 件除外メタ分析です (meta の `metainf()`): 各研究を順に 1 件ずつ除いた統合推定値を求めます。`pooled` は \"common\" (既定) または \"random\" です。\nR の `meta::metainf()` と同等です。"
   },
   "metamean#summary": {
     "hash": "640af0300cd1",
     "en": "Meta-analysis of single means (meta's `metamean()`): sm \"MRAW\" (default; variance sd^2/n) or \"MLN\" (log mean,\nvariance sd^2 / (n mean^2)).\nEquivalent to `meta::metamean()` in R.",
-    "ja": ""
+    "ja": "単一平均のメタ分析です (meta の `metamean()`): sm は \"MRAW\" (既定。分散 sd^2/n) または \"MLN\" (対数平均。分散 sd^2 / (n mean^2)) です。\nR の `meta::metamean()` と同等です。"
   },
   "metaprop#summary": {
     "hash": "165465ea64a9",
     "en": "Meta-analysis of single proportions by the inverse variance (meta's `metaprop(method = \"Inverse\")`): sm \"PLOGIT\"\n(default; (x + 0.5)/(n + 1) for 0 or n events), \"PFT\" (Freeman-Tukey), \"PAS\" (arcsine), \"PRAW\" or \"PLN\"\n(log((x + 0.5)/(n + 0.5)) for 0; for n events the variance 1/x - 1/(n + 0.5)). The default method of meta, the GLMM, is {@link metapropGlmm}.\nEquivalent to `meta::metaprop()` in R.",
-    "ja": ""
+    "ja": "逆分散法による単一割合のメタ分析です (meta の `metaprop(method = \"Inverse\")`): sm は \"PLOGIT\" (既定。イベント数が 0 または n の場合は (x + 0.5)/(n + 1))、\"PFT\" (Freeman-Tukey)、\"PAS\" (逆正弦)、\"PRAW\"、または \"PLN\" (0 件の場合は log((x + 0.5)/(n + 0.5))。n 件の場合の分散は 1/x - 1/(n + 0.5)) です。meta の既定の方法である GLMM は {@link metapropGlmm} です。\nR の `meta::metaprop()` と同等です。"
   },
   "metapropGlmm#summary": {
     "hash": "45d571e674bc",
     "en": "Meta-analysis of single proportions by a random intercept logistic model (meta's `metaprop()` default, method\n\"GLMM\"; log 75-76): glmer(x/n ~ 1 + (1 | study), binomial, weights n, nAGQ = 7) for the random effect and tau2,\nglm(x/n ~ 1) for the common effect; Q = [Wald, LRT]: the Wald test of equal study effects in glm(x/n ~ study) and the\ncommon glm's deviance; H and I2 from the Wald Q. Study values are the PLOGIT ones.\nEquivalent to `meta::metaprop()` in R.",
-    "ja": ""
+    "ja": "ランダム切片ロジスティックモデルによる単一割合のメタ分析です (meta の `metaprop()` の既定、method \"GLMM\"。log 75-76): 変量効果と tau2 には glmer(x/n ~ 1 + (1 | study), binomial, weights n, nAGQ = 7)、共通効果には glm(x/n ~ 1) を使用します。Q = [Wald, LRT] は、glm(x/n ~ study) における研究効果の等しさの Wald 検定と、共通効果の glm の逸脱度です。H と I2 は Wald Q から求めます。研究ごとの値には PLOGIT を使用します。\nR の `meta::metaprop()` と同等です。"
   },
   "metarate#summary": {
     "hash": "bcc25d6aadb6",
     "en": "Meta-analysis of single incidence rates (meta's `metarate()`): sm \"IRLN\" (log rate, default), \"IR\", \"IRS\" (square\nroot) or \"IRFT\" (Freeman-Tukey); 0.5 added to zero counts for IR and IRLN.\nEquivalent to `meta::metarate()` in R.",
-    "ja": ""
+    "ja": "単一発生率のメタ分析です (meta の `metarate()`): sm は \"IRLN\" (対数発生率、既定)、\"IR\"、\"IRS\" (平方根)、または \"IRFT\" (Freeman-Tukey) です。IR と IRLN では、イベント数が 0 の場合に 0.5 を加えます。\nR の `meta::metarate()` と同等です。"
   },
   "metareg#summary": {
     "hash": "7d896ca2fc6c",
     "en": "Meta-regression (meta's `metareg()`): rma(TE, seTE^2, mods, method = the meta-analysis's tau2 method) on the studies\nwith finite values. `mods` has one row per study (all studies, as given to the meta function).\nEquivalent to `meta::metareg()` in R.",
-    "ja": ""
+    "ja": "メタ回帰です (meta の `metareg()`): 有限値を持つ研究に対して、rma(TE, seTE^2, mods, method = メタ分析の tau2 推定方法) を当てはめます。`mods` は研究ごとに 1 行を持ち、メタ分析関数に渡されたすべての研究を含みます。\nR の `meta::metareg()` と同等です。"
   },
   "netcomb#summary": {
     "hash": "611b32cfd73f",
     "en": "{@link discomb} for a fitted network (netmeta's `netcomb()`). Equivalent to `netmeta::netcomb()` in R.",
-    "ja": ""
+    "ja": "当てはめ済みネットワークに対する {@link discomb} です (netmeta の `netcomb()`)。\nR の `netmeta::netcomb()` と同等です。"
   },
   "netconnection#summary": {
     "hash": "3fb7cc450fa6",
     "en": "The connected components of a network (netmeta's `netconnection()`): the number of subnets, the numbers of\nstudies k, treatments n and comparisons, and the distance matrix (shortest path lengths; Infinity between subnets).\nEquivalent to `netmeta::netconnection()` in R.",
-    "ja": ""
+    "ja": "ネットワークの連結成分です (netmeta の `netconnection()`): サブネットの数、研究数 k、治療数 n、比較数、および距離行列 (最短経路長。サブネット間は Infinity) を返します。\nR の `netmeta::netconnection()` と同等です。"
   },
   "netleague#summary": {
     "hash": "27dd1d70e5d5",
     "en": "The league table (netmeta's `netleague()`): the diagonal the treatments, the lower triangle [i][j] the network\nestimate of the column treatment against the row treatment (TE[j][i]) with its interval, the upper triangle the direct\nestimates (TE[i][j]; \".\" where there is none); \"est (lower to upper)\" with `digits` decimals, the bounds of a table\npadded to a common width.\nEquivalent to `netmeta::netleague()` in R.",
-    "ja": ""
+    "ja": "リーグテーブルです (netmeta の `netleague()`): 対角には治療名、下三角 [i][j] には列の治療と行の治療のネットワーク推定値 (TE[j][i]) とその区間、上三角には直接推定値 (TE[i][j]。存在しない場合は \".\") を表示します。\"est (lower to upper)\" の形式で `digits` 桁を表示し、テーブルの幅が共通になるよう境界をそろえます。\nR の `netmeta::netleague()` と同等です。"
   },
   "netmeasures#summary": {
     "hash": "637de985ace7",
     "en": "Network measures (netmeta's `netmeasures()`): the direct evidence proportion of each comparison, v_network / v_direct\n(0 without direct evidence), for the random-effects model (default, as netmeta when the fit has one) or the\ncommon-effect model. netmeta's mean path length and minimal parallelism are not provided (log 101: not reproduced).\nEquivalent to `netmeta::netmeasures()` in R.",
-    "ja": ""
+    "ja": "ネットワーク指標です (netmeta の `netmeasures()`): 各比較の直接エビデンス割合 v_network / v_direct (直接エビデンスがない場合は 0) を求めます。変量効果モデル (既定。netmeta と同じく、当てはめに変量効果モデルがある場合) または共通効果モデルを使用します。netmeta の平均経路長と最小並列性は提供しません (log 101: 再現していません)。\nR の `netmeta::netmeasures()` と同等です。"
   },
   "netmeta#summary": {
     "hash": "f8c3edfa4903",
     "en": "Frequentist network meta-analysis (netmeta's `netmeta()`): contrasts TE (treat1 versus treat2) with standard errors\nseTE from studies studlab; the common effects by weighted least squares on the network graph (Ruecker 2012; multi-arm\nstudies by the effective resistances of their comparisons), Q on sum(arms - 1) - (n - 1) df, tau2 by the DL\ngeneralisation of Jackson, White and Riley (2012), the random effects with seTE^2 + tau2, the direct estimates, the\nprediction interval (t on df.Q), and Q split into heterogeneity (within designs) and inconsistency (between).\nEquivalent to `netmeta::netmeta()` in R.",
-    "ja": ""
+    "ja": "頻度論的ネットワーク・メタアナリシスです (netmeta の `netmeta()`): 研究 studlab の比較から、対比 TE (treat1 対 treat2) と標準誤差 seTE を入力します。ネットワークグラフ上の重み付き最小二乗法で共通効果を求めます (Ruecker 2012。多群研究では各比較の有効抵抗を使用)。Q の自由度は sum(arms - 1) - (n - 1) です。Jackson、White、Riley (2012) の一般化 DL 法で tau2 を求め、seTE^2 + tau2 による変量効果、直接推定値、予測区間 (df.Q の t 分布) を求めます。Q は異質性 (デザイン内) と不整合性 (デザイン間) に分解します。\nR の `netmeta::netmeta()` と同等です。"
   },
   "netposet#summary": {
     "hash": "61db0fe6c479",
     "en": "The partial order of treatments over several outcomes (netmeta's `netposet()`): P the treatments by outcomes matrix of\nranking scores; M0 the covering relation (Hasse diagram) of \"i at least as good as j in every outcome and better in\none\" (M0[i][j] = 1: i directly above j).\nEquivalent to `netmeta::netposet()` in R.",
-    "ja": ""
+    "ja": "複数アウトカムにおける治療の半順序です (netmeta の `netposet()`): P は治療 x アウトカムの順位スコア行列、M0 は被覆関係 (Hasse 図) です。「すべてのアウトカムで i が j 以上に良く、少なくとも 1 つでより良い」という関係を表します (M0[i][j] = 1 は i が j の直上にあることを示します)。\nR の `netmeta::netposet()` と同等です。"
   },
   "netrank#summary": {
     "hash": "165104d594a0",
     "en": "P-scores (netmeta's `netrank()`, Ruecker and Schwarzer 2015): for each treatment the mean over the others of the\nprobability that it is better, pnorm((TE_j - TE_i) / se_ij) when small values are desirable (default) or\npnorm((TE_i - TE_j) / se_ij) when undesirable.\nEquivalent to `netmeta::netrank()` in R.",
-    "ja": ""
+    "ja": "P スコアです (netmeta の `netrank()`、Ruecker と Schwarzer 2015): 各治療について、他の治療に対して優れている確率の平均を求めます。値が小さいほど望ましい場合 (既定) は pnorm((TE_j - TE_i) / se_ij)、望ましくない場合は pnorm((TE_i - TE_j) / se_ij) です。\nR の `netmeta::netrank()` と同等です。"
   },
   "netsplit#summary": {
     "hash": "edf230fea94c",
     "en": "Direct and indirect evidence for each comparison (netmeta's `netsplit()`, back-calculation): the direct estimate (the\ninverse-variance pooling of the comparison's contrasts), the indirect one from the network estimate and the direct\none, their difference, and the direct evidence proportion v_network / v_direct.\nEquivalent to `netmeta::netsplit()` in R.",
-    "ja": ""
+    "ja": "各比較の直接エビデンスと間接エビデンスです (netmeta の `netsplit()`、back-calculation): 直接推定値 (その比較の対比を逆分散で統合)、ネットワーク推定値と直接推定値から得られる間接推定値、その差、および直接エビデンス割合 v_network / v_direct を求めます。\nR の `netmeta::netsplit()` と同等です。"
   },
   "pWeightedChisq#summary": {
     "hash": "82feb07b4414",
     "en": "P(sum_j lambda_j chi2_1 <= q) for lambda_j >= 0: Ruben's (1962) series sum_k c_k P(chi2_{r + 2k} <= q / beta) with\nbeta = 2 lmin lmax / (lmin + lmax), or Imhof's (1961) integral when the series would be long.\nNot an R function.",
-    "ja": ""
+    "ja": "lambda_j >= 0 に対する P(sum_j lambda_j chi2_1 <= q) です。Ruben (1962) の級数 sum_k c_k P(chi2_{r + 2k} <= q / beta) を使用します。beta = 2 lmin lmax / (lmin + lmax) です。級数が長くなる場合は Imhof (1961) の積分を使用します。\nR の関数ではありません。"
   },
   "pairwise#summary": {
     "hash": "4dfd1a7b5979",
     "en": "Contrasts from arm-level data (netmeta's `pairwise()`): every pair of arms of each study (treat1 the earlier arm).\nBinary outcomes (`event`, `n`; sm \"OR\", \"RR\" or \"RD\"): all arms of a study get 0.5 when any arm has 0 or n events\n(log 74); continuous (`mean`, `sd`, `n`; sm \"MD\").\nEquivalent to `netmeta::pairwise()` in R.",
-    "ja": ""
+    "ja": "アーム単位のデータから対比を作成します (netmeta の `pairwise()`): 各研究のアームのすべてのペアを作ります (treat1 は先に指定されたアーム)。二値アウトカム (`event`、`n`。sm は \"OR\"、\"RR\"、または \"RD\") では、いずれかのアームでイベント数が 0 または n の場合、研究のすべてのアームに 0.5 を加えます (log 74)。連続アウトカム (`mean`、`sd`、`n`) では sm は \"MD\" です。\nR の `netmeta::pairwise()` と同等です。"
   },
   "predictRma#summary": {
     "hash": "0d7cd5a86e03",
@@ -417,6 +417,6 @@
   "trimfill#summary": {
     "hash": "5a35847ca18c",
     "en": "Duval and Tweedie's trim-and-fill (meta's `trimfill()`): the L0 estimator on the common-effect model, iterated\n(trim the k0 most extreme studies on one side, re-estimate, re-rank), the side opposite to the asymmetry (the sign of\nthe Egger-type regression of TE on seTE); the k0 mirrored studies 2 theta - TE added, then the meta-analysis of the\naugmented data (random effect with the given tau2 method, default REML).\nEquivalent to `meta::trimfill()` in R.",
-    "ja": ""
+    "ja": "Duval と Tweedie の trim-and-fill 法です (meta の `trimfill()`): 共通効果モデルで L0 推定量を反復計算します (一方の側で最も極端な k0 件の研究を除き、再推定して再順位付けします)。非対称性と反対側を選びます (TE を seTE に回帰する Egger 型回帰の符号で判断)。鏡像となる k0 件の研究 2 theta - TE を追加し、拡張データにメタ分析を適用します (既定 REML の指定された tau2 推定方法による変量効果)。\nR の `meta::trimfill()` と同等です。"
   }
 }
