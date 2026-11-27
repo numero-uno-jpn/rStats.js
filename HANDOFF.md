@@ -12,6 +12,12 @@ B はユーザーの決定で 0..maxlag を共通の標本で比べ、選んだ 
 仕様書の Departures from R の 9・10 に記録し、Open points から外した。テストは通る。未コミット。Issue #570 への記録はまだ。
 R への報告 (forecast は GitHub、urca は保守者) はユーザーが行う。**次は下の「1.20.0 の残り」から。**
 
+**セッション 40 の続き (2026-11-27):** forecastSimple・forecastUtils を R と照合した (oracle/forecastSimple.R、テスト 37 件、ログ 91-93)。
+stlm・forecastStlm・forecast (振り分け) を足した (src/timeseries/forecastDispatch.ts)。tseries の 8 関数を実装した
+(src/timeseries/tseries.ts、oracle/tseries.R、全部 1e-9、Fuller の表を R の出力から読み取って確認、ログ 94-95)。
+R との違いが 11-14 増えた (croston・easter の四半期・hw の simple・thetaf の季節の区間 (ユーザー決定))。
+**時系列は端のケースの点検を残して実装済み。次はメタ分析 (meta・netmeta、ログ 61-77) から。**
+
 **ユーザーの指示:** 未解決 2 件 (下の A・B) をさらに探る。そのあと 1.20.0 の残り (下の「残り」)。作業は Mac で、作業ブランチ
 `dev/ts-meta-1.20` (push していない)。**push・タグはユーザーの確認なしにしない。** R の実験は毎回チェッカーを先に
 (`node scripts/r-experiment-check.mjs f.R && docker run --rm --platform linux/amd64 -v "$PWD/experiments:/e:ro" rstats-oracle-amd64:4.6.2 Rscript /e/f.R > f.json`)、
