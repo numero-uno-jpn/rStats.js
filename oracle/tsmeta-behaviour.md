@@ -276,7 +276,7 @@ as a regression with ARMA errors.
    `ocsbTest`, `naInterp`, `tsoutliers`, `tsclean`, `checkresiduals`, `meanf`, `naive`, `snaive`, `rwf`, `ses`, `holt`,
    `hw`, `thetaf`, `croston`, `stlf`, `stlm`, `mstl`, `seasadj`, `fourier`, `seasonaldummy`, `tslm`, `findfrequency`,
    `dmTest`, `tsCV`, `cvLm` (forecast's CV), `ma`, `bizdays`, `monthdays`, `easter`; stats `arima0`, `decompose`, `stl`,
-   `filter` (`tsFilter`?), `holtWinters`, `boxTest`, `ar`, `diffinv`, `supsmu`; tseries `adfTest`, `kpssTest`, `ppTest`,
+   `tsFilter` (stats' `filter`; decided by the user 2026-11-27: `filter` would be confused with Array.prototype.filter and other libraries' `filter`), `holtWinters`, `boxTest`, `ar`, `diffinv`, `supsmu`; tseries `adfTest`, `kpssTest`, `ppTest`,
    `poTest`, `jarqueBeraTest`, `runsTest`, `whiteTest`, `terasvirtaTest`; meta `metabin`, `metacont`, `metagen`,
    `metainc`, `metacor`, `metamean`, `metarate`, `metaprop`, `metabias`, `trimfill`, `metareg`, `metainf`, `metacum`;
    netmeta `pairwise`, `netmeta`, `netrank`, `netsplit`, `netleague`, `decompDesign`, `netmeasures`, `netconnection`,

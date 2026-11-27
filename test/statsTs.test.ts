@@ -2,7 +2,7 @@
 // (test/fixtures/statsTs.json from oracle/statsTs.R).
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
-import { ar, arima0, boxTest, decompose, diffinv, filter, holtWinters, predictAr, predictHoltWinters } from "../src/entries/timeseries.js";
+import { ar, arima0, boxTest, decompose, diffinv, tsFilter, holtWinters, predictAr, predictHoltWinters } from "../src/entries/timeseries.js";
 
 const fx = JSON.parse(readFileSync(new URL("./fixtures/statsTs.json", import.meta.url), "utf8")) as Record<string, any>;
 const num = (v: unknown): number => (v === null ? NaN : Number(v));
@@ -12,16 +12,16 @@ const close = (a: readonly number[], e: readonly number[], tol: number, scale = 
   a.forEach((v, i) => { if (Number.isNaN(e[i]!)) expect(v).toBeNaN(); else expect(Math.abs(v - e[i]!) / Math.max(scale, 1e-300)).toBeLessThan(tol); });
 };
 
-describe("filter, Box.test, diffinv, decompose (stats)", () => {
+describe("tsFilter (filter), Box.test, diffinv, decompose (stats)", () => {
   it("filter", () => {
     const f = fx.filter; const y = arr(f.y), x = arr(f.x);
-    close(filter(y, [1 / 3, 1 / 3, 1 / 3]), arr(f.conv2), 1e-14);
-    close(filter(y, [0.25, 0.25, 0.25, 0.25]), arr(f.conv2even), 1e-14);
-    close(filter(y, [0.5, 0.3, 0.2], { sides: 1 }), arr(f.conv1), 1e-14);
-    close(filter(y, [0.2, 0.5, 0.3], { circular: true }), arr(f.circ), 1e-14);
-    close(filter(x, [0.5, 0.5]), arr(f.na), 1e-14);
-    close(filter(y, [0.5, -0.2], { method: "recursive" }), arr(f.rec), 1e-13);
-    close(filter(y, [0.5, -0.2], { method: "recursive", init: [1.5, -0.7] }), arr(f.recinit), 1e-13);
+    close(tsFilter(y, [1 / 3, 1 / 3, 1 / 3]), arr(f.conv2), 1e-14);
+    close(tsFilter(y, [0.25, 0.25, 0.25, 0.25]), arr(f.conv2even), 1e-14);
+    close(tsFilter(y, [0.5, 0.3, 0.2], { sides: 1 }), arr(f.conv1), 1e-14);
+    close(tsFilter(y, [0.2, 0.5, 0.3], { circular: true }), arr(f.circ), 1e-14);
+    close(tsFilter(x, [0.5, 0.5]), arr(f.na), 1e-14);
+    close(tsFilter(y, [0.5, -0.2], { method: "recursive" }), arr(f.rec), 1e-13);
+    close(tsFilter(y, [0.5, -0.2], { method: "recursive", init: [1.5, -0.7] }), arr(f.recinit), 1e-13);
   });
   for (const [name, c] of Object.entries(fx.box as Record<string, any>)) {
     it(`Box.test ${name}`, () => {

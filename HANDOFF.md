@@ -116,7 +116,7 @@
     forecastUtils.ts (accuracy・ma・fourier・seasonaldummy・monthdays・easter・bizdays・dmTest・cvLm・checkresiduals・tsCV・
     arimaorder・specAr・findfrequency・naInterp・tsoutliers・tsclean)。ets に optCrit "mse" を追加
   - **次:** 上の 2 ファイルの oracle (oracle/forecastSimple.R) とテストを書いて合わせる → tseries → forecast() の振り分け → メタ分析
-  - 関数名 `filter` (Choice 1 の "tsFilter?") はユーザーに確認 → 端のケースの点検 → 配線・文書・訳・デモ → 版 1.20.0。
+  - stats の filter は `tsFilter` (ユーザー決定 2026-11-27) → 端のケースの点検 → 配線・文書・訳・デモ → 版 1.20.0。
     実装で新たに要るもの: rma の GENQ、supsmu、R の乱数に依る white.test、ocsb の臨界値の表、Phillips-Ouliaris の表、bizdays の暦 (ndiffs・nsdiffs・ocsb・auto.arima・ets・ses/holt/hw・thetaf・croston・BoxCox.lambda・mstl・
     tsclean・tsoutliers・na.interp・accuracy・dm.test・tsCV など)、その後メタ分析
 

@@ -16,7 +16,7 @@ import { arima, type ArimaResult } from "./arima.js";
  *
  * @category Time series
  */
-export function filter(x: readonly number[], f: readonly number[], options: { method?: "convolution" | "recursive"; sides?: 1 | 2; circular?: boolean; init?: readonly number[] } = {}): number[] {
+export function tsFilter(x: readonly number[], f: readonly number[], options: { method?: "convolution" | "recursive"; sides?: 1 | 2; circular?: boolean; init?: readonly number[] } = {}): number[] {
   const n = x.length; const p = f.length; const method = options.method ?? "convolution";
   if (method === "convolution") {
     const o = (options.sides ?? 2) === 2 ? Math.floor(p / 2) : 0; const circ = options.circular ?? false;
@@ -104,7 +104,7 @@ export function decompose(x: readonly number[], options: { frequency: number; ty
   const f = options.frequency; const type = options.type ?? "additive"; const n = x.length;
   if (f <= 1 || n < 2 * f) throw new RangeError("time series has no or less than 2 periods");
   const filt = options.filter ?? (f % 2 === 0 ? [0.5, ...new Array<number>(f - 1).fill(1), 0.5].map((v) => v / f) : new Array<number>(f).fill(1 / f));
-  const trend = filter(x, filt, { sides: 2 });
+  const trend = tsFilter(x, filt, { sides: 2 });
   const detr = x.map((v, i) => (type === "additive" ? v - trend[i]! : v / trend[i]!));
   const sums = new Array<number>(f).fill(0), cnt = new Array<number>(f).fill(0);
   detr.forEach((v, i) => { if (!Number.isNaN(v)) { sums[i % f]! += v; cnt[i % f]!++; } });
