@@ -90,6 +90,9 @@ rStats.js に既にあるものと照らし合わせて決めました (2026-11-
    標準誤差、confint、compare、SeSpPPVNPV。survivalROC の Kaplan-Meier 推定量。最近傍推定量は入れない)
 9. **時系列とメタ分析**: 1.20.0 で済み (stats の `arima`・`HoltWinters`・`stl`・`decompose`・`ar`。forecast の
    `Arima`・`auto.arima`・`ets`・簡単な予測法と補助関数。tseries の検定。meta の `metagen` から `trimfill` まで。netmeta)
+10. **描画用のデータ**: 1.21.0 で済み (新しい入口 `/plot`: 生存曲線・ROC 曲線・forest plot・funnel plot・網目図・Q-Q プロット・
+   密度・箱ひげ図・plot.lm の診断図・予測・樹形図・バイプロットの値を、どの描画ライブラリにも渡せる行の配列で返す。
+   `density`・`qqnorm`・`qqline`・`boxplotStats`・`lowess` と lm の影響の量)
 
 混合モデルの続き (以前の項目 1) は 1.6.0 に向けて済ませました: lme4 の `confint` (プロファイル尤度と Wald) と
 `simulate` に合わせた `confintLmer`、`confintGlmer`、`simulateLmer`、`simulateGlmer`。

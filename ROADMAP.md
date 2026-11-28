@@ -94,6 +94,9 @@ widely used in Japanese medical and psychological research) and ReactiveStat wit
    the nearest-neighbour estimator left out)
 9. **Time series and meta-analysis**: done for 1.20.0 (stats' `arima`, `HoltWinters`, `stl`, `decompose`, `ar`; forecast's
    `Arima`, `auto.arima`, `ets`, the simple methods and helpers; tseries' tests; meta's `metagen` to `trimfill`; netmeta)
+10. **Plot data**: done for 1.21.0 (the new entry `/plot`: the values of survival curves, ROC curves, forest, funnel and
+   network plots, Q-Q plots, densities, box plots, plot.lm's diagnostics, forecasts, dendrograms and biplots as rows for
+   any plotting library; `density`, `qqnorm`, `qqline`, `boxplotStats`, `lowess` and lm's influence measures)
 
 Mixed models continued (the former item 1) were done for 1.6.0: `confintLmer`, `confintGlmer`, `simulateLmer` and
 `simulateGlmer` after lme4's `confint` (profile likelihood and Wald) and `simulate`. Left out, as decided in the
