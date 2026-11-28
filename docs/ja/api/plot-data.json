@@ -2,406 +2,406 @@
   "BiplotDataOptions#summary": {
     "hash": "0768c754f310",
     "en": "Options for {@link biplotData}.",
-    "ja": ""
+    "ja": "{@link biplotData} のオプションです。"
   },
   "BiplotDataOptions.choices#summary": {
     "hash": "652f214d97e4",
     "en": "The two components, 1-based. Default `[1, 2]`.",
-    "ja": ""
+    "ja": "使用する 2 つの成分 (1 始まり) です。既定は `[1, 2]` です。"
   },
   "BiplotDataOptions.pcBiplot#summary": {
     "hash": "a6e3b6554738",
     "en": "Gabriel's principal component biplot: lambda = 1, observations times sqrt(n), variables over sqrt(n). Default `false`.",
-    "ja": ""
+    "ja": "Gabriel の主成分バイプロットです: lambda = 1、観測値は sqrt(n) 倍、変数は sqrt(n) で割ります。既定は `false` です。"
   },
   "BiplotDataOptions.scale#summary": {
     "hash": "e1a9295deac0",
     "en": "The variables are scaled by lambda^scale, the observations by lambda^(1 - scale). Default `1` (as R).",
-    "ja": ""
+    "ja": "変数は lambda^scale 倍、観測値は lambda^(1 - scale) 倍に尺度化します。既定は `1` (R と同じ) です。"
   },
   "DendrogramDataOptions#summary": {
     "hash": "541083e191f7",
     "en": "Options for {@link dendrogramData}.",
-    "ja": ""
+    "ja": "{@link dendrogramData} のオプションです。"
   },
   "DendrogramDataOptions.hang#summary": {
     "hash": "bb918955dff5",
     "en": "The fraction of the height range by which a leaf hangs below the merge that takes it in (R's `hang`). Default\n`0.1`, as `plot.hclust`; a negative value puts every leaf at height 0.",
-    "ja": ""
+    "ja": "葉を取り込む結合位置より下に垂らす高さの割合です (R の `hang`)。既定は `0.1` で、`plot.hclust` と同じです。負の値ではすべての葉の高さを 0 にします。"
   },
   "ForecastPlotDataOptions#summary": {
     "hash": "0ee4d646cc08",
     "en": "Options for {@link forecastPlotData}.",
-    "ja": ""
+    "ja": "{@link forecastPlotData} のオプションです。"
   },
   "ForecastPlotDataOptions.frequency#summary": {
     "hash": "9663ae369dda",
     "en": "Observations per unit of time (12 for monthly data with yearly time). Default `1`.",
-    "ja": ""
+    "ja": "時間単位あたりの観測数です (年単位の月次データなら 12)。既定は `1` です。"
   },
   "ForecastPlotDataOptions.start#summary": {
     "hash": "c5d3c756ab4f",
     "en": "The time of the first observation. Default `1`.",
-    "ja": ""
+    "ja": "最初の観測値の時刻です。既定は `1` です。"
   },
   "ForestPlotDataOptions#summary": {
     "hash": "f69aefa5dba7",
     "en": "Options for {@link forestPlotData}.",
-    "ja": ""
+    "ja": "{@link forestPlotData} のオプションです。"
   },
   "ForestPlotDataOptions.common#summary": {
     "hash": "f46dfd3fce78",
     "en": "Show the common effect estimate (meta's results only). Default `true`.",
-    "ja": ""
+    "ja": "共通効果の推定値を表示します (meta の結果のみ)。既定は `true` です。"
   },
   "ForestPlotDataOptions.labels#summary": {
     "hash": "c652cb82286c",
     "en": "The study labels. Default `\"Study 1\"`, `\"Study 2\"`, ...",
-    "ja": ""
+    "ja": "研究のラベルです。既定は `\"Study 1\"`、`\"Study 2\"`、... です。"
   },
   "ForestPlotDataOptions.level#summary": {
     "hash": "5b057408691b",
     "en": "The level of the study intervals. Default `0.95` (the pooled intervals are the fit's).",
-    "ja": ""
+    "ja": "研究ごとの区間の信頼水準です。既定は `0.95` です (統合区間は当てはめ結果のものです)。"
   },
   "ForestPlotDataOptions.prediction#summary": {
     "hash": "648e33be3257",
     "en": "Show the prediction interval (meta's results only). Default `false`.",
-    "ja": ""
+    "ja": "予測区間を表示します (meta の結果のみ)。既定は `false` です。"
   },
   "ForestPlotDataOptions.random#summary": {
     "hash": "e0318ddb14d9",
     "en": "Show the random effects estimate (meta's results only). Default `true`.",
-    "ja": ""
+    "ja": "変量効果の推定値を表示します (meta の結果のみ)。既定は `true` です。"
   },
   "ForestPlotDataOptions.transform#summary": {
     "hash": "39a35ad32fec",
     "en": "A transformation of the estimates and limits, such as `Math.exp` for log odds ratios. Default none.",
-    "ja": ""
+    "ja": "推定値と限界値に適用する変換です。たとえば対数オッズ比には `Math.exp` を指定します。既定では変換しません。"
   },
   "FunnelPlotDataOptions#summary": {
     "hash": "6a2ee91f8af5",
     "en": "Options for {@link funnelPlotData}.",
-    "ja": ""
+    "ja": "{@link funnelPlotData} のオプションです。"
   },
   "FunnelPlotDataOptions.contourCentre#summary": {
     "hash": "6bda2c452aaa",
     "en": "The centre of the contours (the null effect). Default `0`.",
-    "ja": ""
+    "ja": "等高線の中心 (帰無効果) です。既定は `0` です。"
   },
   "FunnelPlotDataOptions.contours#summary": {
     "hash": "36033065cbf7",
     "en": "Levels of a contour-enhanced funnel plot (Peters et al. 2008), around `contourCentre`, such as `[0.9, 0.95,\n0.99]`. Default none.",
-    "ja": ""
+    "ja": "等高線付きファンネルプロット (Peters et al. 2008) の等高線水準です。`contourCentre` の周囲に `[0.9, 0.95, 0.99]` のように指定します。既定では等高線を表示しません。"
   },
   "FunnelPlotDataOptions.level#summary": {
     "hash": "c838244557a0",
     "en": "The level of the pseudo confidence region. Default `0.95`.",
-    "ja": ""
+    "ja": "擬似信頼領域の水準です。既定は `0.95` です。"
   },
   "FunnelPlotDataOptions.n#summary": {
     "hash": "b568dab88f68",
     "en": "The number of standard errors of the region's outline. Default `50`.",
-    "ja": ""
+    "ja": "領域の輪郭を描く標準誤差の数です。既定は `50` です。"
   },
   "FunnelPlotDataOptions.reference#summary": {
     "hash": "fbf5923086a8",
     "en": "The centre of the region: `\"common\"` (default, as meta's funnel), `\"random\"`, or a number.",
-    "ja": ""
+    "ja": "領域の中心です: `\"common\"` (既定。meta の funnel と同じ)、`\"random\"`、または数値です。"
   },
   "LmDiagnosticsDataOptions#summary": {
     "hash": "e0c97db3a392",
     "en": "Options for {@link lmDiagnosticsData}.",
-    "ja": ""
+    "ja": "{@link lmDiagnosticsData} のオプションです。"
   },
   "LmDiagnosticsDataOptions.cookLevels#summary": {
     "hash": "c08e9ca30dee",
     "en": "The levels of Cook's distance contours. Default `[0.5, 1]`.",
-    "ja": ""
+    "ja": "Cook の距離の等高線水準です。既定は `[0.5, 1]` です。"
   },
   "LmDiagnosticsDataOptions.idN#summary": {
     "hash": "aa762ff25833",
     "en": "How many of the most extreme points each panel flags (R's `id.n`). Default `3`.",
-    "ja": ""
+    "ja": "各パネルで最も極端な点のうち、ラベルを付ける数です (R の `id.n`)。既定は `3` です。"
   },
   "LmDiagnosticsDataOptions.span#summary": {
     "hash": "8492f257de6c",
     "en": "The span of the lowess smooths (panel.smooth's). Default `2/3`.",
-    "ja": ""
+    "ja": "lowess 平滑線の span です (`panel.smooth` のもの)。既定は `2/3` です。"
   },
   "NetgraphInput#summary": {
     "hash": "febb4daca02e",
     "en": "The comparisons netgraph needs from a {@link netmeta} fit.",
-    "ja": ""
+    "ja": "{@link netmeta} の当てはめ結果から netgraph が必要とする比較データです。"
   },
   "PlotData#summary": {
     "hash": "6bf2b3bbf2ea",
     "en": "The data of a figure: named layers of rows (each layer one kind of mark: a line, points, a band) and\n{@link PlotMeta}. The plot-data functions return this shape with their own row types.",
-    "ja": ""
+    "ja": "図のデータです: 行の配列からなる名前付きの層 (各層は線、点、帯など 1 種類のマーク) と {@link PlotMeta} で構成されます。描画用データ関数は、それぞれ固有の行型でこの形式を返します。"
   },
   "PlotData.layers#summary": {
     "hash": "d5d7042b68b9",
     "en": "The layers, each an array of rows.",
-    "ja": ""
+    "ja": "各層を表す行配列です。"
   },
   "PlotData.meta#summary": {
     "hash": "804e935ae0e6",
     "en": "Labels and summary numbers.",
-    "ja": ""
+    "ja": "ラベルと要約値です。"
   },
   "PlotMeta#summary": {
     "hash": "0953e92b36e8",
     "en": "Axis labels and other facts about a figure, for titles and legends.",
-    "ja": ""
+    "ja": "図のタイトルや凡例に使う軸ラベルなどの情報です。"
   },
   "PlotMeta.title#summary": {
     "hash": "df510380e35b",
     "en": "A suggested title.",
-    "ja": ""
+    "ja": "推奨するタイトルです。"
   },
   "PlotMeta.xLabel#summary": {
     "hash": "46105216041e",
     "en": "A suggested label of the x axis.",
-    "ja": ""
+    "ja": "x 軸に推奨するラベルです。"
   },
   "PlotMeta.yLabel#summary": {
     "hash": "b6e632106480",
     "en": "A suggested label of the y axis.",
-    "ja": ""
+    "ja": "y 軸に推奨するラベルです。"
   },
   "PlotRow#summary": {
     "hash": "e9428504fc5a",
     "en": "One row of a plot layer: numbers (NaN for a missing value) and strings.",
-    "ja": ""
+    "ja": "描画層の 1 行です: 数値 (欠測値は NaN) と文字列で構成されます。"
   },
   "SurvPlotDataOptions#summary": {
     "hash": "a4d8f4ff3656",
     "en": "Options for {@link survPlotData}.",
-    "ja": ""
+    "ja": "{@link survPlotData} のオプションです。"
   },
   "SurvPlotDataOptions.fun#summary": {
     "hash": "d0983a8ea958",
     "en": "What to plot: `\"surv\"` (default) the survival S(t); `\"event\"` the cumulative incidence 1 - S(t); `\"cumhaz\"` the\nfit's cumulative hazard (no band); `\"cloglog\"` log(-log S(t)) against log t (as R's `fun`).",
-    "ja": ""
+    "ja": "描画する量です: `\"surv\"` (既定) は生存関数 S(t)、`\"event\"` は累積発生率 1 - S(t)、`\"cumhaz\"` は当てはめ結果の累積ハザード (信頼帯なし)、`\"cloglog\"` は log t に対する log(-log S(t)) です (R の `fun` と同じ)。"
   },
   "SurvPlotDataOptions.riskTimes#summary": {
     "hash": "8b28845c604d",
     "en": "Times of the risk table. Default: R's `pretty()` of 0 and the last time.",
-    "ja": ""
+    "ja": "リスク表に表示する時刻です。既定は、0 と最終時刻に対する R の `pretty()` です。"
   },
   "SurvStepRow#summary": {
     "hash": "f65ff201a213",
     "en": "The rows of a survival curve: one per change point of the step function (draw them as steps after each point:\nObservable Plot's `curve: \"step-after\"`, Plotly's `line.shape: \"hv\"`).",
-    "ja": ""
+    "ja": "生存曲線の行です: 階段関数の変化点ごとに 1 行です (各点の後で階段状に描画します: Observable Plot の `curve: \"step-after\"`、Plotly の `line.shape: \"hv\"`)。"
   },
   "SurvStepRow.group#summary": {
     "hash": "69c5e3c4736c",
     "en": "The stratum's label.",
-    "ja": ""
+    "ja": "層のラベルです。"
   },
   "SurvStepRow.x#summary": {
     "hash": "feab1e8391f0",
     "en": "The time.",
-    "ja": ""
+    "ja": "時刻です。"
   },
   "SurvStepRow.y#summary": {
     "hash": "022245b65042",
     "en": "The curve's value from this time on.",
-    "ja": ""
+    "ja": "この時刻以降の曲線の値です。"
   },
   "SurvStepRow.ymin#summary": {
     "hash": "8c4e6f075a7e",
     "en": "The lower and upper confidence limits (NaN where there are none).",
-    "ja": ""
+    "ja": "信頼限界の下限と上限です (存在しない場合は NaN)。"
   },
   "acfPlotData#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "acfPlotData#summary": {
     "hash": "c3da0dd2d8b6",
     "en": "Plot data for an autocorrelation plot from {@link acf} (or {@link pacf}, {@link ccf}): the bars and the band\n+- qnorm((1 + ci) / 2) / sqrt(n.used) of R's `plot.acf` (white noise).\nNot an R function. R's plots draw these values without returning them.\n\nLayers: `bars` (`lag`, `acf`); `band` (`lag`, `lower`, `upper`, over the lags). `meta.clim` is the band's half-width.",
-    "ja": ""
+    "ja": "{@link acf} (または {@link pacf}、{@link ccf}) から自己相関プロットを描くためのデータです: 棒と、R の `plot.acf` における +- qnorm((1 + ci) / 2) / sqrt(n.used) の帯 (ホワイトノイズ) です。\nR の関数ではありません。R のプロットはこれらの値を描画しますが、値を返しません。\n\n層: `bars` (`lag`、`acf`)、`band` (`lag`、`lower`、`upper`。ラグ全体にわたります)。`meta.clim` は帯の半幅です。"
   },
   "biplotData#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "biplotData#@throws": {
     "hash": "d6f362f55afe",
     "en": "RangeError for components out of range.",
-    "ja": ""
+    "ja": "成分が範囲外の場合は RangeError です。"
   },
   "biplotData#summary": {
     "hash": "02bc3eb84474",
     "en": "Plot data for a biplot of principal components ({@link prcomp}), as R's `biplot.prcomp`: the observations' scores and\nthe variables' loadings (draw these as arrows from the origin, usually on axes of their own), with lambda the\ncomponents' singular values sdev * sqrt(n).\nNot an R function. R's plots draw these values without returning them.\n\nLayers: `observations` (`x`, `y`, `index`, 1-based); `variables` (`x`, `y`, `variable`: 1-based or the name given).",
-    "ja": ""
+    "ja": "主成分のバイプロット ({@link prcomp}) のデータです。R の `biplot.prcomp` と同様に、観測値のスコアと変数の負荷量を返します (通常はそれぞれ独自の軸に描き、負荷量は原点から矢印で示します)。lambda は成分の特異値 sdev * sqrt(n) です。\nR の関数ではありません。R のプロットはこれらの値を描画しますが、値を返しません。\n\n層: `observations` (`x`、`y`、`index`。1 始まり)、`variables` (`x`、`y`、`variable`: 1 始まりの番号、または指定された名前)。"
   },
   "boxplotData#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "boxplotData#summary": {
     "hash": "f57c8ab323f3",
     "en": "Plot data for box plots of one or more groups, from {@link boxplotStats} (as R's `boxplot()`): a sample, or an\nobject of named samples (one box each, in the object's order).\nNot an R function. R's plots draw these values without returning them.\n\nLayers: `boxes` (`group`, `lower` whisker, `q1`, `median`, `q3`, `upper` whisker, `n`, `notchLower`,\n`notchUpper`); `outliers` (`group`, `y`).",
-    "ja": ""
+    "ja": "{@link boxplotStats} から得られる 1 群以上の箱ひげ図のデータです (R の `boxplot()` と同様)。標本、または名前付き標本のオブジェクトを受け取り、オブジェクト内の順序で各群 1 つの箱を返します。\nR の関数ではありません。R のプロットはこれらの値を描画しますが、値を返しません。\n\n層: `boxes` (`group`、下側の `lower` ひげ、`q1`、`median`、`q3`、上側の `upper` ひげ、`n`、`notchLower`、`notchUpper`)、`outliers` (`group`、`y`)。"
   },
   "coefPlotData#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "coefPlotData#summary": {
     "hash": "7e7d785bc3e3",
     "en": "Plot data for a coefficient plot of a linear model: each coefficient with its confidence interval ({@link confint}).\nNot an R function. R's plots draw these values without returning them.\n\nLayer `coefficients`: `term`, `estimate`, `lower`, `upper`, `y` (from the top: the number of coefficients down to 1).",
-    "ja": ""
+    "ja": "線形モデルの係数プロットのデータです: 各係数とその信頼区間 ({@link confint}) を返します。\nR の関数ではありません。R のプロットはこれらの値を描画しますが、値を返しません。\n\n層 `coefficients`: `term`、`estimate`、`lower`、`upper`、`y` (上から係数の数を数え、1 まで)。"
   },
   "cumincPlotData#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "cumincPlotData#summary": {
     "hash": "747783eb12ac",
     "en": "Plot data for cumulative incidence curves of competing risks from {@link cuminc}: one step function per group and\ncause (as `plot.cuminc` of cmprsk), with the pointwise standard error.\nNot an R function. R's plots draw these values without returning them.\n\nLayer `steps`: `x` (time), `y` (the estimate), `se` (the square root of its variance), `group` (the curve's name),\n`cause`, `stratum`.",
-    "ja": ""
+    "ja": "競合リスクの累積発生率曲線を描くための {@link cuminc} のデータです: 群と原因ごとに 1 つの階段関数を返し、点ごとの標準誤差を含みます (cmprsk の `plot.cuminc` と同様です)。\nR の関数ではありません。R のプロットはこれらの値を描画しますが、値を返しません。\n\n層 `steps`: `x` (時刻)、`y` (推定値)、`se` (分散の平方根)、`group` (曲線名)、`cause`、`stratum`。"
   },
   "dendrogramData#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "dendrogramData#summary": {
     "hash": "2bea48e2920d",
     "en": "Plot data for the dendrogram of a hierarchical clustering ({@link hclust}): the leaves at x = 1, ..., n in the\nclustering's order, each merge at its height and centred over the two clusters it joins, as R's `plot.hclust`.\nNot an R function. R's plots draw these values without returning them.\n\nLayers: `segments` (`x1`, `y1`, `x2`, `y2`: the vertical and horizontal lines of the tree, `merge`: the merge's\nrow, 1-based); `leaves` (`x`, `y`: the end of the leaf's line, `label`, `index`: the observation, 1-based);\n`nodes` (`x`, `y`, `merge`).",
-    "ja": ""
+    "ja": "階層的クラスタリング ({@link hclust}) の樹形図のデータです: 葉はクラスタリング順に x = 1, ..., n に配置し、各結合はその高さに、結合する 2 つのクラスタの中央に配置します。R の `plot.hclust` と同様です。\nR の関数ではありません。R のプロットはこれらの値を描画しますが、値を返しません。\n\n層: `segments` (`x1`、`y1`、`x2`、`y2`: 樹形図の垂直線と水平線、`merge`: 結合の行番号、1 始まり)、`leaves` (`x`、`y`: 葉の線の端点、`label`、`index`: 観測値、1 始まり)、`nodes` (`x`、`y`、`merge`)。"
   },
   "densityPlotData#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "densityPlotData#summary": {
     "hash": "7eae53d387e5",
     "en": "Plot data for a kernel density curve from {@link density}, with a rug of the data.\nNot an R function. R's plots draw these values without returning them.\n\nLayers: `curve` (`x`, `y`); `rug` (`x`: the finite values). `meta.bw` and `meta.n` as R's plot title shows them.",
-    "ja": ""
+    "ja": "{@link density} によるカーネル密度曲線と、データのラグを描くためのデータです。\nR の関数ではありません。R のプロットはこれらの値を描画しますが、値を返しません。\n\n層: `curve` (`x`、`y`)、`rug` (`x`: 有限値)。`meta.bw` と `meta.n` は R のプロットタイトルと同じ情報です。"
   },
   "ecdfPlotData#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "ecdfPlotData#summary": {
     "hash": "e63a372957b8",
     "en": "Plot data for the empirical distribution function of a sample (as R's `plot(ecdf(x))`): the steps at the distinct\nvalues (draw them as steps after each point), each with the fraction of values at or below it.\nNot an R function. R's plots draw these values without returning them.\n\nLayer `steps`: `x`, `y`. Missing values are left out.",
-    "ja": ""
+    "ja": "標本の経験分布関数を描くためのデータです (R の `plot(ecdf(x))` と同様)。異なる値ごとに階段を作り (各点の後で階段状に描画)、その値以下の観測値の割合を示します。\nR の関数ではありません。R のプロットはこれらの値を描画しますが、値を返しません。\n\n層 `steps`: `x`、`y`。欠測値は除外します。"
   },
   "forecastPlotData#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "forecastPlotData#summary": {
     "hash": "3a9a6627c1e6",
     "en": "Plot data for a forecast fan, as forecast's `plot.forecast`: the observed series, the point forecasts and their\nprediction intervals (one band per level, widest first), from a forecast of rStats.js ({@link forecast},\n{@link forecastArima}, {@link forecastEts}, ...).\nNot an R function. R's plots draw these values without returning them.\n\nLayers: `history` (`x` = time, `y`); `mean` (`x`, `y`); `intervals` (`x`, `level`, `lower`, `upper`).",
-    "ja": ""
+    "ja": "forecast の `plot.forecast` と同様の予測ファンを描くためのデータです: 観測系列、点予測、および予測区間 (水準ごとに 1 つの帯。幅の広いものから順) を、rStats.js の予測結果 ({@link forecast}、{@link forecastArima}、{@link forecastEts}、...) から返します。\nR の関数ではありません。R のプロットはこれらの値を描画しますが、値を返しません。\n\n層: `history` (`x` = 時刻、`y`)、`mean` (`x`、`y`)、`intervals` (`x`、`level`、`lower`、`upper`)。"
   },
   "forestPlotData#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "forestPlotData#@throws": {
     "hash": "51a87aa9bdc3",
     "en": "RangeError for a meta-regression (rma with moderators) or a label count that differs from the studies.",
-    "ja": ""
+    "ja": "メタ回帰 (モデレーターを持つ rma) の場合、またはラベル数が研究数と異なる場合は RangeError です。"
   },
   "forestPlotData#summary": {
     "hash": "36cd54ef432a",
     "en": "Plot data for a forest plot of a meta-analysis from {@link metagen} (and the other meta functions that return a\n{@link MetaResult}) or of an intercept-only {@link rma} fit: one row per study (from the top: `y` = k, k - 1, ...,\n1), then the pooled estimates below 0.\nNot an R function. R's plots draw these values without returning them.\n\nLayers: `studies` (`label`, `y`, `estimate`, `lower`, `upper`, `se`, `weight` in percent: the random effects\nweights when the random effects estimate is shown, else the common effect ones; for rma 1 / (vi + tau2));\n`pooled` (`label`, `y`, `estimate`, `lower`, `upper`, `type`: \"common\", \"random\", \"prediction\"); `diamonds`\n(closed polygons `x`, `y`, `group`, one per pooled estimate). `meta` carries tau2, I2, Q and its p-value.",
-    "ja": ""
+    "ja": "{@link metagen} (および {@link MetaResult} を返す他の meta 関数) によるメタ分析、または切片のみの {@link rma} の当てはめ結果について、forest plot を描くためのデータです。研究ごとに 1 行 (上から `y` = k, k - 1, ... , 1) を返し、その下の 0 未満に統合推定値を配置します。\nR の関数ではありません。R のプロットはこれらの値を描画しますが、値を返しません。\n\n層: `studies` (`label`、`y`、`estimate`、`lower`、`upper`、`se`、`weight` はパーセント表示。変量効果の推定値を表示する場合は変量効果の重み、それ以外は共通効果の重み。rma では 1 / (vi + tau2))、`pooled` (`label`、`y`、`estimate`、`lower`、`upper`、`type`: \"common\"、\"random\"、\"prediction\")、`diamonds` (閉じた多角形 `x`、`y`、`group`。統合推定値ごとに 1 つ)。`meta` には tau2、I2、Q とその p 値が含まれます。"
   },
   "funnelPlotData#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "funnelPlotData#summary": {
     "hash": "892e5d60f158",
     "en": "Plot data for a funnel plot from a {@link MetaResult} or an {@link rma} fit: the studies' estimates against their\nstandard errors (plot the y axis reversed, 0 at the top), the reference line and the pseudo confidence region\nreference +- z se for se from 0 to the largest standard error.\nNot an R function. R's plots draw these values without returning them.\n\nLayers: `studies` (`x` = estimate, `y` = standard error); `region` (`y`, `xmin`, `xmax`); `reference` (two points\nof the vertical line); `contours` (`level`, `y`, `xmin`, `xmax`).",
-    "ja": ""
+    "ja": "{@link MetaResult} または {@link rma} の当てはめ結果から funnel plot を描くためのデータです: 研究ごとの推定値を標準誤差に対して示し (y 軸は反転し、上端を 0 にします)、基準線と擬似信頼領域 reference +- z se (se は 0 から最大標準誤差まで) を返します。\nR の関数ではありません。R のプロットはこれらの値を描画しますが、値を返しません。\n\n層: `studies` (`x` = 推定値、`y` = 標準誤差)、`region` (`y`、`xmin`、`xmax`)、`reference` (垂直線の 2 点)、`contours` (`level`、`y`、`xmin`、`xmax`)。"
   },
   "histPlotData#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "histPlotData#summary": {
     "hash": "6c231b6378f5",
     "en": "Plot data for a histogram: the bars of {@link hist} (from a sample, with hist's options, or from its result).\nNot an R function. R's plots draw these values without returning them.\n\nLayer `bars`: `x0`, `x1` (the cell's ends), `mid`, `count`, `density`.",
-    "ja": ""
+    "ja": "ヒストグラムのデータです: 標本、オプションを指定した標本、または {@link hist} の結果から得られる {@link hist} の棒を返します。\nR の関数ではありません。R のプロットはこれらの値を描画しますが、値を返しません。\n\n層 `bars`: `x0`、`x1` (区間の両端)、`mid`、`count`、`density`。"
   },
   "lmDiagnosticsData#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "lmDiagnosticsData#summary": {
     "hash": "9a960d8caf8d",
     "en": "Plot data for the four default diagnostic plots of a linear model ({@link lm}), as R's `plot.lm` (`which = c(1, 2,\n3, 5)`), for the rows of non-zero weight (the residuals weighted as in R).\nNot an R function. R's plots draw these values without returning them.\n\nLayers (`index` is the row of the fit, `extreme` flags the `idN` most extreme points as R labels them):\n`residualsFitted` (`x` = fitted, `y` = residual) and its `residualsFittedSmooth`; `qq` (`x` = theoretical\nquantile, `y` = standardized residual); `scaleLocation` (`x` = fitted, `y` = sqrt |standardized residual|) and\n`scaleLocationSmooth`; `leverage` (`x` = leverage, `y` = standardized residual, `cooks`) and `leverageSmooth`;\n`cookContours` (`level`, `side` +1 or -1, `x`, `y`: the curves where Cook's distance equals each level). Rows of\nleverage 1 are left out of the panels that need standardized residuals (R does the same, with a warning).",
-    "ja": ""
+    "ja": "線形モデル ({@link lm}) の既定の 4 つの診断プロットを描くためのデータです。R の `plot.lm` (`which = c(1, 2, 3, 5)`) と同様に、重みが 0 でない行を対象とします (残差の重み付けも R と同じです)。\nR の関数ではありません。R のプロットはこれらの値を描画しますが、値を返しません。\n\n層 (`index` は当てはめ結果の行、`extreme` は R と同様に `idN` 個の最も極端な点を示します): `residualsFitted` (`x` = 当てはめ値、`y` = 残差) とその `residualsFittedSmooth`、`qq` (`x` = 理論分位点、`y` = 標準化残差)、`scaleLocation` (`x` = 当てはめ値、`y` = sqrt |標準化残差|) と `scaleLocationSmooth`、`leverage` (`x` = てこ比、`y` = 標準化残差、`cooks`) と `leverageSmooth`、`cookContours` (`level`、`side` は +1 または -1、`x`、`y`: Cook の距離が各水準に等しい曲線)。てこ比が 1 の行は、標準化残差を必要とするパネルから除外します (R も警告を出して同様に処理します)。"
   },
   "netgraphData#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "netgraphData#summary": {
     "hash": "74129ccb740a",
     "en": "Plot data for the network graph of a network meta-analysis from {@link netmeta}: the treatments on a circle (in\nthe fit's order, starting at the top and going clockwise, netgraph's default circle layout) and one edge per pair of\ntreatments compared directly, with the number of studies that compare them (netgraph's default line width).\nNot an R function. R's plots draw these values without returning them.\n\nLayers: `nodes` (`label`, `x`, `y`); `edges` (`from`, `to`, `x1`, `y1`, `x2`, `y2`, `studies`).",
-    "ja": ""
+    "ja": "{@link netmeta} によるネットワークメタ分析のネットワークグラフのデータです: 治療を円周上に配置し (当てはめ結果の順で、上から時計回り。netgraph の既定の円形レイアウト)、直接比較された治療のペアごとに 1 本の辺を作り、比較した研究数を含めます (netgraph の既定の線幅に対応します)。\nR の関数ではありません。R のプロットはこれらの値を描画しますが、値を返しません。\n\n層: `nodes` (`label`、`x`、`y`)、`edges` (`from`、`to`、`x1`、`y1`、`x2`、`y2`、`studies`)。"
   },
   "predictionBandData#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "predictionBandData#summary": {
     "hash": "ce37ec3e2951",
     "en": "Plot data for the fitted line of a linear model with its confidence band (for the mean) and prediction band (for a\nnew observation), from {@link predict}, over the given new predictor values.\nNot an R function. R's plots draw these values without returning them.\n\nLayer `band`: `x` (the first predictor's value), `fit`, `confLower`, `confUpper`, `predLower`, `predUpper`.",
-    "ja": ""
+    "ja": "{@link predict} から、指定した新しい説明変数の値に対する線形モデルの当てはめ直線、平均の信頼帯、および新しい観測値の予測帯を描くためのデータです。\nR の関数ではありません。R のプロットはこれらの値を描画しますが、値を返しません。\n\n層 `band`: `x` (最初の説明変数の値)、`fit`、`confLower`、`confUpper`、`predLower`、`predUpper`。"
   },
   "qqPlotData#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "qqPlotData#summary": {
     "hash": "f6ce05800940",
     "en": "Plot data for a normal Q-Q plot: the points (theoretical quantile, value) of {@link qqnorm} and the line of\n{@link qqline} through the quartiles, drawn across the range of the theoretical quantiles.\nNot an R function. R's plots draw these values without returning them.\n\nLayers: `points` (`x`, `y`, `index`: the position in the data); `line` (two points). `meta.intercept` and\n`meta.slope` give the line. Missing values are left out.",
-    "ja": ""
+    "ja": "正規 Q-Q プロットのデータです: {@link qqnorm} の点 (理論分位点、値) と、理論分位点の範囲にわたって描く {@link qqline} の四分位点を通る直線を返します。\nR の関数ではありません。R のプロットはこれらの値を描画しますが、値を返しません。\n\n層: `points` (`x`、`y`、`index`: データ内の位置)、`line` (2 点)。`meta.intercept` と `meta.slope` は直線の切片と傾きです。欠測値は除外します。"
   },
   "rocPlotData#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "rocPlotData#summary": {
     "hash": "ab92f2a536c4",
     "en": "Plot data for an ROC curve from {@link roc}: the curve with false positive rate (1 - specificity) and sensitivity,\nordered for drawing as a line from (0, 0) to (1, 1), the chance diagonal, and the point of the largest Youden index\n(sensitivity + specificity - 1; the first such point).\nNot an R function. R's plots draw these values without returning them.\n\nLayers: `curve` (`x` = 1 - specificity, `y` = sensitivity, `specificity`, `threshold`); `diagonal`; `best`.\n`meta.auc` is the area under the curve.",
-    "ja": ""
+    "ja": "{@link roc} から ROC 曲線を描くためのデータです: 偽陽性率 (1 - specificity) と感度の曲線を (0, 0) から (1, 1) へ線で描ける順序で返します。偶然対角線と、Youden 指数 (感度 + 特異度 - 1) が最大となる点 (同点では最初の点) も含みます。\nR の関数ではありません。R のプロットはこれらの値を描画しますが、値を返しません。\n\n層: `curve` (`x` = 1 - specificity、`y` = 感度、`specificity`、`threshold`)、`diagonal`、`best`。`meta.auc` は曲線下面積です。"
   },
   "survPlotData#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "survPlotData#summary": {
     "hash": "be70ec441e69",
     "en": "Plot data for Kaplan-Meier (or other) survival curves from {@link survfit} or {@link survfitCoxph}: the steps with\ntheir confidence band, the censoring marks and a risk table. Each stratum starts at time 0 (or its first time if\nthat is negative) with S = 1, as R's `plot.survfit`.\nNot an R function. R's plots draw these values without returning them.\n\nLayers: `steps` (`x`, `y`, `ymin`, `ymax`, `group`); `censor` (`x`, `y`, `group`, `n`: the number censored);\n`riskTable` (`x`, `group`, `nRisk`).",
-    "ja": ""
+    "ja": "{@link survfit} または {@link survfitCoxph} から Kaplan-Meier (または他の) 生存曲線を描くためのデータです: 信頼帯付きの階段、打ち切りの印、リスク表を返します。各層は時刻 0 (または最初の時刻が負の場合はその時刻) に S = 1 から始まります。R の `plot.survfit` と同様です。\nR の関数ではありません。R のプロットはこれらの値を描画しますが、値を返しません。\n\n層: `steps` (`x`、`y`、`ymin`、`ymax`、`group`)、`censor` (`x`、`y`、`group`、`n`: 打ち切り数)、`riskTable` (`x`、`group`、`nRisk`)。"
   }
 }
