@@ -1602,3 +1602,27 @@ choices under several criteria).
      1e-4 with the offsets), the fixed effects within 1e-5. Two cases (weights 1e7 with group variation) had failed in
      rStats.js before, besides the one of 110. metapropGlmm on the rare data equals R to 2e-14.
    - The full suite passes unchanged (the glm and glmer fixtures). Permanent: test/glmerRare120.test.ts.
+
+## autoArima's seasonal searches faster (2026-11-28, session 42, asked for by the user after the 1.20.0 tag)
+
+112. autoArima on 48 monthly values took 12.2 s (the demo's example; 15 models, 26 025 evaluations of the likelihood).
+   A CPU profile: 7 s in the stationary covariance P0 (the doubling S + A S A', 14 doublings of a 15-square matrix at
+   every evaluation), 4 s in the Kalman filter. `tsmeta120-aatime.R`: R (x86_64 under emulation on this Mac) takes
+   9.7 s for the same auto.arima, 5.3 s for its first model (2,1,2)(1,1,1)[12] alone, 0.10 s for the airline model.
+   - **P0 in closed form** (`stationaryCovarianceClosed`): with x_{i,t} = phi_i y_{t-1} + theta_{i-1} e_t + x_{i+1,t-1},
+     P[i][j] = phi_i phi_j gamma(0) + theta_{i-1} theta_{j-1} + phi_i C[j+1] + phi_j C[i+1] + P[i+1][j+1] with
+     C[m] = sum_{k >= m} (phi_k gamma(k - m + 1) + theta_{k-1} psi_{k-m}) and gamma(0..p) from a (p + 1)-square solve:
+     O(r^2) after O(p^3). Equal to the doubling to 8e-16 on six models (seasonal p, q up to 14, roots of modulus 0.99
+     and 0.95); 6x faster per call; the doubling kept where the solve fails or a variance is not positive (a
+     non-stationary AR part).
+   - **The Kalman filter** row by row over contiguous memory with its buffers reused (the same operations in the same
+     order: the same bits on 21 fits), and without the residuals and the final state in the objective's evaluations.
+   - Tried and dropped: BFGS with R's reltol 1.5e-8 before the Newton polish (1.5x faster, but the polish did not
+     always finish: coefficients 1e-5..4e-2 off and log-likelihoods up to 8e-4 lower); the symmetric half of T P T'
+     and of the update (no faster, and the optimiser's paths moved, coefficients 1e-5).
+   - Result: autoArima 12.2 s -> 6.8 s, the model (2,1,2)(1,1,1)[12] 4.5 s -> 3.0 s, the airline model 0.07 s. Against
+     the doubling's fits the coefficients move by 1e-7..1e-5 and the log-likelihoods by 1e-10 (mostly higher; the
+     optimiser's path follows the last bits of P0), except the overparametrised (2,1,2)(1,1,1)[12] on 48 values (flat:
+     6.8e-5 lower; a candidate that autoArima rejects). One Kalman evaluation is 0.27 ms (rd = 28, about 0.85 GFlop/s,
+     near what JavaScript does); more would need another likelihood (the differenced series instead of the diffuse
+     kappa states), which would move the fits away from R's. The full suite passes.

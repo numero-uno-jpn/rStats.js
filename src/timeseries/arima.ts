@@ -236,7 +236,55 @@ function positiveDefinite(H: readonly (readonly number[])[]): boolean {
   return true;
 }
 
+/**
+ * P0 of a stationary ARMA from its autocovariances, in O(r^2) after a (p + 1)-square solve (1.20.0, log 112: the
+ * doubling below ran at every likelihood evaluation and dominated autoArima's seasonal searches, 7 s of 12 for 48
+ * values). The state x_{i,t} = phi_i y_{t-1} + theta_{i-1} e_t + x_{i+1,t-1} gives
+ *   P[i][j] = phi_i phi_j gamma(0) + theta_{i-1} theta_{j-1} + phi_i C[j+1] + phi_j C[i+1] + P[i+1][j+1],
+ *   C[m] = Cov(y_t, x_{m,t}) = sum_{k >= m} (phi_k gamma(k - m + 1) + theta_{k-1} psi_{k-m}),
+ * with gamma(0..p) from gamma(h) - sum_k phi_k gamma(h - k) = sum_{j >= h} theta_j psi_{j-h} (theta_0 = 1, sigma2 = 1).
+ * Equal to the doubling to 1e-15 (also with roots of modulus 0.99). Undefined (null) where the solve fails or the
+ * variances are not positive: a non-stationary AR part, for which the doubling's partial sums are kept.
+ */
+function stationaryCovarianceClosed(phi: readonly number[], theta: readonly number[], r: number): number[][] | null {
+  const p = phi.length, q = theta.length;
+  const ph = (k: number): number => (k >= 1 && k <= p ? phi[k - 1]! : 0);
+  const th = (k: number): number => (k === 0 ? 1 : k >= 1 && k <= q ? theta[k - 1]! : 0);
+  const H = r + 1; const psi = new Float64Array(H + 1);
+  for (let j = 0; j <= H; j++) { let v = th(j); for (let k = 1; k <= Math.min(j, p); k++) v += ph(k) * psi[j - k]!; psi[j] = v; }
+  const rhs = (h: number): number => { let s0 = 0; for (let j = h; j <= q; j++) s0 += th(j) * psi[j - h]!; return s0; };
+  const gam = new Float64Array(H + 1);
+  if (p > 0) {
+    // (p + 1)-square system by Gaussian elimination with partial pivoting
+    const n = p + 1; const M = Array.from({ length: n }, () => new Float64Array(n + 1));
+    for (let h = 0; h <= p; h++) { M[h]![h]! += 1; for (let k = 1; k <= p; k++) M[h]![Math.abs(h - k)]! -= ph(k); M[h]![n] = rhs(h); }
+    for (let c = 0; c < n; c++) {
+      let piv = c; for (let i = c + 1; i < n; i++) if (Math.abs(M[i]![c]!) > Math.abs(M[piv]![c]!)) piv = i;
+      if (!(Math.abs(M[piv]![c]!) > 0)) return null;
+      if (piv !== c) { const t = M[c]!; M[c] = M[piv]!; M[piv] = t; }
+      const mc = M[c]!;
+      for (let i = c + 1; i < n; i++) { const mi = M[i]!; const f = mi[c]! / mc[c]!; if (f === 0) continue; for (let j = c; j <= n; j++) mi[j]! -= f * mc[j]!; }
+    }
+    for (let i = n - 1; i >= 0; i--) { const mi = M[i]!; let v = mi[n]!; for (let j = i + 1; j < n; j++) v -= mi[j]! * gam[j]!; gam[i] = v / mi[i]!; }
+  } else gam[0] = rhs(0);
+  for (let h = p + 1; h <= H; h++) { let v = rhs(h); for (let k = 1; k <= p; k++) v += ph(k) * gam[h - k]!; gam[h] = v; }
+  const C = new Float64Array(r + 2);
+  for (let m = 1; m <= r; m++) { let v = 0; for (let k = m; k <= r; k++) v += ph(k) * gam[k - m + 1]! + th(k - 1) * psi[k - m]!; C[m] = v; }
+  const P = Array.from({ length: r }, () => new Array<number>(r).fill(0));
+  for (let i = r; i >= 1; i--) for (let j = r; j >= 1; j--) {
+    P[i - 1]![j - 1] = ph(i) * ph(j) * gam[0]! + th(i - 1) * th(j - 1) + ph(i) * C[j + 1]! + ph(j) * C[i + 1]! + (i < r && j < r ? P[i]![j]! : 0);
+  }
+  for (let i = 0; i < r; i++) if (!(P[i]![i]! > 0) || !Number.isFinite(P[i]![i]!)) return null;
+  return P;
+}
+
 export function stationaryCovariance(phi: readonly number[], theta: readonly number[], r: number): number[][] {
+  const closed = stationaryCovarianceClosed(phi, theta, r);
+  if (closed) return closed;
+  return stationaryCovarianceDoubling(phi, theta, r);
+}
+
+function stationaryCovarianceDoubling(phi: readonly number[], theta: readonly number[], r: number): number[][] {
   // S = sum_k T^k R R' T'^k by doubling: S <- S + A S A', A <- A^2 (flat arrays: this runs at every likelihood
   // evaluation and dominated the seasonal fits)
   const S = new Float64Array(r * r); const R = new Float64Array(r); R[0] = 1; for (let i = 1; i < r; i++) R[i] = theta[i - 1] ?? 0;
@@ -266,7 +314,7 @@ export function stationaryCovariance(phi: readonly number[], theta: readonly num
 interface FilterResult { ssq: number; sumlog: number; nu: number; resid: number[]; a: number[]; P: number[][]; }
 
 /** Kalman filter of y (NaN missing) for the model; prediction variances in units of sigma2. */
-function kalman(y: readonly number[], phi: readonly number[], theta: readonly number[], delta: readonly number[], kappa: number): FilterResult {
+function kalman(y: readonly number[], phi: readonly number[], theta: readonly number[], delta: readonly number[], kappa: number, light = false): FilterResult {
   const p = phi.length, q = theta.length; const r = Math.max(p, q + 1); const nd = delta.length; const rd = r + nd;
   const P0 = stationaryCovariance(phi, theta, r);
   const ph = new Float64Array(r); for (let i = 0; i < p; i++) ph[i] = phi[i]!;
@@ -275,7 +323,8 @@ function kalman(y: readonly number[], phi: readonly number[], theta: readonly nu
   let P = new Float64Array(rd * rd);
   for (let i = 0; i < rd; i++) for (let j = 0; j < rd; j++) P[i * rd + j] = i < r && j < r ? P0[i]![j]! : i === j ? kappa : 0;
   const Rv = new Float64Array(r); Rv[0] = 1; for (let i = 1; i < r; i++) Rv[i] = theta[i - 1] ?? 0;
-  const n = y.length; const resid = new Array<number>(n).fill(NaN);
+  // light (the objective's evaluations): without the residuals and the final state, whose arrays took much of the time
+  const n = y.length; const resid: number[] = light ? [] : new Array<number>(n).fill(NaN);
   let ssq = 0, sumlog = 0, nu = 0;
   // (T x)_i = phi_i x_0 + x_{i+1} (i < r); (T x)_r = x_0 + sum_k delta_k x_{r+k}; (T x)_{r+k} = x_{r+k-1}
   // applied to the vector x[off + stride * k], k = 0..rd-1, written to out[oo + ostride * i]
@@ -289,16 +338,37 @@ function kalman(y: readonly number[], phi: readonly number[], theta: readonly nu
     }
   };
   const M = new Float64Array(rd * rd); let a2 = new Float64Array(rd); const PZ = new Float64Array(rd);
+  let Pn = new Float64Array(rd * rd);
   for (let t = 0; t < n; t++) {
     if (t > 0) {
       applyT(a, 0, 1, a2, 0, 1); { const tmp = a; a = a2; a2 = tmp; }
-      // M = T P (T on each column of P), then P = T M' (T on each row of M) = T P T'; plus R R' on the ARMA block
-      for (let j = 0; j < rd; j++) applyT(P, j, rd, M, j, rd);
-      const Pn = new Float64Array(rd * rd);
-      for (let i = 0; i < rd; i++) applyT(M, i * rd, 1, Pn, i, rd);
+      // M = T P (T on each column of P), then P = T M' (T on each row of M) = T P T'; plus R R' on the ARMA block.
+      // Written row by row over contiguous memory with the buffers reused (1.20.0, log 112: the same operations in the
+      // same order as applyT on each column, so the same bits; the Kalman filter dominated autoArima's seasonal
+      // searches): (T x)_i = phi_i x_0 + x_{i+1}, (T x)_r = x_0 + sum_k delta_k x_{r+k}, (T x)_{r+k} = x_{r+k-1}
+      for (let i = 0; i < r; i++) {
+        const pi = ph[i]!; const o = i * rd;
+        if (i + 1 < r) { const o1 = o + rd; for (let j = 0; j < rd; j++) M[o + j] = pi * P[j]! + P[o1 + j]!; }
+        else for (let j = 0; j < rd; j++) M[o + j] = pi * P[j]! + 0;
+      }
+      if (nd > 0) {
+        const o = r * rd;
+        for (let j = 0; j < rd; j++) { let z = P[j]!; for (let k = 0; k < nd; k++) z += dl[k]! * P[(r + k) * rd + j]!; M[o + j] = z; }
+        for (let k = 1; k < nd; k++) { const o2 = (r + k) * rd, o3 = (r + k - 1) * rd; for (let j = 0; j < rd; j++) M[o2 + j] = P[o3 + j]!; }
+      }
+      // Pn = (T applied to each row of M) transposed into the columns: Pn[j][i] = (T M_i)_j
+      for (let i = 0; i < rd; i++) {
+        const o = i * rd; const x0 = M[o]!;
+        for (let j = 0; j < r; j++) Pn[j * rd + i] = ph[j]! * x0 + (j + 1 < r ? M[o + j + 1]! : 0);
+        if (nd > 0) {
+          let z = x0; for (let k = 0; k < nd; k++) z += dl[k]! * M[o + r + k]!;
+          Pn[r * rd + i] = z;
+          for (let k = 1; k < nd; k++) Pn[(r + k) * rd + i] = M[o + r + k - 1]!;
+        }
+      }
       for (let i = 0; i < r; i++) for (let j = 0; j < r; j++) Pn[i * rd + j]! += Rv[i]! * Rv[j]!;
       for (let i = 0; i < rd; i++) for (let j = i + 1; j < rd; j++) { const m = (Pn[i * rd + j]! + Pn[j * rd + i]!) / 2; Pn[i * rd + j] = m; Pn[j * rd + i] = m; }
-      P = Pn;
+      { const tmp = P; P = Pn; Pn = tmp; }
     }
     const yt = y[t]!;
     if (Number.isNaN(yt)) continue;
@@ -307,12 +377,13 @@ function kalman(y: readonly number[], phi: readonly number[], theta: readonly nu
     for (let i = 0; i < rd; i++) { let v = P[i * rd]!; for (let k = 0; k < nd; k++) v += P[i * rd + r + k]! * dl[k]!; PZ[i] = v; }
     let F = PZ[0]!; for (let k = 0; k < nd; k++) F += PZ[r + k]! * dl[k]!;
     const v = yt - fc;
-    resid[t] = v / Math.sqrt(F);
+    if (!light) resid[t] = v / Math.sqrt(F);
     if (F < 1e4) { ssq += (v * v) / F; sumlog += Math.log(F); nu++; }
     for (let k = 0; k < rd; k++) a[k]! += (PZ[k]! * v) / F;
     for (let i = 0; i < rd; i++) { const pi = PZ[i]! / F; for (let j = 0; j < rd; j++) P[i * rd + j]! -= pi * PZ[j]!; }
   }
   void M;
+  if (light) return { ssq, sumlog, nu, resid, a: [], P: [] };
   const Pout: number[][] = []; for (let i = 0; i < rd; i++) Pout.push(Array.from(P.subarray(i * rd, (i + 1) * rd)));
   return { ssq, sumlog, nu, resid, a: Array.from(a), P: Pout };
 }
@@ -473,7 +544,7 @@ function arimaFit(x: number[], options: ArimaOptions): ArimaResult {
   const mlObjectiveNat = (cfNat: readonly number[]): number => {
     const { ar, ma, sar, sma, reg } = split(cfNat); const { phi, theta } = expandArma(ar, ma, sar, sma, s);
     if (phi.length && minRootModulus(phi.map((v) => -v)) <= 1) return Infinity;
-    const f = kalman(residualSeries(reg), phi, theta, delta, kappa);
+    const f = kalman(residualSeries(reg), phi, theta, delta, kappa, true);
     return f.nu > 0 ? 0.5 * Math.log(f.ssq / f.nu) + (0.5 * f.sumlog) / f.nu : Infinity;
   };
 
