@@ -1000,3 +1000,107 @@ tr.status-fail th {
 .plots-single .plot {
   max-width: 760px;
 }
+
+/* ---------- Plots tab ---------- */
+.plots-intro {
+  margin-bottom: 16px;
+}
+.plots-layout {
+  display: grid;
+  grid-template-columns: 250px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+.plot-nav-card {
+  position: sticky;
+  top: 64px;
+}
+.plot-nav-section + .plot-nav-section {
+  margin-top: 10px;
+}
+.plot-nav-btn {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 6px 8px;
+  margin: 2px 0;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.plot-nav-btn:hover {
+  background: var(--accent-soft);
+}
+.plot-nav-btn[aria-pressed="true"] {
+  background: var(--accent);
+  color: var(--accent-text);
+}
+.plot-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  align-items: flex-end;
+  margin: 8px 0 12px;
+}
+.csv-input {
+  width: 100%;
+  font: 13px var(--mono);
+  background: var(--code-bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 8px;
+}
+.plot-figure {
+  min-height: 320px;
+  overflow-x: auto;
+  color: var(--text);
+}
+.plot-figure svg {
+  max-width: 100%;
+  height: auto;
+  background: transparent;
+}
+.plot-figure figure {
+  margin: 0;
+}
+.plotly-box {
+  width: 100%;
+  min-height: 420px;
+}
+.panel-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 8px;
+}
+.rows-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.rows-wrap {
+  max-height: 320px;
+  overflow: auto;
+}
+.hint.ok {
+  color: var(--ok);
+  font-weight: 600;
+}
+.hint.ng {
+  color: var(--bad);
+  font-weight: 600;
+}
+@media (max-width: 800px) {
+  .plots-layout {
+    grid-template-columns: 1fr;
+  }
+  .plot-nav-card {
+    position: static;
+  }
+}

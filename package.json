@@ -124,10 +124,13 @@
     "provenance": true
   },
   "devDependencies": {
+    "@observablehq/plot": "0.6.19",
     "@types/node": "^26.6.5",
+    "d3": "7.9.0",
     "esbuild": "^0.28.2",
     "jstat": "1.9.6",
     "playwright": "^1.64.1",
+    "plotly.js-dist-min": "4.3.0",
     "typescript": "^7.0.2",
     "vitest": "^5.0.5"
   }

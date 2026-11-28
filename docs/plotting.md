@@ -44,9 +44,11 @@ The steps change at each row: draw them as steps after the point (`curve: "step-
 Plot.plot({
   y: { domain: [0, 1], label: km.meta.yLabel },
   marks: [
-    Plot.areaY(km.layers.steps, { x: "x", y1: "ymin", y2: "ymax", fill: "group", fillOpacity: 0.15, curve: "step-after" }),
+    // one band per stratum
+    ...km.meta.groups.map((g) => Plot.areaY(km.layers.steps.filter((r) => r.group === g),
+      { x: "x", y1: "ymin", y2: "ymax", fill: () => g, fillOpacity: 0.15, curve: "step-after" })),
     Plot.line(km.layers.steps, { x: "x", y: "y", stroke: "group", curve: "step-after" }),
-    Plot.tickY(km.layers.censor, { x: "x", y: "y", stroke: "group" }),
+    Plot.dot(km.layers.censor, { x: "x", y: "y", stroke: "group", symbol: "plus" }),
   ],
 });
 
@@ -160,7 +162,7 @@ with the confidence band and the prediction band over `xs`.
 <script type="module">
   import * as R from "https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@1.21.0/dist/rstats.js";
   import * as P from "https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@1.21.0/dist/plot.js";
-  import * as Plot from "https://cdn.jsdelivr.net/npm/@observablehq/plot@0.6.16/+esm";
+  import * as Plot from "https://cdn.jsdelivr.net/npm/@observablehq/plot@0.6.19/+esm";
   const fit = R.survfit([5, 8, 12, 12, 20], [1, 0, 1, 1, 0]);
   const km = P.survPlotData(fit);
   document.body.append(Plot.line(km.layers.steps, { x: "x", y: "y", curve: "step-after" }).plot());

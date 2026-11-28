@@ -21,6 +21,12 @@ import { fileURLToPath } from "node:url";
 const root = fileURLToPath(new URL("../../", import.meta.url));
 const origin = "http://rstats.test";
 const CDN = /^https:\/\/cdn\.jsdelivr\.net\/npm\/@numero-uno-jpn\/rstats@[^/]+\/dist\/(.+\.js)$/;
+/** The plotting libraries of the Plots tab (demo/plotLibs.js): answered with the same versions from node_modules */
+const PLOT_LIBS = {
+  "https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js": "node_modules/d3/dist/d3.min.js",
+  "https://cdn.jsdelivr.net/npm/@observablehq/plot@0.6.19/dist/plot.umd.min.js": "node_modules/@observablehq/plot/dist/plot.umd.min.js",
+  "https://cdn.jsdelivr.net/npm/plotly.js-dist-min@4.3.0/plotly.min.js": "node_modules/plotly.js-dist-min/plotly.min.js",
+};
 const MIME = {
   ".html": "text/html; charset=utf-8",
   ".js": "text/javascript; charset=utf-8",
@@ -57,7 +63,7 @@ function serveFile(route) {
   return route.fulfill({ status: 200, contentType: MIME[extname(file)] ?? "application/octet-stream", body: readFileSync(file) });
 }
 
-async function openDemo(browser, { cdn = "ok", query = "", contextOptions = {} } = {}) {
+async function openDemo(browser, { cdn = "ok", query = "", contextOptions = {}, plotLibs = "ok" } = {}) {
   const context = await browser.newContext({ locale: "en-US", viewport: { width: 1280, height: 900 }, ...contextOptions });
   const page = await context.newPage();
   const errors = [];
@@ -76,6 +82,13 @@ async function openDemo(browser, { cdn = "ok", query = "", contextOptions = {} }
         })
       : route.fulfill({ status: 404, contentType: "text/plain", headers: { "access-control-allow-origin": "*" }, body: "Couldn't find the requested file" }),
   );
+  for (const [url, file] of Object.entries(PLOT_LIBS)) {
+    await page.route(url, (route) =>
+      plotLibs === "ok"
+        ? route.fulfill({ status: 200, contentType: "text/javascript; charset=utf-8", headers: { "access-control-allow-origin": "*" }, body: readFileSync(join(root, file)) })
+        : route.fulfill({ status: 404, contentType: "text/plain", headers: { "access-control-allow-origin": "*" }, body: "not found" }),
+    );
+  }
   await page.goto(`${origin}/demo/${query}`);
   return { context, page, errors };
 }
@@ -341,20 +354,69 @@ async function testDescriptive(page) {
   check("descriptive without y: no pair rows", (await page.$$(`${tid("desc-table")} tbody tr`)).length === 21);
 }
 
+/** Waits until the Plots tab has drawn the current figure (or fallen back) */
+async function plotsDrawn(page, title) {
+  await page.waitForFunction(
+    (t) => {
+      const f = document.querySelector('[data-testid="plots-figure"]');
+      return (f?.dataset.state === "drawn" || f?.dataset.state === "fallback") && (!t || document.querySelector('[data-testid="plots-title"]')?.textContent === t);
+    },
+    title,
+    { timeout: 30000 },
+  );
+}
+
 async function testPlots(page) {
   await page.click(tid("tab-plots"));
-  await settle(page);
+  await plotsDrawn(page);
   await noErrors(page, "plots", tid("panel-plots"));
-  check("plots: Kaplan-Meier steps", (await page.$$(`${tid("plots-km")} path.curve`)).length === 2);
-  check("plots: Q-Q points and line", (await page.$$(`${tid("plots-qq")} path.curve`)).length === 1);
-  check("plots: density curve", (await page.$$(`${tid("plots-density")} path.curve`)).length === 1);
-  check("plots: diagnostics smooth", (await page.$$(`${tid("plots-diag")} path.curve`)).length === 1);
+  const ids = await page.$$eval('[data-testid^="plots-fig-"]', (bs) => bs.map((b) => b.dataset.id));
+  check("plots: 16 figures listed", ids.length === 16, ids.join());
+  for (const library of ["observable", "plotly"]) {
+    await page.click(tid(`plots-lib-${library}`));
+    for (const id of ids) {
+      await page.click(tid(`plots-fig-${id}`));
+      const title = await page.textContent(tid(`plots-fig-${id}`));
+      await plotsDrawn(page, title);
+      const datasets = await page.$$eval(`${tid("plots-dataset")} option`, (os) => os.map((o) => o.value).filter((v) => v !== "csv"));
+      for (const ds of datasets) {
+        await page.selectOption(tid("plots-dataset"), ds);
+        await plotsDrawn(page, title);
+        const state = await page.getAttribute(tid("plots-figure"), "data-state");
+        const drawn = library === "observable" ? (await page.$$(`${tid("plots-figure")} svg`)).length > 0 : (await page.$$(`${tid("plots-figure")} .main-svg`)).length > 0;
+        check(`plots ${library} ${id}/${ds}: drawn`, state === "drawn" && drawn, state);
+        if (library === "observable") {
+          const ok = await page.getAttribute(tid("plots-checks-summary"), "data-ok");
+          const n = Number(await page.getAttribute(tid("plots-checks-summary"), "data-count"));
+          check(`plots ${id}/${ds}: every value matches R`, ok === "true" && n > 0, `${ok} ${n}`);
+        }
+      }
+    }
+  }
+  await noErrors(page, "plots after every figure", tid("panel-plots"));
+  // the user's CSV, the rows of a layer, the downloads and the code
+  await page.click(tid("plots-lib-observable"));
+  await page.click(tid("plots-fig-km"));
+  await plotsDrawn(page);
+  await page.selectOption(tid("plots-dataset"), "csv");
+  await page.fill(tid("plots-csv"), "time,status,group\n5,1,A\n8,0,A\n12,1,A\n3,1,B\n9,1,B\n15,0,B");
+  await plotsDrawn(page);
+  check("plots: own CSV drawn", (await page.$$(`${tid("plots-figure")} svg`)).length > 0);
+  check("plots: own CSV without R checks", (await page.$$(tid("plots-checks-summary"))).length === 0);
+  const layers = await page.$$eval(`${tid("plots-layer")} option`, (os) => os.map((o) => o.value));
+  check("plots: layers listed", layers.includes("steps") && layers.includes("censor") && layers.includes("riskTable"), layers.join());
+  await page.selectOption(tid("plots-layer"), "censor");
+  const rows = await page.$$(`${tid("plots-rows-table")} tbody tr`);
+  check("plots: rows of the chosen layer", rows.length === 2, String(rows.length));
+  const [dl] = await Promise.all([page.waitForEvent("download"), page.click(tid("plots-download-csv"))]);
+  check("plots: CSV download", dl.suggestedFilename() === "km-censor.csv", dl.suggestedFilename());
   const code = await page.textContent(tid("plots-code-observable"));
   check("plots: Observable Plot code", code.includes("survPlotData(survfit(") && code.includes("step-after"), code.slice(0, 80));
-  await page.fill(tid("plots-group"), "");
-  await settle(page);
-  await noErrors(page, "plots without groups", tid("panel-plots"));
-  check("plots without groups: one curve", (await page.$$(`${tid("plots-km")} path.curve`)).length === 1);
+  const codeP = await page.textContent(tid("plots-code-plotly"));
+  check("plots: Plotly code", codeP.includes("Plotly.newPlot") && codeP.includes("fromRows"), codeP.slice(0, 80));
+  await page.fill(tid("plots-csv"), "time,status\n");
+  await page.waitForSelector(`${tid("plots-error")}:not([hidden])`);
+  check("plots: a bad CSV shows an error", (await page.textContent(tid("plots-error"))).length > 10);
 }
 
 async function testNumerics(page) {
@@ -579,6 +641,17 @@ try {
     await page.waitForSelector(`${tid("status")}[data-state="ready"]`);
     check("?src=local: local source", (await page.getAttribute(tid("status"), "data-source")) === "local");
     check("?src=local: no page errors", errors.length === 0, errors.join(" | "));
+    await context.close();
+  }
+  // the plotting libraries unavailable: a message and the demo's own SVG
+  {
+    const { context, page, errors } = await openDemo(browser, { plotLibs: "404" });
+    await page.waitForSelector(`${tid("status")}[data-state="ready"]`, { timeout: 20000 });
+    await page.click(tid("tab-plots"));
+    await plotsDrawn(page);
+    check("plot libraries 404: fallback SVG", (await page.getAttribute(tid("plots-figure"), "data-state")) === "fallback" && (await page.$$(tid("plots-fallback"))).length === 1);
+    check("plot libraries 404: message", (await page.textContent(tid("plots-lib-status"))).length > 10);
+    check("plot libraries 404: no page errors", errors.filter((e) => !e.includes("Failed to load resource")).length === 0, errors.join(" | "));
     await context.close();
   }
   // jsDelivr answering 404 (e.g. while the repository is private): a clear message, no uncaught error
