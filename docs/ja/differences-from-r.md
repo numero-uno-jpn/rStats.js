@@ -2013,7 +2013,7 @@ R は図を描画しますが、rStats.js は R のプロットが描画する�
 
 ### 描画用データ関数
 
-- R のプロットの仕様に従います: `plot.survfit` (曲線は (0, 1) から開始、打ち切りの印、`fun`)、`summary.survfit` のリスク表 (R と照合済み)、meta の `forest` (研究ごとの区間とパーセント表示の重み。R と照合済み) と `funnel`、`netgraph` (既定の円形レイアウト)、`qqnorm` / `qqline`、`boxplot`、`plot.ecdf`、`hist`、`plot.lm` (`which = c(1, 2, 3, 5))、`panel.smooth` の lowess、0.5 と 1 の Cook の距離の等高線、R がラベルを付ける 3 点)、`plot.acf)、forecast の `plot.forecast`、`plot.hclust` (`as.dendrogram` の中点との照合で結合位置を確認、`hang`)、および `biplot.prcomp` (`scale`、`pc.biplot`。ヘルプページに基づく)。
+- R のプロットの仕様に従います: `plot.survfit` (曲線は (0, 1) から開始、打ち切りの印、`fun`)、`summary.survfit` のリスク表 (R と照合済み)、meta の `forest` (研究ごとの区間とパーセント表示の重み。R と照合済み) と `funnel`、`netgraph` (既定の円形レイアウト)、`qqnorm` / `qqline`、`boxplot`、`plot.ecdf`、`hist`、`plot.lm` (`which = c(1, 2, 3, 5)`、`panel.smooth` の lowess、0.5 と 1 の Cook の距離の等高線、R がラベルを付ける 3 点)、`plot.acf`、forecast の `plot.forecast`、`plot.hclust` (`as.dendrogram` の中点との照合で結合位置を確認、`hang`)、および `biplot.prcomp` (`scale`、`pc.biplot`。ヘルプページに基づく)。
 - `survPlotData` の `fun: "cumhaz"` は、当てはめ結果の累積ハザードを信頼帯なしで描画します。
 - 提供しないもの: 描画そのもの、`plot.lm` のパネル 4 と 6、survminer の表、R のヒューリスティックによるラベル配置です。
 
