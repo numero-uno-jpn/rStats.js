@@ -477,7 +477,7 @@
   "KernelDensityOptions.bw#summary": {
     "hash": "7b705613cc3e",
     "en": "The bandwidth (the kernel's standard deviation): a positive number, or the rule `\"nrd0\"` (default, {@link bwNrd0})\nor `\"nrd\"` ({@link bwNrd}), in any case (as R). R's `\"ucv\"`, `\"bcv\"` and `\"SJ\"` are not offered (an error).",
-    "ja": "帯域幅 (カーネルの標準偏差) です。正の数、またはどのケースでも使用できる規則 `\"nrd0\"` (既定、{@link bwNrd0}) または `\"nrd\"` ({@link bwNrd}) を指定します (R と同じ)。R の `\"ucv\"`、`\"bcv\"`、`\"SJ\"` は提供していません (エラーになります)。"
+    "ja": "帯域幅 (カーネルの標準偏差) です。正の数、または規則 `\"nrd0\"` (既定、{@link bwNrd0}) または `\"nrd\"` ({@link bwNrd}) を指定します。これらの規則名は大文字・小文字を問いません (R と同じ)。R の `\"ucv\"`、`\"bcv\"`、`\"SJ\"` は提供していません (エラーになります)。"
   },
   "KernelDensityOptions.cut#summary": {
     "hash": "e9d1ae1ac521",
