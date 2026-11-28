@@ -8,6 +8,7 @@ import { createSpecialTab } from "./special.js";
 import { createRandomTab } from "./random.js";
 import { createTestsTab } from "./tests.js";
 import { createLinalgTab } from "./linalg.js";
+import { createPlotsTab } from "./plots.js";
 import { createDescriptiveTab } from "./descriptive.js";
 import { createNumericsTab } from "./numerics.js";
 import { createCompareTab } from "./examples.js";
@@ -41,9 +42,9 @@ const plotUrl = `${distUrl}plot.js`;
  */
 const areaRandomUrl = `${distUrl}distributions.js`;
 
-const ALL_TABS = ["distributions", "descriptive", "special", "random", "tests", "linalg", "numerics", "compare"];
+const ALL_TABS = ["distributions", "descriptive", "special", "random", "tests", "linalg", "numerics", "plots", "compare"];
 /** Tabs that need functions newer than some builds: shown only when the loaded build has them */
-const NEEDS = { descriptive: "quantile", numerics: "integrate" };
+const NEEDS = { descriptive: "quantile", numerics: "integrate", plots: "survPlotData" };
 let TAB_IDS = ALL_TABS;
 
 const statusEl = document.getElementById("status");
@@ -153,6 +154,7 @@ function buildTabs(ctx) {
     random: createRandomTab,
     tests: createTestsTab,
     linalg: createLinalgTab,
+    plots: createPlotsTab,
     compare: createCompareTab,
   };
   const tabs = {};
