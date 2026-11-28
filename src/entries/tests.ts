@@ -94,6 +94,9 @@ export { aov, TukeyHSD, zTest, type TukeyHSDOptions, type TukeyHSDResult, type Z
 export type { GroupLabel } from "../htest/groups.js";
 export { lm, confint, predict, type LmOptions, type LmResult, type ConfintOptions, type PredictOptions } from "../models/lm.js";
 export {
+  lmHatvalues, lmRstandard, lmRstudent, lmCooksDistance, type LmRstandardOptions,
+} from "../models/lmInfluence.js";
+export {
   glm,
   glmSummary,
   glmResiduals,

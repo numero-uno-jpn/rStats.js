@@ -1,0 +1,131 @@
+# plot121-edge.R: edge cases, errors and warnings of density, the bandwidths, qqnorm, qqline, ppoints,
+# boxplot.stats, lowess and lm's influence measures (1.21.0, experiment 2). Each case records the value or the
+# condition's message (errors and warnings), so that rStats.js can follow R's choices.
+# Axes: n = 0, 1, 2; NA, NaN, Inf; constant data; huge and tiny scales (1e300, 1e-300) and a common value (1e15);
+# weights (not summing to 1, negative, zero, NA); bw = 0, negative, NA; n (output points) = 1, 2; from > to;
+# lowess with equal x, n = 1, 2, NA; lm with a point of leverage 1, an exact fit, and a saturated model.
+# Output: JSON on stdout, 17 significant digits. Run on x86_64 R (rstats-oracle-amd64:4.6.2).
+library(jsonlite)
+out <- list(R = R.version.string, arch = R.version$arch)
+num <- function(v) as.numeric(v)
+run <- function(expr) {
+  warns <- character()
+  val <- withCallingHandlers(tryCatch(expr, error = function(e) list(error = conditionMessage(e))),
+                             warning = function(w) { warns <<- c(warns, conditionMessage(w)); invokeRestart("muffleWarning") })
+  if (is.list(val) && !is.null(val$error)) return(list(error = val$error, warnings = warns))
+  list(value = val, warnings = warns)
+}
+dens <- function(...) {
+  r <- run(density(...))
+  if (!is.null(r$value)) r$value <- list(x = num(r$value$x), y = num(r$value$y), bw = r$value$bw, n = r$value$n)
+  r
+}
+e <- list()
+x5 <- c(3.1, 1.2, 5.5, 1.2, 9.0)
+e$d_one_bw <- dens(4, bw = 0.5)
+e$d_one <- dens(4)
+e$d_empty <- dens(numeric(0), bw = 1)
+e$d_na <- dens(c(1, NA, 3))
+e$d_nan_narm <- dens(c(1, NaN, 3, 4), na.rm = TRUE)
+e$d_inf <- dens(c(1, Inf, 3, 4))
+e$d_inf_bw <- dens(c(1, Inf, 3, 4), bw = 1)
+e$d_const <- dens(rep(2.5, 6))
+e$d_bw0 <- dens(x5, bw = 0)
+e$d_bwneg <- dens(x5, bw = -1)
+e$d_bwna <- dens(x5, bw = NA)
+e$d_n1 <- dens(x5, n = 1)
+e$d_n2 <- dens(x5, n = 2)
+e$d_n513 <- dens(x5, n = 513)
+e$d_fromgt <- dens(x5, from = 5, to = 1)
+e$d_fromeq <- dens(x5, from = 2, to = 2)
+e$d_w_unnorm <- dens(x5, weights = c(1, 2, 3, 4, 5))
+e$d_w_neg <- dens(x5, weights = c(0.5, -0.1, 0.2, 0.2, 0.2))
+e$d_w_zero <- dens(x5, weights = c(0, 0.25, 0.25, 0.25, 0.25))
+e$d_w_na <- dens(x5, weights = c(NA, 0.25, 0.25, 0.25, 0.25))
+e$d_w_len <- dens(x5, weights = c(0.5, 0.5))
+e$d_w_na_x <- dens(c(3.1, NA, 5.5, 1.2, 9.0), weights = rep(0.2, 5), na.rm = TRUE)
+e$d_big <- dens(x5 * 1e300)
+e$d_huge <- dens(c(1, 2, 3) * 1e306)
+e$d_tiny <- dens(x5 * 1e-300)
+e$d_common <- dens(1e15 + x5)
+e$d_adjust0 <- dens(x5, adjust = 0)
+e$d_kernel_bad <- dens(x5, kernel = "foo")
+e$d_kernel_abbrev <- dens(x5, kernel = "epan")
+e$d_cut0 <- dens(x5, cut = 0)
+e$d_bwname <- dens(x5, bw = "nrd")
+e$d_bwname_case <- dens(x5, bw = "NRD0")
+e$d_large_out <- dens(x5, n = 5000)
+e$bw_nrd0_two <- run(bw.nrd0(c(1, 1)))
+e$bw_nrd0_na <- run(bw.nrd0(c(1, NA, 3)))
+e$bw_nrd0_zero <- run(bw.nrd0(c(0, 0, 0)))
+e$bw_nrd0_iqr0 <- run(bw.nrd0(c(1, 2, 2, 2, 2, 2, 9)))
+e$bw_nrd_iqr0 <- run(bw.nrd(c(1, 2, 2, 2, 2, 2, 9)))
+e$bw_nrd0_big <- run(bw.nrd0(x5 * 1e300))
+e$bw_nrd0_inf <- run(bw.nrd0(c(1, 2, Inf)))
+# qqnorm / qqline / ppoints
+qn <- function(y) { r <- run(qqnorm(y, plot.it = FALSE)); if (!is.null(r$value)) r$value <- list(x = num(r$value$x), y = num(r$value$y)); r }
+e$q_empty <- qn(numeric(0))
+e$q_one <- qn(5)
+e$q_inf <- qn(c(1, -Inf, 3, Inf))
+e$q_nan <- qn(c(2, NaN, 1))
+e$q_allna <- qn(c(NA_real_, NA_real_))
+e$q_ties <- qn(c(2, 1, 2, 1, 2))
+e$pp_vec <- run(ppoints(c(9, 8, 7)))
+e$pp_zero <- run(ppoints(0))
+e$pp_frac <- run(ppoints(2.7))
+e$pp_a_bad <- run(ppoints(5, a = 2))
+e$pp_a_neg <- run(ppoints(5, a = -1))
+# boxplot.stats
+bs <- function(...) { r <- run(boxplot.stats(...)); if (!is.null(r$value)) r$value <- lapply(r$value, num); r }
+e$b_empty <- bs(numeric(0))
+e$b_allna <- bs(c(NA_real_, NA_real_))
+e$b_inf <- bs(c(1, 2, 3, 4, Inf))
+e$b_ninf <- bs(c(-Inf, 1, 2, 3, 4, 5, 6))
+e$b_nan <- bs(c(1, NaN, 2, 3))
+e$b_coefneg <- bs(c(1, 2, 3, 40), coef = -1)
+e$b_noconf <- bs(c(1, 2, 3, 40), do.conf = FALSE, do.out = FALSE)
+e$b_big <- bs(c(1, 2, 3, 4, 100) * 1e300)
+e$b_common <- bs(1e15 + c(1, 2, 3, 4, 100))
+# lowess
+lw <- function(...) { r <- run(lowess(...)); if (!is.null(r$value)) r$value <- list(x = num(r$value$x), y = num(r$value$y)); r }
+e$l_one <- lw(1, 2)
+e$l_two <- lw(c(1, 2), c(3, 5))
+e$l_three <- lw(c(1, 2, 3), c(3, 5, 4))
+e$l_empty <- lw(numeric(0), numeric(0))
+e$l_samex <- lw(rep(2, 5), c(1, 2, 3, 4, 5))
+e$l_na <- lw(c(1, 2, NA, 4, 5), c(1, 3, 2, 5, 4))
+e$l_nay <- lw(c(1, 2, 3, 4, 5), c(1, 3, NA, 5, 4))
+e$l_inf <- lw(c(1, 2, 3, 4, Inf), c(1, 3, 2, 5, 4))
+e$l_f0 <- lw(1:10, c(2, 4, 3, 6, 5, 8, 7, 10, 9, 12), f = 0)
+e$l_fneg <- lw(1:10, c(2, 4, 3, 6, 5, 8, 7, 10, 9, 12), f = -1)
+e$l_fbig <- lw(1:10, c(2, 4, 3, 6, 5, 8, 7, 10, 9, 12), f = 3)
+e$l_iterneg <- lw(1:10, c(2, 4, 3, 6, 5, 8, 7, 10, 9, 12), iter = -1)
+e$l_iterfrac <- lw(1:10, c(2, 4, 3, 6, 5, 8, 7, 10, 9, 12), iter = 1.7)
+e$l_deltaneg <- lw(1:10, c(2, 4, 3, 6, 5, 8, 7, 10, 9, 12), delta = -1)
+e$l_deltabig <- lw(1:10, c(2, 4, 3, 6, 5, 8, 7, 10, 9, 12), delta = 100)
+e$l_exact <- lw(1:10, 2 * (1:10) + 1)
+e$l_outlier <- lw(1:12, c(1:11, 500))
+e$l_big <- lw((1:10) * 1e300, c(2, 4, 3, 6, 5, 8, 7, 10, 9, 12) * 1e300)
+e$l_tiny <- lw((1:10) * 1e-300, c(2, 4, 3, 6, 5, 8, 7, 10, 9, 12) * 1e-300)
+e$l_common <- lw(1e15 + 1:10, 1e15 + c(2, 4, 3, 6, 5, 8, 7, 10, 9, 12))
+e$l_lenmismatch <- lw(1:5, 1:4)
+e$l_ties <- lw(c(1, 1, 2, 2, 3, 3, 4, 4), c(1, 2, 2, 4, 3, 5, 4, 7))
+# lm influence
+infl <- function(f) {
+  r <- run(list(hat = num(hatvalues(f)), rstandard = num(rstandard(f)), rstandardPred = num(rstandard(f, type = "predictive")),
+                rstudent = num(rstudent(f)), cooks = num(cooks.distance(f)), dffits = num(dffits(f)), covratio = num(covratio(f))))
+  r
+}
+d1 <- data.frame(x = c(1, 2, 3, 4, 10), y = c(1.1, 1.9, 3.2, 3.9, 7))
+d1$g <- factor(c("a", "a", "b", "b", "c"))
+e$i_lev1 <- infl(lm(y ~ x + g, data = d1))
+e$i_exact <- infl(lm(y ~ x, data = data.frame(x = 1:5, y = 2 * (1:5) + 1)))
+e$i_saturated <- infl(lm(y ~ factor(1:5), data = data.frame(y = c(1, 3, 2, 5, 4))))
+e$i_two <- infl(lm(y ~ x, data = data.frame(x = 1:3, y = c(1, 3, 2))))
+e$i_w0 <- infl(lm(y ~ x, data = data.frame(x = 1:6, y = c(1, 3, 2, 5, 4, 7)), weights = c(1, 1, 0, 1, 2, 1)))
+e$i_na <- infl(lm(y ~ x, data = data.frame(x = c(1:5, NA, 7), y = c(1, 3, 2, 5, 4, 7, 6))))
+e$i_big <- infl(lm(y ~ x, data = data.frame(x = (1:6) * 1e150, y = c(1, 3, 2, 5, 4, 7) * 1e150)))
+e$i_noint <- infl(lm(y ~ 0 + x, data = data.frame(x = 1:6, y = c(1, 3, 2, 5, 4, 7))))
+e$i_rankdef <- infl(lm(y ~ x + z, data = data.frame(x = 1:6, z = 2 * (1:6), y = c(1, 3, 2, 5, 4, 7))))
+out$edge <- e
+cat(toJSON(out, digits = I(17), auto_unbox = TRUE, null = "null", na = "null"))

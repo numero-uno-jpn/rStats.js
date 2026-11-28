@@ -48,3 +48,53 @@ change.
    criteria (nb = 1000) with optimize / uniroot tolerances. Not pursued in this version (see the Choices).
 9. lm's hatvalues, rstandard (also "predictive"), rstudent, cooks.distance, dffits, covratio, dfbetas recorded for
    cars, an mtcars fit with a factor and a weighted fit; matched in the tests of the implementation.
+
+## Experiment 2: edge cases, errors and warnings (2026-11-28)
+
+`plot121-edge.R` → `plot121-edge.json` (every case records the value or the condition's message and the warnings).
+
+1. **density**: an automatic bandwidth needs 2 points ("need at least 2 points to select a bandwidth
+   automatically"); one point with bw = 0.5 works. No values with bw given: "non-finite 'from'". NA without na.rm:
+   "'x' contains missing values". **Inf counts in n but its mass is dropped**: density(c(1, Inf, 3, 4)) has n = 4,
+   the bandwidth of the finite values and the peak 3/4 of density(c(1, 3, 4)). bw = 0, negative or adjust = 0:
+   "'bw' is not positive."; bw NA: "non-finite 'bw'". n = 1 gives the point `from`; n = 513 and 5000 work (the grid
+   rounded up to 1024 and 8192). from > to gives decreasing x. Weights: negative "'weights' must not be negative",
+   NA "'weights' must all be finite", wrong length "'x' and 'weights' have unequal length"; weights summing to 5:
+   the warnings "sum(weights) != 1  -- will not get true density" then "Selecting bandwidth *not* using 'weights'"
+   (the second also for weights summing to 1 but unequal; not for equal weights). Kernel: a prefix ("epan") works,
+   "foo" gives match.arg's message. bw = "NRD0" works (case ignored).
+   Scales: 1e300 and 1e306 as at scale 1. **1e-300: R's bandwidth differs** (2.022e-300 instead of 2.093e-300;
+   experiment 3 finds why). 1e15 + small values: the warning "collapsing to unique 'x' values" (approx's, the grid is
+   finer than the values' precision).
+2. bw.nrd0: c(1, 1) and c(0, 0, 0) use the fall-backs (sd 0, then |x[1]| = 1 or 0, then 1); an infinite value gives
+   "missing value where TRUE/FALSE needed"; bw.nrd is 0 for quartiles that coincide with sd > 0? No: c(1, 2, 2, 2, 2,
+   2, 9) has IQR 0, so bw.nrd = 1.06 × 0 = 0 while bw.nrd0 falls back to sd.
+3. qqnorm: empty or all NA "y is empty or has only NAs"; one value x = 0; ±Inf ranked as the extremes; NaN like NA.
+   ppoints: a vector gives its length; 0 → empty; 2.7 → 2 points with the denominator from 2.7; a = 2 and −1 are not
+   checked.
+4. boxplot.stats: empty / all NA give NA stats and conf, n = 0, no out; Inf and −Inf are outliers; coef < 0
+   "'coef' must not be negative"; do.conf / do.out = FALSE give empty conf / out; 1e300 and 1e15 + small values
+   exact.
+5. lowess: n = 1, 2, 3 return y; equal x give the mean; NA or Inf in x "'delta' must be finite and > 0" (the default
+   delta is NA / Inf), while delta = 0 is accepted despite the message; NA in y returns y unsmoothed; f ≤ 0 "'f'
+   must be finite and > 0"; iter < 0 "'iter' must be finite and >= 0"; iter = 1.7 as 1; empty "invalid input";
+   lengths "'x' and 'y' lengths differ". Scales: **R's smooth at 1e300 / 1e-300 is not the scaled smooth at 1, and
+   near 1e15 it is 1e14 off** (experiment 3).
+6. lm influence: leverage 1 gives NaN; with one residual degree of freedom rstudent is R's round-off (NaN or 0);
+   a saturated model all NaN; zero weights and NA rows left out; 1e150, no intercept, rank deficiency fine.
+
+## Experiment 3: density's weights after na.rm, the tiny bandwidth, lowess's scales (2026-11-28)
+
+`plot121-weights.R` → `plot121-weights.json` (first run refused by the checker: my variables `ca`, `cb`, `cc`,
+`ca` being the package ca's function; renamed `cA`, `cB`, `cC`).
+
+1. Weights when na.rm drops values. Candidates (a) as they are, (b) rescaled to sum 1, (c) rescaled to their former
+   total: weights summing to 1 (equal or not) → (b) and (c) exact, (a) off; weights summing to 2 → **(a) exact**,
+   (b) and (c) off, with the "sum(weights) != 1" warning. So: rescaled to 1 when the weights summed to 1, else used
+   as they are. (The first implementation, from experiment 2 alone, rescaled to the former total; corrected.)
+2. At 1e-300, R's sd is 0 (var underflows: 0), so min(sd, IQR / 1.34) = 0 and bw.nrd0 falls back to |x[1]|:
+   0.9 × 3.1 × 5^−1/5 = 2.022. An underflow in R; rStats.js keeps the scaled value (its sd does not underflow).
+3. lowess: the smooth at 1e150 is the scaled one; at 1e300 not (values 3.53, 3.68, ... instead of 2.27, 3.19, ...);
+   at 1e15 + values 1e14 off, and at 1e8 + values already 0.6 off at the first point. R loses the digits of the
+   offset. rStats.js centres x and y at their midranges first (the smooth is shift-equivariant), and is the smooth
+   at scale 1 shifted or scaled.
