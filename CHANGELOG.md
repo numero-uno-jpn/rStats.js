@@ -35,6 +35,8 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
 - `confintRma`'s Q-profile (and profile-likelihood) bounds for tau2 were off away from unit scale (from 2e-6 at study
   variances 1e-8 to wrong values at 1e±150); they are now exact at any scale.
 - `rma` is faster with many studies (k = 1000: 0.15 s instead of 22 s), with the same results.
+- `arima`'s likelihood is faster (the stationary covariance of the ARMA in closed form): seasonal `autoArima` searches
+  take about half the time.
 - `rma` and `metareg` with moderators of very different scales (1e±150 and beyond) or with a large common value
   (x + 1e8) reported the model matrix as not of full rank; they now fit, with the same coefficients. Effects beyond
   1e±60 are fitted on a standardised scale (they were off or failed, also through `metabias` and `trimfill`).
