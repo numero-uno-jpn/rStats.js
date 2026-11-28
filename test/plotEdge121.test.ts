@@ -203,3 +203,33 @@ describe("dendrogramData and biplotData edge cases", () => {
     expect(() => biplotData(prcomp([[1], [2], [4]]))).toThrow(RangeError);
   });
 });
+
+describe("the new statistics at every scale (1e±300) and with a common value", () => {
+  const x = [1, 2, 3, 4, 10, 6, 7], y = [1.1, 1.9, 3.2, 3.9, 7, 5.5, 6.1];
+  it("lm influence measures are scale-invariant", async () => {
+    const { lmHatvalues, lmRstandard, lmRstudent, lmCooksDistance } = await import("../src/index.js");
+    const b = lm(x, y);
+    const base = [lmHatvalues(b), lmRstandard(b), lmRstudent(b), lmCooksDistance(b)];
+    for (const s of SCALES) {
+      const f = lm(x.map((v) => v * s), y.map((v) => v * s));
+      [lmHatvalues(f), lmRstandard(f), lmRstudent(f), lmCooksDistance(f)].forEach((m, k) =>
+        m.forEach((v, i) => expect(rel(v, base[k]![i]!), `measure ${k} at ${s}`).toBeLessThan(1e-8)));
+    }
+    const c = lm(x, y.map((v) => 1e8 + v));
+    lmRstandard(c).forEach((v, i) => expect(rel(v, base[1]![i]!)).toBeLessThan(1e-6));
+  });
+  it("qqline, bandwidths and density with weights", async () => {
+    const { qqline, bwNrd0, bwNrd, density } = await import("../src/index.js");
+    const l1 = qqline(y), b0 = bwNrd0(y), b1 = bwNrd(y);
+    const d1 = density(y, { weights: y.map((v) => v / 32.7) });
+    for (const s of SCALES) {
+      const ys = y.map((v) => v * s);
+      expect(rel(qqline(ys).slope, l1.slope * s)).toBeLessThan(1e-14);
+      expect(rel(bwNrd0(ys), b0 * s)).toBeLessThan(1e-14);
+      expect(rel(bwNrd(ys), b1 * s)).toBeLessThan(1e-14);
+      const d = density(ys, { weights: y.map((v) => v / 32.7) });
+      const peak = Math.max(...d1.y);
+      d.y.forEach((v, i) => expect(Math.abs(v * s - d1.y[i]!) / peak).toBeLessThan(1e-10));
+    }
+  });
+});
