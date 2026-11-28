@@ -1,0 +1,164 @@
+# 1.21.0 (plot data): the record of the trial and error
+
+The clean-room evidence for how R's behaviour was found: every attempt in order, the failed ones too, with what each
+showed. Nobody read the source of R or of the GPL packages; each finding comes from the documentation (the help pages)
+and from the output of exported functions compared with candidate formulas written for these experiments (from the
+help pages and the papers they cite). All runs: R 4.6.2 x86_64 (`rstats-oracle-amd64:4.6.2`), scripts checked with
+`scripts/r-experiment-check.mjs` (which now also lists the plotting functions of stats, grDevices and graphics as
+reference functions: they may only be called). Issue #571 has the summaries.
+
+## Experiment 1: the statistics behind the plots (2026-11-28)
+
+`plot121-basic.R` → `plot121-basic.json`; candidates in `plot121-basic-check.mjs` (run with node; uses the built
+rStats.js 1.20.0 for qnorm, quantile, fivenum, sd, IQR, median). First run refused by the checker: `dist` (my column
+name for cars' second column, also stats' `dist`) named without a call; renamed to `stop` / `cars[[2]]`, no other
+change.
+
+1. **ppoints** = (i − a) / (n + 1 − 2a), a = 3/8 for n ≤ 10 else 1/2 (help page): exact for n = 1, 2, 5, 10, 11, 50
+   and a = 0, 1. With n = 1 and a = 1, R gives NaN (0 / 0).
+2. **qqnorm**: x = qnorm(ppoints(n)) placed by the rank of y (ties in order of appearance), NA where y is NA and n
+   counting the non-NA values: within 8e-16 on all samples.
+3. **qqline** through the type-7 quartiles of y and of the normal: exact (computed in the script from the documented
+   construction; the line itself is drawn, not returned).
+4. **boxplot.stats**: stats = fivenum with the whiskers moved to the most extreme points within coef × (hinge
+   spread) of the hinges, out = the points beyond, conf = median ± 1.58 × (hinge spread) / √n, n = the non-NA count;
+   coef = 0 keeps the extremes and gives no out: exact for coef 1.5, 0, 3, with ties, n = 1, 2, constant, NA.
+   `boxplot(count ~ spray, plot = FALSE)` gives the same per group (out 7 and 12 in groups 3 and 4).
+5. **bw.nrd0** = 0.9 min(sd, IQR / 1.34) n^−1/5: exact. The help page says only "unless the quartiles coincide when a
+   positive result will be guaranteed"; the candidate fall-back (sd, then |x[1]|, then 1) is exact for the constant
+   sample (2.5 → 0.9 × 2.5 × 6^−1/5) and for ties. n = 1: an error "need at least 2 data points".
+   **bw.nrd** = 1.06 min(sd, IQR / 1.34) n^−1/5: exact (0 for the constant sample).
+6. **lowess** (Cleveland 1979; the algorithm of Cleveland 1981): sort by x; ns = max(2, min(n, floor(f n + 1e-5)))
+   neighbours; tricube weights with the 0.001 h / 0.999 h cut-offs; the local line only when the weighted spread of x
+   exceeds 0.001 × range; robustness by bisquare weights of the residuals over 6 × median |residual| with the
+   0.001 / 0.999 cut-offs and a stop when 6 MAD < 1e-7 × mean |residual|; points within delta = 0.01 × range of the
+   last fitted one are interpolated linearly, equal x reuses the fit. **floor: within 4e-14 on all 16 cases**
+   (cars, faithful, small, unsorted; f 2/3, 0.3, 1; iter 3, 0, 5; delta 0). round(f n) instead: off by 2e-2 for two
+   cases. The output x is sorted.
+7. **density**, candidate A (the exact kernel sum at R's x): off by 1e-4 to 0.5 of the peak (0.5 for the rectangular
+   kernel). Candidate B (the help page's description: linear binning of the weights on a regular grid, circular FFT
+   convolution with the kernel sampled at the grid's lags, linear interpolation at the output x), with grid
+   [from − k bw, to + k bw], 2m cells, m = max(n, 512) rounded up to a power of 2, the density on the first m points:
+   **k = 4 within 3e-12 of the peak for all seven kernels** on nine samples (rectangular the largest, 2.6e-12; the
+   others ≤ 1.3e-13), n = 100 and 1000, from / to, adjust, bw = 0.3, cut = 1, weights, bw = "SJ", NA removed;
+   k = 3 off by 1e-4 to 0.4. The kernels with bw = their standard deviation as on the help page (a = bw √3, √6, √5,
+   √7, bw / √(1/3 − 2/π²), bw / √(1 − 8/π²)). Negative values from FFT round-off are set to 0 (candidate; nothing
+   showed otherwise).
+8. bw.ucv, bw.bcv, bw.SJ ("ste", "dpi") values recorded in the JSON but not matched: they minimise / solve binned
+   criteria (nb = 1000) with optimize / uniroot tolerances. Not pursued in this version (see the Choices).
+9. lm's hatvalues, rstandard (also "predictive"), rstudent, cooks.distance, dffits, covratio, dfbetas recorded for
+   cars, an mtcars fit with a factor and a weighted fit; matched in the tests of the implementation.
+
+## Experiment 2: edge cases, errors and warnings (2026-11-28)
+
+`plot121-edge.R` → `plot121-edge.json` (every case records the value or the condition's message and the warnings).
+
+1. **density**: an automatic bandwidth needs 2 points ("need at least 2 points to select a bandwidth
+   automatically"); one point with bw = 0.5 works. No values with bw given: "non-finite 'from'". NA without na.rm:
+   "'x' contains missing values". **Inf counts in n but its mass is dropped**: density(c(1, Inf, 3, 4)) has n = 4,
+   the bandwidth of the finite values and the peak 3/4 of density(c(1, 3, 4)). bw = 0, negative or adjust = 0:
+   "'bw' is not positive."; bw NA: "non-finite 'bw'". n = 1 gives the point `from`; n = 513 and 5000 work (the grid
+   rounded up to 1024 and 8192). from > to gives decreasing x. Weights: negative "'weights' must not be negative",
+   NA "'weights' must all be finite", wrong length "'x' and 'weights' have unequal length"; weights summing to 5:
+   the warnings "sum(weights) != 1  -- will not get true density" then "Selecting bandwidth *not* using 'weights'"
+   (the second also for weights summing to 1 but unequal; not for equal weights). Kernel: a prefix ("epan") works,
+   "foo" gives match.arg's message. bw = "NRD0" works (case ignored).
+   Scales: 1e300 and 1e306 as at scale 1. **1e-300: R's bandwidth differs** (2.022e-300 instead of 2.093e-300;
+   experiment 3 finds why). 1e15 + small values: the warning "collapsing to unique 'x' values" (approx's, the grid is
+   finer than the values' precision).
+2. bw.nrd0: c(1, 1) and c(0, 0, 0) use the fall-backs (sd 0, then |x[1]| = 1 or 0, then 1); an infinite value gives
+   "missing value where TRUE/FALSE needed"; c(1, 2, 2, 2, 2, 2, 9) has IQR 0, so bw.nrd = 1.06 × 0 = 0 (no
+   fall-back) while bw.nrd0 falls back to sd.
+3. qqnorm: empty or all NA "y is empty or has only NAs"; one value x = 0; ±Inf ranked as the extremes; NaN like NA.
+   ppoints: a vector gives its length; 0 → empty; 2.7 → 2 points with the denominator from 2.7; a = 2 and −1 are not
+   checked.
+4. boxplot.stats: empty / all NA give NA stats and conf, n = 0, no out; Inf and −Inf are outliers; coef < 0
+   "'coef' must not be negative"; do.conf / do.out = FALSE give empty conf / out; 1e300 and 1e15 + small values
+   exact.
+5. lowess: n = 1, 2, 3 return y; equal x give the mean; NA or Inf in x "'delta' must be finite and > 0" (the default
+   delta is NA / Inf), while delta = 0 is accepted despite the message; NA in y returns y unsmoothed; f ≤ 0 "'f'
+   must be finite and > 0"; iter < 0 "'iter' must be finite and >= 0"; iter = 1.7 as 1; empty "invalid input";
+   lengths "'x' and 'y' lengths differ". Scales: **R's smooth at 1e300 / 1e-300 is not the scaled smooth at 1, and
+   near 1e15 it is 1e14 off** (experiment 3).
+6. lm influence: leverage 1 gives NaN; with one residual degree of freedom rstudent is R's round-off (NaN or 0);
+   a saturated model all NaN; zero weights and NA rows left out; 1e150, no intercept, rank deficiency fine.
+
+## Experiment 3: density's weights after na.rm, the tiny bandwidth, lowess's scales (2026-11-28)
+
+`plot121-weights.R` → `plot121-weights.json` (first run refused by the checker: my variables `ca`, `cb`, `cc`,
+`ca` being the package ca's function; renamed `cA`, `cB`, `cC`).
+
+1. Weights when na.rm drops values. Candidates (a) as they are, (b) rescaled to sum 1, (c) rescaled to their former
+   total: weights summing to 1 (equal or not) → (b) and (c) exact, (a) off; weights summing to 2 → **(a) exact**,
+   (b) and (c) off, with the "sum(weights) != 1" warning. So: rescaled to 1 when the weights summed to 1, else used
+   as they are. (The first implementation, from experiment 2 alone, rescaled to the former total; corrected.)
+2. At 1e-300, R's sd is 0 (var underflows: 0), so min(sd, IQR / 1.34) = 0 and bw.nrd0 falls back to |x[1]|:
+   0.9 × 3.1 × 5^−1/5 = 2.022. An underflow in R; rStats.js keeps the scaled value (its sd does not underflow).
+3. lowess: the smooth at 1e150 is the scaled one; at 1e300 not (values 3.53, 3.68, ... instead of 2.27, 3.19, ...);
+   at 1e15 + values 1e14 off, and at 1e8 + values already 0.6 off at the first point. R loses the digits of the
+   offset. rStats.js centres x and y at their midranges first (the smooth is shift-equivariant), and is the smooth
+   at scale 1 shifted or scaled.
+
+## Experiment 4: dendrograms, meta's forest, survival's risk table (2026-11-28)
+
+`plot121-plots.R` → `plot121-plots.json` (first run refused by the checker: my variable `hc` is named like a reference function and
+was used without a call; renamed `hcl`, and `mm` to `mfit` with it).
+
+1. **Dendrograms**: for complete, average and single linkage of 8 points, every merge's x = the position (1..n in
+   `order`) of its leftmost leaf + as.dendrogram's `midpoint` equals the mean of its two children's x (leaves at their
+   positions): exact for all 21 merges. The leaves are at 1..n in hclust's order.
+2. **meta's forest** (metagen, REML, HK): the study intervals `lower`, `upper` = TE ∓ qnorm((1 + level) / 2) seTE,
+   the weights 100 w / sum w (common and random): exact at level 0.95 and 0.9. **At level = 0.9 the pooled and
+   prediction intervals stay those of 95%**: meta's `level` sets only the study intervals; rStats.js's metagen took
+   `level` as the default of levelMa and levelPredict (1.20.0) and gave 90% pooled intervals. Experiment 5 checks the
+   other functions.
+3. **The risk table**: summary(fit, times = pretty(c(0, max(time))), extend = TRUE)$n.risk per stratum equals "the
+   n.risk of the first time at or after t, 0 after the last time" for both strata at 0, 5, ..., 30.
+
+## Experiment 5: which intervals `level` changes in meta and netmeta (2026-11-28)
+
+`plot121-metalevel.R` → `plot121-metalevel.json`. gs("level"), gs("level.ma") and gs("level.predict") are 0.95.
+For metainc (IRD, MH), metaprop (GLMM) and netmeta, `level = 0.9` changes only the study intervals (`lower`) and
+leaves the pooled (common, random) and prediction intervals at their defaults; `level.ma = 0.9` changes the pooled
+ones, `level.predict = 0.9` the prediction interval; netmeta reports `level` 0.9 and `level.ma` 0.95. So in 1.21.0
+rStats.js's metagen (and the functions built on it), the MH and Peto branches of metabin and metainc (the same
+construction as metainc's), metapropGlmm and netmeta (which gains
+`levelMa`) default levelMa and levelPredict to 0.95 whatever `level` is. Not checked: which level meta's and
+netmeta's heterogeneity (I², H) intervals use; rStats.js keeps `level` there as before.
+
+## Experiment 6: survfit and metagen at extreme scales (2026-11-28)
+
+`plot121-survscale.R` → `plot121-survscale.json`. The first run stopped: R's metagen at 1e-300 times the data
+fails ("Division by zero when computing the inverse variance weights."); the calls were wrapped in tryCatch.
+
+1. survfit: with the default timefix, the times 1, 2, 3, 4 times 1e-300, 1e-150 and 1e-8 are merged into one (surv
+   0.25), as rStats.js's survfit does; timefix = FALSE keeps them. From 1 to 1e300 the four times are kept. So the
+   plot data's scale checks of survival curves use scales of 1 and above.
+2. metagen: R fails at 1e-300 (above) and 1e300 ("missing value where TRUE/FALSE needed"); rStats.js returns
+   estimates, but tau2 is not representable there (4.6e-602 underflows to 0, 4.6e598 overflows): forestPlotData's
+   weights are recomputed from the standard errors in units of the largest one when the fit's weights are not
+   representable (exact for the common effect weights at both ends), and are NaN where tau is infinite.
+3. Found on the way (not changed, for the user): metagen's REML tau2 for these data is 0.046322077947739 at scale 1
+   (R's value: R stops its iteration short of the maximum, which is 0.046320745234; my golden-section search on the
+   REML profile), but at 1e±150 rStats.js gives 0.04632080937 × scale², between the two. The stopping rule follows R
+   at scale 1 and is not scale-invariant.
+
+## Experiment 7: R's REML at the maximum (2026-11-28)
+
+`plot121-reml.R` → `plot121-reml.json`. The user decided (2026-11-28) that metagen's REML iterates to the maximum. For
+three data sets: metagen's default tau2, metagen with the documented `control = list(threshold = 1e-12, maxiter =
+1000)` (passed to metafor's rma.uni), and optimize on my REML profile (−½ Σ log(v + τ²) − ½ log Σ w − ½ Σ w (y − μ)²,
+the textbook formula). The tight control reaches the maximum: 0.046320746986 against optimize's 0.046320747272 (the
+profile is flat; my own golden-section search gave 0.046320745234), while the default stops at 0.046322077948 (3e-5
+relative). `settings.meta(control = ...)` does not take it ("Additional arguments ignored as first argument is a
+list"), so the references wrap the meta functions to pass `control`. In the oracles a threshold of 1e-12 left R 1e-9
+from the maximum for a small tau2 (fleiss, RD), 1e-16 stops with "Fisher scoring algorithm did not converge", 1e-14
+works. (A first wrapper did not pass `control` at all: its closure saw the loop variable's last value; fixed.)
+
+## Experiment 8: trimfill and metaprop near 0 and 1 at the maximum (2026-11-28)
+
+`plot121-reml2.R` → `plot121-reml2.json` (first run refused by the checker: my variable `refit`; renamed `mfilled`).
+trimfill's tau2 (0.71638395) is the same with and without `control`, and the filled data refitted with the tight
+control give 0.71638381 (rStats.js: 0.71638381, to 2e-16): R's trimfill refits with metafor's default whatever the
+meta object's control. The references of trimfill are now the refit. metaprop's sets near 0 and 1
+(tsmeta120-propedge.R's) at the tight control replace that experiment's defaults in test/metaEdge120.test.ts.

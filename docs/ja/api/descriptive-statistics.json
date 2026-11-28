@@ -1,4 +1,49 @@
 {
+  "BoxplotStatsOptions#summary": {
+    "hash": "cfa663990728",
+    "en": "Options for {@link boxplotStats}.",
+    "ja": "{@link boxplotStats} のオプションです。"
+  },
+  "BoxplotStatsOptions.coef#summary": {
+    "hash": "d449b523127f",
+    "en": "How far the whiskers reach, in hinge spreads. Default `1.5`; `0` puts them at the extremes (no outliers).",
+    "ja": "ひげをヒンジ間隔の何倍まで伸ばすかです。既定は `1.5` です。`0` では両端まで伸ばし (外れ値なし) ます。"
+  },
+  "BoxplotStatsOptions.doConf#summary": {
+    "hash": "5c424b7559a0",
+    "en": "Compute the notch interval `conf`. Default `true`.",
+    "ja": "ノッチ区間 `conf` を計算します。既定は `true` です。"
+  },
+  "BoxplotStatsOptions.doOut#summary": {
+    "hash": "e386bb23d446",
+    "en": "Return the outliers `out`. Default `true`.",
+    "ja": "外れ値 `out` を返します。既定は `true` です。"
+  },
+  "BoxplotStatsResult#summary": {
+    "hash": "cb6aa03b8461",
+    "en": "The result of {@link boxplotStats}.",
+    "ja": "{@link boxplotStats} の結果です。"
+  },
+  "BoxplotStatsResult.conf#summary": {
+    "hash": "a84503bf6227",
+    "en": "The notch: median -+ 1.58 times the hinge spread over sqrt(n) (empty with `doConf: false`).",
+    "ja": "ノッチです: 中央値 -+ ヒンジ間隔の 1.58 倍 / sqrt(n) です (`doConf: false` の場合は空です)。"
+  },
+  "BoxplotStatsResult.n#summary": {
+    "hash": "d6eb3c91259c",
+    "en": "The number of values that are not missing.",
+    "ja": "欠測値でない値の数です。"
+  },
+  "BoxplotStatsResult.out#summary": {
+    "hash": "e6ec362fe796",
+    "en": "The values beyond the whiskers, in the order given (empty with `doOut: false` or `coef: 0`).",
+    "ja": "ひげの外側にある値です。指定された順序で返します (`doOut: false` または `coef: 0` の場合は空です)。"
+  },
+  "BoxplotStatsResult.stats#summary": {
+    "hash": "4fc341f97cde",
+    "en": "The lower whisker, the lower hinge, the median, the upper hinge and the upper whisker (NaN for no values).",
+    "ja": "下側のひげ、下側ヒンジ、中央値、上側ヒンジ、上側のひげです (値がない場合は NaN)。"
+  },
   "CorMethod#summary": {
     "hash": "b65b3fea7fc6",
     "en": "Correlation coefficient: Pearson's r, Kendall's tau or Spearman's rho.",
@@ -168,6 +213,11 @@
     "hash": "52f7e12ccbae",
     "en": "Small-sample correction. Default `false`.",
     "ja": "小標本補正です。既定は `false`。"
+  },
+  "DensityKernel#summary": {
+    "hash": "5bdf59f8b9e5",
+    "en": "The kernels of {@link density}.",
+    "ja": "{@link density} のカーネルです。"
   },
   "DiffOptions#summary": {
     "hash": "4e364b8ccd18",
@@ -413,6 +463,111 @@
     "hash": "b50dd43c1bb2",
     "en": "Interquartile range, the difference of the 0.75 and 0.25 quantiles. Equivalent to R's `IQR()`.",
     "ja": "四分位範囲。0.75 分位点と 0.25 分位点の差です。R の `IQR()` と同等です。"
+  },
+  "KernelDensityOptions#summary": {
+    "hash": "f0b041a919b3",
+    "en": "Options for {@link density}.",
+    "ja": "{@link density} のオプションです。"
+  },
+  "KernelDensityOptions.adjust#summary": {
+    "hash": "24a507b558bb",
+    "en": "The bandwidth is `adjust * bw`. Default `1`.",
+    "ja": "帯域幅は `adjust * bw` です。既定は `1` です。"
+  },
+  "KernelDensityOptions.bw#summary": {
+    "hash": "7b705613cc3e",
+    "en": "The bandwidth (the kernel's standard deviation): a positive number, or the rule `\"nrd0\"` (default, {@link bwNrd0})\nor `\"nrd\"` ({@link bwNrd}), in any case (as R). R's `\"ucv\"`, `\"bcv\"` and `\"SJ\"` are not offered (an error).",
+    "ja": "帯域幅 (カーネルの標準偏差) です。正の数、または規則 `\"nrd0\"` (既定、{@link bwNrd0}) または `\"nrd\"` ({@link bwNrd}) を指定します。これらの規則名は大文字・小文字を問いません (R と同じ)。R の `\"ucv\"`、`\"bcv\"`、`\"SJ\"` は提供していません (エラーになります)。"
+  },
+  "KernelDensityOptions.cut#summary": {
+    "hash": "e9d1ae1ac521",
+    "en": "How many bandwidths beyond the data the default `from` and `to` reach. Default `3`.",
+    "ja": "既定の `from` と `to` をデータの範囲から何帯域幅分だけ外側に設定するかです。既定は `3` です。"
+  },
+  "KernelDensityOptions.from#summary": {
+    "hash": "a32a494f0655",
+    "en": "The first output point. Default: the smallest value minus `cut * bw`.",
+    "ja": "最初の出力点です。既定: 最小値から `cut * bw` を引いた値です。"
+  },
+  "KernelDensityOptions.kernel#summary": {
+    "hash": "a5fd9b9e7d30",
+    "en": "The kernel; a unique prefix is accepted (as R). Default `\"gaussian\"`.",
+    "ja": "カーネルです。一意に特定できる接頭辞も使用できます (R と同じ)。既定は `\"gaussian\"` です。"
+  },
+  "KernelDensityOptions.n#summary": {
+    "hash": "db64281c7b33",
+    "en": "The number of equally spaced output points. Default `512`.",
+    "ja": "等間隔に配置する出力点の数です。既定は `512` です。"
+  },
+  "KernelDensityOptions.naRm#summary": {
+    "hash": "eea4d1d78b41",
+    "en": "Remove missing values (NaN) first. Default `false`: a missing value is an error (as R).",
+    "ja": "最初に欠測値を除去します (NaN)。既定は `false` です。欠測値があるとエラーになります (R と同じ)。"
+  },
+  "KernelDensityOptions.to#summary": {
+    "hash": "9981883739dd",
+    "en": "The last output point. Default: the largest value plus `cut * bw`.",
+    "ja": "最後の出力点です。既定: 最大値に `cut * bw` を加えた値です。"
+  },
+  "KernelDensityOptions.weights#summary": {
+    "hash": "c49df4163558",
+    "en": "Weights of the observations, non-negative and finite, one per value of `x` (before missing values are removed).\nDefault: 1 / n each. As in R, weights that do not sum to 1 are used as given (with a warning), and the automatic\nbandwidth ignores the weights (with a warning, unless they are all equal). With `naRm`, the weights of the missing\nvalues are dropped and, when the weights summed to 1, the others are rescaled to sum 1 (as R).",
+    "ja": "観測値の重みです。`x` の各値に 1 つずつ対応し (欠測値の除去前)、非負かつ有限でなければなりません。既定: 各値を 1 / n とします。R と同じく、合計が 1 でない重みは与えられたまま使用します (警告が出ます)。自動帯域幅の計算では重みを無視します (すべて等しい場合を除き警告が出ます)。`naRm` の場合、欠測値に対応する重みを除去し、重みの合計が 1 だった場合は残りの重みの合計が 1 になるよう再尺度化します (R と同じ)。"
+  },
+  "KernelDensityResult#summary": {
+    "hash": "2f430ad7ec4f",
+    "en": "The result of {@link density}.",
+    "ja": "{@link density} の結果です。"
+  },
+  "KernelDensityResult.bw#summary": {
+    "hash": "d3ca1f73aa92",
+    "en": "The bandwidth used (after `adjust`).",
+    "ja": "使用した帯域幅です (`adjust` 適用後)。"
+  },
+  "KernelDensityResult.kernel#summary": {
+    "hash": "a7fa174d71aa",
+    "en": "The kernel used.",
+    "ja": "使用したカーネルです。"
+  },
+  "KernelDensityResult.n#summary": {
+    "hash": "367282012ed0",
+    "en": "The number of observations (after missing values are removed; infinite values count, as in R).",
+    "ja": "観測数です (欠測値の除去後。R と同じく、無限大の値も数に含めます)。"
+  },
+  "KernelDensityResult.warnings#summary": {
+    "hash": "f41315c05954",
+    "en": "R's warnings, each once, in R's order (an empty array when there are none).",
+    "ja": "R の警告です。R と同じ順序で、それぞれ 1 回だけ含みます (警告がない場合は空の配列です)。"
+  },
+  "KernelDensityResult.x#summary": {
+    "hash": "5f9f8872a346",
+    "en": "The output points, equally spaced from `from` to `to`.",
+    "ja": "`from` から `to` まで等間隔に配置した出力点です。"
+  },
+  "KernelDensityResult.y#summary": {
+    "hash": "bb9f86d162ca",
+    "en": "The estimated density at `x`.",
+    "ja": "`x` における推定密度です。"
+  },
+  "LowessOptions#summary": {
+    "hash": "8392fae02131",
+    "en": "Options for {@link lowess}.",
+    "ja": "{@link lowess} のオプションです。"
+  },
+  "LowessOptions.delta#summary": {
+    "hash": "b00dd77a8ff8",
+    "en": "Points closer than `delta` to the last fitted one are interpolated instead of fitted. Default 1% of the range\nof `x`; must be finite and non-negative.",
+    "ja": "最後に当てはめた点からの距離が `delta` 未満の点は、当てはめずに補間します。既定は `x` の範囲の 1% です。有限かつ非負でなければなりません。"
+  },
+  "LowessOptions.f#summary": {
+    "hash": "cb36e19c2cc4",
+    "en": "The smoother span: the fraction of the points that influence each fit. Default `2/3`; must be positive.",
+    "ja": "平滑化の span です。各当てはめに影響する点の割合を指定します。既定は `2/3` です。正の値でなければなりません。"
+  },
+  "LowessOptions.iter#summary": {
+    "hash": "3f2d83ea7c3a",
+    "en": "The number of robustifying iterations. Default `3`; truncated to an integer (as R).",
+    "ja": "ロバスト化の反復回数です。既定は `3` です。整数に切り捨てます (R と同じ)。"
   },
   "MadOptions#summary": {
     "hash": "1e3ce6838a84",
@@ -753,6 +908,16 @@
     "hash": "0c9cdc95b85b",
     "en": "The percentages of the total.",
     "ja": "合計に対する割合 (%) です。"
+  },
+  "PpointsOptions#summary": {
+    "hash": "11b1c4210e75",
+    "en": "Options for {@link ppoints}.",
+    "ja": "{@link ppoints} のオプションです。"
+  },
+  "PpointsOptions.a#summary": {
+    "hash": "ba3458c49d23",
+    "en": "The offset, in [0, 1] in practice (R does not check it). Default `3/8` for n <= 10, else `1/2`.",
+    "ja": "オフセットです。実際には [0, 1] の範囲で使います (R は検査しません)。既定は n <= 10 なら `3/8`、それ以外なら `1/2` です。"
   },
   "PrettyOptions#summary": {
     "hash": "f2a043b0d9db",
@@ -1139,6 +1304,46 @@
     "en": "The points that are the `runLength`-th or a later point of a run strictly on one side of the center.",
     "ja": "中心線の片側に厳密に続く連の、`runLength` 番目またはそれ以降の点です。"
   },
+  "QqlineOptions#summary": {
+    "hash": "b0a930121db2",
+    "en": "Options for {@link qqline}.",
+    "ja": "{@link qqline} のオプションです。"
+  },
+  "QqlineOptions.datax#summary": {
+    "hash": "9d2605608550",
+    "en": "Swap the axes: the line for a plot with the data on the x axis. Default `false`.",
+    "ja": "軸を入れ替えます: データを x 軸に置くプロット用の直線です。既定は `false` です。"
+  },
+  "QqlineOptions.distribution#summary": {
+    "hash": "d6cad62bc092",
+    "en": "The quantile function of the reference distribution. Default the standard normal's.",
+    "ja": "参照分布の分位点関数です。既定は標準正規分布のものです。"
+  },
+  "QqlineOptions.probs#summary": {
+    "hash": "193aa6447626",
+    "en": "The two probabilities the line passes through. Default `[0.25, 0.75]`.",
+    "ja": "直線が通る 2 つの確率です。既定は `[0.25, 0.75]` です。"
+  },
+  "QqlineOptions.qtype#summary": {
+    "hash": "bf8c50c19643",
+    "en": "The quantile type of `y` (as {@link quantile}). Default `7`.",
+    "ja": "`y` の分位点の type です ({@link quantile} と同じ)。既定は `7` です。"
+  },
+  "QqnormResult#summary": {
+    "hash": "a72445ceac3d",
+    "en": "The coordinates of a normal Q-Q plot.",
+    "ja": "正規 Q-Q プロットの座標です。"
+  },
+  "QqnormResult.x#summary": {
+    "hash": "9734d2bc5791",
+    "en": "The theoretical quantiles, one per value of `y` (NaN where `y` is missing).",
+    "ja": "`y` の各値に対応する理論分位点です (`y` が欠測値の場合は NaN)。"
+  },
+  "QqnormResult.y#summary": {
+    "hash": "10b28a7ededb",
+    "en": "The values given.",
+    "ja": "指定された値です。"
+  },
   "QuantileOptions#summary": {
     "hash": "a41c5c230657",
     "en": "Options for {@link quantile}.",
@@ -1203,6 +1408,51 @@
     "hash": "039814b7ea52",
     "en": "How ties are ranked, as R's `ties.method`.",
     "ja": "同順位の値の順位の付け方。R の `ties.method` と同じです。"
+  },
+  "boxplotStats#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": "⟦code1⟧"
+  },
+  "boxplotStats#@throws": {
+    "hash": "5052c6d0f748",
+    "en": "RangeError for a negative `coef`.",
+    "ja": "`coef` が負の場合は RangeError です。"
+  },
+  "boxplotStats#summary": {
+    "hash": "fc3756487ef3",
+    "en": "The statistics a box plot draws. Equivalent to R's `boxplot.stats()`. Missing values (NaN) are dropped; infinite\nvalues are values like any other (so they are outliers).",
+    "ja": "箱ひげ図に描画する統計量です。R の `boxplot.stats()` と同等です。欠測値 (NaN) は除外し、無限大の値は他の値と同様に扱います (したがって外れ値になります)。"
+  },
+  "bwNrd#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": "⟦code1⟧"
+  },
+  "bwNrd#@throws": {
+    "hash": "28dc8bea8be1",
+    "en": "RangeError for fewer than 2 values, a missing value or an infinite value.",
+    "ja": "値が 2 個未満、欠測値、または無限大の値がある場合は RangeError です。"
+  },
+  "bwNrd#summary": {
+    "hash": "227b921cb76c",
+    "en": "Scott's variation of the normal-reference bandwidth: 1.06 times the smaller of the standard deviation and the\ninterquartile range divided by 1.34, times n^(-1/5). Equivalent to R's `bw.nrd()`. It is 0 for data whose quartiles\ncoincide and whose standard deviation is 0 (as R).",
+    "ja": "正規参照帯域幅の Scott による変形です: 標準偏差と四分位範囲を 1.34 で割った値の小さい方に 1.06 を掛け、さらに n^(-1/5) を掛けます。R の `bw.nrd()` と同等です。四分位点が一致し標準偏差が 0 のデータでは 0 になります (R と同じ)。"
+  },
+  "bwNrd0#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": "⟦code1⟧"
+  },
+  "bwNrd0#@throws": {
+    "hash": "28dc8bea8be1",
+    "en": "RangeError for fewer than 2 values, a missing value or an infinite value.",
+    "ja": "値が 2 個未満、欠測値、または無限大の値がある場合は RangeError です。"
+  },
+  "bwNrd0#summary": {
+    "hash": "bab007e4616f",
+    "en": "Silverman's rule-of-thumb bandwidth for a Gaussian kernel: 0.9 times the smaller of the standard deviation and the\ninterquartile range divided by 1.34, times n^(-1/5). Equivalent to R's `bw.nrd0()`. When that spread is 0, the\nstandard deviation is used, then |x[0]|, then 1 (so that the bandwidth is positive, as R).",
+    "ja": "ガウスカーネルの Silverman の経験則による帯域幅です: 標準偏差と四分位範囲を 1.34 で割った値の小さい方に 0.9 を掛け、さらに n^(-1/5) を掛けます。R の `bw.nrd0()` と同等です。この間隔が 0 の場合は、標準偏差、次に |x[0]|、最後に 1 を使用します (帯域幅を正にするため。R と同じ)。"
   },
   "cor(0)#@example": {
     "hash": "f2167be5edf2",
@@ -1319,6 +1569,21 @@
     "en": "Coefficient of variation sd / mean (sample standard deviation). Equivalent to `DescTools::CoefVar()` in R.",
     "ja": "変動係数 sd / mean (標本標準偏差)。R の `DescTools::CoefVar()` と同等です。"
   },
+  "density#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": "⟦code1⟧"
+  },
+  "density#@throws": {
+    "hash": "574758de1ce5",
+    "en": "RangeError for a missing value without `naRm`, fewer than 2 values with an automatic bandwidth, a bandwidth\n  that is not positive, invalid weights or an unknown kernel.",
+    "ja": "`naRm` を指定せず欠測値がある場合、自動帯域幅で値が 2 個未満の場合、帯域幅が正でない場合、重みが無効な場合、またはカーネルが不明な場合は RangeError です。"
+  },
+  "density#summary": {
+    "hash": "be0ea0911f8a",
+    "en": "Kernel density estimate at equally spaced points. Equivalent to R's `density()`. The same\nbinned approximation (linear binning on a grid, convolution by FFT, linear interpolation), so the values are R's to\nrounding, not the exact kernel sums (those differ by up to about 1e-3 of the peak, more for the rectangular kernel).",
+    "ja": "等間隔の点におけるカーネル密度推定値です。R の `density()` と同等です。同じビン分割近似 (格子上の線形ビニング、FFT による畳み込み、線形補間) を使うため、値は丸め誤差の範囲で R と一致します。カーネル和を厳密に計算した値ではありません (ピークの約 1e-3 まで異なることがあり、矩形カーネルではさらに大きくなります)。"
+  },
   "diff#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -1403,6 +1668,21 @@
     "hash": "b22f30b6c6a0",
     "en": "Sample excess kurtosis. Equivalent to `e1071::kurtosis()` in R. Missing values are dropped; `{ type: 1 }` is\njStat's kurtosis.",
     "ja": "標本の超過尖度。R の `e1071::kurtosis()` と同等です。欠測値は除外されます。`{ type: 1 }` は\njStat の尖度です。"
+  },
+  "lowess#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": "⟦code1⟧"
+  },
+  "lowess#@throws": {
+    "hash": "8446f8bd0009",
+    "en": "RangeError for arrays of different lengths, no points, a missing value, a span that is not positive, a\n  negative `iter` or `delta`.",
+    "ja": "配列の長さが異なる場合、点がない場合、欠測値がある場合、span が正でない場合、または `iter` か `delta` が負の場合は RangeError です。"
+  },
+  "lowess#summary": {
+    "hash": "f98bb824514b",
+    "en": "The lowess smoother. Equivalent to R's `lowess()`. It returns the points sorted by `x` with the smoothed `y`.\n\nUnlike R, a missing value (NaN) in `y` is an error: R returns the data unsmoothed in that case.",
+    "ja": "lowess 平滑化です。R の `lowess()` と同等です。`x` でソートした点と平滑化した `y` を返します。\nR と異なり、`y` に欠測値 (NaN) があるとエラーになります。その場合、R は平滑化せずにデータを返します。"
   },
   "mad#@example": {
     "hash": "f2167be5edf2",
@@ -1499,6 +1779,21 @@
     "en": "The table of a Pareto chart without the plot: frequencies in decreasing order with the\ncumulative frequencies and percentages. Unnamed data are named A, B, C, ...\n\nEquivalent to `qcc::pareto.chart()` in R.",
     "ja": "図を描かない、パレート図の表です: 度数の降順の度数と、累積度数、累積百分率です。名前のないデータには A、B、C、... と名前を付けます。\n\nR の `qcc::pareto.chart()` と同等です。"
   },
+  "ppoints#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": "⟦code1⟧"
+  },
+  "ppoints#@throws": {
+    "hash": "d5bd64c88d54",
+    "en": "RangeError for a count that is negative or not finite.",
+    "ja": "個数が負または有限でない場合は RangeError です。"
+  },
+  "ppoints#summary": {
+    "hash": "a1ed36714bd3",
+    "en": "The probability points (i - a) / (n + 1 - 2a), i = 1, ..., n, for Q-Q plots. Equivalent to R's `ppoints()`. `n` is\nthe count, or an array whose length is the count (R's vector argument).",
+    "ja": "Q-Q プロット用の確率点 (i - a) / (n + 1 - 2a)、i = 1, ..., n です。R の `ppoints()` と同等です。`n` は個数、または長さを個数とする配列です (R のベクトル引数と同じ)。"
+  },
   "pretty#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -1558,6 +1853,36 @@
     "hash": "889b1fb71380",
     "en": "The overdispersion test for binomial or Poisson counts. It refers D = var(x) / theoretical\nvariance * (k - 1) against chi-square on k - 1 degrees of freedom; the theoretical variance is mean(size) p (1 - p)\nwith p = sum(x) / sum(size), or mean(x).\n\nEquivalent to `qcc::qcc.overdispersion.test()` in R.",
     "ja": "二項または Poisson の計数データの過分散の検定です。D = var(x) / 理論分散 * (k - 1) を、自由度 k - 1 のカイ二乗分布と比べます。理論分散は、p = sum(x) / sum(size) として mean(size) p (1 - p)、または mean(x) です。\n\nR の `qcc::qcc.overdispersion.test()` と同等です。"
+  },
+  "qqline#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": "⟦code1⟧"
+  },
+  "qqline#@throws": {
+    "hash": "ff9a12400472",
+    "en": "RangeError when there is no value that is not missing, or for probabilities outside [0, 1].",
+    "ja": "欠測値でない値がない場合、または確率が [0, 1] の範囲外の場合は RangeError です。"
+  },
+  "qqline#summary": {
+    "hash": "ac56cb096460",
+    "en": "The line of a Q-Q plot through two quantiles (the quartiles by default) of the data and of the reference\ndistribution. Equivalent to R's `qqline()`. R draws the line and returns nothing; here its intercept and slope.\nMissing values are ignored.",
+    "ja": "データと参照分布の 2 つの分位点 (既定では四分位点) を通る Q-Q プロットの直線です。R の `qqline()` と同等です。R は直線を描画して値を返しませんが、ここでは切片と傾きを返します。欠測値は無視します。"
+  },
+  "qqnorm#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": "⟦code1⟧"
+  },
+  "qqnorm#@throws": {
+    "hash": "580e3b9e202c",
+    "en": "RangeError when there is no value that is not missing.",
+    "ja": "欠測値でない値がない場合は RangeError です。"
+  },
+  "qqnorm#summary": {
+    "hash": "091212516057",
+    "en": "The coordinates of a normal quantile-quantile plot: for each value, the normal quantile of its plotting position.\nEquivalent to R's `qqnorm(y, plot.it = FALSE)`. Missing values (NaN) keep their place with x = NaN and are not\ncounted; infinite values are ranked as the extremes.",
+    "ja": "正規 Q-Q プロットの座標です: 各値について、そのプロット位置に対応する正規分布の分位点を返します。R の `qqnorm(y, plot.it = FALSE)` と同等です。欠測値 (NaN) は x = NaN として元の位置を保ち、個数には数えません。無限大の値は極端値として順位付けします。"
   },
   "quantile(0)#@example": {
     "hash": "f2167be5edf2",

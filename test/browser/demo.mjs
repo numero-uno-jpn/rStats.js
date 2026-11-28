@@ -341,6 +341,22 @@ async function testDescriptive(page) {
   check("descriptive without y: no pair rows", (await page.$$(`${tid("desc-table")} tbody tr`)).length === 21);
 }
 
+async function testPlots(page) {
+  await page.click(tid("tab-plots"));
+  await settle(page);
+  await noErrors(page, "plots", tid("panel-plots"));
+  check("plots: Kaplan-Meier steps", (await page.$$(`${tid("plots-km")} path.curve`)).length === 2);
+  check("plots: Q-Q points and line", (await page.$$(`${tid("plots-qq")} path.curve`)).length === 1);
+  check("plots: density curve", (await page.$$(`${tid("plots-density")} path.curve`)).length === 1);
+  check("plots: diagnostics smooth", (await page.$$(`${tid("plots-diag")} path.curve`)).length === 1);
+  const code = await page.textContent(tid("plots-code-observable"));
+  check("plots: Observable Plot code", code.includes("survPlotData(survfit(") && code.includes("step-after"), code.slice(0, 80));
+  await page.fill(tid("plots-group"), "");
+  await settle(page);
+  await noErrors(page, "plots without groups", tid("panel-plots"));
+  check("plots without groups: one curve", (await page.$$(`${tid("plots-km")} path.curve`)).length === 1);
+}
+
 async function testNumerics(page) {
   await page.click(tid("tab-numerics"));
   const presets = await page.$$eval(`${tid("num-preset")} option`, (os) => os.map((o) => o.value));
@@ -483,7 +499,7 @@ async function testLanguage(page) {
 async function testNoHorizontalScroll(browser) {
   const { context, page, errors } = await openDemo(browser, { contextOptions: { viewport: { width: 360, height: 780 } } });
   await page.waitForSelector(`${tid("status")}[data-state="ready"]`);
-  for (const tab of ["distributions", "descriptive", "special", "random", "tests", "linalg", "numerics", "compare"]) {
+  for (const tab of ["distributions", "descriptive", "special", "random", "tests", "linalg", "numerics", "plots", "compare"]) {
     await page.click(tid(`tab-${tab}`));
     await settle(page);
     const w = await page.evaluate(() => document.documentElement.scrollWidth);
@@ -503,7 +519,7 @@ async function screenshots(browser) {
   for (const { name, contextOptions } of configs) {
     const { context, page } = await openDemo(browser, { contextOptions });
     await page.waitForSelector(`${tid("status")}[data-state="ready"]`);
-    for (const tab of ["distributions", "descriptive", "special", "random", "tests", "linalg", "numerics", "compare"]) {
+    for (const tab of ["distributions", "descriptive", "special", "random", "tests", "linalg", "numerics", "plots", "compare"]) {
       await page.click(tid(`tab-${tab}`));
       await settle(page);
       await page.screenshot({ path: join(shotsDir, `${name}-${tab}.png`), fullPage: true });
@@ -525,7 +541,7 @@ try {
     // names exported by both files (setWarningHandler) count once, as in the demo's merged library
     const exportCount = new Set(
       (
-        await Promise.all(["rstats.js", "mixed.js", "regression.js", "multivariate.js", "timeseries.js", "causal.js"].map((f) => import(new URL(`../../dist/${f}`, import.meta.url).href)))
+        await Promise.all(["rstats.js", "mixed.js", "regression.js", "multivariate.js", "timeseries.js", "causal.js", "plot.js"].map((f) => import(new URL(`../../dist/${f}`, import.meta.url).href)))
       ).flatMap((m) => Object.keys(m)),
     ).size;
     check(`status mentions ${exportCount} functions`, (await page.textContent(tid("status"))).includes(String(exportCount)));
@@ -537,6 +553,7 @@ try {
       ["hypothesis tests", testTests],
       ["linear algebra", testLinalg],
       ["numerical methods", testNumerics],
+      ["plots", testPlots],
       ["compare with R", testCompare],
       ["language", testLanguage],
     ]) {

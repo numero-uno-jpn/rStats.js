@@ -22,7 +22,8 @@ Every function is compared with R output. Adding a function means adding three f
    boundaries, NaN/Inf, huge parameters) and writes R's results to `test/fixtures/<name>.json`,
    one case per line, with numbers printed as `%.17g` strings.
 2. The implementation in `src/`, exported from its area's `src/entries/<area>.ts` (the subpath
-   export; `src/index.ts` re-exports every area).
+   export; `src/index.ts` re-exports the areas of the main entry point: distributions, tests, linalg, descriptive,
+   numerics and special; mixed, regression, multivariate, timeseries, causal and plot are subpath exports only).
 3. `test/<name>.test.ts` — runs the implementation on the fixture and checks the relative error.
 
 Regenerating fixtures requires R in Docker:
@@ -59,7 +60,7 @@ Fixtures for random numbers are generated with the x86_64 build of the image (`r
 under `--platform linux/amd64`, oracles marked `# oracle-platform: amd64`), because the arm64 build
 differs in the last bit of some functions. Linear-algebra fixtures
 record the LAPACK and BLAS versions R used in an `info` block (the current fixtures were made with
-OpenBLAS 0.3.26 and LAPACK 3.12.0), since a different BLAS can change the last bits.
+OpenBLAS 0.3.32 and LAPACK 3.12.0), since a different BLAS can change the last bits.
 
 Functions can also be checked against high-precision values from mpmath: `scripts/mpmath/<name>.py`
 writes `test/fixtures/<name>.mpmath.json` (`python3 -I scripts/mpmath/<name>.py`, needs `pip
@@ -133,11 +134,16 @@ Follow them in new code and in fixes.
 
 rStats.js is MIT licensed. To keep it that way:
 
-- **Do not copy or translate code from R or from GPL packages.** R is the oracle: its outputs are
-  what rStats.js is checked against. Reading R's source to find out exactly how R behaves (which
-  inputs it rejects, which formula or convention it uses, where it rounds) is fine, and often the
-  quickest way to settle a mismatch; writing the implementation from it is not. This includes R's
-  `src/nmath`, `src/appl`, recommended packages and TOMS 708.
+- **Clean room: do not read, recall or copy the source of R or of GPL packages.** R is the oracle: its outputs are
+  what rStats.js is checked against. How R behaves (which inputs it rejects, which formula or convention it uses,
+  where it rounds) is found from the documentation (help pages), the papers they cite and the published output of
+  the exported functions, compared with candidate formulas in R experiments. This covers R's `src/nmath`, `src/appl`,
+  the recommended packages, TOMS 708 and every reference package; printing a function's body in R counts as reading
+  it. (Until 2026-11-09 reading R's source was allowed; from then on it is not.)
+- **R experiments are recorded.** Each script (`experiments/<name>.R`) is checked with
+  `node scripts/r-experiment-check.mjs`, which refuses scripts that could show a function's source; its output and
+  the trial and error, failed candidates included, go into `experiments/` (`experiments/<version>-log.md`) and a
+  comment on the version's issue.
 - Port only from permissively licensed sources: SciPy and xsf (BSD-3), Boost.Math (BSL-1.0),
   statsmodels (BSD-3), lifelines (MIT), the LAPACK reference implementation (modified BSD),
   public-domain code (LINPACK, EISPACK, Cephes as distributed with xsf), or published papers.
@@ -145,7 +151,7 @@ rStats.js is MIT licensed. To keep it that way:
 
 ## Demo
 
-`demo/` is a static page that loads `dist/rstats.js` from jsDelivr (or the local build with
+`demo/` is a static page that loads `dist/rstats.js` and the area bundles from jsDelivr (or the local build with
 `?src=local`). Its examples are defined in `demo/examples.json`; after changing them, run
 `npm run demo:r` to regenerate `demo/examples.R` and the R values in `demo/r-results.json`.
 `test/demo.test.ts` checks every example against R, and `test/browser/demo.mjs` drives the page.
@@ -184,14 +190,15 @@ rStats.js is MIT licensed. To keep it that way:
 
 1. Add demo examples for the exports listed in `NOT_IN_DEMO_YET` (`test/demo.test.ts`) and empty
    the list (this needs `npm run demo:r`). Update `version` in `package.json`, the date in
-   `CHANGELOG.md` and `VERSION` in `demo/app.js`
-   (the tag the demo loads from jsDelivr), commit, then tag and push:
+   `CHANGELOG.md`, `VERSION` in `demo/app.js` (the tag the demo loads from jsDelivr), the Status and the CDN URL
+   in `README.md` and `README.ja.md` and the CDN URL in `docs/api-reference.md` and `docs/ja/api-reference.md`,
+   commit, then tag and push:
    `git tag vX.Y.Z && git push origin vX.Y.Z`.
 2. `.github/workflows/release.yml` runs the tests, builds, and moves the tag to a commit that also
-   contains `dist/`, so that jsDelivr serves
-   `https://cdn.jsdelivr.net/gh/numero-uno-jpn/rStats.js@vX.Y.Z/dist/rstats.js`. (After the
-   workflow has run, `git fetch --tags --force` updates your local tag.) The main branch never
-   contains `dist/`.
+   contains `dist/`. (After the workflow has run, `git fetch --tags --force` updates your local tag.) The main branch
+   never contains `dist/`. jsDelivr serves the build from npm (`cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@X.Y.Z/`);
+   its GitHub route (`cdn.jsdelivr.net/gh/...`) does not serve the tags from 0.12.0 on, since the repository exceeds
+   its size limit.
 3. It then stages the version on npm with provenance (`npm stage publish`). No token is involved:
    the package's settings on npmjs.com name this repository and `release.yml` as its trusted
    publisher, which may only stage, not publish directly.
@@ -201,4 +208,4 @@ rStats.js is MIT licensed. To keep it that way:
 
 Version 0.5.0 was published by hand (`npm publish --provenance=false`, since provenance needs CI);
 later versions go through the workflow and the approval above. Publishing from a local machine also
-requires the npm account's two-factor authentication. The repository must stay public for jsDelivr to serve it.
+requires the npm account's two-factor authentication. The repository must stay public: GitHub Pages serves the demo and the API reference from it.

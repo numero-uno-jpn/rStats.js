@@ -36,11 +36,11 @@ export interface MetaCommonOptions {
   methodRandomCi?: "classic" | "HK";
   /** The tau2 interval: "QP" (Q-profile), "J" (Jackson) or "BJ" (Biggerstaff-Jackson); default "J" for DL, else "QP". */
   methodTauCi?: "QP" | "J" | "BJ";
-  /** Confidence level of the study and pooled intervals (default 0.95). */
+  /** Confidence level of the study intervals (default 0.95). As in meta, it does not change the pooled intervals. */
   level?: number;
-  /** Confidence level of the pooled intervals (default `level`). */
+  /** Confidence level of the pooled intervals (default 0.95, whatever `level` is: meta's level.ma). */
   levelMa?: number;
-  /** Level of the prediction interval (default `level`). */
+  /** Level of the prediction interval (default 0.95, whatever `level` is: meta's level.predict). */
   levelPredict?: number;
 }
 
@@ -164,8 +164,8 @@ export interface MetaCoreInternal { fixedTau2?: number; fixedQ?: number }
 export function metaCore(TE: readonly number[], seTE: readonly number[], options: MetaCommonOptions & MetaCoreInternal = {}): MetaResult {
   // all of it is equivariant in the scale: for extreme scales (seTE beyond 2^+-200, where the variances leave or near
   // the double range) computed on TE / c, seTE / c with c a power of two near the largest seTE (exact). Not for ordinary
-  // scales: REML's stopping rule (metafor's absolute threshold, reproduced) is not scale invariant, and R's values are
-  // kept there (1.20.0 edge-case review)
+  // scales (1.20.0 edge-case review; from 1.21.0 REML iterates to the maximum with a relative threshold, so it would
+  // also hold there)
   const mx = Math.max(...seTE.map(Math.abs));
   const c = mx > 0 && Number.isFinite(mx) && (mx > 2 ** 200 || mx < 2 ** -200) ? 2 ** Math.round(Math.log2(mx)) : 1;
   if (c === 1) return metaCoreScaled(TE, seTE, options);
@@ -188,14 +188,22 @@ function metaCoreScaled(TE: readonly number[], seTE: readonly number[], options:
   const k = TE.length; const v = seTE.map((s) => s * s);
   const methodTau = options.methodTau ?? "REML"; const ciMethod = options.methodRandomCi ?? "classic";
   const methodTauCi = options.methodTauCi ?? (methodTau === "DL" ? "J" : "QP");
-  const level = options.level ?? 0.95; const levelMa = options.levelMa ?? level; const levelPredict = options.levelPredict ?? level;
+  // meta's level.ma and level.predict keep their defaults (0.95) whatever level is (experiments/plot121-log.md,
+  // experiments 4 and 5; before 1.21.0 they followed level)
+  const level = options.level ?? 0.95; const levelMa = options.levelMa ?? 0.95; const levelPredict = options.levelPredict ?? 0.95;
   const zMa = qnorm(0.5 + levelMa / 2) as number;
   const w = v.map((x) => 1 / x); const sw = sum(w);
   const teC = sum(w.map((wi, i) => wi * TE[i]!)) / sw; const seC = Math.sqrt(1 / sw);
   const Q = options.fixedQ ?? sum(w.map((wi, i) => wi * (TE[i]! - teC) ** 2)); const dfQ = k - 1;
   let tau2 = 0;
   if (options.fixedTau2 !== undefined) tau2 = options.fixedTau2;
-  else if (k > 1) tau2 = rma(TE as number[], v, { method: methodTau as MetaMethod }).tau2;
+  // REML and ML iterate to the maximum (user's decision 2026-11-28, as polr and nls): metafor stops when tau2 changes
+  // by less than 1e-5 in absolute terms, which is short of the maximum at ordinary scales (3e-5 relative for
+  // experiments/plot121-log.md's data) and not scale-invariant; here the threshold is relative to the mean variance
+  else if (k > 1) {
+    const meanV = sum(v) / k;
+    tau2 = rma(TE as number[], v, { method: methodTau as MetaMethod, control: { threshold: 1e-13 * meanV, maxiter: 1000 } }).tau2;
+  }
   const wr = v.map((x) => 1 / (x + tau2)); const swr = sum(wr);
   const teR = sum(wr.map((wi, i) => wi * TE[i]!)) / swr;
   let seR = Math.sqrt(1 / swr); let lowR: number, upR: number, statR: number, pR: number, dfR: number | null = null;

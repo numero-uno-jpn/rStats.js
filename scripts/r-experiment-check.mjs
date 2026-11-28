@@ -22,7 +22,7 @@ const ALLOWED_PACKAGES = new Set([
   "MASS", "quantreg", "SparseM", "MatrixModels", "geepack", "glmnet", "PMCMRplus", "outliers", "ca", "Matching", "cobalt",
   "tableone", "WeightIt", "CBPS", "survey", "sandwich", "nnet", "mediation", "interactions", "jtools", "lmtest",
   "AER", "betareg", "Formula", "qcc", "BradleyTerry2", "qvcalc", "timeROC", "survivalROC", "forecast", "tseries",
-  "meta", "netmeta", "urca", "jsonlite", "stats", "utils", "base",
+  "meta", "netmeta", "urca", "jsonlite", "stats", "utils", "base", "grDevices", "graphics",
 ]);
 
 /** Functions of the reference packages: they may only be called. */
@@ -608,6 +608,14 @@ const REFERENCE_FUNCTIONS = [
   "summary.rm5", "traffic_light", "transf", "treats", "trimfill.cdir", "trimfill.default", "trimfill.meta",
   "trimfill.netpairwise", "trimfill.rm5", "units2inches", "update.meta", "VE2logVR", "vikor", "vikor.data.frame",
   "vikor.matrix", "vikor.netposet", "weights.meta", "z2cor",
+  // Plot data (1.21.0): R's own code behind the plots (stats, grDevices, graphics), GPL like the packages
+  "density", "density.default", "print.density", "plot.density", "bw.nrd0", "bw.nrd", "bw.ucv", "bw.bcv", "bw.SJ",
+  "qqnorm", "qqnorm.default", "qqline", "qqplot", "ppoints", "boxplot.stats", "boxplot", "boxplot.default",
+  "boxplot.formula", "bxp", "lowess", "hatvalues", "hatvalues.lm", "rstandard", "rstandard.lm", "rstandard.glm",
+  "rstudent", "rstudent.lm", "rstudent.glm", "cooks.distance", "cooks.distance.lm", "cooks.distance.glm",
+  "influence", "influence.lm", "lm.influence", "influence.measures", "plot.lm", "plot.survfit", "lines.survfit",
+  "points.survfit", "plot.ecdf", "plot.stepfun", "plot.hclust", "plot.dendrogram", "biplot", "biplot.prcomp",
+  "biplot.default", "plot.roc", "plot.cuminc",
 ];
 
 /** Names that reach code, namespaces, compiled routines, other programs or files: not allowed at all. */

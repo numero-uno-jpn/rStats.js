@@ -21,6 +21,14 @@ export {
 export { completeCases, naOmit, type MissingVector } from "../descriptive/missing.js";
 export { hist, pretty, ecdf, type HistOptions, type HistResult, type PrettyOptions } from "../descriptive/hist.js";
 export {
+  density, bwNrd0, bwNrd, type KernelDensityOptions, type KernelDensityResult, type DensityKernel,
+} from "../descriptive/density.js";
+export {
+  ppoints, qqnorm, qqline, type PpointsOptions, type QqnormResult, type QqlineOptions,
+} from "../descriptive/qq.js";
+export { boxplotStats, type BoxplotStatsOptions, type BoxplotStatsResult } from "../descriptive/boxplotStats.js";
+export { lowess, type LowessOptions } from "../descriptive/lowess.js";
+export {
   skewness, kurtosis, geometricMean, modes, meanAD, cv, scale,
   type MomentOptions, type MeanADOptions, type CvOptions, type ScaleOptions,
 } from "../descriptive/moments.js";

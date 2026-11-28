@@ -2145,3 +2145,67 @@ The references are stats 4.6.2, forecast 9.0.2, tseries, urca, meta and netmeta 
 
 - Plots; `netmeasures`' mean path length and minimal parallelism (the direct evidence proportion only); `supsmu`
   keeps tied x as separate points (R returns the unique x).
+
+## Plot data (1.21.0)
+
+R draws; rStats.js returns the values its plots draw (`/plot`, see [Plotting the results](plotting.md)), and the
+statistics behind them (`/descriptive`, `/tests`).
+
+### `density`, `bwNrd0`, `bwNrd`
+
+- `density` gives R's values to rounding (within 1e-11 of the peak): the same binned approximation (linear binning on
+  a grid of 2m points over [from − 4 bw, to + 4 bw], convolution by FFT, linear interpolation), not the exact kernel
+  sums. Kernels, `adjust`, `weights`, `n`, `from`, `to`, `cut` and `naRm` as R, with R's messages and warnings; an
+  infinite value counts in n and loses its mass, as in R.
+- Bandwidth rules: `"nrd0"` and `"nrd"` (in any case), or a number. R's `"ucv"`, `"bcv"` and `"SJ"` are not offered
+  (an error).
+- At 1e-300 times the data R's standard deviation underflows to 0, so its bw.nrd0 falls back to |x[1]| (2.022e-300
+  instead of 2.093e-300 for the help page's example scaled): rStats.js gives the scaled bandwidth and density.
+
+### `lowess`
+
+- R's smooth is not equivariant at the extremes: at 1e300 times the data it differs from the scaled smooth, and with a
+  common value of 1e8 (1e15) it is off by 0.6 (1e14) at the ends. rStats.js centres x and y first and gives the smooth
+  at scale 1, scaled or shifted.
+- A missing value in `y` is an error (R returns y unsmoothed); a missing or infinite `x` is an error (R's message is
+  about delta).
+
+### `qqnorm`, `qqline`, `ppoints`, `boxplotStats`
+
+- As R. `qqline` returns the line's intercept and slope (R draws it). `ppoints` with a fractional n keeps R's
+  floor(n) points with n in the denominator.
+
+### `lmHatvalues`, `lmRstandard`, `lmRstudent`, `lmCooksDistance`
+
+- As R's hatvalues, rstandard (also `type: "predictive"`), rstudent and cooks.distance for lm, one value per row of
+  non-zero weight; NaN for a leverage of 1. With one residual degree of freedom R's rstudent is rounding noise (NaN or
+  0); rStats.js gives NaN or 0 likewise, from its own rounding.
+- The residuals near 1e200 do not overflow when squared (rstudent is computed in units of the residual standard
+  error).
+
+### The plot-data functions
+
+- They follow the documented content of R's plots: `plot.survfit` (curves from (0, 1), censoring marks, `fun`),
+  `summary.survfit`'s risk table (checked against R), meta's `forest` (study intervals and weights in percent, checked
+  against R) and `funnel`, `netgraph` (its default circle layout), `qqnorm` / `qqline`, `boxplot`, `plot.ecdf`,
+  `hist`, `plot.lm` (`which = c(1, 2, 3, 5)`, `panel.smooth`'s lowess, Cook's distance contours at 0.5 and 1, the
+  three points R labels), `plot.acf`, forecast's `plot.forecast`, `plot.hclust` (merge positions checked against
+  `as.dendrogram`'s midpoints, `hang`) and `biplot.prcomp` (`scale`, `pc.biplot`, from the help page).
+- `survPlotData`'s `fun: "cumhaz"` plots the fit's cumulative hazard without a band.
+- Not offered: the drawing itself, `plot.lm`'s panels 4 and 6, survminer's tables, labels placed by R's heuristics.
+
+### meta's `level` (a correction to 1.20.0)
+
+- In meta and netmeta, `level` sets only the study intervals; the pooled intervals use `level.ma` and the prediction
+  interval `level.predict`, both 0.95 by default whatever `level` is. 1.20.0's `metagen` (and the functions built on
+  it), the Mantel-Haenszel and Peto estimates of `metabin` and `metainc`, `metapropGlmm` and `netmeta` took `level`
+  as their default; from 1.21.0 they default to 0.95 as R (`netmeta` gains `levelMa`). The heterogeneity intervals
+  (I², H) still use `level` (not checked against R).
+
+### meta's REML tau2 (a change from 1.20.0)
+
+- metafor stops its Fisher scoring when tau2 changes by less than an absolute 1e-5, which is short of the maximum of the
+  REML likelihood (0.0463221 instead of 0.0463207 for three studies) and gives different relative results at other
+  scales of the data. From 1.21.0 `metagen` and the functions built on it (`metabin`, `metacont`, ..., `trimfill`,
+  `metainf`, `metacum`, `metaSubgroup`) iterate to the maximum: they equal R's with `control = list(threshold = 1e-14)`
+  (R's `trimfill` refits without the control) and are the same at any scale. `rma` keeps metafor's default.

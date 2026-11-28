@@ -5,6 +5,15 @@
 # oracle/tsmeta-behaviour.md (Part 2); the experiments behind it in experiments/tsmeta120-meta*.R (log 61-70, 75-76).
 library(jsonlite)
 suppressPackageStartupMessages({ library(meta); library(metafor) })
+# From 1.21.0 rStats.js iterates REML (and ML) to the maximum (the user's decision of 2026-11-28; experiment 7 of
+# experiments/plot121-log.md): the references pass metafor a threshold of 1e-14 through meta's documented `control`
+# argument (settings.meta does not take it), except for metaprop's GLMM and metareg (which keeps metafor's default)
+ctl <- list(threshold = 1e-14, maxiter = 1000)
+for (fn in c("metagen", "metabin", "metacont", "metainc", "metacor", "metamean", "metarate", "metaprop")) local({
+  nm <- fn; f <- getExportedValue("meta", nm)
+  assign(nm, function(...) { a <- list(...); if (identical(a$method, "GLMM") || (nm == "metaprop" && is.null(a$method))) f(...) else f(..., control = ctl) },
+         envir = globalenv())
+})
 FIELDS <- c("TE.common", "seTE.common", "lower.common", "upper.common", "statistic.common", "pval.common",
             "TE.random", "seTE.random", "lower.random", "upper.random", "statistic.random", "pval.random", "df.random",
             "seTE.predict", "lower.predict", "upper.predict", "df.predict", "Q", "df.Q", "pval.Q", "tau2", "lower.tau2", "upper.tau2",
@@ -110,7 +119,10 @@ mbor <- metabin(fl$d.asp, fl$n.asp, fl$d.plac, fl$n.plac, sm = "OR")
 zor <- metabin(zero$e1, zero$n1, zero$e2, zero$n2, sm = "OR")
 for (mb in c("Harbord", "Peters", "Egger")) { bias[[paste("fleiss", mb)]] <- bt(metabias(mbor, method.bias = mb, k.min = 3)); bias[[paste("zero", mb)]] <- bt(metabias(zor, method.bias = mb, k.min = 3)) }
 tf <- trimfill(mbcg); tfl <- trimfill(metagen(as.numeric(ebcg$yi)[-c(1, 4)], sqrt(as.numeric(ebcg$vi))[-c(1, 4)]))
-tfo <- function(t) list(k0 = t$k0, TE = unname(t$TE), seTE = unname(t$seTE), TE.common = t$TE.common, seTE.common = t$seTE.common, TE.random = t$TE.random, seTE.random = t$seTE.random, tau2 = t$tau2, Q = t$Q, k = t$k)
+# trimfill refits the filled data with metafor's default stopping whatever control the meta object has (experiment 8):
+# the random-effects values are those of the filled data refitted at the tight control
+tfo <- function(t) { f <- metagen(t$TE, t$seTE)
+  list(k0 = t$k0, TE = unname(t$TE), seTE = unname(t$seTE), TE.common = t$TE.common, seTE.common = t$seTE.common, TE.random = f$TE.random, seTE.random = f$seTE.random, tau2 = f$tau2, Q = t$Q, k = t$k) }
 mr <- metareg(mbcg, ~ lat); mr2 <- metareg(metagen(as.numeric(ebcg$yi), sqrt(as.numeric(ebcg$vi)), method.tau = "DL"), ~ lat + alloc)
 mro <- function(r) list(beta = as.numeric(r$beta), se = unname(r$se), zval = unname(r$zval), pval = unname(r$pval), tau2 = r$tau2, QE = r$QE, QM = r$QM, QMp = r$QMp, R2 = r$R2, I2 = r$I2)
 inf <- function(x) list(TE = unname(x$TE), seTE = unname(x$seTE), lower = unname(x$lower), upper = unname(x$upper), tau2 = unname(x$tau2), I2 = unname(x$I2), pval = unname(x$pval))

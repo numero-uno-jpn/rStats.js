@@ -155,7 +155,8 @@ describe("meta: the rest of the function x axis matrix (log 110)", () => {
     for (const [q, k] of [[1e-6, 3], [0.5, 5], [8, 4]] as const) expect(Math.abs(pWeightedChisq(q, new Array<number>(k).fill(0.5)) / (pchisq(q / 0.5, k) as number) - 1)).toBeLessThan(1e-13);
   });
   it("metaprop near 0 and 1 against R (zero cells, all events, rare events, large counts)", () => {
-    const RP = JSON.parse(readFileSync(new URL("../experiments/tsmeta120-propedge.json", import.meta.url), "utf8")) as Record<string, any>;
+    // from 1.21.0 against R iterated to the maximum (experiments/plot121-reml2.R, the sets of tsmeta120-propedge.R)
+    const RP = JSON.parse(readFileSync(new URL("../experiments/plot121-reml2.json", import.meta.url), "utf8")).propedge as Record<string, any>;
     for (const nm of Object.keys(RP.sets)) for (const sm of ["PLOGIT", "PFT", "PAS", "PRAW", "PLN"] as const) {
       const r = RP[nm][sm]; const j = metaprop(RP.sets[nm].e, RP.sets[nm].n, { sm });
       close([j["TE.random"], j["seTE.random"]], [r["TE.random"], r["seTE.random"]], 1e-9, `${nm} ${sm}`);

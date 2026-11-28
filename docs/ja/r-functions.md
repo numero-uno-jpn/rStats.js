@@ -44,6 +44,29 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `summary.ca()` | `caSummary` | 対応分析の要約 (固有値の表、行・列の質・慣性・相関・寄与) |
 | `summary.manova()` | `manovaSummary` | 多変量分散分析の検定表 (Pillai・Wilks・Hotelling-Lawley・Roy) |
 
+## 描画用のデータ (`rStats.js/plot`)
+
+| R | rStats.js | 説明 |
+| --- | --- | --- |
+| (R にない) | `acfPlotData` | 自己相関の図の描画用データ |
+| (R にない) | `biplotData` | 主成分のバイプロットの描画用データ |
+| (R にない) | `boxplotData` | 箱ひげ図の描画用データ |
+| (R にない) | `coefPlotData` | 係数と信頼区間の図の描画用データ |
+| (R にない) | `cumincPlotData` | 競合リスクの累積発生曲線の描画用データ |
+| (R にない) | `dendrogramData` | 樹形図の描画用データ |
+| (R にない) | `densityPlotData` | カーネル密度曲線の描画用データ |
+| (R にない) | `ecdfPlotData` | 経験分布関数の描画用データ |
+| (R にない) | `forecastPlotData` | 予測と予測区間の図の描画用データ |
+| (R にない) | `forestPlotData` | メタ分析の forest plot の描画用データ |
+| (R にない) | `funnelPlotData` | funnel plot の描画用データ (疑似信頼域・等高線) |
+| (R にない) | `histPlotData` | ヒストグラムの描画用データ |
+| (R にない) | `lmDiagnosticsData` | 線形モデルの診断図 4 枚の描画用データ |
+| (R にない) | `netgraphData` | ネットワーク・メタアナリシスの網目図の描画用データ |
+| (R にない) | `predictionBandData` | 回帰直線と信頼帯・予測帯の描画用データ |
+| (R にない) | `qqPlotData` | 正規 Q-Q プロットとその直線の描画用データ |
+| (R にない) | `rocPlotData` | ROC 曲線の描画用データ |
+| (R にない) | `survPlotData` | 生存曲線の描画用データ (段差・打ち切り印・信頼帯・リスク表) |
+
 ## Regression models (`rStats.js/regression`)
 
 | R | rStats.js | 説明 |
@@ -373,6 +396,7 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `confint()` | `confint` | `lm` で当てはめた線形モデルの係数の信頼区間 |
 | `confint()` | `glmConfint` | `glm` で当てはめた一般化線形モデルの係数のプロファイル尤度信頼区間 |
 | `cooks.distance()` | `glmCooksDistance` | `glm` の当てはめの Cook の距離 (事前重みが 0 でない行について) |
+| `cooks.distance()` | `lmCooksDistance` | 線形モデルの Cook の距離 |
 | `pROC::coords()` | `coords` | ROC 曲線の座標: すべての点、最良の閾値、または与えた閾値での感度、特異度、計数、予測値、尤度比と最良の閾値の基準 |
 | `cor.test()` | `corTest` | 対応のある標本間の相関の検定 |
 | `survival::cox.zph()` | `coxZph` | 比例ハザード性の検定 (Grambsch と Therneau (1994) のスコア検定) |
@@ -412,6 +436,7 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `outliers::grubbs.test()` | `grubbsTest` | 外れ値 1 つについての Grubbs の検定 (type 10) |
 | `DescTools::GTest()` | `gTest` | 分割表の独立性、または計数の与えた確率への適合度についての対数尤度比 (G) 検定 |
 | `hatvalues()` | `glmHatvalues` | `glm` の当てはめの、最後の重み付き最小二乗ステップのハット行列の対角成分 (事前重みが 0 でない行について) |
+| `hatvalues()` | `lmHatvalues` | 線形モデルのてこ比 |
 | `effectsize::hedges_g()` | `hedgesG` | Hedges の g |
 | `irr::icc()` | `icc` | 級内相関係数と、その F 検定および信頼区間 |
 | `psych::ICC()` | `ICC` | Shrout と Fleiss の 6 種類の級内相関係数と、その F 検定および信頼区間 |
@@ -506,6 +531,8 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `pROC::roc.test()` | `rocTest` | 2 つの ROC 曲線の下の面積の差の検定 (DeLong の方法またはブートストラップ) |
 | `pROC::roc()` | `roc` | 2 値の応答に対する数値の予測変数の ROC 曲線 |
 | `rstandard()` | `glmRstandard` | `glm` の当てはめの標準化 Pearson 残差 (既定) または標準化逸脱度残差 (事前重みが 0 でない行について) |
+| `rstandard()` | `lmRstandard` | 線形モデルの標準化残差 |
+| `rstudent()` | `lmRstudent` | 線形モデルのスチューデント化残差 |
 | `timeROC::SeSpPPVNPV()` | `seSpPPVNPV` | 閾値「マーカー > c」の時間依存の感度・特異度・陽性的中率・陰性的中率 (timeROC の重み、iid 表現と標準誤差) |
 | `nortest::sf.test()` | `sfTest` | Shapiro-Francia の正規性検定 |
 | `shapiro.test()` | `shapiroTest` | Shapiro-Wilk の正規性検定 |
@@ -597,6 +624,9 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | R | rStats.js | 説明 |
 | --- | --- | --- |
 | `aggregate()` | `aggregate` | 各群の値に関数を適用した結果 (データフレームとして) |
+| `boxplot.stats()` | `boxplotStats` | 箱ひげ図の統計量 |
+| `bw.nrd()` | `bwNrd` | Scott の正規基準の帯域幅 |
+| `bw.nrd0()` | `bwNrd0` | Silverman の経験則による帯域幅 |
 | `DescTools::CoefVar()` | `cv` | 変動係数 sd / mean |
 | `complete.cases()` | `completeCases` | 欠測値を含まない行の判定 |
 | `cor()` | `cor` | 2 つのベクトルの相関、または行列の列の相関行列 |
@@ -607,6 +637,7 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `cumsum()` | `cumsum` | 累積和 |
 | `qcc::cusum()` | `cusum` | CUSUM 管理図 (標準化した群平均の累積和、決定区間) |
 | `cut()` | `cut` | 値が属する区間の番号 (区切りの外では NaN) |
+| `density()` | `density` | カーネル密度推定 |
 | `diff()` | `diff` | ラグ付きの差分と反復した差分 |
 | `ecdf()` | `ecdf` | `x` の経験分布関数: 引数以下の値の割合を返す関数 |
 | `qcc::ewma()` | `ewma` | EWMA 管理図 (指数重み付き移動平均と、点ごとの管理限界) |
@@ -617,6 +648,7 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `hist()` | `hist` | ヒストグラムの度数 |
 | `IQR()` | `IQR` | 四分位範囲 (0.75 分位点と 0.25 分位点の差) |
 | `e1071::kurtosis()` | `kurtosis` | 標本の超過尖度 |
+| `lowess()` | `lowess` | 局所重みつき回帰による平滑化 |
 | `mad()` | `mad` | 定数倍した中央絶対偏差 |
 | `mean()` | `mean` | 算術平均 (刈り込み平均も可) |
 | `DescTools::MeanAD()` | `meanAD` | 中心からの平均絶対偏差 |
@@ -629,12 +661,15 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `qcc::pareto.chart()` | `paretoChart` | パレート図の表 (度数の降順と累積の割合) |
 | `tidyr::pivot_longer()` | `pivotLonger` | データフレームの wide から long への変形: 選んだ列が行になる |
 | `tidyr::pivot_wider()` | `pivotWider` | データフレームの long から wide への変形: `namesFrom` の値が列になり、`valuesFrom` の値で埋まる |
+| `ppoints()` | `ppoints` | Q-Q プロットの確率点 |
 | `pretty()` | `pretty` | `x` の範囲を覆う、約 n + 1 個の等間隔の「きりのよい」値 |
 | `qcc::process.capability()` | `processCapability` | 工程能力指数 (Cp・Cp_l・Cp_u・Cp_k・Cpm と信頼区間、規格外の割合) |
 | `prod()` | `prod` | 値の積 |
 | `qcc::qcc.groups()` | `qccGroups` | 群の番号でデータを群 × 観測の行列にまとめる |
 | `qcc::qcc.overdispersion.test()` | `qccOverdispersionTest` | 二項・ポアソンの計数の過分散の検定 |
 | `qcc::qcc()` | `qcc` | シューハート管理図 (xbar・R・S・個別値・p・np・c・u・g、σ の推定法、確率限界、管理外れの点) |
+| `qqline()` | `qqline` | Q-Q プロットの四分位点を通る直線 |
+| `qqnorm()` | `qqnorm` | 正規 Q-Q プロットの座標 |
 | `quantile()` | `quantile` | 標本分位点 |
 | `range()` | `range` | 値の `[min, max]` |
 | `rank()` | `rank` | 標本の順位 |

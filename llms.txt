@@ -1,19 +1,30 @@
 # rStats.js
 
 > R-compatible statistics for JavaScript and TypeScript: distributions, random numbers that match
-> R's `set.seed()`, descriptive statistics, hypothesis tests, `lm`, `glm`, lme4's `lmer` and `glmer`, trial-design sample-size
-> and power calculations, meta-analysis and meta-regression, special functions, numerical methods and linear algebra,
-> with R's function names, defaults and numerical results.
+> R's `set.seed()`, descriptive statistics, hypothesis tests, `lm`, `glm`, lme4's `lmer` and `glmer`, regression models
+> (ordinal, multinomial, robust, nonlinear, quantile, GEE, penalized, tobit, beta), survival analysis, trial-design
+> sample-size and power calculations, meta-analysis (metafor, meta, netmeta), multivariate analysis, time series
+> (stats, forecast, tseries), causal inference (matching, weighting, mediation), control charts, plot data, special
+> functions, numerical methods and linear algebra, with R's function names, defaults and numerical results.
 > Every function is tested against R 4.6.2. ESM only, no dependencies, runs in browsers, Node.js,
 > Deno and Bun.
 
 Install with `npm install @numero-uno-jpn/rstats`. All functions are named exports:
 `import { pnorm, tTest } from "@numero-uno-jpn/rstats"`, or `import * as rs from
-"@numero-uno-jpn/rstats"` and call `rs.tTest(x, y)`. Each area is also a subpath export
-(`/distributions`, `/tests`, `/linalg`, `/descriptive`, `/timeseries`, `/numerics`, `/special`). Mixed models are only in the
-subpath `/mixed`: `import { lmer, glmer } from "@numero-uno-jpn/rstats/mixed"` (not in the main entry point). Regression
-models are in `/regression`: `import { polr, rlm, nls } from "@numero-uno-jpn/rstats/regression"` (not in the main entry point). Multivariate analysis is in `/multivariate`: `import { dist, asDist, hclust, cutree, kmeans, cmdscale, manova, lda, cancor, ca, caSummary, caCoord, mjca, sammon, isoMDS } from "@numero-uno-jpn/rstats/multivariate"` (not in the main entry point). For use from
-a CDN without a bundler, see the README section "Using it in the browser".
+"@numero-uno-jpn/rstats"` and call `rs.tTest(x, y)`. The main entry point holds the areas `/distributions`, `/tests`,
+`/linalg`, `/descriptive`, `/numerics` and `/special`, each also a subpath export. Six areas are only subpath exports,
+not in the main entry point:
+- `/mixed`: `lmer`, `glmer` and their methods;
+- `/regression`: `polr`, `rlm`, `nls`, `rq`, `geeglm`, `glmnet`, `multinom`, `tobit`, `betareg`, `loglin`, `loglm`, `btm`,
+  `qvcalc` and their methods;
+- `/multivariate`: `dist`, `asDist`, `hclust`, `cutree`, `kmeans`, `cmdscale`, `manova`, `lda`, `cancor`, `ca`, `mjca`,
+  `sammon`, `isoMDS` and their methods;
+- `/timeseries`: `acf`, `pacf`, `ccf`, `arima`, `autoArima`, `ets`, `forecast`, `holtWinters`, `stl`, the simple
+  forecasting methods and tseries' tests;
+- `/causal`: `match`, `weightit`, `balTab`, `mediate`, `simSlopes` and the other matching, weighting, mediation and
+  moderation functions;
+- `/plot`: the values R's plots draw, as rows for any plotting library (`survPlotData`, `forestPlotData`, ...).
+For use from a CDN without a bundler, see the README section "Using it in the browser".
 
 ## Translating R code
 
@@ -66,6 +77,12 @@ a CDN without a bundler, see the README section "Using it in the browser".
   are refitted by ML). Pass the object `lmer` returned (not a copy). Kenward-Roger is not available.
 - Trial-design sample size and power: epiR's parallel-trial `epi.ss*` functions → `epiSsequb`, `epiSsequc`, `epiSsninfb`, `epiSsninfc`, `epiSssupb` and `epiSssupc`; exact paired McNemar power → `powerPaired2x2`; survival sample size and power → `ssizeCT`, `powerCT`, `ssizeEpi`, `powerEpi` and `numDEpi`; Simon's two-stage design → `ph2simon`.
 - Meta-analysis: `metafor::escalc` → `escalc`, `rma.uni` → `rma`, `confint.rma` → `confintRma`, `predict.rma` → `predictRma`, and `regtest` → `regtest`. `rma` accepts effect sizes and sampling variances or an `escalc` result; moderators may be supplied as a numeric matrix.
+- meta and netmeta (in the main entry point): `metagen(TE, seTE)`, `metabin(e1, n1, e2, n2, { sm: "OR", method: "MH" })`,
+  `metacont`, `metainc`, `metacor`, `metamean`, `metarate`, `metaprop` (inverse variance; `metapropGlmm` for the GLMM),
+  `metabias`, `trimfill`, `metareg`, `metainf`, `metacum`, `baujat`, `metaSubgroup`; `netmeta(TE, seTE, treat1, treat2,
+  studlab, { referenceGroup })`, `pairwise`, `netrank`, `netsplit`, `netleague`, `netcomb`, `discomb`. R's argument
+  names become camelCase (`method.tau` → `methodTau`, `method.random.ci` → `methodRandomCi`, `level.ma` → `levelMa`).
+  REML iterates to the maximum (R's default stops short; R's values with `control = list(threshold = 1e-14)`).
 - Ordinal logistic regression: MASS's `polr(y ~ x, data = d, method = "logistic")` → `polr("y ~ x", d, { method: "logistic" })` from `@numero-uno-jpn/rstats/regression`; use `polrSummary(fit)`, `polrVcov(fit)`, `polrPredict(fit, { type: "probs" })`, `polrConfint(fit)` and `polrAnova(fit1, fit2)`. The five links are `logistic`, `probit`, `cloglog`, `loglog` and `cauchit`.
 - Robust linear regression: MASS's `rlm(y ~ x, data = d)` → `rlm("y ~ x", d)`; use `rlmSummary(fit)`, `rlmVcov(fit)` and `psiHuber`, `psiHampel`, `psiBisquare`. `method: "MM"` uses a deterministic S-estimator start; `init: "lts"` is deterministic too.
 - Nonlinear least squares: stats' `nls(y ~ Vm * x / (K + x), data = d, start = list(Vm = 200, K = 0.05))` → `nls("y ~ Vm * x / (K + x)", d, { start: { Vm: 200, K: 0.05 } })`; use `nlsSummary`, `nlsVcov`, `nlsPredict`, `nlsConfint` and `nlsAnova`. Algorithms are the default Gauss-Newton, `plinear` and `port`; 10 self-starting models are also available.
@@ -85,6 +102,33 @@ a CDN without a bundler, see the README section "Using it in the browser".
   `method: "Wald"` for Wald intervals); `simulate(fit, nsim, seed)` → `simulateLmer(fit, { nsim, seed })` or
   `simulateGlmer(fit, { nsim, seed })`. Pass the original fit object (not a copy). For `nAGQ > 1` the log-likelihood is the
   true one (R leaves out a constant).
+- More regression models in `/regression`: nnet's `multinom(y ~ x, d)` → `multinom("y ~ x", d)`, AER's `tobit` →
+  `tobit`, betareg's `betareg` → `betareg`, `loglin` / MASS's `loglm` → `loglin` / `loglm`, BradleyTerry2's `BTm` →
+  `btm`, qvcalc's `qvcalc` → `qvcalc`; each with `...Summary`, `...Predict`, `...Confint` and similar methods.
+  Stepwise selection (`step`, MASS's `stepAIC`, `drop1`, `add1`, `extractAIC`) is in the main entry point.
+- Causal inference in `/causal`: Matching's `Match(Y, Tr, X)` → `match(tr, x, { estimand })`, cobalt's `bal.tab` →
+  `balTab`, WeightIt's `weightit` → `weightit(tr, covariates, { method, estimand })`, mediation's `mediate(model.m,
+  model.y, treat, mediator)` → `mediate(m, y, data, { treat, mediator })`, interactions' `sim_slopes` → `simSlopes`.
+  The weighted analyses are in the main entry point: survey's `svyglm` → `svyglm`, `survfit(coxph)` → `survfitCoxph`;
+  survival's `clogit` → `clogit`.
+- Control charts (main entry point): qcc's `qcc(data, type = "xbar")` → `qcc(data, { type: "xbar" })`, `cusum`,
+  `ewma`, `mqcc`, `ocCurves`, `processCapability`, `paretoChart`, and the median chart `medianChart`.
+- Time-dependent ROC (main entry point): timeROC's `timeROC(T, delta, marker, cause, times)` → `timeROC(time, delta,
+  marker, { cause, times })`, `confint` → `timeROCConfint`, `compare` → `timeROCCompare`, `SeSpPPVNPV` → `seSpPPVNPV`;
+  survivalROC → `survivalROC`.
+- Time series in `/timeseries`: a series is a plain array, its period is the option `frequency` (R's `ts(x,
+  frequency = 12)`). stats' `arima(x, order = c(1, 0, 0))` → `arima(x, { order: [1, 0, 0] })`, forecast's
+  `auto.arima(x)` → `autoArima(x, { frequency })`, `ets` → `ets`, `forecast(fit, h = 12)` → `forecast(fit, { h: 12 })`
+  (also `meanf`, `naive`, `snaive`, `rwf`, `ses`, `holt`, `hw`, `thetaf`, `croston`, `stlf`), `stats::filter` →
+  `tsFilter`, `Box.test` → `boxTest`, `HoltWinters` → `holtWinters`; tseries' `adf.test` → `adfTest`, `kpss.test` →
+  `kpssTest`, `pp.test` → `ppTest`.
+- Plot data in `/plot`: R draws plots; rStats.js returns what they draw as `{ layers, meta }`, each layer an array of
+  rows (Observable Plot, Vega-Lite and ECharts take rows; `fromRows` turns a layer into columns for Plotly):
+  `survPlotData(survfit(...))` (Kaplan-Meier steps from (0, 1), censoring marks, bands, risk table), `forestPlotData`,
+  `funnelPlotData`, `rocPlotData`, `qqPlotData`, `densityPlotData`, `boxplotData`, `lmDiagnosticsData` (plot.lm's
+  panels), `dendrogramData`, `biplotData`, `forecastPlotData` and others. The statistics behind them are in the main
+  entry point: `density`, `qqnorm`, `qqline`, `ppoints`, `boxplotStats` (`boxplot.stats`), `lowess`, and lm's
+  `hatvalues` → `lmHatvalues` (also `lmRstandard`, `lmRstudent`, `lmCooksDistance`).
 - Indices are 0-based where R returns indices: `sampleInt(n)` returns `0..n-1` (R's
   `sample.int(n) - 1` from the same random stream), and the pivots of `qr` and `chol`.
 - Contingency tables and proportions: DescTools' `BinomCI(x, n, method = "wilson")` → `binomCI(x, n, { method:
@@ -185,15 +229,16 @@ glmSummary(fit).pValue;  // ≈ [5.357e-8, 3.579e-9]
 - [R functions](https://raw.githubusercontent.com/numero-uno-jpn/rStats.js/main/docs/r-functions.md): the R function each rStats.js function corresponds to
 - [Guide for JavaScript developers](https://raw.githubusercontent.com/numero-uno-jpn/rStats.js/main/docs/guide-for-js-developers.md): data frames, missing values, factors, formulas and a worked analysis
 - [Migrating from jStat](https://raw.githubusercontent.com/numero-uno-jpn/rStats.js/main/docs/migrating-from-jstat.md): the replacement for every jStat function
+- [Plotting the results](https://raw.githubusercontent.com/numero-uno-jpn/rStats.js/main/docs/plotting.md): the plot data of `/plot` with Observable Plot and Plotly.js
 
 ## Optional
 
 - [Performance](https://raw.githubusercontent.com/numero-uno-jpn/rStats.js/main/docs/performance.md): speed and bundle sizes
-- [Roadmap](https://raw.githubusercontent.com/numero-uno-jpn/rStats.js/main/ROADMAP.md): what is planned
+- [Roadmap](https://raw.githubusercontent.com/numero-uno-jpn/rStats.js/main/ROADMAP.md): the scope, what has been done and what is left out
 - [Changelog](https://raw.githubusercontent.com/numero-uno-jpn/rStats.js/main/CHANGELOG.md)
 - [Demo](https://numero-uno-jpn.github.io/rStats.js/demo/): every function in the browser, compared with R
 
-## Time series and multivariate analysis
+## Time series, multivariate analysis and plot data
 
 Autocorrelation and partial autocorrelation are in the separate `/timeseries` entry point:
 
@@ -240,4 +285,21 @@ Non-metric MDS with Kruskal stress is available as `isoMDS`:
 ```ts
 import { dist, isoMDS } from "@numero-uno-jpn/rstats/multivariate";
 isoMDS(dist([[0, 0], [1, 0], [0, 2], [1, 1], [3, 2], [2, 4]]), { k: 2 });
+```
+
+ARIMA models and forecasts, as forecast's `auto.arima` and `forecast`:
+
+```ts
+import { autoArima, forecast } from "@numero-uno-jpn/rstats/timeseries";
+const fit = autoArima([112, 118, 132, 129, 121, 135, 148, 148, 136, 119, 104, 118, 115, 126, 141, 135], { frequency: 4 });
+forecast(fit, { h: 4 }).mean;
+```
+
+Plot data for a Kaplan-Meier curve, ready for a plotting library:
+
+```ts
+import { survfit } from "@numero-uno-jpn/rstats";
+import { survPlotData } from "@numero-uno-jpn/rstats/plot";
+const km = survPlotData(survfit([5, 8, 12, 12, 20], [1, 0, 1, 1, 0]));
+km.layers.steps;  // [{ x: 0, y: 1, ymin: 1, ymax: 1, group: "all" }, ...]: draw as steps after each point
 ```

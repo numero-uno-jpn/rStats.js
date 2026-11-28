@@ -1,6 +1,6 @@
 // Bundles the built dist/ for loading from a CDN with <script type="module">:
 // - dist/rstats.js: everything in one minified ES module (one request instead of one per module)
-// - dist/{distributions,tests,linalg,descriptive,numerics,special,mixed,regression,multivariate,timeseries,causal}.js: one minified module per area, sharing code
+// - dist/{distributions,tests,linalg,descriptive,numerics,special,mixed,regression,multivariate,timeseries,causal,plot}.js: one minified module per area, sharing code
 //   through dist/chunks/ (esbuild code splitting), so that a page loads only the areas it imports
 //
 //   npm run build   (runs tsc, then this script)
@@ -30,7 +30,7 @@ await build({
 });
 
 /** The areas, as in src/entries/ (also the package's subpath exports) */
-export const AREAS = ["distributions", "tests", "linalg", "descriptive", "numerics", "special", "mixed", "regression", "multivariate", "timeseries", "causal"];
+export const AREAS = ["distributions", "tests", "linalg", "descriptive", "numerics", "special", "mixed", "regression", "multivariate", "timeseries", "causal", "plot"];
 
 await build({
   ...common,

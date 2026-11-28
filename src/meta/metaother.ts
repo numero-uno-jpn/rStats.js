@@ -109,7 +109,7 @@ export function metainc(e1: readonly number[], t1: readonly number[], e2: readon
       const wm = Math.max(...W); const Wn = W.map((wi) => wi / wm); const tm = Math.max(...t1, ...t2);
       se = Math.sqrt(sum(Wn.map((wi, i) => wi * wi * ((e1[i]! / t1[i]!) / (t1[i]! / tm) + (e2[i]! / t2[i]!) / (t2[i]! / tm))))) / Math.sqrt(tm) / sum(Wn); w = W;
     }
-    const level = options.levelMa ?? options.level ?? 0.95; const zq = qnorm(0.5 + level / 2) as number; const st = te / se;
+    const level = options.levelMa ?? 0.95; const zq = qnorm(0.5 + level / 2) as number; const st = te / se; // level.ma, not level (experiment 5)
     Object.assign(res, { "TE.common": te, "seTE.common": se, "lower.common": te - zq * se, "upper.common": te + zq * se, "statistic.common": st, "pval.common": 2 * (pnorm(-Math.abs(st)) as number), "w.common": w });
   }
   return res;
@@ -224,8 +224,9 @@ export function metapropGlmm(event: readonly number[], n: readonly number[], opt
   const fitS = glm("p ~ study", data, { family: "binomial", weights: "w" }); const V = glmSummary(fitS).covUnscaled;
   const d = fitS.coefficients.slice(1); const Vd = V.slice(1).map((r) => r.slice(1));
   const qWald = dot(d, solveSym(Vd, d)); const qLrt = fitC.deviance; const df = k - 1;
-  const level = options.levelMa ?? options.level ?? 0.95; const z = qnorm(0.5 + level / 2) as number;
-  const levelPredict = options.levelPredict ?? options.level ?? 0.95;
+  // level.ma and level.predict, not level (experiment 5)
+  const level = options.levelMa ?? 0.95; const z = qnorm(0.5 + level / 2) as number;
+  const levelPredict = options.levelPredict ?? 0.95;
   const sePred = Math.sqrt(tau2 + seR * seR); const tp = qt1(0.5 + levelPredict / 2, df, true, false);
   const het = heterogeneityIntervals(qWald, k, options.level ?? 0.95);
   const plogit = metaprop(event, n, { sm: "PLOGIT" });

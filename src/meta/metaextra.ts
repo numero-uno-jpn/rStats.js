@@ -74,7 +74,9 @@ export function metaSubgroup(overall: MetaResult, subgroup: readonly (string | n
     const mods = idx.map((i) => levels.slice(1).map((l) => (String(subgroup[i]) === l ? 1 : 0)));
     // TE and seTE divided by a power of two beyond 2^+-200 before squaring (log 110)
     const c = extremeEffectScale(idx.map((i) => overall.TE[i]!), idx.map((i) => overall.seTE[i]!));
-    tau2Common = rma(idx.map((i) => overall.TE[i]! / c), idx.map((i) => (overall.seTE[i]! / c) ** 2), { method: (options.methodTau ?? "REML") as MetaMethod, mods }).tau2 * c * c;
+    // to the maximum, as metagen's tau2 from 1.21.0 (threshold relative to the mean variance)
+    const vs = idx.map((i) => (overall.seTE[i]! / c) ** 2); const meanV = vs.reduce((a, b) => a + b, 0) / vs.length;
+    tau2Common = rma(idx.map((i) => overall.TE[i]! / c), vs, { method: (options.methodTau ?? "REML") as MetaMethod, mods, control: { threshold: 1e-13 * meanV, maxiter: 1000 } }).tau2 * c * c;
   }
   const fits = levels.map((l) => {
     const f = refit(subgroup.map((g, i) => (String(g) === l && ok.has(i) ? i : -1)).filter((i) => i >= 0));

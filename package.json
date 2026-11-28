@@ -1,7 +1,7 @@
 {
   "name": "@numero-uno-jpn/rstats",
-  "version": "1.20.0",
-  "description": "R-compatible statistical functions for the browser: distributions, random numbers that match set.seed(), hypothesis tests and linear algebra, tested against R.",
+  "version": "1.21.0",
+  "description": "R-compatible statistics for JavaScript and the browser: distributions, random numbers that match set.seed(), hypothesis tests, linear and mixed models, regression, survival, meta-analysis, time series, causal inference and plot data, tested against R.",
   "keywords": [
     "statistics",
     "r",
@@ -86,6 +86,11 @@
       "types": "./dist/entries/causal.d.ts",
       "import": "./dist/entries/causal.js",
       "default": "./dist/entries/causal.js"
+    },
+    "./plot": {
+      "types": "./dist/entries/plot.d.ts",
+      "import": "./dist/entries/plot.js",
+      "default": "./dist/entries/plot.js"
     },
     "./package.json": "./package.json"
   },

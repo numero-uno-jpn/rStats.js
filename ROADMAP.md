@@ -94,6 +94,11 @@ widely used in Japanese medical and psychological research) and ReactiveStat wit
    the nearest-neighbour estimator left out)
 9. **Time series and meta-analysis**: done for 1.20.0 (stats' `arima`, `HoltWinters`, `stl`, `decompose`, `ar`; forecast's
    `Arima`, `auto.arima`, `ets`, the simple methods and helpers; tseries' tests; meta's `metagen` to `trimfill`; netmeta)
+10. **Plot data**: done for 1.21.0 (the new entry `/plot`: the values of survival curves, ROC curves, forest, funnel and
+   network plots, Q-Q plots, densities, box plots, plot.lm's diagnostics, forecasts, dendrograms and biplots as rows for
+   any plotting library; `density`, `qqnorm`, `qqline`, `boxplotStats`, `lowess` and lm's influence measures)
+
+All ten items are done (the last in 1.21.0); the next ones have not been decided yet.
 
 Mixed models continued (the former item 1) were done for 1.6.0: `confintLmer`, `confintGlmer`, `simulateLmer` and
 `simulateGlmer` after lme4's `confint` (profile likelihood and Wald) and `simulate`. Left out, as decided in the
@@ -153,9 +158,12 @@ old code.
 Users of a bundler only get the functions they import (`pnorm` alone is 1.6 KB gzipped), so
 adding functions costs them nothing. For CDN use there is one file per area
 (`dist/distributions.js`, `dist/tests.js`, `dist/linalg.js`, `dist/descriptive.js`,
-`dist/numerics.js`, `dist/special.js`, `dist/mixed.js`), built with esbuild's code splitting so that shared code is
-not duplicated, and `dist/rstats.js` with everything except `mixed` (the mixed models are large, so they stay out
-of the single-file bundle; decided 2026-11-05). The same areas are subpath exports of the
+`dist/numerics.js`, `dist/special.js`, `dist/mixed.js`, `dist/regression.js`, `dist/multivariate.js`,
+`dist/timeseries.js`, `dist/causal.js`, `dist/plot.js`), built with esbuild's code splitting so that shared code is
+not duplicated, and `dist/rstats.js` with the main entry point's areas (distributions, tests, linalg, descriptive,
+numerics, special). The mixed models stay out of the single-file bundle because they are large (decided
+2026-11-05), and so do the areas added from 1.7.0 on (regression, multivariate, timeseries, causal, plot), which
+are subpath exports only. Every area is a subpath export of the
 package (`@numero-uno-jpn/rstats/linalg`, ...). `npm run size` reports the sizes. After
 publishing to npm, CDNs that bundle per export (such as esm.sh with `?exports=`) are a further
 option.
@@ -165,8 +173,9 @@ option.
 - Port only from permissively licensed sources: SciPy and xsf (BSD-3), Boost.Math (BSL-1.0),
   statsmodels (BSD-3), lifelines (MIT), the LAPACK reference implementation (modified BSD),
   public-domain code (LINPACK, EISPACK, Cephes as distributed with xsf), and published papers.
-- R is the oracle that results are checked against. R's source may be read to find out how R
-  behaves, but R's code and GPL packages are never copied or translated, so that rStats.js can stay
-  MIT licensed.
+- R is the oracle that results are checked against. The development is clean-room: the source of R and of
+  GPL packages is not read, recalled or copied (from 2026-11-09; reading it was allowed before), so that rStats.js
+  can stay MIT licensed. R's behaviour is found from its documentation, the papers it cites and the output of its
+  exported functions, in R experiments recorded in `experiments/`.
 - Each ported file names its source, and the source is listed in
   [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). See also [CONTRIBUTING.md](CONTRIBUTING.md).

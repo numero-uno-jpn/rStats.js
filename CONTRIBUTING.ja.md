@@ -24,7 +24,8 @@ rStats.js に関心を持っていただきありがとうございます。こ�
    巨大なパラメータ) を作り、R の結果を `test/fixtures/<name>.json` に書き出す。1 ケースにつき
    1 行で、数値は `%.17g` で書式化した文字列にする。
 2. `src/` に置く実装。その分野の `src/entries/<area>.ts` (サブパスの export) から export する
-   (`src/index.ts` はすべての分野を再 export します)。
+   (`src/index.ts` はメインの入口の分野 (distributions・tests・linalg・descriptive・numerics・special) を再 export
+   します。mixed・regression・multivariate・timeseries・causal・plot はサブパスからだけ export します)。
 3. `test/<name>.test.ts`: フィクスチャに対して実装を実行し、相対誤差を確かめる。
 
 フィクスチャを生成し直すには、Docker 上の R が必要です。
@@ -61,7 +62,7 @@ warnings = TRUE)`)。この警告だけを、Docker を使わず数値も変え�
 乱数のフィクスチャは、x86_64 版のイメージ (`--platform linux/amd64` の `rstats-oracle-amd64`。
 oracle には `# oracle-platform: amd64` と印を付ける) で生成します。arm64 版では一部の関数で
 最後のビットが異なるためです。線形代数のフィクスチャには、R が使った LAPACK と BLAS の
-バージョンを `info` ブロックに記録します (現在のフィクスチャは OpenBLAS 0.3.26 と
+バージョンを `info` ブロックに記録します (現在のフィクスチャは OpenBLAS 0.3.32 と
 LAPACK 3.12.0 で作成)。BLAS が違うと最後の数ビットが変わることがあるためです。
 
 mpmath による高精度の値とも照合できます。`scripts/mpmath/<name>.py` が
@@ -135,11 +136,15 @@ R と数学が食い違うときや、入力に答えがないときに何を返
 
 rStats.js は MIT ライセンスです。それを保つために、次のことを守ってください。
 
-- **R や GPL のパッケージのコードを、コピーも翻訳もしないこと。** R は oracle で、rStats.js
-  は R の出力と照合します。R が正確にどう振る舞うか (どの入力を拒むか、どの式や約束事を使うか、
-  どこで丸めるか) を確かめるために R のソースを読むのはかまいません。不一致を片づけるにはそれが
-  早道のことも多いです。ただし、そこから実装を書いてはいけません。R の `src/nmath`、`src/appl`、
-  推奨パッケージ、TOMS 708 もこれに含みます。
+- **クリーンルーム: R や GPL のパッケージのソースは、読まない、思い出して書かない、写さないこと。** R は oracle
+  で、rStats.js は R の出力と照合します。R がどう振る舞うか (どの入力を拒むか、どの式や約束事を使うか、どこで
+  丸めるか) は、文書 (ヘルプ)、そこで引かれている論文、公開されている関数の出力から、R の実験で式の候補と比べて
+  確かめます。R の `src/nmath`、`src/appl`、推奨パッケージ、TOMS 708、照合先のすべてのパッケージが対象で、R で
+  関数の本体を表示することも読むことに当たります (2026-11-09 までは R のソースを読むことを認めていましたが、それ
+  以降は認めていません)。
+- **R の実験は記録すること。** 実験のスクリプト (`experiments/<名前>.R`) は `node scripts/r-experiment-check.mjs`
+  で検査します (関数のソースを表示しうるスクリプトは拒まれます)。出力と、外れた候補も含めた試行錯誤を
+  `experiments/` (`experiments/<版>-log.md`) と、その版の Issue のコメントに残します。
 - 移植してよいのは、寛容なライセンスのソースだけです。SciPy と xsf (BSD-3)、Boost.Math
   (BSL-1.0)、statsmodels (BSD-3)、lifelines (MIT)、LAPACK の参照実装 (修正 BSD)、パブリック
   ドメインのコード (LINPACK、EISPACK、xsf とともに配布されている Cephes)、または公表された論文です。
@@ -147,7 +152,7 @@ rStats.js は MIT ライセンスです。それを保つために、次のこ�
 
 ## デモ
 
-`demo/` は、jsDelivr から `dist/rstats.js` を読み込む静的なページです (`?src=local` を付けると
+`demo/` は、jsDelivr から `dist/rstats.js` と分野ごとのバンドルを読み込む静的なページです (`?src=local` を付けると
 ローカルのビルドを読み込みます)。例は `demo/examples.json` で定義しています。例を変更したら
 `npm run demo:r` を実行して、`demo/examples.R` と `demo/r-results.json` の R の値を生成し直して
 ください。`test/demo.test.ts` がすべての例を R と照合し、`test/browser/demo.mjs` がページを
@@ -184,13 +189,14 @@ rStats.js は MIT ライセンスです。それを保つために、次のこ�
 
 1. `NOT_IN_DEMO_YET` (`test/demo.test.ts`) に挙げた export のデモ例を追加して、このリストを空に
    します (`npm run demo:r` が必要)。`package.json` の `version`、`CHANGELOG.md` の日付、`demo/app.js` の `VERSION` (デモが
-   jsDelivr から読み込むタグ) を更新してコミットし、タグを付けて push します:
+   jsDelivr から読み込むタグ)、`README.md` と `README.ja.md` の状態と CDN の URL、`docs/api-reference.md` と
+   `docs/ja/api-reference.md` の CDN の URL を更新してコミットし、タグを付けて push します:
    `git tag vX.Y.Z && git push origin vX.Y.Z`。
 2. `.github/workflows/release.yml` がテストを実行してビルドし、`dist/` も含むコミットへタグを
-   移します。これで jsDelivr が
-   `https://cdn.jsdelivr.net/gh/numero-uno-jpn/rStats.js@vX.Y.Z/dist/rstats.js` を配信できる
-   ようになります (ワークフローが終わったら、`git fetch --tags --force` でローカルのタグを
-   更新してください)。main ブランチには `dist/` を一切含めません。
+   移します (ワークフローが終わったら、`git fetch --tags --force` でローカルのタグを更新してください)。main
+   ブランチには `dist/` を一切含めません。jsDelivr は npm からビルドを配信します
+   (`cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@X.Y.Z/`)。GitHub の経路 (`cdn.jsdelivr.net/gh/...`) は、リポジトリが
+   大きさの上限を超えるため、0.12.0 以降のタグを配信しません。
 3. 続いて、provenance 付きでその版を npm の公開待ちに入れます (`npm stage publish`)。トークンは
    使いません。npmjs.com のパッケージ設定で、このリポジトリと `release.yml` を trusted publisher
    として指定しているためです。この trusted publisher には公開待ちに入れることだけを許し、直接の
@@ -201,5 +207,5 @@ rStats.js は MIT ライセンスです。それを保つために、次のこ�
 
 バージョン 0.5.0 は手作業で公開しました (provenance には CI が必要なので
 `npm publish --provenance=false`)。以降のバージョンは、ワークフローと上の承認を経て公開します。
-ローカルのマシンから公開するときも、npm アカウントの二要素認証が必要です。jsDelivr が配信できるように、
-リポジトリは公開のままにしておく必要があります。
+ローカルのマシンから公開するときも、npm アカウントの二要素認証が必要です。GitHub Pages がデモと API
+リファレンスを配信するので、リポジトリは公開のままにしておく必要があります。
