@@ -48,7 +48,15 @@
 4. 訳: `docs/ja/api/*.json` の未訳 157 と stale 3 (`plot-data.json` ほか)、`docs/ja/plotting.md`・differences-from-r と
    api-reference の日本語版の新しい節。これまでの方針どおり ChatGPT に頼むか。
 
-**残り:** 上の確認の後、訳、版 1.21.0 (package.json・CHANGELOG の日付)、公開。ROADMAP に 10 = 描画用のデータを足す。
+**ユーザーの答え (2026-11-28、日本語で聞き直した):** 1 = level の修正は 1.21.0 に入れる。2 = **metagen の REML は最大点まで
+反復** → 実施済み (`de7dcb8e`・`fd2edc72`): metagen とその上の関数と metaSubgroup の共通の τ² を閾値「平均分散 × 1e-13」で
+最大点まで。R の参照は meta の `control = list(threshold = 1e-14, maxiter = 1000)` (1e-16 は収束しないと止まる)、
+trimfill は R が control を引き継がないので「埋めたデータの当て直し」を参照に (実験 7・8)。rma の既定は metafor のまま。
+3 = 名前と方針はこのまま。4 = 訳は ChatGPT に頼む → 入口 `briefs/ja-1.21-status.ja.md` を作った。ChatGPT は GitHub から
+読むので、**dev/plot-1.21 の push の許可をユーザーに聞く** (dev/** の push では Actions は走らない)。
+
+**残り:** push の許可 → ChatGPT に訳を依頼 → 点検して取り込み → 版 1.21.0 (package.json・CHANGELOG の日付)・ROADMAP の
+10 → 公開。
 
 ## セッション 43 で最初にやること (1.20.0 公開後、2026-11-28 に書いた)
 
