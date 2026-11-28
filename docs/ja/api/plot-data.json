@@ -307,7 +307,7 @@
   "forecastPlotData#summary": {
     "hash": "3a9a6627c1e6",
     "en": "Plot data for a forecast fan, as forecast's `plot.forecast`: the observed series, the point forecasts and their\nprediction intervals (one band per level, widest first), from a forecast of rStats.js ({@link forecast},\n{@link forecastArima}, {@link forecastEts}, ...).\nNot an R function. R's plots draw these values without returning them.\n\nLayers: `history` (`x` = time, `y`); `mean` (`x`, `y`); `intervals` (`x`, `level`, `lower`, `upper`).",
-    "ja": "forecast の `plot.forecast` と同様の予測ファンを描くためのデータです: 観測系列、点予測、および予測区間 (水準ごとに 1 つの帯。幅の広いものから順) を、rStats.js の予測結果 ({@link forecast}、{@link forecastArima}、{@link forecastEts}、...) から返します。\nR の関数ではありません。R のプロットはこれらの値を描画しますが、値を返しません。\n\n層: `history` (`x` = 時刻、`y`)、`mean` (`x`、`y`)、`intervals` (`x`、`level`、`lower`、`upper`)。"
+    "ja": "forecast の `plot.forecast` と同様の予測ファンチャートを描くためのデータです: 観測系列、点予測、および予測区間 (水準ごとに 1 つの帯。幅の広いものから順) を、rStats.js の予測結果 ({@link forecast}、{@link forecastArima}、{@link forecastEts}、...) から返します。\nR の関数ではありません。R のプロットはこれらの値を描画しますが、値を返しません。\n\n層: `history` (`x` = 時刻、`y`)、`mean` (`x`、`y`)、`intervals` (`x`、`level`、`lower`、`upper`)。"
   },
   "forestPlotData#@example": {
     "hash": "f2167be5edf2",
