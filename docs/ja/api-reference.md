@@ -8,6 +8,7 @@ rStats.js は、R の数値計算の中心を JavaScript に提供します。�
 
 - [R の関数と rStats.js の関数](https://numero-uno-jpn.github.io/rStats.js/docs/ja/r-functions.html): R の関数に対応する rStats.js の関数を探せます (`t.test` → `tTest`)。各関数に 1 行の説明があります。
 - [JavaScript の開発者のための rStats.js](https://numero-uno-jpn.github.io/rStats.js/docs/ja/guide-for-js-developers.html): データフレーム、欠測値、因子、式と、分析の一通りの例を扱います。R で分析を書く方法に慣れていない読者向けです。
+- [結果の描画](https://numero-uno-jpn.github.io/rStats.js/docs/ja/plotting.html): `/plot` の描画用データ (生存曲線、forest plot、Q-Q プロット、モデル診断など) と Observable Plot・Plotly.js での描画方法を説明します。
 - [ブラウザで試す](https://numero-uno-jpn.github.io/rStats.js/demo/): ブラウザで、すべての関数を R の値と並べて試せます。
 - [R との違い](https://numero-uno-jpn.github.io/rStats.js/docs/ja/differences-from-r.html) と [精度](https://numero-uno-jpn.github.io/rStats.js/docs/ja/accuracy.html)。
 
@@ -35,7 +36,7 @@ import { glmnet, glmnetCoef, glmnetPredict, cvGlmnet } from "@numero-uno-jpn/rst
 メソッドはそれぞれ `rqSummary` / `rqPredictInterval`、`geeSummary` / `geeVcov` / `geeQIC`、
 `glmnetCoef` / `glmnetPredict` / `cvGlmnet` です。
 
-バンドラーを使わないときは、`https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@1.17.0/dist/rstats.js` が、混合モデル・回帰・多変量解析・時系列・因果推論以外のすべての関数を含む 1 つの ES モジュールです。混合モデルは `dist/mixed.js`、回帰は `dist/regression.js`、多変量解析は `dist/multivariate.js`、時系列は `dist/timeseries.js`、因果推論は `dist/causal.js` にあります。URL にはバージョンを含めてください (正確なバージョン、または 1.0.0 以降の `@1` のようなメジャーバージョン)。バージョンのない URL は、破壊的変更を含むすべての新しいリリースに追従してしまいます。1 つのページでは、`dist/rstats.js` か分野ごとのバンドル (`dist/tests.js`、`dist/mixed.js`、`dist/regression.js`、`dist/multivariate.js` など) のどちらか一方だけを使ってください。両方を混ぜると、共通のコードが 2 度読み込まれ、乱数の状態も 2 つになります。
+バンドラーを使わないときは、`https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@1.17.0/dist/rstats.js` が、混合モデル・回帰・多変量解析・時系列・因果推論以外のすべての関数を含む 1 つの ES モジュールです。混合モデルは `dist/mixed.js`、回帰は `dist/regression.js`、多変量解析は `dist/multivariate.js`、時系列は `dist/timeseries.js`、因果推論は `dist/causal.js`、描画用データは `dist/plot.js` にあります。URL にはバージョンを含めてください (正確なバージョン、または 1.0.0 以降の `@1` のようなメジャーバージョン)。バージョンのない URL は、破壊的変更を含むすべての新しいリリースに追従してしまいます。1 つのページでは、`dist/rstats.js` か分野ごとのバンドル (`dist/tests.js`、`dist/mixed.js`、`dist/regression.js`、`dist/multivariate.js` など) のどちらか一方だけを使ってください。両方を混ぜると、共通のコードが 2 度読み込まれ、乱数の状態も 2 つになります。
 
 ## 規約
 
@@ -330,6 +331,21 @@ netsplit(n); netleague(n, { digits: 2 });                // 直接と間接の�
 `metagen` とその仲間は meta の既定に従います (REML、tau2 の Q-profile 区間、Higgins と Thompson の区間付きの H と
 I2)。推定値は TE と seTE の尺度によらず正確です。`netmeta` は多群の研究を含む Rücker (2012) の頻度論のグラフ理論の
 模型です。連結でない網は受け付けません (`netconnection` を参照)。
+
+## 描画用のデータ
+
+R のプロットが描画する値は、どの描画ライブラリでも使える行配列として、別の入口 `/plot` から取得できます。その基礎となる統計量 (`density`、`qqnorm`、`boxplotStats`、`lowess`、`lmHatvalues` など) は、他の関数と同じ入口にあります。
+
+```ts
+import { survfit, metagen, lm } from "@numero-uno-jpn/rstats";
+import { survPlotData, forestPlotData, lmDiagnosticsData } from "@numero-uno-jpn/rstats/plot";
+
+survPlotData(survfit(time, status, { group })).layers.steps; // [{ x, y, ymin, ymax, group }, ...] from (0, 1)
+forestPlotData(metagen(TE, seTE), { labels });               // studies, pooled estimates, diamonds
+lmDiagnosticsData(lm(x, y));                                 // plot.lm's four panels with their smooths
+```
+
+各関数は `{ layers, meta }` を返します。`fromRows` で層を列形式に変換すると Plotly で使えます。[結果の描画](https://numero-uno-jpn.github.io/rStats.js/docs/ja/plotting.html) を参照してください。
 
 ## 因果推論
 
