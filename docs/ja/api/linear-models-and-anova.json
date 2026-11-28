@@ -607,12 +607,12 @@
   "LmRstandardOptions#summary": {
     "hash": "d7d869b6e86d",
     "en": "Options for {@link lmRstandard}.",
-    "ja": ""
+    "ja": "{@link lmRstandard} のオプションです。"
   },
   "LmRstandardOptions.type#summary": {
     "hash": "52221776346f",
     "en": "`\"sd.1\"` (default): the internally studentized residuals r / (s sqrt(1 - h)); `\"predictive\"`: the leave-one-out\nprediction errors r / (1 - h) (r the residual times the square root of the weight) (as R's `type`).",
-    "ja": ""
+    "ja": "`\"sd.1\"` (既定): 内部スチューデント化残差 r / (s sqrt(1 - h)) です。`\"predictive\"`: その行を除いた予測誤差 r / (1 - h) です (r は残差に重みの平方根を掛けた値。R の `type` と同じ)。"
   },
   "MauchlyTestOptions#summary": {
     "hash": "a65fb918a703",
@@ -1062,47 +1062,47 @@
   "lmCooksDistance#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "lmCooksDistance#summary": {
     "hash": "8400dd272ce6",
     "en": "Cook's distances of a linear model, one per row of non-zero weight. Equivalent to R's `cooks.distance()`. For an\n`lm` fit; NaN for a row of leverage 1.",
-    "ja": ""
+    "ja": "線形モデルの Cook の距離です。重みが 0 でない行ごとに 1 つ返します。R の `cooks.distance()` と同等です。`lm` の当てはめ結果を対象とし、てこ比が 1 の行では NaN です。"
   },
   "lmHatvalues#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "lmHatvalues#summary": {
     "hash": "c227b0c2f9aa",
     "en": "The leverages (the diagonal of the hat matrix) of a linear model, one per row of non-zero weight. Equivalent to R's\n`hatvalues()`. For an `lm` fit.",
-    "ja": ""
+    "ja": "線形モデルのてこ比 (ハット行列の対角成分) です。重みが 0 でない行ごとに 1 つ返します。R の `hatvalues()` と同等です。`lm` の当てはめ結果を対象とします。"
   },
   "lmRstandard#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "lmRstandard#@throws": {
     "hash": "0922a6021cfc",
     "en": "RangeError for an unknown `type`.",
-    "ja": ""
+    "ja": "不明な `type` の場合は RangeError です。"
   },
   "lmRstandard#summary": {
     "hash": "6241a9bae7bc",
     "en": "The standardized residuals of a linear model, one per row of non-zero weight. Equivalent to R's `rstandard()`. For\nan `lm` fit; NaN for a row of leverage 1.",
-    "ja": ""
+    "ja": "線形モデルの標準化残差です。重みが 0 でない行ごとに 1 つ返します。R の `rstandard()` と同等です。`lm` の当てはめ結果を対象とし、てこ比が 1 の行では NaN です。"
   },
   "lmRstudent#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "lmRstudent#summary": {
     "hash": "ecd31b823f68",
     "en": "The externally studentized residuals of a linear model (each scaled by the residual standard error of the fit\nwithout that row), one per row of non-zero weight. Equivalent to R's `rstudent()`. For an `lm` fit; NaN for a row of\nleverage 1, and where the deleted fit has no residual degrees of freedom.",
-    "ja": ""
+    "ja": "線形モデルの外部スチューデント化残差です (各残差を、その行を除いて当てはめたモデルの残差標準誤差で尺度化します)。重みが 0 でない行ごとに 1 つ返します。R の `rstudent()` と同等です。`lm` の当てはめ結果を対象とし、てこ比が 1 の行、および除外後の当てはめで残差自由度がない行では NaN です。"
   },
   "mauchlyTest#@example": {
     "hash": "f2167be5edf2",
