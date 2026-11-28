@@ -92,7 +92,7 @@
   "FunnelPlotDataOptions.contours#summary": {
     "hash": "36033065cbf7",
     "en": "Levels of a contour-enhanced funnel plot (Peters et al. 2008), around `contourCentre`, such as `[0.9, 0.95,\n0.99]`. Default none.",
-    "ja": "等高線付きファンネルプロット (Peters et al. 2008) の等高線水準です。`contourCentre` の周囲に `[0.9, 0.95, 0.99]` のように指定します。既定では等高線を表示しません。"
+    "ja": "等高線付きファンネルプロット (Peters et al. 2008) の等高線水準です。`contourCentre` の周囲に `[0.9, 0.95,\n0.99]` のように指定します。既定では等高線を表示しません。"
   },
   "FunnelPlotDataOptions.level#summary": {
     "hash": "c838244557a0",
@@ -342,7 +342,7 @@
   "histPlotData#summary": {
     "hash": "6c231b6378f5",
     "en": "Plot data for a histogram: the bars of {@link hist} (from a sample, with hist's options, or from its result).\nNot an R function. R's plots draw these values without returning them.\n\nLayer `bars`: `x0`, `x1` (the cell's ends), `mid`, `count`, `density`.",
-    "ja": "ヒストグラムのデータです: 標本、オプションを指定した標本、または {@link hist} の結果から得られる {@link hist} の棒を返します。\nR の関数ではありません。R のプロットはこれらの値を描画しますが、値を返しません。\n\n層 `bars`: `x0`、`x1` (区間の両端)、`mid`、`count`、`density`。"
+    "ja": "ヒストグラムのデータです: 標本、hist のオプションを指定した標本、または {@link hist} の結果から得られる棒を返します。\nR の関数ではありません。R のプロットはこれらの値を描画しますが、値を返しません。\n\n層 `bars`: `x0`、`x1` (区間の両端)、`mid`、`count`、`density`。"
   },
   "lmDiagnosticsData#@example": {
     "hash": "f2167be5edf2",
@@ -352,7 +352,7 @@
   "lmDiagnosticsData#summary": {
     "hash": "9a960d8caf8d",
     "en": "Plot data for the four default diagnostic plots of a linear model ({@link lm}), as R's `plot.lm` (`which = c(1, 2,\n3, 5)`), for the rows of non-zero weight (the residuals weighted as in R).\nNot an R function. R's plots draw these values without returning them.\n\nLayers (`index` is the row of the fit, `extreme` flags the `idN` most extreme points as R labels them):\n`residualsFitted` (`x` = fitted, `y` = residual) and its `residualsFittedSmooth`; `qq` (`x` = theoretical\nquantile, `y` = standardized residual); `scaleLocation` (`x` = fitted, `y` = sqrt |standardized residual|) and\n`scaleLocationSmooth`; `leverage` (`x` = leverage, `y` = standardized residual, `cooks`) and `leverageSmooth`;\n`cookContours` (`level`, `side` +1 or -1, `x`, `y`: the curves where Cook's distance equals each level). Rows of\nleverage 1 are left out of the panels that need standardized residuals (R does the same, with a warning).",
-    "ja": "線形モデル ({@link lm}) の既定の 4 つの診断プロットを描くためのデータです。R の `plot.lm` (`which = c(1, 2, 3, 5)`) と同様に、重みが 0 でない行を対象とします (残差の重み付けも R と同じです)。\nR の関数ではありません。R のプロットはこれらの値を描画しますが、値を返しません。\n\n層 (`index` は当てはめ結果の行、`extreme` は R と同様に `idN` 個の最も極端な点を示します): `residualsFitted` (`x` = 当てはめ値、`y` = 残差) とその `residualsFittedSmooth`、`qq` (`x` = 理論分位点、`y` = 標準化残差)、`scaleLocation` (`x` = 当てはめ値、`y` = sqrt |標準化残差|) と `scaleLocationSmooth`、`leverage` (`x` = てこ比、`y` = 標準化残差、`cooks`) と `leverageSmooth`、`cookContours` (`level`、`side` は +1 または -1、`x`、`y`: Cook の距離が各水準に等しい曲線)。てこ比が 1 の行は、標準化残差を必要とするパネルから除外します (R も警告を出して同様に処理します)。"
+    "ja": "線形モデル ({@link lm}) の既定の 4 つの診断プロットを描くためのデータです。R の `plot.lm` (`which = c(1, 2,\n3, 5)`) と同様に、重みが 0 でない行を対象とします (残差の重み付けも R と同じです)。\nR の関数ではありません。R のプロットはこれらの値を描画しますが、値を返しません。\n\n層 (`index` は当てはめ結果の行、`extreme` は R と同様に `idN` 個の最も極端な点を示します): `residualsFitted` (`x` = 当てはめ値、`y` = 残差) とその `residualsFittedSmooth`、`qq` (`x` = 理論分位点、`y` = 標準化残差)、`scaleLocation` (`x` = 当てはめ値、`y` = sqrt |標準化残差|) と `scaleLocationSmooth`、`leverage` (`x` = てこ比、`y` = 標準化残差、`cooks`) と `leverageSmooth`、`cookContours` (`level`、`side` は +1 または -1、`x`、`y`: Cook の距離が各水準に等しい曲線)。てこ比が 1 の行は、標準化残差を必要とするパネルから除外します (R も警告を出して同様に処理します)。"
   },
   "netgraphData#@example": {
     "hash": "f2167be5edf2",
