@@ -25,6 +25,15 @@ function maxRel(a: readonly number[], e: readonly number[], floor = 0): number {
   });
   return m;
 }
+/**
+ * The largest difference of two grids relative to their largest |value|: a grid point near 0 has a large relative
+ * error from a one-ulp difference in the bandwidth (Node 22's Math.pow differs from Node 24's in the last bit)
+ */
+const gridRel = (a: readonly number[], e: readonly number[]): number => {
+  expect(a.length).toBe(e.length);
+  const big = Math.max(...e.map(Math.abs));
+  return Math.max(0, ...a.map((v, i) => Math.abs(v - e[i]!))) / big;
+};
 const peakRel = (a: readonly number[], e: readonly number[]): number => {
   expect(a.length).toBe(e.length);
   const peak = Math.max(...e);
@@ -228,7 +237,7 @@ describe("density", () => {
       if (v.bwName === "SJ") opts.bw = num(d.bw); // bw.SJ itself is not offered: its value from R
       const r = density(y, opts);
       expect(maxRel([r.bw], [num(d.bw)])).toBeLessThan(1e-15);
-      expect(maxRel(r.x, arr(d.x), 1e-300)).toBeLessThan(1e-15);
+      expect(gridRel(r.x, arr(d.x))).toBeLessThan(1e-14);
       expect(peakRel(r.y, arr(d.y))).toBeLessThan(TOL);
     });
   }
@@ -238,7 +247,7 @@ describe("density", () => {
     expect(e.error, `R: ${e.error}`).toBeUndefined();
     expect(maxRel([r.bw], [num(e.value.bw)])).toBeLessThan(1e-15);
     expect(r.n).toBe(num(e.value.n));
-    expect(maxRel(r.x, arr(e.value.x), 1e-300)).toBeLessThan(1e-15);
+    expect(gridRel(r.x, arr(e.value.x))).toBeLessThan(1e-14);
     expect(peakRel(r.y, arr(e.value.y))).toBeLessThan(tol);
     expect(r.warnings).toEqual(warningsOf(k));
   };
