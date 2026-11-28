@@ -16,7 +16,7 @@ R-compatible statistical functions for JavaScript and the browser, written in Ty
 
 Status: **1.21.0.** The goal is to cover the numerical core of R's
 `stats` package (distributions, descriptive statistics, hypothesis tests, linear models, special
-functions, numerical methods and the basics of linear algebra) with R-compatible results; see [ROADMAP.md](ROADMAP.md) for what remains. See [CHANGELOG.md](CHANGELOG.md).
+functions, numerical methods and the basics of linear algebra) with R-compatible results, and beyond it the analyses of medical and psychological research (regression models, survival, meta-analysis, multivariate analysis, time series, causal inference, plot data); see [ROADMAP.md](ROADMAP.md) for what has been done and what is left out. See [CHANGELOG.md](CHANGELOG.md).
 
 ## Install
 
@@ -224,7 +224,7 @@ eigen([[2, 1], [1, 3]]).values;     // ≈ [3.618033989, 1.381966011]
 | Analysis of variance | `aov` and `aovSummary` with a formula (several factors, interactions, covariates, `Error()` strata), `anova` (`anova.lm`, sequential and model comparison), `Anova` (car: types II and III), `aovEz` (afex: repeated-measures and mixed designs, Greenhouse-Geisser and Huynh-Feldt corrections, generalized and partial eta squared), `mauchlyTest` (`mauchly.test`) |
 | Effect sizes and power | `cohensD`, `hedgesG` (effectsize, with exact confidence limits), `etaSquared`, `omegaSquared`, `epsilonSquared` (partial, generalized, from `anova` and `Anova` tables); `powerTTest`, `powerPropTest`, `powerAnovaTest` (`power.*.test`); `pwrTTest`, `pwrT2nTest`, `pwr2pTest`, `pwr2p2nTest`, `pwrPTest`, `pwrNormTest`, `pwrRTest`, `pwrChisqTest`, `pwrAnovaTest`, `pwrF2Test`, `esH`, `esW1`, `esW2`, `cohenES` (pwr) |
 | Sample size and power for trial designs | `epiSsequb`, `epiSsequc`, `epiSsninfb`, `epiSsninfc`, `epiSssupb`, `epiSssupc` (epiR: equivalence, non-inferiority and superiority for proportions and means), `powerPaired2x2` (exact paired McNemar power), `ssizeCT`, `powerCT`, `ssizeEpi`, `powerEpi`, `numDEpi` (survival sample size and power), `ph2simon` (Simon two-stage designs) |
-| Meta-analysis | `escalc` (effect sizes and sampling variances), `rma` (equal- and random-effects meta-analysis and meta-regression), `confintRma`, `predictRma`, `regtest` (metafor); `metagen`, `metabin`, `metacont`, `metainc`, `metacor`, `metamean`, `metarate`, `metaprop`, `metapropGlmm`, `metaSubgroup`, `metabias`, `metareg`, `metainf`, `metacum`, `baujat`, `trimfill` (meta); network meta-analysis: `netmeta`, `netrank`, `netsplit`, `netleague`, `decompDesign`, `netmeasures`, `netconnection`, `pairwise`, `netcomb`, `discomb`, `netposet` (netmeta) |
+| Meta-analysis | `escalc` (effect sizes and sampling variances), `rma` (equal- and random-effects meta-analysis and meta-regression), `confintRma`, `predictRma`, `regtest` (metafor); `metagen`, `metabin`, `metacont`, `metainc`, `metacor`, `metamean`, `metarate`, `metaprop`, `metapropGlmm`, `metaSubgroup`, `metabias`, `metareg`, `metainf`, `metacum`, `baujat`, `trimfill`, `heterogeneityIntervals`, `genqInterval`, `pWeightedChisq` (meta); network meta-analysis: `netmeta`, `netrank`, `netsplit`, `netleague`, `decompDesign`, `netmeasures`, `netconnection`, `pairwise`, `netcomb`, `discomb`, `netposet` (netmeta) |
 | Linear models | `lm` (a formula and a data frame, or a matrix, with the `summary` quantities), `modelMatrix` (`model.matrix`), `confint`, `predict`, `lmHatvalues`, `lmRstandard`, `lmRstudent`, `lmCooksDistance`; `glm` (a formula and a data frame, or a matrix; every family and link of R's `stats`) with `glmSummary` (`summary.glm`), `svyglm` (`survey::svyglm` for inverse probability weights: design-based standard errors), `glmResiduals` (the four kinds), `glmHatvalues`, `glmRstandard`, `glmCooksDistance`, `glmPredict` (with standard errors), `glmConfint` (profile likelihood, exact limits), `glmAnova` (`anova.glm`); `vcovHC`, `vcovCL` (sandwich: HC0 to HC5, one-way and multi-way clustered), `coeftest`, `coefci` (lmtest); `step`, `stepAIC` (stepwise selection by AIC or BIC for lm and glm), `drop1`, `add1`, `extractAIC` |
 | Regression | `tobit`, `tobitSummary` (AER: tobit regression on `survreg`, left and right limits, any survreg distribution); `betareg`, `betaregSummary`, `betaregConfint`, `betaregPredict`, `betaregResiduals` (betareg: beta regression with a constant or modelled precision, six mean links, maximum likelihood, bias-corrected and bias-reduced); `loglin`, `loglm`, `loglmResiduals`, `loglmAnova` (log-linear models by iterative proportional fitting); `multinom`, `multinomSummary`, `multinomConfint`, `multinomPredict`, `multinomAnova`, `multinomVcov` (nnet: multinomial logistic regression with weights and decay), `polr`, `polrSummary`, `polrVcov`, `polrPredict`, `polrConfint`, `polrAnova` (MASS: ordinal logistic regression with logistic, probit, cloglog, loglog and cauchit links); `rlm`, `rlmSummary`, `rlmVcov`, `psiHuber`, `psiHampel`, `psiBisquare` (MASS: robust M and MM regression); `nls`, `nlsSummary`, `nlsVcov`, `nlsPredict`, `nlsConfint`, `nlsAnova` (nonlinear least squares: default, `plinear` and `port` algorithms, and 10 self-starting models); `rq`, `rqSummary`, `rqPredict`, `rqPredictInterval`, `rqAnova` (quantile regression); `geeglm`, `geeSummary`, `geeVcov`, `geePredict`, `geeAnova`, `geeQIC` (generalized estimating equations); `glmnet`, `glmnetCoef`, `glmnetPredict`, `cvGlmnet` (penalized Gaussian, binomial, Poisson and multinomial regression); `btm`, `btAbilities`, `countsToBinomial` (BradleyTerry2: paired comparisons, with player covariates and random effects by PQL), `qvcalc`, `worstErrors` (quasi variances), from `@numero-uno-jpn/rstats/regression` |
 | Multivariate analysis | `manova`, `manovaSummary` (sequential MANOVA: Pillai, Wilks, Hotelling-Lawley and Roy); `lda`, `ldaPredict` (linear discriminant analysis); `cancor` (canonical correlation); `dist`, `asDist`, `hclust`, `cutree`, `kmeans` (cluster analysis); `cmdscale` (classical multidimensional scaling); `ca`, `caSummary`, `caCoord` (correspondence analysis); `mjca` (multiple correspondence analysis); `sammon` and `isoMDS` (non-metric multidimensional scaling), from `@numero-uno-jpn/rstats/multivariate` |
@@ -298,22 +298,24 @@ removed. Approximate sizes after minification and gzip:
 | `solve` / `svd` / `eigen` | 2.4 / 2.4 / 5.1 KB |
 | `wilcoxTest` / `fisherTest` / `tTest` | 18.9 / 27.9 / 31.0 KB |
 | `qbeta` / `pt` and `qt` | 43.9 / 40.4 KB |
-| `glm` and `glmSummary` / `glm` with all its methods | 40.6 / 56.9 KB |
+| `glm` and `glmSummary` / `glm` with all its methods | 40.6 / 57.0 KB |
 | `lmer` (from `/mixed`) / with `lmerSummary`, `lmerContest`, `lmerAnova` | 19.4 / 70.0 KB |
 | `glmer` (from `/mixed`) / with `glmerSummary`, `glmerAnova`, `glmerPredict` | 47.2 / 66.1 KB |
 | `polr` / `rlm` / `nls` (from `/regression`) | 25.0 / 14.6 / 8.0 KB |
-| everything (except `/mixed` and `/regression`) | 385.0 KB |
+| everything in the main entry point (`dist/rstats.js`) | 385.0 KB |
 
 (`npm run size` measures these.)
 
 Each area is also a subpath export, for importing one area without the rest:
 `@numero-uno-jpn/rstats/distributions`, `/tests` (hypothesis tests, `lm`, `confint` and
-`predict`, and `glm` with its methods), `/linalg`, `/descriptive`, `/numerics`, `/special`, `/mixed`
-(`lmer`, `glmer` and their methods) and `/regression` (`polr`, `rlm`, `nls` and their methods); these last two
-areas are only available this way, not from the main entry point.
+`predict`, and `glm` with its methods), `/linalg`, `/descriptive`, `/numerics` and `/special` (these six make up
+the main entry point), and `/mixed` (`lmer`, `glmer` and their methods), `/regression` (`polr`, `rlm`, `nls`, `rq`,
+`geeglm`, `glmnet`, `multinom`, `tobit`, `betareg`, ... and their methods), `/multivariate`, `/timeseries`,
+`/causal` and `/plot`; these last six areas are only available this way, not from the main entry point.
 
 Without a bundler, load the single-file build `dist/rstats.js` (one minified ES module with every
-function except those of `/mixed` and `/regression`, 385 KB gzipped) from jsDelivr, which serves each npm release:
+function of the main entry point, that is, all but those of `/mixed`, `/regression`, `/multivariate`, `/timeseries`,
+`/causal` and `/plot`; 385 KB gzipped) from jsDelivr, which serves each npm release:
 
 ```html
 <script type="module">
@@ -333,7 +335,7 @@ A page that needs only some areas can load the per-area bundles instead: `dist/d
 `dist/tests.js`, `dist/linalg.js`, `dist/descriptive.js`, `dist/numerics.js`, `dist/special.js`,
 `dist/mixed.js`, `dist/regression.js`, `dist/multivariate.js`, `dist/timeseries.js`, `dist/causal.js` and `dist/plot.js` export the same functions as the subpaths above, and share their common code through
 `dist/chunks/`, so loading two areas does not load that code twice. With its chunks, one area
-transfers 39 KB (`special`) to 288 KB (`tests`) gzipped.
+transfers 38 KB (`special`) to 357 KB (`tests`) gzipped.
 
 Use either `dist/rstats.js` or the per-area bundles on one page, not both: they are separate sets of modules, so a
 page that mixes them loads the common code twice and has two random number states (`setSeed` from one does not seed
@@ -348,7 +350,7 @@ size limit of 50 MB. Use the npm route above.
 The browser build is tested in headless Chromium, both bundled and as `dist/rstats.js` loaded as
 an ES module (`npm run test:browser`).
 
-**Demo:** <https://numero-uno-jpn.github.io/rStats.js/demo/>. [`demo/`](demo) is a static page that loads `dist/rstats.js` from jsDelivr and exercises
+**Demo:** <https://numero-uno-jpn.github.io/rStats.js/demo/>. [`demo/`](demo) is a static page that loads `dist/rstats.js` and the area bundles from jsDelivr and exercises
 every function: distributions with plots, special functions, random numbers, hypothesis tests and
 linear algebra. Each form shows the equivalent R and JavaScript code for its inputs, and a "Compare
 with R" tab checks curated examples against values printed by R (`source("examples.R")` runs them

@@ -19,11 +19,15 @@ npm install @numero-uno-jpn/rstats
 ```
 
 ```ts
-import { pnorm, tTest, lm } from "@numero-uno-jpn/rstats";        // すべて (バンドラーが使わない部分を除きます)
-import { qbeta } from "@numero-uno-jpn/rstats/distributions";       // または 1 つの分野: distributions、tests、
+import { pnorm, tTest, lm } from "@numero-uno-jpn/rstats";        // メインの入口 (バンドラーが使わない部分を除きます)
+import { qbeta } from "@numero-uno-jpn/rstats/distributions";       // またはその 1 つの分野: distributions、tests、
                                                                      // descriptive、linalg、numerics、special
 import { lmer, glmer } from "@numero-uno-jpn/rstats/mixed";        // 混合モデル: この分野からだけ
 import { polr, rlm, nls } from "@numero-uno-jpn/rstats/regression"; // 回帰: この分野からだけ
+import { hclust, manova } from "@numero-uno-jpn/rstats/multivariate"; // 多変量解析: この分野からだけ
+import { arima, forecast } from "@numero-uno-jpn/rstats/timeseries"; // 時系列: この分野からだけ
+import { match, weightit } from "@numero-uno-jpn/rstats/causal";     // 因果推論: この分野からだけ
+import { survPlotData } from "@numero-uno-jpn/rstats/plot";         // 描画用のデータ: この分野からだけ
 import { rq, rqSummary, rqPredict, rqPredictInterval, rqAnova } from "@numero-uno-jpn/rstats/regression";
 import { geeglm, geeSummary, geeVcov, geePredict, geeAnova, geeQIC } from "@numero-uno-jpn/rstats/regression";
 import { glmnet, glmnetCoef, glmnetPredict, cvGlmnet } from "@numero-uno-jpn/rstats/regression";
@@ -36,7 +40,7 @@ import { glmnet, glmnetCoef, glmnetPredict, cvGlmnet } from "@numero-uno-jpn/rst
 メソッドはそれぞれ `rqSummary` / `rqPredictInterval`、`geeSummary` / `geeVcov` / `geeQIC`、
 `glmnetCoef` / `glmnetPredict` / `cvGlmnet` です。
 
-バンドラーを使わないときは、`https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@1.17.0/dist/rstats.js` が、混合モデル・回帰・多変量解析・時系列・因果推論・描画用データ以外のすべての関数を含む 1 つの ES モジュールです。混合モデルは `dist/mixed.js`、回帰は `dist/regression.js`、多変量解析は `dist/multivariate.js`、時系列は `dist/timeseries.js`、因果推論は `dist/causal.js`、描画用データは `dist/plot.js` にあります。URL にはバージョンを含めてください (正確なバージョン、または 1.0.0 以降の `@1` のようなメジャーバージョン)。バージョンのない URL は、破壊的変更を含むすべての新しいリリースに追従してしまいます。1 つのページでは、`dist/rstats.js` か分野ごとのバンドル (`dist/tests.js`、`dist/mixed.js`、`dist/regression.js`、`dist/multivariate.js` など) のどちらか一方だけを使ってください。両方を混ぜると、共通のコードが 2 度読み込まれ、乱数の状態も 2 つになります。
+バンドラーを使わないときは、`https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@1.21.0/dist/rstats.js` が、混合モデル・回帰・多変量解析・時系列・因果推論・描画用データ以外のすべての関数を含む 1 つの ES モジュールです。混合モデルは `dist/mixed.js`、回帰は `dist/regression.js`、多変量解析は `dist/multivariate.js`、時系列は `dist/timeseries.js`、因果推論は `dist/causal.js`、描画用データは `dist/plot.js` にあります。URL にはバージョンを含めてください (正確なバージョン、または 1.0.0 以降の `@1` のようなメジャーバージョン)。バージョンのない URL は、破壊的変更を含むすべての新しいリリースに追従してしまいます。1 つのページでは、`dist/rstats.js` か分野ごとのバンドル (`dist/tests.js`、`dist/mixed.js`、`dist/regression.js`、`dist/multivariate.js` など) のどちらか一方だけを使ってください。両方を混ぜると、共通のコードが 2 度読み込まれ、乱数の状態も 2 つになります。
 
 ## 規約
 

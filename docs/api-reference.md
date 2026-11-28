@@ -30,11 +30,15 @@ npm install @numero-uno-jpn/rstats
 ```
 
 ```ts
-import { pnorm, tTest, lm } from "@numero-uno-jpn/rstats";        // everything (tree-shaken by a bundler)
-import { qbeta } from "@numero-uno-jpn/rstats/distributions";       // or one area: distributions, tests,
+import { pnorm, tTest, lm } from "@numero-uno-jpn/rstats";        // the main entry point (tree-shaken by a bundler)
+import { qbeta } from "@numero-uno-jpn/rstats/distributions";       // or one of its areas: distributions, tests,
                                                                      // descriptive, linalg, numerics, special
 import { lmer, glmer } from "@numero-uno-jpn/rstats/mixed";        // mixed models: only from this area
 import { polr, rlm, nls } from "@numero-uno-jpn/rstats/regression"; // regression: only from this area
+import { hclust, manova } from "@numero-uno-jpn/rstats/multivariate"; // multivariate analysis: only from this area
+import { arima, forecast } from "@numero-uno-jpn/rstats/timeseries"; // time series: only from this area
+import { match, weightit } from "@numero-uno-jpn/rstats/causal";     // causal inference: only from this area
+import { survPlotData } from "@numero-uno-jpn/rstats/plot";         // plot data: only from this area
 import { rq, rqSummary, rqPredict, rqPredictInterval, rqAnova } from "@numero-uno-jpn/rstats/regression";
 import { geeglm, geeSummary, geeVcov, geePredict, geeAnova, geeQIC } from "@numero-uno-jpn/rstats/regression";
 import { glmnet, glmnetCoef, glmnetPredict, cvGlmnet } from "@numero-uno-jpn/rstats/regression";
@@ -46,7 +50,7 @@ penalized regression (`glmnet`). For example, `rq("y ~ x", data, { tau: 0.5 })` 
 `glmnet(x, y, { family: "gaussian", alpha: 1 })` fits a lasso path. Use `rqSummary` / `rqPredictInterval`,
 `geeSummary` / `geeVcov` / `geeQIC`, and `glmnetCoef` / `glmnetPredict` / `cvGlmnet` for their methods.
 
-Without a bundler, `https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@1.17.0/dist/rstats.js` is one ES module with
+Without a bundler, `https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@1.21.0/dist/rstats.js` is one ES module with
 every function except mixed models, regression, multivariate analysis, time series, causal inference and plot data,
 which are in `dist/mixed.js`, `dist/regression.js`, `dist/multivariate.js`, `dist/timeseries.js`, `dist/causal.js` and
 `dist/plot.js`. Keep a version in the URL (an exact one, or a

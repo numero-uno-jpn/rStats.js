@@ -94,6 +94,8 @@ rStats.js に既にあるものと照らし合わせて決めました (2026-11-
    密度・箱ひげ図・plot.lm の診断図・予測・樹形図・バイプロットの値を、どの描画ライブラリにも渡せる行の配列で返す。
    `density`・`qqnorm`・`qqline`・`boxplotStats`・`lowess` と lm の影響の量)
 
+10 項目はすべて済みました (最後は 1.21.0)。次の項目はまだ決めていません。
+
 混合モデルの続き (以前の項目 1) は 1.6.0 に向けて済ませました: lme4 の `confint` (プロファイル尤度と Wald) と
 `simulate` に合わせた `confintLmer`、`confintGlmer`、`simulateLmer`、`simulateGlmer`。
 [oracle/mixedconfint-behaviour.md](oracle/mixedconfint-behaviour.md) と
@@ -148,9 +150,12 @@ Ahrens-Dieter、Box-Muller) も対象外です。古いコードの再現にし�
 バンドラを使う利用者には import した関数だけが入るので (`pnorm` だけなら gzip 後 1.6 KB)、関数を
 増やしても利用者の負担にはなりません。CDN 用には、分野ごとのファイル (`dist/distributions.js`、
 `dist/tests.js`、`dist/linalg.js`、`dist/descriptive.js`、`dist/numerics.js`、`dist/special.js`、
-`dist/mixed.js`) を esbuild のコード分割で作り (共通のコードは重複しない)、`mixed` 以外のすべてを含む
-`dist/rstats.js` も残しています (混合モデルは大きいので、全部入りのファイルに含めません。2026-11-05 に決定)。
-同じ分野はパッケージのサブパスとしても import できます (`@numero-uno-jpn/rstats/linalg` など)。
+`dist/mixed.js`、`dist/regression.js`、`dist/multivariate.js`、`dist/timeseries.js`、`dist/causal.js`、`dist/plot.js`)
+を esbuild のコード分割で作り (共通のコードは重複しない)、メインの入口の分野 (distributions・tests・linalg・
+descriptive・numerics・special) を含む `dist/rstats.js` も残しています。混合モデルは大きいので全部入りのファイルに
+含めず (2026-11-05 に決定)、1.7.0 以降に足した分野 (regression・multivariate・timeseries・causal・plot) も
+サブパスからだけ import します。すべての分野はパッケージのサブパスとして import できます
+(`@numero-uno-jpn/rstats/linalg` など)。
 大きさは `npm run size` で確かめられます。npm に公開した後は、export 単位でバンドルする CDN
 (`?exports=` を付けた esm.sh など) も選択肢になります。
 
@@ -159,9 +164,10 @@ Ahrens-Dieter、Box-Muller) も対象外です。古いコードの再現にし�
 - 寛容なライセンスの出典からのみ移植する: SciPy と xsf (BSD-3)、Boost.Math (BSL-1.0)、
   statsmodels (BSD-3)、lifelines (MIT)、LAPACK のリファレンス実装 (修正 BSD)、パブリック
   ドメインのコード (LINPACK、EISPACK、xsf とともに配布されている Cephes)、公表された論文。
-- R は、結果を照合する oracle として使う。R の挙動を確かめるために R のソースを読むのはよいが、
-  rStats.js が MIT ライセンスのままでいられるよう、R と GPL のパッケージのコードはコピーも翻訳も
-  しない。
+- R は、結果を照合する oracle として使う。rStats.js が MIT ライセンスのままでいられるよう、開発は
+  クリーンルームで行い、R と GPL のパッケージのソースは読まない、思い出して書かない、写さない
+  (2026-11-09 から。それまでは読むことを認めていた)。R の挙動は、文書、そこで引かれている論文、公開されている
+  関数の出力から、`experiments/` に記録する R の実験で確かめる。
 - 移植したファイルにはそれぞれ出典を書き、その出典を
   [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) に載せる。
   [CONTRIBUTING.ja.md](CONTRIBUTING.ja.md) も参照してください。

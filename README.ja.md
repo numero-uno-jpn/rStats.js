@@ -17,7 +17,8 @@ JavaScript とブラウザで使える、R と互換の統計関数のライブ�
   tree-shaking が効きます (`pnorm` だけなら gzip で 1.6 KB)。
 
 状態: **1.21.0。** R の stats パッケージの数値計算の中心
-(分布・記述統計・検定・線形モデル・特殊関数・数値計算・線形代数の基本) を、R と同じ結果でカバーすることを目指しています。残っている作業は
+(分布・記述統計・検定・線形モデル・特殊関数・数値計算・線形代数の基本) を、R と同じ結果でカバーすることを目指しています。その先の、医学・心理学の研究の分析 (回帰モデル・生存時間解析・
+メタ分析・多変量解析・時系列・因果推論・描画用のデータ) も扱います。済んだことと対象外のことは
 [ROADMAP.ja.md](ROADMAP.ja.md)、変更履歴は [CHANGELOG.md](CHANGELOG.md) (英語) にあります。
 
 ## インストール
@@ -226,7 +227,7 @@ eigen([[2, 1], [1, 3]]).values;     // ≈ [3.618033989, 1.381966011]
 | 分散分析 | formula で呼ぶ `aov` と `aovSummary` (多元、交互作用、共変量、`Error()` の層), `anova` (`anova.lm`。逐次の表とモデルの比較), `Anova` (car の Type II と III), `aovEz` (afex。反復測定と混合計画、Greenhouse-Geisser と Huynh-Feldt の補正、一般化 η² と偏 η²), `mauchlyTest` (`mauchly.test`) |
 | 効果量と検出力 | `cohensD`, `hedgesG` (effectsize。信頼区間は厳密な限界), `etaSquared`, `omegaSquared`, `epsilonSquared` (偏・一般化。`anova` と `Anova` の表から), `powerTTest`, `powerPropTest`, `powerAnovaTest` (`power.*.test`), `pwrTTest`, `pwrT2nTest`, `pwr2pTest`, `pwr2p2nTest`, `pwrPTest`, `pwrNormTest`, `pwrRTest`, `pwrChisqTest`, `pwrAnovaTest`, `pwrF2Test`, `esH`, `esW1`, `esW2`, `cohenES` (pwr) |
 | 試験デザインの標本サイズと検出力 | `epiSsequb`・`epiSsequc`・`epiSsninfb`・`epiSsninfc`・`epiSssupb`・`epiSssupc` (epiR: 比率と平均の同等性・非劣性・優越性)、`powerPaired2x2` (対応のある 2 × 2 表の正確な McNemar 検定の検出力)、`ssizeCT`・`powerCT`・`ssizeEpi`・`powerEpi`・`numDEpi` (生存時間の標本サイズと検出力)、`ph2simon` (Simon の 2 段階デザイン) |
-| メタアナリシス | `escalc` (効果量と標本分散)、`rma` (等効果・ランダム効果のメタアナリシスとメタ回帰)、`confintRma`・`predictRma`・`regtest` (metafor)。`metagen`・`metabin`・`metacont`・`metainc`・`metacor`・`metamean`・`metarate`・`metaprop`・`metapropGlmm`・`metaSubgroup`・`metabias`・`metareg`・`metainf`・`metacum`・`baujat`・`trimfill` (meta)。ネットワークメタアナリシス: `netmeta`・`netrank`・`netsplit`・`netleague`・`decompDesign`・`netmeasures`・`netconnection`・`pairwise`・`netcomb`・`discomb`・`netposet` (netmeta) |
+| メタアナリシス | `escalc` (効果量と標本分散)、`rma` (等効果・ランダム効果のメタアナリシスとメタ回帰)、`confintRma`・`predictRma`・`regtest` (metafor)。`metagen`・`metabin`・`metacont`・`metainc`・`metacor`・`metamean`・`metarate`・`metaprop`・`metapropGlmm`・`metaSubgroup`・`metabias`・`metareg`・`metainf`・`metacum`・`baujat`・`trimfill`・`heterogeneityIntervals`・`genqInterval`・`pWeightedChisq` (meta)。ネットワークメタアナリシス: `netmeta`・`netrank`・`netsplit`・`netleague`・`decompDesign`・`netmeasures`・`netconnection`・`pairwise`・`netcomb`・`discomb`・`netposet` (netmeta) |
 | 線形モデル | `lm` (formula とデータフレーム、または行列で渡す。`summary` の値も返す), `modelMatrix` (`model.matrix`), `confint`, `predict`, `lmHatvalues`, `lmRstandard`, `lmRstudent`, `lmCooksDistance`。`glm` (formula とデータフレーム、または行列で渡す。R の `stats` のすべての族とリンク) と `glmSummary` (`summary.glm`)、`svyglm` (逆確率重みに対する `survey::svyglm`: デザインに基づく標準誤差)、`glmResiduals` (4 種類)、`glmHatvalues`、`glmRstandard`、`glmCooksDistance`、`glmPredict` (標準誤差つき)、`glmConfint` (プロファイル尤度、厳密な限界)、`glmAnova` (`anova.glm`)。`vcovHC`、`vcovCL` (sandwich: HC0〜HC5、一元と多元のクラスター)、`coeftest`、`coefci` (lmtest)。`step`、`stepAIC` (lm と glm の AIC・BIC による段階的な変数選択)、`drop1`、`add1`、`extractAIC` |
 | 回帰 | `tobit`・`tobitSummary` (AER: `survreg` の上の Tobit 回帰、下限・上限、survreg のどの分布でも)、`betareg`・`betaregSummary`・`betaregConfint`・`betaregPredict`・`betaregResiduals` (betareg: 精度が定数か回帰のベータ回帰、平均のリンク 6 つ、最尤・バイアス補正・バイアス減少)、`loglin`・`loglm`・`loglmResiduals`・`loglmAnova` (反復比例当てはめによる対数線形モデル)、`multinom`・`multinomSummary`・`multinomConfint`・`multinomPredict`・`multinomAnova`・`multinomVcov` (nnet: 重みと decay つきの多項ロジスティック回帰)、`polr`・`polrSummary`・`polrVcov`・`polrPredict`・`polrConfint`・`polrAnova` (MASS: logistic・probit・cloglog・loglog・cauchit のリンクによる順序ロジスティック回帰)、`rlm`・`rlmSummary`・`rlmVcov`・`psiHuber`・`psiHampel`・`psiBisquare` (MASS: M 推定と MM 推定によるロバスト回帰)、`nls`・`nlsSummary`・`nlsVcov`・`nlsPredict`・`nlsConfint`・`nlsAnova` (非線形最小二乗法: 既定・`plinear`・`port` のアルゴリズムと 10 個の自己開始モデル)、`rq`・`rqSummary`・`rqPredict`・`rqPredictInterval`・`rqAnova` (分位点回帰)、`geeglm`・`geeSummary`・`geeVcov`・`geePredict`・`geeAnova`・`geeQIC` (一般化推定方程式)、`glmnet`・`glmnetCoef`・`glmnetPredict`・`cvGlmnet` (Gaussian・binomial・Poisson・multinomial の正則化回帰)、`btm`・`btAbilities`・`countsToBinomial` (BradleyTerry2: 一対比較、対象の共変量と変量効果の PQL も)、`qvcalc`・`worstErrors` (準分散)。`@numero-uno-jpn/rstats/regression` から import します |
 | 多変量解析 | `manova`・`manovaSummary` (逐次 MANOVA: Pillai・Wilks・Hotelling-Lawley・Roy)、`lda`・`ldaPredict` (線形判別分析)、`cancor` (正準相関)、`dist`・`asDist`・`hclust`・`cutree`・`kmeans` (クラスタ分析)、`cmdscale` (古典的多次元尺度法)、`ca`・`caSummary`・`caCoord` (対応分析)、`mjca` (多重対応分析)、`sammon`・`isoMDS` (非計量多次元尺度法)。`@numero-uno-jpn/rstats/multivariate` から import します |
@@ -299,21 +300,23 @@ double-double 演算で計算しているためです。詳しくは [docs/ja/ac
 | `solve` / `svd` / `eigen` | 2.4 / 2.4 / 5.1 KB |
 | `wilcoxTest` / `fisherTest` / `tTest` | 18.9 / 27.9 / 31.0 KB |
 | `qbeta` / `pt` と `qt` | 43.9 / 40.4 KB |
-| `glm` と `glmSummary` / `glm` とそのすべての関数 | 40.6 / 56.9 KB |
+| `glm` と `glmSummary` / `glm` とそのすべての関数 | 40.6 / 57.0 KB |
 | `lmer` (`/mixed` から) / `lmerSummary`・`lmerContest`・`lmerAnova` も | 19.4 / 70.0 KB |
 | `glmer` (`/mixed` から) / `glmerSummary`・`glmerAnova`・`glmerPredict` も | 47.2 / 66.1 KB |
 | `polr` / `rlm` / `nls` (`/regression` から) | 25.0 / 14.6 / 8.0 KB |
-| すべて (`/mixed` と `/regression` を除く) | 385.0 KB |
+| メインの入口のすべて (`dist/rstats.js`) | 385.0 KB |
 
 (`npm run size` で測れます。)
 
 分野ごとにサブパスからも export しているので、1 つの分野だけを import することもできます。
 `@numero-uno-jpn/rstats/distributions`、`/tests` (検定、`lm`・`confint`・`predict`、`glm` とその関数)、`/linalg`、
-`/descriptive`、`/numerics`、`/special`、`/mixed`、`/regression` です (`/mixed` の `lmer`・`glmer` とその関数と、
-`/regression` の `polr`・`rlm`・`nls` とその関数は、この方法でしか import できません。メインの入口には含めていません)。
+`/descriptive`、`/numerics`、`/special` (この 6 つでメインの入口を作ります)、`/mixed` (`lmer`・`glmer` とその関数)、
+`/regression` (`polr`・`rlm`・`nls`・`rq`・`geeglm`・`glmnet`・`multinom`・`tobit`・`betareg` などとその関数)、
+`/multivariate`、`/timeseries`、`/causal`、`/plot` です。後の 6 つの分野は、この方法でしか import できません
+(メインの入口には含めていません)。
 
-バンドラを使わない場合は、1 ファイルにまとめたビルド `dist/rstats.js` (`/mixed` と `/regression` 以外のすべての関数を含む
-minify 済みの ES モジュール、gzip で 385 KB) を jsDelivr から読み込めます。jsDelivr は、npm のリリースを
+バンドラを使わない場合は、1 ファイルにまとめたビルド `dist/rstats.js` (メインの入口のすべての関数、つまり `/mixed`・`/regression`・`/multivariate`・
+`/timeseries`・`/causal`・`/plot` 以外のすべての関数を含む minify 済みの ES モジュール、gzip で 385 KB) を jsDelivr から読み込めます。jsDelivr は、npm のリリースを
 そのまま配信します。
 
 ```html
@@ -334,7 +337,7 @@ minify 済みの ES モジュール、gzip で 385 KB) を jsDelivr から読み
 `dist/tests.js`、`dist/linalg.js`、`dist/descriptive.js`、`dist/numerics.js`、`dist/special.js`、
 `dist/mixed.js`、`dist/regression.js`、`dist/multivariate.js`、`dist/timeseries.js`、`dist/causal.js`、`dist/plot.js` は上のサブパスと同じ関数を export し、共通のコードを `dist/chunks/` で共有します。そのため、
 2 つの分野を読み込んでも共通部分は 1 回しか読み込まれません。chunk を含めた 1 分野の転送量は、gzip で
-39 KB (`special`) から 288 KB (`tests`) です。
+38 KB (`special`) から 357 KB (`tests`) です。
 
 1 つのページでは、`dist/rstats.js` か分野ごとのバンドルのどちらか一方だけを使ってください。両者は別々の
 モジュールの集まりなので、混ぜると共通のコードが 2 回読み込まれ、乱数の状態も 2 つになります (一方の `setSeed`
@@ -349,7 +352,7 @@ npm を元にしたほかの CDN も使えます。たとえば `https://esm.sh/
 ブラウザ向けのビルドは、headless Chromium でテストしています。バンドラでまとめた場合と、
 `dist/rstats.js` を ES モジュールとして読み込んだ場合の両方です (`npm run test:browser`)。
 
-**デモ:** <https://numero-uno-jpn.github.io/rStats.js/demo/>。[`demo/`](demo) は、`dist/rstats.js` を jsDelivr から読み込んで、すべての関数を試せる
+**デモ:** <https://numero-uno-jpn.github.io/rStats.js/demo/>。[`demo/`](demo) は、`dist/rstats.js` と分野ごとのバンドルを jsDelivr から読み込んで、すべての関数を試せる
 静的なページです。確率分布 (グラフ付き)・特殊関数・乱数・検定・線形代数を扱います。各フォームには、
 入力に対応する R と JavaScript のコードが表示されます。「R との比較」のタブでは、例題の値を R が
 出力した値と照らし合わせます (`source("examples.R")` で、すべての例題を R で実行できます)。CDN の

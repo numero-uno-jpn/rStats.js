@@ -1,7 +1,7 @@
 {
   "name": "@numero-uno-jpn/rstats",
   "version": "1.21.0",
-  "description": "R-compatible statistical functions for the browser: distributions, random numbers that match set.seed(), hypothesis tests and linear algebra, tested against R.",
+  "description": "R-compatible statistics for JavaScript and the browser: distributions, random numbers that match set.seed(), hypothesis tests, linear and mixed models, regression, survival, meta-analysis, time series, causal inference and plot data, tested against R.",
   "keywords": [
     "statistics",
     "r",
