@@ -127,7 +127,7 @@
   "LmDiagnosticsDataOptions.span#summary": {
     "hash": "8492f257de6c",
     "en": "The span of the lowess smooths (panel.smooth's). Default `2/3`.",
-    "ja": "lowess 平滑線の span です (`panel.smooth` のもの)。既定は `2/3` です。"
+    "ja": "lowess 平滑線の span です (panel.smooth のもの)。既定は `2/3` です。"
   },
   "NetgraphInput#summary": {
     "hash": "febb4daca02e",
