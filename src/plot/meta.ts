@@ -37,6 +37,25 @@ const z = (level: number): number => qnorm((1 + levelCheck(level)) / 2);
 const isRma = (fit: MetaResult | RmaResult): fit is RmaResult => "yi" in fit && "vi" in fit;
 const scalar = (v: number | number[]): number => (Array.isArray(v) ? v[0]! : v);
 
+/**
+ * The weights in percent. Divided by the largest first, so that weights near the ends of the range do not overflow
+ * in the sum; weights that are not representable (1 / se^2 overflows for se near 1e-300 and underflows to 0 near
+ * 1e300) are recomputed as 1 / (se^2 + tau^2) in units of the largest standard error, when tau is finite
+ */
+function percentWeights(w: readonly number[], se: readonly number[], tau: number): number[] {
+  const ok = w.every((v) => Number.isFinite(v) && v >= 0) && w.some((v) => v > 0);
+  let u: number[];
+  if (ok) {
+    const m = Math.max(...w);
+    u = w.map((v) => v / m);
+  } else if (Number.isFinite(tau)) {
+    const m = Math.max(...se.filter(Number.isFinite), tau);
+    u = se.map((v) => 1 / ((v / m) ** 2 + (tau / m) ** 2));
+  } else return w.map(() => NaN);
+  const total = u.reduce((a, b) => a + b, 0);
+  return u.map((v) => (100 * v) / total);
+}
+
 /** The diamond of a pooled estimate as a closed polygon around row y */
 function diamond(label: string, y: number, est: number, lo: number, hi: number, half = 0.35) {
   return [
@@ -85,10 +104,10 @@ export function forestPlotData(
     if (fit.p !== 1 || !fit.intercept) throw new RangeError("forestPlotData: a meta-regression has no single pooled estimate");
     w = fit.vi.map((v) => 1 / (v + fit.tau2));
   } else w = showRandom ? fit["w.random"] : fit["w.common"];
-  const wsum = w.reduce((s, v) => s + v, 0);
+  const pct = percentWeights(w, se, rma ? Math.sqrt(fit.tau2) : showRandom ? fit.tau : 0);
   const studies = te.map((t, i) => {
     const [a, b] = [tf(t - zq * se[i]!), tf(t + zq * se[i]!)];
-    return { label: labels[i]!, y: k - i, estimate: tf(t), lower: Math.min(a, b), upper: Math.max(a, b), se: se[i]!, weight: (100 * w[i]!) / wsum };
+    return { label: labels[i]!, y: k - i, estimate: tf(t), lower: Math.min(a, b), upper: Math.max(a, b), se: se[i]!, weight: pct[i]! };
   });
   const pooled: { label: string; y: number; estimate: number; lower: number; upper: number; type: string }[] = [];
   const add = (label: string, type: string, est: number, lo: number, hi: number) => {

@@ -90,8 +90,9 @@ export function lmDiagnosticsData(
   const extC = topN(cooks, idN);
   const ok = rs.map(Number.isFinite);
   const residualsFitted = fitted.map((x, i) => ({ x, y: res[i]!, index: index[i]!, extreme: ext1.has(i) }));
-  const q = qqnorm(rs.map((v) => (Number.isFinite(v) ? v : NaN)));
-  const qq = rs.flatMap((v, i) => (ok[i] ? [{ x: q.x[i]!, y: v, index: index[i]!, extreme: extR.has(i) }] : []));
+  // an exact fit (or every leverage 1) leaves no standardized residual: those panels are then empty
+  const q = ok.some(Boolean) ? qqnorm(rs.map((v) => (Number.isFinite(v) ? v : NaN))).x : rs.map(() => NaN);
+  const qq = rs.flatMap((v, i) => (ok[i] ? [{ x: q[i]!, y: v, index: index[i]!, extreme: extR.has(i) }] : []));
   const sl = rs.map((v) => Math.sqrt(Math.abs(v)));
   const scaleLocation = fitted.flatMap((x, i) => (ok[i] ? [{ x, y: sl[i]!, index: index[i]!, extreme: extR.has(i) }] : []));
   const leverage = h.flatMap((x, i) => (ok[i] ? [{ x, y: rs[i]!, cooks: cooks[i]!, index: index[i]!, extreme: extC.has(i) }] : []));

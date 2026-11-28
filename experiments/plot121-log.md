@@ -125,3 +125,20 @@ rStats.js's metagen (and the functions built on it), the MH and Peto branches of
 construction as metainc's), metapropGlmm and netmeta (which gains
 `levelMa`) default levelMa and levelPredict to 0.95 whatever `level` is. Not checked: which level meta's and
 netmeta's heterogeneity (I², H) intervals use; rStats.js keeps `level` there as before.
+
+## Experiment 6: survfit and metagen at extreme scales (2026-11-28)
+
+`plot121-survscale.R` → `plot121-survscale.json`. The first run stopped: R's metagen at 1e-300 times the data
+fails ("Division by zero when computing the inverse variance weights."); the calls were wrapped in tryCatch.
+
+1. survfit: with the default timefix, the times 1, 2, 3, 4 times 1e-300, 1e-150 and 1e-8 are merged into one (surv
+   0.25), as rStats.js's survfit does; timefix = FALSE keeps them. From 1 to 1e300 the four times are kept. So the
+   plot data's scale checks of survival curves use scales of 1 and above.
+2. metagen: R fails at 1e-300 (above) and 1e300 ("missing value where TRUE/FALSE needed"); rStats.js returns
+   estimates, but tau2 is not representable there (4.6e-602 underflows to 0, 4.6e598 overflows): forestPlotData's
+   weights are recomputed from the standard errors in units of the largest one when the fit's weights are not
+   representable (exact for the common effect weights at both ends), and are NaN where tau is infinite.
+3. Found on the way (not changed, for the user): metagen's REML tau2 for these data is 0.046322077947739 at scale 1
+   (R's value: R stops its iteration short of the maximum, which is 0.046320745234; my golden-section search on the
+   REML profile), but at 1e±150 rStats.js gives 0.04632080937 × scale², between the two. The stopping rule follows R
+   at scale 1 and is not scale-invariant.
