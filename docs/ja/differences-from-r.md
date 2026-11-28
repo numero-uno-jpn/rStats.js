@@ -1986,3 +1986,41 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
 
 - 図。`netmeasures` の平均経路長と最小並列性 (直接のエビデンスの割合だけを返します)。`supsmu` は同じ x を別の点として
   扱います (R は重複のない x を返します)。
+
+## 描画用のデータ (1.21.0)
+
+R は図を描画しますが、rStats.js は R のプロットが描画する値を返します (別の入口 `/plot`。[結果の描画](plotting.md) を参照)。その基礎となる統計量は `/descriptive` と `/tests` にあります。
+
+### `density`、`bwNrd0`、`bwNrd`
+
+- `density` は丸め誤差の範囲で R の値を返します (ピークの 1e-11 以内)。同じビン分割近似 ( [from − 4 bw, to + 4 bw] 上の 2m 点の格子で線形ビニングし、FFT で畳み込み、線形補間) を使い、カーネル和を厳密には計算しません。カーネル、`adjust`、`weights`、`n`、`from`、`to`、`cut`、`naRm` は R と同じです。メッセージと警告も R と同じです。無限大の値は n に数えますが、その確率質量は失われます (R と同じ)。
+- 帯域幅の規則は `"nrd0"` と `"nrd"` (大文字・小文字を問わない)、または数値です。R の `"ucv"`、`"bcv"`、`"SJ"` は提供していません (エラーになります)。
+- データを 1e-300 倍すると、R の標準偏差は 0 にアンダーフローするため、`bw.nrd0` は |x[1]| にフォールバックします (help の例を尺度化した場合は 2.093e-300 ではなく 2.022e-300)。rStats.js は尺度化された帯域幅と密度を返します。
+
+### `lowess`
+
+- R の平滑化は極端な尺度で同変ではありません。データを 1e300 倍すると、尺度化した平滑線と異なり、共通の値 1e8 (1e15) を加えると端点で 0.6 (1e14) ずれます。rStats.js は最初に x と y を中心化するため、尺度 1、尺度化、平行移動のいずれでも同じ平滑線になります。
+- `y` の欠測値はエラーです (R は y を平滑化せずに返します)。`x` の欠測値または無限大の値もエラーです (R のメッセージは delta に関するものです)。
+
+### `qqnorm`、`qqline`、`ppoints`、`boxplotStats`
+
+- R と同じです。`qqline` は直線の切片と傾きを返します (R は直線を描画します)。小数の n を指定した `ppoints` は、分母には n を使いながら、R と同じく floor(n) 個の点を返します。
+
+### `lmHatvalues`、`lmRstandard`、`lmRstudent`、`lmCooksDistance`
+
+- lm に対する R の hatvalues、rstandard (`type: "predictive"` も含む)、rstudent、cooks.distance と同じです。重みが 0 でない行ごとに 1 つの値を返し、てこ比が 1 の場合は NaN です。残差自由度が 1 のとき、R の rstudent は丸め誤差の影響で NaN または 0 になります。rStats.js も独自の丸めによって同様に NaN または 0 を返します。
+- 1e200 近くの残差も、二乗時にオーバーフローしません (rstudent は残差標準誤差を単位として計算します)。
+
+### 描画用データ関数
+
+- R のプロットの仕様に従います: `plot.survfit` (曲線は (0, 1) から開始、打ち切りの印、`fun`)、`summary.survfit` のリスク表 (R と照合済み)、meta の `forest` (研究ごとの区間とパーセント表示の重み。R と照合済み) と `funnel`、`netgraph` (既定の円形レイアウト)、`qqnorm` / `qqline`、`boxplot`、`plot.ecdf`、`hist`、`plot.lm` (`which = c(1, 2, 3, 5))、`panel.smooth` の lowess、0.5 と 1 の Cook の距離の等高線、R がラベルを付ける 3 点)、`plot.acf)、forecast の `plot.forecast`、`plot.hclust` (`as.dendrogram` の中点との照合で結合位置を確認、`hang`)、および `biplot.prcomp` (`scale`、`pc.biplot`。ヘルプページに基づく)。
+- `survPlotData` の `fun: "cumhaz"` は、当てはめ結果の累積ハザードを信頼帯なしで描画します。
+- 提供しないもの: 描画そのもの、`plot.lm` のパネル 4 と 6、survminer の表、R のヒューリスティックによるラベル配置です。
+
+### meta の `level` (1.20.0 の訂正)
+
+- meta と netmeta では、`level` は研究ごとの区間だけを設定します。統合区間には `level.ma`、予測区間には `level.predict` を使い、どちらも `level` の値にかかわらず既定は 0.95 です。1.20.0 では、`metagen` (およびそれを基にする関数)、`metabin` と `metainc` の Mantel-Haenszel 推定値と Peto 推定値、`metapropGlmm`、`netmeta` が `level` を既定値としていました。1.21.0 からは R と同じく 0.95 を既定値とします (`netmeta` には `levelMa` を追加しました)。異質性区間 (I²、H) は引き続き `level` を使います (R との照合はしていません)。
+
+### meta の REML tau2 (1.20.0 からの変更)
+
+- metafor は tau2 の変化が絶対値 1e-5 未満になると Fisher scoring を停止しますが、これは REML 尤度の最大値に達する前です (3 研究の場合は 0.0463221 で停止し、最大値は 0.0463207)。データの尺度を変えると相対的な結果も異なります。1.21.0 からは `metagen` と、それを基にする関数 (`metabin`、`metacont`、...、`trimfill`、`metainf`、`metacum`、`metaSubgroup`) は最大値まで反復します。R の `control = list(threshold = 1e-14)` と一致し (R の `trimfill` は control なしで再当てはめします)、どの尺度でも同じ結果になります。`rma` は metafor の既定を維持します。
