@@ -1,0 +1,407 @@
+{
+  "BiplotDataOptions#summary": {
+    "hash": "0768c754f310",
+    "en": "Options for {@link biplotData}.",
+    "ja": ""
+  },
+  "BiplotDataOptions.choices#summary": {
+    "hash": "652f214d97e4",
+    "en": "The two components, 1-based. Default `[1, 2]`.",
+    "ja": ""
+  },
+  "BiplotDataOptions.pcBiplot#summary": {
+    "hash": "a6e3b6554738",
+    "en": "Gabriel's principal component biplot: lambda = 1, observations times sqrt(n), variables over sqrt(n). Default `false`.",
+    "ja": ""
+  },
+  "BiplotDataOptions.scale#summary": {
+    "hash": "e1a9295deac0",
+    "en": "The variables are scaled by lambda^scale, the observations by lambda^(1 - scale). Default `1` (as R).",
+    "ja": ""
+  },
+  "DendrogramDataOptions#summary": {
+    "hash": "541083e191f7",
+    "en": "Options for {@link dendrogramData}.",
+    "ja": ""
+  },
+  "DendrogramDataOptions.hang#summary": {
+    "hash": "bb918955dff5",
+    "en": "The fraction of the height range by which a leaf hangs below the merge that takes it in (R's `hang`). Default\n`0.1`, as `plot.hclust`; a negative value puts every leaf at height 0.",
+    "ja": ""
+  },
+  "ForecastPlotDataOptions#summary": {
+    "hash": "0ee4d646cc08",
+    "en": "Options for {@link forecastPlotData}.",
+    "ja": ""
+  },
+  "ForecastPlotDataOptions.frequency#summary": {
+    "hash": "9663ae369dda",
+    "en": "Observations per unit of time (12 for monthly data with yearly time). Default `1`.",
+    "ja": ""
+  },
+  "ForecastPlotDataOptions.start#summary": {
+    "hash": "c5d3c756ab4f",
+    "en": "The time of the first observation. Default `1`.",
+    "ja": ""
+  },
+  "ForestPlotDataOptions#summary": {
+    "hash": "f69aefa5dba7",
+    "en": "Options for {@link forestPlotData}.",
+    "ja": ""
+  },
+  "ForestPlotDataOptions.common#summary": {
+    "hash": "f46dfd3fce78",
+    "en": "Show the common effect estimate (meta's results only). Default `true`.",
+    "ja": ""
+  },
+  "ForestPlotDataOptions.labels#summary": {
+    "hash": "c652cb82286c",
+    "en": "The study labels. Default `\"Study 1\"`, `\"Study 2\"`, ...",
+    "ja": ""
+  },
+  "ForestPlotDataOptions.level#summary": {
+    "hash": "5b057408691b",
+    "en": "The level of the study intervals. Default `0.95` (the pooled intervals are the fit's).",
+    "ja": ""
+  },
+  "ForestPlotDataOptions.prediction#summary": {
+    "hash": "648e33be3257",
+    "en": "Show the prediction interval (meta's results only). Default `false`.",
+    "ja": ""
+  },
+  "ForestPlotDataOptions.random#summary": {
+    "hash": "e0318ddb14d9",
+    "en": "Show the random effects estimate (meta's results only). Default `true`.",
+    "ja": ""
+  },
+  "ForestPlotDataOptions.transform#summary": {
+    "hash": "39a35ad32fec",
+    "en": "A transformation of the estimates and limits, such as `Math.exp` for log odds ratios. Default none.",
+    "ja": ""
+  },
+  "FunnelPlotDataOptions#summary": {
+    "hash": "6a2ee91f8af5",
+    "en": "Options for {@link funnelPlotData}.",
+    "ja": ""
+  },
+  "FunnelPlotDataOptions.contourCentre#summary": {
+    "hash": "6bda2c452aaa",
+    "en": "The centre of the contours (the null effect). Default `0`.",
+    "ja": ""
+  },
+  "FunnelPlotDataOptions.contours#summary": {
+    "hash": "36033065cbf7",
+    "en": "Levels of a contour-enhanced funnel plot (Peters et al. 2008), around `contourCentre`, such as `[0.9, 0.95,\n0.99]`. Default none.",
+    "ja": ""
+  },
+  "FunnelPlotDataOptions.level#summary": {
+    "hash": "c838244557a0",
+    "en": "The level of the pseudo confidence region. Default `0.95`.",
+    "ja": ""
+  },
+  "FunnelPlotDataOptions.n#summary": {
+    "hash": "b568dab88f68",
+    "en": "The number of standard errors of the region's outline. Default `50`.",
+    "ja": ""
+  },
+  "FunnelPlotDataOptions.reference#summary": {
+    "hash": "fbf5923086a8",
+    "en": "The centre of the region: `\"common\"` (default, as meta's funnel), `\"random\"`, or a number.",
+    "ja": ""
+  },
+  "LmDiagnosticsDataOptions#summary": {
+    "hash": "e0c97db3a392",
+    "en": "Options for {@link lmDiagnosticsData}.",
+    "ja": ""
+  },
+  "LmDiagnosticsDataOptions.cookLevels#summary": {
+    "hash": "c08e9ca30dee",
+    "en": "The levels of Cook's distance contours. Default `[0.5, 1]`.",
+    "ja": ""
+  },
+  "LmDiagnosticsDataOptions.idN#summary": {
+    "hash": "aa762ff25833",
+    "en": "How many of the most extreme points each panel flags (R's `id.n`). Default `3`.",
+    "ja": ""
+  },
+  "LmDiagnosticsDataOptions.span#summary": {
+    "hash": "8492f257de6c",
+    "en": "The span of the lowess smooths (panel.smooth's). Default `2/3`.",
+    "ja": ""
+  },
+  "NetgraphInput#summary": {
+    "hash": "febb4daca02e",
+    "en": "The comparisons netgraph needs from a {@link netmeta} fit.",
+    "ja": ""
+  },
+  "PlotData#summary": {
+    "hash": "6bf2b3bbf2ea",
+    "en": "The data of a figure: named layers of rows (each layer one kind of mark: a line, points, a band) and\n{@link PlotMeta}. The plot-data functions return this shape with their own row types.",
+    "ja": ""
+  },
+  "PlotData.layers#summary": {
+    "hash": "d5d7042b68b9",
+    "en": "The layers, each an array of rows.",
+    "ja": ""
+  },
+  "PlotData.meta#summary": {
+    "hash": "804e935ae0e6",
+    "en": "Labels and summary numbers.",
+    "ja": ""
+  },
+  "PlotMeta#summary": {
+    "hash": "0953e92b36e8",
+    "en": "Axis labels and other facts about a figure, for titles and legends.",
+    "ja": ""
+  },
+  "PlotMeta.title#summary": {
+    "hash": "df510380e35b",
+    "en": "A suggested title.",
+    "ja": ""
+  },
+  "PlotMeta.xLabel#summary": {
+    "hash": "46105216041e",
+    "en": "A suggested label of the x axis.",
+    "ja": ""
+  },
+  "PlotMeta.yLabel#summary": {
+    "hash": "b6e632106480",
+    "en": "A suggested label of the y axis.",
+    "ja": ""
+  },
+  "PlotRow#summary": {
+    "hash": "e9428504fc5a",
+    "en": "One row of a plot layer: numbers (NaN for a missing value) and strings.",
+    "ja": ""
+  },
+  "SurvPlotDataOptions#summary": {
+    "hash": "a4d8f4ff3656",
+    "en": "Options for {@link survPlotData}.",
+    "ja": ""
+  },
+  "SurvPlotDataOptions.fun#summary": {
+    "hash": "d0983a8ea958",
+    "en": "What to plot: `\"surv\"` (default) the survival S(t); `\"event\"` the cumulative incidence 1 - S(t); `\"cumhaz\"` the\nfit's cumulative hazard (no band); `\"cloglog\"` log(-log S(t)) against log t (as R's `fun`).",
+    "ja": ""
+  },
+  "SurvPlotDataOptions.riskTimes#summary": {
+    "hash": "8b28845c604d",
+    "en": "Times of the risk table. Default: R's `pretty()` of 0 and the last time.",
+    "ja": ""
+  },
+  "SurvStepRow#summary": {
+    "hash": "f65ff201a213",
+    "en": "The rows of a survival curve: one per change point of the step function (draw them as steps after each point:\nObservable Plot's `curve: \"step-after\"`, Plotly's `line.shape: \"hv\"`).",
+    "ja": ""
+  },
+  "SurvStepRow.group#summary": {
+    "hash": "69c5e3c4736c",
+    "en": "The stratum's label.",
+    "ja": ""
+  },
+  "SurvStepRow.x#summary": {
+    "hash": "feab1e8391f0",
+    "en": "The time.",
+    "ja": ""
+  },
+  "SurvStepRow.y#summary": {
+    "hash": "022245b65042",
+    "en": "The curve's value from this time on.",
+    "ja": ""
+  },
+  "SurvStepRow.ymin#summary": {
+    "hash": "8c4e6f075a7e",
+    "en": "The lower and upper confidence limits (NaN where there are none).",
+    "ja": ""
+  },
+  "acfPlotData#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "acfPlotData#summary": {
+    "hash": "c3da0dd2d8b6",
+    "en": "Plot data for an autocorrelation plot from {@link acf} (or {@link pacf}, {@link ccf}): the bars and the band\n+- qnorm((1 + ci) / 2) / sqrt(n.used) of R's `plot.acf` (white noise).\nNot an R function. R's plots draw these values without returning them.\n\nLayers: `bars` (`lag`, `acf`); `band` (`lag`, `lower`, `upper`, over the lags). `meta.clim` is the band's half-width.",
+    "ja": ""
+  },
+  "biplotData#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "biplotData#@throws": {
+    "hash": "d6f362f55afe",
+    "en": "RangeError for components out of range.",
+    "ja": ""
+  },
+  "biplotData#summary": {
+    "hash": "02bc3eb84474",
+    "en": "Plot data for a biplot of principal components ({@link prcomp}), as R's `biplot.prcomp`: the observations' scores and\nthe variables' loadings (draw these as arrows from the origin, usually on axes of their own), with lambda the\ncomponents' singular values sdev * sqrt(n).\nNot an R function. R's plots draw these values without returning them.\n\nLayers: `observations` (`x`, `y`, `index`, 1-based); `variables` (`x`, `y`, `variable`: 1-based or the name given).",
+    "ja": ""
+  },
+  "boxplotData#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "boxplotData#summary": {
+    "hash": "f57c8ab323f3",
+    "en": "Plot data for box plots of one or more groups, from {@link boxplotStats} (as R's `boxplot()`): a sample, or an\nobject of named samples (one box each, in the object's order).\nNot an R function. R's plots draw these values without returning them.\n\nLayers: `boxes` (`group`, `lower` whisker, `q1`, `median`, `q3`, `upper` whisker, `n`, `notchLower`,\n`notchUpper`); `outliers` (`group`, `y`).",
+    "ja": ""
+  },
+  "coefPlotData#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "coefPlotData#summary": {
+    "hash": "7e7d785bc3e3",
+    "en": "Plot data for a coefficient plot of a linear model: each coefficient with its confidence interval ({@link confint}).\nNot an R function. R's plots draw these values without returning them.\n\nLayer `coefficients`: `term`, `estimate`, `lower`, `upper`, `y` (from the top: the number of coefficients down to 1).",
+    "ja": ""
+  },
+  "cumincPlotData#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "cumincPlotData#summary": {
+    "hash": "747783eb12ac",
+    "en": "Plot data for cumulative incidence curves of competing risks from {@link cuminc}: one step function per group and\ncause (as `plot.cuminc` of cmprsk), with the pointwise standard error.\nNot an R function. R's plots draw these values without returning them.\n\nLayer `steps`: `x` (time), `y` (the estimate), `se` (the square root of its variance), `group` (the curve's name),\n`cause`, `stratum`.",
+    "ja": ""
+  },
+  "dendrogramData#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "dendrogramData#summary": {
+    "hash": "2bea48e2920d",
+    "en": "Plot data for the dendrogram of a hierarchical clustering ({@link hclust}): the leaves at x = 1, ..., n in the\nclustering's order, each merge at its height and centred over the two clusters it joins, as R's `plot.hclust`.\nNot an R function. R's plots draw these values without returning them.\n\nLayers: `segments` (`x1`, `y1`, `x2`, `y2`: the vertical and horizontal lines of the tree, `merge`: the merge's\nrow, 1-based); `leaves` (`x`, `y`: the end of the leaf's line, `label`, `index`: the observation, 1-based);\n`nodes` (`x`, `y`, `merge`).",
+    "ja": ""
+  },
+  "densityPlotData#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "densityPlotData#summary": {
+    "hash": "7eae53d387e5",
+    "en": "Plot data for a kernel density curve from {@link density}, with a rug of the data.\nNot an R function. R's plots draw these values without returning them.\n\nLayers: `curve` (`x`, `y`); `rug` (`x`: the finite values). `meta.bw` and `meta.n` as R's plot title shows them.",
+    "ja": ""
+  },
+  "ecdfPlotData#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "ecdfPlotData#summary": {
+    "hash": "e63a372957b8",
+    "en": "Plot data for the empirical distribution function of a sample (as R's `plot(ecdf(x))`): the steps at the distinct\nvalues (draw them as steps after each point), each with the fraction of values at or below it.\nNot an R function. R's plots draw these values without returning them.\n\nLayer `steps`: `x`, `y`. Missing values are left out.",
+    "ja": ""
+  },
+  "forecastPlotData#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "forecastPlotData#summary": {
+    "hash": "3a9a6627c1e6",
+    "en": "Plot data for a forecast fan, as forecast's `plot.forecast`: the observed series, the point forecasts and their\nprediction intervals (one band per level, widest first), from a forecast of rStats.js ({@link forecast},\n{@link forecastArima}, {@link forecastEts}, ...).\nNot an R function. R's plots draw these values without returning them.\n\nLayers: `history` (`x` = time, `y`); `mean` (`x`, `y`); `intervals` (`x`, `level`, `lower`, `upper`).",
+    "ja": ""
+  },
+  "forestPlotData#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "forestPlotData#@throws": {
+    "hash": "51a87aa9bdc3",
+    "en": "RangeError for a meta-regression (rma with moderators) or a label count that differs from the studies.",
+    "ja": ""
+  },
+  "forestPlotData#summary": {
+    "hash": "36cd54ef432a",
+    "en": "Plot data for a forest plot of a meta-analysis from {@link metagen} (and the other meta functions that return a\n{@link MetaResult}) or of an intercept-only {@link rma} fit: one row per study (from the top: `y` = k, k - 1, ...,\n1), then the pooled estimates below 0.\nNot an R function. R's plots draw these values without returning them.\n\nLayers: `studies` (`label`, `y`, `estimate`, `lower`, `upper`, `se`, `weight` in percent: the random effects\nweights when the random effects estimate is shown, else the common effect ones; for rma 1 / (vi + tau2));\n`pooled` (`label`, `y`, `estimate`, `lower`, `upper`, `type`: \"common\", \"random\", \"prediction\"); `diamonds`\n(closed polygons `x`, `y`, `group`, one per pooled estimate). `meta` carries tau2, I2, Q and its p-value.",
+    "ja": ""
+  },
+  "funnelPlotData#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "funnelPlotData#summary": {
+    "hash": "892e5d60f158",
+    "en": "Plot data for a funnel plot from a {@link MetaResult} or an {@link rma} fit: the studies' estimates against their\nstandard errors (plot the y axis reversed, 0 at the top), the reference line and the pseudo confidence region\nreference +- z se for se from 0 to the largest standard error.\nNot an R function. R's plots draw these values without returning them.\n\nLayers: `studies` (`x` = estimate, `y` = standard error); `region` (`y`, `xmin`, `xmax`); `reference` (two points\nof the vertical line); `contours` (`level`, `y`, `xmin`, `xmax`).",
+    "ja": ""
+  },
+  "histPlotData#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "histPlotData#summary": {
+    "hash": "6c231b6378f5",
+    "en": "Plot data for a histogram: the bars of {@link hist} (from a sample, with hist's options, or from its result).\nNot an R function. R's plots draw these values without returning them.\n\nLayer `bars`: `x0`, `x1` (the cell's ends), `mid`, `count`, `density`.",
+    "ja": ""
+  },
+  "lmDiagnosticsData#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "lmDiagnosticsData#summary": {
+    "hash": "9a960d8caf8d",
+    "en": "Plot data for the four default diagnostic plots of a linear model ({@link lm}), as R's `plot.lm` (`which = c(1, 2,\n3, 5)`), for the rows of non-zero weight (the residuals weighted as in R).\nNot an R function. R's plots draw these values without returning them.\n\nLayers (`index` is the row of the fit, `extreme` flags the `idN` most extreme points as R labels them):\n`residualsFitted` (`x` = fitted, `y` = residual) and its `residualsFittedSmooth`; `qq` (`x` = theoretical\nquantile, `y` = standardized residual); `scaleLocation` (`x` = fitted, `y` = sqrt |standardized residual|) and\n`scaleLocationSmooth`; `leverage` (`x` = leverage, `y` = standardized residual, `cooks`) and `leverageSmooth`;\n`cookContours` (`level`, `side` +1 or -1, `x`, `y`: the curves where Cook's distance equals each level). Rows of\nleverage 1 are left out of the panels that need standardized residuals (R does the same, with a warning).",
+    "ja": ""
+  },
+  "netgraphData#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "netgraphData#summary": {
+    "hash": "74129ccb740a",
+    "en": "Plot data for the network graph of a network meta-analysis from {@link netmeta}: the treatments on a circle (in\nthe fit's order, starting at the top and going clockwise, netgraph's default circle layout) and one edge per pair of\ntreatments compared directly, with the number of studies that compare them (netgraph's default line width).\nNot an R function. R's plots draw these values without returning them.\n\nLayers: `nodes` (`label`, `x`, `y`); `edges` (`from`, `to`, `x1`, `y1`, `x2`, `y2`, `studies`).",
+    "ja": ""
+  },
+  "predictionBandData#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "predictionBandData#summary": {
+    "hash": "ce37ec3e2951",
+    "en": "Plot data for the fitted line of a linear model with its confidence band (for the mean) and prediction band (for a\nnew observation), from {@link predict}, over the given new predictor values.\nNot an R function. R's plots draw these values without returning them.\n\nLayer `band`: `x` (the first predictor's value), `fit`, `confLower`, `confUpper`, `predLower`, `predUpper`.",
+    "ja": ""
+  },
+  "qqPlotData#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "qqPlotData#summary": {
+    "hash": "f6ce05800940",
+    "en": "Plot data for a normal Q-Q plot: the points (theoretical quantile, value) of {@link qqnorm} and the line of\n{@link qqline} through the quartiles, drawn across the range of the theoretical quantiles.\nNot an R function. R's plots draw these values without returning them.\n\nLayers: `points` (`x`, `y`, `index`: the position in the data); `line` (two points). `meta.intercept` and\n`meta.slope` give the line. Missing values are left out.",
+    "ja": ""
+  },
+  "rocPlotData#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "rocPlotData#summary": {
+    "hash": "ab92f2a536c4",
+    "en": "Plot data for an ROC curve from {@link roc}: the curve with false positive rate (1 - specificity) and sensitivity,\nordered for drawing as a line from (0, 0) to (1, 1), the chance diagonal, and the point of the largest Youden index\n(sensitivity + specificity - 1; the first such point).\nNot an R function. R's plots draw these values without returning them.\n\nLayers: `curve` (`x` = 1 - specificity, `y` = sensitivity, `specificity`, `threshold`); `diagonal`; `best`.\n`meta.auc` is the area under the curve.",
+    "ja": ""
+  },
+  "survPlotData#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "survPlotData#summary": {
+    "hash": "be70ec441e69",
+    "en": "Plot data for Kaplan-Meier (or other) survival curves from {@link survfit} or {@link survfitCoxph}: the steps with\ntheir confidence band, the censoring marks and a risk table. Each stratum starts at time 0 (or its first time if\nthat is negative) with S = 1, as R's `plot.survfit`.\nNot an R function. R's plots draw these values without returning them.\n\nLayers: `steps` (`x`, `y`, `ymin`, `ymax`, `group`); `censor` (`x`, `y`, `group`, `n`: the number censored);\n`riskTable` (`x`, `group`, `nRisk`).",
+    "ja": ""
+  }
+}

@@ -604,6 +604,16 @@
     "en": "The model matrix (with the column of ones when there is an intercept) of the rows used, unweighted.",
     "ja": "使った行のモデル行列です (切片があるときは 1 の列を含みます)。重みは掛けていません。"
   },
+  "LmRstandardOptions#summary": {
+    "hash": "d7d869b6e86d",
+    "en": "Options for {@link lmRstandard}.",
+    "ja": ""
+  },
+  "LmRstandardOptions.type#summary": {
+    "hash": "52221776346f",
+    "en": "`\"sd.1\"` (default): the internally studentized residuals r / (s sqrt(1 - h)); `\"predictive\"`: the leave-one-out\nprediction errors r / (1 - h) (r the residual times the square root of the weight) (as R's `type`).",
+    "ja": ""
+  },
   "MauchlyTestOptions#summary": {
     "hash": "a65fb918a703",
     "en": "Options for {@link mauchlyTest}.",
@@ -1048,6 +1058,51 @@
     "hash": "d0ea33286d36",
     "en": "Fit a linear model by least squares, the predictors given as a matrix: R's `lm(y ~ x)` (or `y ~ x - 1` without\nintercept, with `weights` for weighted least squares) together with `summary()`. Rows with a missing value in `x`,\n`y` or the weights are dropped.",
     "ja": "説明変数を行列で与えて、最小二乗法で線形モデルを当てはめます。R の `lm(y ~ x)` と `summary()` を合わせたものです (切片なしの場合は\n`y ~ x - 1`、重み付き最小二乗法の場合は `weights` を使います)。`x`、\n`y`、または重みに欠測値がある行は除きます。"
+  },
+  "lmCooksDistance#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "lmCooksDistance#summary": {
+    "hash": "8400dd272ce6",
+    "en": "Cook's distances of a linear model, one per row of non-zero weight. Equivalent to R's `cooks.distance()`. For an\n`lm` fit; NaN for a row of leverage 1.",
+    "ja": ""
+  },
+  "lmHatvalues#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "lmHatvalues#summary": {
+    "hash": "c227b0c2f9aa",
+    "en": "The leverages (the diagonal of the hat matrix) of a linear model, one per row of non-zero weight. Equivalent to R's\n`hatvalues()`. For an `lm` fit.",
+    "ja": ""
+  },
+  "lmRstandard#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "lmRstandard#@throws": {
+    "hash": "0922a6021cfc",
+    "en": "RangeError for an unknown `type`.",
+    "ja": ""
+  },
+  "lmRstandard#summary": {
+    "hash": "6241a9bae7bc",
+    "en": "The standardized residuals of a linear model, one per row of non-zero weight. Equivalent to R's `rstandard()`. For\nan `lm` fit; NaN for a row of leverage 1.",
+    "ja": ""
+  },
+  "lmRstudent#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "lmRstudent#summary": {
+    "hash": "ecd31b823f68",
+    "en": "The externally studentized residuals of a linear model (each scaled by the residual standard error of the fit\nwithout that row), one per row of non-zero weight. Equivalent to R's `rstudent()`. For an `lm` fit; NaN for a row of\nleverage 1, and where the deleted fit has no residual degrees of freedom.",
+    "ja": ""
   },
   "mauchlyTest#@example": {
     "hash": "f2167be5edf2",

@@ -35,19 +35,22 @@
     "ja": "メタ分析関数に共通するオプションです。"
   },
   "MetaCommonOptions.level#summary": {
-    "hash": "57c3cdff65ae",
-    "en": "Confidence level of the study and pooled intervals (default 0.95).",
-    "ja": "研究および統合区間の信頼水準です (既定 0.95)。"
+    "hash": "02f6d89429b6",
+    "en": "Confidence level of the study intervals (default 0.95). As in meta, it does not change the pooled intervals.",
+    "ja": "研究および統合区間の信頼水準です (既定 0.95)。",
+    "stale": true
   },
   "MetaCommonOptions.levelMa#summary": {
-    "hash": "881fabb521c6",
-    "en": "Confidence level of the pooled intervals (default `level`).",
-    "ja": "統合区間の信頼水準です (既定は `level`)。"
+    "hash": "5983a36c9ebd",
+    "en": "Confidence level of the pooled intervals (default 0.95, whatever `level` is: meta's level.ma).",
+    "ja": "統合区間の信頼水準です (既定は `level`)。",
+    "stale": true
   },
   "MetaCommonOptions.levelPredict#summary": {
-    "hash": "84d288d576a3",
-    "en": "Level of the prediction interval (default `level`).",
-    "ja": "予測区間の信頼水準です (既定は `level`)。"
+    "hash": "564282d4c1f9",
+    "en": "Level of the prediction interval (default 0.95, whatever `level` is: meta's level.predict).",
+    "ja": "予測区間の信頼水準です (既定は `level`)。",
+    "stale": true
   },
   "MetaCommonOptions.methodRandomCi#summary": {
     "hash": "c64ea9c2cc9f",
