@@ -21,7 +21,19 @@ Pages のデモは 200 を確かめた。main `b161c419` (= タグ v1.20.0): 作
 - autoArima の速さ (ログ 112): 定常共分散を閉じた形に、カルマンフィルタを行ごとに。48 点で 12.2 → 6.8 秒 (R はエミュレーションで
   9.7 秒)。これ以上は尤度の方法を変える必要があり R とずれるので止めた。
 
-**最初にやること (ユーザーに確かめてから):**
+**セッション 43 で済んだこと (2026-11-28、ユーザーの指示で):**
+- 公開後の確認: `/api/`・`/ja/api/` の関数ページ 10 個 (autoArima・tsFilter・holtWinters・ets・metagen・trimfill・netmeta・
+  netsplit・kpssTest・supsmu) が 200 で日本語版に訳あり、R の関数の索引 (英・日) に auto.arima・HoltWinters・metagen・
+  netmeta・Box.test・kpss.test、デモは `VERSION = "v1.20.0"`、jsDelivr の `@1.20.0/dist/timeseries.js` は 200。
+- Issue #570 を閉じた (コメントに公開と証拠のタグ)。
+- 作業ブランチ `dev/ts-meta-1.20` を手元・リモートとも削除 (手元 `cf7ea55d` = タグ archive/ts-meta-1.20、リモート
+  `cef937a9` はその祖先なのを確かめてから)。
+- HANDOFF のコミット `f34ab6be` を push。
+- 残りは下の 5 (次の版の範囲)。ROADMAP の「残っていること」は 9 まで済み。候補として、meta の残り (`rma.mh`・`rma.peto`・
+  `rma.glmm`・`rma.mv`、おすすめ)、一致の残り (SimplyAgree・mcr)、ROC の残り (pROC)、対象外のもの (lavaan など) を
+  ユーザーに示し、返事待ち。
+
+**最初にやること (ユーザーに確かめてから、1〜4 はセッション 43 で済み):**
 1. 公開後の確認の残り: `/api/` と `/ja/api/` の時系列・メタ分析のページ、R の関数の索引、デモの v1.20.0 の表示 (前回までと同じ)。
 2. Issue #570 を閉じる (前回までは公開の後に閉じた。今回はまだ閉じていない)。
 3. 手元の作業ブランチ `dev/ts-meta-1.20` を消すか聞く (中身は archive/ts-meta-1.20 と同じ。前回までは消した)。リモートの
