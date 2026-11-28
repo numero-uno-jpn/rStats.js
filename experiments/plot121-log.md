@@ -67,8 +67,8 @@ change.
    experiment 3 finds why). 1e15 + small values: the warning "collapsing to unique 'x' values" (approx's, the grid is
    finer than the values' precision).
 2. bw.nrd0: c(1, 1) and c(0, 0, 0) use the fall-backs (sd 0, then |x[1]| = 1 or 0, then 1); an infinite value gives
-   "missing value where TRUE/FALSE needed"; bw.nrd is 0 for quartiles that coincide with sd > 0? No: c(1, 2, 2, 2, 2,
-   2, 9) has IQR 0, so bw.nrd = 1.06 × 0 = 0 while bw.nrd0 falls back to sd.
+   "missing value where TRUE/FALSE needed"; c(1, 2, 2, 2, 2, 2, 9) has IQR 0, so bw.nrd = 1.06 × 0 = 0 (no
+   fall-back) while bw.nrd0 falls back to sd.
 3. qqnorm: empty or all NA "y is empty or has only NAs"; one value x = 0; ±Inf ranked as the extremes; NaN like NA.
    ppoints: a vector gives its length; 0 → empty; 2.7 → 2 points with the denominator from 2.7; a = 2 and −1 are not
    checked.
