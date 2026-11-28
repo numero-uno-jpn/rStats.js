@@ -5,6 +5,15 @@
 # The cases are those of experiments/plot121-plots.R (experiment 4 of experiments/plot121-log.md).
 library(jsonlite)
 suppressPackageStartupMessages({ library(meta); library(survival) })
+# From 1.21.0 rStats.js iterates REML (and ML) to the maximum (the user's decision of 2026-11-28; experiment 7 of
+# experiments/plot121-log.md): the references pass metafor a threshold of 1e-14 through meta's documented `control`
+# argument (settings.meta does not take it), except for metaprop's GLMM and metareg (which keeps metafor's default)
+ctl <- list(threshold = 1e-14, maxiter = 1000)
+for (fn in c("metagen", "metabin", "metacont", "metainc", "metacor", "metamean", "metarate", "metaprop")) local({
+  nm <- fn; f <- getExportedValue("meta", nm)
+  assign(nm, function(...) { a <- list(...); if (identical(a$method, "GLMM") || (nm == "metaprop" && is.null(a$method))) f(...) else f(..., control = ctl) },
+         envir = globalenv())
+})
 out <- list(R = R.version.string, arch = R.version$arch, meta = as.character(packageVersion("meta")),
             survival = as.character(packageVersion("survival")))
 

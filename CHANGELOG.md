@@ -30,6 +30,14 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   `levelPredict`, so that `level: 0.9` gave 90% pooled and prediction intervals where meta and netmeta keep 95%. Both
   now default to 0.95; `netmeta` gains `levelMa`.
 
+### Changed
+
+- meta's REML (and ML) tau2 iterates to the maximum: `metagen` and every function built on it (and `metaSubgroup`'s
+  common tau2) stopped, as metafor, when tau2 changed by less than 1e-5 in absolute terms, which is short of the
+  maximum (3e-5 relative for three studies) and depends on the scale of the data. The random-effects estimates now
+  differ from R's defaults by that much and are the same at any scale; they equal R's with
+  `control = list(threshold = 1e-14)`. `rma` keeps metafor's default stopping (its `control` sets it).
+
 ## 1.20.0 - 2026-11-28
 
 ### Added

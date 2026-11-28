@@ -2201,3 +2201,11 @@ statistics behind them (`/descriptive`, `/tests`).
   it), the Mantel-Haenszel and Peto estimates of `metabin` and `metainc`, `metapropGlmm` and `netmeta` took `level`
   as their default; from 1.21.0 they default to 0.95 as R (`netmeta` gains `levelMa`). The heterogeneity intervals
   (I², H) still use `level` (not checked against R).
+
+### meta's REML tau2 (a change from 1.20.0)
+
+- metafor stops its Fisher scoring when tau2 changes by less than an absolute 1e-5, which is short of the maximum of the
+  REML likelihood (0.0463221 instead of 0.0463207 for three studies) and gives different relative results at other
+  scales of the data. From 1.21.0 `metagen` and the functions built on it (`metabin`, `metacont`, ..., `trimfill`,
+  `metainf`, `metacum`, `metaSubgroup`) iterate to the maximum: they equal R's with `control = list(threshold = 1e-14)`
+  (R's `trimfill` refits without the control) and are the same at any scale. `rma` keeps metafor's default.

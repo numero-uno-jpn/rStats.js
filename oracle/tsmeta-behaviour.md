@@ -305,6 +305,11 @@ invariance (the same value after a change of scale or origin where theory says s
    approaching tau2 = 0 it can stop at a small positive value (2.9e-6 for a log RR), and on measures of small scale
    (IRD: variances about 5e-6) far from the maximum (5.4e-7, 10% of the variances; with a 1e-12 threshold R gives
    1e-13, and the log-likelihood at 0 is higher). rStats.js returns the maximum (0 there).
+   **From 1.21.0 (the user's decision of 2026-11-28; experiments/plot121-log.md, experiments 7 and 8)** metagen's (and
+   metaSubgroup's common) REML and ML tau2 iterate to the maximum at every value, not only near 0: the threshold is
+   1e-13 times the mean variance. At the usual scales R stops short (3e-5 relative for three studies), and the
+   difference was not scale-invariant. The R references pass metafor threshold = 1e-14 through meta's `control`
+   (trimfill ignores it: its references are the filled data refitted).
 16. **Scale** (log 103-104): R's ets, hw, HoltWinters and thetaf depend on the scale of the series (2-40% at 1e-150
    times USAccDeaths, other models chosen) and most fits and tests fail beyond 1e+-150 (squares out of range).
    rStats.js divides the series by a power of two (exact) inside ets (always), HoltWinters (its SSE below 1 by a power

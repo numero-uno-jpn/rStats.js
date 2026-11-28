@@ -84,14 +84,14 @@ describe("forestPlotData and funnelPlotData edge cases", () => {
     c300.layers.studies.forEach((r, i) => expect(rel(r.weight, c1.layers.studies[i]!.weight)).toBeLessThan(1e-12));
     expect(forestPlotData(metagen([0.21, 0.52, -0.08].map((t) => t * 1e300), [0.11, 0.21, 0.16].map((t) => t * 1e300)), { random: false })
       .layers.studies.map((r) => Math.round(r.weight * 1e6))).toEqual(c1.layers.studies.map((r) => Math.round(r.weight * 1e6)));
-    // (metagen's REML tau2 at 1e±150 is 3.4e-6 from the scaled tau2 at 1: its stopping rule, not this function; noted
-    // for the user in HANDOFF)
+    // (from 1.21.0 metagen's REML iterates to the maximum, so tau2 at 1e±150 is the scaled tau2 at 1; before, its
+    // absolute stopping rule left them 3.4e-6 apart)
     for (const s of [1e-150, 1, 1e150]) {
       const m = metagen([0.21, 0.52, -0.08].map((t) => t * s), [0.11, 0.21, 0.16].map((t) => t * s));
       const f = forestPlotData(m);
       const base = forestPlotData(metagen([0.21, 0.52, -0.08], [0.11, 0.21, 0.16]));
       f.layers.studies.forEach((r, i) => {
-        expect(rel(r.weight, base.layers.studies[i]!.weight)).toBeLessThan(1e-5);
+        expect(rel(r.weight, base.layers.studies[i]!.weight)).toBeLessThan(1e-10);
         expect(rel(r.lower, base.layers.studies[i]!.lower * s)).toBeLessThan(1e-10);
       });
       const u = funnelPlotData(m).layers.region.at(-1)!;

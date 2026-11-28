@@ -142,3 +142,23 @@ fails ("Division by zero when computing the inverse variance weights."); the cal
    (R's value: R stops its iteration short of the maximum, which is 0.046320745234; my golden-section search on the
    REML profile), but at 1e±150 rStats.js gives 0.04632080937 × scale², between the two. The stopping rule follows R
    at scale 1 and is not scale-invariant.
+
+## Experiment 7: R's REML at the maximum (2026-11-28)
+
+`plot121-reml.R` → `plot121-reml.json`. The user decided (2026-11-28) that metagen's REML iterates to the maximum. For
+three data sets: metagen's default tau2, metagen with the documented `control = list(threshold = 1e-12, maxiter =
+1000)` (passed to metafor's rma.uni), and optimize on my REML profile (−½ Σ log(v + τ²) − ½ log Σ w − ½ Σ w (y − μ)²,
+the textbook formula). The tight control reaches the maximum: 0.046320746986 against optimize's 0.046320747272 (the
+profile is flat; my own golden-section search gave 0.046320745234), while the default stops at 0.046322077948 (3e-5
+relative). `settings.meta(control = ...)` does not take it ("Additional arguments ignored as first argument is a
+list"), so the references wrap the meta functions to pass `control`. In the oracles a threshold of 1e-12 left R 1e-9
+from the maximum for a small tau2 (fleiss, RD), 1e-16 stops with "Fisher scoring algorithm did not converge", 1e-14
+works. (A first wrapper did not pass `control` at all: its closure saw the loop variable's last value; fixed.)
+
+## Experiment 8: trimfill and metaprop near 0 and 1 at the maximum (2026-11-28)
+
+`plot121-reml2.R` → `plot121-reml2.json` (first run refused by the checker: my variable `refit`; renamed `mfilled`).
+trimfill's tau2 (0.71638395) is the same with and without `control`, and the filled data refitted with the tight
+control give 0.71638381 (rStats.js: 0.71638381, to 2e-16): R's trimfill refits with metafor's default whatever the
+meta object's control. The references of trimfill are now the refit. metaprop's sets near 0 and 1
+(tsmeta120-propedge.R's) at the tight control replace that experiment's defaults in test/metaEdge120.test.ts.
