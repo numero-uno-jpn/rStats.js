@@ -82,7 +82,8 @@ export function metabin(e1: readonly number[], n1: readonly number[], e2: readon
   const res: MetaResult = { ...core, TE, seTE, k: idx.length };
   const spread = (v: readonly number[]): number[] => { const o = new Array<number>(K).fill(0); idx.forEach((i, j) => { o[i] = v[j]!; }); return o; };
   res["w.random"] = spread(core["w.random"]);
-  const level = options.levelMa ?? options.level ?? 0.95; const z = qnorm(0.5 + level / 2) as number;
+  // level.ma, not level (as metagen and metainc; experiments/plot121-log.md, experiment 5)
+  const level = options.levelMa ?? 0.95; const z = qnorm(0.5 + level / 2) as number;
   const setCommon = (te: number, se: number, w: number[]): void => {
     const st = te / se;
     Object.assign(res, { "TE.common": te, "seTE.common": se, "lower.common": te - z * se, "upper.common": te + z * se, "statistic.common": st, "pval.common": 2 * (pnorm(-Math.abs(st)) as number), "w.common": w });

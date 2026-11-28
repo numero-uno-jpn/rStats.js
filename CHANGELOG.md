@@ -7,6 +7,29 @@ While the version is 0.x, a minor release (0.y.0) may contain breaking changes;
 they are listed under **Breaking** for each release. From 1.0.0 the project follows
 [Semantic Versioning](https://semver.org/).
 
+## Unreleased (1.21.0)
+
+### Added
+
+- **Plot data** in the new entry `/plot` (`dist/plot.js`): functions that return the values R's plots draw, as arrays
+  of rows ready for any JavaScript plotting library (rStats.js still has no dependencies and draws nothing):
+  `survPlotData` (Kaplan-Meier steps from time 0, censoring marks, confidence bands, risk table; `fun` event, cumhaz,
+  cloglog), `cumincPlotData`, `rocPlotData`, `forestPlotData` (meta's results and intercept-only `rma`),
+  `funnelPlotData` (with contour-enhanced regions), `netgraphData`, `qqPlotData`, `densityPlotData`, `boxplotData`,
+  `ecdfPlotData`, `histPlotData`, `lmDiagnosticsData` (plot.lm's four panels with their lowess smooths and Cook's
+  distance contours), `coefPlotData`, `predictionBandData`, `acfPlotData`, `forecastPlotData`, `dendrogramData`,
+  `biplotData`. Each returns `{ layers, meta }`; `fromRows` turns a layer into columns (for Plotly).
+- **The statistics behind the plots** in `/descriptive`: `density` (the same binned FFT approximation as R, seven
+  kernels, weights), `bwNrd0`, `bwNrd`, `ppoints`, `qqnorm`, `qqline`, `boxplotStats`, `lowess`; in `/tests`:
+  `lmHatvalues`, `lmRstandard`, `lmRstudent`, `lmCooksDistance`.
+
+### Fixed
+
+- meta's `level` sets only the study intervals: `metagen` (and the functions built on it), the Mantel-Haenszel and
+  Peto estimates of `metabin` and `metainc`, `metapropGlmm` and `netmeta` took it as the default of `levelMa` and
+  `levelPredict`, so that `level: 0.9` gave 90% pooled and prediction intervals where meta and netmeta keep 95%. Both
+  now default to 0.95; `netmeta` gains `levelMa`.
+
 ## 1.20.0 - 2026-11-28
 
 ### Added

@@ -44,7 +44,7 @@ function influenceRows(fit: LmResult): { h: number[]; r: number[]; e: number[] }
 
 /**
  * The leverages (the diagonal of the hat matrix) of a linear model, one per row of non-zero weight. Equivalent to R's
- * `hatvalues()` for an `lm` fit.
+ * `hatvalues()`. For an `lm` fit.
  *
  * @example
  * ```ts
@@ -72,8 +72,8 @@ export interface LmRstandardOptions {
 }
 
 /**
- * The standardized residuals of a linear model, one per row of non-zero weight. Equivalent to R's `rstandard()` for
- * an `lm` fit. NaN for a row of leverage 1.
+ * The standardized residuals of a linear model, one per row of non-zero weight. Equivalent to R's `rstandard()`. For
+ * an `lm` fit; NaN for a row of leverage 1.
  *
  * @example
  * ```ts
@@ -94,7 +94,7 @@ export function lmRstandard(fit: LmResult, options: LmRstandardOptions = {}): nu
 
 /**
  * The externally studentized residuals of a linear model (each scaled by the residual standard error of the fit
- * without that row), one per row of non-zero weight. Equivalent to R's `rstudent()` for an `lm` fit. NaN for a row of
+ * without that row), one per row of non-zero weight. Equivalent to R's `rstudent()`. For an `lm` fit; NaN for a row of
  * leverage 1, and where the deleted fit has no residual degrees of freedom.
  *
  * @example
@@ -119,8 +119,8 @@ export function lmRstudent(fit: LmResult): number[] {
 }
 
 /**
- * Cook's distances of a linear model, one per row of non-zero weight. Equivalent to R's `cooks.distance()` for an
- * `lm` fit. NaN for a row of leverage 1.
+ * Cook's distances of a linear model, one per row of non-zero weight. Equivalent to R's `cooks.distance()`. For an
+ * `lm` fit; NaN for a row of leverage 1.
  *
  * @example
  * ```ts

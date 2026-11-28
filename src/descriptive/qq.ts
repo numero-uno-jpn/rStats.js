@@ -24,12 +24,12 @@ export interface PpointsOptions {
 }
 
 /**
- * The probability points (i - a) / (n + 1 - 2a), i = 1, ..., n, for Q-Q plots. Equivalent to R's `ppoints()`: `n` is
+ * The probability points (i - a) / (n + 1 - 2a), i = 1, ..., n, for Q-Q plots. Equivalent to R's `ppoints()`. `n` is
  * the count, or an array whose length is the count (R's vector argument).
  *
  * @example
  * ```ts
- * ppoints(5); // [0.119..., 0.309..., 0.5, 0.690..., 0.880...]
+ * ppoints(3); // [0.19230769230769232, 0.5, 0.8076923076923077]
  * ```
  *
  * @throws RangeError for a count that is negative or not finite.
@@ -65,7 +65,7 @@ export interface QqnormResult {
  *
  * @example
  * ```ts
- * qqnorm([3.1, 1.2, 5.5]).x; // [0, -0.967..., 0.967...]
+ * qqnorm([3.1, 1.2, 5.5]).x; // [0, -0.8694237732888861, 0.8694237732888861]
  * ```
  *
  * @throws RangeError when there is no value that is not missing.
@@ -103,7 +103,7 @@ export interface QqlineOptions {
 
 /**
  * The line of a Q-Q plot through two quantiles (the quartiles by default) of the data and of the reference
- * distribution. Equivalent to the line R's `qqline()` draws (R returns nothing; here its intercept and slope).
+ * distribution. Equivalent to R's `qqline()`. R draws the line and returns nothing; here its intercept and slope.
  * Missing values are ignored.
  *
  * @example

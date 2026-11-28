@@ -36,11 +36,11 @@ export interface MetaCommonOptions {
   methodRandomCi?: "classic" | "HK";
   /** The tau2 interval: "QP" (Q-profile), "J" (Jackson) or "BJ" (Biggerstaff-Jackson); default "J" for DL, else "QP". */
   methodTauCi?: "QP" | "J" | "BJ";
-  /** Confidence level of the study and pooled intervals (default 0.95). */
+  /** Confidence level of the study intervals (default 0.95). As in meta, it does not change the pooled intervals. */
   level?: number;
-  /** Confidence level of the pooled intervals (default `level`). */
+  /** Confidence level of the pooled intervals (default 0.95, whatever `level` is: meta's level.ma). */
   levelMa?: number;
-  /** Level of the prediction interval (default `level`). */
+  /** Level of the prediction interval (default 0.95, whatever `level` is: meta's level.predict). */
   levelPredict?: number;
 }
 
@@ -188,7 +188,9 @@ function metaCoreScaled(TE: readonly number[], seTE: readonly number[], options:
   const k = TE.length; const v = seTE.map((s) => s * s);
   const methodTau = options.methodTau ?? "REML"; const ciMethod = options.methodRandomCi ?? "classic";
   const methodTauCi = options.methodTauCi ?? (methodTau === "DL" ? "J" : "QP");
-  const level = options.level ?? 0.95; const levelMa = options.levelMa ?? level; const levelPredict = options.levelPredict ?? level;
+  // meta's level.ma and level.predict keep their defaults (0.95) whatever level is (experiments/plot121-log.md,
+  // experiments 4 and 5; before 1.21.0 they followed level)
+  const level = options.level ?? 0.95; const levelMa = options.levelMa ?? 0.95; const levelPredict = options.levelPredict ?? 0.95;
   const zMa = qnorm(0.5 + levelMa / 2) as number;
   const w = v.map((x) => 1 / x); const sw = sum(w);
   const teC = sum(w.map((wi, i) => wi * TE[i]!)) / sw; const seC = Math.sqrt(1 / sw);

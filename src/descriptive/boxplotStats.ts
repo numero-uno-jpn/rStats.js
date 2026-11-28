@@ -46,7 +46,8 @@ export interface BoxplotStatsResult {
  *
  * @example
  * ```ts
- * boxplotStats([1, 2, 3, 4, 5, 40]); // { stats: [1, 2, 3.5, 5, 5], n: 6, conf: [...], out: [40] }
+ * boxplotStats([1, 2, 3, 4, 5, 40]);
+ * // { stats: [1, 2, 3.5, 5, 5], n: 6, conf: [1.564903103201289, 5.435096896798711], out: [40] }
  * ```
  *
  * @throws RangeError for a negative `coef`.

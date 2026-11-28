@@ -33,6 +33,8 @@ const multivariateUrl = `${distUrl}multivariate.js`;
 const timeseriesUrl = `${distUrl}timeseries.js`;
 /** The causal-inference area (match, balTab, from 1.12.0): a separate file, since it is not in dist/rstats.js */
 const causalUrl = `${distUrl}causal.js`;
+/** The plot-data area (survPlotData, forestPlotData, from 1.21.0): a separate file, since it is not in dist/rstats.js */
+const plotUrl = `${distUrl}plot.js`;
 /**
  * The random numbers of the per-area bundles (their shared chunks): the areas above have a generator of their own,
  * apart from dist/rstats.js's, so setSeed seeds both (mediate in causal.js draws from the area generator, from 1.16.0)
@@ -215,14 +217,17 @@ async function start() {
   let multivariate;
   let timeseries;
   let causal;
+  let plot;
   let areaRandom;
   try {
-    [lib, mixed, regression, multivariate, timeseries, causal, areaRandom] = await Promise.all([
+    [lib, mixed, regression, multivariate, timeseries, causal, plot, areaRandom] = await Promise.all([
       import(libUrl), import(mixedUrl), import(regressionUrl), import(multivariateUrl),
       // a release before 1.11.0 has no timeseries.js: the demo then runs without it
       import(timeseriesUrl).catch(() => ({})),
       // and a release before 1.12.0 no causal.js
       import(causalUrl).catch(() => ({})),
+      // and a release before 1.21.0 no plot.js
+      import(plotUrl).catch(() => ({})),
       import(areaRandomUrl).catch(() => ({})),
     ]);
   } catch (err) {
@@ -234,10 +239,11 @@ async function start() {
   const multivariateNames = new Set(Object.keys(multivariate));
   const timeseriesNames = new Set(Object.keys(timeseries));
   const causalNames = new Set(Object.keys(causal));
+  const plotNames = new Set(Object.keys(plot));
   const [examplesFile, rResults] = await Promise.all([fetchJSON("examples.json"), fetchJSON("r-results.json")]);
   const ctx = {
     lib: {
-      ...lib, ...mixed, ...regression, ...multivariate, ...timeseries, ...causal,
+      ...lib, ...mixed, ...regression, ...multivariate, ...timeseries, ...causal, ...plot,
       ...(typeof areaRandom.setSeed === "function" ? { setSeed: (seed) => { areaRandom.setSeed(seed); return lib.setSeed(seed); } } : {}),
     },
     examples: Array.isArray(examplesFile?.examples) ? examplesFile.examples : null,
@@ -250,8 +256,9 @@ async function start() {
       const fromMultivariate = unique.filter((n) => multivariateNames.has(n));
       const fromTimeseries = unique.filter((n) => timeseriesNames.has(n));
       const fromCausal = unique.filter((n) => causalNames.has(n));
+      const fromPlot = unique.filter((n) => plotNames.has(n));
       const fromMain = unique.filter((n) => !mixedNames.has(n) && !regressionNames.has(n) && !multivariateNames.has(n) &&
-        !timeseriesNames.has(n) && !causalNames.has(n));
+        !timeseriesNames.has(n) && !causalNames.has(n) && !plotNames.has(n));
       return [
         ...(fromMain.length ? [`const { ${fromMain.join(", ")} } = await import("${libUrl}");`] : []),
         ...(fromMixed.length ? [`const { ${fromMixed.join(", ")} } = await import("${mixedUrl}");`] : []),
@@ -259,6 +266,7 @@ async function start() {
         ...(fromMultivariate.length ? [`const { ${fromMultivariate.join(", ")} } = await import("${multivariateUrl}");`] : []),
         ...(fromTimeseries.length ? [`const { ${fromTimeseries.join(", ")} } = await import("${timeseriesUrl}");`] : []),
         ...(fromCausal.length ? [`const { ${fromCausal.join(", ")} } = await import("${causalUrl}");`] : []),
+        ...(fromPlot.length ? [`const { ${fromPlot.join(", ")} } = await import("${plotUrl}");`] : []),
       ].join("\n");
     },
   };

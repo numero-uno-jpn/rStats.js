@@ -87,6 +87,11 @@
       "import": "./dist/entries/causal.js",
       "default": "./dist/entries/causal.js"
     },
+    "./plot": {
+      "types": "./dist/entries/plot.d.ts",
+      "import": "./dist/entries/plot.js",
+      "default": "./dist/entries/plot.js"
+    },
     "./package.json": "./package.json"
   },
   "types": "./dist/index.d.ts",

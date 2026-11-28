@@ -37,7 +37,7 @@ function median(v: readonly number[]): number {
 }
 
 /**
- * The lowess smoother. Equivalent to R's `lowess()`: returns the points sorted by `x` with the smoothed `y`.
+ * The lowess smoother. Equivalent to R's `lowess()`. It returns the points sorted by `x` with the smoothed `y`.
  *
  * Unlike R, a missing value (NaN) in `y` is an error: R returns the data unsmoothed in that case.
  *

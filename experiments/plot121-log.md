@@ -98,3 +98,30 @@ change.
    at 1e15 + values 1e14 off, and at 1e8 + values already 0.6 off at the first point. R loses the digits of the
    offset. rStats.js centres x and y at their midranges first (the smooth is shift-equivariant), and is the smooth
    at scale 1 shifted or scaled.
+
+## Experiment 4: dendrograms, meta's forest, survival's risk table (2026-11-28)
+
+`plot121-plots.R` → `plot121-plots.json` (first run refused by the checker: my variable `hc` is named like a reference function and
+was used without a call; renamed `hcl`, and `mm` to `mfit` with it).
+
+1. **Dendrograms**: for complete, average and single linkage of 8 points, every merge's x = the position (1..n in
+   `order`) of its leftmost leaf + as.dendrogram's `midpoint` equals the mean of its two children's x (leaves at their
+   positions): exact for all 21 merges. The leaves are at 1..n in hclust's order.
+2. **meta's forest** (metagen, REML, HK): the study intervals `lower`, `upper` = TE ∓ qnorm((1 + level) / 2) seTE,
+   the weights 100 w / sum w (common and random): exact at level 0.95 and 0.9. **At level = 0.9 the pooled and
+   prediction intervals stay those of 95%**: meta's `level` sets only the study intervals; rStats.js's metagen took
+   `level` as the default of levelMa and levelPredict (1.20.0) and gave 90% pooled intervals. Experiment 5 checks the
+   other functions.
+3. **The risk table**: summary(fit, times = pretty(c(0, max(time))), extend = TRUE)$n.risk per stratum equals "the
+   n.risk of the first time at or after t, 0 after the last time" for both strata at 0, 5, ..., 30.
+
+## Experiment 5: which intervals `level` changes in meta and netmeta (2026-11-28)
+
+`plot121-metalevel.R` → `plot121-metalevel.json`. gs("level"), gs("level.ma") and gs("level.predict") are 0.95.
+For metainc (IRD, MH), metaprop (GLMM) and netmeta, `level = 0.9` changes only the study intervals (`lower`) and
+leaves the pooled (common, random) and prediction intervals at their defaults; `level.ma = 0.9` changes the pooled
+ones, `level.predict = 0.9` the prediction interval; netmeta reports `level` 0.9 and `level.ma` 0.95. So in 1.21.0
+rStats.js's metagen (and the functions built on it), the MH and Peto branches of metabin and metainc (the same
+construction as metainc's), metapropGlmm and netmeta (which gains
+`levelMa`) default levelMa and levelPredict to 0.95 whatever `level` is. Not checked: which level meta's and
+netmeta's heterogeneity (I², H) intervals use; rStats.js keeps `level` there as before.

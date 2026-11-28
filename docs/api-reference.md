@@ -17,6 +17,8 @@ The functions are grouped by subject in the menu.
   for an R function (`t.test` → `tTest`), with a one-line description of each.
 - [Guide for JavaScript developers](https://numero-uno-jpn.github.io/rStats.js/docs/guide-for-js-developers.html):
   data frames, missing values, factors, formulas and a worked analysis, for readers new to R's way of writing one.
+- [Plotting the results](https://numero-uno-jpn.github.io/rStats.js/docs/plotting.html): the plot data of `/plot`
+  (survival curves, forest plots, Q-Q plots, model diagnostics, ...) with Observable Plot and Plotly.js.
 - [Demo](https://numero-uno-jpn.github.io/rStats.js/demo/): every function in the browser, compared with R.
 - [Differences from R](https://numero-uno-jpn.github.io/rStats.js/docs/differences-from-r.html) and
   [accuracy](https://numero-uno-jpn.github.io/rStats.js/docs/accuracy.html).
@@ -45,8 +47,9 @@ penalized regression (`glmnet`). For example, `rq("y ~ x", data, { tau: 0.5 })` 
 `geeSummary` / `geeVcov` / `geeQIC`, and `glmnetCoef` / `glmnetPredict` / `cvGlmnet` for their methods.
 
 Without a bundler, `https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@1.17.0/dist/rstats.js` is one ES module with
-every function except mixed models, regression, multivariate analysis, time series and causal inference, which are in
-`dist/mixed.js`, `dist/regression.js`, `dist/multivariate.js`, `dist/timeseries.js` and `dist/causal.js`. Keep a version in the URL (an exact one, or a
+every function except mixed models, regression, multivariate analysis, time series, causal inference and plot data,
+which are in `dist/mixed.js`, `dist/regression.js`, `dist/multivariate.js`, `dist/timeseries.js`, `dist/causal.js` and
+`dist/plot.js`. Keep a version in the URL (an exact one, or a
 major version such as `@1` from 1.0.0 on): a URL without one follows every new release, breaking changes included.
 Use either `dist/rstats.js` or the per-area bundles (`dist/tests.js`, `dist/mixed.js`, `dist/regression.js`, `dist/multivariate.js`, ...) on one page: mixing them
 loads the common code twice, with two random number states.
@@ -375,6 +378,23 @@ netsplit(n); netleague(n, { digits: 2 });                // direct and indirect 
 `metagen` and its relatives follow meta's defaults (REML, the Q-profile interval for tau2, H and I2 with Higgins and
 Thompson's intervals); the estimates are exact at any scale of TE and seTE. `netmeta` is the frequentist graph-theoretical
 model of Rücker (2012) with multi-arm studies; disconnected networks are refused (see `netconnection`).
+
+## Plot data
+
+The values R's plots draw, as arrays of rows for any plotting library, are in the separate `/plot` entry point; the
+statistics behind them (`density`, `qqnorm`, `boxplotStats`, `lowess`, `lmHatvalues`, ...) are with the others:
+
+```ts
+import { survfit, metagen, lm } from "@numero-uno-jpn/rstats";
+import { survPlotData, forestPlotData, lmDiagnosticsData } from "@numero-uno-jpn/rstats/plot";
+
+survPlotData(survfit(time, status, { group })).layers.steps; // [{ x, y, ymin, ymax, group }, ...] from (0, 1)
+forestPlotData(metagen(TE, seTE), { labels });               // studies, pooled estimates, diamonds
+lmDiagnosticsData(lm(x, y));                                 // plot.lm's four panels with their smooths
+```
+
+Each function returns `{ layers, meta }`; `fromRows` turns a layer into columns for Plotly. See
+[Plotting the results](https://numero-uno-jpn.github.io/rStats.js/docs/plotting.html).
 
 ## Causal inference
 

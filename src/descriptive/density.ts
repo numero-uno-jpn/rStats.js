@@ -98,7 +98,7 @@ function finiteValues(x: Sample, fn: string): number[] {
  *
  * @example
  * ```ts
- * bwNrd0([1, 2, 3, 4, 10]); // 0.9 * min(sd, IQR / 1.34) * 5^(-1/5)
+ * bwNrd0([1, 2, 3, 4, 10]); // 0.9735846228506357 (0.9 times IQR / 1.34, smaller than the sd, times 5^(-1/5))
  * ```
  *
  * @throws RangeError for fewer than 2 values, a missing value or an infinite value.
@@ -120,7 +120,7 @@ export function bwNrd0(x: Sample): number {
  *
  * @example
  * ```ts
- * bwNrd([1, 2, 3, 4, 10]);
+ * bwNrd([1, 2, 3, 4, 10]); // 1.1466663335796377
  * ```
  *
  * @throws RangeError for fewer than 2 values, a missing value or an infinite value.
@@ -185,7 +185,7 @@ function matchKernel(k: unknown): DensityKernel {
 }
 
 /**
- * Kernel density estimate at equally spaced points. Equivalent to R's `density()` (the default method): the same
+ * Kernel density estimate at equally spaced points. Equivalent to R's `density()`. The same
  * binned approximation (linear binning on a grid, convolution by FFT, linear interpolation), so the values are R's to
  * rounding, not the exact kernel sums (those differ by up to about 1e-3 of the peak, more for the rectangular kernel).
  *

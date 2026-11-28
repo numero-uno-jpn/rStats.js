@@ -44,6 +44,29 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `summary.ca()` | `caSummary` | Summarizes eigenvalues and row and column contributions from correspondence analysis. |
 | `summary.manova()` | `manovaSummary` | Summary tables for all four MANOVA statistics, with optional sequential intercept row. |
 
+## Plot data (`rStats.js/plot`)
+
+| R | rStats.js | Description |
+| --- | --- | --- |
+| (not in R) | `acfPlotData` | Plot data for an autocorrelation plot from `acf`: the bars and the band +- qnorm((1 + ci) / 2) / sqrt(n.used) of R's `plot.acf`. |
+| (not in R) | `biplotData` | Plot data for a biplot of principal components, as R's `biplot.prcomp`: the observations' scores and the variables' loadings, with lambda the components' singular values sdev * sqrt(n). |
+| (not in R) | `boxplotData` | Plot data for box plots of one or more groups, from `boxplotStats` (as R's `boxplot()`): a sample, or an object of named samples. |
+| (not in R) | `coefPlotData` | Plot data for a coefficient plot of a linear model: each coefficient with its confidence interval. |
+| (not in R) | `cumincPlotData` | Plot data for cumulative incidence curves of competing risks from `cuminc`: one step function per group and cause, with the pointwise standard error. |
+| (not in R) | `dendrogramData` | Plot data for the dendrogram of a hierarchical clustering: the leaves at x = 1, ..., n in the clustering's order, each merge at its height and centred over the two clusters it joins, as R's `plot.hclust`. |
+| (not in R) | `densityPlotData` | Plot data for a kernel density curve from `density`, with a rug of the data. |
+| (not in R) | `ecdfPlotData` | Plot data for the empirical distribution function of a sample (as R's `plot(ecdf(x))`): the steps at the distinct values, each with the fraction of values at or below it. |
+| (not in R) | `forecastPlotData` | Plot data for a forecast fan, as forecast's `plot.forecast`: the observed series, the point forecasts and their prediction intervals, from a forecast of rStats.js. |
+| (not in R) | `forestPlotData` | Plot data for a forest plot of a meta-analysis from `metagen` or of an intercept-only `rma` fit: one row per study (from the top. |
+| (not in R) | `funnelPlotData` | Plot data for a funnel plot from a `MetaResult` or an `rma` fit: the studies' estimates against their standard errors, the reference line and the pseudo confidence region reference +- z se for se from 0 to the largest standard error. |
+| (not in R) | `histPlotData` | Plot data for a histogram: the bars of `hist`. |
+| (not in R) | `lmDiagnosticsData` | Plot data for the four default diagnostic plots of a linear model (`lm`), as R's `plot.lm` (`which = c(1, 2, 3, 5)`), for the rows of non-zero weight. |
+| (not in R) | `netgraphData` | Plot data for the network graph of a network meta-analysis from `netmeta`: the treatments on a circle and one edge per pair of treatments compared directly, with the number of studies that compare them. |
+| (not in R) | `predictionBandData` | Plot data for the fitted line of a linear model with its confidence band and prediction band, from `predict`, over the given new predictor values. |
+| (not in R) | `qqPlotData` | Plot data for a normal Q-Q plot: the points of `qqnorm` and the line of `qqline` through the quartiles, drawn across the range of the theoretical quantiles. |
+| (not in R) | `rocPlotData` | Plot data for an ROC curve from `roc`: the curve with false positive rate and sensitivity, ordered for drawing as a line from (0, 0) to (1, 1), the chance diagonal, and the point of the largest Youden index. |
+| (not in R) | `survPlotData` | Plot data for Kaplan-Meier survival curves from `survfit` or `survfitCoxph`: the steps with their confidence band, the censoring marks and a risk table. |
+
 ## Regression models (`rStats.js/regression`)
 
 | R | rStats.js | Description |
@@ -373,6 +396,7 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `confint()` | `confint` | Confidence intervals for the coefficients of a linear model, for an `lm` fit. |
 | `confint()` | `glmConfint` | Profile likelihood confidence intervals for the coefficients of a generalized linear model, for a `glm` fit. |
 | `cooks.distance()` | `glmCooksDistance` | Cook's distances, for the rows of non-zero prior weight, for a `glm` fit. |
+| `cooks.distance()` | `lmCooksDistance` | Cook's distances of a linear model, one per row of non-zero weight. |
 | `pROC::coords()` | `coords` | Coordinates of a ROC curve: sensitivity, specificity, the counts, predictive values, likelihood ratios and the criteria of the best threshold, at every point of the curve, at the best threshold(s) or at given thresholds. |
 | `cor.test()` | `corTest` | Test for correlation between paired samples. |
 | `survival::cox.zph()` | `coxZph` | Tests the proportional-hazards assumption using the score test of Grambsch and Therneau (1994). |
@@ -412,6 +436,7 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `outliers::grubbs.test()` | `grubbsTest` | Grubbs' test for one outlier. |
 | `DescTools::GTest()` | `gTest` | Log-likelihood ratio (G) test of independence in a contingency table, or of goodness of fit of counts to given probabilities. |
 | `hatvalues()` | `glmHatvalues` | Diagonal of the hat matrix of the last weighted least squares step, for the rows of non-zero prior weight, for a `glm` fit. |
+| `hatvalues()` | `lmHatvalues` | The leverages of a linear model, one per row of non-zero weight. |
 | `effectsize::hedges_g()` | `hedgesG` | Hedges' g. |
 | `irr::icc()` | `icc` | Intraclass correlation coefficient with its F test and confidence interval. |
 | `psych::ICC()` | `ICC` | The six intraclass correlations of Shrout and Fleiss (1979), with their F tests and confidence intervals. |
@@ -506,6 +531,8 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `pROC::roc.test()` | `rocTest` | Tests the difference of the areas under two ROC curves, by DeLong's method or the bootstrap. |
 | `pROC::roc()` | `roc` | The ROC curve of a numeric predictor of a binary response. |
 | `rstandard()` | `glmRstandard` | Standardized Pearson or deviance residuals, for the rows of non-zero prior weight, for a `glm` fit. |
+| `rstandard()` | `lmRstandard` | The standardized residuals of a linear model, one per row of non-zero weight. |
+| `rstudent()` | `lmRstudent` | The externally studentized residuals of a linear model, one per row of non-zero weight. |
 | `timeROC::SeSpPPVNPV()` | `seSpPPVNPV` | Time-dependent sensitivity, specificity and predictive values of the rule "marker > cutpoint", with the weights of `timeROC`. |
 | `nortest::sf.test()` | `sfTest` | Shapiro-Francia test for normality. |
 | `shapiro.test()` | `shapiroTest` | Shapiro-Wilk test of normality. |
@@ -597,6 +624,9 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | R | rStats.js | Description |
 | --- | --- | --- |
 | `aggregate()` | `aggregate` | The function applied to the values of each group, as a data frame. |
+| `boxplot.stats()` | `boxplotStats` | The statistics a box plot draws. |
+| `bw.nrd()` | `bwNrd` | Scott's variation of the normal-reference bandwidth: 1.06 times the smaller of the standard deviation and the interquartile range divided by 1.34, times n^(-1/5). |
+| `bw.nrd0()` | `bwNrd0` | Silverman's rule-of-thumb bandwidth for a Gaussian kernel: 0.9 times the smaller of the standard deviation and the interquartile range divided by 1.34, times n^(-1/5). |
 | `DescTools::CoefVar()` | `cv` | Coefficient of variation sd / mean. |
 | `complete.cases()` | `completeCases` | Which rows have no missing value. |
 | `cor()` | `cor` | Correlation of two vectors, or correlation matrix of the columns of a matrix. |
@@ -607,6 +637,7 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `cumsum()` | `cumsum` | Running sums. |
 | `qcc::cusum()` | `cusum` | A cusum chart: the tabular cumulative sums of the standardized group means or individual values above and below the target. |
 | `cut()` | `cut` | Interval numbers of the values, or NaN outside the breaks. |
+| `density()` | `density` | Kernel density estimate at equally spaced points. |
 | `diff()` | `diff` | Lagged and iterated differences. |
 | `ecdf()` | `ecdf` | Empirical distribution function of `x`: a function returning the fraction of values at or below its argument. |
 | `qcc::ewma()` | `ewma` | An EWMA chart: the exponentially weighted moving average of the group means or individual values, started at the center. |
@@ -617,6 +648,7 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `hist()` | `hist` | Histogram counts. |
 | `IQR()` | `IQR` | Interquartile range, the difference of the 0.75 and 0.25 quantiles. |
 | `e1071::kurtosis()` | `kurtosis` | Sample excess kurtosis. |
+| `lowess()` | `lowess` | The lowess smoother. |
 | `mad()` | `mad` | Median absolute deviation, scaled. |
 | `mean()` | `mean` | Arithmetic mean, optionally trimmed. |
 | `DescTools::MeanAD()` | `meanAD` | Mean absolute deviation from the centre. |
@@ -629,12 +661,15 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `qcc::pareto.chart()` | `paretoChart` | The table of a Pareto chart without the plot: frequencies in decreasing order with the cumulative frequencies and percentages. |
 | `tidyr::pivot_longer()` | `pivotLonger` | Reshapes a data frame from wide to long: the selected columns become rows. |
 | `tidyr::pivot_wider()` | `pivotWider` | Reshapes a data frame from long to wide: the values of `namesFrom` become columns, filled from `valuesFrom`. |
+| `ppoints()` | `ppoints` | The probability points (i - a) / (n + 1 - 2a), i = 1, ..., n, for Q-Q plots. |
 | `pretty()` | `pretty` | About n + 1 equally spaced "round" values covering the range of `x`. |
 | `qcc::process.capability()` | `processCapability` | Process capability indices of an xbar or xbar.one chart. |
 | `prod()` | `prod` | Product of the values. |
 | `qcc::qcc.groups()` | `qccGroups` | Groups data by a sample indicator into one row per sample, for `qcc`. |
 | `qcc::qcc.overdispersion.test()` | `qccOverdispersionTest` | The overdispersion test for binomial or Poisson counts. |
 | `qcc::qcc()` | `qcc` | A Shewhart control chart without the plot: the charted statistics, the center, the process standard deviation, the control limits and the points out of control. |
+| `qqline()` | `qqline` | The line of a Q-Q plot through two quantiles of the data and of the reference distribution. |
+| `qqnorm()` | `qqnorm` | The coordinates of a normal quantile-quantile plot: for each value, the normal quantile of its plotting position. |
 | `quantile()` | `quantile` | Sample quantiles. |
 | `range()` | `range` | `[min, max]` of the values. |
 | `rank()` | `rank` | Sample ranks. |
